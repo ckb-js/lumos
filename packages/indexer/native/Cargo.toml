@@ -1,0 +1,28 @@
+[package]
+name = "lumos-indexer"
+version = "0.1.0"
+authors = ["Xuejie Xiao <xxuejie@gmail.com>"]
+license = "MIT"
+build = "build.rs"
+edition = "2018"
+exclude = ["artifacts.json", "index.node"]
+
+[lib]
+name = "lumos_indexer"
+crate-type = ["cdylib"]
+
+[build-dependencies]
+neon-build = "0.4.0"
+
+[dependencies]
+ckb-indexer = { path = "../../../../ckb-indexer" }
+ckb-jsonrpc-types = { git = "https://github.com/nervosnetwork/ckb", tag = "v0.31.0-pre1" }
+ckb-types = { git = "https://github.com/nervosnetwork/ckb", tag = "v0.31.0-pre1" }
+env_logger = "0.7.1"
+futures = "0.1"
+jsonrpc-core = "14.0"
+jsonrpc-core-client = { version = "14.0", features = ["http"] }
+jsonrpc-derive = "14.0"
+hyper = "0.12"
+log = "0.4.8"
+neon = "0.4.0"

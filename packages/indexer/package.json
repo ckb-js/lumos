@@ -1,0 +1,47 @@
+{
+  "name": "@lumos/indexer",
+  "version": "0.1.0",
+  "description": "CKB Indexer for Lumos framework, might be suitable for independent usage as well",
+  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
+  },
+  "files": [
+    "lib",
+    "native/index.node"
+  ],
+  "dependencies": {
+    "ckb-js-toolkit": "^0.9.1",
+    "immutable": "^4.0.0-rc.12",
+    "neon-cli": "^0.4.0",
+    "node-pre-gyp": "github:amilajack/node-pre-gyp#neon-compat",
+    "node-pre-gyp-github": "^1.4.3",
+    "xxhash": "^0.3.0"
+  },
+  "scripts": {
+    "build": "neon build",
+    "build-release": "neon build --release",
+    "fmt": "prettier --write \"lib/**/*.js\" && cd native && cargo fmt --all --",
+    "install": "npx node-pre-gyp install --fallback-to-build=false || neon build --release",
+    "package": "rm -rf native/target && npx node-pre-gyp package",
+    "upload-binary": "npm run build-release && npm run package && node-pre-gyp-github publish"
+  },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.4"
+  },
+  "binary": {
+    "module_name": "index",
+    "host": "https://github.com/nervosnetwork/lumos/releases/download/",
+    "remote_path": "lumos-indexer/{version}",
+    "package_name": "{node_abi}-{platform}-{arch}.tar.gz",
+    "module_path": "./native",
+    "pkg_path": "."
+  }
+}
