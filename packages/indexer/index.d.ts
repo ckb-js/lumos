@@ -44,7 +44,15 @@ export class Indexer {
     script: Script,
     options?: IndexerQueryOptions
   ): Array<OutPoint>;
+  getLiveCellsByTypeScript(
+    script: Script,
+    options?: IndexerQueryOptions
+  ): Array<OutPoint>;
   getTransactionsByLockScript(
+    script: Script,
+    options?: IndexerQueryOptions
+  ): Array<string>;
+  getTransactionsByTypeScript(
     script: Script,
     options?: IndexerQueryOptions
   ): Array<string>;
