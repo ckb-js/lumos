@@ -132,13 +132,17 @@ class CellCollector {
     // TODO: implement type querying
     for (const o of outPoints) {
       const cell = await this.rpc.get_live_cell(o.serializeJson(), true);
-      if (!this.skipNotLive && cell.status !== "live") {
+      const tx = await this.rpc.get_transaction(o.tx_hash);
+      if (
+        !this.skipNotLive &&
+        (cell.status !== "live" || !tx || !tx.tx_status.block_hash)
+      ) {
         throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
       }
       yield {
         cell_output: cell.cell.outupt,
         out_point: o.serializeJson(),
-        // TODO: block hash
+        block_hash: tx.tx_status.block_hash,
         data: cell.cell.data.content,
       };
     }
