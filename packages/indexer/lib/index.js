@@ -101,21 +101,21 @@ class OutPoint {
 class CellCollector {
   constructor(
     indexer,
-    { lock = null, type = null } = {},
+    { lock = null, type_ = null } = {},
     { skipNotLive = false } = {}
   ) {
-    if (!lock && !type) {
+    if (!lock && !type_) {
       throw new Error("Either lock or type script must be provided!");
     }
     if (lock) {
       validators.ValidateScript(lock);
     }
-    if (type) {
-      validators.ValidateScript(type);
+    if (type_) {
+      validators.ValidateScript(type_);
     }
     this.indexer = indexer;
     this.lock = lock;
-    this.type = type;
+    this.type_ = type_;
     this.skipNotLive = skipNotLive;
     this.rpc = new RPC(indexer.uri);
   }
@@ -151,21 +151,21 @@ class CellCollector {
 class TransactionCollector {
   constructor(
     indexer,
-    { lock = null, type = null } = {},
+    { lock = null, type_ = null } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
-    if (!lock && !type) {
+    if (!lock && !type_) {
       throw new Error("Either lock or type script must be provided!");
     }
     if (lock) {
       validators.ValidateScript(lock);
     }
-    if (type) {
-      validators.ValidateScript(type);
+    if (type_) {
+      validators.ValidateScript(type_);
     }
     this.indexer = indexer;
     this.lock = lock;
-    this.type = type;
+    this.type_ = type_;
     this.skipMissing = skipMissing;
     this.includeStatus = includeStatus;
     this.rpc = new RPC(indexer.uri);

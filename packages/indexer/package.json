@@ -6,11 +6,13 @@
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
+  "types": "index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "files": [
+    "index.d.ts",
     "lib",
     "native/index.node"
   ],
@@ -25,7 +27,7 @@
   "scripts": {
     "build": "neon build",
     "build-release": "neon build --release",
-    "fmt": "prettier --write \"lib/**/*.js\" && cd native && cargo fmt --all --",
+    "fmt": "prettier --write \"lib/**/*.js\" index.d.ts && cd native && cargo fmt --all --",
     "install": "npx node-pre-gyp install --fallback-to-build=false || neon build --release",
     "package": "rm -rf native/target && npx node-pre-gyp package",
     "upload-binary": "npm run build-release && npm run package && node-pre-gyp-github publish"
