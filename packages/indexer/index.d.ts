@@ -16,17 +16,17 @@ export interface Tip {
   block_hash: string;
 }
 
-export interface NormalizedScript {
-  code_hash: ArrayBuffer;
-  hash_type: number;
-  args: ArrayBuffer;
-}
-
 export interface IndexerQueryOptions {
   validateFirst?: boolean;
 }
 
-// TODO: change this when we have proper typing for all the CKB data structures.
+// TODO: change those when we have proper typing for all the CKB data structures.
+export interface Script {
+  code_hash: string;
+  hash_type: string;
+  args: string;
+}
+
 export interface OutPoint {
   tx_hash: string;
   index: string;
@@ -41,18 +41,18 @@ export class Indexer {
   stop(): void;
   tip(): Tip;
   getLiveCellsByLockScript(
-    script: NormalizedScript,
+    script: Script,
     options?: IndexerQueryOptions
   ): Array<OutPoint>;
   getTransactionsByLockScript(
-    script: NormalizedScript,
+    script: Script,
     options?: IndexerQueryOptions
   ): Array<string>;
 }
 
 export interface CollectorQueries {
-  lock?: NormalizedScript;
-  type_?: NormalizedScript;
+  lock?: Script;
+  type_?: Script;
 }
 
 export interface CellCollectorOptions {
