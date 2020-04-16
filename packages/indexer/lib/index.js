@@ -1,4 +1,4 @@
-const { validators, normalizers, RPC } = require("ckb-js-toolkit");
+const { validators, normalizers, Reader } = require("ckb-js-toolkit");
 const { Set } = require("immutable");
 const XXHash = require("xxhash");
 const { Indexer: NativeIndexer } = require("../native");
@@ -39,21 +39,38 @@ class Indexer {
     return this.nativeIndexer.tip();
   }
 
-  getLiveCellsByLockScript(script, { validateFirst = true } = {}) {
-    return this._getLiveCellsByScript(script, 0, validateFirst);
+  getLiveCellsByLockScript(
+    script,
+    { validateFirst = true, returnRawBuffer = false } = {}
+  ) {
+    return this._getLiveCellsByScript(
+      script,
+      0,
+      validateFirst,
+      returnRawBuffer
+    );
   }
 
-  getLiveCellsByTypeScript(script, { validateFirst = true } = {}) {
-    return this._getLiveCellsByScript(script, 1, validateFirst);
+  getLiveCellsByTypeScript(
+    script,
+    { validateFirst = true, returnRawBuffer = false } = {}
+  ) {
+    return this._getLiveCellsByScript(
+      script,
+      1,
+      validateFirst,
+      returnRawBuffer
+    );
   }
 
-  _getLiveCellsByScript(script, scriptType, validateFirst) {
+  _getLiveCellsByScript(script, scriptType, validateFirst, returnRawBuffer) {
     if (validateFirst) {
       validators.ValidateScript(script);
     }
     return this.nativeIndexer.getLiveCellsByScript(
       normalizers.NormalizeScript(script),
-      scriptType
+      scriptType,
+      returnRawBuffer
     );
   }
 
@@ -89,33 +106,23 @@ class Indexer {
   }
 }
 
-class OutPoint {
-  constructor({ tx_hash, index }) {
-    this.tx_hash = tx_hash;
-    this.index = index;
-  }
-
-  serializeJson() {
-    return {
-      tx_hash: this.tx_hash,
-      index: this.index,
-    };
+class BufferValue {
+  constructor(buffer) {
+    this.buffer = buffer;
   }
 
   equals(other) {
-    return this.tx_hash === other.tx_hash && this.index === other.index;
+    return (
+      new Reader(this.buffer).serializeJson() ===
+      new Reader(other.buffer).serializeJson()
+    );
   }
 
   hashCode() {
-    return XXHash.hash(Buffer.from(this.tx_hash + this.index, "utf8"), 0);
+    return XXHash.hash(Buffer.from(this.buffer), 0);
   }
 }
 
-// Notice this is a CellCollector implementation that only uses indexer
-// here. Since the indexer we use only keeps live cell OutPoints in storage,
-// it means we will have to run CKB RPC queries on each OutPoint to fetch cell
-// data. In some cases this might slow your app down. An ideal solution would
-// be combining this with lumos-cacher to accelerate this process.
 class CellCollector {
   constructor(
     indexer,
@@ -135,7 +142,6 @@ class CellCollector {
     this.lock = lock;
     this.type_ = type_;
     this.skipNotLive = skipNotLive;
-    this.rpc = new RPC(indexer.uri);
   }
 
   async *collect() {
@@ -143,39 +149,34 @@ class CellCollector {
     if (this.lock) {
       for (const o of this.indexer.getLiveCellsByLockScript(this.lock, {
         validateFirst: false,
+        returnRawBuffer: true,
       })) {
-        outPoints = outPoints.add(new OutPoint(o));
+        outPoints = outPoints.add(new BufferValue(o));
       }
     }
     if (this.type_) {
       for (const o of this.indexer.getLiveCellsByTypeScript(this.type_, {
         validateFirst: false,
+        returnRawBuffer: true,
       })) {
-        outPoints = outPoints.add(new OutPoint(o));
+        outPoints = outPoints.add(new BufferValue(o));
       }
     }
     for (const o of outPoints) {
-      const cell = await this.rpc.get_live_cell(o.serializeJson(), true);
-      const tx = await this.rpc.get_transaction(o.tx_hash);
-      if (
-        !this.skipNotLive &&
-        (cell.status !== "live" || !tx || !tx.tx_status.block_hash)
-      ) {
+      const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+      if (!this.skipNotLive && !cell) {
         throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
       }
-      yield {
-        cell_output: cell.cell.output,
-        out_point: o.serializeJson(),
-        block_hash: tx.tx_status.block_hash,
-        data: cell.cell.data.content,
-      };
+      yield cell;
     }
   }
 }
 
-// See the above comment on CellCollector, TransactionCollector here suffers
-// the same issue that we have to perform RPC calls for each transaction to
-// fetch the data.
+// Notice this TransactionCollector implementation only uses indexer
+// here. Since the indexer we use doesn't store full transaction data,
+// we will have to run CKB RPC queries on each tx hash to fetch transaction
+// data. In some cases this might slow your app down. An ideal solution would
+// be combining this with some cacher to accelerate this process.
 class TransactionCollector {
   constructor(
     indexer,

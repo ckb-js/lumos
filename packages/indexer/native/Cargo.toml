@@ -15,7 +15,7 @@ crate-type = ["cdylib"]
 neon-build = "0.4.0"
 
 [dependencies]
-ckb-indexer = { git = "https://github.com/quake/ckb-indexer", rev = "fa07808" }
+ckb-indexer = { git = "https://github.com/quake/ckb-indexer", rev = "4a233fd" }
 ckb-jsonrpc-types = { git = "https://github.com/nervosnetwork/ckb", tag = "v0.31.0-pre1" }
 ckb-types = { git = "https://github.com/nervosnetwork/ckb", tag = "v0.31.0-pre1" }
 env_logger = "0.7.1"

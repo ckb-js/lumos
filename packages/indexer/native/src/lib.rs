@@ -8,7 +8,7 @@ use ckb_indexer::{
 use ckb_jsonrpc_types::{BlockNumber, BlockView};
 use ckb_types::{
     core::{BlockView as CoreBlockView, ScriptHashType},
-    packed::{Script, ScriptBuilder},
+    packed::{OutPoint, Script, ScriptBuilder},
     prelude::*,
 };
 use futures::Future;
@@ -244,13 +244,23 @@ declare_types! {
             let out_points = out_points.unwrap();
             let js_out_points = JsArray::new(&mut cx, out_points.len() as u32);
             for (i, out_point) in out_points.iter().enumerate() {
-                let js_out_point = JsObject::new(&mut cx);
-                let js_tx_hash = cx.string(format!("{:#x}", out_point.tx_hash()));
-                js_out_point.set(&mut cx, "tx_hash", js_tx_hash)?;
-                let index: u32 = out_point.index().unpack();
-                let js_index = cx.string(format!("{:#x}", index));
-                js_out_point.set(&mut cx, "index", js_index)?;
-                js_out_points.set(&mut cx, i as u32, js_out_point)?;
+                if cx.argument::<JsBoolean>(2)?.value() {
+                    let mut js_buffer = JsArrayBuffer::new(&mut cx, out_point.as_slice().len() as u32)?;
+                    {
+                        let guard = cx.lock();
+                        let buffer = js_buffer.borrow_mut(&guard);
+                        buffer.as_mut_slice().copy_from_slice(out_point.as_slice());
+                    }
+                    js_out_points.set(&mut cx, i as u32, js_buffer)?;
+                } else {
+                    let js_out_point = JsObject::new(&mut cx);
+                    let js_tx_hash = cx.string(format!("{:#x}", out_point.tx_hash()));
+                    js_out_point.set(&mut cx, "tx_hash", js_tx_hash)?;
+                    let index: u32 = out_point.index().unpack();
+                    let js_index = cx.string(format!("{:#x}", index));
+                    js_out_point.set(&mut cx, "index", js_index)?;
+                    js_out_points.set(&mut cx, i as u32, js_out_point)?;
+                }
             }
 
             Ok(js_out_points.upcast())
@@ -305,6 +315,95 @@ declare_types! {
             }
 
             Ok(js_hashes.upcast())
+        }
+
+        method getDetailedLiveCell(mut cx) {
+            let js_buffer = cx.argument::<JsArrayBuffer>(0)?;
+            let out_point = {
+                let guard = cx.lock();
+                let buffer = js_buffer.borrow(&guard);
+                OutPoint::from_slice(buffer.as_slice())
+            };
+            if out_point.is_err() {
+                return cx.throw_error(format!("You must provide an ArrayBuffer containing a valid OutPoint!"));
+            }
+            let out_point = out_point.unwrap();
+            let this = cx.this();
+            let inner_indexer = {
+                let guard = cx.lock();
+                let indexer = this.borrow(&guard);
+                indexer.indexer.clone()
+            };
+            let detailed_cell = inner_indexer.get_detailed_live_cell(&out_point);
+            if detailed_cell.is_err() {
+                return cx.throw_error(format!("Error getting live cell: {:?}", detailed_cell.err().unwrap()));
+            }
+            let detailed_cell = detailed_cell.unwrap();
+            if detailed_cell.is_none() {
+                return Ok(cx.undefined().upcast());
+            }
+            let detailed_cell = detailed_cell.unwrap();
+
+            let js_cell = JsObject::new(&mut cx);
+            let capacity: u64 = detailed_cell.cell_output.capacity().unpack();
+            let js_capacity = cx.string(format!("{:#x}", capacity));
+            js_cell.set(&mut cx, "capacity", js_capacity)?;
+
+            let js_lock = {
+                let script = JsObject::new(&mut cx);
+                let code_hash = cx.string(format!("{:#x}", detailed_cell.cell_output.lock().code_hash()));
+                script.set(&mut cx, "code_hash", code_hash)?;
+                let hash_type = if detailed_cell.cell_output.lock().hash_type().as_slice()[0] == 1 {
+                    cx.string("type")
+                } else {
+                    cx.string("lock")
+                };
+                script.set(&mut cx, "hash_type", hash_type)?;
+                let args = cx.string(format!("0x{:x}", detailed_cell.cell_output.lock().args().raw_data()));
+                script.set(&mut cx, "args", args)?;
+                script
+            };
+            js_cell.set(&mut cx, "lock", js_lock)?;
+
+            if let Some(t) = detailed_cell.cell_output.type_().to_opt() {
+                let js_type = {
+                    let script = JsObject::new(&mut cx);
+                    let code_hash = cx.string(format!("{:#x}", t.code_hash()));
+                    script.set(&mut cx, "code_hash", code_hash)?;
+                    let hash_type = if t.hash_type().as_slice()[0] == 1 {
+                        cx.string("type")
+                    } else {
+                        cx.string("lock")
+                    };
+                    script.set(&mut cx, "hash_type", hash_type)?;
+                    let args = cx.string(format!("0x{:x}", t.args().raw_data()));
+                    script.set(&mut cx, "args", args)?;
+                    script
+                };
+                js_cell.set(&mut cx, "type", js_type)?;
+            } else {
+                let undefined = cx.undefined();
+                js_cell.set(&mut cx, "type", undefined)?;
+            }
+
+            let result = JsObject::new(&mut cx);
+            result.set(&mut cx, "cell_output", js_cell)?;
+
+            let js_out_point = JsObject::new(&mut cx);
+            let js_tx_hash = cx.string(format!("{:#x}", out_point.tx_hash()));
+            js_out_point.set(&mut cx, "tx_hash", js_tx_hash)?;
+            let index: u32 = out_point.index().unpack();
+            let js_index = cx.string(format!("{:#x}", index));
+            js_out_point.set(&mut cx, "index", js_index)?;
+            result.set(&mut cx, "out_point", js_out_point)?;
+
+            let js_block_hash = cx.string(format!("{:#x}", detailed_cell.block_hash));
+            result.set(&mut cx, "block_hash", js_block_hash)?;
+
+            let js_data = cx.string(format!("0x{:x}", detailed_cell.cell_data.raw_data()));
+            result.set(&mut cx, "data", js_data)?;
+
+            Ok(result.upcast())
         }
     }
 }

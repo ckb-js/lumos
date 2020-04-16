@@ -18,6 +18,7 @@ export interface Tip {
 
 export interface IndexerQueryOptions {
   validateFirst?: boolean;
+  returnRawBuffer?: boolean;
 }
 
 // TODO: change those when we have proper typing for all the CKB data structures.
@@ -40,14 +41,15 @@ export class Indexer {
   start(): void;
   stop(): void;
   tip(): Tip;
+
   getLiveCellsByLockScript(
     script: Script,
     options?: IndexerQueryOptions
-  ): Array<OutPoint>;
+  ): Array<OutPoint | ArrayBuffer>;
   getLiveCellsByTypeScript(
     script: Script,
     options?: IndexerQueryOptions
-  ): Array<OutPoint>;
+  ): Array<OutPoint | ArrayBuffer>;
   getTransactionsByLockScript(
     script: Script,
     options?: IndexerQueryOptions
