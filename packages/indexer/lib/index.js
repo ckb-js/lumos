@@ -40,20 +40,38 @@ class Indexer {
   }
 
   getLiveCellsByLockScript(script, { validateFirst = true } = {}) {
+    return this._getLiveCellsByScript(script, 0, validateFirst);
+  }
+
+  getLiveCellsByTypeScript(script, { validateFirst = true } = {}) {
+    return this._getLiveCellsByScript(script, 1, validateFirst);
+  }
+
+  _getLiveCellsByScript(script, scriptType, validateFirst) {
     if (validateFirst) {
       validators.ValidateScript(script);
     }
-    return this.nativeIndexer.getLiveCellsByLockScript(
-      normalizers.NormalizeScript(script)
+    return this.nativeIndexer.getLiveCellsByScript(
+      normalizers.NormalizeScript(script),
+      scriptType
     );
   }
 
   getTransactionsByLockScript(script, { validateFirst = true } = {}) {
+    return this._getTransactionsByScript(script, 0, validateFirst);
+  }
+
+  getTransactionsByTypeScript(script, { validateFirst = true } = {}) {
+    return this._getTransactionsByScript(script, 1, validateFirst);
+  }
+
+  _getTransactionsByScript(script, scriptType, validateFirst) {
     if (validateFirst) {
       validators.ValidateScript(script);
     }
-    return this.nativeIndexer.getTransactionsByLockScript(
-      normalizers.NormalizeScript(script)
+    return this.nativeIndexer.getTransactionsByScript(
+      normalizers.NormalizeScript(script),
+      scriptType
     );
   }
 
@@ -129,7 +147,13 @@ class CellCollector {
         outPoints = outPoints.add(new OutPoint(o));
       }
     }
-    // TODO: implement type querying
+    if (this.type_) {
+      for (const o of this.indexer.getLiveCellsByTypeScript(this.type_, {
+        validateFirst: false,
+      })) {
+        outPoints = outPoints.add(new OutPoint(o));
+      }
+    }
     for (const o of outPoints) {
       const cell = await this.rpc.get_live_cell(o.serializeJson(), true);
       const tx = await this.rpc.get_transaction(o.tx_hash);
@@ -140,7 +164,7 @@ class CellCollector {
         throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
       }
       yield {
-        cell_output: cell.cell.outupt,
+        cell_output: cell.cell.output,
         out_point: o.serializeJson(),
         block_hash: tx.tx_status.block_hash,
         data: cell.cell.data.content,
@@ -184,7 +208,13 @@ class TransactionCollector {
         hashes = hashes.add(h);
       }
     }
-    // TODO: implement type querying
+    if (this.type_) {
+      for (const h of this.indexer.getTransactionsByTypeScript(this.type_, {
+        validateFirst: false,
+      })) {
+        hashes = hashes.add(h);
+      }
+    }
     for (const h of hashes) {
       const tx = await this.rpc.get_transaction(h);
       if (!this.skipMissing && !tx) {

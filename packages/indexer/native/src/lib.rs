@@ -200,7 +200,7 @@ declare_types! {
             }
         }
 
-        method getLiveCellsByLockScript(mut cx) {
+        method getLiveCellsByScript(mut cx) {
             let this = cx.this();
             let inner_indexer = {
                 let guard = cx.lock();
@@ -233,7 +233,11 @@ declare_types! {
                 return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
             }
             let script = script.unwrap();
-            let out_points = inner_indexer.get_live_cells_by_lock_script(&script);
+            let out_points = if cx.argument::<JsNumber>(1)?.value() as u32 == 1 {
+                inner_indexer.get_live_cells_by_type_script(&script)
+            } else {
+                inner_indexer.get_live_cells_by_lock_script(&script)
+            };
             if out_points.is_err() {
                 return cx.throw_error(format!("Error fetching cells: {:?}", out_points.unwrap_err()));
             }
@@ -252,7 +256,7 @@ declare_types! {
             Ok(js_out_points.upcast())
         }
 
-        method getTransactionsByLockScript(mut cx) {
+        method getTransactionsByScript(mut cx) {
             let this = cx.this();
             let inner_indexer = {
                 let guard = cx.lock();
@@ -285,7 +289,11 @@ declare_types! {
                 return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
             }
             let script = script.unwrap();
-            let hashes = inner_indexer.get_transactions_by_lock_script(&script);
+            let hashes = if cx.argument::<JsNumber>(1)?.value() as u32 == 1 {
+                inner_indexer.get_transactions_by_type_script(&script)
+            } else {
+                inner_indexer.get_transactions_by_lock_script(&script)
+            };
             if hashes.is_err() {
                 return cx.throw_error(format!("Error fetching transactions: {:?}", hashes.unwrap_err()));
             }
