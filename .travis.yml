@@ -1,5 +1,7 @@
 os:
+  - osx
   - linux
+  - windows
 dist: bionic
 
 language: node_js
@@ -7,14 +9,19 @@ node_js:
   - 12
   - 13
 
-cache: cargo
+cache:
+  - cargo
+  - npm
 
 before_install:
   # Install Rust and Cargo
   - curl https://sh.rustup.rs -sSf > /tmp/rustup.sh
-  - sh /tmp/rustup.sh -y
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then export RUSTUP_OPTIONS="--default-toolchain stable-x86_64-pc-windows-msvc"; fi
+  - sh /tmp/rustup.sh -y $RUSTUP_OPTIONS
   - export PATH="$HOME/.cargo/bin:$PATH"
-  - source "$HOME/.cargo/env"
+  - source "$HOME/.cargo/env" || true
+  - rustc --version
+  - cargo --version
   # Install NPM packages
   - node -v
   - npm -v
