@@ -25,4 +25,14 @@ before_install:
 script:
   - lerna run fmt
   - git diff --exit-code
-  - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; npm run upload-binary; fi
+  - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package; fi
+
+deploy:
+  - provider: releases
+    skip_cleanup: true
+    on:
+      tags: true
+    api_key: "$GITHUB_TOKEN"
+    file_glob: true
+    file:
+      - "build/stage/${TRAVIS_TAG}/*"

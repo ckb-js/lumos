@@ -1,6 +1,6 @@
 {
   "name": "@lumos/indexer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CKB Indexer for Lumos framework, might be suitable for independent usage as well",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -21,16 +21,14 @@
     "immutable": "^4.0.0-rc.12",
     "neon-cli": "^0.4.0",
     "node-pre-gyp": "github:amilajack/node-pre-gyp#neon-compat",
-    "node-pre-gyp-github": "^1.4.3",
     "xxhash": "^0.3.0"
   },
   "scripts": {
     "build": "neon build",
     "build-release": "neon build --release",
     "fmt": "prettier --write \"lib/**/*.js\" index.d.ts && cd native && cargo fmt --all --",
-    "install": "npx node-pre-gyp install --fallback-to-build=false || npm run build --release",
-    "package": "npm run build-release && rm -rf native/target && npx node-pre-gyp package",
-    "upload-binary": "npm run package && node-pre-gyp-github publish"
+    "install": "npx node-pre-gyp install --fallback-to-build=false || npm run build-release",
+    "package": "npm run build-release && rm -rf native/target && npx node-pre-gyp package"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
