@@ -23,6 +23,7 @@ before_install:
   - lerna bootstrap
 
 script:
+  - lerna run test
   - lerna run fmt
   - git diff --exit-code
   - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package; fi
