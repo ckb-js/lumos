@@ -1,4 +1,4 @@
-# `@lumos/indexer`
+# `@ckb-lumos/indexer`
 
 CKB indexer used in lumos framework. Might be possible for independent usage as well. It is based on a [Rust based native indexer](https://github.com/quake/ckb-indexer) for stability and performance.
 
@@ -17,7 +17,7 @@ Note for the moment, SQLite is not officially supported, single-node users or El
 ## Usage
 
 ```
-const { Indexer, CellCollector } = require('@lumos/indexer');
+const { Indexer, CellCollector } = require('@ckb-lumos/indexer');
 const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data")
 indexer.startForever();
 ```
