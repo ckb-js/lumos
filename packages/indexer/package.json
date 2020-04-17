@@ -14,7 +14,9 @@
   "files": [
     "index.d.ts",
     "lib",
-    "native/index.node"
+    "native/build.rs",
+    "native/Cargo.*",
+    "native/src"
   ],
   "dependencies": {
     "ckb-js-toolkit": "^0.9.1",
