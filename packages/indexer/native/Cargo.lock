@@ -978,8 +978,7 @@ dependencies = [
 [[package]]
 name = "neon-sys"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69a6c1ba6b926746f4d3f596de18ce49d062d78fd9f35f636080232aa77a0e16"
+source = "git+https://github.com/xxuejie/neon?rev=6e246f2#6e246f2edc37dbde9477743acd15ebefd3de99c2"
 dependencies = [
  "cc",
  "regex",
