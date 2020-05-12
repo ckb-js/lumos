@@ -1,0 +1,39 @@
+{
+  "name": "@ckb-lumos/transaction-manager",
+  "version": "0.1.0",
+  "description": "Pending Transaction Manager for lumos",
+  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"lib/**/*.js\" index.d.ts package.json",
+    "test": "echo \"No tests yet!\""
+  },
+  "devDependencies": {
+    "prettier": "^2.0.4"
+  },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "dependencies": {
+    "@ckb-lumos/indexer": "^0.1.6",
+    "@ckb-lumos/types": "^0.1.0",
+    "ckb-js-toolkit": "^0.9.1",
+    "immutable": "^4.0.0-rc.12"
+  }
+}

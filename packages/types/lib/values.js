@@ -3,10 +3,12 @@
 const { validators, normalizers, Reader } = require("ckb-js-toolkit");
 const XXHash = require("xxhash");
 const core = require("./core");
+const { ckbHash } = require("./utils");
 
 class Value {
-  constructor(buffer) {
+  constructor(buffer, value) {
     this.buffer = buffer;
+    this.value = value;
   }
 
   equals(other) {
@@ -19,6 +21,35 @@ class Value {
   hashCode() {
     return XXHash.hash(Buffer.from(this.buffer), 0);
   }
+
+  hash() {
+    return ckbHash(this.buffer).serializeJson();
+  }
+
+  value() {
+    return this.value;
+  }
+}
+
+class ScriptValue extends Value {
+  constructor(script, { validate = true } = {}) {
+    if (validate) {
+      validators.ValidateScript(script);
+    }
+    super(core.SerializeScript(normalizers.NormalizeScript(script)), script);
+  }
+}
+
+class OutPointValue extends Value {
+  constructor(out_point, { validate = true } = {}) {
+    if (validate) {
+      validators.ValidateOutPoint(out_point);
+    }
+    super(
+      core.SerializeOutPoint(normalizers.NormalizeOutPoint(out_point)),
+      out_point
+    );
+  }
 }
 
 class TransactionValue extends Value {
@@ -27,12 +58,14 @@ class TransactionValue extends Value {
       validators.ValidateTransaction(transaction);
     }
     super(
-      core.SerializeTransaction(normalizers.NormalizeTransaction(transaction))
+      core.SerializeTransaction(normalizers.NormalizeTransaction(transaction)),
+      transaction
     );
-    this.transaction = transaction;
   }
 }
 
 module.exports = {
+  ScriptValue,
+  OutPointValue,
   TransactionValue,
 };
