@@ -1,0 +1,32 @@
+{
+  "name": "@ckb-lumos/types",
+  "version": "0.1.0",
+  "description": "TypeScript definitions for common objects used in lumos",
+  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"lib/**/*.js\" index.d.ts package.json",
+    "regenerate-schema": "mkdir -p tmp && curl -L https://raw.githubusercontent.com/nervosnetwork/ckb/b8a4743c4ae9368f5d56880c74d7edb7580d0d45/util/types/schemas/blockchain.mol -o tmp/blockchain.mol && moleculec --language - --schema-file tmp/blockchain.mol --format json > tmp/core.json && moleculec-es -inputFile tmp/core.json -outputFile tmp/core.esm.js -generateTypeScriptDefinition && rollup -f umd -i tmp/core.esm.js -o lib/core.js --name CKBCore && cp tmp/core.esm.d.ts lib/core.d.ts && rm -rf tmp",
+    "test": "ava"
+  },
+  "devDependencies": {
+    "ava": "^3.5.0",
+    "ckb-js-toolkit": "^0.9.1",
+    "immutable": "^4.0.0-rc.12",
+    "prettier": "^2.0.4",
+    "rollup": "^1.32.0"
+  },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  }
+}
