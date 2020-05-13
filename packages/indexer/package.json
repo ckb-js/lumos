@@ -18,6 +18,9 @@
     "native/Cargo.*",
     "native/src"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "ckb-js-toolkit": "^0.9.1",
     "immutable": "^4.0.0-rc.12",
