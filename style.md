@@ -4,9 +4,9 @@ This is not something that is as complete as a [formal Style Guide](https://goog
 
 ## General Ideas
 
-* Lumos will be tested and supported on the latest stable version of node.js, as well as all LTS versions since node.js 12.
+* Lumos will be tested and supported on the latest stable and LTS versions of node.js, for a production environment, we recommend that you only use the latest LTS versions.
 * Lumos will be tested and supported on 64-bit machines running latest versions of Windows, macOS and popular Linux distributions(we might expand on this later).
-* For dapp developers that are just using lumos as an npm dependency, Rust shall not be used, meaning pre-built binaries for the corresponding environment can be downloaded.
+* For dapp developers that are just using lumos as an npm dependency, Rust shall not be needed, meaning pre-built binaries for the corresponding environment can be downloaded.
 * Lumos is only designed to work with node.js environment, meaning browser is not a supported target.
 * Lumos will provide TypeScript support, but all components of lumos should also support safe use from a pure JavaScript based environment. One example of this rule, is that all the components shall perform type checks dynamically within JavaScript, no TypeScript checking will be relied on for security.
 
