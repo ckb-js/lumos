@@ -104,6 +104,10 @@ class Indexer {
       }
     }, this.livenessCheckIntervalSeconds * 1000);
   }
+
+  collector({ lock = null, type_ = null } = {}, { skipNotLive = false } = {}) {
+    return new CellCollector(this, { lock, type_ }, { skipNotLive });
+  }
 }
 
 class BufferValue {

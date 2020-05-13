@@ -25,10 +25,6 @@ class Value {
   hash() {
     return ckbHash(this.buffer).serializeJson();
   }
-
-  value() {
-    return this.value;
-  }
 }
 
 class ScriptValue extends Value {
