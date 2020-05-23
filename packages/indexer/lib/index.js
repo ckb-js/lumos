@@ -1,4 +1,4 @@
-const { validators, normalizers, Reader } = require("ckb-js-toolkit");
+const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const { Set } = require("immutable");
 const XXHash = require("xxhash");
 const { Indexer: NativeIndexer } = require("../native");
