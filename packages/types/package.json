@@ -29,5 +29,8 @@
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "dependencies": {
+    "xxhash": "^0.3.0"
   }
 }

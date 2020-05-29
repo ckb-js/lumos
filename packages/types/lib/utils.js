@@ -1,24 +1,39 @@
 const blake2b = require("blake2b");
-import { Reader } from "ckb-js-toolkit";
+const { Reader } = require("ckb-js-toolkit");
 
-function ckbHasher() {
-  return blake2b(
-    32,
-    null,
-    null,
-    new Uint8Array(Reader.fromRawString("ckb-default-hash").toArrayBuffer())
-  );
+class CKBHasher {
+  constructor() {
+    this.hasher = blake2b(
+      32,
+      null,
+      null,
+      new Uint8Array(Reader.fromRawString("ckb-default-hash").toArrayBuffer())
+    );
+  }
+
+  update(data) {
+    this.hasher.update(new Uint8Array(new Reader(data).toArrayBuffer()));
+    return this;
+  }
+
+  digestReader() {
+    const out = new Uint8Array(32);
+    this.hasher.digest(out);
+    return new Reader(out.buffer);
+  }
+
+  digestHex() {
+    return this.digestReader().serializeJson();
+  }
 }
 
 function ckbHash(buffer) {
-  buffer = new Reader(buffer).toArrayBuffer();
-  const h = ckbHasher();
-  h.update(new Uint8Array(buffer));
-  const out = new Uint8Array(32);
-  h.digest(out);
-  return new Reader(out.buffer);
+  const hasher = new CKBHasher();
+  hasher.update(buffer);
+  return hasher.digestReader();
 }
 
 module.exports = {
+  CKBHasher,
   ckbHash,
 };
