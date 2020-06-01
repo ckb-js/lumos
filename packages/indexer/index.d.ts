@@ -62,7 +62,7 @@ export class Indexer {
 
 export interface CollectorQueries {
   lock?: Script;
-  type_?: Script;
+  type?: Script;
 }
 
 export interface CellCollectorOptions {

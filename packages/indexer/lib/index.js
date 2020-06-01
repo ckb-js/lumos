@@ -105,8 +105,8 @@ class Indexer {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
-  collector({ lock = null, type_ = null } = {}, { skipNotLive = false } = {}) {
-    return new CellCollector(this, { lock, type_ }, { skipNotLive });
+  collector({ lock = null, type = null } = {}, { skipNotLive = false } = {}) {
+    return new CellCollector(this, { lock, type }, { skipNotLive });
   }
 }
 
@@ -130,21 +130,21 @@ class BufferValue {
 class CellCollector {
   constructor(
     indexer,
-    { lock = null, type_ = null } = {},
+    { lock = null, type = null } = {},
     { skipNotLive = false } = {}
   ) {
-    if (!lock && !type_) {
+    if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
     }
     if (lock) {
       validators.ValidateScript(lock);
     }
-    if (type_) {
-      validators.ValidateScript(type_);
+    if (type) {
+      validators.ValidateScript(type);
     }
     this.indexer = indexer;
     this.lock = lock;
-    this.type_ = type_;
+    this.type = type;
     this.skipNotLive = skipNotLive;
   }
 
@@ -158,8 +158,8 @@ class CellCollector {
         outPoints = outPoints.add(new BufferValue(o));
       }
     }
-    if (this.type_) {
-      for (const o of this.indexer.getLiveCellsByTypeScript(this.type_, {
+    if (this.type) {
+      for (const o of this.indexer.getLiveCellsByTypeScript(this.type, {
         validateFirst: false,
         returnRawBuffer: true,
       })) {
@@ -184,21 +184,21 @@ class CellCollector {
 class TransactionCollector {
   constructor(
     indexer,
-    { lock = null, type_ = null } = {},
+    { lock = null, type = null } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
-    if (!lock && !type_) {
+    if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
     }
     if (lock) {
       validators.ValidateScript(lock);
     }
-    if (type_) {
-      validators.ValidateScript(type_);
+    if (type) {
+      validators.ValidateScript(type);
     }
     this.indexer = indexer;
     this.lock = lock;
-    this.type_ = type_;
+    this.type = type;
     this.skipMissing = skipMissing;
     this.includeStatus = includeStatus;
     this.rpc = new RPC(indexer.uri);
@@ -213,8 +213,8 @@ class TransactionCollector {
         hashes = hashes.add(h);
       }
     }
-    if (this.type_) {
-      for (const h of this.indexer.getTransactionsByTypeScript(this.type_, {
+    if (this.type) {
+      for (const h of this.indexer.getTransactionsByTypeScript(this.type, {
         validateFirst: false,
       })) {
         hashes = hashes.add(h);
