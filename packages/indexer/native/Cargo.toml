@@ -26,6 +26,7 @@ jsonrpc-derive = "14.0"
 hyper = "0.12"
 log = "0.4.8"
 neon = "0.4.0"
+num_cpus = "1.13.0"
 
 [patch.crates-io]
 neon-sys = { git = "https://github.com/xxuejie/neon", rev = "6e246f2" }

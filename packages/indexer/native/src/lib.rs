@@ -433,6 +433,9 @@ fn assemble_packed_script(code_hash: &[u8], hash_type: f64, args: &[u8]) -> Resu
 
 register_module!(mut cx, {
     drop(env_logger::init());
+    if num_cpus::get() <= 1 {
+        return cx.throw_error("lumos indexer requires at least 2 cores to function!");
+    }
     debug!("Native indexer module initialized!");
     cx.export_class::<JsNativeIndexer>("Indexer")
 });
