@@ -32,6 +32,7 @@ before_install:
 script:
   - lerna run test
   - lerna run fmt
+  - lerna run lint
   - git diff --exit-code
   - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package; fi
 
