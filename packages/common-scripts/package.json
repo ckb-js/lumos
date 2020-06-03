@@ -22,15 +22,13 @@
     "ckb-js-toolkit": "^0.9.1",
     "immutable": "^4.0.0-rc.12"
   },
-  "devDependencies": {
-    "prettier": "^2.0.4"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
     "fmt": "prettier --write \"lib/**/*.js\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"lib/**/*.js\"",
     "test": "echo \"No tests yet!\""
   },
   "bugs": {

@@ -1,7 +1,6 @@
 const {
   configs,
   parseAddress,
-  locateCellDep,
   minimalCellCapacity,
   createTransactionFromSkeleton,
 } = require("@ckb-lumos/helpers");

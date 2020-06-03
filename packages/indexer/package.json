@@ -33,16 +33,13 @@
     "build": "neon build",
     "build-release": "neon build --release",
     "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts && cd native && cargo fmt --all --",
+    "lint": "eslint -c ../../.eslintrc.js \"lib/**/*.js\"",
     "install": "node-pre-gyp install --fallback-to-build=false || npm run build-release",
     "package": "npm run build-release && rm -rf native/target && node-pre-gyp package",
     "test": "ava"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
-  },
-  "devDependencies": {
-    "ava": "^3.7.0",
-    "prettier": "^2.0.4"
   },
   "binary": {
     "module_name": "index",
