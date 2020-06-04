@@ -57,3 +57,13 @@ for await (const tx of txCollector.collect()) {
   console.log(tx);
 }
 ```
+
+## Rebuild for Electron apps
+Since the native indexer is `rust` based, currently it is not supported by [electron-rebuild](https://github.com/electron/electron-rebuild). 
+
+If you encountered the errors related `NODE_MODULE_VERSION` on Electron with this module, please follow the [guide](https://neon-bindings.com/docs/electron-apps) to rebuild the `neon` dependencies.
+
+For this module, the rebuild command can be as below:
+```
+electron-build-env neon build @ckb-lumos/indexer --release
+```
