@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-set -ex
-
-if [ "$LUMOS_NODE_RUNTIME" = "electron" ]
-then
-    node-pre-gyp install --runtime=electron --target=9.0.2 --fallback-to-build=false
-else
-    node-pre-gyp install --fallback-to-build=false
-fi

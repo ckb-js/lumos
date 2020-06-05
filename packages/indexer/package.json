@@ -34,9 +34,9 @@
     "build": "neon build",
     "build-release": "neon build --release",
     "build-for-electron": "electron-build-env --electron 9.0.2 -- neon build --release",
-    "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts && cd native && cargo fmt --all --",
-    "lint": "eslint -c ../../.eslintrc.js \"lib/**/*.js\"",
-    "install": "./scripts/install_binary || npm run build-release",
+    "fmt": "prettier --write \"{lib,scripts,tests}/**/*.js\" index.d.ts && cd native && cargo fmt --all --",
+    "lint": "eslint -c ../../.eslintrc.js \"{lib,scripts}/**/*.js\"",
+    "install": "node scripts/install_binary.js 9.0.2 || npm run build-release",
     "package": "npm run build-release && rm -rf native/target && node-pre-gyp package",
     "package-for-electron": "npm run build-for-electron && rm -rf native/target && node-pre-gyp package --runtime=electron --target=9.0.2",
     "test": "ava"
