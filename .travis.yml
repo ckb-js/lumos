@@ -40,14 +40,14 @@ jobs:
   include:
     - os: osx
       script:
-        - if [ -n "$TRAVIS_TAG" ]; then lerna run build-for-electron; cd packages/indexer; rm -rf build; npm run package; fi
+        - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package-for-electron; fi
     - os: linux
       dist: bionic
       script:
-        - if [ -n "$TRAVIS_TAG" ]; then lerna run build-for-electron; cd packages/indexer; rm -rf build; npm run package; fi
+        - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package-for-electron; fi
     - os: windows
       script:
-        - if [ -n "$TRAVIS_TAG" ]; then lerna run build-for-electron; cd packages/indexer; rm -rf build; npm run package; fi
+        - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package-for-electron; fi
 
 deploy:
   - provider: releases
