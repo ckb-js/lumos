@@ -16,7 +16,8 @@
     "lib",
     "native/build.rs",
     "native/Cargo.*",
-    "native/src"
+    "native/src",
+    "scripts/*"
   ],
   "publishConfig": {
     "access": "public"
