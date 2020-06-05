@@ -32,6 +32,7 @@
   "scripts": {
     "build": "neon build",
     "build-release": "neon build --release",
+    "build-for-electron": "electron-build-env --electron 9.0.2 -- neon build --release",
     "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts && cd native && cargo fmt --all --",
     "lint": "eslint -c ../../.eslintrc.js \"lib/**/*.js\"",
     "install": "node-pre-gyp install --fallback-to-build=false || npm run build-release",
