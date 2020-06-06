@@ -1,10 +1,11 @@
 {
-  "name": "lumos-monorepo",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "ava": "^3.8.2",
     "eslint": "^7.1.0",
-    "lerna": "^3.20.2",
     "prettier": "^2.0.5"
   }
 }
