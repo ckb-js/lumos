@@ -30,7 +30,7 @@ before_install:
   - yarn -v
 
 install:
-  - yarn
+  - travis_wait 30 yarn
 
 script:
   - yarn workspaces run test
