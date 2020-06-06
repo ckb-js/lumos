@@ -57,3 +57,21 @@ for await (const tx of txCollector.collect()) {
   console.log(tx);
 }
 ```
+
+## Electron note
+
+One design goal of lumos, is that even though we might leverage native Rust code to speed things up, you don't need to have Rust installed in your machine to use the framework. However, this goal hits a slight roadblock since electron have its own module versions.
+
+There are 2 paths to work around this issue:
+
+First, we do provide pre-built binaries linked with electron's node version. Use the following command to install npm dependencies in your Electron app:
+
+```bash
+$ LUMOS_NODE_RUNTIME=electron npm i
+```
+
+This will make sure that pre-built binaries compiled for Electron will be downloaded.
+
+Second, you can also follow the [steps](https://neon-bindings.com/docs/electron-apps) in Neon's documentation to rebuild the binaries. Note this path would require Rust being installed on your system for now.
+
+Note this issue is actually caused since we are still leveraging the old native node module solution. We are also evaluating other solutions, such as [N-API](https://medium.com/@atulanand94/beginners-guide-to-writing-nodejs-addons-using-c-and-n-api-node-addon-api-9b3b718a9a7f), which is based on a stable API, so there is no need to recompile everything for a different Node.js version. We do hope that in later versions, we can convert to N-API so there is not need to deal with inconsistent module versions.

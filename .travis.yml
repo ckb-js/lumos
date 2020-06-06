@@ -36,6 +36,19 @@ script:
   - git diff --exit-code
   - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package; fi
 
+jobs:
+  include:
+    - os: osx
+      script:
+        - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package-for-electron; fi
+    - os: linux
+      dist: bionic
+      script:
+        - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package-for-electron; fi
+    - os: windows
+      script:
+        - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package-for-electron; fi
+
 deploy:
   - provider: releases
     skip_cleanup: true
