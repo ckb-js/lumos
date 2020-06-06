@@ -32,6 +32,7 @@ function minimalCellCapacity(fullCell, { validate = true } = {}) {
   let bytes = 8;
   bytes += new Reader(fullCell.cell_output.lock.code_hash).length();
   bytes += new Reader(fullCell.cell_output.lock.args).length();
+  // hash_type field
   bytes += 1;
   if (fullCell.cell_output.type) {
     bytes += new Reader(fullCell.cell_output.type.code_hash).length();
@@ -66,7 +67,7 @@ function generateAddress(script, { config = LINA } = {}) {
       s.SCRIPT.hash_type === script.hash_type
   );
   const data = [];
-  if (scriptTemplate) {
+  if (scriptTemplate && scriptTemplate.SHORT_ID !== undefined) {
     data.push(1, scriptTemplate.SHORT_ID);
     data.push(...hexToByteArray(script.args));
   } else {

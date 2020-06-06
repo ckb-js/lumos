@@ -11,54 +11,110 @@ const { ScriptValue } = values;
 const { normalizers, Reader } = require("ckb-js-toolkit");
 const { Set } = require("immutable");
 
+// 65 bytes zeros
 const SIGNATURE_PLACEHOLDER =
   "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
-function ensureSecp256k1Script(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160.SCRIPT;
+function ensureSecp256k1Blake160Multisig(script, config) {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT;
   if (
     template.code_hash !== script.code_hash ||
     template.hash_type !== script.hash_type
   ) {
-    throw new Error("Provided script is not SECP256K1_BLAKE160 script!");
+    throw new Error(
+      "Provided script is not SECP256K1_BLAKE160_MULTISIG script!"
+    );
   }
+}
+
+/**
+ * secp256k1_blake160_multisig requires S, R, M, N and public key hashes
+ * S must be zero now
+ * and N equals publicKeyHashes.length
+ * so only need to provide R, M and public key hashes
+ *
+ * @param {number} R first nth public keys must match
+ * @param {number} M threshold
+ * @param {string[]} publicKeyHashes blake160 hash of public keys
+ * @returns {string} multisig script
+ */
+function serializeMultisigScript({ R, M, publicKeyHashes }) {
+  if (R < 0 || R > 255) {
+    throw new Error("`R` should be less than 256!");
+  }
+  if (M < 0 || M > 255) {
+    throw new Error("`M` should be less than 256!");
+  }
+  // TODO: validate publicKeyHashes
+  return (
+    "0x00" +
+    ("00" + R.toString(16)).slice(-2) +
+    ("00" + M.toString(16)).slice(-2) +
+    ("00" + publicKeyHashes.length.toString(16)).slice(-2) +
+    publicKeyHashes.map((h) => h.slice(2)).join("")
+  );
+}
+
+/**
+ *
+ * @param {string} serializedMultisigScript
+ * @returns {string} lock script args
+ */
+function multisigArgs(serializedMultisigScript) {
+  return new CKBHasher()
+    .update(serializedMultisigScript)
+    .digestHex()
+    .slice(0, 42);
 }
 
 async function transfer(
   txSkeleton,
   fromAddress,
+  { R, M, publicKeyHashes },
   toAddress,
   amount,
-  { config = LINA, requireToAddress = true } = {}
+  { config = LINA, requireToAddress = true }
 ) {
-  if (!config.SCRIPTS.SECP256K1_BLAKE160) {
+  if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
     throw new Error(
-      "Provided config does not have SECP256K1_BLAKE160 script setup!"
+      "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
     );
   }
 
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
-      cellDep.dep_type === config.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE &&
+      cellDep.dep_type ===
+        config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.DEP_TYPE &&
       new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
-        new values.OutPointValue(config.SCRIPTS.SECP256K1_BLAKE160.OUT_POINT, {
-          validate: false,
-        })
+        new values.OutPointValue(
+          config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.OUT_POINT,
+          {
+            validate: false,
+          }
+        )
       )
     );
   });
+
   if (!cellDep) {
     txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
       return cellDeps.push({
-        out_point: config.SCRIPTS.SECP256K1_BLAKE160.OUT_POINT,
-        dep_type: config.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+        out_point: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.OUT_POINT,
+        dep_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.DEP_TYPE,
       });
     });
   }
 
   amount = BigInt(amount);
   const fromScript = parseAddress(fromAddress, { config });
-  ensureSecp256k1Script(fromScript, config);
+  ensureSecp256k1Blake160Multisig(fromScript, config);
+
+  // validate args
+  const multisigScript = serializeMultisigScript({ R, M, publicKeyHashes });
+  const fromScriptArgs = multisigArgs(multisigScript);
+  if (fromScript.args !== fromScriptArgs) {
+    throw new Error("R M and publicKeyHashes infos not match to fromAddress!");
+  }
 
   if (requireToAddress && !toAddress) {
     throw new Error("You must provide a to address!");
@@ -80,20 +136,12 @@ async function transfer(
     });
   }
 
-  /*
-   * First, check if there is any output cells that contains enough capacity
-   * for us to tinker with.
-   *
-   * TODO: the solution right now won't cover all cases, some outputs before the
-   * last output might still be tinkerable, right now we are working on the
-   * simple solution, later we can change this for more optimizations.
-   */
   const lastFreezedOutput = txSkeleton
     .get("fixedEntries")
     .filter(({ field }) => field === "outputs")
     .maxBy(({ index }) => index);
   let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
-  for (; i < txSkeleton.get("outputs").size && amount > 0; i++) {
+  for (; i < txSkeleton.get("outputs").size && amount > 0; ++i) {
     const output = txSkeleton.get("outputs").get(i);
     if (
       new ScriptValue(output.cell_output.lock, { validate: false }).equals(
@@ -115,7 +163,7 @@ async function transfer(
         "0x" + (cellCapacity - deductCapacity).toString(16);
     }
   }
-  // Remove all output cells with capacity equal to 0
+  // remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.filter(
       (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
@@ -127,8 +175,9 @@ async function transfer(
   if (amount > 0) {
     const cellProvider = txSkeleton.get("cellProvider");
     if (!cellProvider) {
-      throw new Error("Cell provider is missing!");
+      throw new Error("cell provider is missing!");
     }
+    // TODO: ignore locktime now.
     const cellCollector = cellProvider.collector({
       lock: fromScript,
     });
@@ -175,11 +224,7 @@ async function transfer(
   if (amount > 0) {
     throw new Error("Not enough capacity in from address!");
   }
-  /*
-   * Modify the skeleton, so the first witness of the fromAddress script group
-   * has a WitnessArgs construct with 65-byte zero filled values. While this
-   * is not required, it helps in transaction fee estimation.
-   */
+
   const firstIndex = txSkeleton
     .get("inputs")
     .findIndex((input) =>
@@ -195,8 +240,10 @@ async function transfer(
     }
     let witness = txSkeleton.get("witnesses").get(firstIndex);
     const newWitnessArgs = {
-      /* 65 bytes zeros in hex */
-      lock: SIGNATURE_PLACEHOLDER,
+      lock:
+        "0x" +
+        multisigScript.slice(2) +
+        SIGNATURE_PLACEHOLDER.slice(2).repeat(M),
     };
     if (witness !== "0x") {
       const witnessArgs = new core.WitnessArgs(new Reader(witness));
@@ -212,7 +259,7 @@ async function transfer(
       const inputType = witnessArgs.getInputType();
       if (inputType.hasValue()) {
         newWitnessArgs.input_type = new Reader(
-          inputType.value().raw()
+          inputType.values().raw()
         ).serializeJson();
       }
       const outputType = witnessArgs.getOutputType();
@@ -234,8 +281,14 @@ async function transfer(
   return txSkeleton;
 }
 
-async function payFee(txSkeleton, fromAddress, amount, { config = LINA } = {}) {
-  return await transfer(txSkeleton, fromAddress, null, amount, {
+async function payFee(
+  txSkeleton,
+  fromAddress,
+  fromInfo,
+  amount,
+  { config = LINA } = {}
+) {
+  return transfer(txSkeleton, fromAddress, fromInfo, null, amount, {
     config,
     requireToAddress: false,
   });
@@ -250,12 +303,12 @@ function hashWitness(hasher, witness) {
 }
 
 function prepareSigningEntries(txSkeleton, { config = LINA } = {}) {
-  if (!config.SCRIPTS.SECP256K1_BLAKE160) {
+  if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
     throw new Error(
-      "Provided config does not have SECP256K1_BLAKE160 script setup!"
+      "Provided config does not have SECP256K1_BLAKE160_MULTISIG script setup!"
     );
   }
-  const template = config.SCRIPTS.SECP256K1_BLAKE160.SCRIPT;
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT;
   let processedArgs = Set();
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = ckbHash(
@@ -314,4 +367,6 @@ module.exports = {
   transfer,
   payFee,
   prepareSigningEntries,
+  serializeMultisigScript,
+  multisigArgs,
 };
