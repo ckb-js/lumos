@@ -5,6 +5,8 @@ const { List, Record, Map } = require("immutable");
 const configs = require("./configs");
 const { LINA } = configs;
 
+const BECH32_LIMIT = 1023;
+
 function byteArrayToHex(a) {
   return "0x" + a.map((i) => ("00" + i.toString(16)).slice(-2)).join("");
 }
@@ -32,6 +34,7 @@ function minimalCellCapacity(fullCell, { validate = true } = {}) {
   let bytes = 8;
   bytes += new Reader(fullCell.cell_output.lock.code_hash).length();
   bytes += new Reader(fullCell.cell_output.lock.args).length();
+  // hash_type field
   // hash_type field
   bytes += 1;
   if (fullCell.cell_output.type) {
@@ -73,14 +76,14 @@ function generateAddress(script, { config = LINA } = {}) {
   } else {
     data.push(script.hash_type === "type" ? 4 : 2);
     data.push(...hexToByteArray(script.code_hash));
-    data.push(...hexToByteArray(script.hash_type));
+    data.push(...hexToByteArray(script.args));
   }
   const words = bech32.toWords(data);
-  return bech32.encode(config.PREFIX, words);
+  return bech32.encode(config.PREFIX, words, BECH32_LIMIT);
 }
 
 function parseAddress(address, { config = LINA } = {}) {
-  const { prefix, words } = bech32.decode(address);
+  const { prefix, words } = bech32.decode(address, BECH32_LIMIT);
   if (prefix !== config.PREFIX) {
     throw Error(
       `Invalid prefix! Expected: ${config.PREFIX}, actual: ${prefix}`
