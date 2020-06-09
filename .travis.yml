@@ -30,9 +30,7 @@ before_install:
   - yarn -v
 
 install:
-  - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
-  - yarn
-  - kill %1
+  - travis_wait 30 yarn
 
 script:
   - yarn workspaces run test
@@ -53,6 +51,9 @@ jobs:
     - os: windows
       script:
         - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
+
+after_script:
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then taskkill //IM gpg-agent.exe //F; fi
 
 deploy:
   - provider: releases
