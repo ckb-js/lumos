@@ -35,7 +35,6 @@ function minimalCellCapacity(fullCell, { validate = true } = {}) {
   bytes += new Reader(fullCell.cell_output.lock.code_hash).length();
   bytes += new Reader(fullCell.cell_output.lock.args).length();
   // hash_type field
-  // hash_type field
   bytes += 1;
   if (fullCell.cell_output.type) {
     bytes += new Reader(fullCell.cell_output.type.code_hash).length();

@@ -195,7 +195,7 @@ async function transfer(
     }
     let witness = txSkeleton.get("witnesses").get(firstIndex);
     const newWitnessArgs = {
-      /* 65 bytes zeros in hex */
+      /* 65-byte zeros in hex */
       lock: SIGNATURE_PLACEHOLDER,
     };
     if (witness !== "0x") {

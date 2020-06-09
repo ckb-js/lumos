@@ -27,17 +27,6 @@ function ensureSecp256k1Blake160Multisig(script, config) {
   }
 }
 
-/**
- * secp256k1_blake160_multisig requires S, R, M, N and public key hashes
- * S must be zero now
- * and N equals publicKeyHashes.length
- * so only need to provide R, M and public key hashes
- *
- * @param {number} R first nth public keys must match
- * @param {number} M threshold
- * @param {string[]} publicKeyHashes blake160 hash of public keys
- * @returns {string} multisig script
- */
 function serializeMultisigScript({ R, M, publicKeyHashes }) {
   if (R < 0 || R > 255) {
     throw new Error("`R` should be less than 256!");
@@ -55,11 +44,6 @@ function serializeMultisigScript({ R, M, publicKeyHashes }) {
   );
 }
 
-/**
- *
- * @param {string} serializedMultisigScript
- * @returns {string} lock script args
- */
 function multisigArgs(serializedMultisigScript) {
   return new CKBHasher()
     .update(serializedMultisigScript)
