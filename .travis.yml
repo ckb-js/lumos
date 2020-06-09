@@ -30,7 +30,9 @@ before_install:
   - yarn -v
 
 install:
-  - travis_wait 30 yarn
+  - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
+  - yarn
+  - kill %1
 
 script:
   - yarn workspaces run test
