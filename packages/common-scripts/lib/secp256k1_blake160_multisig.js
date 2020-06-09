@@ -54,11 +54,12 @@ function multisigArgs(serializedMultisigScript) {
 async function transfer(
   txSkeleton,
   fromAddress,
-  { R, M, publicKeyHashes },
+  fromInfo,
   toAddress,
   amount,
   { config = LINA, requireToAddress = true }
 ) {
+  const { R, M, publicKeyHashes } = fromInfo || {};
   if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
@@ -90,14 +91,42 @@ async function transfer(
   }
 
   amount = BigInt(amount);
-  const fromScript = parseAddress(fromAddress, { config });
+
+  let fromScript;
+  let multisigScript;
+  if (fromAddress && fromInfo) {
+    fromScript = parseAddress(fromAddress, { config });
+    multisigScript = serializeMultisigScript({ R, M, publicKeyHashes });
+    const fromScriptArgs = multisigArgs(multisigScript);
+    if (fromScript.args !== fromScriptArgs) {
+      throw new Error(
+        "R M and publicKeyHashes infos not match to fromAddress!"
+      );
+    }
+  } else if (fromInfo) {
+    multisigScript = serializeMultisigScript({ R, M, publicKeyHashes });
+    const fromScriptArgs = multisigArgs(multisigScript);
+    fromScript = {
+      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.code_hash,
+      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.hash_type,
+      args: fromScriptArgs,
+    };
+  } else if (fromAddress) {
+    fromScript = parseAddress(fromAddress, { config });
+  } else {
+    throw new Error("fromAddress and fromInfo must provide at least one!");
+  }
+
   ensureSecp256k1Blake160Multisig(fromScript, config);
 
-  // validate args
-  const multisigScript = serializeMultisigScript({ R, M, publicKeyHashes });
-  const fromScriptArgs = multisigArgs(multisigScript);
-  if (fromScript.args !== fromScriptArgs) {
-    throw new Error("R M and publicKeyHashes infos not match to fromAddress!");
+  const noMultisigBefore = !txSkeleton.get("inputs").find((i) => {
+    return new ScriptValue(i.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(fromScript, { validate: false })
+    );
+  });
+
+  if (noMultisigBefore && !fromInfo) {
+    throw new Error("fromInfo is required for witness!");
   }
 
   if (requireToAddress && !toAddress) {
@@ -222,45 +251,48 @@ async function transfer(
         witnesses.push("0x")
       );
     }
-    let witness = txSkeleton.get("witnesses").get(firstIndex);
-    const newWitnessArgs = {
-      lock:
-        "0x" +
-        multisigScript.slice(2) +
-        SIGNATURE_PLACEHOLDER.slice(2).repeat(M),
-    };
-    if (witness !== "0x") {
-      const witnessArgs = new core.WitnessArgs(new Reader(witness));
-      const lock = witnessArgs.getLock();
-      if (
-        lock.hasValue() &&
-        new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
-      ) {
-        throw new Error(
-          "Lock field in first witness is set aside for signature!"
-        );
+
+    if (noMultisigBefore) {
+      let witness = txSkeleton.get("witnesses").get(firstIndex);
+      const newWitnessArgs = {
+        lock:
+          "0x" +
+          multisigScript.slice(2) +
+          SIGNATURE_PLACEHOLDER.slice(2).repeat(M),
+      };
+      if (witness !== "0x") {
+        const witnessArgs = new core.WitnessArgs(new Reader(witness));
+        const lock = witnessArgs.getLock();
+        if (
+          lock.hasValue() &&
+          new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
+        ) {
+          throw new Error(
+            "Lock field in first witness is set aside for signature!"
+          );
+        }
+        const inputType = witnessArgs.getInputType();
+        if (inputType.hasValue()) {
+          newWitnessArgs.input_type = new Reader(
+            inputType.values().raw()
+          ).serializeJson();
+        }
+        const outputType = witnessArgs.getOutputType();
+        if (outputType.hasValue()) {
+          newWitnessArgs.output_type = new Reader(
+            outputType.value().raw()
+          ).serializeJson();
+        }
       }
-      const inputType = witnessArgs.getInputType();
-      if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new Reader(
-          inputType.values().raw()
-        ).serializeJson();
-      }
-      const outputType = witnessArgs.getOutputType();
-      if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new Reader(
-          outputType.value().raw()
-        ).serializeJson();
-      }
+      witness = new Reader(
+        core.SerializeWitnessArgs(
+          normalizers.NormalizeWitnessArgs(newWitnessArgs)
+        )
+      ).serializeJson();
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.set(firstIndex, witness)
+      );
     }
-    witness = new Reader(
-      core.SerializeWitnessArgs(
-        normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
-    ).serializeJson();
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-      witnesses.set(firstIndex, witness)
-    );
   }
   return txSkeleton;
 }

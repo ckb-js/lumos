@@ -25,16 +25,16 @@ export declare const secp256k1Blake160Multisig: {
    * transfer capacity from multisig script cells
    *
    * @param txSkeleton
-   * @param fromAddress must be multisig script address
-   * @param fromInfo multisig parameters
+   * @param fromAddress must be multisig script address, can left empty if fromInfo exists
+   * @param fromInfo multisig parameters, required if this fromAddress is first used in this txSkeleton, can left empty if fromAddress exists
    * @param toAddress can be any type of lock script and can left empty
    * @param amount transfer CKB capacity in shannon
    * @param options
    */
   transfer(
     txSkeleton: TransactionSkeleton,
-    fromAddress: Address,
-    fromInfo: MultisigScript,
+    fromAddress: Address | undefined,
+    fromInfo: MultisigScript | undefined,
     toAddress: Address | undefined,
     amount: bigint,
     options: {
@@ -54,8 +54,8 @@ export declare const secp256k1Blake160Multisig: {
    */
   payFee(
     txSkeleton: TransactionSkeleton,
-    fromAddress: Address,
-    fromInfo: MultisigScript,
+    fromAddress: Address | undefined,
+    fromInfo: MultisigScript | undefined,
     amount: bigint,
     options: {
       config: Config,
