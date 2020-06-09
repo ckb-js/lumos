@@ -398,7 +398,9 @@ declare_types! {
             result.set(&mut cx, "out_point", js_out_point)?;
 
             let js_block_hash = cx.string(format!("{:#x}", detailed_cell.block_hash));
+            let js_block_number = cx.string(format!("{:#x}", detailed_cell.block_number));
             result.set(&mut cx, "block_hash", js_block_hash)?;
+            result.set(&mut cx, "block_number", js_block_number)?;
 
             let js_data = cx.string(format!("0x{:x}", detailed_cell.cell_data.raw_data()));
             result.set(&mut cx, "data", js_data)?;
