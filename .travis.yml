@@ -26,28 +26,34 @@ before_install:
   - node -v
   - npm -v
   - npm -g install neon-cli
-  - npm -g install lerna
-  - lerna bootstrap
+  - npm -g install yarn
+  - yarn -v
+
+install:
+  - travis_wait 30 yarn
 
 script:
-  - lerna run test
-  - lerna run fmt
-  - lerna run lint
+  - yarn workspaces run test
+  - yarn workspaces run fmt
+  - yarn workspaces run lint
   - git diff --exit-code
-  - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package; fi
+  - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package; fi
 
 jobs:
   include:
     - os: osx
       script:
-        - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package-for-electron; fi
+        - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
     - os: linux
       dist: bionic
       script:
-        - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package-for-electron; fi
+        - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
     - os: windows
       script:
-        - if [ -n "$TRAVIS_TAG" ]; then cd packages/indexer; rm -rf build; npm run package-for-electron; fi
+        - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
+
+after_script:
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then taskkill //IM gpg-agent.exe //F; fi
 
 deploy:
   - provider: releases
@@ -57,4 +63,4 @@ deploy:
     api_key: "$GITHUB_TOKEN"
     file_glob: true
     file:
-      - "build/stage/${TRAVIS_TAG}/*"
+      - "packages/indexer/build/stage/${TRAVIS_TAG}/*"

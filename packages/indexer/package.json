@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/indexer",
-  "version": "0.2.5-rc.3",
+  "version": "0.3.0",
   "description": "CKB Indexer for Lumos framework, might be suitable for independent usage as well",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -36,6 +36,7 @@
     "build-for-electron": "electron-build-env --electron 9.0.2 -- neon build --release",
     "fmt": "prettier --write \"{lib,scripts,tests}/**/*.js\" index.d.ts && cd native && cargo fmt --all --",
     "lint": "eslint -c ../../.eslintrc.js \"{lib,scripts}/**/*.js\"",
+    "preinstall": "node scripts/patch_if_in_workspace.js",
     "install": "node scripts/install_binary.js 9.0.2 || npm run build-release",
     "package": "npm run build-release && rm -rf native/target && node-pre-gyp package",
     "package-for-electron": "npm run build-for-electron && rm -rf native/target && node-pre-gyp package --runtime=electron --target=9.0.2",
