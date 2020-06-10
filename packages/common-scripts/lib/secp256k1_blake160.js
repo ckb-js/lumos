@@ -143,7 +143,21 @@ async function transfer(
       block_hash: null,
     };
     let changeCapacity = BigInt(0);
+    let previousInputs = Set();
+    for (const input of txSkeleton.get("inputs")) {
+      previousInputs = previousInputs.add(
+        `${input.out_point.tx_hash}_${input.out_point.index}`
+      );
+    }
     for await (const inputCell of cellCollector.collect()) {
+      // skip inputs already exists in txSkeleton.inputs
+      if (
+        previousInputs.has(
+          `${inputCell.out_point.tx_hash}_${inputCell.out_point.index}`
+        )
+      ) {
+        continue;
+      }
       txSkeleton = txSkeleton.update("inputs", (inputs) =>
         inputs.push(inputCell)
       );
