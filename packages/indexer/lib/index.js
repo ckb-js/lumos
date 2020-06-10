@@ -105,8 +105,15 @@ class Indexer {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
-  collector({ lock = null, type = null } = {}, { skipNotLive = false } = {}) {
-    return new CellCollector(this, { lock, type }, { skipNotLive });
+  collector(
+    { lock = null, type = null, typeIsNull = true, data = "0x" } = {},
+    { skipNotLive = false } = {}
+  ) {
+    return new CellCollector(
+      this,
+      { lock, type, typeIsNull, data },
+      { skipNotLive }
+    );
   }
 }
 
@@ -128,9 +135,10 @@ class BufferValue {
 }
 
 class CellCollector {
+  // if data left null, means every data content is ok
   constructor(
     indexer,
-    { lock = null, type = null } = {},
+    { lock = null, type = null, typeIsNull = true, data = "0x" } = {},
     { skipNotLive = false } = {}
   ) {
     if (!lock && !type) {
@@ -145,6 +153,8 @@ class CellCollector {
     this.indexer = indexer;
     this.lock = lock;
     this.type = type;
+    this.typeIsNull = typeIsNull;
+    this.data = data;
     this.skipNotLive = skipNotLive;
   }
 
@@ -168,6 +178,12 @@ class CellCollector {
     }
     for (const o of outPoints) {
       const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+      if (cell && this.typeIsNull && cell.cell_output.type) {
+        continue;
+      }
+      if (cell && this.data && cell.data !== this.data) {
+        continue;
+      }
       if (!this.skipNotLive && !cell) {
         throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
       }
