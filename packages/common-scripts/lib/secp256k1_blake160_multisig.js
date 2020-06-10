@@ -53,13 +53,11 @@ function multisigArgs(serializedMultisigScript) {
 
 async function transfer(
   txSkeleton,
-  fromAddress,
   fromInfo,
   toAddress,
   amount,
   { config = LINA, requireToAddress = true }
 ) {
-  const { R, M, publicKeyHashes } = fromInfo || {};
   if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
@@ -94,27 +92,17 @@ async function transfer(
 
   let fromScript;
   let multisigScript;
-  if (fromAddress && fromInfo) {
-    fromScript = parseAddress(fromAddress, { config });
-    multisigScript = serializeMultisigScript({ R, M, publicKeyHashes });
-    const fromScriptArgs = multisigArgs(multisigScript);
-    if (fromScript.args !== fromScriptArgs) {
-      throw new Error(
-        "R M and publicKeyHashes infos not match to fromAddress!"
-      );
-    }
-  } else if (fromInfo) {
-    multisigScript = serializeMultisigScript({ R, M, publicKeyHashes });
+  if (typeof fromInfo === "string") {
+    // fromInfo is an address
+    fromScript = parseAddress(fromInfo, { config });
+  } else {
+    multisigScript = serializeMultisigScript(fromInfo);
     const fromScriptArgs = multisigArgs(multisigScript);
     fromScript = {
       code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.code_hash,
       hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.hash_type,
       args: fromScriptArgs,
     };
-  } else if (fromAddress) {
-    fromScript = parseAddress(fromAddress, { config });
-  } else {
-    throw new Error("fromAddress and fromInfo must provide at least one!");
   }
 
   ensureSecp256k1Blake160Multisig(fromScript, config);
@@ -125,8 +113,8 @@ async function transfer(
     );
   });
 
-  if (noMultisigBefore && !fromInfo) {
-    throw new Error("fromInfo is required for witness!");
+  if (noMultisigBefore && fromInfo === "string") {
+    throw new Error("MultisigScript is required for witness!");
   }
 
   if (requireToAddress && !toAddress) {
@@ -258,7 +246,7 @@ async function transfer(
         lock:
           "0x" +
           multisigScript.slice(2) +
-          SIGNATURE_PLACEHOLDER.slice(2).repeat(M),
+          SIGNATURE_PLACEHOLDER.slice(2).repeat(fromInfo.M),
       };
       if (witness !== "0x") {
         const witnessArgs = new core.WitnessArgs(new Reader(witness));
@@ -297,14 +285,8 @@ async function transfer(
   return txSkeleton;
 }
 
-async function payFee(
-  txSkeleton,
-  fromAddress,
-  fromInfo,
-  amount,
-  { config = LINA } = {}
-) {
-  return transfer(txSkeleton, fromAddress, fromInfo, null, amount, {
+async function payFee(txSkeleton, fromInfo, amount, { config = LINA } = {}) {
+  return transfer(txSkeleton, fromInfo, null, amount, {
     config,
     requireToAddress: false,
   });
