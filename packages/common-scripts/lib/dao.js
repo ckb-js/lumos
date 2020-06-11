@@ -43,7 +43,6 @@ async function deposit(txSkeleton, toAddress, { config = LINA } = {}) {
     hash_type: DAO_SCRIPT.SCRIPT.hash_type,
     args: "0x",
   };
-  const daoData = "0x0000000000000000";
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push({
@@ -52,7 +51,7 @@ async function deposit(txSkeleton, toAddress, { config = LINA } = {}) {
         lock: toScript,
         type: daoTypeScript,
       },
-      data: daoData,
+      data: DEPOSIT_DAO_DATA,
       out_point: null,
       block_hash: null,
     });
