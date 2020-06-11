@@ -27,7 +27,7 @@ function ensureSecp256k1Script(script, config) {
 async function transfer(
   txSkeleton,
   fromAddress,
-  toInfo, // toAddress OR outputIndex
+  toInfo, // address OR outputIndex
   amount,
   { config = LINA, requireToAddress = true } = {}
 ) {
@@ -65,7 +65,7 @@ async function transfer(
   }
   if (typeof toInfo === "string") {
     // toInfo is an address
-    const toScript = parseAddress(toAddress, { config });
+    const toScript = parseAddress(toInfo, { config });
 
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
@@ -82,6 +82,7 @@ async function transfer(
   } else if (typeof toInfo === "number") {
     // toInfo is an outputIndex
     // validate outputIndex
+    const outputIndex = toInfo;
     if (outputIndex >= txSkeleton.get("outputs").size) {
       throw new Error("Invalid outputIndex!");
     }

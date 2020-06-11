@@ -54,7 +54,7 @@ function multisigArgs(serializedMultisigScript) {
 async function transfer(
   txSkeleton,
   fromInfo,
-  toAddress,
+  toInfo, // address or output index
   amount,
   { config = LINA, requireToAddress = true }
 ) {
@@ -117,11 +117,11 @@ async function transfer(
     throw new Error("MultisigScript is required for witness!");
   }
 
-  if (requireToAddress && !toAddress) {
-    throw new Error("You must provide a to address!");
+  if (requireToAddress && !toInfo && toInfo !== 0) {
+    throw new Error("You must provide a to info, address or output index!");
   }
-  if (toAddress) {
-    const toScript = parseAddress(toAddress, { config });
+  if (typeof toInfo === "string") {
+    const toScript = parseAddress(toInfo, { config });
 
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
@@ -134,6 +134,17 @@ async function transfer(
         out_point: null,
         block_hash: null,
       });
+    });
+  } else if (typeof toInfo === "number") {
+    const outputIndex = toInfo;
+    if (outputIndex >= txSkeleton.get("outputs").size) {
+      throw new Error("Invalid outputIndex!");
+    }
+
+    txSkeleton = txSkeleton.update("outputs", (outputs) => {
+      let targetOutput = outputs.get(outputIndex);
+      targetOutput.cell_output.capacity = "0x" + amount.toString(16);
+      return outputs.set(outputIndex, targetOutput);
     });
   }
 
@@ -240,7 +251,8 @@ async function transfer(
       );
     }
 
-    if (noMultisigBefore) {
+    // if using MultisigScript, check witnesses
+    if (noMultisigBefore || typeof fromInfo !== "string") {
       let witness = txSkeleton.get("witnesses").get(firstIndex);
       const newWitnessArgs = {
         lock:

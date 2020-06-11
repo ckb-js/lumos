@@ -19,6 +19,7 @@ export interface MultisigScript {
 }
 
 export type FromInfo = MultisigScript | Address
+export type ToInfo = Address | number
 
 // TODO: secp256k1Blake160 types
 
@@ -28,14 +29,14 @@ export declare const secp256k1Blake160Multisig: {
    *
    * @param txSkeleton
    * @param fromInfo fromAddress or fromMultisigScript, if this address new to txSkeleton inputs, must use fromMultisigScript
-   * @param toAddress can be any type of lock script and can left empty
+   * @param toInfo address or output index, can be any type of lock script and can left empty. Notice if it's output index, will change capacity even this output is fixed by `fixedEntries`.
    * @param amount transfer CKB capacity in shannon
    * @param options
    */
   transfer(
     txSkeleton: TransactionSkeleton,
     fromInfo: FromInfo,
-    toAddress: Address | undefined,
+    toInfo, ToInfo,
     amount: bigint,
     options: {
       config: Config,
