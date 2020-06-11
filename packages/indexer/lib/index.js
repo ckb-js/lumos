@@ -74,19 +74,19 @@ class Indexer {
     );
   }
 
-  getTransactionsByLockScript(script, { validateFirst = true } = {}) {
-    return this._getTransactionsByScript(script, 0, validateFirst);
+  getTransactionsByLockScriptIterator(script, { validateFirst = true } = {}) {
+    return this._getTransactionsByScriptIterator(script, 0, validateFirst);
   }
 
-  getTransactionsByTypeScript(script, { validateFirst = true } = {}) {
-    return this._getTransactionsByScript(script, 1, validateFirst);
+  getTransactionsByTypeScriptIterator(script, { validateFirst = true } = {}) {
+    return this._getTransactionsByScriptIterator(script, 1, validateFirst);
   }
 
-  _getTransactionsByScript(script, scriptType, validateFirst) {
+  _getTransactionsByScriptIterator(script, scriptType, validateFirst) {
     if (validateFirst) {
       validators.ValidateScript(script);
     }
-    return this.nativeIndexer.getTransactionsByScript(
+    return this.nativeIndexer.getTransactionsByScriptIterator(
       normalizers.NormalizeScript(script),
       scriptType
     );
@@ -207,28 +207,47 @@ class TransactionCollector {
   async *collect() {
     let hashes = new Set();
     if (this.lock) {
-      for (const h of this.indexer.getTransactionsByLockScript(this.lock, {
+      const iter = this.indexer.getTransactionsByLockScriptIterator(this.lock, {
         validateFirst: false,
-      })) {
-        hashes = hashes.add(h);
+      });
+      while (true) {
+        const hash = iter.next();
+        if (!hash) {
+          break;
+        }
+        hashes = hashes.add(hash);
+        const tx = await this.rpc.get_transaction(hash);
+        if (!this.skipMissing && !tx) {
+          throw new Error(`Transaction ${h} is missing!`);
+        }
+        if (this.includeStatus) {
+          yield tx;
+        } else {
+          yield tx.transaction;
+        }
       }
     }
     if (this.type) {
-      for (const h of this.indexer.getTransactionsByTypeScript(this.type, {
+      const iter = this.indexer.getTransactionsByTypeScriptIterator(this.type, {
         validateFirst: false,
-      })) {
-        hashes = hashes.add(h);
-      }
-    }
-    for (const h of hashes) {
-      const tx = await this.rpc.get_transaction(h);
-      if (!this.skipMissing && !tx) {
-        throw new Error(`Transaction ${h} is missing!`);
-      }
-      if (this.includeStatus) {
-        yield tx;
-      } else {
-        yield tx.transaction;
+      });
+      while (true) {
+        const hash = iter.next();
+        if (!hash) {
+          break;
+        }
+        if (hashes.has(hash)) {
+          continue;
+        }
+        const tx = await this.rpc.get_transaction(hash);
+        if (!this.skipMissing && !tx) {
+          throw new Error(`Transaction ${h} is missing!`);
+        }
+        if (this.includeStatus) {
+          yield tx;
+        } else {
+          yield tx.transaction;
+        }
       }
     }
   }
