@@ -43,7 +43,7 @@ export declare const secp256k1Blake160: {
       config: Config,
       requireToAddress: boolean,
     },
-  ): TransactionSkeleton,
+  ): Promise<TransactionSkeleton>,
 
   /**
    * pay fee by secp256k1_blake160 script cells
@@ -60,7 +60,7 @@ export declare const secp256k1Blake160: {
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): Promise<TransactionSkeleton>,
 
   /**
    * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
@@ -95,7 +95,7 @@ export declare const secp256k1Blake160Multisig: {
       config: Config,
       requiredToAddress: boolean,
     },
-  ): TransactionSkeleton,
+  ): Promise<TransactionSkeleton>,
 
   /**
    * pay fee by multisig script cells
@@ -112,7 +112,7 @@ export declare const secp256k1Blake160Multisig: {
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): Promise<TransactionSkeleton>,
 
   /**
    * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
@@ -156,7 +156,7 @@ export declare const dao: {
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): Promise<TransactionSkeleton>,
 
   /**
    * list DAO cells,
@@ -173,7 +173,7 @@ export declare const dao: {
     options: {
       config: Config,
     },
-  ): List<FullCell>,
+  ): Promise<List<FullCell>>,
 
   /**
    * withdraw an deposited DAO cell
@@ -188,7 +188,7 @@ export declare const dao: {
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): Promise<TransactionSkeleton>,
 
   /**
    * Unlock a withdrew DAO cell
@@ -207,5 +207,5 @@ export declare const dao: {
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): Promise<TransactionSkeleton>,
 }
