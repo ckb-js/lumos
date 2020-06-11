@@ -269,10 +269,7 @@ async function unlock(
 
   txSkeleton = txSkeleton.update("inputs", (inputs) => {
     return inputs.push(withdrawInput);
-    // TODO: add input since
   });
-
-  const inputsSize = txSkeleton.get("inputs").size;
 
   txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
     return (inputSinces = inputSinces.set(
@@ -281,9 +278,7 @@ async function unlock(
     ));
   });
 
-  const witnessesSize = txSkeleton.get("witnesses").size;
-
-  while (witnessesSize < inputsSize - 1) {
+  while (txSkeleton.get("witnesses").size < txSkeleton.get("inputs").size - 1) {
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.push("0x")
     );
