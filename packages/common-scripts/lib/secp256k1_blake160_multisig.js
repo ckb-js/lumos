@@ -3,6 +3,7 @@ const {
   parseAddress,
   minimalCellCapacity,
   createTransactionFromSkeleton,
+  generateAddress,
 } = require("@ckb-lumos/helpers");
 const { LINA } = configs;
 const { core, values, utils } = require("@ckb-lumos/types");
@@ -54,7 +55,7 @@ function multisigArgs(serializedMultisigScript) {
 async function transfer(
   txSkeleton,
   fromInfo,
-  toInfo, // address or output index
+  toAddress,
   amount,
   { config = LINA, requireToAddress = true }
 ) {
@@ -115,13 +116,13 @@ async function transfer(
     throw new Error("MultisigScript is required for witness!");
   }
 
-  if (requireToAddress && !toInfo && toInfo !== 0) {
-    throw new Error("You must provide a to info, address or output index!");
+  if (requireToAddress && !toAddress) {
+    throw new Error("You must provide a to address!");
   }
 
   amount = BigInt(amount || 0);
-  if (typeof toInfo === "string") {
-    const toScript = parseAddress(toInfo, { config });
+  if (toAddress) {
+    const toScript = parseAddress(toAddress, { config });
 
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
@@ -135,15 +136,6 @@ async function transfer(
         block_hash: null,
       });
     });
-  } else if (typeof toInfo === "number") {
-    const outputIndex = toInfo;
-    if (outputIndex >= txSkeleton.get("outputs").size) {
-      throw new Error("Invalid outputIndex!");
-    }
-
-    amount = BigInt(
-      txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
-    );
   }
 
   const lastFreezedOutput = txSkeleton
@@ -302,6 +294,41 @@ async function payFee(txSkeleton, fromInfo, amount, { config = LINA } = {}) {
   });
 }
 
+async function injectCapacity(
+  txSkeleton,
+  outputIndex,
+  fromInfo,
+  { config = LINA } = {}
+) {
+  if (outputIndex >= txSkeleton.get("outputs").size) {
+    throw new Error("Invalid output index!");
+  }
+  const capacity = BigInt(
+    txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
+  );
+  return transfer(txSkeleton, fromInfo, null, capacity, {
+    config,
+    requireToAddress: false,
+  });
+}
+
+async function setupInputCell(
+  txSkeleton,
+  inputIndex,
+  fromInfo,
+  { config = LINA } = {}
+) {
+  if (inputIndex >= txSkeleton.get("inputs").size) {
+    throw new Error("Invalid input index!");
+  }
+  const inputLock = txSkeleton.get("inputs").get(inputIndex).cell_output.lock;
+  const fromAddress = generateAddress(inputLock, { config });
+  return transfer(txSkeleton, fromInfo || fromAddress, null, 0, {
+    config,
+    requireToAddress: false,
+  });
+}
+
 function hashWitness(hasher, witness) {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
@@ -377,4 +404,6 @@ module.exports = {
   prepareSigningEntries,
   serializeMultisigScript,
   multisigArgs,
+  injectCapacity,
+  setupInputCell,
 };

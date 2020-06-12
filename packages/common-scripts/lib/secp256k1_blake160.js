@@ -3,6 +3,7 @@ const {
   parseAddress,
   minimalCellCapacity,
   createTransactionFromSkeleton,
+  generateAddress,
 } = require("@ckb-lumos/helpers");
 const { LINA } = configs;
 const { core, values, utils } = require("@ckb-lumos/types");
@@ -27,8 +28,8 @@ function ensureSecp256k1Script(script, config) {
 async function transfer(
   txSkeleton,
   fromAddress,
-  toInfo, // address OR outputIndex
-  amount, // will be ignored if toInfo is an outputIndex
+  toAddress,
+  amount,
   { config = LINA, requireToAddress = true } = {}
 ) {
   if (!config.SCRIPTS.SECP256K1_BLAKE160) {
@@ -59,14 +60,13 @@ async function transfer(
   const fromScript = parseAddress(fromAddress, { config });
   ensureSecp256k1Script(fromScript, config);
 
-  if (requireToAddress && !toInfo && toInfo !== 0) {
-    throw new Error("You must provide a to info, address or output index!");
+  if (requireToAddress && !toAddress) {
+    throw new Error("You must provide a to address!");
   }
 
-  amount = BigInt(amount || 0);
-  if (typeof toInfo === "string") {
-    // toInfo is an address
-    const toScript = parseAddress(toInfo, { config });
+  amount = BigInt(amount);
+  if (toAddress) {
+    const toScript = parseAddress(toAddress, { config });
 
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
@@ -80,17 +80,6 @@ async function transfer(
         block_hash: null,
       });
     });
-  } else if (typeof toInfo === "number") {
-    // toInfo is an outputIndex
-    // validate outputIndex
-    const outputIndex = toInfo;
-    if (outputIndex >= txSkeleton.get("outputs").size) {
-      throw new Error("Invalid outputIndex!");
-    }
-
-    amount = BigInt(
-      txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
-    );
   }
 
   /*
@@ -269,6 +258,36 @@ async function payFee(txSkeleton, fromAddress, amount, { config = LINA } = {}) {
   });
 }
 
+async function injectCapacity(
+  txSkeleton,
+  outputIndex,
+  fromAddress,
+  { config = LINA } = {}
+) {
+  if (outputIndex >= txSkeleton.get("outputs").size) {
+    throw new Error("Invalid output index!");
+  }
+  const capacity = BigInt(
+    txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
+  );
+  return await transfer(txSkeleton, fromAddress, null, capacity, {
+    config,
+    requireToAddress: false,
+  });
+}
+
+async function setupInputCell(txSkeleton, inputIndex, { config = LINA } = {}) {
+  if (inputIndex >= txSkeleton.get("inputs").size) {
+    throw new Error("Invalid input index!");
+  }
+  const inputLock = txSkeleton.get("inputs").get(inputIndex).cell_output.lock;
+  const fromAddress = generateAddress(inputLock, { config });
+  return transfer(txSkeleton, fromAddress, null, 0, {
+    config,
+    requireToAddress: false,
+  });
+}
+
 function hashWitness(hasher, witness) {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
@@ -342,4 +361,6 @@ module.exports = {
   transfer,
   payFee,
   prepareSigningEntries,
+  injectCapacity,
+  setupInputCell,
 };

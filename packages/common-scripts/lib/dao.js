@@ -4,34 +4,26 @@ const { core, values, utils } = require("@ckb-lumos/types");
 const { toBigUInt64LE } = utils;
 const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const { List } = require("immutable");
+const secp256k1Blake160 = require("./secp256k1_blake160");
+const secp256k1Blake160Multisig = require("./secp256k1_blake160_multisig");
 
 const DEPOSIT_DAO_DATA = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS = BigInt(180);
 
-async function deposit(txSkeleton, toAddress, amount, { config = LINA } = {}) {
+async function deposit(
+  txSkeleton,
+  fromInfo,
+  toAddress,
+  amount,
+  { config = LINA } = {}
+) {
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (!DAO_SCRIPT) {
     throw new Error("Provided config does not have DAO script setup!");
   }
 
   // check and add cellDep if not exists
-  const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
-    return (
-      cellDep.dep_type === DAO_SCRIPT.DEP_TYPE &&
-      new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
-        new values.OutPointValue(DAO_SCRIPT.OUT_POINT, { validate: false })
-      )
-    );
-  });
-
-  if (!cellDep) {
-    txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
-      return cellDeps.push({
-        out_point: DAO_SCRIPT.OUT_POINT,
-        dep_type: DAO_SCRIPT.DEP_TYPE,
-      });
-    });
-  }
+  txSkeleton = _addDaoCellDep(txSkeleton, config);
 
   if (!toAddress) {
     throw new Error("You must provide a to address!");
@@ -57,13 +49,42 @@ async function deposit(txSkeleton, toAddress, amount, { config = LINA } = {}) {
     });
   });
 
+  const outputIndex = txSkeleton.get("outputs").size - 1;
+
   // fix entry
   txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
     return fixedEntries.push({
       field: "outputs",
-      index: txSkeleton.get("outputs").size - 1,
+      index: outputIndex,
     });
   });
+
+  if (typeof fromInfo === "string") {
+    const fromScript = parseAddress(fromInfo, { config });
+    // address
+    if (_isSecp256k1Blake160(fromScript, config)) {
+      txSkeleton = await secp256k1Blake160.injectCapacity(
+        txSkeleton,
+        outputIndex,
+        fromInfo,
+        { config }
+      );
+    } else if (_isSecp256k1Blake160Multisig(fromScript, config)) {
+      txSkeleton = await secp256k1Blake160Multisig.injectCapacity(
+        txSkeleton,
+        outputIndex,
+        fromInfo,
+        { config }
+      );
+    }
+  } else if (fromInfo) {
+    txSkeleton = await secp256k1Blake160Multisig.injectCapacity(
+      txSkeleton,
+      outputIndex,
+      fromInfo,
+      { config }
+    );
+  }
 
   return txSkeleton;
 }
@@ -99,7 +120,12 @@ async function listDaoCells(
   return inputCells;
 }
 
-async function withdraw(txSkeleton, fromInput, { config = LINA } = {}) {
+async function withdraw(
+  txSkeleton,
+  fromInput,
+  fromInfo,
+  { config = LINA } = {}
+) {
   _checkDaoScript(config);
   txSkeleton = _addDaoCellDep(txSkeleton, config);
 
@@ -165,6 +191,23 @@ async function withdraw(txSkeleton, fromInput, { config = LINA } = {}) {
     );
   });
 
+  // setup input cell
+  const fromLockScript = fromInput.cell_output.lock;
+  if (_isSecp256k1Blake160(fromLockScript, config)) {
+    txSkeleton = await secp256k1Blake160.setupInputCell(
+      txSkeleton,
+      txSkeleton.get("inputs").size - 1,
+      { config }
+    );
+  } else if (_isSecp256k1Blake160Multisig(fromLockScript, config)) {
+    txSkeleton = secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      txSkeleton.get("inputs").size - 1,
+      fromInfo || generateAddress(fromLockScript, { config }),
+      { config }
+    );
+  }
+
   return txSkeleton;
 }
 
@@ -191,6 +234,7 @@ async function unlock(
   depositInput,
   withdrawInput,
   toAddress,
+  fromInfo,
   { config = LINA } = {}
 ) {
   _checkDaoScript(config);
@@ -293,8 +337,7 @@ async function unlock(
   // add an empty witness
   txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
     const witnessArgs = {
-      // lock: null, // left empty, using `transfer` to fill this field
-      input_type: toBigUInt64LE(depositHeaderDepIndex), // TODO: 忘了这个的具体含义
+      input_type: toBigUInt64LE(depositHeaderDepIndex),
     };
     return witnesses.push(
       new Reader(
@@ -325,6 +368,23 @@ async function unlock(
     );
   });
 
+  // setup input cell
+  const fromLockScript = withdrawInput.cell_output.lock;
+  if (_isSecp256k1Blake160(fromLockScript, config)) {
+    txSkeleton = await secp256k1Blake160.setupInputCell(
+      txSkeleton,
+      txSkeleton.get("inputs").size - 1,
+      { config }
+    );
+  } else if (_isSecp256k1Blake160Multisig(fromLockScript, config)) {
+    txSkeleton = secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      txSkeleton.get("inputs").size - 1,
+      fromInfo || generateAddress(fromLockScript, { config }),
+      { config }
+    );
+  }
+
   return txSkeleton;
 }
 
@@ -351,12 +411,19 @@ function _checkDaoScript(config) {
  * @returns {TransactionSkeleton} txSkeleton
  */
 function _addDaoCellDep(txSkeleton, config) {
-  const DAO_SCRIPT = config.SCRIPTS.DAO;
+  const template = config.SCRIPTS.DAO;
+  return _addCellDep(txSkeleton, {
+    out_point: template.OUT_POINT,
+    dep_type: template.DEP_TYPE,
+  });
+}
+
+function _addCellDep(txSkeleton, newCellDep) {
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
-      cellDep.dep_type === DAO_SCRIPT.DEP_TYPE &&
+      cellDep.dep_type === newCellDep.dep_type &&
       new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
-        new values.OutPointValue(DAO_SCRIPT.OUT_POINT, { validate: false })
+        new values.OutPointValue(newCellDep.out_point, { validate: false })
       )
     );
   });
@@ -364,13 +431,31 @@ function _addDaoCellDep(txSkeleton, config) {
   if (!cellDep) {
     txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
       return cellDeps.push({
-        out_point: DAO_SCRIPT.OUT_POINT,
-        dep_type: DAO_SCRIPT.DEP_TYPE,
+        out_point: newCellDep.out_point,
+        dep_type: newCellDep.dep_type,
       });
     });
   }
 
   return txSkeleton;
+}
+
+function _isSecp256k1Blake160(script, config) {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160.SCRIPT;
+
+  return (
+    script.code_hash === template.code_hash &&
+    script.hash_type === template.hash_type
+  );
+}
+
+function _isSecp256k1Blake160Multisig(script, config) {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT;
+
+  return (
+    script.code_hash === template.code_hash &&
+    script.hash_type === template.hash_type
+  );
 }
 
 module.exports = {

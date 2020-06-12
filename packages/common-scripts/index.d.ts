@@ -20,7 +20,6 @@ export interface MultisigScript {
 }
 
 export type FromInfo = MultisigScript | Address
-export type ToInfo = Address | number
 
 // TODO: secp256k1Blake160 types
 export declare const secp256k1Blake160: {
@@ -29,18 +28,17 @@ export declare const secp256k1Blake160: {
    *
    * @param txSkeleton
    * @param fromAddress
-   * @param toInfo address or outputIndex, can be any type of lock script and can left empty.
-   * @param amount transfer CKB capacity in shannon, will be ignored if `toInfo` means outputIndex
+   * @param toAddress
+   * @param amount transfer CKB capacity in shannon.
    * @param options
    */
   transfer(
     txSkeleton: TransactionSkeleton,
     fromAddress: Address,
-    toInfo: ToInfo,
+    toAddress: Address,
     amount: bigint,
     options: {
       config: Config,
-      requireToAddress: boolean,
     },
   ): Promise<TransactionSkeleton>,
 
@@ -73,6 +71,38 @@ export declare const secp256k1Blake160: {
       config: Config,
     },
   ): TransactionSkeleton,
+
+  /**
+   * Inject capacity from `fromAddress` to target output.
+   *
+   * @param txSkeleton
+   * @param outputIndex
+   * @param fromAddress
+   * @param options
+   */
+  injectCapacity(
+    txSkeleton: TransactionSkeleton,
+    outputIndex: number,
+    fromAddress: Address,
+    options: {
+      config: Config,
+    },
+  ): TransactionSkeleton,
+
+  /**
+   * Setup input cell infos, such as cell deps and witnesses.
+   *
+   * @param txSkeleton
+   * @param inputIndex
+   * @param options
+   */
+  setupInputCell(
+    txSkeleton: TransactionSkeleton,
+    inputIndex: number,
+    options: {
+      config: Config,
+    },
+  ): TransactionSkeleton,
 }
 
 export declare const secp256k1Blake160Multisig: {
@@ -81,18 +111,17 @@ export declare const secp256k1Blake160Multisig: {
    *
    * @param txSkeleton
    * @param fromInfo fromAddress or fromMultisigScript, if this address new to txSkeleton inputs, must use fromMultisigScript
-   * @param toInfo address or output index, can be any type of lock script and can left empty.
-   * @param amount transfer CKB capacity in shannon, will be ignored if `toInfo` means outputIndex
+   * @param toAddress
+   * @param amount transfer CKB capacity in shannon.
    * @param options
    */
   transfer(
     txSkeleton: TransactionSkeleton,
     fromInfo: FromInfo,
-    toInfo, ToInfo,
+    toAddress: Address,
     amount: bigint,
     options: {
       config: Config,
-      requiredToAddress: boolean,
     },
   ): Promise<TransactionSkeleton>,
 
@@ -139,6 +168,40 @@ export declare const secp256k1Blake160Multisig: {
    * @returns lock script args
    */
   multisigArgs(serializedMultisigScript: string): string,
+
+    /**
+   * Inject capacity from `fromInfo` to target output.
+   *
+   * @param txSkeleton
+   * @param outputIndex
+   * @param fromInfo
+   * @param options
+   */
+  injectCapacity(
+    txSkeleton: TransactionSkeleton,
+    outputIndex: number,
+    fromInfo: FromInfo,
+    options: {
+      config: Config,
+    },
+  ): TransactionSkeleton,
+
+  /**
+   * Setup input cell infos, such as cell deps and witnesses.
+   *
+   * @param txSkeleton
+   * @param inputIndex
+   * @param fromInfo
+   * @param options
+   */
+  setupInputCell(
+    txSkeleton: TransactionSkeleton,
+    inputIndex: number,
+    fromInfo: FromInfo | undefined,
+    options: {
+      config: Config,
+    },
+  ): TransactionSkeleton,
 }
 
 export declare const dao: {
@@ -146,12 +209,14 @@ export declare const dao: {
    * deposit a cell to DAO
    *
    * @param txSkeleton
+   * @param fromInfo
    * @param toAddress deposit cell lock address
    * @param amount capacity in shannon
    * @param options
    */
   deposit(
     txSkeleton: TransactionSkeleton,
+    fromInfo: FromInfo,
     toAddress: Address,
     amount: bigint,
     options: {
@@ -181,11 +246,13 @@ export declare const dao: {
    *
    * @param txSkeleton
    * @param fromInput deposited DAO cell
+   * @param fromInfo
    * @param options
    */
   withdraw(
     txSkeleton: TransactionSkeleton,
     fromInput: Cell,
+    fromInfo: FromInfo | undefined,
     options: {
       config: Config,
     },
@@ -198,6 +265,7 @@ export declare const dao: {
    * @param depositInput deposited DAO cell
    * @param withdrawInput withdrew DAO cell
    * @param toAddress
+   * @param fromInfo
    * @param options
    */
   unlock(
@@ -205,6 +273,7 @@ export declare const dao: {
     depositInput: Cell,
     withdrawInput: Cell,
     toAddress: Address,
+    fromInfo: FromInfo,
     options: {
       config: Config,
     },
