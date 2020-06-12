@@ -1,9 +1,8 @@
 import { TransactionSkeleton } from "@ckb-lumos/helpers"
+import { Cell, CellProvider } from "@ckb-lumos/types"
 
 export type Address = string
 export type Config = any // TODO: define this type later
-export type FullCell = any
-export type CellProvider = any
 
 /**
  * secp256k1_blake160_multisig script requires S, R, M, N and public key hashes
@@ -175,7 +174,7 @@ export declare const dao: {
     options: {
       config: Config,
     },
-  ): Promise<List<FullCell>>,
+  ): Promise<List<Cell>>,
 
   /**
    * withdraw an deposited DAO cell
@@ -186,7 +185,7 @@ export declare const dao: {
    */
   withdraw(
     txSkeleton: TransactionSkeleton,
-    fromInput: FullCell,
+    fromInput: Cell,
     options: {
       config: Config,
     },
@@ -203,8 +202,8 @@ export declare const dao: {
    */
   unlock(
     txSkeleton: TransactionSkeleton,
-    depositInput: FullCell,
-    withdrawInput: FullCell,
+    depositInput: Cell,
+    withdrawInput: Cell,
     toAddress: Address,
     options: {
       config: Config,
