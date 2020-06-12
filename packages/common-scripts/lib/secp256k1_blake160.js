@@ -28,7 +28,7 @@ async function transfer(
   txSkeleton,
   fromAddress,
   toInfo, // address OR outputIndex
-  amount,
+  amount, // will be ignored if toInfo is an outputIndex
   { config = LINA, requireToAddress = true } = {}
 ) {
   if (!config.SCRIPTS.SECP256K1_BLAKE160) {
@@ -56,13 +56,14 @@ async function transfer(
     });
   }
 
-  amount = BigInt(amount);
   const fromScript = parseAddress(fromAddress, { config });
   ensureSecp256k1Script(fromScript, config);
 
   if (requireToAddress && !toInfo && toInfo !== 0) {
     throw new Error("You must provide a to info, address or output index!");
   }
+
+  amount = BigInt(amount || 0);
   if (typeof toInfo === "string") {
     // toInfo is an address
     const toScript = parseAddress(toInfo, { config });
@@ -87,11 +88,9 @@ async function transfer(
       throw new Error("Invalid outputIndex!");
     }
 
-    txSkeleton = txSkeleton.update("outputs", (outputs) => {
-      let targetOutput = outputs.get(outputIndex);
-      targetOutput.cell_output.capacity = "0x" + amount.toString(16);
-      return outputs.set(outputIndex, targetOutput);
-    });
+    amount = BigInt(
+      txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
+    );
   }
 
   /*

@@ -18,7 +18,11 @@ const generateDaoTypeScript = (config) => {
 };
 
 test("deposit", async (t) => {
-  txSkeleton = await dao.deposit(txSkeleton, bob.mainnetAddress);
+  txSkeleton = await dao.deposit(
+    txSkeleton,
+    bob.mainnetAddress,
+    BigInt(1000 * 10 ** 8)
+  );
 
   t.is(txSkeleton.get("cellDeps").size, 1);
   t.deepEqual(
@@ -38,13 +42,17 @@ test("deposit", async (t) => {
 });
 
 test("deposit secp256k1_blake160", async (t) => {
-  txSkeleton = await dao.deposit(txSkeleton, bob.mainnetAddress);
+  txSkeleton = await dao.deposit(
+    txSkeleton,
+    bob.mainnetAddress,
+    BigInt(1000 * 10 ** 8)
+  );
 
   txSkeleton = await secp256k1Blake160.transfer(
     txSkeleton,
     bob.mainnetAddress,
     0,
-    BigInt(1000 * 10 ** 8)
+    0
   );
 
   const inputCapacity = txSkeleton
@@ -63,13 +71,17 @@ test("deposit secp256k1_blake160", async (t) => {
 });
 
 test("withdraw", async (t) => {
-  txSkeleton = await dao.deposit(txSkeleton, bob.mainnetAddress);
+  txSkeleton = await dao.deposit(
+    txSkeleton,
+    bob.mainnetAddress,
+    BigInt(1000 * 10 ** 8)
+  );
 
   txSkeleton = await secp256k1Blake160.transfer(
     txSkeleton,
     bob.mainnetAddress,
     0,
-    BigInt(1000 * 10 ** 8)
+    0
   );
 
   const fromInput = txSkeleton.get("outputs").get(0);
@@ -108,13 +120,17 @@ test("withdraw", async (t) => {
 });
 
 test("withdraw secp256k1_blake160", async (t) => {
-  txSkeleton = await dao.deposit(txSkeleton, bob.mainnetAddress);
+  txSkeleton = await dao.deposit(
+    txSkeleton,
+    bob.mainnetAddress,
+    BigInt(1000 * 10 ** 8)
+  );
 
   txSkeleton = await secp256k1Blake160.transfer(
     txSkeleton,
     bob.mainnetAddress,
     0,
-    BigInt(1000 * 10 ** 8)
+    0
   );
 
   const fromInput = txSkeleton.get("outputs").get(0);

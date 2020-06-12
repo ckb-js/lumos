@@ -88,8 +88,6 @@ async function transfer(
     });
   }
 
-  amount = BigInt(amount);
-
   let fromScript;
   let multisigScript;
   if (typeof fromInfo === "string") {
@@ -120,6 +118,8 @@ async function transfer(
   if (requireToAddress && !toInfo && toInfo !== 0) {
     throw new Error("You must provide a to info, address or output index!");
   }
+
+  amount = BigInt(amount || 0);
   if (typeof toInfo === "string") {
     const toScript = parseAddress(toInfo, { config });
 
@@ -141,11 +141,9 @@ async function transfer(
       throw new Error("Invalid outputIndex!");
     }
 
-    txSkeleton = txSkeleton.update("outputs", (outputs) => {
-      let targetOutput = outputs.get(outputIndex);
-      targetOutput.cell_output.capacity = "0x" + amount.toString(16);
-      return outputs.set(outputIndex, targetOutput);
-    });
+    amount = BigInt(
+      txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
+    );
   }
 
   const lastFreezedOutput = txSkeleton

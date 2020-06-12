@@ -30,8 +30,8 @@ export declare const secp256k1Blake160: {
    *
    * @param txSkeleton
    * @param fromAddress
-   * @param toInfo address or outputIndex, can be any type of lock script and can left empty. Notice if it's output index, will change capacity even this output is fixed by `fixedEntries`.
-   * @param amount transfer CKB capacity in shannon
+   * @param toInfo address or outputIndex, can be any type of lock script and can left empty.
+   * @param amount transfer CKB capacity in shannon, will be ignored if `toInfo` means outputIndex
    * @param options
    */
   transfer(
@@ -82,8 +82,8 @@ export declare const secp256k1Blake160Multisig: {
    *
    * @param txSkeleton
    * @param fromInfo fromAddress or fromMultisigScript, if this address new to txSkeleton inputs, must use fromMultisigScript
-   * @param toInfo address or output index, can be any type of lock script and can left empty. Notice if it's output index, will change capacity even this output is fixed by `fixedEntries`.
-   * @param amount transfer CKB capacity in shannon
+   * @param toInfo address or output index, can be any type of lock script and can left empty.
+   * @param amount transfer CKB capacity in shannon, will be ignored if `toInfo` means outputIndex
    * @param options
    */
   transfer(
@@ -148,11 +148,13 @@ export declare const dao: {
    *
    * @param txSkeleton
    * @param toAddress deposit cell lock address
+   * @param amount capacity in shannon
    * @param options
    */
   deposit(
     txSkeleton: TransactionSkeleton,
     toAddress: Address,
+    amount: bigint,
     options: {
       config: Config,
     },

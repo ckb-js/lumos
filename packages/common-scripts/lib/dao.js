@@ -8,7 +8,7 @@ const { List } = require("immutable");
 const DEPOSIT_DAO_DATA = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS = BigInt(180);
 
-async function deposit(txSkeleton, toAddress, { config = LINA } = {}) {
+async function deposit(txSkeleton, toAddress, amount, { config = LINA } = {}) {
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (!DAO_SCRIPT) {
     throw new Error("Provided config does not have DAO script setup!");
@@ -47,7 +47,7 @@ async function deposit(txSkeleton, toAddress, { config = LINA } = {}) {
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push({
       cell_output: {
-        capacity: "0x0",
+        capacity: "0x" + BigInt(amount).toString(16),
         lock: toScript,
         type: daoTypeScript,
       },
