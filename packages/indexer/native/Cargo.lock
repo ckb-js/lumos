@@ -215,7 +215,7 @@ dependencies = [
 [[package]]
 name = "ckb-indexer"
 version = "0.1.0"
-source = "git+https://github.com/quake/ckb-indexer?rev=4a233fd#4a233fdde53dcb44ff3cfa9ee01a6e02d1e89e3b"
+source = "git+https://github.com/quake/ckb-indexer?rev=481bfef#481bfeffbec028a9393b788e16a2fb5f904c103b"
 dependencies = [
  "ckb-jsonrpc-types",
  "ckb-types",
