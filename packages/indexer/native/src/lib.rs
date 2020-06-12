@@ -417,6 +417,43 @@ declare_types! {
             Ok(TransactionIterator(Box::new(iter)))
         }
 
+        method count(mut cx) {
+            let mut this = cx.this();
+            let count = {
+                let guard = cx.lock();
+                let mut iterator = this.borrow_mut(&guard);
+                let mut count = 0;
+                while iterator.0.next().is_some() {
+                    count += 1;
+                }
+                count
+            };
+            Ok(cx.number(count as f64).upcast())
+        }
+
+        method collect(mut cx) {
+            let mut this = cx.this();
+            let hashes = {
+                let guard = cx.lock();
+                let mut iterator = this.borrow_mut(&guard);
+                let mut hashes = vec![];
+                while let Some((_key, value)) = iterator.0.next() {
+                    hashes.push(value.to_vec());
+                }
+                hashes
+            };
+            let js_hashes = JsArray::new(&mut cx, hashes.len() as u32);
+            for (i, value) in hashes.iter().enumerate() {
+                let hash = Byte32::from_slice(&value);
+                if hash.is_err() {
+                    return cx.throw_error("Malformed data!");
+                }
+                let js_hash = cx.string(format!("{:#x}", hash.unwrap()));
+                js_hashes.set(&mut cx, i as u32, js_hash)?;
+            }
+            Ok(js_hashes.upcast())
+        }
+
         method next(mut cx) {
             let mut this = cx.this();
             let item = {
