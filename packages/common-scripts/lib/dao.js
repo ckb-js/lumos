@@ -3,7 +3,6 @@ const { LINA } = configs;
 const { core, values, utils } = require("@ckb-lumos/types");
 const { toBigUInt64LE } = utils;
 const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
-const { List } = require("immutable");
 const secp256k1Blake160 = require("./secp256k1_blake160");
 const secp256k1Blake160Multisig = require("./secp256k1_blake160_multisig");
 
@@ -89,7 +88,7 @@ async function deposit(
   return txSkeleton;
 }
 
-async function listDaoCells(
+async function* listDaoCells(
   cellProvider,
   fromAddress,
   cellType, // "deposit" or "withdraw"
@@ -106,17 +105,13 @@ async function listDaoCells(
     type: daoTypeScript,
     data,
   });
-  // TODO: if input cells set is very large ?
-  let inputCells = List();
   for await (const inputCell of cellCollector.collect()) {
-    inputCells = inputCells.push(inputCell);
-  }
+    if (cellType === "withdraw" && inputCell.data === DEPOSIT_DAO_DATA) {
+      continue;
+    }
 
-  if (cellType === "withdraw") {
-    inputCells = inputCells.filter((c) => c.data !== DEPOSIT_DAO_DATA);
+    yield inputCell;
   }
-
-  return inputCells;
 }
 
 async function withdraw(

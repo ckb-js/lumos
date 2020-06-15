@@ -239,7 +239,7 @@ export declare const dao: {
     options: {
       config: Config,
     },
-  ): Promise<List<Cell>>,
+  ): AsyncIterator<Cell>,
 
   /**
    * withdraw an deposited DAO cell
