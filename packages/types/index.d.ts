@@ -30,8 +30,7 @@ export interface Cell {
 
 export interface QueryOptions {
   lock?: Script | null;
-  type?: Script | null;
-  typeIsNull?: boolean;
+  type?: Script | "empty" | null;
   data?: string | null;
 }
 

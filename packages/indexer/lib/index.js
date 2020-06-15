@@ -74,14 +74,10 @@ class Indexer {
   }
 
   collector(
-    { lock = null, type = null, typeIsNull = true, data = "0x" } = {},
+    { lock = null, type = null, data = "0x" } = {},
     { skipNotLive = false } = {}
   ) {
-    return new CellCollector(
-      this,
-      { lock, type, typeIsNull, data },
-      { skipNotLive }
-    );
+    return new CellCollector(this, { lock, type, data }, { skipNotLive });
   }
 }
 
@@ -106,7 +102,7 @@ class CellCollector {
   // if data left null, means every data content is ok
   constructor(
     indexer,
-    { lock = null, type = null, typeIsNull = true, data = "0x" } = {},
+    { lock = null, type = null, data = "0x" } = {},
     { skipNotLive = false } = {}
   ) {
     if (!lock && !type) {
@@ -121,7 +117,6 @@ class CellCollector {
     this.indexer = indexer;
     this.lock = lock;
     this.type = type;
-    this.typeIsNull = typeIsNull;
     this.data = data;
     this.skipNotLive = skipNotLive;
   }
@@ -141,7 +136,7 @@ class CellCollector {
   }
 
   async *collect() {
-    if (this.lock && this.type) {
+    if (this.lock && this.type && typeof this.type === "object") {
       let lockOutPoints = new Set();
       for (const o of this.indexer._getLiveCellsByScript(
         this.lock,
@@ -185,7 +180,7 @@ class CellCollector {
         if (
           cell &&
           scriptType === 0 &&
-          this.typeIsNull &&
+          this.type === "empty" &&
           cell.cell_output.type
         ) {
           continue;

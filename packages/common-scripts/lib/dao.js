@@ -104,7 +104,6 @@ async function listDaoCells(
   const cellCollector = cellProvider.collector({
     lock: fromScript,
     type: daoTypeScript,
-    typeIsNull: false,
     data,
   });
   // TODO: if input cells set is very large ?
