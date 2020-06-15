@@ -39,30 +39,6 @@ class Indexer {
     return this.nativeIndexer.tip();
   }
 
-  getLiveCellsByLockScript(
-    script,
-    { validateFirst = true, returnRawBuffer = false } = {}
-  ) {
-    return this._getLiveCellsByScript(
-      script,
-      0,
-      validateFirst,
-      returnRawBuffer
-    );
-  }
-
-  getLiveCellsByTypeScript(
-    script,
-    { validateFirst = true, returnRawBuffer = false } = {}
-  ) {
-    return this._getLiveCellsByScript(
-      script,
-      1,
-      validateFirst,
-      returnRawBuffer
-    );
-  }
-
   _getLiveCellsByScript(script, scriptType, validateFirst, returnRawBuffer) {
     if (validateFirst) {
       validators.ValidateScript(script);
@@ -74,19 +50,11 @@ class Indexer {
     );
   }
 
-  getTransactionsByLockScript(script, { validateFirst = true } = {}) {
-    return this._getTransactionsByScript(script, 0, validateFirst);
-  }
-
-  getTransactionsByTypeScript(script, { validateFirst = true } = {}) {
-    return this._getTransactionsByScript(script, 1, validateFirst);
-  }
-
-  _getTransactionsByScript(script, scriptType, validateFirst) {
+  _getTransactionsByScriptIterator(script, scriptType, validateFirst) {
     if (validateFirst) {
       validators.ValidateScript(script);
     }
-    return this.nativeIndexer.getTransactionsByScript(
+    return this.nativeIndexer.getTransactionsByScriptIterator(
       normalizers.NormalizeScript(script),
       scriptType
     );
@@ -158,36 +126,78 @@ class CellCollector {
     this.skipNotLive = skipNotLive;
   }
 
+  // TODO: optimize this
+  async count() {
+    let result = 0;
+    const c = this.collect();
+    while (true) {
+      const item = await c.next();
+      if (item.done) {
+        break;
+      }
+      result += 1;
+    }
+    return result;
+  }
+
   async *collect() {
-    let outPoints = new Set();
-    if (this.lock) {
-      for (const o of this.indexer.getLiveCellsByLockScript(this.lock, {
-        validateFirst: false,
-        returnRawBuffer: true,
-      })) {
-        outPoints = outPoints.add(new BufferValue(o));
+    if (this.lock && this.type) {
+      let lockOutPoints = new Set();
+      for (const o of this.indexer._getLiveCellsByScript(
+        this.lock,
+        0,
+        false,
+        true
+      )) {
+        lockOutPoints = lockOutPoints.add(new BufferValue(o));
       }
-    }
-    if (this.type) {
-      for (const o of this.indexer.getLiveCellsByTypeScript(this.type, {
-        validateFirst: false,
-        returnRawBuffer: true,
-      })) {
-        outPoints = outPoints.add(new BufferValue(o));
+
+      let typeOutPoints = new Set();
+      for (const o of this.indexer._getLiveCellsByScript(
+        this.type,
+        1,
+        false,
+        true
+      )) {
+        typeOutPoints = typeOutPoints.add(new BufferValue(o));
       }
-    }
-    for (const o of outPoints) {
-      const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
-      if (cell && this.typeIsNull && cell.cell_output.type) {
-        continue;
+      const outPoints = lockOutPoints.intersect(typeOutPoints);
+      for (const o of outPoints) {
+        const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+        if (cell && this.data && cell.data !== this.data) {
+          continue;
+        }
+        if (!this.skipNotLive && !cell) {
+          throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
+        }
+        yield cell;
       }
-      if (cell && this.data && cell.data !== this.data) {
-        continue;
+    } else {
+      const script = this.lock || this.type;
+      const scriptType = !!this.lock ? 0 : 1;
+      for (const o of this.indexer._getLiveCellsByScript(
+        script,
+        scriptType,
+        false,
+        true
+      )) {
+        const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o);
+        if (
+          cell &&
+          scriptType === 0 &&
+          this.typeIsNull &&
+          cell.cell_output.type
+        ) {
+          continue;
+        }
+        if (cell && this.data && cell.data !== this.data) {
+          continue;
+        }
+        if (!this.skipNotLive && !cell) {
+          throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
+        }
+        yield cell;
       }
-      if (!this.skipNotLive && !cell) {
-        throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
-      }
-      yield cell;
     }
   }
 }
@@ -220,31 +230,78 @@ class TransactionCollector {
     this.rpc = new RPC(indexer.uri);
   }
 
+  async count() {
+    if (this.lock && this.type) {
+      const lockHashes = new Set(
+        this.indexer
+          ._getTransactionsByScriptIterator(this.lock, 0, false)
+          .collect()
+      );
+      const typeHashes = new Set(
+        this.indexer
+          ._getTransactionsByScriptIterator(this.type, 1, false)
+          .collect()
+      );
+      const hashes = lockHashes.intersect(typeHashes);
+      return hashes.size;
+    } else {
+      const script = this.lock || this.type;
+      const scriptType = !!this.lock ? 0 : 1;
+      const iter = this.indexer._getTransactionsByScriptIterator(
+        script,
+        scriptType,
+        false
+      );
+      return iter.count();
+    }
+  }
+
   async *collect() {
-    let hashes = new Set();
-    if (this.lock) {
-      for (const h of this.indexer.getTransactionsByLockScript(this.lock, {
-        validateFirst: false,
-      })) {
-        hashes = hashes.add(h);
+    if (this.lock && this.type) {
+      const lockHashes = new Set(
+        this.indexer
+          ._getTransactionsByScriptIterator(this.lock, 0, false)
+          .collect()
+      );
+      const typeHashes = new Set(
+        this.indexer
+          ._getTransactionsByScriptIterator(this.type, 1, false)
+          .collect()
+      );
+      const hashes = lockHashes.intersect(typeHashes);
+      for (const h of hashes) {
+        const tx = await this.rpc.get_transaction(hash);
+        if (!this.skipMissing && !tx) {
+          throw new Error(`Transaction ${h} is missing!`);
+        }
+        if (this.includeStatus) {
+          yield tx;
+        } else {
+          yield tx.transaction;
+        }
       }
-    }
-    if (this.type) {
-      for (const h of this.indexer.getTransactionsByTypeScript(this.type, {
-        validateFirst: false,
-      })) {
-        hashes = hashes.add(h);
-      }
-    }
-    for (const h of hashes) {
-      const tx = await this.rpc.get_transaction(h);
-      if (!this.skipMissing && !tx) {
-        throw new Error(`Transaction ${h} is missing!`);
-      }
-      if (this.includeStatus) {
-        yield tx;
-      } else {
-        yield tx.transaction;
+    } else {
+      const script = this.lock || this.type;
+      const scriptType = !!this.lock ? 0 : 1;
+      const iter = this.indexer._getTransactionsByScriptIterator(
+        script,
+        scriptType,
+        false
+      );
+      while (true) {
+        const hash = iter.next();
+        if (!hash) {
+          break;
+        }
+        const tx = await this.rpc.get_transaction(hash);
+        if (!this.skipMissing && !tx) {
+          throw new Error(`Transaction ${h} is missing!`);
+        }
+        if (this.includeStatus) {
+          yield tx;
+        } else {
+          yield tx.transaction;
+        }
       }
     }
   }

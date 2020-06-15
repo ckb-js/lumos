@@ -2,13 +2,13 @@
 extern crate log;
 
 use ckb_indexer::{
-    indexer::{Error as IndexerError, Indexer},
-    store::{RocksdbStore, Store},
+    indexer::{Error as IndexerError, Indexer, KeyPrefix, SCRIPT_SERIALIZE_OFFSET},
+    store::{IteratorDirection, RocksdbStore, Store},
 };
 use ckb_jsonrpc_types::{BlockNumber, BlockView};
 use ckb_types::{
     core::{BlockView as CoreBlockView, ScriptHashType},
-    packed::{OutPoint, Script, ScriptBuilder},
+    packed::{Byte32, OutPoint, Script, ScriptBuilder},
     prelude::*,
 };
 use futures::Future;
@@ -54,6 +54,8 @@ pub trait CkbRpc {
     #[rpc(name = "get_block_by_number")]
     fn get_block_by_number(&self, _number: BlockNumber) -> Result<Option<BlockView>>;
 }
+
+pub struct TransactionIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)>>);
 
 #[derive(Clone)]
 pub struct NativeIndexer {
@@ -266,55 +268,12 @@ declare_types! {
             Ok(js_out_points.upcast())
         }
 
-        method getTransactionsByScript(mut cx) {
-            let this = cx.this();
-            let inner_indexer = {
-                let guard = cx.lock();
-                let indexer = this.borrow(&guard);
-                indexer.indexer.clone()
-            };
-            let js_script: Handle<JsObject> = cx.argument::<JsObject>(0)?;
-            let js_code_hash = js_script.get(&mut cx, "code_hash")?
-                .downcast::<JsArrayBuffer>()
-                .or_throw(&mut cx)?;
-            let code_hash = {
-                let guard = cx.lock();
-                let code_hash = js_code_hash.borrow(&guard);
-                code_hash.as_slice().to_vec()
-            };
-            let js_hash_type = js_script.get(&mut cx, "hash_type")?
-                .downcast::<JsNumber>()
-                .or_throw(&mut cx)?
-                .value();
-            let js_args = js_script.get(&mut cx, "args")?
-                .downcast::<JsArrayBuffer>()
-                .or_throw(&mut cx)?;
-            let args = {
-                let guard = cx.lock();
-                let args = js_args.borrow(&guard);
-                args.as_slice().to_vec()
-            };
-            let script = assemble_packed_script(&code_hash, js_hash_type, &args);
-            if script.is_err() {
-                return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
-            }
-            let script = script.unwrap();
-            let hashes = if cx.argument::<JsNumber>(1)?.value() as u32 == 1 {
-                inner_indexer.get_transactions_by_type_script(&script)
-            } else {
-                inner_indexer.get_transactions_by_lock_script(&script)
-            };
-            if hashes.is_err() {
-                return cx.throw_error(format!("Error fetching transactions: {:?}", hashes.unwrap_err()));
-            }
-            let hashes = hashes.unwrap();
-            let js_hashes = JsArray::new(&mut cx, hashes.len() as u32);
-            for (i, hash) in hashes.iter().enumerate() {
-                let js_hash = cx.string(format!("{:#x}", hash));
-                js_hashes.set(&mut cx, i as u32, js_hash)?;
-            }
+        method getTransactionsByScriptIterator(mut cx) {
+            let js_script = cx.argument::<JsValue>(0)?;
+            let script_type = cx.argument::<JsValue>(1)?;
+            let this = cx.this().upcast();
 
-            Ok(js_hashes.upcast())
+            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type])?.upcast())
         }
 
         method getDetailedLiveCell(mut cx) {
@@ -406,6 +365,113 @@ declare_types! {
             result.set(&mut cx, "data", js_data)?;
 
             Ok(result.upcast())
+        }
+    }
+
+    pub class JsTransactionIterator for TransactionIterator {
+        init(mut cx) {
+            let indexer = cx.argument::<JsNativeIndexer>(0)?;
+            let store = {
+                let guard = cx.lock();
+                let indexer = indexer.borrow(&guard);
+                indexer.indexer.store().clone()
+            };
+            let js_script: Handle<JsObject> = cx.argument::<JsObject>(1)?;
+            let js_code_hash = js_script.get(&mut cx, "code_hash")?
+                .downcast::<JsArrayBuffer>()
+                .or_throw(&mut cx)?;
+            let code_hash = {
+                let guard = cx.lock();
+                let code_hash = js_code_hash.borrow(&guard);
+                code_hash.as_slice().to_vec()
+            };
+            let js_hash_type = js_script.get(&mut cx, "hash_type")?
+                .downcast::<JsNumber>()
+                .or_throw(&mut cx)?
+                .value();
+            let js_args = js_script.get(&mut cx, "args")?
+                .downcast::<JsArrayBuffer>()
+                .or_throw(&mut cx)?;
+            let args = {
+                let guard = cx.lock();
+                let args = js_args.borrow(&guard);
+                args.as_slice().to_vec()
+            };
+            let script = assemble_packed_script(&code_hash, js_hash_type, &args);
+            if script.is_err() {
+                return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
+            }
+            let script = script.unwrap();
+            let prefix = if cx.argument::<JsNumber>(2)?.value() as u32 == 1 {
+                KeyPrefix::TxTypeScript
+            } else {
+                KeyPrefix::TxLockScript
+            };
+            let mut start_key = vec![prefix as u8];
+            start_key.extend_from_slice(&script.as_slice()[SCRIPT_SERIALIZE_OFFSET..]);
+            let iter = store.iter(&start_key, IteratorDirection::Forward);
+            if iter.is_err() {
+                return cx.throw_error("Error creating iterator!");
+            }
+            let iter = iter.unwrap().take_while(move |(key, _)| key.starts_with(&start_key));
+            Ok(TransactionIterator(Box::new(iter)))
+        }
+
+        method count(mut cx) {
+            let mut this = cx.this();
+            let count = {
+                let guard = cx.lock();
+                let mut iterator = this.borrow_mut(&guard);
+                let mut count = 0;
+                while iterator.0.next().is_some() {
+                    count += 1;
+                }
+                count
+            };
+            Ok(cx.number(count as f64).upcast())
+        }
+
+        method collect(mut cx) {
+            let mut this = cx.this();
+            let hashes = {
+                let guard = cx.lock();
+                let mut iterator = this.borrow_mut(&guard);
+                let mut hashes = vec![];
+                while let Some((_key, value)) = iterator.0.next() {
+                    hashes.push(value.to_vec());
+                }
+                hashes
+            };
+            let js_hashes = JsArray::new(&mut cx, hashes.len() as u32);
+            for (i, value) in hashes.iter().enumerate() {
+                let hash = Byte32::from_slice(&value);
+                if hash.is_err() {
+                    return cx.throw_error("Malformed data!");
+                }
+                let js_hash = cx.string(format!("{:#x}", hash.unwrap()));
+                js_hashes.set(&mut cx, i as u32, js_hash)?;
+            }
+            Ok(js_hashes.upcast())
+        }
+
+        method next(mut cx) {
+            let mut this = cx.this();
+            let item = {
+                let guard = cx.lock();
+                let mut iterator = this.borrow_mut(&guard);
+                iterator.0.next()
+            };
+            match item {
+                Some((_key, value)) => {
+                    let hash = Byte32::from_slice(&value);
+                    if hash.is_err() {
+                        return cx.throw_error("Malformed data!");
+                    }
+                    let js_hash = cx.string(format!("{:#x}", hash.unwrap()));
+                    Ok(js_hash.upcast())
+                }
+                None => Ok(cx.undefined().upcast())
+            }
         }
     }
 }
