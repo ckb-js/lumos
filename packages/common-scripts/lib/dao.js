@@ -270,7 +270,7 @@ async function unlock(
   const withdrawEpoch = parseEpoch(BigInt(withdrawBlockHeader.epoch));
 
   const withdrawFraction = withdrawEpoch.index * depositEpoch.length;
-  const depositFraction = withdrawEpoch.number * withdrawEpoch.number;
+  const depositFraction = depositEpoch.index * withdrawEpoch.length;
   let depositedEpochs = withdrawEpoch.number - depositEpoch.number;
   if (withdrawFraction > depositFraction) {
     depositedEpochs += BigInt(1);
