@@ -1,7 +1,11 @@
-const { configs, parseAddress } = require("@ckb-lumos/helpers");
+const {
+  configs,
+  parseAddress,
+  minimalCellCapacity,
+} = require("@ckb-lumos/helpers");
 const { LINA } = configs;
 const { core, values, utils } = require("@ckb-lumos/base");
-const { toBigUInt64LE } = utils;
+const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const secp256k1Blake160 = require("./secp256k1_blake160");
 const secp256k1Blake160Multisig = require("./secp256k1_blake160_multisig");
@@ -452,9 +456,39 @@ function _isSecp256k1Blake160Multisig(script, config) {
   );
 }
 
+function extractDaoData(dao) {
+  if (!/^(0x)?([0-9a-fA-F]){64}$/.test(dao)) {
+    throw new Error("Invalid dao format!");
+  }
+
+  const len = 8 * 2;
+  const hex = dao.startsWith("0x") ? dao.slice(2) : dao;
+
+  return ["c", "ar", "s", "u"]
+    .map((key, i) => {
+      return {
+        [key]: readBigUInt64LE("0x" + hex.slice(len * i, len * (i + 1))),
+      };
+    })
+    .reduce((result, c) => ({ ...result, ...c }), {});
+}
+
+function calculateMaximumWithdraw(withdrawCell, depositDao, withdrawDao) {
+  const depositAR = extractDaoData(depositDao).ar;
+  const withdrawAR = extractDaoData(withdrawDao).ar;
+
+  const occupiedCapacity = minimalCellCapacity(withdrawCell);
+  const outputCapacity = BigInt(withdrawCell.cell_output.capacity);
+  const countedCapacity = outputCapacity - occupiedCapacity;
+  const withdrawCountedCapacity = (countedCapacity * withdrawAR) / depositAR;
+
+  return withdrawCountedCapacity + occupiedCapacity;
+}
+
 module.exports = {
   deposit,
   listDaoCells,
   withdraw,
   unlock,
+  calculateMaximumWithdraw,
 };
