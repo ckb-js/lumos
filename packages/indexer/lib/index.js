@@ -76,11 +76,8 @@ class Indexer {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
-  collector(
-    { lock = null, type = null, data = "0x" } = {},
-    { skipNotLive = false } = {}
-  ) {
-    return new CellCollector(this, { lock, type, data }, { skipNotLive });
+  collector({ lock = null, type = null, data = "0x" } = {}) {
+    return new CellCollector(this, { lock, type, data });
   }
 }
 
@@ -106,7 +103,6 @@ class CellCollector {
   constructor(
     indexer,
     { lock = null, type = null, argsLen = -1, data = "0x" } = {},
-    { skipNotLive = false } = {}
   ) {
     if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
@@ -121,7 +117,6 @@ class CellCollector {
     this.lock = lock;
     this.type = type;
     this.data = data;
-    this.skipNotLive = skipNotLive;
     this.argsLen = argsLen;
   }
 
@@ -163,12 +158,8 @@ class CellCollector {
       const outPoints = lockOutPoints.intersect(typeOutPoints);
       for (const o of outPoints) {
         const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
-        if (cell && this.data && cell.data !== this.data) {
+        if (this.data && cell.data !== this.data) {
           continue;
-        }
-        if (!this.skipNotLive && !cell) {
-          const op = tryDeserializeOutPoint(o);
-          throw new Error(`Cell ${op.tx_hash} @ ${op.index} is not live!`);
         }
         yield cell;
       }
@@ -184,7 +175,7 @@ class CellCollector {
         const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o);
         if (
           cell &&
-          scriptType === 0 &&
+          scriptType === 1 &&
           this.type === "empty" &&
           cell.cell_output.type
         ) {
@@ -192,10 +183,6 @@ class CellCollector {
         }
         if (cell && this.data && cell.data !== this.data) {
           continue;
-        }
-        if (!this.skipNotLive && !cell) {
-          const op = tryDeserializeOutPoint(o);
-          throw new Error(`Cell ${op.tx_hash} @ ${op.index} is not live!`);
         }
         yield cell;
       }
