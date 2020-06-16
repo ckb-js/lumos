@@ -1,4 +1,5 @@
-import { TransactionSkeleton } from "@ckb-lumos/helpers"
+=======
+import { TransactionSkeletonType } from "@ckb-lumos/helpers"
 import { Cell, CellProvider, Script, Header } from "@ckb-lumos/base"
 
 export type Address = string
@@ -44,14 +45,14 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   transfer(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromAddress: Address,
     toAddress: Address,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * pay fee by secp256k1_blake160 script cells
@@ -62,13 +63,13 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   payFee(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromAddress: Address,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
@@ -77,11 +78,11 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   prepareSigningEntries(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 
   /**
    * Inject capacity from `fromAddress` to target output.
@@ -92,13 +93,13 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   injectCapacity(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     outputIndex: number,
     fromAddress: Address,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 
   /**
    * Setup input cell infos, such as cell deps and witnesses.
@@ -108,12 +109,12 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   setupInputCell(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     inputIndex: number,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 }
 
 export declare const secp256k1Blake160Multisig: {
@@ -127,14 +128,14 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   transfer(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInfo: FromInfo,
     toAddress: Address,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * pay fee by multisig script cells
@@ -145,13 +146,13 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   payFee(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInfo: FromInfo,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
@@ -160,11 +161,11 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   prepareSigningEntries(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 
   /**
    *
@@ -190,13 +191,13 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   injectCapacity(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     outputIndex: number,
     fromInfo: FromInfo,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 
   /**
    * Setup input cell infos, such as cell deps and witnesses.
@@ -207,13 +208,13 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   setupInputCell(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     inputIndex: number,
     fromInfo: FromInfo | undefined,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 }
 
 export declare const dao: {
@@ -227,14 +228,14 @@ export declare const dao: {
    * @param options
    */
   deposit(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInfo: FromInfo,
     toAddress: Address,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * list DAO cells,
@@ -262,13 +263,13 @@ export declare const dao: {
    * @param options
    */
   withdraw(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInput: Cell,
     fromInfo: FromInfo | undefined,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * Unlock a withdrew DAO cell
@@ -281,7 +282,7 @@ export declare const dao: {
    * @param options
    */
   unlock(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     depositInput: Cell,
     withdrawInput: Cell,
     toAddress: Address,
@@ -289,7 +290,7 @@ export declare const dao: {
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * calculate a withdraw dao cell minimal unlock since
@@ -326,7 +327,7 @@ export declare const locktimePool: {
   ): AsyncIterator<LocktimeCell>,
 
   transfer(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInfo: FromInfo,
     toAddress: Address,
     amount: bigint,
@@ -334,15 +335,15 @@ export declare const locktimePool: {
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   payFee(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInfo: FromInfo,
     amount: bigint,
     tipHeader: Header,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 }
