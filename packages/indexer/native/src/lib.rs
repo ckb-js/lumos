@@ -232,9 +232,9 @@ declare_types! {
             }
             let script = script.unwrap();
             let prefix = if cx.argument::<JsNumber>(1)?.value() as u32 == 1 {
-                KeyPrefix::TxTypeScript
+                KeyPrefix::CellTypeScript
             } else {
-                KeyPrefix::TxLockScript
+                KeyPrefix::CellLockScript
             };
             let args_len = cx.argument::<JsNumber>(2)?.value();
             if args_len > u32::max_value() as f64 {
