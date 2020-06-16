@@ -1,3 +1,4 @@
+const { core, denormalizers } = require("@ckb-lumos/types");
 const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const { Set } = require("immutable");
 const XXHash = require("xxhash");
@@ -5,6 +6,13 @@ const { Indexer: NativeIndexer } = require("../native");
 
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
+}
+
+function tryDeserializeOutPoint(outPoint) {
+  if (outPoint instanceof ArrayBuffer) {
+    return denormalizers.DenormalizeOutPoint(new core.OutPoint(outPoint));
+  }
+  return outPoint;
 }
 
 class Indexer {
@@ -39,21 +47,16 @@ class Indexer {
     return this.nativeIndexer.tip();
   }
 
-  _getLiveCellsByScript(script, scriptType, validateFirst, returnRawBuffer) {
-    if (validateFirst) {
-      validators.ValidateScript(script);
-    }
+  _getLiveCellsByScript(script, scriptType, argsLen, returnRawBuffer) {
     return this.nativeIndexer.getLiveCellsByScript(
       normalizers.NormalizeScript(script),
       scriptType,
+      argsLen,
       returnRawBuffer
     );
   }
 
-  _getTransactionsByScriptIterator(script, scriptType, validateFirst) {
-    if (validateFirst) {
-      validators.ValidateScript(script);
-    }
+  _getTransactionsByScriptIterator(script, scriptType) {
     return this.nativeIndexer.getTransactionsByScriptIterator(
       normalizers.NormalizeScript(script),
       scriptType
@@ -102,7 +105,7 @@ class CellCollector {
   // if data left null, means every data content is ok
   constructor(
     indexer,
-    { lock = null, type = null, data = "0x" } = {},
+    { lock = null, type = null, argsLen = -1, data = "0x" } = {},
     { skipNotLive = false } = {}
   ) {
     if (!lock && !type) {
@@ -119,6 +122,7 @@ class CellCollector {
     this.type = type;
     this.data = data;
     this.skipNotLive = skipNotLive;
+    this.argsLen = argsLen;
   }
 
   // TODO: optimize this
@@ -141,7 +145,7 @@ class CellCollector {
       for (const o of this.indexer._getLiveCellsByScript(
         this.lock,
         0,
-        false,
+        this.argsLen,
         true
       )) {
         lockOutPoints = lockOutPoints.add(new BufferValue(o));
@@ -151,7 +155,7 @@ class CellCollector {
       for (const o of this.indexer._getLiveCellsByScript(
         this.type,
         1,
-        false,
+        this.argsLen,
         true
       )) {
         typeOutPoints = typeOutPoints.add(new BufferValue(o));
@@ -163,7 +167,8 @@ class CellCollector {
           continue;
         }
         if (!this.skipNotLive && !cell) {
-          throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
+          const op = tryDeserializeOutPoint(o);
+          throw new Error(`Cell ${op.tx_hash} @ ${op.index} is not live!`);
         }
         yield cell;
       }
@@ -173,7 +178,7 @@ class CellCollector {
       for (const o of this.indexer._getLiveCellsByScript(
         script,
         scriptType,
-        false,
+        this.argsLen,
         true
       )) {
         const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o);
@@ -189,7 +194,8 @@ class CellCollector {
           continue;
         }
         if (!this.skipNotLive && !cell) {
-          throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
+          const op = tryDeserializeOutPoint(o);
+          throw new Error(`Cell ${op.tx_hash} @ ${op.index} is not live!`);
         }
         yield cell;
       }
@@ -228,14 +234,10 @@ class TransactionCollector {
   async count() {
     if (this.lock && this.type) {
       const lockHashes = new Set(
-        this.indexer
-          ._getTransactionsByScriptIterator(this.lock, 0, false)
-          .collect()
+        this.indexer._getTransactionsByScriptIterator(this.lock, 0).collect()
       );
       const typeHashes = new Set(
-        this.indexer
-          ._getTransactionsByScriptIterator(this.type, 1, false)
-          .collect()
+        this.indexer._getTransactionsByScriptIterator(this.type, 1).collect()
       );
       const hashes = lockHashes.intersect(typeHashes);
       return hashes.size;
@@ -244,8 +246,7 @@ class TransactionCollector {
       const scriptType = !!this.lock ? 0 : 1;
       const iter = this.indexer._getTransactionsByScriptIterator(
         script,
-        scriptType,
-        false
+        scriptType
       );
       return iter.count();
     }
@@ -254,14 +255,10 @@ class TransactionCollector {
   async *collect() {
     if (this.lock && this.type) {
       const lockHashes = new Set(
-        this.indexer
-          ._getTransactionsByScriptIterator(this.lock, 0, false)
-          .collect()
+        this.indexer._getTransactionsByScriptIterator(this.lock, 0).collect()
       );
       const typeHashes = new Set(
-        this.indexer
-          ._getTransactionsByScriptIterator(this.type, 1, false)
-          .collect()
+        this.indexer._getTransactionsByScriptIterator(this.type, 1).collect()
       );
       const hashes = lockHashes.intersect(typeHashes);
       for (const h of hashes) {
@@ -280,8 +277,7 @@ class TransactionCollector {
       const scriptType = !!this.lock ? 0 : 1;
       const iter = this.indexer._getTransactionsByScriptIterator(
         script,
-        scriptType,
-        false
+        scriptType
       );
       while (true) {
         const hash = iter.next();
