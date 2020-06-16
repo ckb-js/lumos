@@ -1,8 +1,17 @@
 import { TransactionSkeleton } from "@ckb-lumos/helpers"
-import { Cell, CellProvider } from "@ckb-lumos/base"
+import { Cell, CellProvider, Script, Header } from "@ckb-lumos/base"
 
 export type Address = string
 export type Config = any // TODO: define this type later
+
+export interface LocktimeCell {
+  cell: Cell
+  maximumCapacity: bigint,
+  since: bigint,
+  depositBlockHash?: string,
+  withdrawBlockHash?: string,
+  header?: Header
+}
 
 /**
  * secp256k1_blake160_multisig script requires S, R, M, N and public key hashes
@@ -17,6 +26,8 @@ export interface MultisigScript {
   M: number,
   /** blake160 hashes of compressed public keys */
   publicKeyHashes: string[],
+  /** BigUInt64LE format hex string */
+  since: string,
 }
 
 export type FromInfo = MultisigScript | Address
@@ -165,9 +176,10 @@ export declare const secp256k1Blake160Multisig: {
   /**
    *
    * @param serializedMultisigScript
+   * @param since BigUInt64LE format hex string
    * @returns lock script args
    */
-  multisigArgs(serializedMultisigScript: string): string,
+  multisigArgs(serializedMultisigScript: string, since: string = "0x"): string,
 
     /**
    * Inject capacity from `fromInfo` to target output.
@@ -274,6 +286,61 @@ export declare const dao: {
     withdrawInput: Cell,
     toAddress: Address,
     fromInfo: FromInfo,
+    options: {
+      config: Config,
+    },
+  ): Promise<TransactionSkeleton>,
+
+  /**
+   * calculate a withdraw dao cell minimal unlock since
+   *
+   * @param depositBlockHeaderEpoch depositBlockHeader.epoch
+   * @param withdrawBlockHeaderEpoch withdrawBlockHeader.epoch
+   */
+  calculateUnlockSince(
+    depositBlockHeaderEpoch: string,
+    withdrawBlockHeaderEpoch: string,
+  ): bigint,
+
+  /**
+   * calculate maximum withdraw capacity when unlock
+   *
+   * @param withdrawCell withdrawCell or depositCell
+   * @param depositDao depositBlockHeader.dao
+   * @param withdrawDao withdrawBlockHeader.dao
+   */
+  calculateMaximumWithdraw(
+    withdrawCell: Cell,
+    depositDao: string,
+    withdrawDao: string,
+  ): bigint,
+}
+
+export declare const locktimePool: {
+  collectCells(
+    cellProvider: CellProvider,
+    fromScript: Script,
+    options: {
+      config: Config,
+    },
+  ): AsyncIterator<LocktimeCell>,
+
+  transfer(
+    txSkeleton: TransactionSkeleton,
+    fromInfo: FromInfo,
+    toAddress: Address,
+    amount: bigint,
+    tipHeader: Header,
+    options: {
+      config: Config,
+    },
+  ): Promise<TransactionSkeleton>,
+
+  payFee(
+    txSkeleton: TransactionSkeleton,
+    fromInfo: FromInfo,
+    amount: bigint,
+    tipHeader: Header,
     options: {
       config: Config,
     },
