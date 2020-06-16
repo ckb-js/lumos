@@ -13,6 +13,7 @@ const secp256k1Blake160Multisig = require("./secp256k1_blake160_multisig");
 const DEPOSIT_DAO_DATA = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS = BigInt(180);
 
+// TODO: reject multisig with non absolute-epoch-number locktime lock
 async function deposit(
   txSkeleton,
   fromInfo,
@@ -386,6 +387,34 @@ async function unlock(
   return txSkeleton;
 }
 
+// returns bigint
+function calculateUnlockSince(
+  depositBlockHeaderEpoch,
+  withdrawBlockHeaderEpoch
+) {
+  const depositEpoch = parseEpoch(BigInt(depositBlockHeaderEpoch));
+  const withdrawEpoch = parseEpoch(BigInt(withdrawBlockHeaderEpoch));
+
+  const withdrawFraction = withdrawEpoch.index * depositEpoch.length;
+  const depositFraction = depositEpoch.index * withdrawEpoch.length;
+  let depositedEpochs = withdrawEpoch.number - depositEpoch.number;
+  if (withdrawFraction > depositFraction) {
+    depositedEpochs += BigInt(1);
+  }
+  const lockEpochs =
+    ((depositedEpochs + (DAO_LOCK_PERIOD_EPOCHS - BigInt(1))) /
+      DAO_LOCK_PERIOD_EPOCHS) *
+    DAO_LOCK_PERIOD_EPOCHS;
+  const minimalSinceEpoch = {
+    number: depositEpoch.number + lockEpochs,
+    index: depositEpoch.index,
+    length: depositEpoch.length,
+  };
+  const minimalSince = epochSince(minimalSinceEpoch);
+
+  return minimalSince;
+}
+
 function _daoTypeScript(config) {
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   return {
@@ -491,4 +520,5 @@ module.exports = {
   withdraw,
   unlock,
   calculateMaximumWithdraw,
+  calculateUnlockSince,
 };

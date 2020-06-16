@@ -45,11 +45,11 @@ function serializeMultisigScript({ R, M, publicKeyHashes }) {
   );
 }
 
-function multisigArgs(serializedMultisigScript) {
-  return new CKBHasher()
-    .update(serializedMultisigScript)
-    .digestHex()
-    .slice(0, 42);
+function multisigArgs(serializedMultisigScript, since = "0x") {
+  return (
+    new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +
+    since.slice(2)
+  );
 }
 
 async function transfer(
@@ -96,7 +96,7 @@ async function transfer(
     fromScript = parseAddress(fromInfo, { config });
   } else {
     multisigScript = serializeMultisigScript(fromInfo);
-    const fromScriptArgs = multisigArgs(multisigScript);
+    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
     fromScript = {
       code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.code_hash,
       hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.hash_type,

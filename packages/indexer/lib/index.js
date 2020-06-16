@@ -102,7 +102,7 @@ class CellCollector {
     if (lock) {
       validators.ValidateScript(lock);
     }
-    if (type) {
+    if (type && typeof type === "object") {
       validators.ValidateScript(type);
     }
     this.indexer = indexer;
