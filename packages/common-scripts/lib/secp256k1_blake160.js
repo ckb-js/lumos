@@ -4,9 +4,8 @@ const {
   createTransactionFromSkeleton,
   generateAddress,
 } = require("@ckb-lumos/helpers");
-const { predefined } = require("@ckb-lumos/config-manager");
-const { LINA } = predefined;
 const { core, values, utils } = require("@ckb-lumos/base");
+const { getConfig } = require("@ckb-lumos/config-manager");
 const { CKBHasher, ckbHash } = utils;
 const { ScriptValue } = values;
 const { normalizers, Reader } = require("ckb-js-toolkit");
@@ -30,8 +29,9 @@ async function transfer(
   fromAddress,
   toAddress,
   amount,
-  { config = LINA, requireToAddress = true } = {}
+  { config = undefined, requireToAddress = true } = {}
 ) {
+  config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE160 script setup!"
@@ -254,7 +254,13 @@ async function transfer(
   return txSkeleton;
 }
 
-async function payFee(txSkeleton, fromAddress, amount, { config = LINA } = {}) {
+async function payFee(
+  txSkeleton,
+  fromAddress,
+  amount,
+  { config = undefined } = {}
+) {
+  config = config || getConfig();
   return await transfer(txSkeleton, fromAddress, null, amount, {
     config,
     requireToAddress: false,
@@ -265,8 +271,9 @@ async function injectCapacity(
   txSkeleton,
   outputIndex,
   fromAddress,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   if (outputIndex >= txSkeleton.get("outputs").size) {
     throw new Error("Invalid output index!");
   }
@@ -279,7 +286,12 @@ async function injectCapacity(
   });
 }
 
-async function setupInputCell(txSkeleton, inputIndex, { config = LINA } = {}) {
+async function setupInputCell(
+  txSkeleton,
+  inputIndex,
+  { config = undefined } = {}
+) {
+  config = config || getConfig();
   if (inputIndex >= txSkeleton.get("inputs").size) {
     throw new Error("Invalid input index!");
   }
@@ -299,7 +311,8 @@ function hashWitness(hasher, witness) {
   hasher.update(witness);
 }
 
-function prepareSigningEntries(txSkeleton, { config = LINA } = {}) {
+function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
+  config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE160 script setup!"
