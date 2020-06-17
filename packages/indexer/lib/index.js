@@ -94,7 +94,7 @@ class CellCollector {
   // if data left null, means every data content is ok
   constructor(
     indexer,
-    { lock = null, type = null, argsLen = -1, data = "0x" } = {},
+    { lock = null, type = null, argsLen = -1, data = "0x" } = {}
   ) {
     if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
