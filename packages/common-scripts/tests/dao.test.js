@@ -17,31 +17,6 @@ const generateDaoTypeScript = (config) => {
   };
 };
 
-test("deposit", async (t) => {
-  txSkeleton = await dao.deposit(
-    txSkeleton,
-    undefined,
-    bob.mainnetAddress,
-    BigInt(1000 * 10 ** 8)
-  );
-
-  t.is(txSkeleton.get("cellDeps").size, 1);
-  t.deepEqual(
-    txSkeleton.get("cellDeps").get(0).OUT_POINT,
-    LINA.SCRIPTS.DAO.out_point
-  );
-  t.is(txSkeleton.get("cellDeps").get(0).DEP_TYPE, LINA.SCRIPTS.DAO.dep_type);
-
-  t.is(txSkeleton.get("inputs").size, 0);
-  t.is(txSkeleton.get("witnesses").size, 0);
-
-  t.is(txSkeleton.get("outputs").size, 1);
-  t.deepEqual(
-    txSkeleton.get("outputs").get(0).cell_output.type,
-    generateDaoTypeScript(LINA)
-  );
-});
-
 test("deposit secp256k1_blake160", async (t) => {
   txSkeleton = await dao.deposit(
     txSkeleton,
@@ -63,6 +38,21 @@ test("deposit secp256k1_blake160", async (t) => {
   t.is(outputCapacity, inputCapacity);
 
   t.is(txSkeleton.get("cellDeps").size, 2);
+
+  t.deepEqual(
+    txSkeleton.get("cellDeps").get(0).OUT_POINT,
+    LINA.SCRIPTS.DAO.out_point
+  );
+  t.is(txSkeleton.get("cellDeps").get(0).DEP_TYPE, LINA.SCRIPTS.DAO.dep_type);
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.deepEqual(
+    txSkeleton.get("outputs").get(0).cell_output.type,
+    generateDaoTypeScript(LINA)
+  );
 });
 
 test("withdraw secp256k1_blake160", async (t) => {

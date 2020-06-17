@@ -74,6 +74,8 @@ export interface EpochSinceValue {
   number: bigint;
 }
 
+export type SinceType = "epochNumber" | "blockNumber" | "blockTimestamp";
+
 export declare const since: {
   /**
    * Parse since and get relative or not, type, and value of since
@@ -146,4 +148,22 @@ export declare const since: {
     tipHeader: Header,
     sinceHeader: Header
   ): boolean;
+
+  /**
+   *
+   * @param params
+   */
+  generateSince(
+    params:
+      | {
+          relative: boolean;
+          type: SinceType;
+          value: bigint;
+        }
+      | {
+          relative: boolean;
+          type: "epochNumber";
+          value: EpochSinceValue;
+        }
+  ): bigint;
 };

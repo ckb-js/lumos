@@ -28,6 +28,29 @@ function parseSince(since) {
   };
 }
 
+function generateSince({ relative, type, value }) {
+  let flag = BigInt(0);
+  if (relative) {
+    flag = flag << BigInt(0b10000000);
+  }
+  if (type === "epochNumber") {
+    flag = flag << BigInt(0b00100000);
+  } else if (type === "blockTimestamp") {
+    flag = flag << BigInt(0b01000000);
+  }
+
+  let v;
+  if (typeof value === "object") {
+    v = generateHeaderEpoch(value);
+  } else {
+    v = BigInt(value);
+  }
+
+  // TODO: check v is valid
+
+  return flag + v;
+}
+
 function parseEpoch(epoch) {
   epoch = BigInt(epoch);
   return {
@@ -53,12 +76,15 @@ function largerAbsoluteEpochSince(one, another) {
 }
 
 function generateAbsoluteEpochSince({ length, index, number }) {
-  return (
-    (BigInt(0x20) << BigInt(56)) +
-    (length << BigInt(40)) +
-    (index << BigInt(24)) +
-    number
-  );
+  return generateSince({
+    relative: false,
+    type: "epochNumber",
+    value: { length, index, number },
+  });
+}
+
+function generateHeaderEpoch({ length, index, number }) {
+  return (length << BigInt(40)) + (index << BigInt(24)) + number;
 }
 
 function parseAbsoluteEpochSince(since) {
@@ -136,4 +162,5 @@ module.exports = {
   parseAbsoluteEpochSince,
   checkAbsoluteEpochSinceValid,
   checkSinceValid,
+  generateSince,
 };
