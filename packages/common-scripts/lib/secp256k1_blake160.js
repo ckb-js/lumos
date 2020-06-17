@@ -3,6 +3,7 @@ const {
   parseAddress,
   minimalCellCapacity,
   createTransactionFromSkeleton,
+  generateAddress,
 } = require("@ckb-lumos/helpers");
 const { LINA } = configs;
 const { core, values, utils } = require("@ckb-lumos/types");
@@ -56,13 +57,14 @@ async function transfer(
     });
   }
 
-  amount = BigInt(amount);
   const fromScript = parseAddress(fromAddress, { config });
   ensureSecp256k1Script(fromScript, config);
 
   if (requireToAddress && !toAddress) {
     throw new Error("You must provide a to address!");
   }
+
+  amount = BigInt(amount);
   if (toAddress) {
     const toScript = parseAddress(toAddress, { config });
 
@@ -255,6 +257,36 @@ async function payFee(txSkeleton, fromAddress, amount, { config = LINA } = {}) {
   });
 }
 
+async function injectCapacity(
+  txSkeleton,
+  outputIndex,
+  fromAddress,
+  { config = LINA } = {}
+) {
+  if (outputIndex >= txSkeleton.get("outputs").size) {
+    throw new Error("Invalid output index!");
+  }
+  const capacity = BigInt(
+    txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
+  );
+  return await transfer(txSkeleton, fromAddress, null, capacity, {
+    config,
+    requireToAddress: false,
+  });
+}
+
+async function setupInputCell(txSkeleton, inputIndex, { config = LINA } = {}) {
+  if (inputIndex >= txSkeleton.get("inputs").size) {
+    throw new Error("Invalid input index!");
+  }
+  const inputLock = txSkeleton.get("inputs").get(inputIndex).cell_output.lock;
+  const fromAddress = generateAddress(inputLock, { config });
+  return transfer(txSkeleton, fromAddress, null, 0, {
+    config,
+    requireToAddress: false,
+  });
+}
+
 function hashWitness(hasher, witness) {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
@@ -328,4 +360,6 @@ module.exports = {
   transfer,
   payFee,
   prepareSigningEntries,
+  injectCapacity,
+  setupInputCell,
 };

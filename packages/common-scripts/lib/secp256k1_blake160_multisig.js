@@ -3,6 +3,7 @@ const {
   parseAddress,
   minimalCellCapacity,
   createTransactionFromSkeleton,
+  generateAddress,
 } = require("@ckb-lumos/helpers");
 const { LINA } = configs;
 const { core, values, utils } = require("@ckb-lumos/types");
@@ -88,8 +89,6 @@ async function transfer(
     });
   }
 
-  amount = BigInt(amount);
-
   let fromScript;
   let multisigScript;
   if (typeof fromInfo === "string") {
@@ -120,6 +119,8 @@ async function transfer(
   if (requireToAddress && !toAddress) {
     throw new Error("You must provide a to address!");
   }
+
+  amount = BigInt(amount || 0);
   if (toAddress) {
     const toScript = parseAddress(toAddress, { config });
 
@@ -240,7 +241,8 @@ async function transfer(
       );
     }
 
-    if (noMultisigBefore) {
+    // if using MultisigScript, check witnesses
+    if (noMultisigBefore || typeof fromInfo !== "string") {
       let witness = txSkeleton.get("witnesses").get(firstIndex);
       const newWitnessArgs = {
         lock:
@@ -287,6 +289,41 @@ async function transfer(
 
 async function payFee(txSkeleton, fromInfo, amount, { config = LINA } = {}) {
   return transfer(txSkeleton, fromInfo, null, amount, {
+    config,
+    requireToAddress: false,
+  });
+}
+
+async function injectCapacity(
+  txSkeleton,
+  outputIndex,
+  fromInfo,
+  { config = LINA } = {}
+) {
+  if (outputIndex >= txSkeleton.get("outputs").size) {
+    throw new Error("Invalid output index!");
+  }
+  const capacity = BigInt(
+    txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
+  );
+  return transfer(txSkeleton, fromInfo, null, capacity, {
+    config,
+    requireToAddress: false,
+  });
+}
+
+async function setupInputCell(
+  txSkeleton,
+  inputIndex,
+  fromInfo,
+  { config = LINA } = {}
+) {
+  if (inputIndex >= txSkeleton.get("inputs").size) {
+    throw new Error("Invalid input index!");
+  }
+  const inputLock = txSkeleton.get("inputs").get(inputIndex).cell_output.lock;
+  const fromAddress = generateAddress(inputLock, { config });
+  return transfer(txSkeleton, fromInfo || fromAddress, null, 0, {
     config,
     requireToAddress: false,
   });
@@ -367,4 +404,6 @@ module.exports = {
   prepareSigningEntries,
   serializeMultisigScript,
   multisigArgs,
+  injectCapacity,
+  setupInputCell,
 };

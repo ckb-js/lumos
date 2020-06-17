@@ -73,8 +73,11 @@ class Indexer {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
-  collector({ lock = null, type = null } = {}, { skipNotLive = false } = {}) {
-    return new CellCollector(this, { lock, type }, { skipNotLive });
+  collector(
+    { lock = null, type = null, data = "0x" } = {},
+    { skipNotLive = false } = {}
+  ) {
+    return new CellCollector(this, { lock, type, data }, { skipNotLive });
   }
 }
 
@@ -96,9 +99,10 @@ class BufferValue {
 }
 
 class CellCollector {
+  // if data left null, means every data content is ok
   constructor(
     indexer,
-    { lock = null, type = null } = {},
+    { lock = null, type = null, data = "0x" } = {},
     { skipNotLive = false } = {}
   ) {
     if (!lock && !type) {
@@ -113,6 +117,7 @@ class CellCollector {
     this.indexer = indexer;
     this.lock = lock;
     this.type = type;
+    this.data = data;
     this.skipNotLive = skipNotLive;
   }
 
@@ -131,7 +136,7 @@ class CellCollector {
   }
 
   async *collect() {
-    if (this.lock && this.type) {
+    if (this.lock && this.type && typeof this.type === "object") {
       let lockOutPoints = new Set();
       for (const o of this.indexer._getLiveCellsByScript(
         this.lock,
@@ -141,6 +146,7 @@ class CellCollector {
       )) {
         lockOutPoints = lockOutPoints.add(new BufferValue(o));
       }
+
       let typeOutPoints = new Set();
       for (const o of this.indexer._getLiveCellsByScript(
         this.type,
@@ -153,6 +159,9 @@ class CellCollector {
       const outPoints = lockOutPoints.intersect(typeOutPoints);
       for (const o of outPoints) {
         const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+        if (cell && this.data && cell.data !== this.data) {
+          continue;
+        }
         if (!this.skipNotLive && !cell) {
           throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
         }
@@ -168,6 +177,17 @@ class CellCollector {
         true
       )) {
         const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o);
+        if (
+          cell &&
+          scriptType === 0 &&
+          this.type === "empty" &&
+          cell.cell_output.type
+        ) {
+          continue;
+        }
+        if (cell && this.data && cell.data !== this.data) {
+          continue;
+        }
         if (!this.skipNotLive && !cell) {
           throw new Error(`Cell ${o.tx_hash} @ ${o.index} is not live!`);
         }

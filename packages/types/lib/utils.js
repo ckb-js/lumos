@@ -33,7 +33,21 @@ function ckbHash(buffer) {
   return hasher.digestReader();
 }
 
+function toBigUInt64LE(num) {
+  num = BigInt(num);
+  const buf = Buffer.alloc(8);
+  buf.writeBigUInt64LE(num);
+  return `0x${buf.toString("hex")}`;
+}
+
+function readBigUInt64LE(hex) {
+  const buf = Buffer.from(hex.slice(2), "hex");
+  return buf.readBigUInt64LE();
+}
+
 module.exports = {
   CKBHasher,
   ckbHash,
+  toBigUInt64LE,
+  readBigUInt64LE,
 };
