@@ -47,7 +47,7 @@ function serializeMultisigScript({ R, M, publicKeyHashes }) {
 
 function multisigArgs(serializedMultisigScript, since = undefined) {
   let sinceLE = "0x";
-  if (since) {
+  if (since != null) {
     sinceLE = toBigUInt64LE(since);
   }
   return (

@@ -4,8 +4,9 @@ const {
   minimalCellCapacity,
 } = require("@ckb-lumos/helpers");
 const { LINA } = configs;
-const { core, values, utils } = require("@ckb-lumos/base");
+const { core, values, utils, since: sinceUtils } = require("@ckb-lumos/base");
 const { toBigUInt64LE, readBigUInt64LE } = utils;
+const { parseSince } = sinceUtils;
 const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const secp256k1Blake160 = require("./secp256k1_blake160");
 const secp256k1Blake160Multisig = require("./secp256k1_blake160_multisig");
@@ -25,6 +26,8 @@ async function deposit(
   if (!DAO_SCRIPT) {
     throw new Error("Provided config does not have DAO script setup!");
   }
+
+  _checkFromInfoSince(fromInfo, config);
 
   // check and add cellDep if not exists
   txSkeleton = _addDaoCellDep(txSkeleton, config);
@@ -91,6 +94,29 @@ async function deposit(
   }
 
   return txSkeleton;
+}
+
+function _checkFromInfoSince(fromInfo, config) {
+  let since;
+  if (typeof fromInfo === "string") {
+    // fromInfo is an address
+    const fromScript = parseAddress(fromInfo, { config });
+    const args = fromScript.args;
+    if (args.length === 58) {
+      since = readBigUInt64LE("0x" + args.slice(42));
+    }
+  } else {
+    since = fromInfo.since;
+  }
+
+  if (since != null) {
+    const { relative, type } = parseSince(since);
+    if (!(!relative && type === "epochNumber")) {
+      throw new Error(
+        "Can't deposit a dao cell with multisig locktime which not using absolute-epoch-number format!"
+      );
+    }
+  }
 }
 
 async function* listDaoCells(
