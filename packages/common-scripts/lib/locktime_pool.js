@@ -29,109 +29,140 @@ const {
   generateAbsoluteEpochSince,
   checkSinceValid,
 } = sinceUtils;
+const { List } = require("immutable");
 
 async function* collectCells(cellProvider, fromScript, { config = LINA } = {}) {
   const rpc = new RPC(cellProvider.uri);
 
+  let cellCollectors = List();
   if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
-    // TODO: slice args if multisig
-    const cellCollector = cellProvider.collector({
-      lock: fromScript,
-      type: "empty",
-      data: "0x",
-    });
-
-    for await (const inputCell of cellCollector.collect()) {
-      const args = inputCell.cell_output.lock.args;
-      const header = await rpc.get_header(inputCell.block_hash);
-      if (args.length === 58) {
-        const argsSince = _parseMultisigArgsSince(args);
-        yield {
-          cell: inputCell,
-          maximumCapacity: inputCell.cell_output.capacity,
-          since: argsSince, // bigint
-          header,
-        };
-      }
-    }
+    const lock = {
+      code_hash: fromScript.code_hash,
+      hash_type: fromScript.hash_type,
+      args: fromScript.args.slice(0, 42),
+    };
+    // multisig with locktime, not dao
+    cellCollectors = cellCollectors.push(
+      cellProvider.collector({
+        lock,
+        argsLen: 28,
+        type: "empty",
+        data: "0x",
+      })
+    );
+    // multisig without locktime, dao
+    cellCollectors = cellCollectors.push(
+      cellProvider.collector({
+        lock,
+        type: generateDaoScript(config),
+        data: null,
+      })
+    );
+    // multisig with locktime, dao
+    cellCollectors = cellCollectors.push(
+      cellProvider.collector({
+        lock,
+        argsLen: 28,
+        type: generateDaoScript(config),
+        data: null,
+      })
+    );
+  } else if (isSecp256k1Blake160Script(fromScript, config)) {
+    // secp256k1_blake160, dao
+    cellCollectors = cellCollectors.push(
+      cellProvider.collector({
+        lock: fromScript,
+        type: generateDaoScript(config),
+        data: null,
+      })
+    );
+  } else {
+    throw new Error("Non supported fromScript type!");
   }
 
-  const daoCellCollector = cellProvider.collector({
-    lock: fromScript,
-    type: generateDaoScript(config),
-    data: null,
-  });
+  for (const cellCollector of cellCollectors) {
+    for await (const inputCell of cellCollector.collect()) {
+      const lock = inputCell.cell_output.lock;
 
-  // unlock dao, and fromScript can be multisig
-  for await (const inputCell of daoCellCollector.collect()) {
-    if (inputCell.data === "0x0000000000000000") {
-      continue;
-    }
-    const transactionWithStatus = await rpc.get_transaction(
-      inputCell.out_point.tx_hash
-    );
-    const withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
-    const transaction = transactionWithStatus.transaction;
-    const depositOutPoint =
-      transaction.inputs[+inputCell.out_point.index].previous_output;
-    const depositBlockHash = (
-      await rpc.get_transaction(depositOutPoint.tx_hash)
-    ).tx_status.block_hash;
-    const depositBlockHeader = await rpc.get_header(depositBlockHash);
-    const withdrawBlockHeader = await rpc.get_header(withdrawBlockHash);
-    let since = calculateUnlockSince(
-      depositBlockHeader.epoch,
-      withdrawBlockHeader.epoch
-    );
-    const maximumCapacity = calculateMaximumWithdraw(
-      inputCell,
-      depositBlockHeader.dao,
-      withdrawBlockHeader.dao
-    );
-    const withdrawEpochValue = parseEpoch(withdrawBlockHeader.epoch);
-    const fourEpochsLater = {
-      number: withdrawEpochValue.number + BigInt(4),
-      length: withdrawEpochValue.length,
-      index: withdrawEpochValue.index,
-    };
-    since = largerAbsoluteEpochSince(
-      since,
-      generateAbsoluteEpochSince(fourEpochsLater)
-    );
+      let header;
+      let since;
+      let maximumCapacity;
+      let depositBlockHash;
+      let withdrawBlockHash;
 
-    // if multisig with locktime
-    let header;
-    const lock = inputCell.cell_output.lock;
-    if (
-      isSecp256k1Blake160MultisigScript(lock, config) &&
-      lock.args.length === 58
-    ) {
-      const multisigSince = parseSince(_parseMultisigArgsSince(lock.args));
-      if (
-        !(
-          multisigSince.relative === false &&
-          multisigSince.type === "epochNumber"
-        )
-      ) {
-        throw new Error(
-          "Multisig since not an absolute-epoch-number since format!"
-        );
+      // multisig
+      if (lock.args.length === 58) {
+        header = await rpc.get_header(inputCell.block_hash);
+        since = _parseMultisigArgsSince(lock.args);
       }
-      since = largerAbsoluteEpochSince(
-        since,
-        _parseMultisigArgsSince(lock.args)
-      );
-      header = await rpc.get_header(inputCell.block_hash);
-    }
 
-    yield {
-      cell: inputCell,
-      maximumCapacity: maximumCapacity,
-      since: since,
-      depositBlockHash: depositBlockHeader.hash,
-      withdrawBlockHash: withdrawBlockHeader.hash,
-      header,
-    };
+      // dao
+      if (isDaoScript(inputCell.cell_output.type, config)) {
+        if (inputCell.data === "0x0000000000000000") {
+          continue;
+        }
+        const transactionWithStatus = await rpc.get_transaction(
+          inputCell.out_point.tx_hash
+        );
+        const withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
+        const transaction = transactionWithStatus.transaction;
+        const depositOutPoint =
+          transaction.inputs[+inputCell.out_point.index].previous_output;
+        const depositBlockHash = (
+          await rpc.get_transaction(depositOutPoint.tx_hash)
+        ).tx_status.block_hash;
+        depositBlockHeader = await rpc.get_header(depositBlockHash);
+        withdrawBlockHeader = await rpc.get_header(withdrawBlockHash);
+        let daoSince = calculateUnlockSince(
+          depositBlockHeader.epoch,
+          withdrawBlockHeader.epoch
+        );
+        maximumCapacity = calculateMaximumWithdraw(
+          inputCell,
+          depositBlockHeader.dao,
+          withdrawBlockHeader.dao
+        );
+        const withdrawEpochValue = parseEpoch(withdrawBlockHeader.epoch);
+        const fourEpochsLater = {
+          number: withdrawEpochValue.number + BigInt(4),
+          length: withdrawEpochValue.length,
+          index: withdrawEpochValue.index,
+        };
+        daoSince = largerAbsoluteEpochSince(
+          daoSince,
+          generateAbsoluteEpochSince(fourEpochsLater)
+        );
+
+        // if multisig with locktime
+        if (since) {
+          const multisigSince = parseSince(since);
+          if (
+            !(
+              multisigSince.relative === false &&
+              multisigSince.type === "epochNumber"
+            )
+          ) {
+            // throw new Error(
+            //   "Multisig since not an absolute-epoch-number since format!"
+            // );
+            // skip multisig with locktime in non-absolute-epoch-number format, can't unlock it
+            continue;
+          }
+
+          since = largerAbsoluteEpochSince(daoSince, since);
+        }
+      }
+
+      yield {
+        cell: inputCell,
+        maximumCapacity:
+          maximumCapacity || BigInt(inputCell.cell_output.capacity),
+        since: since,
+        depositBlockHash: depositBlockHash,
+        withdrawBlockHash: withdrawBlockHash,
+        header: header,
+      };
+    }
   }
 }
 
