@@ -8,7 +8,7 @@ export interface ScriptConfig {
 }
 
 export interface ScriptConfigs {
-  [field: string]: ScriptConfig;
+  [field: string]: ScriptConfig | undefined;
 }
 
 export interface Config {

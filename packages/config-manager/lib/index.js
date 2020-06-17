@@ -1,3 +1,4 @@
+const deepFreeze = require("deep-freeze-strict");
 const { readFileSync } = require("fs");
 const { env } = require("process");
 const predefined = require("./predefined");
@@ -71,7 +72,7 @@ function initializeConfig() {
     const data = readFileSync(configFilename);
     const loadedConfig = JSON.parse(data);
     validateConfig(loadedConfig);
-    config = loadedConfig;
+    config = deepFreeze(loadedConfig);
   } catch (e) {
     throw new Error(`Error loading config from file ${configFilename}: ${e}`);
   }
