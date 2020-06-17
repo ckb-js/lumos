@@ -29,9 +29,9 @@ export interface Cell {
 }
 
 export interface QueryOptions {
-  lock?: Script | null;
-  type?: Script | "empty" | null;
-  data?: string | null;
+  lock?: Script;
+  type?: Script | "empty";
+  data?: string;
 }
 
 export interface CellCollectorResults {

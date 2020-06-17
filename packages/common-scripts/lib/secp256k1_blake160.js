@@ -160,7 +160,6 @@ async function transfer(
       ) {
         continue;
       }
-
       txSkeleton = txSkeleton.update("inputs", (inputs) =>
         inputs.push(inputCell)
       );
