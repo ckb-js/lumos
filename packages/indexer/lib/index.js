@@ -1,4 +1,3 @@
-const { core, denormalizers } = require("@ckb-lumos/types");
 const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const { Set } = require("immutable");
 const XXHash = require("xxhash");
@@ -6,13 +5,6 @@ const { Indexer: NativeIndexer } = require("../native");
 
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
-}
-
-function tryDeserializeOutPoint(outPoint) {
-  if (outPoint instanceof ArrayBuffer) {
-    return denormalizers.DenormalizeOutPoint(new core.OutPoint(outPoint));
-  }
-  return outPoint;
 }
 
 class Indexer {
