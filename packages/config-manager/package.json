@@ -1,14 +1,14 @@
 {
-  "name": "@ckb-lumos/common-scripts",
+  "name": "@ckb-lumos/config-manager",
   "version": "0.3.1",
-  "description": "Common script support in lumos",
+  "description": "Config manager for lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "directories": {
     "lib": "lib",
-    "test": "__tests__"
+    "test": "tests"
   },
   "files": [
     "lib"
@@ -16,23 +16,19 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
-    "@ckb-lumos/config-manager": "^0.3.1",
-    "@ckb-lumos/helpers": "^0.3.1",
-    "@ckb-lumos/base": "^0.3.1",
-    "ckb-js-toolkit": "^0.9.1",
-    "immutable": "^4.0.0-rc.12"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
-    "fmt": "prettier --write \"{lib,tests}/**/*.js\" package.json",
+    "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.js\"",
-    "test": "ava **/*.test.js"
+    "test": "ava"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "dependencies": {
+    "deep-freeze-strict": "^1.1.1"
   }
 }

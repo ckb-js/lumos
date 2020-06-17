@@ -1,8 +1,9 @@
 const test = require("ava");
 const { CellProvider } = require("./cell_provider");
-const { TransactionSkeleton, configs } = require("@ckb-lumos/helpers");
+const { TransactionSkeleton } = require("@ckb-lumos/helpers");
 const { secp256k1Blake160 } = require("../lib");
-const { LINA } = configs;
+const { predefined } = require("@ckb-lumos/config-manager");
+const { LINA } = predefined;
 const { bob, alice, fullAddressInfo } = require("./account_info");
 const { inputs } = require("./secp256k1_blake160_inputs");
 
@@ -54,8 +55,8 @@ test("transfer to non secp256k1_blake160 address", async (t) => {
   const changeOutput = txSkeleton.get("outputs").get(1);
   const template = LINA.SCRIPTS.SECP256K1_BLAKE160;
   const expectedChangeLockScript = {
-    code_hash: template.SCRIPT.code_hash,
-    hash_type: template.SCRIPT.hash_type,
+    code_hash: template.CODE_HASH,
+    hash_type: template.HASH_TYPE,
     args: bob.blake160,
   };
   t.deepEqual(changeOutput.cell_output.lock, expectedChangeLockScript);
