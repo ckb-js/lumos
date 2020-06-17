@@ -229,13 +229,13 @@ export declare const dao: {
    *
    * @param cellProvider
    * @param fromAddress
-   * @param cellType "" means list all, includes deposit and withdraw cells.
+   * @param cellType
    * @param options
    */
   listDaoCells(
     cellProvider: CellProvider,
     fromAddress: Address,
-    cellType: "" | "deposit" | "withdraw",
+    cellType: "all" | "deposit" | "withdraw",
     options: {
       config: Config,
     },
