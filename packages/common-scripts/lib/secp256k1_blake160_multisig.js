@@ -7,7 +7,7 @@ const {
 } = require("@ckb-lumos/helpers");
 const { LINA } = configs;
 const { core, values, utils } = require("@ckb-lumos/base");
-const { CKBHasher, ckbHash } = utils;
+const { CKBHasher, ckbHash, toBigUInt64LE } = utils;
 const { ScriptValue } = values;
 const { normalizers, Reader } = require("ckb-js-toolkit");
 const { Set } = require("immutable");
@@ -45,10 +45,14 @@ function serializeMultisigScript({ R, M, publicKeyHashes }) {
   );
 }
 
-function multisigArgs(serializedMultisigScript, since = "0x") {
+function multisigArgs(serializedMultisigScript, since = undefined) {
+  let sinceLE = "0x";
+  if (since) {
+    sinceLE = toBigUInt64LE(since);
+  }
   return (
     new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +
-    since.slice(2)
+    sinceLE.slice(2)
   );
 }
 

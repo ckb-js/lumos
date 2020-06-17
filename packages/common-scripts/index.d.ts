@@ -27,8 +27,8 @@ export interface MultisigScript {
   M: number,
   /** blake160 hashes of compressed public keys */
   publicKeyHashes: string[],
-  /** BigUInt64LE format hex string */
-  since: string,
+  /** locktime in since format */
+  since: bigint,
 }
 
 export type FromInfo = MultisigScript | Address
@@ -177,10 +177,10 @@ export declare const secp256k1Blake160Multisig: {
   /**
    *
    * @param serializedMultisigScript
-   * @param since BigUInt64LE format hex string
+   * @param since
    * @returns lock script args
    */
-  multisigArgs(serializedMultisigScript: string, since: string = "0x"): string,
+  multisigArgs(serializedMultisigScript: string, since?: bigint): string,
 
     /**
    * Inject capacity from `fromInfo` to target output.
