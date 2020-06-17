@@ -76,8 +76,8 @@ class Indexer {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
-  collector({ lock = null, type = null, data = "0x" } = {}) {
-    return new CellCollector(this, { lock, type, data });
+  collector({ lock = null, type = null, argsLen = -1, data = "0x" } = {}) {
+    return new CellCollector(this, { lock, type, argsLen, data });
   }
 }
 

@@ -16,11 +16,6 @@ export interface Tip {
   block_hash: string;
 }
 
-export interface IndexerQueryOptions {
-  validateFirst?: boolean;
-  returnRawBuffer?: boolean;
-}
-
 // TODO: change those when we have proper typing for all the CKB data structures.
 export interface Script {
   code_hash: string;
@@ -33,40 +28,10 @@ export interface OutPoint {
   index: string;
 }
 
-export class Indexer {
-  constructor(uri: string, path: string, options?: IndexerOptions);
-
-  running(): boolean;
-  startForever(): void;
-  start(): void;
-  stop(): void;
-  tip(): Tip;
-
-  getLiveCellsByLockScript(
-    script: Script,
-    options?: IndexerQueryOptions
-  ): Array<OutPoint | ArrayBuffer>;
-  getLiveCellsByTypeScript(
-    script: Script,
-    options?: IndexerQueryOptions
-  ): Array<OutPoint | ArrayBuffer>;
-  getTransactionsByLockScript(
-    script: Script,
-    options?: IndexerQueryOptions
-  ): Array<string>;
-  getTransactionsByTypeScript(
-    script: Script,
-    options?: IndexerQueryOptions
-  ): Array<string>;
-}
-
 export interface CollectorQueries {
   lock?: Script;
   type?: Script;
-}
-
-export interface CellCollectorOptions {
-  skipNotLive?: boolean;
+  argsLen?: number;
 }
 
 export interface TransactionCollectorOptions {
@@ -75,11 +40,7 @@ export interface TransactionCollectorOptions {
 }
 
 export class CellCollector implements CellCollectorInterface {
-  constructor(
-    indexer: Indexer,
-    queries: CollectorQueries,
-    options?: CellCollectorOptions
-  );
+  constructor(indexer: Indexer, queries: CollectorQueries);
 
   collect(): CellCollectorResults;
 }
@@ -92,4 +53,16 @@ export class TransactionCollector implements CellCollectorInterface {
   );
 
   collect(): CellCollectorResults;
+}
+
+export class Indexer {
+  constructor(uri: string, path: string, options?: IndexerOptions);
+
+  running(): boolean;
+  startForever(): void;
+  start(): void;
+  stop(): void;
+  tip(): Tip;
+
+  collector(queries: CollectorQueries): CellCollector;
 }
