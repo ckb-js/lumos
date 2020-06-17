@@ -1,11 +1,11 @@
 const {
-  configs,
   parseAddress,
   minimalCellCapacity,
   createTransactionFromSkeleton,
   generateAddress,
 } = require("@ckb-lumos/helpers");
-const { LINA } = configs;
+const { predefined } = require("@ckb-lumos/config-manager");
+const { LINA } = predefined;
 const { core, values, utils } = require("@ckb-lumos/types");
 const { CKBHasher, ckbHash } = utils;
 const { ScriptValue } = values;
@@ -17,10 +17,10 @@ const SIGNATURE_PLACEHOLDER =
   "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
 function ensureSecp256k1Blake160Multisig(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT;
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
   if (
-    template.code_hash !== script.code_hash ||
-    template.hash_type !== script.hash_type
+    template.CODE_HASH !== script.code_hash ||
+    template.HASH_TYPE !== script.hash_type
   ) {
     throw new Error(
       "Provided script is not SECP256K1_BLAKE160_MULTISIG script!"
@@ -64,18 +64,19 @@ async function transfer(
       "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
     );
   }
+  const scriptOutPoint = {
+    tx_hash: config.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
+    index: config.SCRIPTS.SECP256K1_BLAKE160.INDEX,
+  };
 
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
       cellDep.dep_type ===
         config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.DEP_TYPE &&
       new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
-        new values.OutPointValue(
-          config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.OUT_POINT,
-          {
-            validate: false,
-          }
-        )
+        new values.OutPointValue(scriptOutPoint, {
+          validate: false,
+        })
       )
     );
   });
@@ -83,7 +84,7 @@ async function transfer(
   if (!cellDep) {
     txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
       return cellDeps.push({
-        out_point: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.OUT_POINT,
+        out_point: scriptOutPoint,
         dep_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.DEP_TYPE,
       });
     });
@@ -98,8 +99,8 @@ async function transfer(
     multisigScript = serializeMultisigScript(fromInfo);
     const fromScriptArgs = multisigArgs(multisigScript);
     fromScript = {
-      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.code_hash,
-      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.hash_type,
+      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.CODE_HASH,
+      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.HASH_TYPE,
       args: fromScriptArgs,
     };
   }
@@ -343,7 +344,7 @@ function prepareSigningEntries(txSkeleton, { config = LINA } = {}) {
       "Provided config does not have SECP256K1_BLAKE160_MULTISIG script setup!"
     );
   }
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT;
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
   let processedArgs = Set();
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = ckbHash(
@@ -355,8 +356,8 @@ function prepareSigningEntries(txSkeleton, { config = LINA } = {}) {
   for (let i = 0; i < inputs.size; i++) {
     const input = inputs.get(i);
     if (
-      template.code_hash === input.cell_output.lock.code_hash &&
-      template.hash_type === input.cell_output.lock.hash_type &&
+      template.CODE_HASH === input.cell_output.lock.code_hash &&
+      template.HASH_TYPE === input.cell_output.lock.hash_type &&
       !processedArgs.has(input.cell_output.lock.args)
     ) {
       processedArgs = processedArgs.add(input.cell_output.lock.args);

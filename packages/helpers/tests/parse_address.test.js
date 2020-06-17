@@ -1,5 +1,5 @@
 const test = require("ava");
-const { configs, parseAddress } = require("../lib");
+const { parseAddress } = require("../lib");
 
 const {
   shortAddressInfo,
@@ -7,7 +7,8 @@ const {
   fullAddressInfo,
 } = require("./addresses");
 
-const { LINA, AGGRON4 } = configs;
+const { predefined } = require("@ckb-lumos/config-manager");
+const { LINA, AGGRON4 } = predefined;
 
 test("short address, mainnet", (t) => {
   const script = parseAddress(shortAddressInfo.mainnetAddress, {
