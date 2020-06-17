@@ -16,6 +16,7 @@ use hyper::rt;
 use jsonrpc_core_client::{transports::http, RpcError};
 use jsonrpc_derive::rpc;
 use neon::prelude::*;
+use std::convert::TryInto;
 use std::fmt;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -204,11 +205,6 @@ declare_types! {
 
         method getLiveCellsByScript(mut cx) {
             let this = cx.this();
-            let inner_indexer = {
-                let guard = cx.lock();
-                let indexer = this.borrow(&guard);
-                indexer.indexer.clone()
-            };
             let js_script: Handle<JsObject> = cx.argument::<JsObject>(0)?;
             let js_code_hash = js_script.get(&mut cx, "code_hash")?
                 .downcast::<JsArrayBuffer>()
@@ -235,18 +231,48 @@ declare_types! {
                 return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
             }
             let script = script.unwrap();
-            let out_points = if cx.argument::<JsNumber>(1)?.value() as u32 == 1 {
-                inner_indexer.get_live_cells_by_type_script(&script)
+            let prefix = if cx.argument::<JsNumber>(1)?.value() as u32 == 1 {
+                KeyPrefix::CellTypeScript
             } else {
-                inner_indexer.get_live_cells_by_lock_script(&script)
+                KeyPrefix::CellLockScript
             };
-            if out_points.is_err() {
-                return cx.throw_error(format!("Error fetching cells: {:?}", out_points.unwrap_err()));
+            let args_len = cx.argument::<JsNumber>(2)?.value();
+            if args_len > u32::max_value() as f64 {
+                return cx.throw_error("args length must fit in u32 value!");
             }
-            let out_points = out_points.unwrap();
+            let args_len = if args_len <= 0.0 {
+                script.args().len() as u32
+            } else {
+                args_len as u32
+            };
+            let mut start_key = vec![prefix as u8];
+            start_key.extend_from_slice(script.code_hash().as_slice());
+            start_key.extend_from_slice(script.hash_type().as_slice());
+            start_key.extend_from_slice(&args_len.to_le_bytes());
+            start_key.extend_from_slice(&script.args().raw_data());
+            let iter = {
+                let guard = cx.lock();
+                let indexer = this.borrow(&guard);
+                indexer.indexer.store().iter(&start_key, IteratorDirection::Forward)
+            };
+            if iter.is_err() {
+                return cx.throw_error("Error creating iterator!");
+            }
+            let iter = iter.unwrap().take_while(|(key, _)| key.starts_with(&start_key));
+            let mut out_points = vec![];
+            for (key, value) in iter {
+                let tx_hash = Byte32::from_slice(&value);
+                let index = key[key.len() - 4..].try_into();
+                if tx_hash.is_err() || index.is_err() {
+                    return cx.throw_error("Malformed data!");
+                }
+                let index = u32::from_be_bytes(index.unwrap());
+                let op = OutPoint::new(tx_hash.unwrap(), index);
+                out_points.push(op);
+            }
             let js_out_points = JsArray::new(&mut cx, out_points.len() as u32);
             for (i, out_point) in out_points.iter().enumerate() {
-                if cx.argument::<JsBoolean>(2)?.value() {
+                if cx.argument::<JsBoolean>(3)?.value() {
                     let mut js_buffer = JsArrayBuffer::new(&mut cx, out_point.as_slice().len() as u32)?;
                     {
                         let guard = cx.lock();
