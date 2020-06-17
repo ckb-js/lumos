@@ -1,6 +1,5 @@
 const { parseAddress } = require("@ckb-lumos/helpers");
-const { predefined } = require("@ckb-lumos/config-manager");
-const { LINA } = predefined;
+const { getConfig } = require("@ckb-lumos/config-manager");
 const { core, values, utils } = require("@ckb-lumos/types");
 const { toBigUInt64LE } = utils;
 const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
@@ -15,8 +14,9 @@ async function deposit(
   fromInfo,
   toAddress,
   amount,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (!DAO_SCRIPT) {
     throw new Error("Provided config does not have DAO script setup!");
@@ -93,8 +93,9 @@ async function* listDaoCells(
   cellProvider,
   fromAddress,
   cellType, // "deposit" or "withdraw"
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   const fromScript = parseAddress(fromAddress, { config });
   const daoTypeScript = _daoTypeScript(config);
   let data = null;
@@ -119,8 +120,9 @@ async function withdraw(
   txSkeleton,
   fromInput,
   fromInfo,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   _checkDaoScript(config);
   txSkeleton = _addDaoCellDep(txSkeleton, config);
 
@@ -230,8 +232,9 @@ async function unlock(
   withdrawInput,
   toAddress,
   fromInfo,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   _checkDaoScript(config);
   txSkeleton = _addDaoCellDep(txSkeleton, config);
 

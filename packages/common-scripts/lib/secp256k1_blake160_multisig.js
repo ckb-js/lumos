@@ -4,8 +4,7 @@ const {
   createTransactionFromSkeleton,
   generateAddress,
 } = require("@ckb-lumos/helpers");
-const { predefined } = require("@ckb-lumos/config-manager");
-const { LINA } = predefined;
+const { getConfig } = require("@ckb-lumos/config-manager");
 const { core, values, utils } = require("@ckb-lumos/types");
 const { CKBHasher, ckbHash } = utils;
 const { ScriptValue } = values;
@@ -57,8 +56,9 @@ async function transfer(
   fromInfo,
   toAddress,
   amount,
-  { config = LINA, requireToAddress = true }
+  { config = undefined, requireToAddress = true }
 ) {
+  config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
@@ -288,7 +288,13 @@ async function transfer(
   return txSkeleton;
 }
 
-async function payFee(txSkeleton, fromInfo, amount, { config = LINA } = {}) {
+async function payFee(
+  txSkeleton,
+  fromInfo,
+  amount,
+  { config = undefined } = {}
+) {
+  config = config || getConfig();
   return transfer(txSkeleton, fromInfo, null, amount, {
     config,
     requireToAddress: false,
@@ -299,8 +305,9 @@ async function injectCapacity(
   txSkeleton,
   outputIndex,
   fromInfo,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   if (outputIndex >= txSkeleton.get("outputs").size) {
     throw new Error("Invalid output index!");
   }
@@ -317,8 +324,9 @@ async function setupInputCell(
   txSkeleton,
   inputIndex,
   fromInfo,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   if (inputIndex >= txSkeleton.get("inputs").size) {
     throw new Error("Invalid input index!");
   }
@@ -338,7 +346,8 @@ function hashWitness(hasher, witness) {
   hasher.update(witness);
 }
 
-function prepareSigningEntries(txSkeleton, { config = LINA } = {}) {
+function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
+  config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE160_MULTISIG script setup!"

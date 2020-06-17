@@ -2,8 +2,7 @@ const { core } = require("@ckb-lumos/types");
 const bech32 = require("bech32");
 const { normalizers, validators, Reader } = require("ckb-js-toolkit");
 const { List, Record, Map } = require("immutable");
-const { predefined } = require("@ckb-lumos/config-manager");
-const { LINA } = predefined;
+const { getConfig } = require("@ckb-lumos/config-manager");
 
 const BECH32_LIMIT = 1023;
 
@@ -47,7 +46,8 @@ function minimalCellCapacity(fullCell, { validate = true } = {}) {
   return BigInt(bytes) * BigInt(100000000);
 }
 
-function locateCellDep(script, { config = LINA } = {}) {
+function locateCellDep(script, { config = undefined } = {}) {
+  config = config || getConfig();
   const scriptTemplate = Object.values(config.SCRIPTS).find(
     (s) => s.CODE_HASH === script.code_hash && s.HASH_TYPE === script.hash_type
   );
@@ -63,7 +63,8 @@ function locateCellDep(script, { config = LINA } = {}) {
   return null;
 }
 
-function generateAddress(script, { config = LINA } = {}) {
+function generateAddress(script, { config = undefined } = {}) {
+  config = config || getConfig();
   const scriptTemplate = Object.values(config.SCRIPTS).find(
     (s) => s.CODE_HASH === script.code_hash && s.HASH_TYPE === script.hash_type
   );
@@ -80,7 +81,8 @@ function generateAddress(script, { config = LINA } = {}) {
   return bech32.encode(config.PREFIX, words, BECH32_LIMIT);
 }
 
-function parseAddress(address, { config = LINA } = {}) {
+function parseAddress(address, { config = undefined } = {}) {
+  config = config || getConfig();
   const { prefix, words } = bech32.decode(address, BECH32_LIMIT);
   if (prefix !== config.PREFIX) {
     throw Error(
