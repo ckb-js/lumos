@@ -31,12 +31,12 @@ function parseSince(since) {
 function generateSince({ relative, type, value }) {
   let flag = BigInt(0);
   if (relative) {
-    flag = flag << BigInt(0b10000000);
+    flag += BigInt(0b10000000);
   }
   if (type === "epochNumber") {
-    flag = flag << BigInt(0b00100000);
+    flag += BigInt(0b00100000);
   } else if (type === "blockTimestamp") {
-    flag = flag << BigInt(0b01000000);
+    flag += BigInt(0b01000000);
   }
 
   let v;
@@ -48,7 +48,7 @@ function generateSince({ relative, type, value }) {
 
   // TODO: check v is valid
 
-  return flag + v;
+  return (flag << BigInt(56)) + v;
 }
 
 function parseEpoch(epoch) {
