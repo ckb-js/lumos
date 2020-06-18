@@ -1,9 +1,4 @@
-const {
-  configs,
-  parseAddress,
-  minimalCellCapacity,
-} = require("@ckb-lumos/helpers");
-const { LINA } = configs;
+const { parseAddress, minimalCellCapacity } = require("@ckb-lumos/helpers");
 const {
   setupInputCell: setupMultisigInputCell,
   serializeMultisigScript,
@@ -11,7 +6,7 @@ const {
 } = require("./secp256k1_blake160_multisig");
 const { setupInputCell } = require("./secp256k1_blake160");
 const { calculateMaximumWithdraw, calculateUnlockSince } = require("./dao");
-const { core, values, utils, since: sinceUtils } = require("@ckb-lumos/types");
+const { core, values, utils, since: sinceUtils } = require("@ckb-lumos/base");
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
 const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
@@ -30,8 +25,14 @@ const {
   checkSinceValid,
 } = sinceUtils;
 const { List } = require("immutable");
+const { getConfig } = require("@ckb-lumos/config-manager");
 
-async function* collectCells(cellProvider, fromScript, { config = LINA } = {}) {
+async function* collectCells(
+  cellProvider,
+  fromScript,
+  { config = undefined } = {}
+) {
+  config = config || getConfig();
   const rpc = new RPC(cellProvider.uri);
 
   let cellCollectors = List();
@@ -173,8 +174,9 @@ async function transfer(
   toAddress,
   amount,
   tipHeader,
-  { config = LINA, requireToAddress = true }
+  { config = undefined, requireToAddress = true }
 ) {
+  config = config || getConfig();
   // fromScript can be secp256k1_blake160 / secp256k1_blake160_multisig
   let fromScript;
   let multisigScript;
@@ -371,7 +373,7 @@ async function payFee(
   fromInfo,
   amount,
   tipHeader,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
   return transfer(txSkeleton, fromInfo, null, amount, tipHeader, {
     config,

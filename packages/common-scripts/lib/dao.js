@@ -1,8 +1,4 @@
-const {
-  configs,
-  parseAddress,
-  minimalCellCapacity,
-} = require("@ckb-lumos/helpers");
+const { parseAddress, minimalCellCapacity } = require("@ckb-lumos/helpers");
 const { core, values, utils, since: sinceUtils } = require("@ckb-lumos/base");
 const { getConfig } = require("@ckb-lumos/config-manager");
 const { toBigUInt64LE, readBigUInt64LE } = utils;
