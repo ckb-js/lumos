@@ -16,6 +16,7 @@ const {
   isSecp256k1Blake160MultisigScript,
   isSecp256k1Blake160Script,
   isDaoScript,
+  prepareSigningEntries: _prepareSigningEntries,
 } = require("./helper");
 const {
   parseSince,
@@ -187,8 +188,8 @@ async function transfer(
     multisigScript = serializeMultisigScript(fromInfo);
     const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
     fromScript = {
-      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.code_hash,
-      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT.hash_type,
+      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.CODE_HASH,
+      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.HASH_TYPE,
       args: fromScriptArgs,
     };
   }
@@ -314,8 +315,11 @@ async function transfer(
         // add dao cell dep
         const template = config.SCRIPTS.DAO;
         txSkeleton = addCellDep(txSkeleton, {
-          dep_type: template.dep_type,
-          out_point: template.out_point,
+          dep_type: template.DEP_TYPE,
+          out_point: {
+            tx_hash: template.TX_HASH,
+            index: template.INDEX,
+          },
         });
       } else {
         txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
@@ -381,6 +385,16 @@ async function payFee(
   });
 }
 
+function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
+  txSkeleton = _prepareSigningEntries(txSkeleton, config, "SECP256K1_BLAKE160");
+  txSkeleton = _prepareSigningEntries(
+    txSkeleton,
+    config,
+    "SECP256K1_BLAKE160_MULTISIG"
+  );
+  return txSkeleton;
+}
+
 function _parseMultisigArgsSince(args) {
   if (args.length !== 58) {
     throw new Error("Invalid multisig with since args!");
@@ -392,4 +406,5 @@ module.exports = {
   collectCells,
   transfer,
   payFee,
+  prepareSigningEntries,
 };

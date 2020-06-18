@@ -69,8 +69,8 @@ async function transfer(
     );
   }
   const scriptOutPoint = {
-    tx_hash: config.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
-    index: config.SCRIPTS.SECP256K1_BLAKE160.INDEX,
+    tx_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.TX_HASH,
+    index: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.INDEX,
   };
 
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
