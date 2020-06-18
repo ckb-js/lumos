@@ -29,7 +29,7 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/types": "^0.3.1",
+    "@ckb-lumos/base": "^0.3.1",
     "bech32": "^1.1.4",
     "ckb-js-toolkit": "^0.9.1",
     "immutable": "^4.0.0-rc.12"

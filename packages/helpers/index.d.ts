@@ -1,5 +1,5 @@
 import { List, Record } from "immutable";
-import { Cell, CellDep, CellProvider } from "@ckb-lumos/types";
+import { Cell, CellDep, CellProvider } from "@ckb-lumos/base";
 
 export declare const TransactionSkeleton: Record<{
   cellProvider: CellProvider | null;

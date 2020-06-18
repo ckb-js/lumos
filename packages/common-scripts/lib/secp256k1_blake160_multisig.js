@@ -6,7 +6,7 @@ const {
   generateAddress,
 } = require("@ckb-lumos/helpers");
 const { LINA } = configs;
-const { core, values, utils } = require("@ckb-lumos/types");
+const { core, values, utils } = require("@ckb-lumos/base");
 const { CKBHasher, ckbHash } = utils;
 const { ScriptValue } = values;
 const { normalizers, Reader } = require("ckb-js-toolkit");

@@ -1,6 +1,6 @@
 const { configs, parseAddress } = require("@ckb-lumos/helpers");
 const { LINA } = configs;
-const { core, values, utils } = require("@ckb-lumos/types");
+const { core, values, utils } = require("@ckb-lumos/base");
 const { toBigUInt64LE } = utils;
 const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const secp256k1Blake160 = require("./secp256k1_blake160");

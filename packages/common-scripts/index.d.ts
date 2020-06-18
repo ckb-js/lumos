@@ -1,5 +1,5 @@
 import { TransactionSkeleton } from "@ckb-lumos/helpers"
-import { Cell, CellProvider } from "@ckb-lumos/types"
+import { Cell, CellProvider } from "@ckb-lumos/base"
 
 export type Address = string
 export type Config = any // TODO: define this type later

@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@ckb-lumos/helpers": "^0.3.1",
-    "@ckb-lumos/types": "^0.3.1",
+    "@ckb-lumos/base": "^0.3.1",
     "ckb-js-toolkit": "^0.9.1",
     "immutable": "^4.0.0-rc.12"
   },
