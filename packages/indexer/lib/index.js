@@ -1,5 +1,5 @@
 const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
-const { Set } = require("immutable");
+const { OrderedSet } = require("immutable");
 const XXHash = require("xxhash");
 const { Indexer: NativeIndexer } = require("../native");
 
@@ -128,7 +128,7 @@ class CellCollector {
 
   async *collect() {
     if (this.lock && this.type && typeof this.type === "object") {
-      let lockOutPoints = new Set();
+      let lockOutPoints = new OrderedSet();
       for (const o of this.indexer._getLiveCellsByScript(
         this.lock,
         0,
@@ -138,7 +138,7 @@ class CellCollector {
         lockOutPoints = lockOutPoints.add(new BufferValue(o));
       }
 
-      let typeOutPoints = new Set();
+      let typeOutPoints = new OrderedSet();
       for (const o of this.indexer._getLiveCellsByScript(
         this.type,
         1,
@@ -212,10 +212,10 @@ class TransactionCollector {
 
   async count() {
     if (this.lock && this.type) {
-      const lockHashes = new Set(
+      const lockHashes = new OrderedSet(
         this.indexer._getTransactionsByScriptIterator(this.lock, 0).collect()
       );
-      const typeHashes = new Set(
+      const typeHashes = new OrderedSet(
         this.indexer._getTransactionsByScriptIterator(this.type, 1).collect()
       );
       const hashes = lockHashes.intersect(typeHashes);
@@ -233,10 +233,10 @@ class TransactionCollector {
 
   async *collect() {
     if (this.lock && this.type) {
-      const lockHashes = new Set(
+      const lockHashes = new OrderedSet(
         this.indexer._getTransactionsByScriptIterator(this.lock, 0).collect()
       );
-      const typeHashes = new Set(
+      const typeHashes = new OrderedSet(
         this.indexer._getTransactionsByScriptIterator(this.type, 1).collect()
       );
       const hashes = lockHashes.intersect(typeHashes);
