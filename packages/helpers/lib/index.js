@@ -2,8 +2,7 @@ const { core } = require("@ckb-lumos/base");
 const bech32 = require("bech32");
 const { normalizers, validators, Reader } = require("ckb-js-toolkit");
 const { List, Record, Map } = require("immutable");
-const configs = require("./configs");
-const { LINA } = configs;
+const { getConfig } = require("@ckb-lumos/config-manager");
 
 const BECH32_LIMIT = 1023;
 
@@ -47,26 +46,27 @@ function minimalCellCapacity(fullCell, { validate = true } = {}) {
   return BigInt(bytes) * BigInt(100000000);
 }
 
-function locateCellDep(script, { config = LINA } = {}) {
+function locateCellDep(script, { config = undefined } = {}) {
+  config = config || getConfig();
   const scriptTemplate = Object.values(config.SCRIPTS).find(
-    (s) =>
-      s.SCRIPT.code_hash === script.code_hash &&
-      s.SCRIPT.hash_type === script.hash_type
+    (s) => s.CODE_HASH === script.code_hash && s.HASH_TYPE === script.hash_type
   );
   if (scriptTemplate) {
     return {
       dep_type: scriptTemplate.DEP_TYPE,
-      out_point: Object.assign({}, scriptTemplate.OUT_POINT),
+      out_point: {
+        tx_hash: scriptTemplate.TX_HASH,
+        index: scriptTemplate.INDEX,
+      },
     };
   }
   return null;
 }
 
-function generateAddress(script, { config = LINA } = {}) {
+function generateAddress(script, { config = undefined } = {}) {
+  config = config || getConfig();
   const scriptTemplate = Object.values(config.SCRIPTS).find(
-    (s) =>
-      s.SCRIPT.code_hash === script.code_hash &&
-      s.SCRIPT.hash_type === script.hash_type
+    (s) => s.CODE_HASH === script.code_hash && s.HASH_TYPE === script.hash_type
   );
   const data = [];
   if (scriptTemplate && scriptTemplate.SHORT_ID !== undefined) {
@@ -81,7 +81,8 @@ function generateAddress(script, { config = LINA } = {}) {
   return bech32.encode(config.PREFIX, words, BECH32_LIMIT);
 }
 
-function parseAddress(address, { config = LINA } = {}) {
+function parseAddress(address, { config = undefined } = {}) {
+  config = config || getConfig();
   const { prefix, words } = bech32.decode(address, BECH32_LIMIT);
   if (prefix !== config.PREFIX) {
     throw Error(
@@ -100,9 +101,11 @@ function parseAddress(address, { config = LINA } = {}) {
       if (!scriptTemplate) {
         throw Error(`Invalid code hash index: ${data[1]}!`);
       }
-      return Object.assign({}, scriptTemplate.SCRIPT, {
+      return {
+        code_hash: scriptTemplate.CODE_HASH,
+        hash_type: scriptTemplate.HASH_TYPE,
         args: byteArrayToHex(data.slice(2)),
-      });
+      };
     case 2:
       if (data.length < 33) {
         throw Error(`Invalid payload length!`);
@@ -211,7 +214,6 @@ function sealTransaction(txSkeleton, sealingContents) {
 }
 
 module.exports = {
-  configs,
   locateCellDep,
   minimalCellCapacity,
   generateAddress,

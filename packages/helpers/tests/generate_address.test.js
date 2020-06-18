@@ -1,6 +1,7 @@
 const test = require("ava");
-const { configs, generateAddress } = require("../lib");
-const { LINA, AGGRON4 } = configs;
+const { generateAddress } = require("../lib");
+const { predefined } = require("@ckb-lumos/config-manager");
+const { LINA, AGGRON4 } = predefined;
 
 const {
   shortAddressInfo,
