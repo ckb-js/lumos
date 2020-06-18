@@ -3,8 +3,8 @@ const {
   parseAddress,
   minimalCellCapacity,
 } = require("@ckb-lumos/helpers");
-const { LINA } = configs;
 const { core, values, utils, since: sinceUtils } = require("@ckb-lumos/base");
+const { getConfig } = require("@ckb-lumos/config-manager");
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { parseSince } = sinceUtils;
 const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
@@ -20,8 +20,9 @@ async function deposit(
   fromInfo,
   toAddress,
   amount,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (!DAO_SCRIPT) {
     throw new Error("Provided config does not have DAO script setup!");
@@ -38,8 +39,8 @@ async function deposit(
 
   const toScript = parseAddress(toAddress, { config });
   const daoTypeScript = {
-    code_hash: DAO_SCRIPT.SCRIPT.code_hash,
-    hash_type: DAO_SCRIPT.SCRIPT.hash_type,
+    code_hash: DAO_SCRIPT.CODE_HASH,
+    hash_type: DAO_SCRIPT.HASH_TYPE,
     args: "0x",
   };
 
@@ -123,8 +124,9 @@ async function* listDaoCells(
   cellProvider,
   fromAddress,
   cellType, // "deposit" or "withdraw"
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   const fromScript = parseAddress(fromAddress, { config });
   const daoTypeScript = _daoTypeScript(config);
   let data = null;
@@ -149,8 +151,9 @@ async function withdraw(
   txSkeleton,
   fromInput,
   fromInfo,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   _checkDaoScript(config);
   txSkeleton = _addDaoCellDep(txSkeleton, config);
 
@@ -168,8 +171,8 @@ async function withdraw(
   const typeScript = fromInput.cell_output.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (
-    typeScript.code_hash !== DAO_SCRIPT.SCRIPT.code_hash ||
-    typeScript.hash_type !== DAO_SCRIPT.SCRIPT.hash_type ||
+    typeScript.code_hash !== DAO_SCRIPT.CODE_HASH ||
+    typeScript.hash_type !== DAO_SCRIPT.HASH_TYPE ||
     fromInput.data !== DEPOSIT_DAO_DATA
   ) {
     throw new Error("fromInput is not a DAO deposit cell.");
@@ -260,8 +263,9 @@ async function unlock(
   withdrawInput,
   toAddress,
   fromInfo,
-  { config = LINA } = {}
+  { config = undefined } = {}
 ) {
+  config = config || getConfig();
   _checkDaoScript(config);
   txSkeleton = _addDaoCellDep(txSkeleton, config);
 
@@ -274,8 +278,8 @@ async function unlock(
   const typeScript = depositInput.cell_output.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (
-    typeScript.code_hash !== DAO_SCRIPT.SCRIPT.code_hash ||
-    typeScript.hash_type !== DAO_SCRIPT.SCRIPT.hash_type ||
+    typeScript.code_hash !== DAO_SCRIPT.CODE_HASH ||
+    typeScript.hash_type !== DAO_SCRIPT.HASH_TYPE ||
     depositInput.data !== DEPOSIT_DAO_DATA
   ) {
     throw new Error("depositInt is not a DAO deposit cell.");
@@ -283,8 +287,8 @@ async function unlock(
 
   const withdrawTypeScript = withdrawInput.cell_output.type;
   if (
-    withdrawTypeScript.code_hash !== DAO_SCRIPT.SCRIPT.code_hash ||
-    withdrawTypeScript.hash_type !== DAO_SCRIPT.SCRIPT.hash_type ||
+    withdrawTypeScript.code_hash !== DAO_SCRIPT.CODE_HASH ||
+    withdrawTypeScript.hash_type !== DAO_SCRIPT.HASH_TYPE ||
     withdrawInput.data === DEPOSIT_DAO_DATA
   ) {
     throw new Error("withdrawInput is not a DAO withdraw cell.");
@@ -444,8 +448,8 @@ function calculateUnlockSince(
 function _daoTypeScript(config) {
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   return {
-    code_hash: DAO_SCRIPT.SCRIPT.code_hash,
-    hash_type: DAO_SCRIPT.SCRIPT.hash_type,
+    code_hash: DAO_SCRIPT.CODE_HASH,
+    hash_type: DAO_SCRIPT.HASH_TYPE,
     args: "0x",
   };
 }
@@ -466,7 +470,10 @@ function _checkDaoScript(config) {
 function _addDaoCellDep(txSkeleton, config) {
   const template = config.SCRIPTS.DAO;
   return _addCellDep(txSkeleton, {
-    out_point: template.OUT_POINT,
+    out_point: {
+      tx_hash: template.TX_HASH,
+      index: template.INDEX,
+    },
     dep_type: template.DEP_TYPE,
   });
 }
@@ -494,20 +501,20 @@ function _addCellDep(txSkeleton, newCellDep) {
 }
 
 function _isSecp256k1Blake160(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160.SCRIPT;
+  const template = config.SCRIPTS.SECP256K1_BLAKE160;
 
   return (
-    script.code_hash === template.code_hash &&
-    script.hash_type === template.hash_type
+    script.code_hash === template.CODE_HASH &&
+    script.hash_type === template.HASH_TYPE
   );
 }
 
 function _isSecp256k1Blake160Multisig(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.SCRIPT;
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
 
   return (
-    script.code_hash === template.code_hash &&
-    script.hash_type === template.hash_type
+    script.code_hash === template.CODE_HASH &&
+    script.hash_type === template.HASH_TYPE
   );
 }
 

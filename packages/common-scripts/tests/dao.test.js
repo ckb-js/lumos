@@ -1,8 +1,9 @@
 const test = require("ava");
 const { CellProvider } = require("./cell_provider");
-const { TransactionSkeleton, configs } = require("@ckb-lumos/helpers");
+const { TransactionSkeleton } = require("@ckb-lumos/helpers");
 const { dao } = require("../lib");
-const { LINA } = configs;
+const { predefined } = require("@ckb-lumos/config-manager");
+const { LINA } = predefined;
 const { bob } = require("./account_info");
 const { inputs } = require("./secp256k1_blake160_inputs");
 
@@ -11,8 +12,8 @@ let txSkeleton = TransactionSkeleton({ cellProvider });
 
 const generateDaoTypeScript = (config) => {
   return {
-    code_hash: config.SCRIPTS.DAO.SCRIPT.code_hash,
-    hash_type: config.SCRIPTS.DAO.SCRIPT.hash_type,
+    code_hash: config.SCRIPTS.DAO.CODE_HASH,
+    hash_type: config.SCRIPTS.DAO.HASH_TYPE,
     args: "0x",
   };
 };
