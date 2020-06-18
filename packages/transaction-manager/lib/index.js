@@ -1,7 +1,7 @@
 const { validators, RPC } = require("ckb-js-toolkit");
 const { List, Set, is } = require("immutable");
 const { CellCollector } = require("@ckb-lumos/indexer");
-const { values } = require("@ckb-lumos/types");
+const { values } = require("@ckb-lumos/base");
 
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);

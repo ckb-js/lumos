@@ -1,7 +1,7 @@
 {
-  "name": "@ckb-lumos/types",
+  "name": "@ckb-lumos/base",
   "version": "0.3.1",
-  "description": "TypeScript definitions for common objects used in lumos",
+  "description": "Base data structures and utilities used in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",

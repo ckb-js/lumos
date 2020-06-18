@@ -1,4 +1,4 @@
-const { core } = require("@ckb-lumos/types");
+const { core } = require("@ckb-lumos/base");
 const bech32 = require("bech32");
 const { normalizers, validators, Reader } = require("ckb-js-toolkit");
 const { List, Record, Map } = require("immutable");
