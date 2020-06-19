@@ -117,7 +117,7 @@ function checkSinceValid(since, tipHeader, sinceHeader) {
       return value <= BigInt(tipHeader.number);
     }
     if (type === "blockTimestamp") {
-      return value <= BigInt(tipHeader.timestamp);
+      return value * 1000n <= BigInt(tipHeader.timestamp);
     }
   } else {
     if (type === "epochNumber") {
@@ -127,10 +127,16 @@ function checkSinceValid(since, tipHeader, sinceHeader) {
         number: value.number + sinceHeaderEpoch.number,
         index:
           value.index * sinceHeaderEpoch.length +
-          sinceHeaderEpoch.index +
-          value.length,
+          sinceHeaderEpoch.index * value.length,
         length: value.length * sinceHeaderEpoch.length,
       };
+      if (value.length === 0n && sinceHeaderEpoch.length !== 0n) {
+        added.index = sinceHeaderEpoch.index;
+        added.length = sinceHeaderEpoch.length;
+      } else if (sinceHeaderEpoch.length === 0n && value.length !== 0n) {
+        added.index = value.index;
+        added.length = value.length;
+      }
       if (added.length && added.index >= added.length) {
         added.number += index / length;
         added.index = index % length;
@@ -148,7 +154,8 @@ function checkSinceValid(since, tipHeader, sinceHeader) {
     }
     if (type === "blockTimestamp") {
       return (
-        value + BigInt(sinceHeader.timestamp) <= BigInt(tipHeader.timestamp)
+        value * 1000n + BigInt(sinceHeader.timestamp) <=
+        BigInt(tipHeader.timestamp)
       );
     }
   }
@@ -163,4 +170,5 @@ module.exports = {
   checkAbsoluteEpochSinceValid,
   checkSinceValid,
   generateSince,
+  generateHeaderEpoch,
 };
