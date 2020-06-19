@@ -1,4 +1,3 @@
-=======
 import { TransactionSkeletonType } from "@ckb-lumos/helpers"
 import { Cell, CellProvider, Script, Header } from "@ckb-lumos/base"
 
@@ -328,7 +327,7 @@ export declare const locktimePool: {
 
   transfer(
     txSkeleton: TransactionSkeletonType,
-    fromInfo: FromInfo,
+    fromInfos: FromInfo[],
     toAddress: Address,
     amount: bigint,
     tipHeader: Header,
@@ -339,7 +338,7 @@ export declare const locktimePool: {
 
   payFee(
     txSkeleton: TransactionSkeletonType,
-    fromInfo: FromInfo,
+    fromInfos: FromInfo[],
     amount: bigint,
     tipHeader: Header,
     options: {

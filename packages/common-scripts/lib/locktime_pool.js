@@ -25,13 +25,13 @@ const {
   generateAbsoluteEpochSince,
   checkSinceValid,
 } = sinceUtils;
-const { List } = require("immutable");
+const { List, Set } = require("immutable");
 const { getConfig } = require("@ckb-lumos/config-manager");
 
 async function* collectCells(
   cellProvider,
   fromScript,
-  { config = undefined } = {}
+  { config = undefined, assertScriptSupported = true } = {}
 ) {
   config = config || getConfig();
   const rpc = new RPC(cellProvider.uri);
@@ -79,7 +79,9 @@ async function* collectCells(
       })
     );
   } else {
-    throw new Error("Non supported fromScript type!");
+    if (assertScriptSupported) {
+      throw new Error("Non supported fromScript type!");
+    }
   }
 
   for (const cellCollector of cellCollectors) {
@@ -106,15 +108,14 @@ async function* collectCells(
         const transactionWithStatus = await rpc.get_transaction(
           inputCell.out_point.tx_hash
         );
-        const withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
+        withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
         const transaction = transactionWithStatus.transaction;
         const depositOutPoint =
           transaction.inputs[+inputCell.out_point.index].previous_output;
-        const depositBlockHash = (
-          await rpc.get_transaction(depositOutPoint.tx_hash)
-        ).tx_status.block_hash;
-        depositBlockHeader = await rpc.get_header(depositBlockHash);
-        withdrawBlockHeader = await rpc.get_header(withdrawBlockHash);
+        depositBlockHash = (await rpc.get_transaction(depositOutPoint.tx_hash))
+          .tx_status.block_hash;
+        const depositBlockHeader = await rpc.get_header(depositBlockHash);
+        const withdrawBlockHeader = await rpc.get_header(withdrawBlockHash);
         let daoSince = calculateUnlockSince(
           depositBlockHeader.epoch,
           withdrawBlockHeader.epoch
@@ -151,7 +152,13 @@ async function* collectCells(
             continue;
           }
 
-          since = largerAbsoluteEpochSince(daoSince, since);
+          try {
+            since = largerAbsoluteEpochSince(daoSince, since);
+          } catch {
+            since = daoSince;
+          }
+        } else {
+          since = daoSince;
         }
       }
 
@@ -168,14 +175,47 @@ async function* collectCells(
   }
 }
 
-// TODO: add dao and default lock support
 async function transfer(
+  txSkeleton,
+  fromInfos,
+  toAddress,
+  amount,
+  tipHeader,
+  { config = undefined, requireToAddress = true }
+) {
+  amount = BigInt(amount);
+  for (const [index, fromInfo] of fromInfos.entries()) {
+    const value = await _transfer(
+      txSkeleton,
+      fromInfo,
+      index === 0 ? toAddress : null,
+      amount,
+      tipHeader,
+      {
+        config,
+        requireToAddress: index === 0 ? requireToAddress : false,
+        assertAmountEnough: false,
+      }
+    );
+    // [txSkeleton, amount] = value
+    txSkeleton = value[0];
+    amount = value[1];
+
+    if (amount === BigInt(0)) {
+      return txSkeleton;
+    }
+  }
+
+  throw new Error("Not enough capacity in from addresses!");
+}
+
+async function _transfer(
   txSkeleton,
   fromInfo,
   toAddress,
   amount,
   tipHeader,
-  { config = undefined, requireToAddress = true }
+  { config = undefined, requireToAddress = true, assertAmountEnough = true }
 ) {
   config = config || getConfig();
   // fromScript can be secp256k1_blake160 / secp256k1_blake160_multisig
@@ -278,7 +318,16 @@ async function transfer(
     };
     let changeCapacity = BigInt(0);
 
-    for await (const inputCellInfo of collectCells(cellProvider, fromScript)) {
+    let previousInputs = Set();
+    for (const input of txSkeleton.get("inputs")) {
+      previousInputs = previousInputs.add(
+        `${input.out_point.tx_hash}_${input.out_point.index}`
+      );
+    }
+    for await (const inputCellInfo of collectCells(cellProvider, fromScript, {
+      config,
+      assertScriptSupported: false,
+    })) {
       if (
         !checkSinceValid(inputCellInfo.since, tipHeader, inputCellInfo.header)
       ) {
@@ -286,9 +335,25 @@ async function transfer(
       }
 
       const inputCell = inputCellInfo.cell;
+
+      // skip inputs already exists in txSkeleton.inputs
+      if (
+        previousInputs.has(
+          `${inputCell.out_point.tx_hash}_${inputCell.out_point.index}`
+        )
+      ) {
+        continue;
+      }
+
       txSkeleton = txSkeleton.update("inputs", (inputs) =>
         inputs.push(inputCell)
       );
+      txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
+        return inputSinces.set(
+          txSkeleton.get("inputs").size - 1,
+          "0x" + inputCellInfo.since.toString(16)
+        );
+      });
       if (isDaoScript(inputCell.cell_output.type, config)) {
         txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
           return headerDeps.push(
@@ -342,12 +407,39 @@ async function transfer(
         );
       } else {
         // multisig
+        const inputSize = txSkeleton.get("inputs").size;
+        const lockArgs = txSkeleton.get("inputs").get(inputSize - 1).cell_output
+          .lock.args;
+        const multisigSince =
+          lockArgs.length === 58
+            ? _parseMultisigArgsSince(lockArgs)
+            : undefined;
         txSkeleton = await setupMultisigInputCell(
           txSkeleton,
-          txSkeleton.get("inputs").size - 1,
-          fromInfo,
+          inputSize - 1,
+          Object.assign({}, fromInfo, { since: multisigSince }),
           { config }
         );
+      }
+
+      if (isDaoScript(inputCell.cell_output.type, config)) {
+        // fix inputs / outputs / witnesses
+        txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+          return fixedEntries.push(
+            {
+              field: "inputs",
+              index: txSkeleton.get("inputs").size - 1,
+            },
+            {
+              field: "witnesses",
+              index: txSkeleton.get("witnesses").size - 1,
+            },
+            {
+              filed: "headerDeps",
+              index: txSkeleton.get("headerDeps").size - 2,
+            }
+          );
+        });
       }
 
       if (
@@ -365,6 +457,11 @@ async function transfer(
       );
     }
   }
+
+  if (!assertAmountEnough) {
+    return [txSkeleton, amount];
+  }
+
   if (amount > 0) {
     throw new Error("Not enough capacity in from address!");
   }
@@ -374,12 +471,12 @@ async function transfer(
 
 async function payFee(
   txSkeleton,
-  fromInfo,
+  fromInfos,
   amount,
   tipHeader,
   { config = undefined } = {}
 ) {
-  return transfer(txSkeleton, fromInfo, null, amount, tipHeader, {
+  return transfer(txSkeleton, fromInfos, null, amount, tipHeader, {
     config,
     requireToAddress: false,
   });
