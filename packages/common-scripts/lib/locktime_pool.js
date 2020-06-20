@@ -181,7 +181,7 @@ async function transfer(
   toAddress,
   amount,
   tipHeader,
-  { config = undefined, requireToAddress = true }
+  { config = undefined, requireToAddress = true, cellCollector = collectCells }
 ) {
   amount = BigInt(amount);
   for (const [index, fromInfo] of fromInfos.entries()) {
@@ -195,6 +195,7 @@ async function transfer(
         config,
         requireToAddress: index === 0 ? requireToAddress : false,
         assertAmountEnough: false,
+        cellCollector,
       }
     );
     // [txSkeleton, amount] = value
@@ -215,7 +216,12 @@ async function _transfer(
   toAddress,
   amount,
   tipHeader,
-  { config = undefined, requireToAddress = true, assertAmountEnough = true }
+  {
+    config = undefined,
+    requireToAddress = true,
+    assertAmountEnough = true,
+    cellCollector = collectCells,
+  }
 ) {
   config = config || getConfig();
   // fromScript can be secp256k1_blake160 / secp256k1_blake160_multisig
@@ -324,7 +330,7 @@ async function _transfer(
         `${input.out_point.tx_hash}_${input.out_point.index}`
       );
     }
-    for await (const inputCellInfo of collectCells(cellProvider, fromScript, {
+    for await (const inputCellInfo of cellCollector(cellProvider, fromScript, {
       config,
       assertScriptSupported: false,
     })) {
