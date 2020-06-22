@@ -4,6 +4,7 @@ const secp256k1Blake160 = require("./secp256k1_blake160");
 const {
   isSecp256k1Blake160Address,
   isSecp256k1Blake160MultisigAddress,
+  prepareSigningEntries: _prepareSigningEntries,
 } = require("./helper");
 const { getConfig } = require("@ckb-lumos/config-manager");
 const lockTimePool = require("./locktime_pool");
@@ -52,6 +53,29 @@ async function transfer(
     throw new Error("Not enough capacity in from infos!");
   }
 
+  return txSkeleton;
+}
+
+async function payFee(
+  txSkeleton,
+  fromInfos,
+  amount,
+  tipHeader,
+  { config = undefined } = {}
+) {
+  return transfer(txSkeleton, fromInfos, null, amount, tipHeader, {
+    config,
+    requireToAddress: false,
+  });
+}
+
+function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
+  txSkeleton = _prepareSigningEntries(txSkeleton, config, "SECP256K1_BLAKE160");
+  txSkeleton = _prepareSigningEntries(
+    txSkeleton,
+    config,
+    "SECP256K1_BLAKE160_MULTISIG"
+  );
   return txSkeleton;
 }
 
@@ -137,6 +161,8 @@ async function _commonTransfer(
 
 module.exports = {
   transfer,
+  payFee,
+  prepareSigningEntries,
   __tests__: {
     _commonTransfer,
   },
