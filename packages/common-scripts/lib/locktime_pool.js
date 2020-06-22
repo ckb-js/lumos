@@ -181,7 +181,12 @@ async function transfer(
   toAddress,
   amount,
   tipHeader,
-  { config = undefined, requireToAddress = true, cellCollector = collectCells }
+  {
+    config = undefined,
+    requireToAddress = true,
+    cellCollector = collectCells,
+    assertAmountEnough = true,
+  }
 ) {
   amount = BigInt(amount);
   for (const [index, fromInfo] of fromInfos.entries()) {
@@ -203,11 +208,17 @@ async function transfer(
     amount = value[1];
 
     if (amount === BigInt(0)) {
-      return txSkeleton;
+      if (assertAmountEnough) {
+        return txSkeleton;
+      }
+      return [txSkeleton, amount];
     }
   }
 
-  throw new Error("Not enough capacity in from addresses!");
+  if (assertAmountEnough) {
+    throw new Error("Not enough capacity in from addresses!");
+  }
+  return [txSkeleton, amount];
 }
 
 async function _transfer(

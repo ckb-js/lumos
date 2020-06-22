@@ -29,7 +29,11 @@ async function transfer(
   fromAddress,
   toAddress,
   amount,
-  { config = undefined, requireToAddress = true } = {}
+  {
+    config = undefined,
+    requireToAddress = true,
+    assertAmountEnough = true,
+  } = {}
 ) {
   config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160) {
@@ -192,7 +196,7 @@ async function transfer(
       );
     }
   }
-  if (amount > 0) {
+  if (amount > 0 && assertAmountEnough) {
     throw new Error("Not enough capacity in from address!");
   }
   /*
@@ -250,6 +254,9 @@ async function transfer(
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.set(firstIndex, witness)
     );
+  }
+  if (!assertAmountEnough) {
+    return [txSkeleton, amount];
   }
   return txSkeleton;
 }

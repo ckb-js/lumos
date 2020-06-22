@@ -1,5 +1,8 @@
 const { Set } = require("immutable");
-const { createTransactionFromSkeleton } = require("@ckb-lumos/helpers");
+const {
+  createTransactionFromSkeleton,
+  parseAddress,
+} = require("@ckb-lumos/helpers");
 const { core, values, utils } = require("@ckb-lumos/base");
 const { CKBHasher, ckbHash } = utils;
 const { normalizers, Reader } = require("ckb-js-toolkit");
@@ -44,12 +47,22 @@ function isSecp256k1Blake160Script(script, config) {
   );
 }
 
+function isSecp256k1Blake160Address(address, config) {
+  const script = parseAddress(address, { config });
+  return isSecp256k1Blake160Script(script, config);
+}
+
 function isSecp256k1Blake160MultisigScript(script, config) {
   const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
   return (
     script.code_hash === template.CODE_HASH &&
     script.hash_type === template.HASH_TYPE
   );
+}
+
+function isSecp256k1Blake160MultisigAddress(address, config) {
+  const script = parseAddress(address, { config });
+  return isSecp256k1Blake160MultisigScript(script, config);
 }
 
 function isDaoScript(script, config) {
@@ -138,4 +151,6 @@ module.exports = {
   isSecp256k1Blake160MultisigScript,
   isDaoScript,
   prepareSigningEntries,
+  isSecp256k1Blake160Address,
+  isSecp256k1Blake160MultisigAddress,
 };
