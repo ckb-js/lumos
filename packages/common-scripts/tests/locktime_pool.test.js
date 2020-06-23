@@ -32,27 +32,13 @@ const inputInfos = [
       data: "0x",
     },
     maximumCapacity: 100000000000n,
-    since: 0n,
+    since: "0x0",
     depositBlockHash: undefined,
     withdrawBlockHash: undefined,
-    header: {
-      compact_target: "0x20010000",
-      dao: "0x86b6bb6ef01f1b5501b60c23472a2900f30e9ff205c664090024c7b806d50200",
+    sinceBaseValue: {
       epoch: "0xa0005002b16",
-      hash:
-        "0x62e03ef430cb72041014224417de08caf73d4e804eaca7813c2015abcd6afe1a",
-      nonce: "0xe50676a79d7dc591d6d61f9d1b2d47ab",
       number: "0x1aee1",
-      parent_hash:
-        "0x75377290f1cedcbbeabeb19af3aac2afb94e362b5093fc6a7755361ebe21c0cc",
-      proposals_hash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
       timestamp: "0x172b7721b70",
-      transactions_root:
-        "0x9b0396de353a052bb6b031b952a937a64de2511249211f82c827e59d9425ac14",
-      uncles_hash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-      version: "0x0",
     },
   },
   {
@@ -79,27 +65,13 @@ const inputInfos = [
       data: "0x",
     },
     maximumCapacity: 100000000000n,
-    since: 2306106895225596693n,
+    since: "0x2000f000c0002b15",
     depositBlockHash: undefined,
     withdrawBlockHash: undefined,
     header: {
-      compact_target: "0x20010000",
-      dao: "0x0ac112f0d7c31a55d77679563c2a2900f070432db3af6409000b276fffd40200",
       epoch: "0xa0001002b16",
-      hash:
-        "0xee89cacb5ff0dd3edcca3904619693355396536cce45658bf9a9c676ae3819c3",
-      nonce: "0xf3f53c58e5f726c0db69736a4d0c1c57",
       number: "0x1aedd",
-      parent_hash:
-        "0xea7c5e8a592c48c372570b90f1bf806ffbb0152677abf4d080ffc127eb3efb88",
-      proposals_hash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
       timestamp: "0x172b6608868",
-      transactions_root:
-        "0x70b51b289c66b5083827bcf9ab73b092f8aa1922d0421088c283a819567e6d4d",
-      uncles_hash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-      version: "0x0",
     },
   },
   {
@@ -131,7 +103,7 @@ const inputInfos = [
       data: "0x4992010000000000",
     },
     maximumCapacity: 100007690204n,
-    since: 2305854004413868270n,
+    since: "0x20000a00050028ee",
     depositBlockHash:
       "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
     withdrawBlockHash:
@@ -197,8 +169,6 @@ test("transfer multisig", async (t) => {
     tipHeader,
     { config: DEV_CONFIG, cellCollector }
   );
-
-  // t.log(txSkeleton)
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton

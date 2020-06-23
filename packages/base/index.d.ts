@@ -1,37 +1,44 @@
 import * as core from "./lib/core";
 
+export type HexString = string;
+export type Hash = HexString;
+export type PackedSince = string;
+export type PackedDao = string;
+
 export interface Header {
-  timestamp: string;
-  number: string;
-  epoch: string;
+  timestamp: HexString;
+  number: HexString;
+  epoch: HexString;
 }
 
+export type HashType = "type" | "data";
 export interface Script {
-  code_hash: string;
-  hash_type: string;
-  args: string;
+  code_hash: Hash;
+  hash_type: HashType;
+  args: HexString;
 }
 
 export interface OutPoint {
-  tx_hash: string;
-  index: string;
+  tx_hash: Hash;
+  index: HexString;
 }
 
+export type DepType = "dep_group" | "code";
 export interface CellDep {
   out_point: OutPoint;
-  dep_type: string;
+  dep_type: DepType;
 }
 
 export interface Cell {
   cell_output: {
-    capacity: string;
+    capacity: HexString;
     lock: Script;
     type?: Script;
   };
-  data: string;
+  data: HexString;
   out_point: OutPoint;
-  block_hash: string;
-  block_number: string;
+  block_hash: Hash;
+  block_number: HexString;
 }
 
 export interface QueryOptions {
@@ -56,22 +63,22 @@ export declare const utils: {
   /**
    * convert bigint to BigUInt64 little-endian hex string
    *
-   * @param num bigint or number type can using BigInt() to convert to bigint
+   * @param num
    */
-  toBigUInt64LE(num: bigint | string): string;
+  toBigUInt64LE(num: bigint): HexString;
 
   /**
    * convert BigUInt64 little-endian hex string to bigint
    *
    * @param hex BigUInt64 little-endian hex string
    */
-  readBigUInt64LE(hex: string): bigint;
+  readBigUInt64LE(hex: HexString): bigint;
 };
 
 export interface EpochSinceValue {
-  length: bigint;
-  index: bigint;
-  number: bigint;
+  length: number;
+  index: number;
+  number: number;
 }
 
 export type SinceType = "epochNumber" | "blockNumber" | "blockTimestamp";
@@ -83,7 +90,7 @@ export declare const since: {
    * @param since
    */
   parseSince(
-    since: bigint
+    since: PackedSince
   ):
     | {
         relative: boolean;
@@ -101,29 +108,28 @@ export declare const since: {
    *
    * @param epoch
    */
-  parseEpoch(epoch: bigint | string): EpochSinceValue;
+  parseEpoch(epoch: HexString): EpochSinceValue;
 
   /**
    * return larger one of two sinces
    *
-   * @param one since in absolute-epoch-number format
-   * @param another since in absolute-epoch-number format
+   * @param args sinces in absolute-epoch-number format
    */
-  largerAbsoluteEpochSince(one: bigint, another: bigint): bigint;
+  maximumAbsoluteEpochSince(...args: PackedSince[]): PackedSince;
 
   /**
    * generate absolute-epoch-number format since
    *
    * @param params
    */
-  generateAbsoluteEpochSince(params: EpochSinceValue): bigint;
+  generateAbsoluteEpochSince(params: EpochSinceValue): PackedSince;
 
   /**
    * Will throw an error if since not in absolute-epoch-number format
    *
    * @param since
    */
-  parseAbsoluteEpochSince(since: bigint): EpochSinceValue;
+  parseAbsoluteEpochSince(since: PackedSince): EpochSinceValue;
 
   /**
    * Will throw an error if since not in absolute-epoch-number format
@@ -131,9 +137,9 @@ export declare const since: {
    * @param since
    * @param tipHeaderEpoch
    */
-  checkAbsoluteEpochSinceValid(
-    since: bigint,
-    tipHeaderEpoch: string | bigint
+  validateAbsoluteEpochSince(
+    since: PackedSince,
+    tipHeaderEpoch: HexString
   ): boolean;
 
   /**
@@ -141,12 +147,12 @@ export declare const since: {
    *
    * @param since
    * @param tipHeader
-   * @param sinceHeader
+   * @param sinceHeader can left empty if absolute since
    */
-  checkSinceValid(
-    since: bigint,
+  validateSince(
+    since: PackedSince,
     tipHeader: Header,
-    sinceHeader: Header
+    sinceHeader?: Header
   ): boolean;
 
   /**
@@ -165,5 +171,5 @@ export declare const since: {
           type: "epochNumber";
           value: EpochSinceValue;
         }
-  ): bigint;
+  ): PackedSince;
 };

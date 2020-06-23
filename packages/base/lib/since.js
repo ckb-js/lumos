@@ -10,9 +10,9 @@ function parseSince(since) {
   } else if (metricFlag === BigInt(0b01)) {
     type = "epochNumber";
     value = {
-      length: (since >> BigInt(40)) & BigInt(0xffff),
-      index: (since >> BigInt(24)) & BigInt(0xffff),
-      number: since & BigInt(0xffffff),
+      length: Number((since >> BigInt(40)) & BigInt(0xffff)),
+      index: Number((since >> BigInt(24)) & BigInt(0xffff)),
+      number: Number(since & BigInt(0xffffff)),
     };
   } else if (metricFlag === BigInt(0b10)) {
     type = "blockTimestamp";
@@ -41,38 +41,42 @@ function generateSince({ relative, type, value }) {
 
   let v;
   if (typeof value === "object") {
-    v = generateHeaderEpoch(value);
+    v = BigInt(generateHeaderEpoch(value));
   } else {
     v = BigInt(value);
   }
 
   // TODO: check v is valid
 
-  return (flag << BigInt(56)) + v;
+  return _toHex((flag << BigInt(56)) + v);
 }
 
 function parseEpoch(epoch) {
   epoch = BigInt(epoch);
   return {
-    length: (epoch >> BigInt(40)) & BigInt(0xffff),
-    index: (epoch >> BigInt(24)) & BigInt(0xffff),
-    number: epoch & BigInt(0xffffff),
+    length: Number((epoch >> BigInt(40)) & BigInt(0xffff)),
+    index: Number((epoch >> BigInt(24)) & BigInt(0xffff)),
+    number: Number(epoch & BigInt(0xffffff)),
   };
 }
 
-function largerAbsoluteEpochSince(one, another) {
-  const parsedOne = parseAbsoluteEpochSince(one);
-  const parsedAnother = parseAbsoluteEpochSince(another);
+function maximumAbsoluteEpochSince(...args) {
+  const parsedArgs = args.map((arg) => parseAbsoluteEpochSince(arg));
+  const maxNumber = Math.max(...parsedArgs.map((arg) => arg.number));
+  const maxArgs = parsedArgs.filter((arg) => arg.number === maxNumber);
 
-  if (
-    parsedOne.number > parsedAnother.number ||
-    (parsedOne.number === parsedAnother.number &&
-      parsedOne.index * parsedAnother.length >=
-        parsedAnother.index * parsedOne.length)
-  ) {
-    return one;
+  let max = maxArgs[0];
+  for (let i = 1; i < maxArgs.length; ++i) {
+    const current = maxArgs[i];
+    if (
+      BigInt(current.index) * BigInt(max.length) >=
+      BigInt(max.index) * BigInt(current.length)
+    ) {
+      max = current;
+    }
   }
-  return another;
+
+  return generateAbsoluteEpochSince(max);
 }
 
 function generateAbsoluteEpochSince({ length, index, number }) {
@@ -84,7 +88,11 @@ function generateAbsoluteEpochSince({ length, index, number }) {
 }
 
 function generateHeaderEpoch({ length, index, number }) {
-  return (length << BigInt(40)) + (index << BigInt(24)) + number;
+  return _toHex(
+    (BigInt(length) << BigInt(40)) +
+      (BigInt(index) << BigInt(24)) +
+      BigInt(number)
+  );
 }
 
 function parseAbsoluteEpochSince(since) {
@@ -95,23 +103,23 @@ function parseAbsoluteEpochSince(since) {
   return value;
 }
 
-function checkAbsoluteEpochSinceValid(since, tipHeaderEpoch) {
+function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
   const { value } = parseSince(since);
   const headerEpochParams = parseEpoch(BigInt(tipHeaderEpoch));
 
   return (
     value.number < headerEpochParams.number ||
     (value.number === headerEpochParams.number &&
-      value.index * headerEpochParams.length <=
-        headerEpochParams.index * value.length)
+      BigInt(value.index) * BigInt(headerEpochParams.length) <=
+        BigInt(headerEpochParams.index) * BigInt(value.length))
   );
 }
 
-function checkSinceValid(since, tipHeader, sinceHeader) {
+function validateSince(since, tipHeader, sinceHeader) {
   const { relative, type, value } = parseSince(since);
   if (!relative) {
     if (type === "epochNumber") {
-      return checkAbsoluteEpochSinceValid(since, tipHeader.epoch);
+      return validateAbsoluteEpochSince(since, tipHeader.epoch);
     }
     if (type === "blockNumber") {
       return value <= BigInt(tipHeader.number);
@@ -124,29 +132,29 @@ function checkSinceValid(since, tipHeader, sinceHeader) {
       const tipHeaderEpoch = parseEpoch(BigInt(tipHeader.epoch));
       const sinceHeaderEpoch = parseEpoch(BigInt(sinceHeader.epoch));
       const added = {
-        number: value.number + sinceHeaderEpoch.number,
+        number: BigInt(value.number + sinceHeaderEpoch.number),
         index:
-          value.index * sinceHeaderEpoch.length +
-          sinceHeaderEpoch.index * value.length,
-        length: value.length * sinceHeaderEpoch.length,
+          BigInt(value.index) * BigInt(sinceHeaderEpoch.length) +
+          BigInt(sinceHeaderEpoch.index) * BigInt(value.length),
+        length: BigInt(value.length) * BigInt(sinceHeaderEpoch.length),
       };
-      if (value.length === 0n && sinceHeaderEpoch.length !== 0n) {
-        added.index = sinceHeaderEpoch.index;
-        added.length = sinceHeaderEpoch.length;
-      } else if (sinceHeaderEpoch.length === 0n && value.length !== 0n) {
-        added.index = value.index;
-        added.length = value.length;
+      if (value.length === 0 && sinceHeaderEpoch.length !== 0) {
+        added.index = BigInt(sinceHeaderEpoch.index);
+        added.length = BigInt(sinceHeaderEpoch.length);
+      } else if (sinceHeaderEpoch.length === 0 && value.length !== 0) {
+        added.index = BigInt(value.index);
+        added.length = BigInt(value.length);
       }
       if (added.length && added.index >= added.length) {
-        added.number += index / length;
-        added.index = index % length;
+        added.number += added.index / added.length;
+        added.index = added.index % added.length;
       }
 
       return (
-        added.number < tipHeaderEpoch.number ||
-        (added.number === tipHeaderEpoch.number &&
-          added.index * tipHeaderEpoch.length <=
-            tipHeaderEpoch.index * added.length)
+        added.number < BigInt(tipHeaderEpoch.number) ||
+        (added.number === BigInt(tipHeaderEpoch.number) &&
+          added.index * BigInt(tipHeaderEpoch.length) <=
+            BigInt(tipHeaderEpoch.index) * added.length)
       );
     }
     if (type === "blockNumber") {
@@ -161,14 +169,18 @@ function checkSinceValid(since, tipHeader, sinceHeader) {
   }
 }
 
+function _toHex(num) {
+  return "0x" + num.toString(16);
+}
+
 module.exports = {
   parseSince,
   parseEpoch,
-  largerAbsoluteEpochSince,
+  maximumAbsoluteEpochSince,
   generateAbsoluteEpochSince,
   parseAbsoluteEpochSince,
-  checkAbsoluteEpochSinceValid,
-  checkSinceValid,
+  validateAbsoluteEpochSince,
+  validateSince,
   generateSince,
   generateHeaderEpoch,
 };

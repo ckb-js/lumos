@@ -5,7 +5,10 @@ const {
   multisigArgs,
 } = require("./secp256k1_blake160_multisig");
 const { setupInputCell } = require("./secp256k1_blake160");
-const { calculateMaximumWithdraw, calculateUnlockSince } = require("./dao");
+const {
+  calculateMaximumWithdraw,
+  calculateDaoEarliestSince,
+} = require("./dao");
 const { core, values, utils, since: sinceUtils } = require("@ckb-lumos/base");
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
@@ -21,9 +24,9 @@ const {
 const {
   parseSince,
   parseEpoch,
-  largerAbsoluteEpochSince,
+  maximumAbsoluteEpochSince,
   generateAbsoluteEpochSince,
-  checkSinceValid,
+  validateSince,
 } = sinceUtils;
 const { List, Set } = require("immutable");
 const { getConfig } = require("@ckb-lumos/config-manager");
@@ -88,16 +91,21 @@ async function* collectCells(
     for await (const inputCell of cellCollector.collect()) {
       const lock = inputCell.cell_output.lock;
 
-      let header;
       let since;
       let maximumCapacity;
       let depositBlockHash;
       let withdrawBlockHash;
+      let sinceBaseValue;
 
       // multisig
       if (lock.args.length === 58) {
-        header = await rpc.get_header(inputCell.block_hash);
+        const header = await rpc.get_header(inputCell.block_hash);
         since = _parseMultisigArgsSince(lock.args);
+        sinceBaseValue = {
+          epoch: header.epoch,
+          number: header.number,
+          timestamp: header.timestamp,
+        };
       }
 
       // dao
@@ -116,7 +124,7 @@ async function* collectCells(
           .tx_status.block_hash;
         const depositBlockHeader = await rpc.get_header(depositBlockHash);
         const withdrawBlockHeader = await rpc.get_header(withdrawBlockHash);
-        let daoSince = calculateUnlockSince(
+        let daoSince = calculateDaoEarliestSince(
           depositBlockHeader.epoch,
           withdrawBlockHeader.epoch
         );
@@ -131,7 +139,7 @@ async function* collectCells(
           length: withdrawEpochValue.length,
           index: withdrawEpochValue.index,
         };
-        daoSince = largerAbsoluteEpochSince(
+        daoSince = maximumAbsoluteEpochSince(
           daoSince,
           generateAbsoluteEpochSince(fourEpochsLater)
         );
@@ -153,7 +161,7 @@ async function* collectCells(
           }
 
           try {
-            since = largerAbsoluteEpochSince(daoSince, since);
+            since = maximumAbsoluteEpochSince(daoSince, since);
           } catch {
             since = daoSince;
           }
@@ -166,10 +174,10 @@ async function* collectCells(
         cell: inputCell,
         maximumCapacity:
           maximumCapacity || BigInt(inputCell.cell_output.capacity),
-        since: since,
+        since: "0x" + ("0000000000000000" + since.toString(16)).slice(-16),
         depositBlockHash: depositBlockHash,
         withdrawBlockHash: withdrawBlockHash,
-        header: header,
+        sinceBaseValue,
       };
     }
   }
@@ -346,7 +354,11 @@ async function _transfer(
       assertScriptSupported: false,
     })) {
       if (
-        !checkSinceValid(inputCellInfo.since, tipHeader, inputCellInfo.header)
+        !validateSince(
+          inputCellInfo.since,
+          tipHeader,
+          inputCellInfo.sinceBaseValue
+        )
       ) {
         continue;
       }
@@ -368,7 +380,7 @@ async function _transfer(
       txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
         return inputSinces.set(
           txSkeleton.get("inputs").size - 1,
-          "0x" + inputCellInfo.since.toString(16)
+          inputCellInfo.since
         );
       });
       if (isDaoScript(inputCell.cell_output.type, config)) {

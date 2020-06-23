@@ -47,7 +47,7 @@ function serializeMultisigScript({ R, M, publicKeyHashes }) {
 function multisigArgs(serializedMultisigScript, since = undefined) {
   let sinceLE = "0x";
   if (since != null) {
-    sinceLE = toBigUInt64LE(since);
+    sinceLE = toBigUInt64LE(BigInt(since));
   }
   return (
     new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +
