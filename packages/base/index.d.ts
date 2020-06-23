@@ -3,6 +3,7 @@ import * as core from "./lib/core";
 export type HexString = string;
 export type Hash = HexString;
 export type PackedSince = string;
+export type PackedDao = string;
 
 export interface Header {
   timestamp: HexString;
@@ -64,14 +65,14 @@ export declare const utils: {
    *
    * @param num
    */
-  toBigUInt64LE(num: bigint): string;
+  toBigUInt64LE(num: bigint): HexString;
 
   /**
    * convert BigUInt64 little-endian hex string to bigint
    *
    * @param hex BigUInt64 little-endian hex string
    */
-  readBigUInt64LE(hex: string): bigint;
+  readBigUInt64LE(hex: HexString): bigint;
 };
 
 export interface EpochSinceValue {

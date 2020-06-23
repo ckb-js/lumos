@@ -1,5 +1,5 @@
 import { TransactionSkeletonType } from "@ckb-lumos/helpers"
-import { Cell, CellProvider, Script, Header, PackedSince } from "@ckb-lumos/base"
+import { Cell, CellProvider, Script, Header, PackedSince, HexString, Hash, PackedDao } from "@ckb-lumos/base"
 
 export type Address = string
 export type Config = any // TODO: define this type later
@@ -7,13 +7,13 @@ export type Config = any // TODO: define this type later
 export interface LocktimeCell {
   cell: Cell
   maximumCapacity: bigint
-  since: bigint
-  depositBlockHash?: string
-  withdrawBlockHash?: string
+  since: PackedSince
+  depositBlockHash?: Hash
+  withdrawBlockHash?: Hash
   sinceBaseValue?: {
-    epoch: string
-    number: string
-    timestamp: string
+    epoch: HexString
+    number: HexString
+    timestamp: HexString
   }
 }
 
@@ -29,9 +29,9 @@ export interface MultisigScript {
   /** threshold, 1 byte */
   M: number,
   /** blake160 hashes of compressed public keys */
-  publicKeyHashes: string[],
+  publicKeyHashes: Hash[],
   /** locktime in since format */
-  since: bigint,
+  since: PackedSince,
 }
 
 export type FromInfo = MultisigScript | Address
@@ -175,7 +175,7 @@ export declare const secp256k1Blake160Multisig: {
    * @param params multisig script params
    * @returns serialized multisig script
    */
-  serializeMultisigScript(params: MultisigScript): string,
+  serializeMultisigScript(params: MultisigScript): HexString,
 
   /**
    *
@@ -183,7 +183,7 @@ export declare const secp256k1Blake160Multisig: {
    * @param since
    * @returns lock script args
    */
-  multisigArgs(serializedMultisigScript: string, since?: PackedSince): string,
+  multisigArgs(serializedMultisigScript: HexString, since?: PackedSince): HexString,
 
     /**
    * Inject capacity from `fromInfo` to target output.
@@ -213,7 +213,7 @@ export declare const secp256k1Blake160Multisig: {
   setupInputCell(
     txSkeleton: TransactionSkeletonType,
     inputIndex: number,
-    fromInfo: FromInfo | undefined,
+    fromInfo?: FromInfo,
     options: {
       config: Config,
     },
@@ -302,8 +302,8 @@ export declare const dao: {
    * @param withdrawBlockHeaderEpoch withdrawBlockHeader.epoch
    */
   calculateUnlockSince(
-    depositBlockHeaderEpoch: string,
-    withdrawBlockHeaderEpoch: string,
+    depositBlockHeaderEpoch: HexString,
+    withdrawBlockHeaderEpoch: HexString,
   ): bigint,
 
   /**
@@ -315,8 +315,8 @@ export declare const dao: {
    */
   calculateMaximumWithdraw(
     withdrawCell: Cell,
-    depositDao: string,
-    withdrawDao: string,
+    depositDao: PackedDao,
+    withdrawDao: PackedDao,
   ): bigint,
 }
 
