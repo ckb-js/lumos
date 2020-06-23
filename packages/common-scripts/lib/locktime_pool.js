@@ -88,16 +88,21 @@ async function* collectCells(
     for await (const inputCell of cellCollector.collect()) {
       const lock = inputCell.cell_output.lock;
 
-      let header;
       let since;
       let maximumCapacity;
       let depositBlockHash;
       let withdrawBlockHash;
+      let sinceBaseValue;
 
       // multisig
       if (lock.args.length === 58) {
-        header = await rpc.get_header(inputCell.block_hash);
+        const header = await rpc.get_header(inputCell.block_hash);
         since = _parseMultisigArgsSince(lock.args);
+        sinceBaseValue = {
+          epoch: header.epoch,
+          number: header.number,
+          timestamp: header.timestamp,
+        };
       }
 
       // dao
@@ -169,7 +174,7 @@ async function* collectCells(
         since: since,
         depositBlockHash: depositBlockHash,
         withdrawBlockHash: withdrawBlockHash,
-        header: header,
+        sinceBaseValue,
       };
     }
   }
@@ -335,7 +340,11 @@ async function _transfer(
       assertScriptSupported: false,
     })) {
       if (
-        !checkSinceValid(inputCellInfo.since, tipHeader, inputCellInfo.header)
+        !checkSinceValid(
+          inputCellInfo.since,
+          tipHeader,
+          inputCellInfo.sinceBaseValue
+        )
       ) {
         continue;
       }

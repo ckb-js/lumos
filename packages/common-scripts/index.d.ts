@@ -6,11 +6,15 @@ export type Config = any // TODO: define this type later
 
 export interface LocktimeCell {
   cell: Cell
-  maximumCapacity: bigint,
-  since: bigint,
-  depositBlockHash?: string,
-  withdrawBlockHash?: string,
-  header?: Header
+  maximumCapacity: bigint
+  since: bigint
+  depositBlockHash?: string
+  withdrawBlockHash?: string
+  sinceBaseValue?: {
+    epoch: string
+    number: string
+    timestamp: string
+  }
 }
 
 /**

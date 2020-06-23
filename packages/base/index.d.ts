@@ -141,12 +141,12 @@ export declare const since: {
    *
    * @param since
    * @param tipHeader
-   * @param sinceHeader
+   * @param sinceHeader can left empty if absolute since
    */
   checkSinceValid(
     since: bigint,
     tipHeader: Header,
-    sinceHeader: Header
+    sinceHeader?: Header
   ): boolean;
 
   /**
