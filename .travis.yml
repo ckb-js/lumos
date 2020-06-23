@@ -41,7 +41,7 @@ script:
   - yarn workspaces run test
   - yarn workspaces run fmt
   - yarn workspaces run lint
-  - yarn run docs
+  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then yarn run docs; fi
   - git diff --exit-code
   - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package; fi
 
