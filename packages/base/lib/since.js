@@ -60,19 +60,23 @@ function parseEpoch(epoch) {
   };
 }
 
-function largerAbsoluteEpochSince(one, another) {
-  const parsedOne = parseAbsoluteEpochSince(one);
-  const parsedAnother = parseAbsoluteEpochSince(another);
+function maximumAbsoluteEpochSince(...args) {
+  const parsedArgs = args.map((arg) => parseAbsoluteEpochSince(arg));
+  const maxNumber = Math.max(...parsedArgs.map((arg) => arg.number));
+  const maxArgs = parsedArgs.filter((arg) => arg.number === maxNumber);
 
-  if (
-    parsedOne.number > parsedAnother.number ||
-    (parsedOne.number === parsedAnother.number &&
-      BigInt(parsedOne.index) * BigInt(parsedAnother.length) >=
-        BigInt(parsedAnother.index) * BigInt(parsedOne.length))
-  ) {
-    return one;
+  let max = maxArgs[0];
+  for (let i = 1; i < maxArgs.length; ++i) {
+    const current = maxArgs[i];
+    if (
+      BigInt(current.index) * BigInt(max.length) >=
+      BigInt(max.index) * BigInt(current.length)
+    ) {
+      max = current;
+    }
   }
-  return another;
+
+  return generateAbsoluteEpochSince(max);
 }
 
 function generateAbsoluteEpochSince({ length, index, number }) {
@@ -99,7 +103,7 @@ function parseAbsoluteEpochSince(since) {
   return value;
 }
 
-function checkAbsoluteEpochSinceValid(since, tipHeaderEpoch) {
+function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
   const { value } = parseSince(since);
   const headerEpochParams = parseEpoch(BigInt(tipHeaderEpoch));
 
@@ -111,11 +115,11 @@ function checkAbsoluteEpochSinceValid(since, tipHeaderEpoch) {
   );
 }
 
-function checkSinceValid(since, tipHeader, sinceHeader) {
+function validateSince(since, tipHeader, sinceHeader) {
   const { relative, type, value } = parseSince(since);
   if (!relative) {
     if (type === "epochNumber") {
-      return checkAbsoluteEpochSinceValid(since, tipHeader.epoch);
+      return validateAbsoluteEpochSince(since, tipHeader.epoch);
     }
     if (type === "blockNumber") {
       return value <= BigInt(tipHeader.number);
@@ -169,18 +173,14 @@ function _toHex(num) {
   return "0x" + num.toString(16);
 }
 
-// function _packSince(num) {
-//   return "0x" + ("0000000000000000" + num.toString(16)).slice(-16)
-// }
-
 module.exports = {
   parseSince,
   parseEpoch,
-  largerAbsoluteEpochSince,
+  maximumAbsoluteEpochSince,
   generateAbsoluteEpochSince,
   parseAbsoluteEpochSince,
-  checkAbsoluteEpochSinceValid,
-  checkSinceValid,
+  validateAbsoluteEpochSince,
+  validateSince,
   generateSince,
   generateHeaderEpoch,
 };

@@ -301,7 +301,7 @@ export declare const dao: {
    * @param depositBlockHeaderEpoch depositBlockHeader.epoch
    * @param withdrawBlockHeaderEpoch withdrawBlockHeader.epoch
    */
-  calculateUnlockSince(
+  calculateDaoEarliestSince(
     depositBlockHeaderEpoch: HexString,
     withdrawBlockHeaderEpoch: HexString,
   ): bigint,

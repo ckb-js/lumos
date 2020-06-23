@@ -414,7 +414,7 @@ async function unlock(
 }
 
 // returns bigint
-function calculateUnlockSince(
+function calculateDaoEarliestSince(
   depositBlockHeaderEpoch,
   withdrawBlockHeaderEpoch
 ) {
@@ -549,5 +549,5 @@ module.exports = {
   withdraw,
   unlock,
   calculateMaximumWithdraw,
-  calculateUnlockSince,
+  calculateDaoEarliestSince,
 };

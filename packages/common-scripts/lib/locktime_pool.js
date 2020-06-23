@@ -5,7 +5,10 @@ const {
   multisigArgs,
 } = require("./secp256k1_blake160_multisig");
 const { setupInputCell } = require("./secp256k1_blake160");
-const { calculateMaximumWithdraw, calculateUnlockSince } = require("./dao");
+const {
+  calculateMaximumWithdraw,
+  calculateDaoEarliestSince,
+} = require("./dao");
 const { core, values, utils, since: sinceUtils } = require("@ckb-lumos/base");
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
@@ -21,9 +24,9 @@ const {
 const {
   parseSince,
   parseEpoch,
-  largerAbsoluteEpochSince,
+  maximumAbsoluteEpochSince,
   generateAbsoluteEpochSince,
-  checkSinceValid,
+  validateSince,
 } = sinceUtils;
 const { List, Set } = require("immutable");
 const { getConfig } = require("@ckb-lumos/config-manager");
@@ -121,7 +124,7 @@ async function* collectCells(
           .tx_status.block_hash;
         const depositBlockHeader = await rpc.get_header(depositBlockHash);
         const withdrawBlockHeader = await rpc.get_header(withdrawBlockHash);
-        let daoSince = calculateUnlockSince(
+        let daoSince = calculateDaoEarliestSince(
           depositBlockHeader.epoch,
           withdrawBlockHeader.epoch
         );
@@ -136,7 +139,7 @@ async function* collectCells(
           length: withdrawEpochValue.length,
           index: withdrawEpochValue.index,
         };
-        daoSince = largerAbsoluteEpochSince(
+        daoSince = maximumAbsoluteEpochSince(
           daoSince,
           generateAbsoluteEpochSince(fourEpochsLater)
         );
@@ -158,7 +161,7 @@ async function* collectCells(
           }
 
           try {
-            since = largerAbsoluteEpochSince(daoSince, since);
+            since = maximumAbsoluteEpochSince(daoSince, since);
           } catch {
             since = daoSince;
           }
@@ -340,7 +343,7 @@ async function _transfer(
       assertScriptSupported: false,
     })) {
       if (
-        !checkSinceValid(
+        !validateSince(
           inputCellInfo.since,
           tipHeader,
           inputCellInfo.sinceBaseValue

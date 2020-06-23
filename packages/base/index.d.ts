@@ -116,7 +116,7 @@ export declare const since: {
    * @param one since in absolute-epoch-number format
    * @param another since in absolute-epoch-number format
    */
-  largerAbsoluteEpochSince(one: PackedSince, another: PackedSince): PackedSince;
+  maximumAbsoluteEpochSince(...args: PackedSince[]): PackedSince;
 
   /**
    * generate absolute-epoch-number format since
@@ -138,7 +138,7 @@ export declare const since: {
    * @param since
    * @param tipHeaderEpoch
    */
-  checkAbsoluteEpochSinceValid(
+  validateAbsoluteEpochSince(
     since: PackedSince,
     tipHeaderEpoch: HexString
   ): boolean;
@@ -150,7 +150,7 @@ export declare const since: {
    * @param tipHeader
    * @param sinceHeader can left empty if absolute since
    */
-  checkSinceValid(
+  validateSince(
     since: PackedSince,
     tipHeader: Header,
     sinceHeader?: Header
