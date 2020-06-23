@@ -4,6 +4,10 @@ import { Cell, CellProvider, Script, Header, PackedSince, HexString, Hash, Packe
 export type Address = string
 export type Config = any // TODO: define this type later
 
+export interface Options {
+  config?: Config
+}
+
 export interface LocktimeCell {
   cell: Cell
   maximumCapacity: bigint
@@ -52,9 +56,7 @@ export declare const secp256k1Blake160: {
     fromAddress: Address,
     toAddress: Address,
     amount: bigint,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): Promise<TransactionSkeletonType>,
 
   /**
@@ -69,9 +71,7 @@ export declare const secp256k1Blake160: {
     txSkeleton: TransactionSkeletonType,
     fromAddress: Address,
     amount: bigint,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): Promise<TransactionSkeletonType>,
 
   /**
@@ -82,9 +82,7 @@ export declare const secp256k1Blake160: {
    */
   prepareSigningEntries(
     txSkeleton: TransactionSkeletonType,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): TransactionSkeletonType,
 
   /**
@@ -99,10 +97,8 @@ export declare const secp256k1Blake160: {
     txSkeleton: TransactionSkeletonType,
     outputIndex: number,
     fromAddress: Address,
-    options: {
-      config: Config,
-    },
-  ): TransactionSkeletonType,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * Setup input cell infos, such as cell deps and witnesses.
@@ -114,10 +110,8 @@ export declare const secp256k1Blake160: {
   setupInputCell(
     txSkeleton: TransactionSkeletonType,
     inputIndex: number,
-    options: {
-      config: Config,
-    },
-  ): TransactionSkeletonType,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
 }
 
 export declare const secp256k1Blake160Multisig: {
@@ -135,9 +129,7 @@ export declare const secp256k1Blake160Multisig: {
     fromInfo: FromInfo,
     toAddress: Address,
     amount: bigint,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): Promise<TransactionSkeletonType>,
 
   /**
@@ -152,9 +144,7 @@ export declare const secp256k1Blake160Multisig: {
     txSkeleton: TransactionSkeletonType,
     fromInfo: FromInfo,
     amount: bigint,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): Promise<TransactionSkeletonType>,
 
   /**
@@ -165,9 +155,7 @@ export declare const secp256k1Blake160Multisig: {
    */
   prepareSigningEntries(
     txSkeleton: TransactionSkeletonType,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): TransactionSkeletonType,
 
   /**
@@ -197,10 +185,8 @@ export declare const secp256k1Blake160Multisig: {
     txSkeleton: TransactionSkeletonType,
     outputIndex: number,
     fromInfo: FromInfo,
-    options: {
-      config: Config,
-    },
-  ): TransactionSkeletonType,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * Setup input cell infos, such as cell deps and witnesses.
@@ -213,11 +199,9 @@ export declare const secp256k1Blake160Multisig: {
   setupInputCell(
     txSkeleton: TransactionSkeletonType,
     inputIndex: number,
-    fromInfo?: FromInfo,
-    options: {
-      config: Config,
-    },
-  ): TransactionSkeletonType,
+    fromInfo?: FromInfo | undefined,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
 }
 
 export declare const dao: {
@@ -235,9 +219,7 @@ export declare const dao: {
     fromInfo: FromInfo,
     toAddress: Address,
     amount: bigint,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): Promise<TransactionSkeletonType>,
 
   /**
@@ -252,9 +234,7 @@ export declare const dao: {
     cellProvider: CellProvider,
     fromAddress: Address,
     cellType: "all" | "deposit" | "withdraw",
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): AsyncIterator<Cell>,
 
   /**
@@ -269,9 +249,7 @@ export declare const dao: {
     txSkeleton: TransactionSkeletonType,
     fromInput: Cell,
     fromInfo: FromInfo | undefined,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): Promise<TransactionSkeletonType>,
 
   /**
@@ -290,9 +268,7 @@ export declare const dao: {
     withdrawInput: Cell,
     toAddress: Address,
     fromInfo: FromInfo,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): Promise<TransactionSkeletonType>,
 
   /**
@@ -324,9 +300,7 @@ export declare const locktimePool: {
   collectCells(
     cellProvider: CellProvider,
     fromScript: Script,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): AsyncIterator<LocktimeCell>,
 
   transfer(
@@ -335,9 +309,7 @@ export declare const locktimePool: {
     toAddress: Address,
     amount: bigint,
     tipHeader: Header,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): Promise<TransactionSkeletonType>,
 
   payFee(
@@ -345,8 +317,6 @@ export declare const locktimePool: {
     fromInfos: FromInfo[],
     amount: bigint,
     tipHeader: Header,
-    options: {
-      config: Config,
-    },
+    options?: Options,
   ): Promise<TransactionSkeletonType>,
 }
