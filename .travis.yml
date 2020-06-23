@@ -41,6 +41,7 @@ script:
   - yarn workspaces run test
   - yarn workspaces run fmt
   - yarn workspaces run lint
+  - yarn run docs
   - git diff --exit-code
   - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package; fi
 
