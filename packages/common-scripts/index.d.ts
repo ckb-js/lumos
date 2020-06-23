@@ -1,8 +1,21 @@
-import { TransactionSkeleton } from "@ckb-lumos/helpers"
-import { Cell, CellProvider } from "@ckb-lumos/base"
+import { TransactionSkeletonType } from "@ckb-lumos/helpers"
+import { Cell, CellProvider, Script, Header, PackedSince, HexString, Hash, PackedDao } from "@ckb-lumos/base"
 
 export type Address = string
 export type Config = any // TODO: define this type later
+
+export interface LocktimeCell {
+  cell: Cell
+  maximumCapacity: bigint
+  since: PackedSince
+  depositBlockHash?: Hash
+  withdrawBlockHash?: Hash
+  sinceBaseValue?: {
+    epoch: HexString
+    number: HexString
+    timestamp: HexString
+  }
+}
 
 /**
  * secp256k1_blake160_multisig script requires S, R, M, N and public key hashes
@@ -16,7 +29,9 @@ export interface MultisigScript {
   /** threshold, 1 byte */
   M: number,
   /** blake160 hashes of compressed public keys */
-  publicKeyHashes: string[],
+  publicKeyHashes: Hash[],
+  /** locktime in since format */
+  since: PackedSince,
 }
 
 export type FromInfo = MultisigScript | Address
@@ -33,14 +48,14 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   transfer(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromAddress: Address,
     toAddress: Address,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * pay fee by secp256k1_blake160 script cells
@@ -51,13 +66,13 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   payFee(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromAddress: Address,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
@@ -66,11 +81,11 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   prepareSigningEntries(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 
   /**
    * Inject capacity from `fromAddress` to target output.
@@ -81,13 +96,13 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   injectCapacity(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     outputIndex: number,
     fromAddress: Address,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 
   /**
    * Setup input cell infos, such as cell deps and witnesses.
@@ -97,12 +112,12 @@ export declare const secp256k1Blake160: {
    * @param options
    */
   setupInputCell(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     inputIndex: number,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 }
 
 export declare const secp256k1Blake160Multisig: {
@@ -116,14 +131,14 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   transfer(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInfo: FromInfo,
     toAddress: Address,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * pay fee by multisig script cells
@@ -134,13 +149,13 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   payFee(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInfo: FromInfo,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
@@ -149,25 +164,26 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   prepareSigningEntries(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 
   /**
    *
    * @param params multisig script params
    * @returns serialized multisig script
    */
-  serializeMultisigScript(params: MultisigScript): string,
+  serializeMultisigScript(params: MultisigScript): HexString,
 
   /**
    *
    * @param serializedMultisigScript
+   * @param since
    * @returns lock script args
    */
-  multisigArgs(serializedMultisigScript: string): string,
+  multisigArgs(serializedMultisigScript: HexString, since?: PackedSince): HexString,
 
     /**
    * Inject capacity from `fromInfo` to target output.
@@ -178,13 +194,13 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   injectCapacity(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     outputIndex: number,
     fromInfo: FromInfo,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 
   /**
    * Setup input cell infos, such as cell deps and witnesses.
@@ -195,13 +211,13 @@ export declare const secp256k1Blake160Multisig: {
    * @param options
    */
   setupInputCell(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     inputIndex: number,
-    fromInfo: FromInfo | undefined,
+    fromInfo?: FromInfo,
     options: {
       config: Config,
     },
-  ): TransactionSkeleton,
+  ): TransactionSkeletonType,
 }
 
 export declare const dao: {
@@ -215,14 +231,14 @@ export declare const dao: {
    * @param options
    */
   deposit(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInfo: FromInfo,
     toAddress: Address,
     amount: bigint,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * list DAO cells,
@@ -250,13 +266,13 @@ export declare const dao: {
    * @param options
    */
   withdraw(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     fromInput: Cell,
     fromInfo: FromInfo | undefined,
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
 
   /**
    * Unlock a withdrew DAO cell
@@ -269,7 +285,7 @@ export declare const dao: {
    * @param options
    */
   unlock(
-    txSkeleton: TransactionSkeleton,
+    txSkeleton: TransactionSkeletonType,
     depositInput: Cell,
     withdrawInput: Cell,
     toAddress: Address,
@@ -277,5 +293,60 @@ export declare const dao: {
     options: {
       config: Config,
     },
-  ): Promise<TransactionSkeleton>,
+  ): Promise<TransactionSkeletonType>,
+
+  /**
+   * calculate a withdraw dao cell minimal unlock since
+   *
+   * @param depositBlockHeaderEpoch depositBlockHeader.epoch
+   * @param withdrawBlockHeaderEpoch withdrawBlockHeader.epoch
+   */
+  calculateDaoEarliestSince(
+    depositBlockHeaderEpoch: HexString,
+    withdrawBlockHeaderEpoch: HexString,
+  ): bigint,
+
+  /**
+   * calculate maximum withdraw capacity when unlock
+   *
+   * @param withdrawCell withdrawCell or depositCell
+   * @param depositDao depositBlockHeader.dao
+   * @param withdrawDao withdrawBlockHeader.dao
+   */
+  calculateMaximumWithdraw(
+    withdrawCell: Cell,
+    depositDao: PackedDao,
+    withdrawDao: PackedDao,
+  ): bigint,
+}
+
+export declare const locktimePool: {
+  collectCells(
+    cellProvider: CellProvider,
+    fromScript: Script,
+    options: {
+      config: Config,
+    },
+  ): AsyncIterator<LocktimeCell>,
+
+  transfer(
+    txSkeleton: TransactionSkeletonType,
+    fromInfos: FromInfo[],
+    toAddress: Address,
+    amount: bigint,
+    tipHeader: Header,
+    options: {
+      config: Config,
+    },
+  ): Promise<TransactionSkeletonType>,
+
+  payFee(
+    txSkeleton: TransactionSkeletonType,
+    fromInfos: FromInfo[],
+    amount: bigint,
+    tipHeader: Header,
+    options: {
+      config: Config,
+    },
+  ): Promise<TransactionSkeletonType>,
 }

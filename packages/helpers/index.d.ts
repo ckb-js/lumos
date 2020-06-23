@@ -1,7 +1,7 @@
 import { List, Record } from "immutable";
 import { Cell, CellDep, CellProvider } from "@ckb-lumos/base";
 
-export declare const TransactionSkeleton: Record<{
+export declare type TransactionSkeletonType = Record.Factory<{
   cellProvider: CellProvider | null;
   cellDeps: List<CellDep>;
   headerDeps: List<string>;
@@ -12,3 +12,7 @@ export declare const TransactionSkeleton: Record<{
   signingEntries: List<{ type: string; index: number; message: string }>;
   inputSinces: Map<number, string>;
 }>;
+
+export declare function TransactionSkeleton(
+  params: any
+): TransactionSkeletonType;

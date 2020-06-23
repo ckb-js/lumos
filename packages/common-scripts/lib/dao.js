@@ -1,7 +1,8 @@
-const { parseAddress } = require("@ckb-lumos/helpers");
-const { core, values, utils } = require("@ckb-lumos/base");
+const { parseAddress, minimalCellCapacity } = require("@ckb-lumos/helpers");
+const { core, values, utils, since: sinceUtils } = require("@ckb-lumos/base");
 const { getConfig } = require("@ckb-lumos/config-manager");
-const { toBigUInt64LE } = utils;
+const { toBigUInt64LE, readBigUInt64LE } = utils;
+const { parseSince } = sinceUtils;
 const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const secp256k1Blake160 = require("./secp256k1_blake160");
 const secp256k1Blake160Multisig = require("./secp256k1_blake160_multisig");
@@ -9,6 +10,7 @@ const secp256k1Blake160Multisig = require("./secp256k1_blake160_multisig");
 const DEPOSIT_DAO_DATA = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS = BigInt(180);
 
+// TODO: reject multisig with non absolute-epoch-number locktime lock
 async function deposit(
   txSkeleton,
   fromInfo,
@@ -21,6 +23,8 @@ async function deposit(
   if (!DAO_SCRIPT) {
     throw new Error("Provided config does not have DAO script setup!");
   }
+
+  _checkFromInfoSince(fromInfo, config);
 
   // check and add cellDep if not exists
   txSkeleton = _addDaoCellDep(txSkeleton, config);
@@ -87,6 +91,29 @@ async function deposit(
   }
 
   return txSkeleton;
+}
+
+function _checkFromInfoSince(fromInfo, config) {
+  let since;
+  if (typeof fromInfo === "string") {
+    // fromInfo is an address
+    const fromScript = parseAddress(fromInfo, { config });
+    const args = fromScript.args;
+    if (args.length === 58) {
+      since = readBigUInt64LE("0x" + args.slice(42));
+    }
+  } else {
+    since = fromInfo.since;
+  }
+
+  if (since != null) {
+    const { relative, type } = parseSince(since);
+    if (!(!relative && type === "epochNumber")) {
+      throw new Error(
+        "Can't deposit a dao cell with multisig locktime which not using absolute-epoch-number format!"
+      );
+    }
+  }
 }
 
 async function* listDaoCells(
@@ -386,6 +413,34 @@ async function unlock(
   return txSkeleton;
 }
 
+// returns bigint
+function calculateDaoEarliestSince(
+  depositBlockHeaderEpoch,
+  withdrawBlockHeaderEpoch
+) {
+  const depositEpoch = parseEpoch(BigInt(depositBlockHeaderEpoch));
+  const withdrawEpoch = parseEpoch(BigInt(withdrawBlockHeaderEpoch));
+
+  const withdrawFraction = withdrawEpoch.index * depositEpoch.length;
+  const depositFraction = depositEpoch.index * withdrawEpoch.length;
+  let depositedEpochs = withdrawEpoch.number - depositEpoch.number;
+  if (withdrawFraction > depositFraction) {
+    depositedEpochs += BigInt(1);
+  }
+  const lockEpochs =
+    ((depositedEpochs + (DAO_LOCK_PERIOD_EPOCHS - BigInt(1))) /
+      DAO_LOCK_PERIOD_EPOCHS) *
+    DAO_LOCK_PERIOD_EPOCHS;
+  const minimalSinceEpoch = {
+    number: depositEpoch.number + lockEpochs,
+    index: depositEpoch.index,
+    length: depositEpoch.length,
+  };
+  const minimalSince = epochSince(minimalSinceEpoch);
+
+  return minimalSince;
+}
+
 function _daoTypeScript(config) {
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   return {
@@ -459,9 +514,40 @@ function _isSecp256k1Blake160Multisig(script, config) {
   );
 }
 
+function extractDaoData(dao) {
+  if (!/^(0x)?([0-9a-fA-F]){64}$/.test(dao)) {
+    throw new Error("Invalid dao format!");
+  }
+
+  const len = 8 * 2;
+  const hex = dao.startsWith("0x") ? dao.slice(2) : dao;
+
+  return ["c", "ar", "s", "u"]
+    .map((key, i) => {
+      return {
+        [key]: readBigUInt64LE("0x" + hex.slice(len * i, len * (i + 1))),
+      };
+    })
+    .reduce((result, c) => ({ ...result, ...c }), {});
+}
+
+function calculateMaximumWithdraw(withdrawCell, depositDao, withdrawDao) {
+  const depositAR = extractDaoData(depositDao).ar;
+  const withdrawAR = extractDaoData(withdrawDao).ar;
+
+  const occupiedCapacity = minimalCellCapacity(withdrawCell);
+  const outputCapacity = BigInt(withdrawCell.cell_output.capacity);
+  const countedCapacity = outputCapacity - occupiedCapacity;
+  const withdrawCountedCapacity = (countedCapacity * withdrawAR) / depositAR;
+
+  return withdrawCountedCapacity + occupiedCapacity;
+}
+
 module.exports = {
   deposit,
   listDaoCells,
   withdraw,
   unlock,
+  calculateMaximumWithdraw,
+  calculateDaoEarliestSince,
 };

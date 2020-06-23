@@ -5,8 +5,8 @@ const {
   generateAddress,
 } = require("@ckb-lumos/helpers");
 const { core, values, utils } = require("@ckb-lumos/base");
+const { CKBHasher, ckbHash, toBigUInt64LE } = utils;
 const { getConfig } = require("@ckb-lumos/config-manager");
-const { CKBHasher, ckbHash } = utils;
 const { ScriptValue } = values;
 const { normalizers, Reader } = require("ckb-js-toolkit");
 const { Set } = require("immutable");
@@ -44,11 +44,15 @@ function serializeMultisigScript({ R, M, publicKeyHashes }) {
   );
 }
 
-function multisigArgs(serializedMultisigScript) {
-  return new CKBHasher()
-    .update(serializedMultisigScript)
-    .digestHex()
-    .slice(0, 42);
+function multisigArgs(serializedMultisigScript, since = undefined) {
+  let sinceLE = "0x";
+  if (since != null) {
+    sinceLE = toBigUInt64LE(BigInt(since));
+  }
+  return (
+    new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +
+    sinceLE.slice(2)
+  );
 }
 
 async function transfer(
@@ -65,8 +69,8 @@ async function transfer(
     );
   }
   const scriptOutPoint = {
-    tx_hash: config.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
-    index: config.SCRIPTS.SECP256K1_BLAKE160.INDEX,
+    tx_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.TX_HASH,
+    index: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.INDEX,
   };
 
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
@@ -97,7 +101,7 @@ async function transfer(
     fromScript = parseAddress(fromInfo, { config });
   } else {
     multisigScript = serializeMultisigScript(fromInfo);
-    const fromScriptArgs = multisigArgs(multisigScript);
+    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
     fromScript = {
       code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.CODE_HASH,
       hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.HASH_TYPE,
