@@ -113,8 +113,7 @@ export declare const since: {
   /**
    * return larger one of two sinces
    *
-   * @param one since in absolute-epoch-number format
-   * @param another since in absolute-epoch-number format
+   * @param args sinces in absolute-epoch-number format
    */
   maximumAbsoluteEpochSince(...args: PackedSince[]): PackedSince;
 
