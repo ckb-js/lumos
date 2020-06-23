@@ -171,7 +171,7 @@ async function* collectCells(
         cell: inputCell,
         maximumCapacity:
           maximumCapacity || BigInt(inputCell.cell_output.capacity),
-        since: since,
+        since: "0x" + ("0000000000000000" + since.toString(16)).slice(-16),
         depositBlockHash: depositBlockHash,
         withdrawBlockHash: withdrawBlockHash,
         sinceBaseValue,
@@ -366,7 +366,7 @@ async function _transfer(
       txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
         return inputSinces.set(
           txSkeleton.get("inputs").size - 1,
-          "0x" + inputCellInfo.since.toString(16)
+          inputCellInfo.since
         );
       });
       if (isDaoScript(inputCell.cell_output.type, config)) {

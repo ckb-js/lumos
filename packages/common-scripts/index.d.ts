@@ -1,5 +1,5 @@
 import { TransactionSkeletonType } from "@ckb-lumos/helpers"
-import { Cell, CellProvider, Script, Header } from "@ckb-lumos/base"
+import { Cell, CellProvider, Script, Header, PackedSince } from "@ckb-lumos/base"
 
 export type Address = string
 export type Config = any // TODO: define this type later
@@ -183,7 +183,7 @@ export declare const secp256k1Blake160Multisig: {
    * @param since
    * @returns lock script args
    */
-  multisigArgs(serializedMultisigScript: string, since?: bigint): string,
+  multisigArgs(serializedMultisigScript: string, since?: PackedSince): string,
 
     /**
    * Inject capacity from `fromInfo` to target output.

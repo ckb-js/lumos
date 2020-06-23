@@ -31,7 +31,7 @@ const inputInfos = [
       data: "0x",
     },
     maximumCapacity: 100000000000n,
-    since: 0n,
+    since: "0x0",
     depositBlockHash: undefined,
     withdrawBlockHash: undefined,
     sinceBaseValue: {
@@ -64,7 +64,7 @@ const inputInfos = [
       data: "0x",
     },
     maximumCapacity: 100000000000n,
-    since: 2306106895225596693n,
+    since: "0x2000f000c0002b15",
     depositBlockHash: undefined,
     withdrawBlockHash: undefined,
     header: {
@@ -102,7 +102,7 @@ const inputInfos = [
       data: "0x4992010000000000",
     },
     maximumCapacity: 100007690204n,
-    since: 2305854004413868270n,
+    since: "0x20000a00050028ee",
     depositBlockHash:
       "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
     withdrawBlockHash:
@@ -209,8 +209,6 @@ test("transfer multisig", async (t) => {
     tipHeader,
     { config: devConfig, cellCollector }
   );
-
-  // t.log(txSkeleton)
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton

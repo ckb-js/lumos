@@ -15,7 +15,7 @@ const {
 
 const fixtrues = [
   {
-    since: BigInt("0x0000000000003039"),
+    since: "0x3039",
     parsed: {
       relative: false,
       type: "blockNumber",
@@ -23,7 +23,7 @@ const fixtrues = [
     },
   },
   {
-    since: BigInt("0x400000005e83d980"),
+    since: "0x400000005e83d980",
     parsed: {
       relative: false,
       type: "blockTimestamp",
@@ -31,19 +31,19 @@ const fixtrues = [
     },
   },
   {
-    since: BigInt("0x2000000000000400"),
+    since: "0x2000000000000400",
     parsed: {
       relative: false,
       type: "epochNumber",
       value: {
-        number: BigInt(1024),
-        index: BigInt(0),
-        length: BigInt(0),
+        number: 1024,
+        index: 0,
+        length: 0,
       },
     },
   },
   {
-    since: BigInt("0x8000000000000064"),
+    since: "0x8000000000000064",
     parsed: {
       relative: true,
       type: "blockNumber",
@@ -51,7 +51,7 @@ const fixtrues = [
     },
   },
   {
-    since: BigInt("0xc000000000127500"),
+    since: "0xc000000000127500",
     parsed: {
       relative: true,
       type: "blockTimestamp",
@@ -59,25 +59,25 @@ const fixtrues = [
     },
   },
   {
-    since: BigInt("0xa000000000000018"),
+    since: "0xa000000000000018",
     parsed: {
       relative: true,
       type: "epochNumber",
       value: {
-        number: BigInt(24),
-        length: BigInt(0),
-        index: BigInt(0),
+        number: 24,
+        length: 0,
+        index: 0,
       },
     },
   },
 ];
 
 const epochFixtrue = {
-  epoch: BigInt("1979121332649985"),
+  epoch: "0x" + BigInt("1979121332649985").toString(16),
   parsed: {
-    length: BigInt(1800),
-    index: BigInt(24),
-    number: BigInt(1),
+    length: 1800,
+    index: 24,
+    number: 1,
   },
 };
 
@@ -244,9 +244,9 @@ test("checkSinceValid, relative blockTimestamp", (t) => {
 
 test("checkSinceValid, absolute epochNumber", (t) => {
   const value = {
-    number: BigInt(1024),
-    index: BigInt(0),
-    length: BigInt(0),
+    number: 1024,
+    index: 0,
+    length: 0,
   };
   const since = generateSince({
     relative: false,
@@ -255,33 +255,25 @@ test("checkSinceValid, absolute epochNumber", (t) => {
   });
 
   const sinceHeader = {
-    epoch:
-      "0x" +
-      generateHeaderEpoch({
-        number: 1000n,
-        index: 0n,
-        length: 0n,
-      }).toString(16),
+    epoch: generateHeaderEpoch({
+      number: 1000,
+      index: 0,
+      length: 0,
+    }),
   };
 
   t.true(
-    checkSinceValid(
-      since,
-      { epoch: "0x" + generateHeaderEpoch(value).toString(16) },
-      sinceHeader
-    )
+    checkSinceValid(since, { epoch: generateHeaderEpoch(value) }, sinceHeader)
   );
   t.false(
     checkSinceValid(
       since,
       {
-        epoch:
-          "0x" +
-          generateHeaderEpoch({
-            number: 1023n,
-            length: 1800n,
-            index: 1799n,
-          }).toString(16),
+        epoch: generateHeaderEpoch({
+          number: 1023,
+          length: 1800,
+          index: 1799,
+        }),
       },
       sinceHeader
     )
@@ -290,9 +282,9 @@ test("checkSinceValid, absolute epochNumber", (t) => {
 
 test("checkSinceValid, relative epochNumber", (t) => {
   const value = {
-    number: BigInt(1024),
-    index: BigInt(0),
-    length: BigInt(0),
+    number: 1024,
+    index: 0,
+    length: 0,
   };
   const since = generateSince({
     relative: true,
@@ -301,26 +293,22 @@ test("checkSinceValid, relative epochNumber", (t) => {
   });
 
   const sinceHeader = {
-    epoch:
-      "0x" +
-      generateHeaderEpoch({
-        number: 1000n,
-        index: 0n,
-        length: 0n,
-      }).toString(16),
+    epoch: generateHeaderEpoch({
+      number: 1000,
+      index: 0,
+      length: 0,
+    }),
   };
 
   t.true(
     checkSinceValid(
       since,
       {
-        epoch:
-          "0x" +
-          generateHeaderEpoch({
-            number: 2024n,
-            length: 0n,
-            index: 0n,
-          }).toString(16),
+        epoch: generateHeaderEpoch({
+          number: 2024,
+          length: 0,
+          index: 0,
+        }),
       },
       sinceHeader
     )
@@ -329,13 +317,11 @@ test("checkSinceValid, relative epochNumber", (t) => {
     checkSinceValid(
       since,
       {
-        epoch:
-          "0x" +
-          generateHeaderEpoch({
-            number: 2023n,
-            length: 1800n,
-            index: 1799n,
-          }).toString(16),
+        epoch: generateHeaderEpoch({
+          number: 2023,
+          length: 1800,
+          index: 1799,
+        }),
       },
       sinceHeader
     )
@@ -344,33 +330,28 @@ test("checkSinceValid, relative epochNumber", (t) => {
 
 test("checkAbsoluteEpochSinceValid", (t) => {
   const value = {
-    number: BigInt(1024),
-    index: BigInt(0),
-    length: BigInt(0),
+    number: 1024,
+    index: 0,
+    length: 0,
   };
   const since = generateSince({
     relative: false,
     type: "epochNumber",
     value: value,
   });
-  t.true(
-    checkAbsoluteEpochSinceValid(
-      since,
-      "0x" + generateHeaderEpoch(value).toString(16)
-    )
-  );
+  t.true(checkAbsoluteEpochSinceValid(since, generateHeaderEpoch(value)));
 });
 
 test("largerAbsoluteEpochSince", (t) => {
   const one = generateAbsoluteEpochSince({
-    number: 1024n,
-    length: 1800n,
-    index: 1000n,
+    number: 1024,
+    length: 1800,
+    index: 1000,
   });
   const another = generateAbsoluteEpochSince({
-    number: 1024n,
-    length: 1800n,
-    index: 1001n,
+    number: 1024,
+    length: 1800,
+    index: 1001,
   });
 
   t.is(largerAbsoluteEpochSince(one, another), another);
