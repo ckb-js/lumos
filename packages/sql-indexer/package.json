@@ -1,7 +1,7 @@
 {
   "name": "@ckb-lumos/sql-indexer",
   "version": "0.3.1",
-  "description": "SQL based CKB Indexer using typeorm",
+  "description": "SQL based CKB Indexer",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
