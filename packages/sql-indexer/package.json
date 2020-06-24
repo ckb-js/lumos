@@ -1,0 +1,37 @@
+{
+  "name": "@ckb-lumos/sql-indexer",
+  "version": "0.3.1",
+  "description": "SQL based CKB Indexer using typeorm",
+  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
+  },
+  "files": [
+    "lib",
+    "migrations"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@ckb-lumos/sql-indexer": "^0.3.1",
+    "ckb-js-toolkit": "^0.9.1",
+    "knex": "^0.21.1"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"{lib,migrations}/**/*.js\" index.d.ts package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{lib,migrations}/**/*.js\"",
+    "test": "echo \"No tests yet!\""
+  },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "peerDependencies": {
+    "mysql2": "^2.1.0",
+    "pg": "^8.2.1"
+  }
+}

@@ -7,6 +7,8 @@
     "@strictsoftware/typedoc-plugin-monorepo": "^0.3.1",
     "ava": "^3.8.2",
     "eslint": "^7.1.0",
+    "mysql2": "^2.1.0",
+    "pg": "^8.2.1",
     "prettier": "^2.0.5",
     "typedoc": "^0.17.7",
     "typescript": "^3.9.5"
