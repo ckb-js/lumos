@@ -1,4 +1,4 @@
-const { RPC, Reader } = require("ckb-js-toolkit");
+const { RPC, Reader, validators } = require("ckb-js-toolkit");
 
 const SCRIPT_TYPE_LOCK = 0;
 const SCRIPT_TYPE_TYPE = 1;
@@ -26,6 +26,18 @@ function nodeBufferToHex(b) {
 
 function hexToNodeBuffer(b) {
   return Buffer.from(new Reader(b).toArrayBuffer());
+}
+
+async function locateScript(knex, id) {
+  const data = await knex("scripts").where("id", id);
+  if (data.length === 0) {
+    throw new Error("Script cannot be found!");
+  }
+  return {
+    code_hash: nodeBufferToHex(data[0].code_hash),
+    hash_type: data[0].hash_type === 1 ? "type" : "data",
+    args: nodeBufferToHex(data[0].args),
+  };
 }
 
 async function ensureScriptInserted(trx, script) {
@@ -224,6 +236,7 @@ class Indexer {
           }
           await trx("cells").insert({
             consumed: false,
+            capacity: hexToDbBigInt(output.capacity),
             tx_hash: hexToNodeBuffer(tx.hash),
             index: outputIndex,
             block_number: blockNumber,
@@ -306,24 +319,137 @@ class Indexer {
       await this.knex.transaction(async (trx) => {
         await trx("cells")
           .where("consumed", true)
-          .andWhere("blockNumber", "<", pruneToBlock)
+          .andWhere("block_number", "<", pruneToBlock)
           .del();
         await trx("transaction_inputs")
           .whereIn("transaction_digest_id", function () {
             return this.from("transaction_digests")
               .select("id")
-              .where("blockNumber", "<", pruneToBlock);
+              .where("block_number", "<", pruneToBlock);
           })
           .del();
       });
     }
   }
 
-  collector() {
-    throw new Error("TODO: we will add collector implementation later!");
+  collector({ lock = null, type = null, argsLen = -1, data = "0x" } = {}) {
+    return new CellCollector(this.knex, { lock, type, argsLen, data });
+  }
+}
+
+class CellCollector {
+  constructor(
+    knex,
+    { lock = null, type = null, argsLen = -1, data = "0x" } = {}
+  ) {
+    if (!lock && !type) {
+      throw new Error("Either lock or type script must be provided!");
+    }
+    if (lock) {
+      validators.ValidateScript(lock);
+    }
+    if (type && typeof type === "object") {
+      validators.ValidateScript(type);
+    }
+    this.knex = knex;
+    this.lock = lock;
+    this.type = type;
+    this.data = data;
+    this.argsLen = argsLen;
+  }
+
+  _assembleQuery(order = true) {
+    let query = this.knex("cells").where("consumed", false);
+    if (order) {
+      query = query.orderBy(["cells.block_number", "tx_index", "index"], "asc");
+    }
+    // TODO: add prefix query for args and data later
+    if (this.lock) {
+      let lockQuery = this.knex("scripts")
+        .select("id")
+        .where({
+          code_hash: hexToNodeBuffer(this.lock.code_hash),
+          hash_type: this.lock.hash_type === "type" ? 1 : 0,
+          args: hexToNodeBuffer(this.lock.args),
+        });
+      if (this.argsLen > 0) {
+        lockQuery = lockQuery.whereRaw("length(args) = ?", this.argsLen);
+      }
+      query = query.andWhere(function () {
+        return this.whereIn("lock_script_id", lockQuery);
+      });
+    }
+    if (this.type) {
+      let typeQuery = this.knex("scripts")
+        .select("id")
+        .where({
+          code_hash: hexToNodeBuffer(this.type.code_hash),
+          hash_type: this.type.hash_type === "type" ? 1 : 0,
+          args: hexToNodeBuffer(this.type.args),
+        });
+      if (this.argsLen > 0) {
+        typeQuery = typeQuery.whereRaw("length(args) = ?", this.argsLen);
+      }
+      query = query.andWhere(function () {
+        return this.whereIn("type_script_id", typeQuery);
+      });
+    }
+    if (this.data) {
+      query = query.andWhere("data", hexToNodeBuffer(this.data));
+    }
+    return query;
+  }
+
+  async count() {
+    return parseInt((await this._assembleQuery(false).count())[0].count);
+  }
+
+  async *collect() {
+    // TODO: optimize this with streams
+    const items = await this._assembleQuery().innerJoin(
+      "block_digests",
+      "cells.block_number",
+      "block_digests.block_number"
+    );
+    const foundScripts = {};
+    for (const item of items) {
+      // TODO: we can run a join query to fetch scripts together with cells.
+      if (!foundScripts[item.lock_script_id]) {
+        foundScripts[item.lock_script_id] = await locateScript(
+          this.knex,
+          item.lock_script_id
+        );
+      }
+      const lock = foundScripts[item.lock_script_id];
+      let type = null;
+      if (item.type_script_id) {
+        if (!foundScripts[item.type_script_id]) {
+          foundScripts[item.type_script_id] = await locateScript(
+            this.knex,
+            item.type_script_id
+          );
+        }
+        type = foundScripts[item.type_script_id];
+      }
+      yield {
+        cell_output: {
+          capacity: dbBigIntToHex(item.capacity),
+          lock,
+          type,
+        },
+        out_point: {
+          tx_hash: nodeBufferToHex(item.tx_hash),
+          index: dbBigIntToHex(item.index),
+        },
+        block_hash: nodeBufferToHex(item.block_hash),
+        block_number: dbBigIntToHex(item.block_number),
+        data: nodeBufferToHex(item.data),
+      };
+    }
   }
 }
 
 module.exports = {
+  CellCollector,
   Indexer,
 };

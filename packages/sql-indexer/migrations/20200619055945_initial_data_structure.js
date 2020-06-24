@@ -59,6 +59,7 @@ exports.up = function (knex) {
       table.increments("id");
       table.boolean("consumed").notNullable().defaultTo(false);
 
+      table.bigInteger("capacity").notNullable();
       table.binary("tx_hash", 32).notNullable();
       table.integer("index").notNullable();
       table.unique(["tx_hash", "index"]);
