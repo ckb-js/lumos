@@ -320,3 +320,27 @@ export declare const locktimePool: {
     options?: Options,
   ): Promise<TransactionSkeletonType>,
 }
+
+export declare const common: {
+  transfer(
+    txSkeleton: TransactionSkeletonType,
+    fromInfos: FromInfo[],
+    toAddress: Address,
+    amount: bigint,
+    tipHeader?: Header,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
+
+  payFee(
+    txSkeleton: TransactionSkeletonType,
+    fromInfos: FromInfo[],
+    amount: bigint,
+    tipHeader?: Header,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
+
+  prepareSigningEntries(
+    txSkeleton: TransactionSkeletonType,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
+}
