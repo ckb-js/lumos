@@ -52,6 +52,8 @@ class Indexer {
       pollIntervalSeconds = 2,
       livenessCheckIntervalSeconds = 5,
       logger = defaultLogger,
+      keepNum = 10000,
+      pruneInterval = 2000,
     } = {}
   ) {
     this.rpc = new RPC(uri);
@@ -60,6 +62,8 @@ class Indexer {
     this.livenessCheckIntervalSeconds = livenessCheckIntervalSeconds;
     this.logger = logger;
     this.isRunning = false;
+    this.keepNum = keepNum;
+    this.pruneInterval = pruneInterval;
   }
 
   running() {
@@ -103,7 +107,10 @@ class Indexer {
         this.scheduleLoop(timeout);
       })
       .catch((e) => {
-        this.logger("error", `Error occurs: ${e}, stopping indexer!`);
+        this.logger(
+          "error",
+          `Error occurs: ${e} ${e.stack}, stopping indexer!`
+        );
         this.stop();
       });
   }
@@ -244,11 +251,21 @@ class Indexer {
         }
       }
     });
-    // TODO: prune old blocks
+    // prune old blocks
+    if (
+      BigInt(block.header.number) % BigInt(this.pruneInterval) ===
+      BigInt(0)
+    ) {
+      await this.prune();
+    }
   }
 
   async rollback() {
-    const { block_number } = await this.tip();
+    const tip = await this.tip();
+    if (!tip) {
+      return;
+    }
+    const { block_number } = tip;
     const blockNumber = hexToDbBigInt(block_number);
     await this.knex.transaction(async (trx) => {
       const txs = await trx("transaction_digests")
@@ -276,6 +293,30 @@ class Indexer {
       await trx("cells").where({ block_number: blockNumber }).del();
       await trx("block_digests").where({ block_number: blockNumber }).del();
     });
+  }
+
+  async prune() {
+    const tip = await this.tip();
+    if (!tip) {
+      return;
+    }
+    const tipNumber = BigInt(tip.block_number);
+    if (tipNumber > BigInt(this.keepNum)) {
+      const pruneToBlock = (tipNumber - BigInt(this.keepNum)).toString();
+      await this.knex.transaction(async (trx) => {
+        await trx("cells")
+          .where("consumed", true)
+          .andWhere("blockNumber", "<", pruneToBlock)
+          .del();
+        await trx("transaction_inputs")
+          .whereIn("transaction_digest_id", function () {
+            return this.from("transaction_digests")
+              .select("id")
+              .where("blockNumber", "<", pruneToBlock);
+          })
+          .del();
+      });
+    }
   }
 
   collector() {
