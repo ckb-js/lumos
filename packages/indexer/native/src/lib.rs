@@ -341,7 +341,7 @@ declare_types! {
                 let hash_type = if detailed_cell.cell_output.lock().hash_type().as_slice()[0] == 1 {
                     cx.string("type")
                 } else {
-                    cx.string("lock")
+                    cx.string("data")
                 };
                 script.set(&mut cx, "hash_type", hash_type)?;
                 let args = cx.string(format!("0x{:x}", detailed_cell.cell_output.lock().args().raw_data()));
@@ -358,7 +358,7 @@ declare_types! {
                     let hash_type = if t.hash_type().as_slice()[0] == 1 {
                         cx.string("type")
                     } else {
-                        cx.string("lock")
+                        cx.string("data")
                     };
                     script.set(&mut cx, "hash_type", hash_type)?;
                     let args = cx.string(format!("0x{:x}", t.args().raw_data()));
