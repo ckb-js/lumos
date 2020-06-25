@@ -35,7 +35,7 @@ class Indexer {
     return this.nativeIndexer.stop();
   }
 
-  tip() {
+  async tip() {
     return this.nativeIndexer.tip();
   }
 

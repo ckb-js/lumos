@@ -104,3 +104,4 @@ dist
 .tern-port
 
 /docs/
+packages/sql-indexer/knexfile.dev.js
