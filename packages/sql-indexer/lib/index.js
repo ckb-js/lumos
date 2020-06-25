@@ -28,19 +28,23 @@ function hexToNodeBuffer(b) {
   return Buffer.from(new Reader(b).toArrayBuffer());
 }
 
+function dbItemToScript(item) {
+  return {
+    code_hash: nodeBufferToHex(item.code_hash),
+    hash_type: item.hash_type === 1 ? "type" : "data",
+    args: nodeBufferToHex(item.args),
+  };
+}
+
 async function locateScript(knex, id) {
   const data = await knex("scripts").where("id", id);
   if (data.length === 0) {
     throw new Error("Script cannot be found!");
   }
-  return {
-    code_hash: nodeBufferToHex(data[0].code_hash),
-    hash_type: data[0].hash_type === 1 ? "type" : "data",
-    args: nodeBufferToHex(data[0].args),
-  };
+  return dbItemToScript(data[0]);
 }
 
-async function ensureScriptInserted(trx, script) {
+async function ensureScriptInserted(trx, script, hasReturning) {
   const data = {
     code_hash: hexToNodeBuffer(script.code_hash),
     hash_type: script.hash_type === "type" ? 1 : 0,
@@ -48,12 +52,16 @@ async function ensureScriptInserted(trx, script) {
   };
   let ids = await trx("scripts").where(data).select("id");
   if (ids.length === 0) {
-    ids = await trx("scripts").insert([data], ["id"]);
+    ids = await trx("scripts").insert([data], hasReturning ? ["id"] : null);
   }
   if (ids.length === 0) {
     throw new Error("Insertion failure!");
   }
-  return ids[0].id;
+  let id = ids[0];
+  if (id instanceof Object) {
+    id = id.id;
+  }
+  return id;
 }
 
 class Indexer {
@@ -76,6 +84,10 @@ class Indexer {
     this.isRunning = false;
     this.keepNum = keepNum;
     this.pruneInterval = pruneInterval;
+  }
+
+  _hasReturning() {
+    return this.knex.client.config.client === "postgresql";
   }
 
   running() {
@@ -175,20 +187,21 @@ class Indexer {
         block_hash: hexToNodeBuffer(block.header.hash),
       });
 
-      const txIds = await trx("transaction_digests").insert(
-        block.transactions.map((tx, i) => {
-          return {
-            tx_hash: hexToNodeBuffer(tx.hash),
-            tx_index: i,
-            output_count: tx.outputs.length,
-            block_number: blockNumber,
-          };
-        }),
-        ["id"]
-      );
-
       for (const [txIndex, tx] of block.transactions.entries()) {
-        const txId = txIds[txIndex].id;
+        let txId = (
+          await trx("transaction_digests").insert(
+            {
+              tx_hash: hexToNodeBuffer(tx.hash),
+              tx_index: txIndex,
+              output_count: tx.outputs.length,
+              block_number: blockNumber,
+            },
+            this._hasReturning() ? ["id"] : null
+          )
+        )[0];
+        if (txId instanceof Object) {
+          txId = txId.id;
+        }
         // Skip cellbase inputs
         if (txIndex > 0) {
           for (const [inputIndex, input] of tx.inputs.entries()) {
@@ -197,8 +210,9 @@ class Indexer {
                 tx_hash: hexToNodeBuffer(input.previous_output.tx_hash),
                 index: hexToDbBigInt(input.previous_output.index),
               })
-              .update({ consumed: true }, ["lock_script_id", "type_script_id"]);
-            for (const { lock_script_id, type_script_id } of data) {
+              .select("id", "lock_script_id", "type_script_id");
+            for (const { id, lock_script_id, type_script_id } of data) {
+              await trx("cells").where("id", id).update({ consumed: true });
               await trx("transactions_scripts").insert({
                 script_type: SCRIPT_TYPE_LOCK,
                 io_type: IO_TYPE_INPUT,
@@ -229,10 +243,18 @@ class Indexer {
         );
         for (const [outputIndex, output] of tx.outputs.entries()) {
           const outputData = tx.outputs_data[outputIndex];
-          const lockScriptId = await ensureScriptInserted(trx, output.lock);
+          const lockScriptId = await ensureScriptInserted(
+            trx,
+            output.lock,
+            this._hasReturning()
+          );
           let typeScriptId = null;
           if (output.type) {
-            typeScriptId = await ensureScriptInserted(trx, output.type);
+            typeScriptId = await ensureScriptInserted(
+              trx,
+              output.type,
+              this._hasReturning()
+            );
           }
           await trx("cells").insert({
             consumed: false,
@@ -363,32 +385,39 @@ class CellCollector {
     if (order) {
       query = query.orderBy(["cells.block_number", "tx_index", "index"], "asc");
     }
-    // TODO: add prefix query for args and data later
     if (this.lock) {
+      const binaryArgs = hexToNodeBuffer(this.lock.args);
       let lockQuery = this.knex("scripts")
         .select("id")
         .where({
           code_hash: hexToNodeBuffer(this.lock.code_hash),
           hash_type: this.lock.hash_type === "type" ? 1 : 0,
-          args: hexToNodeBuffer(this.lock.args),
-        });
+        })
+        .whereRaw("substring(args, 1, ?) = ?", [
+          binaryArgs.byteLength,
+          binaryArgs,
+        ]);
       if (this.argsLen > 0) {
-        lockQuery = lockQuery.whereRaw("length(args) = ?", this.argsLen);
+        lockQuery = lockQuery.whereRaw("length(args) = ?", [this.argsLen]);
       }
       query = query.andWhere(function () {
         return this.whereIn("lock_script_id", lockQuery);
       });
     }
     if (this.type) {
+      const binaryArgs = hexToNodeBuffer(this.type.args);
       let typeQuery = this.knex("scripts")
         .select("id")
         .where({
           code_hash: hexToNodeBuffer(this.type.code_hash),
           hash_type: this.type.hash_type === "type" ? 1 : 0,
-          args: hexToNodeBuffer(this.type.args),
-        });
+        })
+        .whereRaw("substring(args, 1, ?) = ?", [
+          binaryArgs.byteLength,
+          binaryArgs,
+        ]);
       if (this.argsLen > 0) {
-        typeQuery = typeQuery.whereRaw("length(args) = ?", this.argsLen);
+        typeQuery = typeQuery.whereRaw("length(args) = ?", [this.argsLen]);
       }
       query = query.andWhere(function () {
         return this.whereIn("type_script_id", typeQuery);
@@ -406,22 +435,17 @@ class CellCollector {
 
   async *collect() {
     // TODO: optimize this with streams
-    const items = await this._assembleQuery().innerJoin(
-      "block_digests",
-      "cells.block_number",
-      "block_digests.block_number"
-    );
+    const items = await this._assembleQuery()
+      .innerJoin(
+        "block_digests",
+        "cells.block_number",
+        "block_digests.block_number"
+      )
+      .innerJoin("scripts", "cells.lock_script_id", "scripts.id");
     const foundScripts = {};
     for (const item of items) {
-      // TODO: we can run a join query to fetch scripts together with cells.
-      if (!foundScripts[item.lock_script_id]) {
-        foundScripts[item.lock_script_id] = await locateScript(
-          this.knex,
-          item.lock_script_id
-        );
-      }
-      const lock = foundScripts[item.lock_script_id];
       let type = null;
+      // TODO: find a way to join type scripts as well
       if (item.type_script_id) {
         if (!foundScripts[item.type_script_id]) {
           foundScripts[item.type_script_id] = await locateScript(
@@ -434,7 +458,7 @@ class CellCollector {
       yield {
         cell_output: {
           capacity: dbBigIntToHex(item.capacity),
-          lock,
+          lock: dbItemToScript(item),
           type,
         },
         out_point: {

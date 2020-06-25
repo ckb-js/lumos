@@ -1,3 +1,17 @@
+function createBinaryColumn(knex, table, name) {
+  const client = knex.client.config.client;
+  switch (client) {
+    case "postgresql":
+      table.binary(name).notNullable();
+      break;
+    case "mysql2":
+      table.specificType(name, "longblob").notNullable();
+      break;
+    default:
+      throw new Error(`Unsupported SQL type: ${client}!`);
+  }
+}
+
 exports.up = function (knex) {
   return knex.schema
     .createTable("block_digests", function (table) {
@@ -38,7 +52,7 @@ exports.up = function (knex) {
 
       table.binary("code_hash", 32).notNullable();
       table.integer("hash_type").notNullable();
-      table.binary("args").notNullable();
+      createBinaryColumn(knex, table, "args");
 
       table.index(["code_hash", "hash_type"]);
     })
@@ -74,7 +88,7 @@ exports.up = function (knex) {
       table.integer("type_script_id").unsigned().nullable();
       table.foreign("type_script_id").references("scripts.id");
 
-      table.binary("data").notNullable();
+      createBinaryColumn(knex, table, "data");
     });
 };
 
