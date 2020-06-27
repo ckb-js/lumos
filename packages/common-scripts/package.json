@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/common-scripts",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Common script support in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -17,9 +17,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@ckb-lumos/config-manager": "^0.3.1",
-    "@ckb-lumos/helpers": "^0.3.1",
-    "@ckb-lumos/base": "^0.3.1",
+    "@ckb-lumos/config-manager": "^0.3.2",
+    "@ckb-lumos/helpers": "^0.3.2",
+    "@ckb-lumos/base": "^0.3.2",
     "ckb-js-toolkit": "^0.9.1",
     "immutable": "^4.0.0-rc.12"
   },

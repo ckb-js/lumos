@@ -62,7 +62,7 @@ export class Indexer {
   startForever(): void;
   start(): void;
   stop(): void;
-  tip(): Tip;
+  tip(): Promise<Tip>;
 
   collector(queries: CollectorQueries): CellCollector;
 }

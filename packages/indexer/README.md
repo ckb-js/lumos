@@ -10,7 +10,7 @@ The indexer is designed to consume from the following sources:
 It is also designed to store the indexed data in either of the following storage choices:
 
 * A local RocksDB directory;
-* Remote SQL database, supported databases now include latest stable versions of PostgreSQL and MySQL.
+* Remote SQL database, supported databases now include latest stable versions of PostgreSQL and MySQL. For now, the SQL indexer is maintained as a separate `@ckb-lumos/sql-indexer` package, we might merge the 2 indexer packages into one later.
 
 Note for the moment, SQLite is not officially supported, single-node users or Electron users are highly recommended to use the RocksDB solution.
 
