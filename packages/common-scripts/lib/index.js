@@ -4,4 +4,5 @@ module.exports = {
   dao: require("./dao"),
   locktimePool: require("./locktime_pool"),
   common: require("./common"),
+  sudt: require("./sudt"),
 };

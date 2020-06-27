@@ -5,6 +5,8 @@ const {
   isSecp256k1Blake160Address,
   isSecp256k1Blake160MultisigAddress,
   prepareSigningEntries: _prepareSigningEntries,
+  isSecp256k1Blake160Script,
+  isSecp256k1Blake160MultisigScript,
 } = require("./helper");
 const { getConfig } = require("@ckb-lumos/config-manager");
 const lockTimePool = require("./locktime_pool");
@@ -15,7 +17,7 @@ async function transfer(
   toAddress,
   amount,
   tipHeader,
-  { config = undefined, requireToAddress = true }
+  { config = undefined, requireToAddress = true, queryOptions = {} }
 ) {
   amount = BigInt(amount);
   let deductAmount = BigInt(amount);
@@ -45,6 +47,7 @@ async function transfer(
       {
         config,
         requireToAddress: false,
+        queryOptions,
       }
     );
   }
@@ -84,7 +87,7 @@ async function _commonTransfer(
   fromInfos,
   toAddress, // can be empty
   amount,
-  { config = undefined }
+  { config = undefined, queryOptions = {} }
 ) {
   config = config || getConfig();
   amount = BigInt(amount);
@@ -103,6 +106,7 @@ async function _commonTransfer(
           config,
           requireToAddress: false,
           assertAmountEnough: false,
+          queryOptions,
         }
       );
       txSkeleton = result[0];
@@ -129,6 +133,7 @@ async function _commonTransfer(
           config,
           requireToAddress: false,
           assertAmountEnough: false,
+          queryOptions,
         }
       );
       txSkeleton = result[0];
@@ -147,6 +152,7 @@ async function _commonTransfer(
           config,
           requireToAddress: false,
           assertAmountEnough: false,
+          queryOptions,
         }
       );
       txSkeleton = result[0];
@@ -159,10 +165,77 @@ async function _commonTransfer(
   return [txSkeleton, amount];
 }
 
+async function injectCapacity(
+  txSkeleton,
+  outputIndex,
+  fromInfo,
+  { config = undefined } = {}
+) {
+  config = config || getConfig();
+
+  if (outputIndex >= txSkeleton.get("outputs").size) {
+    throw new Error("Invalid output index!");
+  }
+
+  const output = txSkeleton.get("outputs").get(outputIndex);
+  const lockScript = output.cell_output.lock;
+
+  if (
+    typeof fromInfo === "string" &&
+    isSecp256k1Blake160Script(lockScript, config)
+  ) {
+    return secp256k1Blake160.injectCapacity(txSkeleton, outputIndex, fromInfo, {
+      config,
+    });
+  } else if (
+    typeof fromInfo === "object" ||
+    (typeof fromInfo === "string" &&
+      isSecp256k1Blake160MultisigScript(lockScript, config))
+  ) {
+    return secp256k1Blake160Multisig.injectCapacity(
+      txSkeleton,
+      outputIndex,
+      fromInfo,
+      { config }
+    );
+  } else {
+    throw new Error("Output lock script not supported!");
+  }
+}
+
+async function setupInputCell(
+  txSkeleton,
+  inputIndex,
+  fromInfo,
+  { config = undefined } = {}
+) {
+  config = config || getConfig();
+  if (inputIndex >= txSkeleton.get("inputs").size) {
+    throw new Error("Invalid input index!");
+  }
+
+  const input = txSkeleton.get("inputs").get(inputIndex);
+  const lockScript = input.cell_output.lock;
+  if (isSecp256k1Blake160Script(lockScript, config)) {
+    return secp256k1Blake160.setupInputCell(txSkeleton, inputIndex, { config });
+  } else if (isSecp256k1Blake160MultisigScript(lockScript, config)) {
+    return secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      inputIndex,
+      fromInfo,
+      { config }
+    );
+  } else {
+    throw new Error("Unsupported lock script!");
+  }
+}
+
 module.exports = {
   transfer,
   payFee,
   prepareSigningEntries,
+  injectCapacity,
+  setupInputCell,
   __tests__: {
     _commonTransfer,
   },

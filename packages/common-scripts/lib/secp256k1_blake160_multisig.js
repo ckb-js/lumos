@@ -60,7 +60,12 @@ async function transfer(
   fromInfo,
   toAddress,
   amount,
-  { config = undefined, requireToAddress = true, assertAmountEnough = true }
+  {
+    config = undefined,
+    requireToAddress = true,
+    assertAmountEnough = true,
+    queryOptions = {},
+  }
 ) {
   config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
@@ -187,6 +192,9 @@ async function transfer(
     // TODO: ignore locktime now.
     const cellCollector = cellProvider.collector({
       lock: fromScript,
+      type: queryOptions.type,
+      data: queryOptions.data || "0x",
+      argsLen: queryOptions.argsLen == null ? -1 : queryOptions.argsLen,
     });
     const changeCell = {
       cell_output: {

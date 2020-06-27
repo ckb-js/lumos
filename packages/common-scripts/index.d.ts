@@ -344,3 +344,43 @@ export declare const common: {
     options?: Options,
   ): Promise<TransactionSkeletonType>,
 }
+
+export declare const sudt: {
+  /**
+   * create sudt token
+   *
+   * @param txSkeleton
+   * @param fromInfo
+   * @param amount
+   * @param capacity
+   * @param options
+   */
+  createToken(
+    txSkeleton: TransactionSkeletonType,
+    fromInfo: FromInfo,
+    amount: bigint,
+    capacity?: bigint,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
+
+  /**
+   * transfer sudt token
+   *
+   * @param txSkeleton
+   * @param fromInfo
+   * @param sudtToken
+   * @param toAddress
+   * @param amount
+   * @param capacity
+   * @param options
+   */
+  transfer(
+    txSkeleton: TransactionSkeletonType,
+    fromInfo: FromInfo,
+    sudtToken: Hash,
+    toAddress: Address,
+    amount: bigint,
+    capacity?: bigint,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
+}

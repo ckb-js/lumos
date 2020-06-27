@@ -73,6 +73,28 @@ export declare const utils: {
    * @param hex BigUInt64 little-endian hex string
    */
   readBigUInt64LE(hex: HexString): bigint;
+
+  /**
+   * convert bigint to BigUInt128 little-endian hex string
+   *
+   * @param u128
+   */
+  toBigUInt128LE(u128: bigint): string;
+
+  /**
+   * convert BigUInt64 little-endian hex string to bigint
+   *
+   * @param leHex BigUInt128 little-endian hex string
+   */
+  readBigUInt128LE(leHex: HexString): bigint;
+
+  /**
+   * compute lock/type hash
+   *
+   * @param script
+   * @param options
+   */
+  computeScriptHash(script: Script, options?: { validate?: boolean });
 };
 
 export interface EpochSinceValue {

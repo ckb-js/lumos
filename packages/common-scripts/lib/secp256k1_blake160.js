@@ -33,6 +33,7 @@ async function transfer(
     config = undefined,
     requireToAddress = true,
     assertAmountEnough = true,
+    queryOptions = {},
   } = {}
 ) {
   config = config || getConfig();
@@ -141,6 +142,9 @@ async function transfer(
     }
     const cellCollector = cellProvider.collector({
       lock: fromScript,
+      type: queryOptions.type,
+      data: queryOptions.data || "0x",
+      argsLen: queryOptions.argsLen == null ? -1 : queryOptions.argsLen,
     });
     const changeCell = {
       cell_output: {

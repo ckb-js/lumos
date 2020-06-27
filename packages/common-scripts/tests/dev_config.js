@@ -35,6 +35,15 @@ const DEV_CONFIG = Object.assign(
         INDEX: "0x2",
         DEP_TYPE: "code",
       },
+      SUDT: {
+        CODE_HASH:
+          "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
+        HASH_TYPE: "data",
+        TX_HASH:
+          "0x473a05da909427e2b77d3c4226d29a15539b12d9ddf7d4fda4de8a76df18555c",
+        INDEX: "0x0",
+        DEP_TYPE: "code",
+      },
     },
   }
 );
