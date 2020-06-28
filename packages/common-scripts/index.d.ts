@@ -321,13 +321,22 @@ export declare const locktimePool: {
 }
 
 export declare const common: {
+  /**
+   *
+   * @param txSkeleton
+   * @param fromInfos
+   * @param toAddress
+   * @param amount
+   * @param tipHeader will not use locktime cells if tipHeader not provided
+   * @param options
+   */
   transfer(
     txSkeleton: TransactionSkeletonType,
     fromInfos: FromInfo[],
     toAddress: Address,
     amount: bigint,
     tipHeader?: Header,
-    options?: Options,
+    options?: Options & { usingLocktimeFirstly?: boolean },
   ): Promise<TransactionSkeletonType>,
 
   payFee(
@@ -335,7 +344,7 @@ export declare const common: {
     fromInfos: FromInfo[],
     amount: bigint,
     tipHeader?: Header,
-    options?: Options,
+    options?: Options & { usingLocktimeFirstly?: boolean },
   ): Promise<TransactionSkeletonType>,
 
   prepareSigningEntries(

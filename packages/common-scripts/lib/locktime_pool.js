@@ -100,7 +100,7 @@ async function* collectCells(
       // multisig
       if (lock.args.length === 58) {
         const header = await rpc.get_header(inputCell.block_hash);
-        since = _parseMultisigArgsSince(lock.args);
+        since = "0x" + _parseMultisigArgsSince(lock.args).toString(16);
         sinceBaseValue = {
           epoch: header.epoch,
           number: header.number,
@@ -135,7 +135,7 @@ async function* collectCells(
         );
         const withdrawEpochValue = parseEpoch(withdrawBlockHeader.epoch);
         const fourEpochsLater = {
-          number: withdrawEpochValue.number + BigInt(4),
+          number: withdrawEpochValue.number + 4,
           length: withdrawEpochValue.length,
           index: withdrawEpochValue.index,
         };
@@ -174,7 +174,7 @@ async function* collectCells(
         ...inputCell,
         maximumCapacity:
           maximumCapacity || BigInt(inputCell.cell_output.capacity),
-        since: "0x" + ("0000000000000000" + since.toString(16)).slice(-16),
+        since,
         depositBlockHash: depositBlockHash,
         withdrawBlockHash: withdrawBlockHash,
         sinceBaseValue,
