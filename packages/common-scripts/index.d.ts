@@ -8,8 +8,7 @@ export interface Options {
   config?: Config
 }
 
-export interface LocktimeCell {
-  cell: Cell
+export interface LocktimeCell extends Cell {
   maximumCapacity: bigint
   since: PackedSince
   depositBlockHash?: Hash
