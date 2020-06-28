@@ -15,7 +15,7 @@ async function transfer(
   toAddress,
   amount,
   tipHeader,
-  { config = undefined, requireToAddress = true, usingLocktimeFirstly = true }
+  { config = undefined, requireToAddress = true, useLocktimeCellsFirst = true }
 ) {
   amount = BigInt(amount);
   let deductAmount = BigInt(amount);
@@ -24,7 +24,7 @@ async function transfer(
     throw new Error("You must provide a to address!");
   }
 
-  if (usingLocktimeFirstly) {
+  if (useLocktimeCellsFirst) {
     // if provider tipHeader
     if (tipHeader) {
       [txSkeleton, deductAmount] = await lockTimePool.transfer(
@@ -86,12 +86,12 @@ async function payFee(
   fromInfos,
   amount,
   tipHeader,
-  { config = undefined, usingLocktimeFirstly = true } = {}
+  { config = undefined, useLocktimeCellsFirst = true } = {}
 ) {
   return transfer(txSkeleton, fromInfos, null, amount, tipHeader, {
     config,
     requireToAddress: false,
-    usingLocktimeFirstly,
+    useLocktimeCellsFirst,
   });
 }
 

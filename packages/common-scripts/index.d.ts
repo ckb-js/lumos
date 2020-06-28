@@ -336,7 +336,7 @@ export declare const common: {
     toAddress: Address,
     amount: bigint,
     tipHeader?: Header,
-    options?: Options & { usingLocktimeFirstly?: boolean },
+    options?: Options & { useLocktimeCellsFirst?: boolean },
   ): Promise<TransactionSkeletonType>,
 
   payFee(
@@ -344,7 +344,7 @@ export declare const common: {
     fromInfos: FromInfo[],
     amount: bigint,
     tipHeader?: Header,
-    options?: Options & { usingLocktimeFirstly?: boolean },
+    options?: Options & { useLocktimeCellsFirst?: boolean },
   ): Promise<TransactionSkeletonType>,
 
   prepareSigningEntries(
