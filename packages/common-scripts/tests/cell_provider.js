@@ -6,7 +6,20 @@ class CellCollector {
 
   async *collect() {
     for (const cell of this.cells) {
-      yield cell;
+      const optionLock = this.options.lock;
+      if (optionLock) {
+        const cellLock = cell.cell_output.lock;
+        if (
+          cellLock.code_hash === optionLock.code_hash &&
+          cellLock.hash_type === optionLock.hash_type
+        ) {
+          yield cell;
+        } else {
+          continue;
+        }
+      } else {
+        yield cell;
+      }
     }
   }
 }

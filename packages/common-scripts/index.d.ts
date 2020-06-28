@@ -8,8 +8,7 @@ export interface Options {
   config?: Config
 }
 
-export interface LocktimeCell {
-  cell: Cell
+export interface LocktimeCell extends Cell {
   maximumCapacity: bigint
   since: PackedSince
   depositBlockHash?: Hash
@@ -317,6 +316,39 @@ export declare const locktimePool: {
     fromInfos: FromInfo[],
     amount: bigint,
     tipHeader: Header,
+    options?: Options,
+  ): Promise<TransactionSkeletonType>,
+}
+
+export declare const common: {
+  /**
+   *
+   * @param txSkeleton
+   * @param fromInfos
+   * @param toAddress
+   * @param amount
+   * @param tipHeader will not use locktime cells if tipHeader not provided
+   * @param options
+   */
+  transfer(
+    txSkeleton: TransactionSkeletonType,
+    fromInfos: FromInfo[],
+    toAddress: Address,
+    amount: bigint,
+    tipHeader?: Header,
+    options?: Options & { useLocktimeCellsFirst?: boolean },
+  ): Promise<TransactionSkeletonType>,
+
+  payFee(
+    txSkeleton: TransactionSkeletonType,
+    fromInfos: FromInfo[],
+    amount: bigint,
+    tipHeader?: Header,
+    options?: Options & { useLocktimeCellsFirst?: boolean },
+  ): Promise<TransactionSkeletonType>,
+
+  prepareSigningEntries(
+    txSkeleton: TransactionSkeletonType,
     options?: Options,
   ): Promise<TransactionSkeletonType>,
 }

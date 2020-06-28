@@ -100,7 +100,7 @@ async function* collectCells(
       // multisig
       if (lock.args.length === 58) {
         const header = await rpc.get_header(inputCell.block_hash);
-        since = _parseMultisigArgsSince(lock.args);
+        since = "0x" + _parseMultisigArgsSince(lock.args).toString(16);
         sinceBaseValue = {
           epoch: header.epoch,
           number: header.number,
@@ -135,7 +135,7 @@ async function* collectCells(
         );
         const withdrawEpochValue = parseEpoch(withdrawBlockHeader.epoch);
         const fourEpochsLater = {
-          number: withdrawEpochValue.number + BigInt(4),
+          number: withdrawEpochValue.number + 4,
           length: withdrawEpochValue.length,
           index: withdrawEpochValue.index,
         };
@@ -171,10 +171,10 @@ async function* collectCells(
       }
 
       yield {
-        cell: inputCell,
+        ...inputCell,
         maximumCapacity:
           maximumCapacity || BigInt(inputCell.cell_output.capacity),
-        since: "0x" + ("0000000000000000" + since.toString(16)).slice(-16),
+        since,
         depositBlockHash: depositBlockHash,
         withdrawBlockHash: withdrawBlockHash,
         sinceBaseValue,
@@ -189,7 +189,12 @@ async function transfer(
   toAddress,
   amount,
   tipHeader,
-  { config = undefined, requireToAddress = true, cellCollector = collectCells }
+  {
+    config = undefined,
+    requireToAddress = true,
+    cellCollector = collectCells,
+    assertAmountEnough = true,
+  }
 ) {
   amount = BigInt(amount);
   for (const [index, fromInfo] of fromInfos.entries()) {
@@ -211,11 +216,17 @@ async function transfer(
     amount = value[1];
 
     if (amount === BigInt(0)) {
-      return txSkeleton;
+      if (assertAmountEnough) {
+        return txSkeleton;
+      }
+      return [txSkeleton, amount];
     }
   }
 
-  throw new Error("Not enough capacity in from addresses!");
+  if (assertAmountEnough) {
+    throw new Error("Not enough capacity in from addresses!");
+  }
+  return [txSkeleton, amount];
 }
 
 async function _transfer(
@@ -338,21 +349,15 @@ async function _transfer(
         `${input.out_point.tx_hash}_${input.out_point.index}`
       );
     }
-    for await (const inputCellInfo of cellCollector(cellProvider, fromScript, {
+    for await (const inputCell of cellCollector(cellProvider, fromScript, {
       config,
       assertScriptSupported: false,
     })) {
       if (
-        !validateSince(
-          inputCellInfo.since,
-          tipHeader,
-          inputCellInfo.sinceBaseValue
-        )
+        !validateSince(inputCell.since, tipHeader, inputCell.sinceBaseValue)
       ) {
         continue;
       }
-
-      const inputCell = inputCellInfo.cell;
 
       // skip inputs already exists in txSkeleton.inputs
       if (
@@ -369,14 +374,14 @@ async function _transfer(
       txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
         return inputSinces.set(
           txSkeleton.get("inputs").size - 1,
-          inputCellInfo.since
+          inputCell.since
         );
       });
       if (isDaoScript(inputCell.cell_output.type, config)) {
         txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
           return headerDeps.push(
-            inputCellInfo.depositBlockHash,
-            inputCellInfo.withdrawBlockHash
+            inputCell.depositBlockHash,
+            inputCell.withdrawBlockHash
           );
         });
 
@@ -409,7 +414,7 @@ async function _transfer(
           witnesses.push("0x")
         );
       }
-      const inputCapacity = BigInt(inputCellInfo.maximumCapacity);
+      const inputCapacity = BigInt(inputCell.maximumCapacity);
       let deductCapacity = inputCapacity;
       if (deductCapacity > amount) {
         deductCapacity = amount;
