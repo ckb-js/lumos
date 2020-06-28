@@ -9,28 +9,26 @@ const { DEV_CONFIG } = require("./dev_config");
 
 const inputInfos = [
   {
-    cell: {
-      // multisig
-      cell_output: {
-        capacity: "0x174876e800",
-        lock: {
-          code_hash:
-            "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
-          hash_type: "type",
-          args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d80000000000000000",
-        },
-        type: undefined,
+    // multisig
+    cell_output: {
+      capacity: "0x174876e800",
+      lock: {
+        code_hash:
+          "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+        hash_type: "type",
+        args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d80000000000000000",
       },
-      out_point: {
-        tx_hash:
-          "0xb4f92e2a74905ca2d24b952e782c42f35f18893cb56e46728857a926a893f41f",
-        index: "0x0",
-      },
-      block_hash:
-        "0x62e03ef430cb72041014224417de08caf73d4e804eaca7813c2015abcd6afe1a",
-      block_number: "0x1aee1",
-      data: "0x",
+      type: undefined,
     },
+    out_point: {
+      tx_hash:
+        "0xb4f92e2a74905ca2d24b952e782c42f35f18893cb56e46728857a926a893f41f",
+      index: "0x0",
+    },
+    block_hash:
+      "0x62e03ef430cb72041014224417de08caf73d4e804eaca7813c2015abcd6afe1a",
+    block_number: "0x1aee1",
+    data: "0x",
     maximumCapacity: 100000000000n,
     since: "0x0",
     depositBlockHash: undefined,
@@ -42,28 +40,26 @@ const inputInfos = [
     },
   },
   {
-    cell: {
-      // multisig
-      cell_output: {
-        capacity: "0x174876e800",
-        lock: {
-          code_hash:
-            "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
-          hash_type: "type",
-          args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8152b00c000f00020",
-        },
-        type: undefined,
+    // multisig
+    cell_output: {
+      capacity: "0x174876e800",
+      lock: {
+        code_hash:
+          "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+        hash_type: "type",
+        args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8152b00c000f00020",
       },
-      out_point: {
-        tx_hash:
-          "0x7d18dee8cf66bdc4721d18207dc18434f1d68af75537c89f97cb8618de73d871",
-        index: "0x0",
-      },
-      block_hash:
-        "0xee89cacb5ff0dd3edcca3904619693355396536cce45658bf9a9c676ae3819c3",
-      block_number: "0x1aedd",
-      data: "0x",
+      type: undefined,
     },
+    out_point: {
+      tx_hash:
+        "0x7d18dee8cf66bdc4721d18207dc18434f1d68af75537c89f97cb8618de73d871",
+      index: "0x0",
+    },
+    block_hash:
+      "0xee89cacb5ff0dd3edcca3904619693355396536cce45658bf9a9c676ae3819c3",
+    block_number: "0x1aedd",
+    data: "0x",
     maximumCapacity: 100000000000n,
     since: "0x2000f000c0002b15",
     depositBlockHash: undefined,
@@ -75,33 +71,31 @@ const inputInfos = [
     },
   },
   {
-    cell: {
-      // default lock, dao
-      cell_output: {
-        capacity: "0x174876e800",
-        lock: {
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-          args: "0xe2193df51d78411601796b35b17b4f8f2cd85bd0",
-        },
-        type: {
-          code_hash:
-            "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-          hash_type: "type",
-          args: "0x",
-        },
+    // default lock, dao
+    cell_output: {
+      capacity: "0x174876e800",
+      lock: {
+        code_hash:
+          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        hash_type: "type",
+        args: "0xe2193df51d78411601796b35b17b4f8f2cd85bd0",
       },
-      out_point: {
-        tx_hash:
-          "0x42300d78faea694e0e1c2316de091964a0d976a4ed27775597bad2d43a3e17da",
-        index: "0x0",
+      type: {
+        code_hash:
+          "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+        hash_type: "type",
+        args: "0x",
       },
-      block_hash:
-        "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
-      block_number: "0x1929c",
-      data: "0x4992010000000000",
     },
+    out_point: {
+      tx_hash:
+        "0x42300d78faea694e0e1c2316de091964a0d976a4ed27775597bad2d43a3e17da",
+      index: "0x0",
+    },
+    block_hash:
+      "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
+    block_number: "0x1929c",
+    data: "0x4992010000000000",
     maximumCapacity: 100007690204n,
     since: "0x20000a00050028ee",
     depositBlockHash:
@@ -119,7 +113,7 @@ const withdrawDao =
 
 async function* cellCollector(_, fromScript) {
   for (const info of inputInfos) {
-    const lock = info.cell.cell_output.lock;
+    const lock = info.cell_output.lock;
     if (
       lock.code_hash === fromScript.code_hash &&
       lock.hash_type === fromScript.hash_type
@@ -233,8 +227,8 @@ test("transfer multisig & dao", async (t) => {
     .reduce((result, c) => result + c, BigInt(0));
 
   const interest =
-    calculateMaximumWithdraw(inputInfos[2].cell, depositDao, withdrawDao) -
-    BigInt(inputInfos[2].cell.cell_output.capacity);
+    calculateMaximumWithdraw(inputInfos[2], depositDao, withdrawDao) -
+    BigInt(inputInfos[2].cell_output.capacity);
 
   t.is(sumOfOutputCapacity, sumOfInputCapacity + interest);
 
@@ -311,8 +305,8 @@ test("payFee, multisig & dao", async (t) => {
     .reduce((result, c) => result + c, BigInt(0));
 
   const interest =
-    calculateMaximumWithdraw(inputInfos[2].cell, depositDao, withdrawDao) -
-    BigInt(inputInfos[2].cell.cell_output.capacity);
+    calculateMaximumWithdraw(inputInfos[2], depositDao, withdrawDao) -
+    BigInt(inputInfos[2].cell_output.capacity);
 
   t.is(sumOfOutputCapacity, sumOfInputCapacity + interest - fee);
 

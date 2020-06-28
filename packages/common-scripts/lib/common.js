@@ -17,7 +17,12 @@ async function transfer(
   toAddress,
   amount,
   tipHeader,
-  { config = undefined, requireToAddress = true, queryOptions = {} }
+  {
+    config = undefined,
+    requireToAddress = true,
+    useLocktimeCellsFirst = true,
+    queryOptions = {},
+  } = {}
 ) {
   amount = BigInt(amount);
   let deductAmount = BigInt(amount);
@@ -26,19 +31,32 @@ async function transfer(
     throw new Error("You must provide a to address!");
   }
 
-  // if provider tipHeader
-  if (tipHeader) {
-    [txSkeleton, deductAmount] = await lockTimePool.transfer(
-      txSkeleton,
-      fromInfos,
-      toAddress,
-      deductAmount,
-      tipHeader,
-      { config, requireToAddress, assertAmountEnough: false }
-    );
-  }
+  if (useLocktimeCellsFirst) {
+    // if provider tipHeader
+    if (tipHeader) {
+      [txSkeleton, deductAmount] = await lockTimePool.transfer(
+        txSkeleton,
+        fromInfos,
+        toAddress,
+        deductAmount,
+        tipHeader,
+        { config, requireToAddress, assertAmountEnough: false }
+      );
+    }
 
-  if (deductAmount > 0n) {
+    if (deductAmount > 0n) {
+      [txSkeleton, deductAmount] = await _commonTransfer(
+        txSkeleton,
+        fromInfos,
+        deductAmount === amount ? toAddress : null,
+        deductAmount,
+        {
+          config,
+          requireToAddress: false,
+        }
+      );
+    }
+  } else {
     [txSkeleton, deductAmount] = await _commonTransfer(
       txSkeleton,
       fromInfos,
@@ -50,6 +68,18 @@ async function transfer(
         queryOptions,
       }
     );
+
+    if (tipHeader && deductAmount > 0n) {
+      // if provider tipHeader
+      [txSkeleton, deductAmount] = await lockTimePool.transfer(
+        txSkeleton,
+        fromInfos,
+        toAddress,
+        deductAmount,
+        tipHeader,
+        { config, requireToAddress, assertAmountEnough: false }
+      );
+    }
   }
 
   if (deductAmount > 0n) {
@@ -64,11 +94,12 @@ async function payFee(
   fromInfos,
   amount,
   tipHeader,
-  { config = undefined } = {}
+  { config = undefined, useLocktimeCellsFirst = true } = {}
 ) {
   return transfer(txSkeleton, fromInfos, null, amount, tipHeader, {
     config,
     requireToAddress: false,
+    useLocktimeCellsFirst,
   });
 }
 
