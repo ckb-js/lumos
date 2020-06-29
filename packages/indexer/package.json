@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/indexer",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "CKB Indexer for Lumos framework, might be suitable for independent usage as well",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
