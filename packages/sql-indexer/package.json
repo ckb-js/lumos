@@ -6,13 +6,15 @@
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
+  "types": "index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "files": [
     "lib",
-    "migrations"
+    "migrations",
+    "index.d.ts"
   ],
   "publishConfig": {
     "access": "public"
