@@ -318,6 +318,11 @@ export declare const locktimePool: {
     tipHeader: Header,
     options?: Options,
   ): Promise<TransactionSkeletonType>,
+
+  prepareSigningEntries(
+    txSkeleton: TransactionSkeletonType,
+    options?: Options,
+  ): TransactionSkeletonType,
 }
 
 export declare const common: {
