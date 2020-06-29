@@ -5,5 +5,6 @@ module.exports = {
   name: "lumos",
   includeDeclarations: true,
   excludePrivate: true,
-  "external-modulemap": ".*packages/([^/]+)/.*"
+  "external-modulemap": ".*packages/([^/]+)/.*",
+  esModuleInterop: true
 };

@@ -10,6 +10,8 @@ export interface IndexerOptions {
   pollIntervalSeconds?: number;
   livenessCheckIntervalSeconds?: number;
   logger?: Logger;
+  keepNum?: number;
+  pruneInterval?: number;
 }
 
 export interface Tip {
