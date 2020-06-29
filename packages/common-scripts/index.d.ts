@@ -1,8 +1,8 @@
 import { TransactionSkeletonType } from "@ckb-lumos/helpers"
 import { Cell, CellProvider, Script, Header, PackedSince, HexString, Hash, PackedDao } from "@ckb-lumos/base"
+import { Config } from "@ckb-lumos/config-manager"
 
 export type Address = string
-export type Config = any // TODO: define this type later
 
 export interface Options {
   config?: Config

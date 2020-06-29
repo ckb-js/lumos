@@ -41,4 +41,7 @@ export function getConfig(): Config;
  */
 export function initializeConfig(): void;
 /** An object containing predefined configs. */
-export const predefined: ScriptConfigs;
+export const predefined: {
+  LINA: Config;
+  AGGRON4: Config;
+};
