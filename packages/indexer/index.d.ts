@@ -2,6 +2,7 @@ import {
   CellCollectorResults,
   CellCollector as CellCollectorInterface,
 } from "ckb-js-toolkit";
+import { QueryOptions } from "@ckb-lumos/base";
 
 export type Logger = (level: string, message: string) => void;
 
@@ -16,46 +17,32 @@ export interface Tip {
   block_hash: string;
 }
 
-// TODO: change those when we have proper typing for all the CKB data structures.
-export interface Script {
-  code_hash: string;
-  hash_type: string;
-  args: string;
-}
-
-export interface OutPoint {
-  tx_hash: string;
-  index: string;
-}
-
-export interface CollectorQueries {
-  lock?: Script;
-  type?: Script;
-  argsLen?: number;
-}
-
 export interface TransactionCollectorOptions {
   skipMissing?: boolean;
   includeStatus?: boolean;
 }
 
-export class CellCollector implements CellCollectorInterface {
-  constructor(indexer: Indexer, queries: CollectorQueries);
+export declare class CellCollector implements CellCollectorInterface {
+  constructor(indexer: Indexer, queries: QueryOptions);
+
+  count(): Promise<number>;
 
   collect(): CellCollectorResults;
 }
 
-export class TransactionCollector implements CellCollectorInterface {
+export declare class TransactionCollector implements CellCollectorInterface {
   constructor(
     indexer: Indexer,
-    queries: CollectorQueries,
+    queries: QueryOptions,
     options?: TransactionCollectorOptions
   );
 
+  count(): Promise<number>;
+
   collect(): CellCollectorResults;
 }
 
-export class Indexer {
+export declare class Indexer {
   constructor(uri: string, path: string, options?: IndexerOptions);
 
   running(): boolean;
@@ -64,5 +51,5 @@ export class Indexer {
   stop(): void;
   tip(): Promise<Tip>;
 
-  collector(queries: CollectorQueries): CellCollector;
+  collector(queries: QueryOptions): CellCollector;
 }

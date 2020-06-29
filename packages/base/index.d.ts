@@ -79,6 +79,7 @@ export interface QueryOptions {
   lock?: Script;
   type?: Script | "empty";
   data?: string;
+  argsLen?: number;
 }
 
 export interface CellCollectorResults {
