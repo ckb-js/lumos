@@ -113,12 +113,13 @@ class TransactionManager {
     return txHash;
   }
 
-  collector({ lock = null, type_ = null } = {}, { skipNotLive = false } = {}) {
-    const innerCollector = new CellCollector(
-      this.indexer,
-      { lock, type_ },
-      { skipNotLive }
-    );
+  collector({ lock = null, type = null, argsLen = -1, data = "0x" } = {}) {
+    const innerCollector = new CellCollector(this.indexer, {
+      lock,
+      type,
+      argsLen,
+      data,
+    });
     const filteredCreatedCells = this.filteredCreatedCells.filter((cell) => {
       if (lock) {
         if (
@@ -156,6 +157,20 @@ class TransactionManagerCellCollector {
     this.collector = collector;
     this.spentCells = spentCells;
     this.filteredCreatedCells = filteredCreatedCells;
+  }
+
+  // TODO: optimize this
+  async count() {
+    let result = 0;
+    const c = this.collect();
+    while (true) {
+      const item = await c.next();
+      if (item.done) {
+        break;
+      }
+      result += 1;
+    }
+    return result;
   }
 
   async *collect() {
