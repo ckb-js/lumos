@@ -6,6 +6,8 @@ export type Hash = HexString;
 export type PackedSince = string;
 export type PackedDao = string;
 
+export type Address = string;
+
 export interface Header {
   timestamp: HexString;
   number: HexString;
