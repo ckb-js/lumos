@@ -8,7 +8,7 @@ Lumos is a full featured JavaScript/TypeScript based dapp framework for Nervos C
 
 As of now, lumos contains the following components:
 
-* [indexer](./packages/indexer): a CKB cell indexer that fulfills `Index-Query-Assemble` pattern. For now, this package only contains RocksDB backed indexer. A [separate pacakge](./packages/sql-indexer) contains SQL backed indexer using the same interface. Later, we might merge the 2 packages into one for consistency.
+* [indexer](./packages/indexer): a CKB cell indexer that fulfills `Index-Query-Assemble` pattern. For now, this package only contains RocksDB backed indexer. A [separate package](./packages/sql-indexer) contains SQL backed indexer using the same interface. Later, we might merge the 2 packages into one for consistency.
 * [base](./packages/base): a base package containing common types and utilities that are used by most packages. If there is a CKB specific task you need to perform, you might want to look here first. Chances are they are already provided.
 * [helpers](./packages/helpers): a helper package containing more utilities. The difference between `helpers` and `base`, is that `base` contains pure stateless functions, while `helpers` works in a more intrinsic way: it requires `config-manager` mentioned below to be setup.
 * [common-scripts](./packages/common-scripts): integrations for known scripts on CKB. While we try our best to provide integrations for popular CKB scripts, people might be working on innovations everyday. As a result, we are also designing a set of APIs, so developers can freely integrate their own scripts into lumos for everyone to use. One integrated, `common-scripts` should be able to leverage those new scripts as well.
