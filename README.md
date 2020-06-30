@@ -4,6 +4,8 @@
 
 ![Lumos](./assets/lumos.jpg)
 
+> Lumos is still under active development and considered to be a work in progress.
+
 Lumos is a full featured JavaScript/TypeScript based dapp framework for Nervos CKB. It aims to simplify dapp development on Nervos CKB. The [name](https://harrypotter.fandom.com/wiki/Lumos_Maxima) explains what the project is about: the wonderland of CKB, though vast and fertile, still remains dark in most of the parts, lumos tries to shed light upon the land, guiding people into this beautiful new world.
 
 As of now, lumos contains the following components:
