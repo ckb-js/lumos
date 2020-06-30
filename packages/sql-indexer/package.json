@@ -6,19 +6,22 @@
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
+  "types": "index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "files": [
     "lib",
-    "migrations"
+    "migrations",
+    "index.d.ts"
   ],
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@ckb-lumos/sql-indexer": "^0.4.0",
+    "@ckb-lumos/base": "^0.4.0",
+    "@ckb-lumos/indexer": "^0.4.0",
     "ckb-js-toolkit": "^0.9.1",
     "knex": "^0.21.1"
   },

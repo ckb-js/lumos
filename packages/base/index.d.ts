@@ -1,14 +1,26 @@
 import * as core from "./lib/core";
+import { Reader } from "ckb-js-toolkit";
 
 export type HexString = string;
 export type Hash = HexString;
 export type PackedSince = string;
 export type PackedDao = string;
 
+export type Address = string;
+
 export interface Header {
   timestamp: HexString;
   number: HexString;
   epoch: HexString;
+  compact_target: HexString;
+  dao: Hash;
+  hash: Hash;
+  nonce: HexString;
+  parent_hash: Hash;
+  proposals_hash: Hash;
+  transactions_root: Hash;
+  uncles_hash: Hash;
+  version: HexString;
 }
 
 export type HashType = "type" | "data";
@@ -29,6 +41,28 @@ export interface CellDep {
   dep_type: DepType;
 }
 
+export interface Input {
+  previous_output: OutPoint;
+  since: PackedSince;
+}
+
+export interface Output {
+  capacity: HexString;
+  lock: Script;
+  type?: Script;
+}
+
+export interface Transaction {
+  cell_deps: CellDep[];
+  hash: Hash;
+  header_deps: Hash[];
+  inputs: Input[];
+  outputs: Output[];
+  outputs_data: HexString[];
+  version: HexString;
+  witnesses: HexString[];
+}
+
 export interface Cell {
   cell_output: {
     capacity: HexString;
@@ -45,6 +79,7 @@ export interface QueryOptions {
   lock?: Script;
   type?: Script | "empty";
   data?: string;
+  argsLen?: number;
 }
 
 export interface CellCollectorResults {
@@ -59,7 +94,19 @@ export interface CellProvider {
   collector(queryOptions: QueryOptions): CellCollector;
 }
 
+declare class CKBHasher {
+  update(data: string | Reader | ArrayBuffer): this;
+
+  digestReader(): Reader;
+
+  digestHex(): Hash;
+}
+
 export declare const utils: {
+  CKBHasher: typeof CKBHasher;
+
+  ckbHash(buffer: ArrayBuffer): Reader;
+
   /**
    * convert bigint to BigUInt64 little-endian hex string
    *
@@ -111,7 +158,7 @@ export declare const since: {
   parseEpoch(epoch: HexString): EpochSinceValue;
 
   /**
-   * return larger one of two sinces
+   * return maximum since of args
    *
    * @param args sinces in absolute-epoch-number format
    */
@@ -172,4 +219,43 @@ export declare const since: {
           value: EpochSinceValue;
         }
   ): PackedSince;
+
+  /**
+   * generate header epoch from epoch since value
+   *
+   * @param params
+   */
+  generateHeaderEpoch(params: EpochSinceValue): HexString;
+};
+
+export declare const denormalizers: {
+  DenormalizeOutPoint(outPoint: core.OutPoint): OutPoint;
+
+  DenormalizeScript(script: core.Script): Script;
+};
+
+declare class Value {
+  equals(other: Value): boolean;
+
+  hashCode(): number;
+
+  hash(): Hash;
+}
+
+declare class ScriptValue extends Value {
+  constructor(script: Script, options: { validate?: boolean });
+}
+
+declare class OutPointValue extends Value {
+  constructor(out_point: OutPoint, options: { validate?: boolean });
+}
+
+declare class TransactionValue extends Value {
+  constructor(transaction: Transaction, options?: { validate?: boolean });
+}
+
+export declare const values: {
+  ScriptValue: typeof ScriptValue;
+  OutPointValue: typeof OutPointValue;
+  TransactionValue: typeof TransactionValue;
 };

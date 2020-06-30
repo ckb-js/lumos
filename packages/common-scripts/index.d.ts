@@ -1,8 +1,6 @@
 import { TransactionSkeletonType } from "@ckb-lumos/helpers"
-import { Cell, CellProvider, Script, Header, PackedSince, HexString, Hash, PackedDao } from "@ckb-lumos/base"
-
-export type Address = string
-export type Config = any // TODO: define this type later
+import { Cell, CellProvider, Script, Header, PackedSince, HexString, Hash, PackedDao, Address } from "@ckb-lumos/base"
+import { Config } from "@ckb-lumos/config-manager"
 
 export interface Options {
   config?: Config
@@ -318,6 +316,11 @@ export declare const locktimePool: {
     tipHeader: Header,
     options?: Options,
   ): Promise<TransactionSkeletonType>,
+
+  prepareSigningEntries(
+    txSkeleton: TransactionSkeletonType,
+    options?: Options,
+  ): TransactionSkeletonType,
 }
 
 export declare const common: {
