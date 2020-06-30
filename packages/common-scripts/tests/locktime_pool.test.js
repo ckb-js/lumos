@@ -1,6 +1,6 @@
 const test = require("ava");
-const { TransactionSkeleton } = require("@ckb-lumos/helpers");
-const { locktimePool } = require("../lib");
+const { TransactionSkeleton, parseAddress } = require("@ckb-lumos/helpers");
+const { locktimePool, secp256k1Blake160Multisig } = require("../lib");
 const { transfer, prepareSigningEntries, payFee } = locktimePool;
 const { CellProvider } = require("./cell_provider");
 const { calculateMaximumWithdraw } = require("../lib/dao");
@@ -111,7 +111,25 @@ const depositDao =
 const withdrawDao =
   "0x39d32247d33f90523d37dae613dd280037e9cc1d7b01c708003d8849d8ac0200";
 
-async function* cellCollector(_, fromScript) {
+async function* cellCollector(_, fromInfo, { config }) {
+  let fromScript;
+  if (typeof fromInfo === "string") {
+    // fromInfo is an address
+    fromScript = parseAddress(fromInfo, { config });
+  } else {
+    const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
+      fromInfo
+    );
+    const fromScriptArgs = secp256k1Blake160Multisig.multisigArgs(
+      multisigScript,
+      fromInfo.since
+    );
+    fromScript = {
+      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.CODE_HASH,
+      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.HASH_TYPE,
+      args: fromScriptArgs,
+    };
+  }
   for (const info of inputInfos) {
     const lock = info.cell_output.lock;
     if (

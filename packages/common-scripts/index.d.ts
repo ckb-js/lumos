@@ -296,7 +296,7 @@ export declare const dao: {
 export declare const locktimePool: {
   collectCells(
     cellProvider: CellProvider,
-    fromScript: Script,
+    fromInfo: FromInfo,
     options?: Options,
   ): AsyncIterator<LocktimeCell>,
 
