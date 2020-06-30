@@ -33,11 +33,25 @@ const { getConfig } = require("@ckb-lumos/config-manager");
 
 async function* collectCells(
   cellProvider,
-  fromScript,
+  fromInfo,
   { config = undefined, assertScriptSupported = true } = {}
 ) {
   config = config || getConfig();
   const rpc = new RPC(cellProvider.uri);
+
+  let fromScript;
+  if (typeof fromInfo === "string") {
+    // fromInfo is an address
+    fromScript = parseAddress(fromInfo, { config });
+  } else {
+    const multisigScript = serializeMultisigScript(fromInfo);
+    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
+    fromScript = {
+      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.CODE_HASH,
+      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.HASH_TYPE,
+      args: fromScriptArgs,
+    };
+  }
 
   let cellCollectors = List();
   if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
@@ -194,7 +208,7 @@ async function transfer(
     requireToAddress = true,
     cellCollector = collectCells,
     assertAmountEnough = true,
-  }
+  } = {}
 ) {
   amount = BigInt(amount);
   for (const [index, fromInfo] of fromInfos.entries()) {
@@ -349,7 +363,7 @@ async function _transfer(
         `${input.out_point.tx_hash}_${input.out_point.index}`
       );
     }
-    for await (const inputCell of cellCollector(cellProvider, fromScript, {
+    for await (const inputCell of cellCollector(cellProvider, fromInfo, {
       config,
       assertScriptSupported: false,
     })) {
