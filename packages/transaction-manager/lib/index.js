@@ -89,7 +89,7 @@ class TransactionManager {
         );
       }
     });
-    const txHash = await rpc.send_transaction(tx);
+    const txHash = await this.rpc.send_transaction(tx);
     this.transactions = this.transactions.add(
       new values.TransactionValue(tx, { validate: false })
     );
@@ -120,7 +120,7 @@ class TransactionManager {
       argsLen,
       data,
     });
-    const filteredCreatedCells = this.filteredCreatedCells.filter((cell) => {
+    const filteredCreatedCells = this.createdCells.filter((cell) => {
       if (lock) {
         if (
           !is(
