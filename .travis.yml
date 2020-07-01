@@ -48,13 +48,35 @@ script:
 jobs:
   include:
     - os: osx
+      if: tag IS present
+      env: LUMOS_NODE_RUNTIME_VERSION=9.0.2
       script:
         - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
     - os: linux
+      if: tag IS present
+      env: LUMOS_NODE_RUNTIME_VERSION=9.0.2
       dist: bionic
       script:
         - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
     - os: windows
+      if: tag IS present
+      env: LUMOS_NODE_RUNTIME_VERSION=9.0.2
+      script:
+        - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
+    - os: osx
+      if: tag IS present
+      env: LUMOS_NODE_RUNTIME_VERSION=7.1.14
+      script:
+        - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
+    - os: linux
+      if: tag IS present
+      env: LUMOS_NODE_RUNTIME_VERSION=7.1.14
+      dist: bionic
+      script:
+        - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
+    - os: windows
+      if: tag IS present
+      env: LUMOS_NODE_RUNTIME_VERSION=7.1.14
       script:
         - if [ -n "$TRAVIS_TAG" ]; then rm -rf packages/indexer/build; yarn workspace @ckb-lumos/indexer run package-for-electron; fi
 
