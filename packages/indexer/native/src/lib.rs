@@ -487,6 +487,8 @@ declare_types! {
             let js_from_block= if from_block.is_a::<JsNumber>() {
                 from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value()
             }else {
+                // TODO: set the from_block height as 0 (and to_block height as f64::MAX) when it's null is a simplified way
+                // to deal with null value, and would cause some performance overhead cost. Need to change it later.
                 cx.number(0 as f64).value()
             };
             let to_block = cx.argument::<JsValue>(4)?;
