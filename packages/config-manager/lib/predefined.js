@@ -53,7 +53,7 @@ const AGGRON4 = deepFreeze({
         "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
       HASH_TYPE: "type",
       TX_HASH:
-        "0x6495cede8d500e4309218ae50bbcadb8f722f24cc7572dd2274f5876cb603e4e",
+        "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
       INDEX: "0x1",
       DEP_TYPE: "dep_group",
       SHORT_ID: 1,
@@ -63,7 +63,7 @@ const AGGRON4 = deepFreeze({
         "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
       HASH_TYPE: "type",
       TX_HASH:
-        "0x96fea0dfaac1186fbb98fd452cb9b13976f9a00bcce130035fe2e30dac931d1d",
+        "0x8f8c79eb6671709633fe6a46de93c0fedc9c1b8a6527a18d3983879542635c9f",
       INDEX: "0x2",
       DEP_TYPE: "code",
     },
