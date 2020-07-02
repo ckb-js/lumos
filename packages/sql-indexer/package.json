@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/sql-indexer",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "SQL based CKB Indexer",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -20,8 +20,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.4.6",
-    "@ckb-lumos/indexer": "^0.4.6",
+    "@ckb-lumos/base": "^0.4.7",
+    "@ckb-lumos/indexer": "^0.4.7",
     "ckb-js-toolkit": "^0.9.1",
     "knex": "^0.21.1"
   },

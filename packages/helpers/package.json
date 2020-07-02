@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/helpers",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Helper functions for working with CKB",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -31,7 +31,7 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.4.6",
+    "@ckb-lumos/base": "^0.4.7",
     "bech32": "^1.1.4",
     "ckb-js-toolkit": "^0.9.1",
     "immutable": "^4.0.0-rc.12"

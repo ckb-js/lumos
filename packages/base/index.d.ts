@@ -30,6 +30,11 @@ export interface Script {
   args: HexString;
 }
 
+export interface ScriptWrapper {
+  script: Script;
+  io_type: "input" | "output";
+}
+
 export interface OutPoint {
   tx_hash: Hash;
   index: HexString;
@@ -75,8 +80,8 @@ export interface Cell {
   block_number: HexString;
 }
 export interface QueryOptions {
-  lock?: Script;
-  type?: Script | "empty";
+  lock?: Script | ScriptWrapper;
+  type?: Script | ScriptWrapper | "empty";
   data?: string;
   argsLen?: number;
   /** `fromBlock` itself is included in range query. */
