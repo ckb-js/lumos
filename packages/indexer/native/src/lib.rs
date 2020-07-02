@@ -2,7 +2,10 @@
 extern crate log;
 
 use ckb_indexer::{
-    indexer::{Error as IndexerError, Indexer, KeyPrefix, SCRIPT_SERIALIZE_OFFSET},
+    indexer::{
+        Error as IndexerError, IOIndex, IOType, Indexer, Key, KeyPrefix, TxIndex,
+        SCRIPT_SERIALIZE_OFFSET,
+    },
     store::{IteratorDirection, RocksdbStore, Store},
 };
 use ckb_jsonrpc_types::{BlockNumber, BlockView};
@@ -47,6 +50,27 @@ impl From<IndexerError> for Error {
 impl From<RpcError> for Error {
     fn from(e: RpcError) -> Error {
         Error::Rpc(e)
+    }
+}
+
+pub struct RawKey(Vec<u8>);
+
+impl RawKey {
+    // TODO:
+    // the current Key::{TxLockScript|TxTypeScript} serialization drop the first 16 bytes,
+    // including the first 4 bytes indicating the total script size, making the deserialization
+    // process infeasible. Need to solve the problem first before this function can work as expected.
+    fn extract_block_number_from_raw_tx_script_key(&self) -> u64 {
+        let script_size = u32::from_le_bytes(
+            self.0[1..5]
+                .try_into()
+                .expect("stored tx_script script_size"),
+        ) as usize;
+        u64::from_be_bytes(
+            self.0[1 + script_size..9 + script_size]
+                .try_into()
+                .expect("store tx_script block_number"),
+        )
     }
 }
 
@@ -459,12 +483,28 @@ declare_types! {
 
         method collect(mut cx) {
             let mut this = cx.this();
+            let from_block = cx.argument::<JsValue>(3)?;
+            let js_from_block= if from_block.is_a::<JsNumber>() {
+                from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value()
+            }else {
+                cx.number(0 as f64).value()
+            };
+            let to_block = cx.argument::<JsValue>(4)?;
+            let js_to_block = if to_block.is_a::<JsNumber>() {
+                to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value()
+            } else {
+                cx.number(f64::MAX).value()
+            };
             let hashes = {
                 let guard = cx.lock();
                 let mut iterator = this.borrow_mut(&guard);
                 let mut hashes = vec![];
-                while let Some((_key, value)) = iterator.0.next() {
-                    hashes.push(value.to_vec());
+                while let Some((key, value)) = iterator.0.next() {
+                    let raw_key = RawKey(key.to_vec());
+                    let block_number = raw_key.extract_block_number_from_raw_tx_script_key();
+                    if block_number >= js_from_block as u64 && block_number <= js_to_block as u64 {
+                        hashes.push(value.to_vec());
+                    }
                 }
                 hashes
             };
