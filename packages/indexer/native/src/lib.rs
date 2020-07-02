@@ -2,10 +2,7 @@
 extern crate log;
 
 use ckb_indexer::{
-    indexer::{
-        Error as IndexerError, IOIndex, IOType, Indexer, Key, KeyPrefix, TxIndex,
-        SCRIPT_SERIALIZE_OFFSET,
-    },
+    indexer::{Error as IndexerError, Indexer, KeyPrefix, SCRIPT_SERIALIZE_OFFSET},
     store::{IteratorDirection, RocksdbStore, Store},
 };
 use ckb_jsonrpc_types::{BlockNumber, BlockView};
@@ -50,27 +47,6 @@ impl From<IndexerError> for Error {
 impl From<RpcError> for Error {
     fn from(e: RpcError) -> Error {
         Error::Rpc(e)
-    }
-}
-
-pub struct RawKey(Vec<u8>);
-
-impl RawKey {
-    // TODO:
-    // the current Key::{TxLockScript|TxTypeScript} serialization drop the first 16 bytes,
-    // including the first 4 bytes indicating the total script size, making the deserialization
-    // process infeasible. Need to solve the problem first before this function can work as expected.
-    fn extract_block_number_from_raw_tx_script_key(&self) -> u64 {
-        let script_size = u32::from_le_bytes(
-            self.0[1..5]
-                .try_into()
-                .expect("stored tx_script script_size"),
-        ) as usize;
-        u64::from_be_bytes(
-            self.0[1 + script_size..9 + script_size]
-                .try_into()
-                .expect("store tx_script block_number"),
-        )
     }
 }
 
@@ -321,9 +297,11 @@ declare_types! {
         method getTransactionsByScriptIterator(mut cx) {
             let js_script = cx.argument::<JsValue>(0)?;
             let script_type = cx.argument::<JsValue>(1)?;
+            let from_block = cx.argument::<JsValue>(2)?;
+            let to_block = cx.argument::<JsValue>(3)?;
             let this = cx.this().upcast();
 
-            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type])?.upcast())
+            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, from_block, to_block])?.upcast())
         }
 
         method getDetailedLiveCell(mut cx) {
@@ -459,11 +437,24 @@ declare_types! {
             };
             let mut start_key = vec![prefix as u8];
             start_key.extend_from_slice(&script.as_slice()[SCRIPT_SERIALIZE_OFFSET..]);
+            let mut end_key = start_key.clone();
+            let from_block = cx.argument::<JsValue>(3)?;
+            if from_block.is_a::<JsNumber>() {
+                let from_block_number = from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
+                start_key.extend_from_slice(&from_block_number.to_be_bytes());
+            }
+            let to_block = cx.argument::<JsValue>(4)?;
+            if to_block.is_a::<JsNumber>() {
+                let to_block_number = to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
+                end_key.extend_from_slice(&to_block_number.to_be_bytes());
+            } else {
+                end_key.extend_from_slice(&u64::MAX.to_be_bytes());
+            }
             let iter = store.iter(&start_key, IteratorDirection::Forward);
             if iter.is_err() {
                 return cx.throw_error("Error creating iterator!");
             }
-            let iter = iter.unwrap().take_while(move |(key, _)| key.starts_with(&start_key));
+            let iter = iter.unwrap().take_while(move |(key, _)| key.to_vec() < end_key);
             Ok(TransactionIterator(Box::new(iter)))
         }
 
@@ -483,30 +474,12 @@ declare_types! {
 
         method collect(mut cx) {
             let mut this = cx.this();
-            let from_block = cx.argument::<JsValue>(3)?;
-            let js_from_block= if from_block.is_a::<JsNumber>() {
-                from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value()
-            }else {
-                // TODO: set the from_block height as 0 (and to_block height as f64::MAX) when it's null is a simplified way
-                // to deal with null value, and would cause some performance overhead cost. Need to change it later.
-                cx.number(0 as f64).value()
-            };
-            let to_block = cx.argument::<JsValue>(4)?;
-            let js_to_block = if to_block.is_a::<JsNumber>() {
-                to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value()
-            } else {
-                cx.number(f64::MAX).value()
-            };
             let hashes = {
                 let guard = cx.lock();
                 let mut iterator = this.borrow_mut(&guard);
                 let mut hashes = vec![];
-                while let Some((key, value)) = iterator.0.next() {
-                    let raw_key = RawKey(key.to_vec());
-                    let block_number = raw_key.extract_block_number_from_raw_tx_script_key();
-                    if block_number >= js_from_block as u64 && block_number <= js_to_block as u64 {
-                        hashes.push(value.to_vec());
-                    }
+                while let Some((_key, value)) = iterator.0.next() {
+                    hashes.push(value.to_vec());
                 }
                 hashes
             };
