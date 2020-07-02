@@ -14,6 +14,7 @@
     "typescript": "^3.9.5"
   },
   "scripts": {
-    "docs": "typedoc ."
+    "docs": "typedoc .",
+    "publish": "yarn workspaces run publish"
   }
 }

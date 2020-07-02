@@ -25,7 +25,8 @@
   "scripts": {
     "fmt": "prettier --write \"lib/**/*.js\" index.d.ts package.json",
     "lint": "eslint -c ../../.eslintrc.js \"lib/**/*.js\"",
-    "test": "echo \"No tests yet!\""
+    "test": "echo \"No tests yet!\"",
+    "publish": "npm publish"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
