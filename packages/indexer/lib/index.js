@@ -192,8 +192,8 @@ class CellCollector {
 class TransactionCollector {
   constructor(
     indexer,
-    { lock = null, type = null } = {},
-    { skipMissing = false, includeStatus = true, fromBlock = null, toBlock = null } = {},
+    { lock = null, type = null, fromBlock = null, toBlock = null } = {},
+    { skipMissing = false, includeStatus = true } = {},
   ) {
     if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
