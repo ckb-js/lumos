@@ -193,7 +193,7 @@ class TransactionCollector {
   constructor(
     indexer,
     { lock = null, type = null, fromBlock = null, toBlock = null } = {},
-    { skipMissing = false, includeStatus = true } = {},
+    { skipMissing = false, includeStatus = true } = {}
   ) {
     if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
@@ -217,10 +217,24 @@ class TransactionCollector {
   async count() {
     if (this.lock && this.type) {
       const lockHashes = new OrderedSet(
-        this.indexer._getTransactionsByScriptIterator(this.lock, 0, this.fromBlock, this.toBlock).collect()
+        this.indexer
+          ._getTransactionsByScriptIterator(
+            this.lock,
+            0,
+            this.fromBlock,
+            this.toBlock
+          )
+          .collect()
       );
       const typeHashes = new OrderedSet(
-        this.indexer._getTransactionsByScriptIterator(this.type, 1, this.fromBlock, this.toBlock).collect()
+        this.indexer
+          ._getTransactionsByScriptIterator(
+            this.type,
+            1,
+            this.fromBlock,
+            this.toBlock
+          )
+          .collect()
       );
       const hashes = lockHashes.intersect(typeHashes);
       return hashes.size;
@@ -240,10 +254,24 @@ class TransactionCollector {
   async *collect() {
     if (this.lock && this.type) {
       const lockHashes = new OrderedSet(
-        this.indexer._getTransactionsByScriptIterator(this.lock, 0, this.fromBlock, this.toBlock).collect()
+        this.indexer
+          ._getTransactionsByScriptIterator(
+            this.lock,
+            0,
+            this.fromBlock,
+            this.toBlock
+          )
+          .collect()
       );
       const typeHashes = new OrderedSet(
-        this.indexer._getTransactionsByScriptIterator(this.type, 1, this.fromBlock, this.toBlock).collect()
+        this.indexer
+          ._getTransactionsByScriptIterator(
+            this.type,
+            1,
+            this.fromBlock,
+            this.toBlock
+          )
+          .collect()
       );
       const hashes = lockHashes.intersect(typeHashes);
       for (const h of hashes) {
