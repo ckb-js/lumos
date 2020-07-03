@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/indexer",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "CKB Indexer for Lumos framework, might be suitable for independent usage as well",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -23,7 +23,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.4.5",
+    "@ckb-lumos/base": "^0.4.6",
     "ckb-js-toolkit": "^0.9.1",
     "immutable": "^4.0.0-rc.12",
     "neon-cli": "^0.4.0",
