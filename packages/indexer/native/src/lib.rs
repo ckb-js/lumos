@@ -445,7 +445,8 @@ declare_types! {
             }
             let to_block = cx.argument::<JsValue>(4)?;
             if to_block.is_a::<JsNumber>() {
-                let to_block_number = to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
+                // here set to_block_number as toBlock + 1, making the toBlock included in query range.
+                let to_block_number = to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64 + 1;
                 end_key.extend_from_slice(&to_block_number.to_be_bytes());
             } else {
                 end_key.extend_from_slice(&u64::MAX.to_be_bytes());

@@ -275,7 +275,7 @@ class TransactionCollector {
       );
       const hashes = lockHashes.intersect(typeHashes);
       for (const h of hashes) {
-        const tx = await this.rpc.get_transaction(hash);
+        const tx = await this.rpc.get_transaction(h);
         if (!this.skipMissing && !tx) {
           throw new Error(`Transaction ${h} is missing!`);
         }

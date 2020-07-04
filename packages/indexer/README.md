@@ -5,6 +5,7 @@ CKB indexer used in lumos framework. Might be possible for independent usage as 
 The indexer is designed to consume from the following sources:
 
 * Direct access of CKB's data dir via RocksDB's readonly or secondary mode;
+
 * Consistent queries of CKB's RPC.
 
 It is also designed to store the indexed data in either of the following storage choices:
@@ -16,15 +17,15 @@ Note for the moment, SQLite is not officially supported, single-node users or El
 
 ## Usage
 
-```
-const { Indexer, CellCollector } = require('@ckb-lumos/indexer');
-const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data")
+```javascript
+const { Indexer, CellCollector } = require("@ckb-lumos/indexer");
+const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data");
 indexer.startForever();
 ```
 
 To query existing cells, you can create a CellCollector:
 
-```
+```javascript
 collector = new CellCollector(indexer, {
   lock: {
     code_hash:
@@ -43,7 +44,7 @@ Prefix search is supported on `args`.
 
 Similar solution can be used to query for transactions related to a lock script:
 
-```
+```javascript
 txCollector = new TransactionCollector(indexer, {
   lock: {
     code_hash:
@@ -57,6 +58,27 @@ for await (const tx of txCollector.collect()) {
   console.log(tx);
 }
 ```
+
+Query transactions between given `block_number` range is supported:
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    code_hash:
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
+    hash_type: "data",
+    args: "0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18",
+  },
+  fromBlock: 1000,
+  toBlock: 10000,
+});
+
+for await (const tx of txCollector.collect()) {
+  console.log(tx);
+}
+```
+
+It will fetch transactions between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
 
 ## Electron note
 

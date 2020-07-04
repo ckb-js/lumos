@@ -80,6 +80,8 @@ export interface QueryOptions {
   type?: Script | "empty";
   data?: string;
   argsLen?: number;
+  fromBlock?: number;
+  toBlock?: number;
 }
 
 export interface CellCollectorResults {
