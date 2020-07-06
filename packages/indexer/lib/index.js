@@ -48,10 +48,12 @@ class Indexer {
     );
   }
 
-  _getTransactionsByScriptIterator(script, scriptType) {
+  _getTransactionsByScriptIterator(script, scriptType, fromBlock, toBlock) {
     return this.nativeIndexer.getTransactionsByScriptIterator(
       normalizers.NormalizeScript(script),
-      scriptType
+      scriptType,
+      fromBlock,
+      toBlock
     );
   }
 
@@ -190,7 +192,7 @@ class CellCollector {
 class TransactionCollector {
   constructor(
     indexer,
-    { lock = null, type = null } = {},
+    { lock = null, type = null, fromBlock = null, toBlock = null } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
     if (!lock && !type) {
@@ -207,16 +209,32 @@ class TransactionCollector {
     this.type = type;
     this.skipMissing = skipMissing;
     this.includeStatus = includeStatus;
+    this.fromBlock = fromBlock;
+    this.toBlock = toBlock;
     this.rpc = new RPC(indexer.uri);
   }
 
   async count() {
     if (this.lock && this.type) {
       const lockHashes = new OrderedSet(
-        this.indexer._getTransactionsByScriptIterator(this.lock, 0).collect()
+        this.indexer
+          ._getTransactionsByScriptIterator(
+            this.lock,
+            0,
+            this.fromBlock,
+            this.toBlock
+          )
+          .collect()
       );
       const typeHashes = new OrderedSet(
-        this.indexer._getTransactionsByScriptIterator(this.type, 1).collect()
+        this.indexer
+          ._getTransactionsByScriptIterator(
+            this.type,
+            1,
+            this.fromBlock,
+            this.toBlock
+          )
+          .collect()
       );
       const hashes = lockHashes.intersect(typeHashes);
       return hashes.size;
@@ -225,7 +243,9 @@ class TransactionCollector {
       const scriptType = !!this.lock ? 0 : 1;
       const iter = this.indexer._getTransactionsByScriptIterator(
         script,
-        scriptType
+        scriptType,
+        this.fromBlock,
+        this.toBlock
       );
       return iter.count();
     }
@@ -234,14 +254,28 @@ class TransactionCollector {
   async *collect() {
     if (this.lock && this.type) {
       const lockHashes = new OrderedSet(
-        this.indexer._getTransactionsByScriptIterator(this.lock, 0).collect()
+        this.indexer
+          ._getTransactionsByScriptIterator(
+            this.lock,
+            0,
+            this.fromBlock,
+            this.toBlock
+          )
+          .collect()
       );
       const typeHashes = new OrderedSet(
-        this.indexer._getTransactionsByScriptIterator(this.type, 1).collect()
+        this.indexer
+          ._getTransactionsByScriptIterator(
+            this.type,
+            1,
+            this.fromBlock,
+            this.toBlock
+          )
+          .collect()
       );
       const hashes = lockHashes.intersect(typeHashes);
       for (const h of hashes) {
-        const tx = await this.rpc.get_transaction(hash);
+        const tx = await this.rpc.get_transaction(h);
         if (!this.skipMissing && !tx) {
           throw new Error(`Transaction ${h} is missing!`);
         }
@@ -256,7 +290,9 @@ class TransactionCollector {
       const scriptType = !!this.lock ? 0 : 1;
       const iter = this.indexer._getTransactionsByScriptIterator(
         script,
-        scriptType
+        scriptType,
+        this.fromBlock,
+        this.toBlock
       );
       while (true) {
         const hash = iter.next();

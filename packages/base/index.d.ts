@@ -74,12 +74,15 @@ export interface Cell {
   block_hash: Hash;
   block_number: HexString;
 }
-
 export interface QueryOptions {
   lock?: Script;
   type?: Script | "empty";
   data?: string;
   argsLen?: number;
+  /** `fromBlock` itself is included in range query. */
+  fromBlock?: number;
+  /** `toBlock` itself is included in range query. */
+  toBlock?: number;
 }
 
 export interface CellCollectorResults {
