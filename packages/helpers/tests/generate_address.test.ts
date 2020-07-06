@@ -1,13 +1,12 @@
-const test = require("ava");
-const { generateAddress } = require("../lib");
-const { predefined } = require("@ckb-lumos/config-manager");
+import test from "ava";
+import { generateAddress } from "../src";
+import { predefined } from "@ckb-lumos/config-manager";
 const { LINA, AGGRON4 } = predefined;
-
-const {
+import {
   shortAddressInfo,
-  multisigAddressInfo: multisigAddressInfo,
+  multisigAddressInfo,
   fullAddressInfo,
-} = require("./addresses");
+} from "./addresses";
 
 test("short address, mainnet", (t) => {
   const address = generateAddress(shortAddressInfo.script, { config: LINA });

@@ -1,4 +1,12 @@
-const shortAddressInfo = {
+import { Address, Script } from "@ckb-lumos/base";
+
+interface AddressInfo {
+  testnetAddress: Address;
+  mainnetAddress: Address;
+  script: Script;
+}
+
+export const shortAddressInfo: AddressInfo = {
   testnetAddress: "ckt1qyqrdsefa43s6m882pcj53m4gdnj4k440axqswmu83",
   mainnetAddress: "ckb1qyqrdsefa43s6m882pcj53m4gdnj4k440axqdt9rtd",
   script: {
@@ -9,7 +17,7 @@ const shortAddressInfo = {
   },
 };
 
-const multisigAddressInfo = {
+export const multisigAddressInfo: AddressInfo = {
   mainnetAddress: "ckb1qyq5lv479ewscx3ms620sv34pgeuz6zagaaqklhtgg",
   testnetAddress: "ckt1qyq5lv479ewscx3ms620sv34pgeuz6zagaaqt6f5y5",
   script: {
@@ -20,7 +28,7 @@ const multisigAddressInfo = {
   },
 };
 
-const fullAddressInfo = {
+export const fullAddressInfo: AddressInfo = {
   mainnetAddress:
     "ckb1qsqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpvumhs9nvu786dj9p0q5elx66t24n3kxgmz0sxt",
   testnetAddress:
@@ -33,7 +41,7 @@ const fullAddressInfo = {
   },
 };
 
-const fullAddressInfoWithData = {
+export const fullAddressInfoWithData: AddressInfo = {
   mainnetAddress:
     "ckb1q2da0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsdkr98kkxrtvuag8z2j8w4pkw2k6k4l5c7jxc4f",
   testnetAddress:
@@ -44,11 +52,4 @@ const fullAddressInfoWithData = {
     hash_type: "data",
     args: "0x36c329ed630d6ce750712a477543672adab57f4c",
   },
-};
-
-module.exports = {
-  shortAddressInfo,
-  multisigAddressInfo,
-  fullAddressInfo,
-  fullAddressInfoWithData,
 };

@@ -1,4 +1,6 @@
 import * as core from "./lib/core";
+export { core };
+
 import { Reader } from "ckb-js-toolkit";
 
 export type HexString = string;
@@ -49,12 +51,18 @@ export interface Input {
 export interface Output {
   capacity: HexString;
   lock: Script;
-  type?: Script;
+  type?: Script | null;
+}
+
+export interface WitnessArgs {
+  lock?: HexString;
+  input_type?: HexString;
+  output_type?: HexString;
 }
 
 export interface Transaction {
   cell_deps: CellDep[];
-  hash: Hash;
+  hash?: Hash;
   header_deps: Hash[];
   inputs: Input[];
   outputs: Output[];
@@ -67,12 +75,12 @@ export interface Cell {
   cell_output: {
     capacity: HexString;
     lock: Script;
-    type?: Script;
+    type?: Script | null;
   };
   data: HexString;
-  out_point: OutPoint;
-  block_hash: Hash;
-  block_number: HexString;
+  out_point?: OutPoint | null;
+  block_hash?: Hash | null;
+  block_number?: HexString | null;
 }
 
 export interface QueryOptions {

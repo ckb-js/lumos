@@ -1,7 +1,8 @@
-const test = require("ava");
-const { minimalCellCapacity } = require("../lib");
+import test from "ava";
+import { Cell } from "@ckb-lumos/base";
+import { minimalCellCapacity } from "../src";
 
-const normalCell = {
+const normalCell: Cell = {
   cell_output: {
     capacity: "0x174876e800",
     lock: {
@@ -35,7 +36,7 @@ const invalidCell = {
   out_point: null,
 };
 
-const cellWithTypeAndData = {
+const cellWithTypeAndData: Cell = {
   cell_output: {
     capacity: "0x174876e800",
     lock: {
@@ -66,7 +67,7 @@ test("normal cell, validate true", (t) => {
 
 test("normal cell, validate failed", (t) => {
   t.throws(() => {
-    minimalCellCapacity(invalidCell);
+    minimalCellCapacity(invalidCell as any);
   });
 });
 

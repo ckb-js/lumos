@@ -1,4 +1,11 @@
 module.exports = {
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "env": {
     "node": true,
     "es2020": true
@@ -8,7 +15,7 @@ module.exports = {
     "SharedArrayBuffer": "readonly"
   },
   "rules": {
-    "no-unused-vars": "error",
-    "no-var": "error"
+    "no-var": "error",
+    "@typescript-eslint/no-unused-vars": ["error"]
   }
 };
