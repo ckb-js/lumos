@@ -5,7 +5,6 @@ CKB indexer used in lumos framework. Might be possible for independent usage as 
 The indexer is designed to consume from the following sources:
 
 * Direct access of CKB's data dir via RocksDB's readonly or secondary mode;
-
 * Consistent queries of CKB's RPC.
 
 It is also designed to store the indexed data in either of the following storage choices:
@@ -64,10 +63,10 @@ Query transactions between given `block_number` range is supported:
 ```javascript
 txCollector = new TransactionCollector(indexer, {
   lock: {
-    code_hash:
-      "0x0000000000000000000000000000000000000000000000000000000000000000",
-    hash_type: "data",
-    args: "0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18",
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
   fromBlock: 1000,
   toBlock: 10000,
