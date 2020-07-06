@@ -48,7 +48,13 @@ class Indexer {
     );
   }
 
-  _getTransactionsByScriptIterator(script, scriptType, fromBlock, toBlock) {
+  _getTransactionsByScriptIterator(
+    script,
+    scriptType,
+    ioType,
+    fromBlock,
+    toBlock
+  ) {
     return this.nativeIndexer.getTransactionsByScriptIterator(
       normalizers.NormalizeScript(script),
       scriptType,

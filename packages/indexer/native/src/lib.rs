@@ -449,7 +449,6 @@ declare_types! {
             } else {
                 vec![]
             };
-
             let mut end_key = start_key.clone();
             let from_block = cx.argument::<JsValue>(4)?;
             if from_block.is_a::<JsNumber>() {
