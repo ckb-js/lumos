@@ -295,15 +295,15 @@ declare_types! {
         }
 
         method getTransactionsByScriptIterator(mut cx) {
+            let this = cx.this().upcast();
+
             let js_script = cx.argument::<JsValue>(0)?;
             let script_type = cx.argument::<JsValue>(1)?;
 
-            let io_type = cx.argument::<JsValue>(2)?;
-            let from_block = cx.argument::<JsValue>(3)?;
-            let to_block = cx.argument::<JsValue>(4)?;
-            let this = cx.this().upcast();
+            let from_block = cx.argument::<JsValue>(2)?;
+            let to_block = cx.argument::<JsValue>(3)?;
 
-            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, io_type, from_block, to_block])?.upcast())
+            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, from_block, to_block])?.upcast())
         }
 
         method getDetailedLiveCell(mut cx) {
@@ -438,24 +438,16 @@ declare_types! {
             } else {
                 KeyPrefix::TxLockScript
             };
+
             let mut start_key = vec![prefix as u8];
             start_key.extend_from_slice(&script.as_slice()[SCRIPT_SERIALIZE_OFFSET..]);
-
-            let io_type= cx.argument::<JsValue>(3)?;
-            let io_type_mark =
-            if io_type.is_a::<JsNumber>() {
-                let io_type_number = cx.argument::<JsNumber>(3)?.value() as u8;
-                vec![io_type_number]
-            } else {
-                vec![]
-            };
             let mut end_key = start_key.clone();
-            let from_block = cx.argument::<JsValue>(4)?;
+            let from_block = cx.argument::<JsValue>(3)?;
             if from_block.is_a::<JsNumber>() {
                 let from_block_number = from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
                 start_key.extend_from_slice(&from_block_number.to_be_bytes());
             }
-            let to_block = cx.argument::<JsValue>(5)?;
+            let to_block = cx.argument::<JsValue>(4)?;
             if to_block.is_a::<JsNumber>() {
                 // here set to_block_number as toBlock + 1, making the toBlock included in query range.
                 let to_block_number = to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64 + 1;
@@ -468,8 +460,8 @@ declare_types! {
             if iter.is_err() {
                 return cx.throw_error("Error creating iterator!");
             }
-            // FIXME
-            let iter = iter.unwrap().take_while(move |(key, _)| key.to_vec() < end_key && key.ends_with(&io_type_mark));
+            let iter = iter.unwrap().take_while(move |(key, _)| key.to_vec() < end_key);
+
             Ok(TransactionIterator(Box::new(iter)))
         }
 
@@ -488,13 +480,23 @@ declare_types! {
         }
 
         method collect(mut cx) {
+            let io_type: String = cx.argument::<JsString>(0)?.value();
+            let io_type_mark = match &io_type[..] {
+                "input" => vec![0],
+                "output" => vec![1],
+                "both" => vec![],
+                _ => return cx.throw_error("io_type should be input or output or both!")
+            };
+
             let mut this = cx.this();
             let hashes = {
                 let guard = cx.lock();
                 let mut iterator = this.borrow_mut(&guard);
                 let mut hashes = vec![];
-                while let Some((_key, value)) = iterator.0.next() {
-                    hashes.push(value.to_vec());
+                while let Some((key, value)) = iterator.0.next() {
+                    if key.ends_with(&io_type_mark) {
+                        hashes.push(value.to_vec());
+                    }
                 }
                 hashes
             };

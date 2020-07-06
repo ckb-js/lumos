@@ -32,7 +32,7 @@ export interface Script {
 
 export interface ScriptWrapper {
   script: Script;
-  io_type: "input" | "output";
+  io_type: "input" | "output" | "both";
 }
 
 export interface OutPoint {
