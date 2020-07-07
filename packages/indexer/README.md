@@ -58,7 +58,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-Query transactions between given `block_number` range is supported:
+Range query for transactions between given block_numbers is supported:
 
 ```javascript
 txCollector = new TransactionCollector(indexer, {
@@ -68,8 +68,8 @@ txCollector = new TransactionCollector(indexer, {
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: 1000,
-  toBlock: 10000,
+  fromBlock: 0,
+  toBlock: 2000,
 });
 
 for await (const tx of txCollector.collect()) {
@@ -78,6 +78,30 @@ for await (const tx of txCollector.collect()) {
 ```
 
 It will fetch transactions between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
+
+Fine grained query for transactions by scripts with `ioType` is supported: 
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    script: {
+      code_hash: 
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+    },
+    ioType: "input",
+  },
+  fromBlock: 0,
+  toBlock: 2000,
+});
+
+for await (const tx of txCollector.collect()) {
+  console.log(tx);
+}
+```
+
+The `ioType` field is among `input | output | both`.
 
 ## Electron note
 

@@ -75,14 +75,19 @@ export interface Cell {
   block_number: HexString;
 }
 export interface QueryOptions {
-  lock?: Script;
-  type?: Script | "empty";
+  lock?: Script | ScriptWrapper;
+  type?: Script | ScriptWrapper | "empty";
   data?: string;
   argsLen?: number;
   /** `fromBlock` itself is included in range query. */
   fromBlock?: number;
   /** `toBlock` itself is included in range query. */
   toBlock?: number;
+}
+
+export interface ScriptWrapper {
+  script: Script;
+  ioType: "input" | "output" | "both";
 }
 
 export interface CellCollectorResults {

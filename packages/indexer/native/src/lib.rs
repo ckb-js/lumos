@@ -295,11 +295,13 @@ declare_types! {
         }
 
         method getTransactionsByScriptIterator(mut cx) {
+            let this = cx.this().upcast();
+
             let js_script = cx.argument::<JsValue>(0)?;
             let script_type = cx.argument::<JsValue>(1)?;
+
             let from_block = cx.argument::<JsValue>(2)?;
             let to_block = cx.argument::<JsValue>(3)?;
-            let this = cx.this().upcast();
 
             Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, from_block, to_block])?.upcast())
         }
@@ -430,11 +432,13 @@ declare_types! {
                 return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
             }
             let script = script.unwrap();
+
             let prefix = if cx.argument::<JsNumber>(2)?.value() as u32 == 1 {
                 KeyPrefix::TxTypeScript
             } else {
                 KeyPrefix::TxLockScript
             };
+
             let mut start_key = vec![prefix as u8];
             start_key.extend_from_slice(&script.as_slice()[SCRIPT_SERIALIZE_OFFSET..]);
             let mut end_key = start_key.clone();
@@ -451,11 +455,13 @@ declare_types! {
             } else {
                 end_key.extend_from_slice(&u64::MAX.to_be_bytes());
             }
+
             let iter = store.iter(&start_key, IteratorDirection::Forward);
             if iter.is_err() {
                 return cx.throw_error("Error creating iterator!");
             }
             let iter = iter.unwrap().take_while(move |(key, _)| key.to_vec() < end_key);
+
             Ok(TransactionIterator(Box::new(iter)))
         }
 
@@ -474,13 +480,23 @@ declare_types! {
         }
 
         method collect(mut cx) {
+            let io_type: String = cx.argument::<JsString>(0)?.value();
+            let io_type_mark = match &io_type[..] {
+                "input" => vec![0],
+                "output" => vec![1],
+                "both" => vec![],
+                _ => return cx.throw_error("io_type should be input or output or both!")
+            };
+
             let mut this = cx.this();
             let hashes = {
                 let guard = cx.lock();
                 let mut iterator = this.borrow_mut(&guard);
                 let mut hashes = vec![];
-                while let Some((_key, value)) = iterator.0.next() {
-                    hashes.push(value.to_vec());
+                while let Some((key, value)) = iterator.0.next() {
+                    if key.ends_with(&io_type_mark) {
+                        hashes.push(value.to_vec());
+                    }
                 }
                 hashes
             };

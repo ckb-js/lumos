@@ -198,15 +198,24 @@ class TransactionCollector {
     if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
     }
-    if (lock) {
+    // Wrap the plain `Script` to `ScriptWrapper`.
+    if (lock && !lock.script) {
       validators.ValidateScript(lock);
+      this.lock = { script: lock, ioType: "both" };
+    } else if (lock && lock.script) {
+      validators.ValidateScript(lock.script);
+      this.lock = lock;
     }
-    if (type) {
+
+    if (type && !type.script) {
       validators.ValidateScript(type);
+      this.lock = { script: type, ioType: "both" };
+    } else if (type && type.script) {
+      validators.ValidateScript(type.script);
+      this.type = type;
     }
+
     this.indexer = indexer;
-    this.lock = lock;
-    this.type = type;
     this.skipMissing = skipMissing;
     this.includeStatus = includeStatus;
     this.fromBlock = fromBlock;
@@ -214,100 +223,65 @@ class TransactionCollector {
     this.rpc = new RPC(indexer.uri);
   }
 
-  async count() {
-    if (this.lock && this.type) {
-      const lockHashes = new OrderedSet(
+  get_transaction_hashes() {
+    let hashes = null;
+    let lockHashes = null;
+    let typeHashes = null;
+
+    if (this.lock) {
+      const script_type = 0;
+      lockHashes = new OrderedSet(
         this.indexer
           ._getTransactionsByScriptIterator(
-            this.lock,
-            0,
+            this.lock.script,
+            script_type,
             this.fromBlock,
             this.toBlock
           )
-          .collect()
+          .collect(this.lock.ioType)
       );
-      const typeHashes = new OrderedSet(
-        this.indexer
-          ._getTransactionsByScriptIterator(
-            this.type,
-            1,
-            this.fromBlock,
-            this.toBlock
-          )
-          .collect()
-      );
-      const hashes = lockHashes.intersect(typeHashes);
-      return hashes.size;
-    } else {
-      const script = this.lock || this.type;
-      const scriptType = !!this.lock ? 0 : 1;
-      const iter = this.indexer._getTransactionsByScriptIterator(
-        script,
-        scriptType,
-        this.fromBlock,
-        this.toBlock
-      );
-      return iter.count();
     }
+
+    if (this.type) {
+      const script_type = 1;
+      typeHashes = new OrderedSet(
+        this.indexer
+          ._getTransactionsByScriptIterator(
+            script,
+            script_type,
+            this.fromBlock,
+            this.toBlock
+          )
+          .collect(this.type.ioType)
+      );
+    }
+
+    if (this.lock && this.type) {
+      hashes = lockHashes.intersect(typeHashes);
+    } else if (this.lock) {
+      hashes = lockHashes;
+    } else {
+      hashes = typeHashes;
+    }
+    return hashes;
+  }
+
+  async count() {
+    let hashes = this.get_transaction_hashes();
+    return hashes.size;
   }
 
   async *collect() {
-    if (this.lock && this.type) {
-      const lockHashes = new OrderedSet(
-        this.indexer
-          ._getTransactionsByScriptIterator(
-            this.lock,
-            0,
-            this.fromBlock,
-            this.toBlock
-          )
-          .collect()
-      );
-      const typeHashes = new OrderedSet(
-        this.indexer
-          ._getTransactionsByScriptIterator(
-            this.type,
-            1,
-            this.fromBlock,
-            this.toBlock
-          )
-          .collect()
-      );
-      const hashes = lockHashes.intersect(typeHashes);
-      for (const h of hashes) {
-        const tx = await this.rpc.get_transaction(h);
-        if (!this.skipMissing && !tx) {
-          throw new Error(`Transaction ${h} is missing!`);
-        }
-        if (this.includeStatus) {
-          yield tx;
-        } else {
-          yield tx.transaction;
-        }
+    let hashes = this.get_transaction_hashes();
+    for (const hash of hashes) {
+      const tx = await this.rpc.get_transaction(hash);
+      if (!this.skipMissing && !tx) {
+        throw new Error(`Transaction ${h} is missing!`);
       }
-    } else {
-      const script = this.lock || this.type;
-      const scriptType = !!this.lock ? 0 : 1;
-      const iter = this.indexer._getTransactionsByScriptIterator(
-        script,
-        scriptType,
-        this.fromBlock,
-        this.toBlock
-      );
-      while (true) {
-        const hash = iter.next();
-        if (!hash) {
-          break;
-        }
-        const tx = await this.rpc.get_transaction(hash);
-        if (!this.skipMissing && !tx) {
-          throw new Error(`Transaction ${h} is missing!`);
-        }
-        if (this.includeStatus) {
-          yield tx;
-        } else {
-          yield tx.transaction;
-        }
+      if (this.includeStatus) {
+        yield tx;
+      } else {
+        yield tx.transaction;
       }
     }
   }
