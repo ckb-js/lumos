@@ -28,7 +28,8 @@
     "test": "ava tests/**/*.test.ts",
     "build": "tsc",
     "clean": "rm -rf lib",
-    "release": "yarn run clean && yarn run build && npm publish"
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
