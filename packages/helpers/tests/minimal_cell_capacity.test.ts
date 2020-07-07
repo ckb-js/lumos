@@ -11,12 +11,12 @@ const normalCell: Cell = {
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
       hash_type: "type",
     },
-    type: null,
+    type: undefined,
   },
   data: "0x",
-  block_hash: null,
-  block_number: null,
-  out_point: null,
+  block_hash: undefined,
+  block_number: undefined,
+  out_point: undefined,
 };
 
 const invalidCell = {
@@ -28,12 +28,12 @@ const invalidCell = {
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
       hash_type: "typ",
     },
-    type: null,
+    type: undefined,
   },
   data: "0x",
-  block_hash: null,
-  block_number: null,
-  out_point: null,
+  block_hash: undefined,
+  block_number: undefined,
+  out_point: undefined,
 };
 
 const cellWithTypeAndData: Cell = {
@@ -53,9 +53,9 @@ const cellWithTypeAndData: Cell = {
     },
   },
   data: "0x1234",
-  block_hash: null,
-  block_number: null,
-  out_point: null,
+  block_hash: undefined,
+  block_number: undefined,
+  out_point: undefined,
 };
 
 test("normal cell, validate true", (t) => {

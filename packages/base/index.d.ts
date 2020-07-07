@@ -51,7 +51,7 @@ export interface Input {
 export interface Output {
   capacity: HexString;
   lock: Script;
-  type?: Script | null;
+  type?: Script;
 }
 
 export interface WitnessArgs {
@@ -75,12 +75,12 @@ export interface Cell {
   cell_output: {
     capacity: HexString;
     lock: Script;
-    type?: Script | null;
+    type?: Script;
   };
   data: HexString;
-  out_point?: OutPoint | null;
-  block_hash?: Hash | null;
-  block_number?: HexString | null;
+  out_point?: OutPoint;
+  block_hash?: Hash;
+  block_number?: HexString;
 }
 
 export interface QueryOptions {
