@@ -1,14 +1,7 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "declaration": true,
-    "outDir": "./lib",
-    "types": ["node"],
-    "lib": ["es2020"],
-    "moduleResolution": "node",
-    "strict": true
+    "outDir": "lib"
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "tests", "lib"]
+  "include": ["src"]
 }
