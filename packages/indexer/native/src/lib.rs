@@ -488,14 +488,25 @@ declare_types! {
                 _ => return cx.throw_error("io_type should be input or output or both!")
             };
 
+            let skip = cx.argument::<JsValue>(1)?;
+            let skip_number = if skip.is_a::<JsNumber>() {
+                skip.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64
+            } else {
+                0_u64
+            };
+
             let mut this = cx.this();
             let hashes = {
                 let guard = cx.lock();
                 let mut iterator = this.borrow_mut(&guard);
                 let mut hashes = vec![];
+                let mut current_counter = 0;
                 while let Some((key, value)) = iterator.0.next() {
                     if key.ends_with(&io_type_mark) {
-                        hashes.push(value.to_vec());
+                        current_counter += 1;
+                        if skip_number < current_counter {
+                            hashes.push(value.to_vec());
+                        }
                     }
                 }
                 hashes

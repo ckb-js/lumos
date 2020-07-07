@@ -103,6 +103,28 @@ for await (const tx of txCollector.collect()) {
 
 The `ioType` field is among `input | output | both`.
 
+
+Page jump when queryring transactions is supported:
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+  skip: 100,
+});
+
+for await (const tx of txCollector.collect()) {
+  console.log(tx);
+}
+```
+
+The `skip` field represents the number of transactions being skipped, which in the above code snippet means it would skip the first 100 transactions and return from the 101st one.
+
+
 ## Electron note
 
 One design goal of lumos, is that even though we might leverage native Rust code to speed things up, you don't need to have Rust installed in your machine to use the framework. However, this goal hits a slight roadblock since electron have its own module versions.

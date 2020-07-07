@@ -192,7 +192,13 @@ class CellCollector {
 class TransactionCollector {
   constructor(
     indexer,
-    { lock = null, type = null, fromBlock = null, toBlock = null } = {},
+    {
+      lock = null,
+      type = null,
+      fromBlock = null,
+      toBlock = null,
+      skip = null,
+    } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
     if (!lock && !type) {
@@ -220,6 +226,7 @@ class TransactionCollector {
     this.includeStatus = includeStatus;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
+    this.skip = skip;
     this.rpc = new RPC(indexer.uri);
   }
 
@@ -238,7 +245,7 @@ class TransactionCollector {
             this.fromBlock,
             this.toBlock
           )
-          .collect(this.lock.ioType)
+          .collect(this.lock.ioType, this.skip)
       );
     }
 
@@ -252,7 +259,7 @@ class TransactionCollector {
             this.fromBlock,
             this.toBlock
           )
-          .collect(this.type.ioType)
+          .collect(this.type.ioType, this.skip)
       );
     }
 
