@@ -2,7 +2,7 @@ import {
   CellCollectorResults,
   CellCollector as CellCollectorInterface,
 } from "ckb-js-toolkit";
-import { QueryOptions } from "@ckb-lumos/base";
+import { QueryOptions, Transaction } from "@ckb-lumos/base";
 
 export type Logger = (level: string, message: string) => void;
 
@@ -32,7 +32,11 @@ export declare class CellCollector implements CellCollectorInterface {
   collect(): CellCollectorResults;
 }
 
-export declare class TransactionCollector implements CellCollectorInterface {
+export interface TransactionCollectorResults {
+  [Symbol.asyncIterator](): AsyncIterator<Transaction>;
+}
+
+export declare class TransactionCollector {
   constructor(
     indexer: Indexer,
     queries: QueryOptions,
@@ -41,7 +45,7 @@ export declare class TransactionCollector implements CellCollectorInterface {
 
   count(): Promise<number>;
 
-  collect(): CellCollectorResults;
+  collect(): TransactionCollectorResults;
 }
 
 export declare class Indexer {
