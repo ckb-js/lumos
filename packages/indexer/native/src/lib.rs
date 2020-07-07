@@ -432,8 +432,8 @@ declare_types! {
                 return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
             }
             let script = script.unwrap();
-            let script_type = cx.argument::<JsNumber>(2)?.value() as u32;
-            let prefix = if script_type == 1 {
+
+            let prefix = if cx.argument::<JsNumber>(2)?.value() as u32 == 1 {
                 KeyPrefix::TxTypeScript
             } else {
                 KeyPrefix::TxLockScript

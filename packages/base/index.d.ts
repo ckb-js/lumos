@@ -30,11 +30,6 @@ export interface Script {
   args: HexString;
 }
 
-export interface ScriptWrapper {
-  script: Script;
-  io_type: "input" | "output" | "both";
-}
-
 export interface OutPoint {
   tx_hash: Hash;
   index: HexString;
@@ -88,6 +83,11 @@ export interface QueryOptions {
   fromBlock?: number;
   /** `toBlock` itself is included in range query. */
   toBlock?: number;
+}
+
+export interface ScriptWrapper {
+  script: Script;
+  ioType: "input" | "output" | "both";
 }
 
 export interface CellCollectorResults {
