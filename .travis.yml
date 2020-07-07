@@ -38,6 +38,7 @@ install:
   - travis_wait 30 yarn
 
 script:
+  - yarn workspace @ckb-lumos/helpers build
   - yarn workspaces run test
   - yarn workspaces run fmt
   - yarn workspaces run lint

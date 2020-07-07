@@ -1,13 +1,11 @@
-const test = require("ava");
-const { parseAddress } = require("../lib");
-
-const {
+import test from "ava";
+import { parseAddress } from "../src";
+import {
   shortAddressInfo,
-  multisigAddressInfo: multisigAddressInfo,
+  multisigAddressInfo,
   fullAddressInfo,
-} = require("./addresses");
-
-const { predefined } = require("@ckb-lumos/config-manager");
+} from "./addresses";
+import { predefined } from "@ckb-lumos/config-manager";
 const { LINA, AGGRON4 } = predefined;
 
 test("short address, mainnet", (t) => {
