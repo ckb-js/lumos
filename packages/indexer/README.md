@@ -79,7 +79,7 @@ for await (const tx of txCollector.collect()) {
 
 It will fetch transactions between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
 
-Fine grained query for transactions by scripts with `io_type` is supported: 
+Fine grained query for transactions by scripts with `ioType` is supported: 
 
 ```javascript
 txCollector = new TransactionCollector(indexer, {
@@ -90,7 +90,7 @@ txCollector = new TransactionCollector(indexer, {
       hash_type: "type",
       args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
     },
-    io_type: "input",
+    ioType: "input",
   },
   fromBlock: 0,
   toBlock: 2000,
@@ -101,7 +101,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-The `io_type` field is among `input | output | both`.
+The `ioType` field is among `input | output | both`.
 
 ## Electron note
 

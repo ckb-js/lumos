@@ -201,18 +201,16 @@ class TransactionCollector {
     // Wrap the plain `Script` to `ScriptWrapper`.
     if (lock && !lock.script) {
       validators.ValidateScript(lock);
-      this.lock = { script: lock, io_type: "both" };
-    }
-    if (lock && lock.script) {
+      this.lock = { script: lock, ioType: "both" };
+    } else if (lock && lock.script) {
       validators.ValidateScript(lock.script);
       this.lock = lock;
     }
+
     if (type && !type.script) {
       validators.ValidateScript(type);
-      this.lock = { script: type, io_type: "both" };
-    }
-
-    if (type && type.script) {
+      this.lock = { script: type, ioType: "both" };
+    } else if (type && type.script) {
       validators.ValidateScript(type.script);
       this.type = type;
     }
@@ -231,7 +229,7 @@ class TransactionCollector {
     let typeHashes = null;
 
     if (this.lock) {
-      let script_type = 0;
+      const script_type = 0;
       lockHashes = new OrderedSet(
         this.indexer
           ._getTransactionsByScriptIterator(
@@ -240,12 +238,12 @@ class TransactionCollector {
             this.fromBlock,
             this.toBlock
           )
-          .collect(this.lock.io_type)
+          .collect(this.lock.ioType)
       );
     }
 
     if (this.type) {
-      let script_type = 1;
+      const script_type = 1;
       typeHashes = new OrderedSet(
         this.indexer
           ._getTransactionsByScriptIterator(
@@ -254,7 +252,7 @@ class TransactionCollector {
             this.fromBlock,
             this.toBlock
           )
-          .collect(this.type.io_type)
+          .collect(this.type.ioType)
       );
     }
 
