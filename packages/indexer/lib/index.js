@@ -48,12 +48,21 @@ class Indexer {
     );
   }
 
-  _getTransactionsByScriptIterator(script, scriptType, fromBlock, toBlock) {
+  _getTransactionsByScriptIterator(
+    script,
+    scriptType,
+    ioType,
+    fromBlock,
+    toBlock,
+    skip
+  ) {
     return this.nativeIndexer.getTransactionsByScriptIterator(
       normalizers.NormalizeScript(script),
       scriptType,
+      ioType,
       fromBlock,
-      toBlock
+      toBlock,
+      skip
     );
   }
 
@@ -242,10 +251,12 @@ class TransactionCollector {
           ._getTransactionsByScriptIterator(
             this.lock.script,
             script_type,
+            this.lock.ioType,
             this.fromBlock,
-            this.toBlock
+            this.toBlock,
+            this.skip
           )
-          .collect(this.lock.ioType, this.skip)
+          .collect()
       );
     }
 
@@ -256,10 +267,12 @@ class TransactionCollector {
           ._getTransactionsByScriptIterator(
             script,
             script_type,
+            this.lock.ioType,
             this.fromBlock,
-            this.toBlock
+            this.toBlock,
+            this.skip
           )
-          .collect(this.type.ioType, this.skip)
+          .collect()
       );
     }
 

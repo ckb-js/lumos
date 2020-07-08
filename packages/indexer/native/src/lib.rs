@@ -299,11 +299,13 @@ declare_types! {
 
             let js_script = cx.argument::<JsValue>(0)?;
             let script_type = cx.argument::<JsValue>(1)?;
+            let io_type = cx.argument::<JsValue>(2)?;
 
-            let from_block = cx.argument::<JsValue>(2)?;
-            let to_block = cx.argument::<JsValue>(3)?;
+            let from_block = cx.argument::<JsValue>(3)?;
+            let to_block = cx.argument::<JsValue>(4)?;
+            let skip = cx.argument::<JsValue>(5)?;
 
-            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, from_block, to_block])?.upcast())
+            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, io_type, from_block, to_block, skip])?.upcast())
         }
 
         method getDetailedLiveCell(mut cx) {
@@ -442,12 +444,21 @@ declare_types! {
             let mut start_key = vec![prefix as u8];
             start_key.extend_from_slice(&script.as_slice()[SCRIPT_SERIALIZE_OFFSET..]);
             let mut end_key = start_key.clone();
-            let from_block = cx.argument::<JsValue>(3)?;
+
+            let io_type: String = cx.argument::<JsString>(3)?.value();
+            let io_type_mark = match &io_type[..] {
+                "input" => vec![0],
+                "output" => vec![1],
+                "both" => vec![],
+                _ => return cx.throw_error("io_type should be input or output or both!")
+            };
+
+            let from_block = cx.argument::<JsValue>(4)?;
             if from_block.is_a::<JsNumber>() {
                 let from_block_number = from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
                 start_key.extend_from_slice(&from_block_number.to_be_bytes());
             }
-            let to_block = cx.argument::<JsValue>(4)?;
+            let to_block = cx.argument::<JsValue>(5)?;
             if to_block.is_a::<JsNumber>() {
                 // here set to_block_number as toBlock + 1, making the toBlock included in query range.
                 let to_block_number = to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64 + 1;
@@ -456,11 +467,18 @@ declare_types! {
                 end_key.extend_from_slice(&u64::MAX.to_be_bytes());
             }
 
+            let skip = cx.argument::<JsValue>(6)?;
+            let skip_number = if skip.is_a::<JsNumber>() {
+                skip.downcast::<JsNumber>().or_throw(&mut cx)?.value() as usize
+            } else {
+                0_usize
+            };
+
             let iter = store.iter(&start_key, IteratorDirection::Forward);
             if iter.is_err() {
                 return cx.throw_error("Error creating iterator!");
             }
-            let iter = iter.unwrap().take_while(move |(key, _)| key.to_vec() < end_key);
+            let iter = iter.unwrap().take_while(move |(key, _)| key.to_vec() < end_key).filter(move |(key, _)| key.ends_with(&io_type_mark)).skip(skip_number);
 
             Ok(TransactionIterator(Box::new(iter)))
         }
@@ -480,34 +498,13 @@ declare_types! {
         }
 
         method collect(mut cx) {
-            let io_type: String = cx.argument::<JsString>(0)?.value();
-            let io_type_mark = match &io_type[..] {
-                "input" => vec![0],
-                "output" => vec![1],
-                "both" => vec![],
-                _ => return cx.throw_error("io_type should be input or output or both!")
-            };
-
-            let skip = cx.argument::<JsValue>(1)?;
-            let skip_number = if skip.is_a::<JsNumber>() {
-                skip.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64
-            } else {
-                0_u64
-            };
-
             let mut this = cx.this();
             let hashes = {
                 let guard = cx.lock();
                 let mut iterator = this.borrow_mut(&guard);
                 let mut hashes = vec![];
-                let mut current_counter = 0;
-                while let Some((key, value)) = iterator.0.next() {
-                    if key.ends_with(&io_type_mark) {
-                        current_counter += 1;
-                        if skip_number < current_counter {
+                while let Some((_key, value)) = iterator.0.next() {
                             hashes.push(value.to_vec());
-                        }
-                    }
                 }
                 hashes
             };
