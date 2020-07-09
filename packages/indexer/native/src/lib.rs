@@ -57,6 +57,7 @@ pub trait CkbRpc {
 }
 
 pub struct TransactionIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)>>);
+pub struct LiveCellIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)>>);
 
 #[derive(Clone)]
 pub struct NativeIndexer {
@@ -203,96 +204,20 @@ declare_types! {
             }
         }
 
-        method getLiveCellsByScript(mut cx) {
-            let this = cx.this();
-            let js_script: Handle<JsObject> = cx.argument::<JsObject>(0)?;
-            let js_code_hash = js_script.get(&mut cx, "code_hash")?
-                .downcast::<JsArrayBuffer>()
-                .or_throw(&mut cx)?;
-            let code_hash = {
-                let guard = cx.lock();
-                let code_hash = js_code_hash.borrow(&guard);
-                code_hash.as_slice().to_vec()
-            };
-            let js_hash_type = js_script.get(&mut cx, "hash_type")?
-                .downcast::<JsNumber>()
-                .or_throw(&mut cx)?
-                .value();
-            let js_args = js_script.get(&mut cx, "args")?
-                .downcast::<JsArrayBuffer>()
-                .or_throw(&mut cx)?;
-            let args = {
-                let guard = cx.lock();
-                let args = js_args.borrow(&guard);
-                args.as_slice().to_vec()
-            };
-            let script = assemble_packed_script(&code_hash, js_hash_type, &args);
-            if script.is_err() {
-                return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
-            }
-            let script = script.unwrap();
-            let prefix = if cx.argument::<JsNumber>(1)?.value() as u32 == 1 {
-                KeyPrefix::CellTypeScript
-            } else {
-                KeyPrefix::CellLockScript
-            };
-            let args_len = cx.argument::<JsNumber>(2)?.value();
-            if args_len > u32::max_value() as f64 {
-                return cx.throw_error("args length must fit in u32 value!");
-            }
-            let args_len = if args_len <= 0.0 {
-                script.args().len() as u32
-            } else {
-                args_len as u32
-            };
-            let mut start_key = vec![prefix as u8];
-            start_key.extend_from_slice(script.code_hash().as_slice());
-            start_key.extend_from_slice(script.hash_type().as_slice());
-            start_key.extend_from_slice(&args_len.to_le_bytes());
-            start_key.extend_from_slice(&script.args().raw_data());
-            let iter = {
-                let guard = cx.lock();
-                let indexer = this.borrow(&guard);
-                indexer.indexer.store().iter(&start_key, IteratorDirection::Forward)
-            };
-            if iter.is_err() {
-                return cx.throw_error("Error creating iterator!");
-            }
-            let iter = iter.unwrap().take_while(|(key, _)| key.starts_with(&start_key));
-            let mut out_points = vec![];
-            for (key, value) in iter {
-                let tx_hash = Byte32::from_slice(&value);
-                let index = key[key.len() - 4..].try_into();
-                if tx_hash.is_err() || index.is_err() {
-                    return cx.throw_error("Malformed data!");
-                }
-                let index = u32::from_be_bytes(index.unwrap());
-                let op = OutPoint::new(tx_hash.unwrap(), index);
-                out_points.push(op);
-            }
-            let js_out_points = JsArray::new(&mut cx, out_points.len() as u32);
-            for (i, out_point) in out_points.iter().enumerate() {
-                if cx.argument::<JsBoolean>(3)?.value() {
-                    let mut js_buffer = JsArrayBuffer::new(&mut cx, out_point.as_slice().len() as u32)?;
-                    {
-                        let guard = cx.lock();
-                        let buffer = js_buffer.borrow_mut(&guard);
-                        buffer.as_mut_slice().copy_from_slice(out_point.as_slice());
-                    }
-                    js_out_points.set(&mut cx, i as u32, js_buffer)?;
-                } else {
-                    let js_out_point = JsObject::new(&mut cx);
-                    let js_tx_hash = cx.string(format!("{:#x}", out_point.tx_hash()));
-                    js_out_point.set(&mut cx, "tx_hash", js_tx_hash)?;
-                    let index: u32 = out_point.index().unpack();
-                    let js_index = cx.string(format!("{:#x}", index));
-                    js_out_point.set(&mut cx, "index", js_index)?;
-                    js_out_points.set(&mut cx, i as u32, js_out_point)?;
-                }
-            }
+        method getLiveCellsByScriptIterator(mut cx) {
+            let this = cx.this().upcast();
 
-            Ok(js_out_points.upcast())
+            let js_script = cx.argument::<JsValue>(0)?;
+            let script_type = cx.argument::<JsValue>(1)?;
+            let args_len = cx.argument::<JsValue>(2)?;
+
+            let from_block = cx.argument::<JsValue>(3)?;
+            let to_block = cx.argument::<JsValue>(4)?;
+            let skip = cx.argument::<JsValue>(5)?;
+
+            Ok(JsLiveCellIterator::new(&mut cx, vec![this, js_script, script_type, args_len, from_block, to_block, skip])?.upcast())
         }
+
 
         method getTransactionsByScriptIterator(mut cx) {
             let this = cx.this().upcast();
@@ -400,6 +325,142 @@ declare_types! {
         }
     }
 
+    pub class JsLiveCellIterator for LiveCellIterator {
+        init(mut cx) {
+            let indexer = cx.argument::<JsNativeIndexer>(0)?;
+            let store = {
+                let guard = cx.lock();
+                let indexer = indexer.borrow(&guard);
+                indexer.indexer.store().clone()
+            };
+            let js_script: Handle<JsObject> = cx.argument::<JsObject>(1)?;
+            let js_code_hash = js_script.get(&mut cx, "code_hash")?
+                .downcast::<JsArrayBuffer>()
+                .or_throw(&mut cx)?;
+            let code_hash = {
+                let guard = cx.lock();
+                let code_hash = js_code_hash.borrow(&guard);
+                code_hash.as_slice().to_vec()
+            };
+            let js_hash_type = js_script.get(&mut cx, "hash_type")?
+                .downcast::<JsNumber>()
+                .or_throw(&mut cx)?
+                .value();
+            let js_args = js_script.get(&mut cx, "args")?
+                .downcast::<JsArrayBuffer>()
+                .or_throw(&mut cx)?;
+            let args = {
+                let guard = cx.lock();
+                let args = js_args.borrow(&guard);
+                args.as_slice().to_vec()
+            };
+            let script = assemble_packed_script(&code_hash, js_hash_type, &args);
+            if script.is_err() {
+                return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
+            }
+            let script = script.unwrap();
+
+            let prefix = if cx.argument::<JsNumber>(2)?.value() as u32 == 1 {
+                KeyPrefix::CellTypeScript
+            } else {
+                KeyPrefix::CellLockScript
+            };
+
+            let args_len = cx.argument::<JsNumber>(3)?.value();
+            if args_len > u32::max_value() as f64 {
+                return cx.throw_error("args length must fit in u32 value!");
+            }
+            let from_block = cx.argument::<JsValue>(4)?;
+            let to_block = cx.argument::<JsValue>(5)?;
+            let args_len = if args_len <= 0.0 {
+                script.args().len() as u32
+            } else {
+                if from_block.is_a::<JsNumber>() || to_block.is_a::<JsNumber>() {
+                    return cx.throw_error("prefix search on args and range query can't be used at the same time!");
+                }
+                args_len as u32
+            };
+
+            let mut start_key = vec![prefix as u8];
+            start_key.extend_from_slice(script.code_hash().as_slice());
+            start_key.extend_from_slice(script.hash_type().as_slice());
+            start_key.extend_from_slice(&args_len.to_le_bytes());
+            start_key.extend_from_slice(&script.args().raw_data());
+
+            let mut end_key = start_key.clone();
+
+            if from_block.is_a::<JsNumber>() {
+                let from_block_number = from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
+                start_key.extend_from_slice(&from_block_number.to_be_bytes());
+            }
+            if to_block.is_a::<JsNumber>() {
+                // here set to_block_number as toBlock + 1, making the toBlock included in query range.
+                let to_block_number = to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64 + 1;
+                end_key.extend_from_slice(&to_block_number.to_be_bytes());
+            } else {
+                end_key.extend_from_slice(&u64::MAX.to_be_bytes());
+            }
+
+            let skip = cx.argument::<JsValue>(6)?;
+            let skip_number = if skip.is_a::<JsNumber>() {
+                skip.downcast::<JsNumber>().or_throw(&mut cx)?.value() as usize
+            } else {
+                0_usize
+            };
+
+            let iter = store.iter(&start_key, IteratorDirection::Forward);
+            if iter.is_err() {
+                return cx.throw_error("Error creating iterator!");
+            }
+
+            let iter = iter.unwrap().take_while(move |(key, _)| key.to_vec() < end_key).skip(skip_number);
+
+            Ok(LiveCellIterator(Box::new(iter)))
+        }
+
+        method collect(mut cx) {
+            let mut this = cx.this();
+            let out_points = {
+                let guard = cx.lock();
+                let mut iterator = this.borrow_mut(&guard);
+                let mut out_points = vec![];
+                while let Some((key, value)) = iterator.0.next() {
+                    let tx_hash = Byte32::from_slice(&value);
+                    let index = key[key.len() - 4..].try_into();
+                    // FIXME: mutable borrow after immutable borrow
+                    // if tx_hash.is_err() || index.is_err() {
+                    //     return cx.throw_error("Malformed data!");
+                    // }
+                    let index = u32::from_be_bytes(index.unwrap());
+                    let outpoint = OutPoint::new(tx_hash.unwrap(), index);
+                    out_points.push(outpoint)
+                }
+                out_points
+            };
+            let js_out_points = JsArray::new(&mut cx, out_points.len() as u32);
+            for (i, out_point) in out_points.iter().enumerate() {
+                if cx.argument::<JsBoolean>(0)?.value() {
+                    let mut js_buffer = JsArrayBuffer::new(&mut cx, out_point.as_slice().len() as u32)?;
+                    {
+                        let guard = cx.lock();
+                        let buffer = js_buffer.borrow_mut(&guard);
+                        buffer.as_mut_slice().copy_from_slice(out_point.as_slice());
+                    }
+                    js_out_points.set(&mut cx, i as u32, js_buffer)?;
+                } else {
+                    let js_out_point = JsObject::new(&mut cx);
+                    let js_tx_hash = cx.string(format!("{:#x}", out_point.tx_hash()));
+                    js_out_point.set(&mut cx, "tx_hash", js_tx_hash)?;
+                    let index: u32 = out_point.index().unpack();
+                    let js_index = cx.string(format!("{:#x}", index));
+                    js_out_point.set(&mut cx, "index", js_index)?;
+                    js_out_points.set(&mut cx, i as u32, js_out_point)?;
+                }
+            }
+
+            Ok(js_out_points.upcast())
+        }
+    }
     pub class JsTransactionIterator for TransactionIterator {
         init(mut cx) {
             let indexer = cx.argument::<JsNativeIndexer>(0)?;
