@@ -143,13 +143,7 @@ class CellCollector {
     this.skip = skip;
   }
 
-  async count() {
-    let outPoints = this.getLiveCellOutPoints();
-    return outPoints.size;
-  }
-
   getLiveCellOutPoints() {
-    let outPoints = null;
     let lockOutPoints = null;
     let typeOutPoints = null;
     if (this.lock) {
@@ -186,6 +180,7 @@ class CellCollector {
           .collect(returnRawBuffer)
       );
     }
+    let outPoints = null;
     if (this.lock && this.type) {
       outPoints = lockOutPoints.intersect(typeOoutPoints);
     } else if (this.lock) {
@@ -193,14 +188,38 @@ class CellCollector {
     } else {
       outPoints = typeOutPoints;
     }
+    let outPointsBufferValue = new OrderedSet();
+    for (const o of outPoints) {
+      outPointsBufferValue.add(new BufferValue(o));
+    }
 
-    return outPoints;
+    return outPointsBufferValue;
+  }
+
+  async count() {
+    let outPoints = this.getLiveCellOutPoints();
+    let counter = 0;
+    for (const o of outPoints) {
+      const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+      if (cell && this.type === "empty" && cell.cell_output.type) {
+        continue;
+      }
+      if (this.data && cell.data !== this.data) {
+        continue;
+      }
+      counter += 1;
+    }
+
+    return counter;
   }
 
   async *collect() {
     let outPoints = this.getLiveCellOutPoints();
     for (const o of outPoints) {
-      const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o);
+      const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+      if (cell && this.type === "empty" && cell.cell_output.type) {
+        continue;
+      }
       if (this.data && cell.data !== this.data) {
         continue;
       }

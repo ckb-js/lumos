@@ -420,25 +420,24 @@ declare_types! {
 
         method collect(mut cx) {
             let mut this = cx.this();
-            let out_points = {
+            let live_cell_key_values = {
                 let guard = cx.lock();
                 let mut iterator = this.borrow_mut(&guard);
-                let mut out_points = vec![];
+                let mut key_values = vec![];
                 while let Some((key, value)) = iterator.0.next() {
-                    let tx_hash = Byte32::from_slice(&value);
-                    let index = key[key.len() - 4..].try_into();
-                    // FIXME: mutable borrow after immutable borrow
-                    // if tx_hash.is_err() || index.is_err() {
-                    //     return cx.throw_error("Malformed data!");
-                    // }
-                    let index = u32::from_be_bytes(index.unwrap());
-                    let outpoint = OutPoint::new(tx_hash.unwrap(), index);
-                    out_points.push(outpoint)
+                    key_values.push((key,value));
                 }
-                out_points
+                key_values
             };
-            let js_out_points = JsArray::new(&mut cx, out_points.len() as u32);
-            for (i, out_point) in out_points.iter().enumerate() {
+            let js_out_points = JsArray::new(&mut cx, live_cell_key_values.len() as u32);
+            for (i, (key, value)) in live_cell_key_values.iter().enumerate() {
+                let tx_hash = Byte32::from_slice(&value);
+                let index = key[key.len() - 4..].try_into();
+                if tx_hash.is_err() || index.is_err() {
+                    return cx.throw_error("Malformed data!");
+                }
+                let index = u32::from_be_bytes(index.unwrap());
+                let out_point = OutPoint::new(tx_hash.unwrap(), index);
                 if cx.argument::<JsBoolean>(0)?.value() {
                     let mut js_buffer = JsArrayBuffer::new(&mut cx, out_point.as_slice().len() as u32)?;
                     {
