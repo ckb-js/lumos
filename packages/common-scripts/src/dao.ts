@@ -1,23 +1,53 @@
-const { parseAddress, minimalCellCapacity } = require("@ckb-lumos/helpers");
-const { core, values, utils, since: sinceUtils } = require("@ckb-lumos/base");
-const { getConfig } = require("@ckb-lumos/config-manager");
+import {
+  parseAddress,
+  minimalCellCapacity,
+  TransactionSkeletonType,
+  Options,
+  generateAddress,
+} from "@ckb-lumos/helpers";
+import {
+  core,
+  values,
+  utils,
+  since as sinceUtils,
+  HexString,
+  Address,
+  CellProvider,
+  Cell,
+  WitnessArgs,
+  Script,
+  CellDep,
+  PackedDao,
+} from "@ckb-lumos/base";
+import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { parseSince } = sinceUtils;
-const { normalizers, Reader, RPC } = require("ckb-js-toolkit");
-const secp256k1Blake160 = require("./secp256k1_blake160");
-const secp256k1Blake160Multisig = require("./secp256k1_blake160_multisig");
+import { normalizers, Reader, RPC } from "ckb-js-toolkit";
+import secp256k1Blake160 from "./secp256k1_blake160";
+import secp256k1Blake160Multisig, {
+  FromInfo,
+} from "./secp256k1_blake160_multisig";
 
-const DEPOSIT_DAO_DATA = "0x0000000000000000";
-const DAO_LOCK_PERIOD_EPOCHS = BigInt(180);
+const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
+const DAO_LOCK_PERIOD_EPOCHS: bigint = BigInt(180);
 
 // TODO: reject multisig with non absolute-epoch-number locktime lock
-async function deposit(
-  txSkeleton,
-  fromInfo,
-  toAddress,
-  amount,
-  { config = undefined } = {}
-) {
+/**
+ * deposit a cell to DAO
+ *
+ * @param txSkeleton
+ * @param fromInfo
+ * @param toAddress deposit cell lock address
+ * @param amount capacity in shannon
+ * @param options
+ */
+export async function deposit(
+  txSkeleton: TransactionSkeletonType,
+  fromInfo: FromInfo,
+  toAddress: Address,
+  amount: bigint,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (!DAO_SCRIPT) {
@@ -48,8 +78,8 @@ async function deposit(
         type: daoTypeScript,
       },
       data: DEPOSIT_DAO_DATA,
-      out_point: null,
-      block_hash: null,
+      out_point: undefined,
+      block_hash: undefined,
     });
   });
 
@@ -93,14 +123,14 @@ async function deposit(
   return txSkeleton;
 }
 
-function _checkFromInfoSince(fromInfo, config) {
+function _checkFromInfoSince(fromInfo: FromInfo, config: Config): void {
   let since;
   if (typeof fromInfo === "string") {
     // fromInfo is an address
     const fromScript = parseAddress(fromInfo, { config });
     const args = fromScript.args;
     if (args.length === 58) {
-      since = readBigUInt64LE("0x" + args.slice(42));
+      since = "0x" + readBigUInt64LE("0x" + args.slice(42)).toString(16);
     }
   } else {
     since = fromInfo.since;
@@ -116,16 +146,24 @@ function _checkFromInfoSince(fromInfo, config) {
   }
 }
 
-async function* listDaoCells(
-  cellProvider,
-  fromAddress,
-  cellType, // "deposit" or "withdraw"
-  { config = undefined } = {}
-) {
+/**
+ * list DAO cells,
+ *
+ * @param cellProvider
+ * @param fromAddress
+ * @param cellType
+ * @param options
+ */
+export async function* listDaoCells(
+  cellProvider: CellProvider,
+  fromAddress: Address,
+  cellType: "all" | "deposit" | "withdraw",
+  { config = undefined }: Options = {}
+): AsyncIterator<Cell> {
   config = config || getConfig();
   const fromScript = parseAddress(fromAddress, { config });
   const daoTypeScript = _daoTypeScript(config);
-  let data = null;
+  let data: HexString | undefined;
   if (cellType === "deposit") {
     data = DEPOSIT_DAO_DATA;
   }
@@ -143,12 +181,20 @@ async function* listDaoCells(
   }
 }
 
+/**
+ * withdraw an deposited DAO cell
+ *
+ * @param txSkeleton
+ * @param fromInput deposited DAO cell
+ * @param fromInfo
+ * @param options
+ */
 async function withdraw(
-  txSkeleton,
-  fromInput,
-  fromInfo,
-  { config = undefined } = {}
-) {
+  txSkeleton: TransactionSkeletonType,
+  fromInput: Cell,
+  fromInfo?: FromInfo,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   _checkDaoScript(config);
   txSkeleton = _addDaoCellDep(txSkeleton, config);
@@ -156,6 +202,10 @@ async function withdraw(
   // check inputs.size == outputs.size
   if (txSkeleton.get("inputs").size !== txSkeleton.get("outputs").size) {
     throw new Error("Input size must equals to output size in txSkeleton!");
+  }
+
+  if (!config.SCRIPTS.DAO) {
+    throw new Error("Provided config does not have DAO script setup!");
   }
 
   // TODO: check fromInput
@@ -167,6 +217,7 @@ async function withdraw(
   const typeScript = fromInput.cell_output.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (
+    !typeScript ||
     typeScript.code_hash !== DAO_SCRIPT.CODE_HASH ||
     typeScript.hash_type !== DAO_SCRIPT.HASH_TYPE ||
     fromInput.data !== DEPOSIT_DAO_DATA
@@ -181,9 +232,9 @@ async function withdraw(
         lock: fromInput.cell_output.lock,
         type: fromInput.cell_output.type,
       },
-      data: toBigUInt64LE(fromInput.block_number),
-      out_point: null,
-      block_hash: null,
+      data: toBigUInt64LE(BigInt(fromInput.block_number!)),
+      out_point: undefined,
+      block_hash: undefined,
     });
   });
 
@@ -198,7 +249,7 @@ async function withdraw(
 
   // add header deps
   txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
-    return headerDeps.push(fromInput.block_hash);
+    return headerDeps.push(fromInput.block_hash!);
   });
 
   // fix inputs / outputs / witnesses
@@ -224,7 +275,7 @@ async function withdraw(
       { config }
     );
   } else if (_isSecp256k1Blake160Multisig(fromLockScript, config)) {
-    txSkeleton = secp256k1Blake160Multisig.setupInputCell(
+    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
       txSkeleton.get("inputs").size - 1,
       fromInfo || generateAddress(fromLockScript, { config }),
@@ -236,7 +287,13 @@ async function withdraw(
 }
 
 // epoch: bigint
-function parseEpoch(epoch) {
+function parseEpoch(
+  epoch: bigint
+): {
+  length: bigint;
+  index: bigint;
+  number: bigint;
+} {
   return {
     length: (epoch >> BigInt(40)) & BigInt(0xffff),
     index: (epoch >> BigInt(24)) & BigInt(0xffff),
@@ -244,7 +301,15 @@ function parseEpoch(epoch) {
   };
 }
 
-function epochSince({ length, index, number }) {
+function epochSince({
+  length,
+  index,
+  number,
+}: {
+  length: bigint;
+  index: bigint;
+  number: bigint;
+}): bigint {
   return (
     (BigInt(0x20) << BigInt(56)) +
     (length << BigInt(40)) +
@@ -253,36 +318,52 @@ function epochSince({ length, index, number }) {
   );
 }
 
-async function unlock(
-  txSkeleton,
-  depositInput,
-  withdrawInput,
-  toAddress,
-  fromInfo,
-  { config = undefined } = {}
+/**
+ * Unlock a withdrew DAO cell
+ *
+ * @param txSkeleton
+ * @param depositInput deposited DAO cell
+ * @param withdrawInput withdrew DAO cell
+ * @param toAddress
+ * @param fromInfo
+ * @param options
+ */
+export async function unlock(
+  txSkeleton: TransactionSkeletonType,
+  depositInput: Cell,
+  withdrawInput: Cell,
+  toAddress: Address,
+  fromInfo: FromInfo,
+  { config = undefined }: Options = {}
 ) {
   config = config || getConfig();
   _checkDaoScript(config);
   txSkeleton = _addDaoCellDep(txSkeleton, config);
 
+  if (!config.SCRIPTS.DAO) {
+    throw new Error("Provided config does not have DAO script setup!");
+  }
+
   const cellProvider = txSkeleton.get("cellProvider");
   if (!cellProvider) {
     throw new Error("Cell provider is missing!");
   }
-  const rpc = new RPC(cellProvider.uri);
+  const rpc = new RPC(cellProvider.uri!);
 
   const typeScript = depositInput.cell_output.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (
+    !typeScript ||
     typeScript.code_hash !== DAO_SCRIPT.CODE_HASH ||
     typeScript.hash_type !== DAO_SCRIPT.HASH_TYPE ||
     depositInput.data !== DEPOSIT_DAO_DATA
   ) {
-    throw new Error("depositInt is not a DAO deposit cell.");
+    throw new Error("depositInput is not a DAO deposit cell.");
   }
 
   const withdrawTypeScript = withdrawInput.cell_output.type;
   if (
+    !withdrawTypeScript ||
     withdrawTypeScript.code_hash !== DAO_SCRIPT.CODE_HASH ||
     withdrawTypeScript.hash_type !== DAO_SCRIPT.HASH_TYPE ||
     withdrawInput.data === DEPOSIT_DAO_DATA
@@ -327,11 +408,11 @@ async function unlock(
       cell_output: {
         capacity: outputCapacity,
         lock: toScript,
-        type: null,
+        type: undefined,
       },
       data: "0x",
-      out_point: null,
-      block_hash: null,
+      out_point: undefined,
+      block_hash: undefined,
     });
   });
 
@@ -354,15 +435,15 @@ async function unlock(
 
   // add header deps
   txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
-    return headerDeps.push(depositInput.block_hash, withdrawInput.block_hash);
+    return headerDeps.push(depositInput.block_hash!, withdrawInput.block_hash!);
   });
 
   const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
 
   // add an empty witness
   txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-    const witnessArgs = {
-      input_type: toBigUInt64LE(depositHeaderDepIndex),
+    const witnessArgs: WitnessArgs = {
+      input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
     };
     return witnesses.push(
       new Reader(
@@ -387,7 +468,7 @@ async function unlock(
         index: txSkeleton.get("witnesses").size - 1,
       },
       {
-        filed: "headerDeps",
+        field: "headerDeps",
         index: txSkeleton.get("headerDeps").size - 2,
       }
     );
@@ -402,7 +483,7 @@ async function unlock(
       { config }
     );
   } else if (_isSecp256k1Blake160Multisig(fromLockScript, config)) {
-    txSkeleton = secp256k1Blake160Multisig.setupInputCell(
+    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
       txSkeleton.get("inputs").size - 1,
       fromInfo || generateAddress(fromLockScript, { config }),
@@ -413,11 +494,16 @@ async function unlock(
   return txSkeleton;
 }
 
-// returns bigint
-function calculateDaoEarliestSince(
-  depositBlockHeaderEpoch,
-  withdrawBlockHeaderEpoch
-) {
+/**
+ * calculate a withdraw dao cell minimal unlock since
+ *
+ * @param depositBlockHeaderEpoch depositBlockHeader.epoch
+ * @param withdrawBlockHeaderEpoch withdrawBlockHeader.epoch
+ */
+export function calculateDaoEarliestSince(
+  depositBlockHeaderEpoch: HexString,
+  withdrawBlockHeaderEpoch: HexString
+): bigint {
   const depositEpoch = parseEpoch(BigInt(depositBlockHeaderEpoch));
   const withdrawEpoch = parseEpoch(BigInt(withdrawBlockHeaderEpoch));
 
@@ -441,8 +527,8 @@ function calculateDaoEarliestSince(
   return minimalSince;
 }
 
-function _daoTypeScript(config) {
-  const DAO_SCRIPT = config.SCRIPTS.DAO;
+function _daoTypeScript(config: Config): Script {
+  const DAO_SCRIPT = config.SCRIPTS.DAO!;
   return {
     code_hash: DAO_SCRIPT.CODE_HASH,
     hash_type: DAO_SCRIPT.HASH_TYPE,
@@ -450,7 +536,7 @@ function _daoTypeScript(config) {
   };
 }
 
-function _checkDaoScript(config) {
+function _checkDaoScript(config: Config): void {
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (!DAO_SCRIPT) {
     throw new Error("Provided config does not have DAO script setup!");
@@ -463,8 +549,11 @@ function _checkDaoScript(config) {
  * @param {any} config
  * @returns {TransactionSkeleton} txSkeleton
  */
-function _addDaoCellDep(txSkeleton, config) {
-  const template = config.SCRIPTS.DAO;
+function _addDaoCellDep(
+  txSkeleton: TransactionSkeletonType,
+  config: Config
+): TransactionSkeletonType {
+  const template = config.SCRIPTS.DAO!;
   return _addCellDep(txSkeleton, {
     out_point: {
       tx_hash: template.TX_HASH,
@@ -474,7 +563,10 @@ function _addDaoCellDep(txSkeleton, config) {
   });
 }
 
-function _addCellDep(txSkeleton, newCellDep) {
+function _addCellDep(
+  txSkeleton: TransactionSkeletonType,
+  newCellDep: CellDep
+): TransactionSkeletonType {
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
       cellDep.dep_type === newCellDep.dep_type &&
@@ -496,8 +588,8 @@ function _addCellDep(txSkeleton, newCellDep) {
   return txSkeleton;
 }
 
-function _isSecp256k1Blake160(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160;
+function _isSecp256k1Blake160(script: Script, config: Config): boolean {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160!;
 
   return (
     script.code_hash === template.CODE_HASH &&
@@ -505,8 +597,8 @@ function _isSecp256k1Blake160(script, config) {
   );
 }
 
-function _isSecp256k1Blake160Multisig(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+function _isSecp256k1Blake160Multisig(script: Script, config: Config): boolean {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
 
   return (
     script.code_hash === template.CODE_HASH &&
@@ -514,7 +606,11 @@ function _isSecp256k1Blake160Multisig(script, config) {
   );
 }
 
-function extractDaoData(dao) {
+function extractDaoData(
+  dao: PackedDao
+): {
+  [key: string]: bigint;
+} {
   if (!/^(0x)?([0-9a-fA-F]){64}$/.test(dao)) {
     throw new Error("Invalid dao format!");
   }
@@ -531,7 +627,18 @@ function extractDaoData(dao) {
     .reduce((result, c) => ({ ...result, ...c }), {});
 }
 
-function calculateMaximumWithdraw(withdrawCell, depositDao, withdrawDao) {
+/**
+ * calculate maximum withdraw capacity when unlock
+ *
+ * @param withdrawCell withdrawCell or depositCell
+ * @param depositDao depositBlockHeader.dao
+ * @param withdrawDao withdrawBlockHeader.dao
+ */
+export function calculateMaximumWithdraw(
+  withdrawCell: Cell,
+  depositDao: PackedDao,
+  withdrawDao: PackedDao
+): bigint {
   const depositAR = extractDaoData(depositDao).ar;
   const withdrawAR = extractDaoData(withdrawDao).ar;
 
@@ -543,7 +650,7 @@ function calculateMaximumWithdraw(withdrawCell, depositDao, withdrawDao) {
   return withdrawCountedCapacity + occupiedCapacity;
 }
 
-module.exports = {
+export default {
   deposit,
   listDaoCells,
   withdraw,

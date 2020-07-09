@@ -1,19 +1,23 @@
-const test = require("ava");
-const { CellProvider } = require("./cell_provider");
-const { TransactionSkeleton } = require("@ckb-lumos/helpers");
-const { dao } = require("../lib");
-const { predefined } = require("@ckb-lumos/config-manager");
+import test from "ava";
+import { CellProvider } from "./cell_provider";
+import {
+  TransactionSkeleton,
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
+import { dao } from "../src";
+import { predefined, Config } from "@ckb-lumos/config-manager";
 const { LINA } = predefined;
-const { bob } = require("./account_info");
-const { inputs } = require("./secp256k1_blake160_inputs");
+import { bob } from "./account_info";
+import { inputs } from "./secp256k1_blake160_inputs";
+import { Script, Cell } from "@ckb-lumos/base";
 
 const cellProvider = new CellProvider(inputs);
-let txSkeleton = TransactionSkeleton({ cellProvider });
+let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
 
-const generateDaoTypeScript = (config) => {
+const generateDaoTypeScript = (config: Config): Script => {
   return {
-    code_hash: config.SCRIPTS.DAO.CODE_HASH,
-    hash_type: config.SCRIPTS.DAO.HASH_TYPE,
+    code_hash: config.SCRIPTS.DAO!.CODE_HASH,
+    hash_type: config.SCRIPTS.DAO!.HASH_TYPE,
     args: "0x",
   };
 };
@@ -40,18 +44,18 @@ test("deposit secp256k1_blake160", async (t) => {
 
   t.is(txSkeleton.get("cellDeps").size, 2);
 
-  t.deepEqual(
-    txSkeleton.get("cellDeps").get(0).OUT_POINT,
-    LINA.SCRIPTS.DAO.out_point
-  );
-  t.is(txSkeleton.get("cellDeps").get(0).DEP_TYPE, LINA.SCRIPTS.DAO.dep_type);
+  t.deepEqual(txSkeleton.get("cellDeps").get(0)!.out_point, {
+    tx_hash: LINA.SCRIPTS.DAO!.TX_HASH,
+    index: LINA.SCRIPTS.DAO!.INDEX,
+  });
+  t.is(txSkeleton.get("cellDeps").get(0)!.dep_type, LINA.SCRIPTS.DAO!.DEP_TYPE);
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("witnesses").size, 1);
 
   t.is(txSkeleton.get("outputs").size, 2);
   t.deepEqual(
-    txSkeleton.get("outputs").get(0).cell_output.type,
+    txSkeleton.get("outputs").get(0)!.cell_output!.type,
     generateDaoTypeScript(LINA)
   );
 });
@@ -64,7 +68,7 @@ test("withdraw secp256k1_blake160", async (t) => {
     BigInt(1000 * 10 ** 8)
   );
 
-  const fromInput = txSkeleton.get("outputs").get(0);
+  const fromInput = txSkeleton.get("outputs").get(0)!;
   (fromInput.block_hash = "0x" + "1".repeat(64)),
     (fromInput.block_number = "0x100");
   fromInput.out_point = {
@@ -76,25 +80,25 @@ test("withdraw secp256k1_blake160", async (t) => {
   txSkeleton = await dao.withdraw(txSkeleton, fromInput, bob.mainnetAddress);
 
   t.is(txSkeleton.get("cellDeps").size, 2);
-  t.deepEqual(
-    txSkeleton.get("cellDeps").get(0).OUT_POINT,
-    LINA.SCRIPTS.DAO.out_point
-  );
-  t.is(txSkeleton.get("cellDeps").get(0).DEP_TYPE, LINA.SCRIPTS.DAO.dep_type);
+  t.deepEqual(txSkeleton.get("cellDeps").get(0)!.out_point, {
+    tx_hash: LINA.SCRIPTS.DAO!.TX_HASH,
+    index: LINA.SCRIPTS.DAO!.INDEX,
+  });
+  t.is(txSkeleton.get("cellDeps").get(0)!.dep_type, LINA.SCRIPTS.DAO!.DEP_TYPE);
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("witnesses").size, 1);
-  t.not(txSkeleton.get("witnesses").get(0), "0x");
+  t.not(txSkeleton.get("witnesses").get(0)!, "0x");
 
   t.is(txSkeleton.get("outputs").size, 1);
   t.is(
-    txSkeleton.get("inputs").get(0).cell_output.capacity,
-    txSkeleton.get("outputs").get(0).cell_output.capacity
+    txSkeleton.get("inputs").get(0)!.cell_output.capacity,
+    txSkeleton.get("outputs").get(0)!.cell_output.capacity
   );
   t.is(txSkeleton.get("headerDeps").size, 1);
-  t.is(txSkeleton.get("headerDeps").get(0), fromInput.block_hash);
+  t.is(txSkeleton.get("headerDeps").get(0)!, fromInput.block_hash);
   t.deepEqual(
-    txSkeleton.get("outputs").get(0).cell_output.type,
+    txSkeleton.get("outputs").get(0)!.cell_output.type,
     generateDaoTypeScript(LINA)
   );
 
@@ -187,7 +191,7 @@ test("calculateMaximumWithdraw", (t) => {
     expectedWithdrawCapacity,
   } = calculateMaximumWithdrawInfo;
   const result = dao.calculateMaximumWithdraw(
-    depositInput,
+    depositInput as Cell,
     depositHeader.dao,
     withdrawHeader.dao
   );

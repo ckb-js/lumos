@@ -1,14 +1,17 @@
-const test = require("ava");
-const { CellProvider } = require("./cell_provider");
-const { TransactionSkeleton } = require("@ckb-lumos/helpers");
-const { secp256k1Blake160 } = require("../lib");
-const { predefined } = require("@ckb-lumos/config-manager");
+import test from "ava";
+import { CellProvider } from "./cell_provider";
+import {
+  TransactionSkeleton,
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
+import { secp256k1Blake160 } from "../src";
+import { predefined } from "@ckb-lumos/config-manager";
 const { LINA } = predefined;
-const { bob, alice, fullAddressInfo } = require("./account_info");
-const { inputs } = require("./secp256k1_blake160_inputs");
+import { bob, alice, fullAddressInfo } from "./account_info";
+import { inputs } from "./secp256k1_blake160_inputs";
 
 const cellProvider = new CellProvider(inputs);
-let txSkeleton = TransactionSkeleton({ cellProvider });
+let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
 
 test("transfer success", async (t) => {
   txSkeleton = await secp256k1Blake160.transfer(
@@ -50,16 +53,16 @@ test("transfer to non secp256k1_blake160 address", async (t) => {
   t.is(sumOfOutputCapacity, sumOfInputCapacity);
 
   t.is(txSkeleton.get("outputs").size, 2);
-  const targetOutput = txSkeleton.get("outputs").get(0);
-  t.deepEqual(targetOutput.cell_output.lock, fullAddressInfo.lock);
-  const changeOutput = txSkeleton.get("outputs").get(1);
-  const template = LINA.SCRIPTS.SECP256K1_BLAKE160;
+  const targetOutput = txSkeleton.get("outputs").get(0)!;
+  t.deepEqual(targetOutput.cell_output!.lock, fullAddressInfo.lock);
+  const changeOutput = txSkeleton.get("outputs").get(1)!;
+  const template = LINA.SCRIPTS.SECP256K1_BLAKE160!;
   const expectedChangeLockScript = {
     code_hash: template.CODE_HASH,
     hash_type: template.HASH_TYPE,
     args: bob.blake160,
   };
-  t.deepEqual(changeOutput.cell_output.lock, expectedChangeLockScript);
+  t.deepEqual(changeOutput.cell_output!.lock, expectedChangeLockScript);
 });
 
 test("payFee", async (t) => {
@@ -124,7 +127,7 @@ test("prepareSigningEntries", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 1);
 
-  const message = txSkeleton.get("signingEntries").get(0).message;
+  const message = txSkeleton.get("signingEntries").get(0)!.message;
   t.is(message, expectedMessage);
 });
 
@@ -137,8 +140,8 @@ test("transfer, skip duplicated input", async (t) => {
     return outputs.push({
       cell_output: firstInput.cell_output,
       data: "0x",
-      out_point: null,
-      block_hash: null,
+      out_point: undefined,
+      block_hash: undefined,
     });
   });
   txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
@@ -169,7 +172,7 @@ test("transfer, skip duplicated input", async (t) => {
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 3);
   t.notDeepEqual(
-    txSkeleton.get("inputs").get(0).out_point,
-    txSkeleton.get("inputs").get(1).out_point
+    txSkeleton.get("inputs").get(0)!.out_point,
+    txSkeleton.get("inputs").get(1)!.out_point
   );
 });

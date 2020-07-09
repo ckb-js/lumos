@@ -1,13 +1,24 @@
-const test = require("ava");
-const { TransactionSkeleton, parseAddress } = require("@ckb-lumos/helpers");
-const { locktimePool, secp256k1Blake160Multisig } = require("../lib");
+import test from "ava";
+import {
+  TransactionSkeleton,
+  parseAddress,
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
+import {
+  locktimePool,
+  secp256k1Blake160Multisig,
+  LocktimeCell,
+  FromInfo,
+} from "../src";
 const { transfer, prepareSigningEntries, payFee } = locktimePool;
-const { CellProvider } = require("./cell_provider");
-const { calculateMaximumWithdraw } = require("../lib/dao");
-const { List } = require("immutable");
-const { DEV_CONFIG } = require("./dev_config");
+import { CellProvider } from "./cell_provider";
+import { calculateMaximumWithdraw } from "../src/dao";
+import { List } from "immutable";
+import { DEV_CONFIG } from "./dev_config";
+import { Config } from "@ckb-lumos/config-manager";
+import { Script, Header } from "@ckb-lumos/base";
 
-const inputInfos = [
+const inputInfos: LocktimeCell[] = [
   {
     // multisig
     cell_output: {
@@ -29,7 +40,7 @@ const inputInfos = [
       "0x62e03ef430cb72041014224417de08caf73d4e804eaca7813c2015abcd6afe1a",
     block_number: "0x1aee1",
     data: "0x",
-    maximumCapacity: 100000000000n,
+    maximumCapacity: BigInt("100000000000"),
     since: "0x0",
     depositBlockHash: undefined,
     withdrawBlockHash: undefined,
@@ -60,11 +71,11 @@ const inputInfos = [
       "0xee89cacb5ff0dd3edcca3904619693355396536cce45658bf9a9c676ae3819c3",
     block_number: "0x1aedd",
     data: "0x",
-    maximumCapacity: 100000000000n,
+    maximumCapacity: BigInt("100000000000"),
     since: "0x2000f000c0002b15",
     depositBlockHash: undefined,
     withdrawBlockHash: undefined,
-    header: {
+    sinceBaseValue: {
       epoch: "0xa0001002b16",
       number: "0x1aedd",
       timestamp: "0x172b6608868",
@@ -96,13 +107,13 @@ const inputInfos = [
       "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
     block_number: "0x1929c",
     data: "0x4992010000000000",
-    maximumCapacity: 100007690204n,
+    maximumCapacity: BigInt("100007690204"),
     since: "0x20000a00050028ee",
     depositBlockHash:
       "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
     withdrawBlockHash:
       "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
-    header: undefined,
+    sinceBaseValue: undefined,
   },
 ];
 
@@ -111,8 +122,12 @@ const depositDao =
 const withdrawDao =
   "0x39d32247d33f90523d37dae613dd280037e9cc1d7b01c708003d8849d8ac0200";
 
-async function* cellCollector(_, fromInfo, { config }) {
-  let fromScript;
+async function* cellCollector(
+  _: any,
+  fromInfo: FromInfo,
+  { config }: { config: Config }
+): AsyncGenerator<LocktimeCell> {
+  let fromScript: Script | undefined;
   if (typeof fromInfo === "string") {
     // fromInfo is an address
     fromScript = parseAddress(fromInfo, { config });
@@ -125,8 +140,8 @@ async function* cellCollector(_, fromInfo, { config }) {
       fromInfo.since
     );
     fromScript = {
-      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.CODE_HASH,
-      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.HASH_TYPE,
+      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.CODE_HASH,
+      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.HASH_TYPE,
       args: fromScriptArgs,
     };
   }
@@ -142,9 +157,9 @@ async function* cellCollector(_, fromInfo, { config }) {
 }
 
 const cellProvider = new CellProvider([]);
-let txSkeleton = TransactionSkeleton({ cellProvider });
+let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
 
-const tipHeader = {
+const tipHeader: Header = {
   compact_target: "0x20010000",
   dao: "0x443110aefc4d1b55b10353894c2a29001e664c552fd16409005ef48f09d50200",
   epoch: "0xa0007002b16",
@@ -165,11 +180,10 @@ const tipHeader = {
 const aliceAddress = "ckt1qyqwyxfa75whssgkq9ukkdd30d8c7txct0gqfvmy2v";
 const bobAddress = "ckt1qyqrdsefa43s6m882pcj53m4gdnj4k440axqswmu83";
 
-const fromInfo = {
+const fromInfo: FromInfo = {
   R: 0,
   M: 1,
   publicKeyHashes: ["0x36c329ed630d6ce750712a477543672adab57f4c"],
-  // since: 0,
 };
 
 test("transfer multisig", async (t) => {
@@ -218,7 +232,7 @@ test("prepareSigningEntries, multisig", async (t) => {
   const expectedMessage =
     "0x185fb55177cefec3187c681889d10f85bb142400bf9817dd68b4efb5b51b9b04";
 
-  const signingEntry = txSkeleton.get("signingEntries").get(0);
+  const signingEntry = txSkeleton.get("signingEntries").get(0)!;
   t.is(signingEntry.index, 0);
   t.is(signingEntry.type, "witness_args_lock");
   t.is(signingEntry.message, expectedMessage);
@@ -289,7 +303,8 @@ test("prepareSigningEntries, multisig & dao", async (t) => {
   expectedMessages.forEach((expectedMessage, index) => {
     const message = txSkeleton
       .get("signingEntries")
-      .find((s) => s.type === "witness_args_lock" && s.index === index).message;
+      .find((s) => s.type === "witness_args_lock" && s.index === index)!
+      .message;
     t.is(message, expectedMessage);
   });
 });

@@ -1,12 +1,17 @@
-const test = require("ava");
-
-const { __tests__ } = require("../lib/common");
+import test from "ava";
+import common from "../src/common";
+const { __tests__ } = common;
 const { _commonTransfer } = __tests__;
-const { DEV_CONFIG } = require("./dev_config");
-const { CellProvider } = require("./cell_provider");
-const { TransactionSkeleton } = require("@ckb-lumos/helpers");
+import { DEV_CONFIG } from "./dev_config";
+import { CellProvider } from "./cell_provider";
+import {
+  TransactionSkeleton,
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
+import { Cell } from "@ckb-lumos/base";
+import { FromInfo } from "../src";
 
-const aliceInputs = [
+const aliceInputs: Cell[] = [
   {
     cell_output: {
       capacity: "0x1d1a3543f00",
@@ -29,7 +34,7 @@ const aliceInputs = [
   },
 ];
 
-const multisigInputs = [
+const multisigInputs: Cell[] = [
   {
     cell_output: {
       capacity: "0xba37cb7e00",
@@ -53,12 +58,12 @@ const multisigInputs = [
 ];
 
 const cellProvider = new CellProvider(aliceInputs.concat(multisigInputs));
-let txSkeleton = TransactionSkeleton({ cellProvider });
+let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
 
 const bobAddress = "ckt1qyqrdsefa43s6m882pcj53m4gdnj4k440axqswmu83";
 const aliceAddress = "ckt1qyqwyxfa75whssgkq9ukkdd30d8c7txct0gqfvmy2v";
 
-const fromInfo = {
+const fromInfo: FromInfo = {
   R: 0,
   M: 1,
   publicKeyHashes: ["0x36c329ed630d6ce750712a477543672adab57f4c"],

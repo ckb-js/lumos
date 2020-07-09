@@ -1,13 +1,26 @@
-const { Set } = require("immutable");
-const {
+import { Set } from "immutable";
+import {
   createTransactionFromSkeleton,
   parseAddress,
-} = require("@ckb-lumos/helpers");
-const { core, values, utils } = require("@ckb-lumos/base");
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
+import {
+  core,
+  values,
+  utils,
+  CellDep,
+  Script,
+  Address,
+  HexString,
+} from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
-const { normalizers, Reader } = require("ckb-js-toolkit");
+import { normalizers, Reader } from "ckb-js-toolkit";
+import { Config } from "@ckb-lumos/config-manager";
 
-function addCellDep(txSkeleton, newCellDep) {
+export function addCellDep(
+  txSkeleton: TransactionSkeletonType,
+  newCellDep: CellDep
+): TransactionSkeletonType {
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
       cellDep.dep_type === newCellDep.dep_type &&
@@ -29,8 +42,8 @@ function addCellDep(txSkeleton, newCellDep) {
   return txSkeleton;
 }
 
-function generateDaoScript(config) {
-  const template = config.SCRIPTS.DAO;
+export function generateDaoScript(config: Config): Script {
+  const template = config.SCRIPTS.DAO!;
 
   return {
     code_hash: template.CODE_HASH,
@@ -39,43 +52,58 @@ function generateDaoScript(config) {
   };
 }
 
-function isSecp256k1Blake160Script(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160;
+export function isSecp256k1Blake160Script(
+  script: Script,
+  config: Config
+): boolean {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160!;
   return (
     script.code_hash === template.CODE_HASH &&
     script.hash_type === template.HASH_TYPE
   );
 }
 
-function isSecp256k1Blake160Address(address, config) {
+export function isSecp256k1Blake160Address(
+  address: Address,
+  config: Config
+): boolean {
   const script = parseAddress(address, { config });
   return isSecp256k1Blake160Script(script, config);
 }
 
-function isSecp256k1Blake160MultisigScript(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+export function isSecp256k1Blake160MultisigScript(
+  script: Script,
+  config: Config
+): boolean {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
   return (
     script.code_hash === template.CODE_HASH &&
     script.hash_type === template.HASH_TYPE
   );
 }
 
-function isSecp256k1Blake160MultisigAddress(address, config) {
+export function isSecp256k1Blake160MultisigAddress(
+  address: Address,
+  config: Config
+): boolean {
   const script = parseAddress(address, { config });
   return isSecp256k1Blake160MultisigScript(script, config);
 }
 
-function isDaoScript(script, config) {
-  const template = config.SCRIPTS.DAO;
+export function isDaoScript(
+  script: Script | undefined,
+  config: Config
+): boolean {
+  const template = config.SCRIPTS.DAO!;
 
   return (
-    script &&
+    !!script &&
     script.code_hash === template.CODE_HASH &&
     script.hash_type === template.HASH_TYPE
   );
 }
 
-function hashWitness(hasher, witness) {
+export function hashWitness(hasher: any, witness: HexString): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
   view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
@@ -83,7 +111,11 @@ function hashWitness(hasher, witness) {
   hasher.update(witness);
 }
 
-function prepareSigningEntries(txSkeleton, config, scriptType) {
+export function prepareSigningEntries(
+  txSkeleton: TransactionSkeletonType,
+  config: Config,
+  scriptType: "SECP256K1_BLAKE160" | "SECP256K1_BLAKE160_MULTISIG"
+): TransactionSkeletonType {
   const template = config.SCRIPTS[scriptType];
   if (!template) {
     throw new Error(
@@ -99,7 +131,7 @@ function prepareSigningEntries(txSkeleton, config, scriptType) {
   const witnesses = txSkeleton.get("witnesses");
   let signingEntries = txSkeleton.get("signingEntries");
   for (let i = 0; i < inputs.size; i++) {
-    const input = inputs.get(i);
+    const input = inputs.get(i)!;
     if (
       template.CODE_HASH === input.cell_output.lock.code_hash &&
       template.HASH_TYPE === input.cell_output.lock.hash_type &&
@@ -116,9 +148,9 @@ function prepareSigningEntries(txSkeleton, config, scriptType) {
           `The first witness in the script group starting at input index ${i} does not exist, maybe some other part has invalidly tampered the transaction?`
         );
       }
-      hashWitness(hasher, witnesses.get(i));
+      hashWitness(hasher, witnesses.get(i)!);
       for (let j = i + 1; j < inputs.size && j < witnesses.size; j++) {
-        const otherInput = inputs.get(j);
+        const otherInput = inputs.get(j)!;
         if (
           lockValue.equals(
             new values.ScriptValue(otherInput.cell_output.lock, {
@@ -126,11 +158,11 @@ function prepareSigningEntries(txSkeleton, config, scriptType) {
             })
           )
         ) {
-          hashWitness(hasher, witnesses.get(j));
+          hashWitness(hasher, witnesses.get(j)!);
         }
       }
       for (let j = inputs.size; j < witnesses.size; j++) {
-        hashWitness(hasher, witnesses.get(j));
+        hashWitness(hasher, witnesses.get(j)!);
       }
       const signingEntry = {
         type: "witness_args_lock",
@@ -144,7 +176,7 @@ function prepareSigningEntries(txSkeleton, config, scriptType) {
   return txSkeleton;
 }
 
-module.exports = {
+export default {
   addCellDep,
   generateDaoScript,
   isSecp256k1Blake160Script,

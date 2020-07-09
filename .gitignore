@@ -108,3 +108,4 @@ packages/sql-indexer/knexfile.dev.js
 
 # compiled js
 packages/helpers/lib
+packages/common-scripts/lib

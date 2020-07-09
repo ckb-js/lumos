@@ -1,4 +1,6 @@
-const inputs = [
+import { Cell } from "@ckb-lumos/base";
+
+export const inputs: Cell[] = [
   {
     cell_output: {
       capacity: "0x11716ddd8a8e",
@@ -60,7 +62,3 @@ const inputs = [
     data: "0x",
   },
 ];
-
-module.exports = {
-  inputs,
-};
