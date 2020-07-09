@@ -1,22 +1,17 @@
 import test from "ava";
 import {
   TransactionSkeleton,
-  parseAddress,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import {
-  locktimePool,
-  secp256k1Blake160Multisig,
-  LocktimeCell,
-  FromInfo,
-} from "../src";
+import { locktimePool, LocktimeCell, FromInfo } from "../src";
 const { transfer, prepareSigningEntries, payFee } = locktimePool;
 import { CellProvider } from "./cell_provider";
 import { calculateMaximumWithdraw } from "../src/dao";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config } from "@ckb-lumos/config-manager";
-import { Script, Header } from "@ckb-lumos/base";
+import { Header } from "@ckb-lumos/base";
+import { parseFromInfo } from "../src/secp256k1_blake160_multisig";
 
 const inputInfos: LocktimeCell[] = [
   {
@@ -127,24 +122,7 @@ async function* cellCollector(
   fromInfo: FromInfo,
   { config }: { config: Config }
 ): AsyncGenerator<LocktimeCell> {
-  let fromScript: Script | undefined;
-  if (typeof fromInfo === "string") {
-    // fromInfo is an address
-    fromScript = parseAddress(fromInfo, { config });
-  } else {
-    const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
-      fromInfo
-    );
-    const fromScriptArgs = secp256k1Blake160Multisig.multisigArgs(
-      multisigScript,
-      fromInfo.since
-    );
-    fromScript = {
-      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.CODE_HASH,
-      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.HASH_TYPE,
-      args: fromScriptArgs,
-    };
-  }
+  const { fromScript } = parseFromInfo(fromInfo, { config });
   for (const info of inputInfos) {
     const lock = info.cell_output.lock;
     if (

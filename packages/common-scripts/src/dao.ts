@@ -7,7 +7,6 @@ import {
 } from "@ckb-lumos/helpers";
 import {
   core,
-  values,
   utils,
   since as sinceUtils,
   HexString,
@@ -15,8 +14,6 @@ import {
   CellProvider,
   Cell,
   WitnessArgs,
-  Script,
-  CellDep,
   PackedDao,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
@@ -27,6 +24,12 @@ import secp256k1Blake160 from "./secp256k1_blake160";
 import secp256k1Blake160Multisig, {
   FromInfo,
 } from "./secp256k1_blake160_multisig";
+import {
+  addCellDep,
+  isSecp256k1Blake160Script,
+  isSecp256k1Blake160MultisigScript,
+  generateDaoScript,
+} from "./helper";
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS: bigint = BigInt(180);
@@ -96,14 +99,14 @@ export async function deposit(
   if (typeof fromInfo === "string") {
     const fromScript = parseAddress(fromInfo, { config });
     // address
-    if (_isSecp256k1Blake160(fromScript, config)) {
+    if (isSecp256k1Blake160Script(fromScript, config)) {
       txSkeleton = await secp256k1Blake160.injectCapacity(
         txSkeleton,
         outputIndex,
         fromInfo,
         { config }
       );
-    } else if (_isSecp256k1Blake160Multisig(fromScript, config)) {
+    } else if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
       txSkeleton = await secp256k1Blake160Multisig.injectCapacity(
         txSkeleton,
         outputIndex,
@@ -162,7 +165,7 @@ export async function* listDaoCells(
 ): AsyncIterator<Cell> {
   config = config || getConfig();
   const fromScript = parseAddress(fromAddress, { config });
-  const daoTypeScript = _daoTypeScript(config);
+  const daoTypeScript = generateDaoScript(config);
   let data: HexString | undefined;
   if (cellType === "deposit") {
     data = DEPOSIT_DAO_DATA;
@@ -268,13 +271,13 @@ async function withdraw(
 
   // setup input cell
   const fromLockScript = fromInput.cell_output.lock;
-  if (_isSecp256k1Blake160(fromLockScript, config)) {
+  if (isSecp256k1Blake160Script(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160.setupInputCell(
       txSkeleton,
       txSkeleton.get("inputs").size - 1,
       { config }
     );
-  } else if (_isSecp256k1Blake160Multisig(fromLockScript, config)) {
+  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
       txSkeleton.get("inputs").size - 1,
@@ -476,13 +479,13 @@ export async function unlock(
 
   // setup input cell
   const fromLockScript = withdrawInput.cell_output.lock;
-  if (_isSecp256k1Blake160(fromLockScript, config)) {
+  if (isSecp256k1Blake160Script(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160.setupInputCell(
       txSkeleton,
       txSkeleton.get("inputs").size - 1,
       { config }
     );
-  } else if (_isSecp256k1Blake160Multisig(fromLockScript, config)) {
+  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
       txSkeleton.get("inputs").size - 1,
@@ -527,15 +530,6 @@ export function calculateDaoEarliestSince(
   return minimalSince;
 }
 
-function _daoTypeScript(config: Config): Script {
-  const DAO_SCRIPT = config.SCRIPTS.DAO!;
-  return {
-    code_hash: DAO_SCRIPT.CODE_HASH,
-    hash_type: DAO_SCRIPT.HASH_TYPE,
-    args: "0x",
-  };
-}
-
 function _checkDaoScript(config: Config): void {
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (!DAO_SCRIPT) {
@@ -554,56 +548,13 @@ function _addDaoCellDep(
   config: Config
 ): TransactionSkeletonType {
   const template = config.SCRIPTS.DAO!;
-  return _addCellDep(txSkeleton, {
+  return addCellDep(txSkeleton, {
     out_point: {
       tx_hash: template.TX_HASH,
       index: template.INDEX,
     },
     dep_type: template.DEP_TYPE,
   });
-}
-
-function _addCellDep(
-  txSkeleton: TransactionSkeletonType,
-  newCellDep: CellDep
-): TransactionSkeletonType {
-  const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
-    return (
-      cellDep.dep_type === newCellDep.dep_type &&
-      new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
-        new values.OutPointValue(newCellDep.out_point, { validate: false })
-      )
-    );
-  });
-
-  if (!cellDep) {
-    txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
-      return cellDeps.push({
-        out_point: newCellDep.out_point,
-        dep_type: newCellDep.dep_type,
-      });
-    });
-  }
-
-  return txSkeleton;
-}
-
-function _isSecp256k1Blake160(script: Script, config: Config): boolean {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160!;
-
-  return (
-    script.code_hash === template.CODE_HASH &&
-    script.hash_type === template.HASH_TYPE
-  );
-}
-
-function _isSecp256k1Blake160Multisig(script: Script, config: Config): boolean {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
-
-  return (
-    script.code_hash === template.CODE_HASH &&
-    script.hash_type === template.HASH_TYPE
-  );
 }
 
 function extractDaoData(

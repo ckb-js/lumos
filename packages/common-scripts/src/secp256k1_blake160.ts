@@ -3,36 +3,18 @@ import { normalizers, Reader } from "ckb-js-toolkit";
 import {
   parseAddress,
   minimalCellCapacity,
-  createTransactionFromSkeleton,
   generateAddress,
 } from "@ckb-lumos/helpers";
-import {
-  core,
-  values,
-  utils,
-  Script,
-  Address,
-  Cell,
-  WitnessArgs,
-  HexString,
-} from "@ckb-lumos/base";
+import { core, values, Address, Cell, WitnessArgs } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { TransactionSkeletonType, Options } from "@ckb-lumos/helpers";
-const { CKBHasher, ckbHash } = utils;
+import {
+  addCellDep,
+  ensureScript,
+  prepareSigningEntries as _prepareSigningEntries,
+  SECP_SIGNATURE_PLACEHOLDER,
+} from "./helper";
 const { ScriptValue } = values;
-
-const SIGNATURE_PLACEHOLDER =
-  "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
-function ensureSecp256k1Script(script: Script, config: Config): void {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160!;
-  if (
-    template.CODE_HASH !== script.code_hash ||
-    template.HASH_TYPE !== script.hash_type
-  ) {
-    throw new Error("Provided script is not SECP256K1_BLAKE160 script!");
-  }
-}
 
 export async function transfer(
   txSkeleton: TransactionSkeletonType,
@@ -83,37 +65,25 @@ export async function transfer(
   } = {}
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
   config = config || getConfig();
-  if (!config.SCRIPTS.SECP256K1_BLAKE160) {
+
+  const template = config.SCRIPTS.SECP256K1_BLAKE160;
+  if (!template) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE160 script setup!"
     );
   }
   const scriptOutPoint = {
-    tx_hash: config.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
-    index: config.SCRIPTS.SECP256K1_BLAKE160.INDEX,
+    tx_hash: template.TX_HASH,
+    index: template.INDEX,
   };
 
-  const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
-    return (
-      cellDep.dep_type === config!.SCRIPTS.SECP256K1_BLAKE160!.DEP_TYPE &&
-      new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
-        new values.OutPointValue(scriptOutPoint, {
-          validate: false,
-        })
-      )
-    );
+  txSkeleton = addCellDep(txSkeleton, {
+    out_point: scriptOutPoint,
+    dep_type: template.DEP_TYPE,
   });
-  if (!cellDep) {
-    txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
-      return cellDeps.push({
-        out_point: scriptOutPoint,
-        dep_type: config!.SCRIPTS.SECP256K1_BLAKE160!.DEP_TYPE,
-      });
-    });
-  }
 
   const fromScript = parseAddress(fromAddress, { config });
-  ensureSecp256k1Script(fromScript, config);
+  ensureScript(fromScript, config, "SECP256K1_BLAKE160");
 
   if (requireToAddress && !toAddress) {
     throw new Error("You must provide a to address!");
@@ -267,7 +237,7 @@ export async function transfer(
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
     const newWitnessArgs: WitnessArgs = {
       /* 65-byte zeros in hex */
-      lock: SIGNATURE_PLACEHOLDER,
+      lock: SECP_SIGNATURE_PLACEHOLDER,
     };
     if (witness !== "0x") {
       const witnessArgs = new core.WitnessArgs(new Reader(witness));
@@ -380,18 +350,6 @@ export async function setupInputCell(
   });
 }
 
-const _emptyCKBHasherValue = new CKBHasher();
-function hashWitness(
-  hasher: typeof _emptyCKBHasherValue,
-  witness: HexString
-): void {
-  const lengthBuffer = new ArrayBuffer(8);
-  const view = new DataView(lengthBuffer);
-  view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
-  hasher.update(lengthBuffer);
-  hasher.update(witness);
-}
-
 /**
  * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
  *
@@ -403,64 +361,8 @@ export function prepareSigningEntries(
   { config = undefined }: Options = {}
 ): TransactionSkeletonType {
   config = config || getConfig();
-  if (!config.SCRIPTS.SECP256K1_BLAKE160) {
-    throw new Error(
-      "Provided config does not have SECP256K1_BLAKE160 script setup!"
-    );
-  }
-  const template = config.SCRIPTS.SECP256K1_BLAKE160;
-  let processedArgs = Set();
-  const tx = createTransactionFromSkeleton(txSkeleton);
-  const txHash = ckbHash(
-    core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))
-  ).serializeJson();
-  const inputs = txSkeleton.get("inputs");
-  const witnesses = txSkeleton.get("witnesses");
-  let signingEntries = txSkeleton.get("signingEntries");
-  for (let i = 0; i < inputs.size; i++) {
-    const input = inputs.get(i)!;
-    if (
-      template.CODE_HASH === input.cell_output.lock.code_hash &&
-      template.HASH_TYPE === input.cell_output.lock.hash_type &&
-      !processedArgs.has(input.cell_output.lock.args)
-    ) {
-      processedArgs = processedArgs.add(input.cell_output.lock.args);
-      const lockValue = new values.ScriptValue(input.cell_output.lock, {
-        validate: false,
-      });
-      const hasher = new CKBHasher();
-      hasher.update(txHash);
-      if (i >= witnesses.size) {
-        throw new Error(
-          `The first witness in the script group starting at input index ${i} does not exist, maybe some other part has invalidly tampered the transaction?`
-        );
-      }
-      hashWitness(hasher, witnesses.get(i)!);
-      for (let j = i + 1; j < inputs.size && j < witnesses.size; j++) {
-        const otherInput = inputs.get(j);
-        if (
-          lockValue.equals(
-            new values.ScriptValue(otherInput!.cell_output.lock, {
-              validate: false,
-            })
-          )
-        ) {
-          hashWitness(hasher, witnesses.get(j)!);
-        }
-      }
-      for (let j = inputs.size; j < witnesses.size; j++) {
-        hashWitness(hasher, witnesses.get(j)!);
-      }
-      const signingEntry = {
-        type: "witness_args_lock",
-        index: i,
-        message: hasher.digestHex(),
-      };
-      signingEntries = signingEntries.push(signingEntry);
-    }
-  }
-  txSkeleton = txSkeleton.set("signingEntries", signingEntries);
-  return txSkeleton;
+
+  return _prepareSigningEntries(txSkeleton, config, "SECP256K1_BLAKE160");
 }
 
 export default {
