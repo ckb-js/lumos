@@ -66,8 +66,6 @@ for await (const tx of cellCollector.collect()) {
 ```
 It will fetch cells between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
 
-Note: Prefix search on args and range query can't be used at the same time so far.
-
 Page jump when queryring cells is supported:
 
 ```javascript

@@ -365,41 +365,37 @@ declare_types! {
             } else {
                 KeyPrefix::CellLockScript
             };
-
             let args_len = cx.argument::<JsNumber>(3)?.value();
             if args_len > u32::max_value() as f64 {
                 return cx.throw_error("args length must fit in u32 value!");
             }
-            let from_block = cx.argument::<JsValue>(4)?;
-            let to_block = cx.argument::<JsValue>(5)?;
             let args_len = if args_len <= 0.0 {
                 script.args().len() as u32
             } else {
-                if from_block.is_a::<JsNumber>() || to_block.is_a::<JsNumber>() {
-                    return cx.throw_error("prefix search on args and range query can't be used at the same time!");
-                }
+                // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
                 args_len as u32
             };
-
             let mut start_key = vec![prefix as u8];
             start_key.extend_from_slice(script.code_hash().as_slice());
             start_key.extend_from_slice(script.hash_type().as_slice());
             start_key.extend_from_slice(&args_len.to_le_bytes());
             start_key.extend_from_slice(&script.args().raw_data());
 
-            let mut end_key = start_key.clone();
-
-            if from_block.is_a::<JsNumber>() {
+            let from_block = cx.argument::<JsValue>(4)?;
+            let to_block = cx.argument::<JsValue>(5)?;
+            let from_block_number_slice = if from_block.is_a::<JsNumber>() {
                 let from_block_number = from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
-                start_key.extend_from_slice(&from_block_number.to_be_bytes());
-            }
-            if to_block.is_a::<JsNumber>() {
+                from_block_number.to_be_bytes()
+            } else {
+                0_u64.to_be_bytes()
+            };
+            let to_block_number_slice = if to_block.is_a::<JsNumber>() {
                 // here set to_block_number as toBlock + 1, making the toBlock included in query range.
                 let to_block_number = to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64 + 1;
-                end_key.extend_from_slice(&to_block_number.to_be_bytes());
+                to_block_number.to_be_bytes()
             } else {
-                end_key.extend_from_slice(&u64::MAX.to_be_bytes());
-            }
+                u64::MAX.to_be_bytes()
+            };
 
             let skip = cx.argument::<JsValue>(6)?;
             let skip_number = if skip.is_a::<JsNumber>() {
@@ -413,7 +409,16 @@ declare_types! {
                 return cx.throw_error("Error creating iterator!");
             }
 
-            let iter = iter.unwrap().take_while(move |(key, _)| key.to_vec() < end_key).skip(skip_number);
+            let iter = iter.unwrap()
+            .take_while(move |(key, _)| {
+                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                key.starts_with(&start_key) && to_block_number_slice > block_number_slice.unwrap()
+            })
+            .filter( move |(key, _)| {
+                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                from_block_number_slice <= block_number_slice.unwrap()
+            })
+            .skip(skip_number);
 
             Ok(LiveCellIterator(Box::new(iter)))
         }
