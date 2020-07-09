@@ -6,7 +6,7 @@
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "index.d.ts",
+  "types": "lib/index.d.ts",
   "engines": {
     "node": ">=12.0.0"
   },
@@ -23,11 +23,11 @@
     "test": "tests"
   },
   "files": [
-    "lib",
-    "index.d.ts"
+    "lib"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
     "@ckb-lumos/config-manager": "^0.4.8",
@@ -41,11 +41,23 @@
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
-    "fmt": "prettier --write \"{lib,tests}/**/*.js\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.js\"",
-    "test": "ava **/*.test.js"
+    "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
+    "test": "ava **/*.test.ts",
+    "build": "tsc",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   }
 }

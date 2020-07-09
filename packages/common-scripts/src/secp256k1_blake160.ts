@@ -1,21 +1,31 @@
-const {
+import { Set } from "immutable";
+import { normalizers, Reader } from "ckb-js-toolkit";
+import {
   parseAddress,
   minimalCellCapacity,
   createTransactionFromSkeleton,
   generateAddress,
-} = require("@ckb-lumos/helpers");
-const { core, values, utils } = require("@ckb-lumos/base");
-const { getConfig } = require("@ckb-lumos/config-manager");
+} from "@ckb-lumos/helpers";
+import {
+  core,
+  values,
+  utils,
+  Script,
+  Address,
+  Cell,
+  WitnessArgs,
+  HexString,
+} from "@ckb-lumos/base";
+import { getConfig, Config } from "@ckb-lumos/config-manager";
+import { TransactionSkeletonType, Options } from "@ckb-lumos/helpers";
 const { CKBHasher, ckbHash } = utils;
 const { ScriptValue } = values;
-const { normalizers, Reader } = require("ckb-js-toolkit");
-const { Set } = require("immutable");
 
 const SIGNATURE_PLACEHOLDER =
   "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
-function ensureSecp256k1Script(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160;
+function ensureSecp256k1Script(script: Script, config: Config): void {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160!;
   if (
     template.CODE_HASH !== script.code_hash ||
     template.HASH_TYPE !== script.hash_type
@@ -24,17 +34,54 @@ function ensureSecp256k1Script(script, config) {
   }
 }
 
-async function transfer(
-  txSkeleton,
-  fromAddress,
-  toAddress,
-  amount,
+export async function transfer(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: Address,
+  toAddress: Address | null | undefined,
+  amount: bigint,
+  options?: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough?: true;
+  }
+): Promise<TransactionSkeletonType>;
+
+export async function transfer(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: Address,
+  toAddress: Address | null | undefined,
+  amount: bigint,
+  options: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough: false;
+  }
+): Promise<[TransactionSkeletonType, bigint]>;
+
+/**
+ * transfer capacity from secp256k1_blake160 script cells
+ *
+ * @param txSkeleton
+ * @param fromAddress
+ * @param toAddress
+ * @param amount
+ * @param options
+ */
+export async function transfer(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: Address,
+  toAddress: Address | null | undefined,
+  amount: bigint,
   {
     config = undefined,
     requireToAddress = true,
     assertAmountEnough = true,
+  }: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough?: boolean;
   } = {}
-) {
+): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
   config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160) {
     throw new Error(
@@ -48,7 +95,7 @@ async function transfer(
 
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
-      cellDep.dep_type === config.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE &&
+      cellDep.dep_type === config!.SCRIPTS.SECP256K1_BLAKE160!.DEP_TYPE &&
       new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
         new values.OutPointValue(scriptOutPoint, {
           validate: false,
@@ -60,7 +107,7 @@ async function transfer(
     txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
       return cellDeps.push({
         out_point: scriptOutPoint,
-        dep_type: config.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+        dep_type: config!.SCRIPTS.SECP256K1_BLAKE160!.DEP_TYPE,
       });
     });
   }
@@ -81,11 +128,11 @@ async function transfer(
         cell_output: {
           capacity: "0x" + amount.toString(16),
           lock: toScript,
-          type: null,
+          type: undefined,
         },
         data: "0x",
-        out_point: null,
-        block_hash: null,
+        out_point: undefined,
+        block_hash: undefined,
       });
     });
   }
@@ -104,7 +151,7 @@ async function transfer(
     .maxBy(({ index }) => index);
   let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
   for (; i < txSkeleton.get("outputs").size && amount > 0; i++) {
-    const output = txSkeleton.get("outputs").get(i);
+    const output = txSkeleton.get("outputs").get(i)!;
     if (
       new ScriptValue(output.cell_output.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
@@ -142,28 +189,28 @@ async function transfer(
     const cellCollector = cellProvider.collector({
       lock: fromScript,
     });
-    const changeCell = {
+    const changeCell: Cell = {
       cell_output: {
         capacity: "0x0",
         lock: fromScript,
-        type: null,
+        type: undefined,
       },
       data: "0x",
-      out_point: null,
-      block_hash: null,
+      out_point: undefined,
+      block_hash: undefined,
     };
     let changeCapacity = BigInt(0);
-    let previousInputs = Set();
+    let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
       previousInputs = previousInputs.add(
-        `${input.out_point.tx_hash}_${input.out_point.index}`
+        `${input.out_point!.tx_hash}_${input.out_point!.index}`
       );
     }
     for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
       if (
         previousInputs.has(
-          `${inputCell.out_point.tx_hash}_${inputCell.out_point.index}`
+          `${inputCell.out_point!.tx_hash}_${inputCell.out_point!.index}`
         )
       ) {
         continue;
@@ -217,8 +264,8 @@ async function transfer(
         witnesses.push("0x")
       );
     }
-    let witness = txSkeleton.get("witnesses").get(firstIndex);
-    const newWitnessArgs = {
+    let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
+    const newWitnessArgs: WitnessArgs = {
       /* 65-byte zeros in hex */
       lock: SIGNATURE_PLACEHOLDER,
     };
@@ -261,12 +308,20 @@ async function transfer(
   return txSkeleton;
 }
 
-async function payFee(
-  txSkeleton,
-  fromAddress,
-  amount,
-  { config = undefined } = {}
-) {
+/**
+ * pay fee by secp256k1_blake160 script cells
+ *
+ * @param txSkeleton
+ * @param fromAddress
+ * @param amount fee in shannon
+ * @param options
+ */
+export async function payFee(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: Address,
+  amount: bigint,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   return await transfer(txSkeleton, fromAddress, null, amount, {
     config,
@@ -274,18 +329,26 @@ async function payFee(
   });
 }
 
-async function injectCapacity(
-  txSkeleton,
-  outputIndex,
-  fromAddress,
-  { config = undefined } = {}
-) {
+/**
+ * Inject capacity from `fromAddress` to target output.
+ *
+ * @param txSkeleton
+ * @param outputIndex
+ * @param fromAddress
+ * @param options
+ */
+export async function injectCapacity(
+  txSkeleton: TransactionSkeletonType,
+  outputIndex: number,
+  fromAddress: Address,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   if (outputIndex >= txSkeleton.get("outputs").size) {
     throw new Error("Invalid output index!");
   }
   const capacity = BigInt(
-    txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
+    txSkeleton.get("outputs").get(outputIndex)!.cell_output.capacity
   );
   return await transfer(txSkeleton, fromAddress, null, capacity, {
     config,
@@ -293,24 +356,35 @@ async function injectCapacity(
   });
 }
 
-async function setupInputCell(
-  txSkeleton,
-  inputIndex,
-  { config = undefined } = {}
-) {
+/**
+ * Setup input cell infos, such as cell deps and witnesses.
+ *
+ * @param txSkeleton
+ * @param inputIndex
+ * @param options
+ */
+export async function setupInputCell(
+  txSkeleton: TransactionSkeletonType,
+  inputIndex: number,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   if (inputIndex >= txSkeleton.get("inputs").size) {
     throw new Error("Invalid input index!");
   }
-  const inputLock = txSkeleton.get("inputs").get(inputIndex).cell_output.lock;
+  const inputLock = txSkeleton.get("inputs").get(inputIndex)!.cell_output.lock;
   const fromAddress = generateAddress(inputLock, { config });
-  return transfer(txSkeleton, fromAddress, null, 0, {
+  return transfer(txSkeleton, fromAddress, null, 0n, {
     config,
     requireToAddress: false,
   });
 }
 
-function hashWitness(hasher, witness) {
+const _emptyCKBHasherValue = new CKBHasher();
+function hashWitness(
+  hasher: typeof _emptyCKBHasherValue,
+  witness: HexString
+): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
   view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
@@ -318,7 +392,16 @@ function hashWitness(hasher, witness) {
   hasher.update(witness);
 }
 
-function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
+/**
+ * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
+ *
+ * @param txSkeleton
+ * @param options
+ */
+export function prepareSigningEntries(
+  txSkeleton: TransactionSkeletonType,
+  { config = undefined }: Options = {}
+): TransactionSkeletonType {
   config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160) {
     throw new Error(
@@ -335,7 +418,7 @@ function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
   const witnesses = txSkeleton.get("witnesses");
   let signingEntries = txSkeleton.get("signingEntries");
   for (let i = 0; i < inputs.size; i++) {
-    const input = inputs.get(i);
+    const input = inputs.get(i)!;
     if (
       template.CODE_HASH === input.cell_output.lock.code_hash &&
       template.HASH_TYPE === input.cell_output.lock.hash_type &&
@@ -352,21 +435,21 @@ function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
           `The first witness in the script group starting at input index ${i} does not exist, maybe some other part has invalidly tampered the transaction?`
         );
       }
-      hashWitness(hasher, witnesses.get(i));
+      hashWitness(hasher, witnesses.get(i)!);
       for (let j = i + 1; j < inputs.size && j < witnesses.size; j++) {
         const otherInput = inputs.get(j);
         if (
           lockValue.equals(
-            new values.ScriptValue(otherInput.cell_output.lock, {
+            new values.ScriptValue(otherInput!.cell_output.lock, {
               validate: false,
             })
           )
         ) {
-          hashWitness(hasher, witnesses.get(j));
+          hashWitness(hasher, witnesses.get(j)!);
         }
       }
       for (let j = inputs.size; j < witnesses.size; j++) {
-        hashWitness(hasher, witnesses.get(j));
+        hashWitness(hasher, witnesses.get(j)!);
       }
       const signingEntry = {
         type: "witness_args_lock",
@@ -380,7 +463,7 @@ function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
   return txSkeleton;
 }
 
-module.exports = {
+export default {
   transfer,
   payFee,
   prepareSigningEntries,

@@ -1,22 +1,55 @@
-const {
+import {
   parseAddress,
   minimalCellCapacity,
   createTransactionFromSkeleton,
   generateAddress,
-} = require("@ckb-lumos/helpers");
-const { core, values, utils } = require("@ckb-lumos/base");
+  TransactionSkeletonType,
+  Options,
+} from "@ckb-lumos/helpers";
+import {
+  core,
+  values,
+  utils,
+  HexString,
+  Script,
+  Hash,
+  PackedSince,
+  Address,
+  OutPoint,
+  Cell,
+  WitnessArgs,
+} from "@ckb-lumos/base";
 const { CKBHasher, ckbHash, toBigUInt64LE } = utils;
-const { getConfig } = require("@ckb-lumos/config-manager");
+import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { ScriptValue } = values;
-const { normalizers, Reader } = require("ckb-js-toolkit");
-const { Set } = require("immutable");
+import { normalizers, Reader } from "ckb-js-toolkit";
+import { Set } from "immutable";
+
+/**
+ * secp256k1_blake160_multisig script requires S, R, M, N and public key hashes
+ * S must be zero now
+ * and N equals to publicKeyHashes size
+ * so only need to provide R, M and public key hashes
+ */
+export interface MultisigScript {
+  /** first nth public keys must match, 1 byte */
+  R: number;
+  /** threshold, 1 byte */
+  M: number;
+  /** blake160 hashes of compressed public keys */
+  publicKeyHashes: Hash[];
+  /** locktime in since format */
+  since?: PackedSince;
+}
+
+export type FromInfo = MultisigScript | Address;
 
 // 65 bytes zeros
-const SIGNATURE_PLACEHOLDER =
+const SIGNATURE_PLACEHOLDER: HexString =
   "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
-function ensureSecp256k1Blake160Multisig(script, config) {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+function ensureSecp256k1Blake160Multisig(script: Script, config: Config): void {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
   if (
     template.CODE_HASH !== script.code_hash ||
     template.HASH_TYPE !== script.hash_type
@@ -27,7 +60,16 @@ function ensureSecp256k1Blake160Multisig(script, config) {
   }
 }
 
-function serializeMultisigScript({ R, M, publicKeyHashes }) {
+/**
+ *
+ * @param params multisig script params
+ * @returns serialized multisig script
+ */
+export function serializeMultisigScript({
+  R,
+  M,
+  publicKeyHashes,
+}: MultisigScript): HexString {
   if (R < 0 || R > 255) {
     throw new Error("`R` should be less than 256!");
   }
@@ -44,7 +86,16 @@ function serializeMultisigScript({ R, M, publicKeyHashes }) {
   );
 }
 
-function multisigArgs(serializedMultisigScript, since = undefined) {
+/**
+ *
+ * @param serializedMultisigScript
+ * @param since
+ * @returns lock script args
+ */
+export function multisigArgs(
+  serializedMultisigScript: HexString,
+  since?: PackedSince
+): HexString {
   let sinceLE = "0x";
   if (since != null) {
     sinceLE = toBigUInt64LE(BigInt(since));
@@ -55,20 +106,61 @@ function multisigArgs(serializedMultisigScript, since = undefined) {
   );
 }
 
-async function transfer(
-  txSkeleton,
-  fromInfo,
-  toAddress,
-  amount,
-  { config = undefined, requireToAddress = true, assertAmountEnough = true }
-) {
+export async function transfer(
+  txSkeleton: TransactionSkeletonType,
+  fromInfo: FromInfo,
+  toAddress: Address | undefined,
+  amount: bigint,
+  options?: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough?: true;
+  }
+): Promise<TransactionSkeletonType>;
+
+export async function transfer(
+  txSkeleton: TransactionSkeletonType,
+  fromInfo: FromInfo,
+  toAddress: Address | undefined,
+  amount: bigint,
+  options: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough: false;
+  }
+): Promise<[TransactionSkeletonType, bigint]>;
+
+/**
+ * transfer capacity from multisig script cells
+ *
+ * @param txSkeleton
+ * @param fromInfo fromAddress or fromMultisigScript, if this address new to txSkeleton inputs, must use fromMultisigScript
+ * @param toAddress
+ * @param amount transfer CKB capacity in shannon.
+ * @param options
+ */
+export async function transfer(
+  txSkeleton: TransactionSkeletonType,
+  fromInfo: FromInfo,
+  toAddress: Address | undefined,
+  amount: bigint,
+  {
+    config = undefined,
+    requireToAddress = true,
+    assertAmountEnough = true,
+  }: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough?: boolean;
+  } = {}
+): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
   config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
     );
   }
-  const scriptOutPoint = {
+  const scriptOutPoint: OutPoint = {
     tx_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.TX_HASH,
     index: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.INDEX,
   };
@@ -76,7 +168,7 @@ async function transfer(
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
       cellDep.dep_type ===
-        config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.DEP_TYPE &&
+        config!.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.DEP_TYPE &&
       new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
         new values.OutPointValue(scriptOutPoint, {
           validate: false,
@@ -89,13 +181,13 @@ async function transfer(
     txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
       return cellDeps.push({
         out_point: scriptOutPoint,
-        dep_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.DEP_TYPE,
+        dep_type: config!.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.DEP_TYPE,
       });
     });
   }
 
-  let fromScript;
-  let multisigScript;
+  let fromScript: Script | undefined;
+  let multisigScript: HexString | undefined;
   if (typeof fromInfo === "string") {
     // fromInfo is an address
     fromScript = parseAddress(fromInfo, { config });
@@ -113,7 +205,7 @@ async function transfer(
 
   const noMultisigBefore = !txSkeleton.get("inputs").find((i) => {
     return new ScriptValue(i.cell_output.lock, { validate: false }).equals(
-      new ScriptValue(fromScript, { validate: false })
+      new ScriptValue(fromScript!, { validate: false })
     );
   });
 
@@ -134,11 +226,11 @@ async function transfer(
         cell_output: {
           capacity: "0x" + amount.toString(16),
           lock: toScript,
-          type: null,
+          type: undefined,
         },
         data: "0x",
-        out_point: null,
-        block_hash: null,
+        out_point: undefined,
+        block_hash: undefined,
       });
     });
   }
@@ -149,7 +241,7 @@ async function transfer(
     .maxBy(({ index }) => index);
   let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
   for (; i < txSkeleton.get("outputs").size && amount > 0; ++i) {
-    const output = txSkeleton.get("outputs").get(i);
+    const output = txSkeleton.get("outputs").get(i)!;
     if (
       new ScriptValue(output.cell_output.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
@@ -188,15 +280,15 @@ async function transfer(
     const cellCollector = cellProvider.collector({
       lock: fromScript,
     });
-    const changeCell = {
+    const changeCell: Cell = {
       cell_output: {
         capacity: "0x0",
         lock: fromScript,
-        type: null,
+        type: undefined,
       },
       data: "0x",
-      out_point: null,
-      block_hash: null,
+      out_point: undefined,
+      block_hash: undefined,
     };
     let changeCapacity = BigInt(0);
     for await (const inputCell of cellCollector.collect()) {
@@ -236,7 +328,7 @@ async function transfer(
     .get("inputs")
     .findIndex((input) =>
       new ScriptValue(input.cell_output.lock, { validate: false }).equals(
-        new ScriptValue(fromScript, { validate: false })
+        new ScriptValue(fromScript!, { validate: false })
       )
     );
   if (firstIndex !== -1) {
@@ -248,12 +340,12 @@ async function transfer(
 
     // if using MultisigScript, check witnesses
     if (noMultisigBefore || typeof fromInfo !== "string") {
-      let witness = txSkeleton.get("witnesses").get(firstIndex);
-      const newWitnessArgs = {
+      let witness = txSkeleton.get("witnesses").get(firstIndex)!;
+      const newWitnessArgs: WitnessArgs = {
         lock:
           "0x" +
-          multisigScript.slice(2) +
-          SIGNATURE_PLACEHOLDER.slice(2).repeat(fromInfo.M),
+          multisigScript!.slice(2) +
+          SIGNATURE_PLACEHOLDER.slice(2).repeat((fromInfo as MultisigScript).M),
       };
       if (witness !== "0x") {
         const witnessArgs = new core.WitnessArgs(new Reader(witness));
@@ -269,7 +361,7 @@ async function transfer(
         const inputType = witnessArgs.getInputType();
         if (inputType.hasValue()) {
           newWitnessArgs.input_type = new Reader(
-            inputType.values().raw()
+            inputType.value().raw()
           ).serializeJson();
         }
         const outputType = witnessArgs.getOutputType();
@@ -295,57 +387,85 @@ async function transfer(
   return txSkeleton;
 }
 
-async function payFee(
-  txSkeleton,
-  fromInfo,
-  amount,
-  { config = undefined } = {}
-) {
+/**
+ * pay fee by multisig script cells
+ *
+ * @param txSkeleton
+ * @param fromInfo
+ * @param amount fee in shannon
+ * @param options
+ */
+export async function payFee(
+  txSkeleton: TransactionSkeletonType,
+  fromInfo: FromInfo,
+  amount: bigint,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  return transfer(txSkeleton, fromInfo, null, amount, {
+  return transfer(txSkeleton, fromInfo, undefined, amount, {
     config,
     requireToAddress: false,
   });
 }
 
-async function injectCapacity(
-  txSkeleton,
-  outputIndex,
-  fromInfo,
-  { config = undefined } = {}
-) {
+/**
+ * Inject capacity from `fromInfo` to target output.
+ *
+ * @param txSkeleton
+ * @param outputIndex
+ * @param fromInfo
+ * @param options
+ */
+export async function injectCapacity(
+  txSkeleton: TransactionSkeletonType,
+  outputIndex: number,
+  fromInfo: FromInfo,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   if (outputIndex >= txSkeleton.get("outputs").size) {
     throw new Error("Invalid output index!");
   }
   const capacity = BigInt(
-    txSkeleton.get("outputs").get(outputIndex).cell_output.capacity
+    txSkeleton.get("outputs").get(outputIndex)!.cell_output.capacity
   );
-  return transfer(txSkeleton, fromInfo, null, capacity, {
+  return transfer(txSkeleton, fromInfo, undefined, capacity, {
     config,
     requireToAddress: false,
   });
 }
 
-async function setupInputCell(
-  txSkeleton,
-  inputIndex,
-  fromInfo,
-  { config = undefined } = {}
-) {
+/**
+ * Setup input cell infos, such as cell deps and witnesses.
+ *
+ * @param txSkeleton
+ * @param inputIndex
+ * @param fromInfo
+ * @param options
+ */
+export async function setupInputCell(
+  txSkeleton: TransactionSkeletonType,
+  inputIndex: number,
+  fromInfo?: FromInfo | undefined,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   if (inputIndex >= txSkeleton.get("inputs").size) {
     throw new Error("Invalid input index!");
   }
-  const inputLock = txSkeleton.get("inputs").get(inputIndex).cell_output.lock;
+  const inputLock = txSkeleton.get("inputs").get(inputIndex)!.cell_output.lock;
   const fromAddress = generateAddress(inputLock, { config });
-  return transfer(txSkeleton, fromInfo || fromAddress, null, 0, {
+  return transfer(txSkeleton, fromInfo || fromAddress, undefined, 0n, {
     config,
     requireToAddress: false,
   });
 }
 
-function hashWitness(hasher, witness) {
+const _emptyCKBHasherValue = new CKBHasher();
+function hashWitness(
+  hasher: typeof _emptyCKBHasherValue,
+  witness: HexString
+): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
   view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
@@ -353,7 +473,16 @@ function hashWitness(hasher, witness) {
   hasher.update(witness);
 }
 
-function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
+/**
+ * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
+ *
+ * @param txSkeleton
+ * @param options
+ */
+export function prepareSigningEntries(
+  txSkeleton: TransactionSkeletonType,
+  { config = undefined }: Options = {}
+): TransactionSkeletonType {
   config = config || getConfig();
   if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
     throw new Error(
@@ -370,7 +499,7 @@ function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
   const witnesses = txSkeleton.get("witnesses");
   let signingEntries = txSkeleton.get("signingEntries");
   for (let i = 0; i < inputs.size; i++) {
-    const input = inputs.get(i);
+    const input = inputs.get(i)!;
     if (
       template.CODE_HASH === input.cell_output.lock.code_hash &&
       template.HASH_TYPE === input.cell_output.lock.hash_type &&
@@ -387,9 +516,9 @@ function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
           `The first witness in the script group starting at input index ${i} does not exist, maybe some other part has invalidly tampered the transaction?`
         );
       }
-      hashWitness(hasher, witnesses.get(i));
+      hashWitness(hasher, witnesses.get(i)!);
       for (let j = i + 1; j < inputs.size && j < witnesses.size; j++) {
-        const otherInput = inputs.get(j);
+        const otherInput = inputs.get(j)!;
         if (
           lockValue.equals(
             new values.ScriptValue(otherInput.cell_output.lock, {
@@ -397,11 +526,11 @@ function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
             })
           )
         ) {
-          hashWitness(hasher, witnesses.get(j));
+          hashWitness(hasher, witnesses.get(j)!);
         }
       }
       for (let j = inputs.size; j < witnesses.size; j++) {
-        hashWitness(hasher, witnesses.get(j));
+        hashWitness(hasher, witnesses.get(j)!);
       }
       const signingEntry = {
         type: "witness_args_lock",
@@ -415,7 +544,7 @@ function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
   return txSkeleton;
 }
 
-module.exports = {
+export default {
   transfer,
   payFee,
   prepareSigningEntries,

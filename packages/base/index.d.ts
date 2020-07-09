@@ -107,6 +107,7 @@ export interface CellCollector {
 }
 
 export interface CellProvider {
+  uri?: string;
   collector(queryOptions: QueryOptions): CellCollector;
 }
 

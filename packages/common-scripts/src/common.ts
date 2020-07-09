@@ -1,22 +1,81 @@
-const { parseAddress, generateAddress } = require("@ckb-lumos/helpers");
-const secp256k1Blake160Multisig = require("./secp256k1_blake160_multisig");
-const secp256k1Blake160 = require("./secp256k1_blake160");
-const {
+import {
+  parseAddress,
+  generateAddress,
+  TransactionSkeletonType,
+  Options,
+} from "@ckb-lumos/helpers";
+import secp256k1Blake160Multisig, {
+  FromInfo,
+} from "./secp256k1_blake160_multisig";
+import secp256k1Blake160 from "./secp256k1_blake160";
+import {
   isSecp256k1Blake160Address,
   isSecp256k1Blake160MultisigAddress,
-  prepareSigningEntries: _prepareSigningEntries,
-} = require("./helper");
-const { getConfig } = require("@ckb-lumos/config-manager");
-const lockTimePool = require("./locktime_pool");
+  prepareSigningEntries as _prepareSigningEntries,
+} from "./helper";
+import { getConfig, Config } from "@ckb-lumos/config-manager";
+import lockTimePool from "./locktime_pool";
+import { Address, Header } from "@ckb-lumos/base";
 
-async function transfer(
-  txSkeleton,
-  fromInfos,
-  toAddress,
-  amount,
-  tipHeader,
-  { config = undefined, requireToAddress = true, useLocktimeCellsFirst = true }
-) {
+export async function transfer(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  toAddress: Address,
+  amount: bigint,
+  tipHeader: Header | undefined,
+  {
+    config,
+    requireToAddress,
+    useLocktimeCellsFirst,
+  }: {
+    config?: Config;
+    requireToAddress?: true;
+    useLocktimeCellsFirst?: boolean;
+  }
+): Promise<TransactionSkeletonType>;
+
+export async function transfer(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  toAddress: Address | undefined,
+  amount: bigint,
+  tipHeader: Header | undefined,
+  {
+    config,
+    requireToAddress,
+    useLocktimeCellsFirst,
+  }: {
+    config?: Config;
+    requireToAddress: false;
+    useLocktimeCellsFirst?: boolean;
+  }
+): Promise<TransactionSkeletonType>;
+
+/**
+ *
+ * @param txSkeleton
+ * @param fromInfos
+ * @param toAddress
+ * @param amount
+ * @param tipHeader will not use locktime cells if tipHeader not provided
+ * @param options
+ */
+export async function transfer(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  toAddress: Address | undefined,
+  amount: bigint,
+  tipHeader?: Header,
+  {
+    config = undefined,
+    requireToAddress = true,
+    useLocktimeCellsFirst = true,
+  }: {
+    config?: Config;
+    requireToAddress?: boolean;
+    useLocktimeCellsFirst?: boolean;
+  } = {}
+): Promise<TransactionSkeletonType> {
   amount = BigInt(amount);
   let deductAmount = BigInt(amount);
 
@@ -41,11 +100,10 @@ async function transfer(
       [txSkeleton, deductAmount] = await _commonTransfer(
         txSkeleton,
         fromInfos,
-        deductAmount === amount ? toAddress : null,
+        deductAmount === amount ? toAddress : undefined,
         deductAmount,
         {
           config,
-          requireToAddress: false,
         }
       );
     }
@@ -53,11 +111,10 @@ async function transfer(
     [txSkeleton, deductAmount] = await _commonTransfer(
       txSkeleton,
       fromInfos,
-      deductAmount === amount ? toAddress : null,
+      deductAmount === amount ? toAddress : undefined,
       deductAmount,
       {
         config,
-        requireToAddress: false,
       }
     );
 
@@ -81,21 +138,31 @@ async function transfer(
   return txSkeleton;
 }
 
-async function payFee(
-  txSkeleton,
-  fromInfos,
-  amount,
-  tipHeader,
-  { config = undefined, useLocktimeCellsFirst = true } = {}
-) {
-  return transfer(txSkeleton, fromInfos, null, amount, tipHeader, {
+export async function payFee(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  amount: bigint,
+  tipHeader?: Header,
+  {
+    config = undefined,
+    useLocktimeCellsFirst = true,
+  }: {
+    config?: Config;
+    useLocktimeCellsFirst?: boolean;
+  } = {}
+): Promise<TransactionSkeletonType> {
+  return transfer(txSkeleton, fromInfos, undefined, amount, tipHeader, {
     config,
     requireToAddress: false,
     useLocktimeCellsFirst,
   });
 }
 
-function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
+export function prepareSigningEntries(
+  txSkeleton: TransactionSkeletonType,
+  { config = undefined }: Options = {}
+): TransactionSkeletonType {
+  config = config || getConfig();
   txSkeleton = _prepareSigningEntries(txSkeleton, config, "SECP256K1_BLAKE160");
   txSkeleton = _prepareSigningEntries(
     txSkeleton,
@@ -106,16 +173,16 @@ function prepareSigningEntries(txSkeleton, { config = undefined } = {}) {
 }
 
 async function _commonTransfer(
-  txSkeleton,
-  fromInfos,
-  toAddress, // can be empty
-  amount,
-  { config = undefined }
-) {
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  toAddress: Address | undefined, // can be empty
+  amount: bigint,
+  { config = undefined }: Options = {}
+): Promise<[TransactionSkeletonType, bigint]> {
   config = config || getConfig();
   amount = BigInt(amount);
   for (const [index, fromInfo] of fromInfos.entries()) {
-    const addr = index === 0 ? toAddress : null;
+    const addr = index === 0 ? toAddress : undefined;
     if (
       typeof fromInfo === "string" &&
       isSecp256k1Blake160Address(fromInfo, config)
@@ -162,11 +229,7 @@ async function _commonTransfer(
     } else if (typeof fromInfo === "object") {
       const result = await secp256k1Blake160Multisig.transfer(
         txSkeleton,
-        {
-          R: fromInfo.R,
-          M: fromInfo.M,
-          publicKeyHashes: fromInfo.publicKeyHashes,
-        },
+        fromInfo,
         addr,
         amount,
         {
@@ -185,7 +248,7 @@ async function _commonTransfer(
   return [txSkeleton, amount];
 }
 
-module.exports = {
+export default {
   transfer,
   payFee,
   prepareSigningEntries,

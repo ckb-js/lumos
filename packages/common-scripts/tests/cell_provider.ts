@@ -1,10 +1,19 @@
+import { Cell, Script } from "@ckb-lumos/base";
+
+interface Options {
+  lock?: Script;
+}
+
 class CellCollector {
-  constructor(options, cells) {
+  private options: Options;
+  private cells: Cell[];
+
+  constructor(options: Options, cells: Cell[]) {
     this.options = options;
     this.cells = cells;
   }
 
-  async *collect() {
+  async *collect(): AsyncGenerator<Cell> {
     for (const cell of this.cells) {
       const optionLock = this.options.lock;
       if (optionLock) {
@@ -24,16 +33,14 @@ class CellCollector {
   }
 }
 
-class CellProvider {
-  constructor(cells) {
+export class CellProvider {
+  private cells: Cell[];
+
+  constructor(cells: Cell[]) {
     this.cells = cells;
   }
 
-  collector(options) {
+  collector(options: Options): CellCollector {
     return new CellCollector(options, this.cells);
   }
 }
-
-module.exports = {
-  CellProvider,
-};
