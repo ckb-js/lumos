@@ -19,7 +19,7 @@ Note for the moment, SQLite is not officially supported, single-node users or El
 ### Start Indexer
 
 ```javascript
-const { Indexer, CellCollector } = require("@ckb-lumos/indexer");
+const { Indexer, CellCollector, TransactionCollector } = require("@ckb-lumos/indexer");
 const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data");
 indexer.startForever();
 ```
@@ -64,11 +64,11 @@ for await (const tx of cellCollector.collect()) {
   console.log(tx);
 }
 ```
-It will fetch transactions between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
+It will fetch cells between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
 
 Note: Prefix search on args and range query can't be used at the same time so far.
 
-Page jump when queryring transactions is supported:
+Page jump when queryring cells is supported:
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -86,7 +86,7 @@ for await (const tx of cellCollector.collect()) {
 }
 ```
 
-The `skip` field represents the number of transactions being skipped, which in the above code snippet means it would skip the first 100 transactions and return from the 101st one.
+The `skip` field represents the number of cells being skipped, which in the above code snippet means it would skip the first 100 cells and return from the 101st one.
 
 ### TransactionCollector 
 
