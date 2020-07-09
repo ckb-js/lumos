@@ -190,7 +190,7 @@ class CellCollector {
     }
     let outPointsBufferValue = new OrderedSet();
     for (const o of outPoints) {
-      outPointsBufferValue.add(new BufferValue(o));
+      outPointsBufferValue = outPointsBufferValue.add(new BufferValue(o));
     }
 
     return outPointsBufferValue;
