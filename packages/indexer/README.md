@@ -16,11 +16,16 @@ Note for the moment, SQLite is not officially supported, single-node users or El
 
 ## Usage
 
+### Start Indexer
+
 ```javascript
-const { Indexer, CellCollector } = require("@ckb-lumos/indexer");
+const { Indexer, CellCollector, TransactionCollector } = require("@ckb-lumos/indexer");
 const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data");
 indexer.startForever();
 ```
+
+
+### CellCollector
 
 To query existing cells, you can create a CellCollector:
 
@@ -40,6 +45,48 @@ for await (const cell of collector.collect()) {
 ```
 
 Prefix search is supported on `args`.
+
+Range query for cells between given block_numbers is supported:
+
+```javascript
+cellCollector = new CellCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+  fromBlock: 2250000,
+  toBlock: 2252000,
+});
+
+for await (const tx of cellCollector.collect()) {
+  console.log(tx);
+}
+```
+It will fetch cells between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
+
+Page jump when queryring cells is supported:
+
+```javascript
+cellCollector = new CellCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+  skip: 100,
+});
+
+for await (const tx of cellCollector.collect()) {
+  console.log(tx);
+}
+```
+
+The `skip` field represents the number of cells being skipped, which in the above code snippet means it would skip the first 100 cells and return from the 101st one.
+
+### TransactionCollector 
 
 Similar solution can be used to query for transactions related to a lock script:
 
@@ -102,6 +149,28 @@ for await (const tx of txCollector.collect()) {
 ```
 
 The `ioType` field is among `input | output | both`.
+
+
+Page jump when queryring transactions is supported:
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+  skip: 100,
+});
+
+for await (const tx of txCollector.collect()) {
+  console.log(tx);
+}
+```
+
+The `skip` field represents the number of transactions being skipped, which in the above code snippet means it would skip the first 100 transactions and return from the 101st one.
+
 
 ## Electron note
 

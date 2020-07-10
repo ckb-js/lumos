@@ -39,21 +39,39 @@ class Indexer {
     return this.nativeIndexer.tip();
   }
 
-  _getLiveCellsByScript(script, scriptType, argsLen, returnRawBuffer) {
-    return this.nativeIndexer.getLiveCellsByScript(
+  _getLiveCellsByScriptIterator(
+    script,
+    scriptType,
+    argsLen,
+    fromBlock,
+    toBlock,
+    skip
+  ) {
+    return this.nativeIndexer.getLiveCellsByScriptIterator(
       normalizers.NormalizeScript(script),
       scriptType,
       argsLen,
-      returnRawBuffer
+      fromBlock,
+      toBlock,
+      skip
     );
   }
 
-  _getTransactionsByScriptIterator(script, scriptType, fromBlock, toBlock) {
+  _getTransactionsByScriptIterator(
+    script,
+    scriptType,
+    ioType,
+    fromBlock,
+    toBlock,
+    skip
+  ) {
     return this.nativeIndexer.getTransactionsByScriptIterator(
       normalizers.NormalizeScript(script),
       scriptType,
+      ioType,
       fromBlock,
-      toBlock
+      toBlock,
+      skip
     );
   }
 
@@ -96,7 +114,15 @@ class CellCollector {
   // if data left null, means every data content is ok
   constructor(
     indexer,
-    { lock = null, type = null, argsLen = -1, data = "0x" } = {}
+    {
+      lock = null,
+      type = null,
+      argsLen = -1,
+      data = "0x",
+      fromBlock = null,
+      toBlock = null,
+      skip = null,
+    } = {}
   ) {
     if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
@@ -112,74 +138,92 @@ class CellCollector {
     this.type = type;
     this.data = data;
     this.argsLen = argsLen;
+    this.fromBlock = fromBlock;
+    this.toBlock = toBlock;
+    this.skip = skip;
   }
 
-  // TODO: optimize this
-  async count() {
-    let result = 0;
-    const c = this.collect();
-    while (true) {
-      const item = await c.next();
-      if (item.done) {
-        break;
-      }
-      result += 1;
+  getLiveCellOutPoints() {
+    let lockOutPoints = null;
+    let typeOutPoints = null;
+    if (this.lock) {
+      const scriptType = 0;
+      const returnRawBuffer = true;
+
+      lockOutPoints = new OrderedSet(
+        this.indexer
+          ._getLiveCellsByScriptIterator(
+            this.lock,
+            scriptType,
+            this.argsLen,
+            this.fromBlock,
+            this.toBlock,
+            this.skip
+          )
+          .collect(returnRawBuffer)
+      );
     }
-    return result;
+
+    if (this.type) {
+      const scriptType = 1;
+      const returnRawBuffer = true;
+      typeOutPoints = new OrderedSet(
+        this.indexer
+          ._getLiveCellsByScriptIterator(
+            this.type,
+            scriptType,
+            this.argsLen,
+            this.fromBlock,
+            this.toBlock,
+            this.skip
+          )
+          .collect(returnRawBuffer)
+      );
+    }
+    let outPoints = null;
+    if (this.lock && this.type) {
+      outPoints = lockOutPoints.intersect(typeOoutPoints);
+    } else if (this.lock) {
+      outPoints = lockOutPoints;
+    } else {
+      outPoints = typeOutPoints;
+    }
+    let outPointsBufferValue = new OrderedSet();
+    for (const o of outPoints) {
+      outPointsBufferValue = outPointsBufferValue.add(new BufferValue(o));
+    }
+
+    return outPointsBufferValue;
+  }
+
+  async count() {
+    let outPoints = this.getLiveCellOutPoints();
+    let counter = 0;
+    for (const o of outPoints) {
+      const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+      if (cell && this.type === "empty" && cell.cell_output.type) {
+        continue;
+      }
+      if (this.data && cell.data !== this.data) {
+        continue;
+      }
+      counter += 1;
+    }
+
+    return counter;
   }
 
   async *collect() {
-    if (this.lock && this.type && typeof this.type === "object") {
-      let lockOutPoints = new OrderedSet();
-      for (const o of this.indexer._getLiveCellsByScript(
-        this.lock,
-        0,
-        this.argsLen,
-        true
-      )) {
-        lockOutPoints = lockOutPoints.add(new BufferValue(o));
+    let outPoints = this.getLiveCellOutPoints();
+    for (const o of outPoints) {
+      const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+      if (cell && this.type === "empty" && cell.cell_output.type) {
+        continue;
       }
-
-      let typeOutPoints = new OrderedSet();
-      for (const o of this.indexer._getLiveCellsByScript(
-        this.type,
-        1,
-        this.argsLen,
-        true
-      )) {
-        typeOutPoints = typeOutPoints.add(new BufferValue(o));
+      if (this.data && cell.data !== this.data) {
+        continue;
       }
-      const outPoints = lockOutPoints.intersect(typeOutPoints);
-      for (const o of outPoints) {
-        const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
-        if (this.data && cell.data !== this.data) {
-          continue;
-        }
-        yield cell;
-      }
-    } else {
-      const script = this.lock || this.type;
-      const scriptType = !!this.lock ? 0 : 1;
-      for (const o of this.indexer._getLiveCellsByScript(
-        script,
-        scriptType,
-        this.argsLen,
-        true
-      )) {
-        const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o);
-        if (
-          cell &&
-          scriptType === 1 &&
-          this.type === "empty" &&
-          cell.cell_output.type
-        ) {
-          continue;
-        }
-        if (cell && this.data && cell.data !== this.data) {
-          continue;
-        }
-        yield cell;
-      }
+      yield cell;
     }
   }
 }
@@ -192,7 +236,13 @@ class CellCollector {
 class TransactionCollector {
   constructor(
     indexer,
-    { lock = null, type = null, fromBlock = null, toBlock = null } = {},
+    {
+      lock = null,
+      type = null,
+      fromBlock = null,
+      toBlock = null,
+      skip = null,
+    } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
     if (!lock && !type) {
@@ -220,39 +270,44 @@ class TransactionCollector {
     this.includeStatus = includeStatus;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
+    this.skip = skip;
     this.rpc = new RPC(indexer.uri);
   }
 
-  get_transaction_hashes() {
+  getTransactionHashes() {
     let hashes = null;
     let lockHashes = null;
     let typeHashes = null;
 
     if (this.lock) {
-      const script_type = 0;
+      const scriptType = 0;
       lockHashes = new OrderedSet(
         this.indexer
           ._getTransactionsByScriptIterator(
             this.lock.script,
-            script_type,
+            scriptType,
+            this.lock.ioType,
             this.fromBlock,
-            this.toBlock
+            this.toBlock,
+            this.skip
           )
-          .collect(this.lock.ioType)
+          .collect()
       );
     }
 
     if (this.type) {
-      const script_type = 1;
+      const scriptType = 1;
       typeHashes = new OrderedSet(
         this.indexer
           ._getTransactionsByScriptIterator(
             script,
-            script_type,
+            scriptType,
+            this.lock.ioType,
             this.fromBlock,
-            this.toBlock
+            this.toBlock,
+            this.skip
           )
-          .collect(this.type.ioType)
+          .collect()
       );
     }
 
@@ -267,12 +322,12 @@ class TransactionCollector {
   }
 
   async count() {
-    let hashes = this.get_transaction_hashes();
+    let hashes = this.getTransactionHashes();
     return hashes.size;
   }
 
   async *collect() {
-    let hashes = this.get_transaction_hashes();
+    let hashes = this.getTransactionHashes();
     for (const hash of hashes) {
       const tx = await this.rpc.get_transaction(hash);
       if (!this.skipMissing && !tx) {

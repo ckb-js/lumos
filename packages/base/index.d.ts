@@ -91,6 +91,7 @@ export interface QueryOptions {
   fromBlock?: number;
   /** `toBlock` itself is included in range query. */
   toBlock?: number;
+  skip?: number;
 }
 
 export interface ScriptWrapper {
