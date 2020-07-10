@@ -122,7 +122,7 @@ export function prepareSigningEntries(
       `Provided config does not have ${scriptType} script setup!`
     );
   }
-  let processedArgs = Set();
+  let processedArgs = Set<string>();
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = ckbHash(
     core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))
@@ -176,6 +176,29 @@ export function prepareSigningEntries(
   return txSkeleton;
 }
 
+export function ensureScript(
+  script: Script,
+  config: Config,
+  scriptType: "SECP256K1_BLAKE160" | "SECP256K1_BLAKE160_MULTISIG" | "DAO"
+): void {
+  const template = config.SCRIPTS[scriptType];
+  if (!template) {
+    throw new Error(
+      `Provided config does not have ${scriptType} script setup!`
+    );
+  }
+  if (
+    template.CODE_HASH !== script.code_hash ||
+    template.HASH_TYPE !== script.hash_type
+  ) {
+    throw new Error(`Provided script is not ${scriptType} script!`);
+  }
+}
+
+/* 65-byte zeros in hex */
+export const SECP_SIGNATURE_PLACEHOLDER =
+  "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+
 export default {
   addCellDep,
   generateDaoScript,
@@ -185,4 +208,5 @@ export default {
   prepareSigningEntries,
   isSecp256k1Blake160Address,
   isSecp256k1Blake160MultisigAddress,
+  ensureScript,
 };

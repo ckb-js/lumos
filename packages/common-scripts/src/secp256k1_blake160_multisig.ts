@@ -1,7 +1,6 @@
 import {
   parseAddress,
   minimalCellCapacity,
-  createTransactionFromSkeleton,
   generateAddress,
   TransactionSkeletonType,
   Options,
@@ -19,11 +18,17 @@ import {
   Cell,
   WitnessArgs,
 } from "@ckb-lumos/base";
-const { CKBHasher, ckbHash, toBigUInt64LE } = utils;
+const { CKBHasher, toBigUInt64LE } = utils;
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { ScriptValue } = values;
 import { normalizers, Reader } from "ckb-js-toolkit";
 import { Set } from "immutable";
+import {
+  addCellDep,
+  ensureScript,
+  SECP_SIGNATURE_PLACEHOLDER,
+  prepareSigningEntries as _prepareSigningEntries,
+} from "./helper";
 
 /**
  * secp256k1_blake160_multisig script requires S, R, M, N and public key hashes
@@ -43,22 +48,6 @@ export interface MultisigScript {
 }
 
 export type FromInfo = MultisigScript | Address;
-
-// 65 bytes zeros
-const SIGNATURE_PLACEHOLDER: HexString =
-  "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
-function ensureSecp256k1Blake160Multisig(script: Script, config: Config): void {
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
-  if (
-    template.CODE_HASH !== script.code_hash ||
-    template.HASH_TYPE !== script.hash_type
-  ) {
-    throw new Error(
-      "Provided script is not SECP256K1_BLAKE160_MULTISIG script!"
-    );
-  }
-}
 
 /**
  *
@@ -104,6 +93,42 @@ export function multisigArgs(
     new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +
     sinceLE.slice(2)
   );
+}
+
+export function parseFromInfo(
+  fromInfo: FromInfo,
+  { config = undefined }: Options = {}
+): {
+  fromScript: Script;
+  multisigScript?: HexString;
+} {
+  config = config || getConfig();
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+  if (!template) {
+    throw new Error(
+      "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
+    );
+  }
+
+  let fromScript: Script | undefined;
+  let multisigScript: HexString | undefined;
+  if (typeof fromInfo === "string") {
+    // fromInfo is an address
+    fromScript = parseAddress(fromInfo, { config });
+  } else {
+    multisigScript = serializeMultisigScript(fromInfo);
+    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
+    fromScript = {
+      code_hash: template.CODE_HASH,
+      hash_type: template.HASH_TYPE,
+      args: fromScriptArgs,
+    };
+  }
+
+  return {
+    fromScript,
+    multisigScript,
+  };
 }
 
 export async function transfer(
@@ -155,53 +180,25 @@ export async function transfer(
   } = {}
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
   config = config || getConfig();
-  if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+  if (!template) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
     );
   }
   const scriptOutPoint: OutPoint = {
-    tx_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.TX_HASH,
-    index: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.INDEX,
+    tx_hash: template.TX_HASH,
+    index: template.INDEX,
   };
 
-  const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
-    return (
-      cellDep.dep_type ===
-        config!.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.DEP_TYPE &&
-      new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
-        new values.OutPointValue(scriptOutPoint, {
-          validate: false,
-        })
-      )
-    );
+  txSkeleton = addCellDep(txSkeleton, {
+    out_point: scriptOutPoint,
+    dep_type: template.DEP_TYPE,
   });
 
-  if (!cellDep) {
-    txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
-      return cellDeps.push({
-        out_point: scriptOutPoint,
-        dep_type: config!.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.DEP_TYPE,
-      });
-    });
-  }
+  const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
 
-  let fromScript: Script | undefined;
-  let multisigScript: HexString | undefined;
-  if (typeof fromInfo === "string") {
-    // fromInfo is an address
-    fromScript = parseAddress(fromInfo, { config });
-  } else {
-    multisigScript = serializeMultisigScript(fromInfo);
-    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
-    fromScript = {
-      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.CODE_HASH,
-      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.HASH_TYPE,
-      args: fromScriptArgs,
-    };
-  }
-
-  ensureSecp256k1Blake160Multisig(fromScript, config);
+  ensureScript(fromScript, config, "SECP256K1_BLAKE160_MULTISIG");
 
   const noMultisigBefore = !txSkeleton.get("inputs").find((i) => {
     return new ScriptValue(i.cell_output.lock, { validate: false }).equals(
@@ -291,7 +288,21 @@ export async function transfer(
       block_hash: undefined,
     };
     let changeCapacity = BigInt(0);
+    let previousInputs = Set<string>();
+    for (const input of txSkeleton.get("inputs")) {
+      previousInputs = previousInputs.add(
+        `${input.out_point!.tx_hash}_${input.out_point!.index}`
+      );
+    }
     for await (const inputCell of cellCollector.collect()) {
+      // skip inputs already exists in txSkeleton.inputs
+      if (
+        previousInputs.has(
+          `${inputCell.out_point!.tx_hash}_${inputCell.out_point!.index}`
+        )
+      ) {
+        continue;
+      }
       txSkeleton = txSkeleton.update("inputs", (inputs) =>
         inputs.push(inputCell)
       );
@@ -345,7 +356,9 @@ export async function transfer(
         lock:
           "0x" +
           multisigScript!.slice(2) +
-          SIGNATURE_PLACEHOLDER.slice(2).repeat((fromInfo as MultisigScript).M),
+          SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat(
+            (fromInfo as MultisigScript).M
+          ),
       };
       if (witness !== "0x") {
         const witnessArgs = new core.WitnessArgs(new Reader(witness));
@@ -461,18 +474,6 @@ export async function setupInputCell(
   });
 }
 
-const _emptyCKBHasherValue = new CKBHasher();
-function hashWitness(
-  hasher: typeof _emptyCKBHasherValue,
-  witness: HexString
-): void {
-  const lengthBuffer = new ArrayBuffer(8);
-  const view = new DataView(lengthBuffer);
-  view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
-  hasher.update(lengthBuffer);
-  hasher.update(witness);
-}
-
 /**
  * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
  *
@@ -484,64 +485,12 @@ export function prepareSigningEntries(
   { config = undefined }: Options = {}
 ): TransactionSkeletonType {
   config = config || getConfig();
-  if (!config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG) {
-    throw new Error(
-      "Provided config does not have SECP256K1_BLAKE160_MULTISIG script setup!"
-    );
-  }
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
-  let processedArgs = Set();
-  const tx = createTransactionFromSkeleton(txSkeleton);
-  const txHash = ckbHash(
-    core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))
-  ).serializeJson();
-  const inputs = txSkeleton.get("inputs");
-  const witnesses = txSkeleton.get("witnesses");
-  let signingEntries = txSkeleton.get("signingEntries");
-  for (let i = 0; i < inputs.size; i++) {
-    const input = inputs.get(i)!;
-    if (
-      template.CODE_HASH === input.cell_output.lock.code_hash &&
-      template.HASH_TYPE === input.cell_output.lock.hash_type &&
-      !processedArgs.has(input.cell_output.lock.args)
-    ) {
-      processedArgs = processedArgs.add(input.cell_output.lock.args);
-      const lockValue = new values.ScriptValue(input.cell_output.lock, {
-        validate: false,
-      });
-      const hasher = new CKBHasher();
-      hasher.update(txHash);
-      if (i >= witnesses.size) {
-        throw new Error(
-          `The first witness in the script group starting at input index ${i} does not exist, maybe some other part has invalidly tampered the transaction?`
-        );
-      }
-      hashWitness(hasher, witnesses.get(i)!);
-      for (let j = i + 1; j < inputs.size && j < witnesses.size; j++) {
-        const otherInput = inputs.get(j)!;
-        if (
-          lockValue.equals(
-            new values.ScriptValue(otherInput.cell_output.lock, {
-              validate: false,
-            })
-          )
-        ) {
-          hashWitness(hasher, witnesses.get(j)!);
-        }
-      }
-      for (let j = inputs.size; j < witnesses.size; j++) {
-        hashWitness(hasher, witnesses.get(j)!);
-      }
-      const signingEntry = {
-        type: "witness_args_lock",
-        index: i,
-        message: hasher.digestHex(),
-      };
-      signingEntries = signingEntries.push(signingEntry);
-    }
-  }
-  txSkeleton = txSkeleton.set("signingEntries", signingEntries);
-  return txSkeleton;
+
+  return _prepareSigningEntries(
+    txSkeleton,
+    config,
+    "SECP256K1_BLAKE160_MULTISIG"
+  );
 }
 
 export default {

@@ -6,9 +6,8 @@ import {
 } from "@ckb-lumos/helpers";
 import {
   setupInputCell as setupMultisigInputCell,
-  serializeMultisigScript,
-  multisigArgs,
   FromInfo,
+  parseFromInfo,
 } from "./secp256k1_blake160_multisig";
 import { setupInputCell } from "./secp256k1_blake160";
 import { calculateMaximumWithdraw, calculateDaoEarliestSince } from "./dao";
@@ -72,19 +71,7 @@ export async function* collectCells(
   config = config || getConfig();
   const rpc = new RPC(cellProvider.uri!);
 
-  let fromScript: Script | undefined;
-  if (typeof fromInfo === "string") {
-    // fromInfo is an address
-    fromScript = parseAddress(fromInfo, { config });
-  } else {
-    const multisigScript = serializeMultisigScript(fromInfo);
-    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
-    fromScript = {
-      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.CODE_HASH,
-      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.HASH_TYPE,
-      args: fromScriptArgs,
-    };
-  }
+  const { fromScript } = parseFromInfo(fromInfo, { config });
 
   let cellCollectors = List();
   if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
@@ -341,20 +328,7 @@ async function _transfer(
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
   config = config || getConfig();
   // fromScript can be secp256k1_blake160 / secp256k1_blake160_multisig
-  let fromScript;
-  let multisigScript;
-  if (typeof fromInfo === "string") {
-    // fromInfo is an address
-    fromScript = parseAddress(fromInfo, { config });
-  } else {
-    multisigScript = serializeMultisigScript(fromInfo);
-    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
-    fromScript = {
-      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.CODE_HASH,
-      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.HASH_TYPE,
-      args: fromScriptArgs,
-    };
-  }
+  const { fromScript } = parseFromInfo(fromInfo, { config });
 
   // validate fromScript
   if (
