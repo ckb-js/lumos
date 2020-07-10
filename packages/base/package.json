@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/base",
-  "version": "0.4.9-rc1",
+  "version": "0.5.0",
   "description": "Base data structures and utilities used in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
