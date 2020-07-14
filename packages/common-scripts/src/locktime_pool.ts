@@ -9,7 +9,7 @@ import {
   FromInfo,
   parseFromInfo,
 } from "./secp256k1_blake160_multisig";
-import { setupInputCell } from "./secp256k1_blake160";
+import secp256k1Blake160 from "./secp256k1_blake160";
 import { calculateMaximumWithdraw, calculateDaoEarliestSince } from "./dao";
 import {
   core,
@@ -45,6 +45,7 @@ const {
 } = sinceUtils;
 import { List, Set } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
+import { secp256k1Blake160Multisig } from ".";
 
 export interface SinceBaseValue {
   epoch: HexString;
@@ -396,7 +397,7 @@ async function _transfer(
   /*
    * Collect and add new input cells so as to prepare remaining capacities.
    */
-  if (amount > 0) {
+  if (amount > 0n) {
     const cellProvider = txSkeleton.get("cellProvider");
     if (!cellProvider) {
       throw new Error("cell provider is missing!");
@@ -503,7 +504,7 @@ async function _transfer(
       changeCapacity += inputCapacity - deductCapacity;
 
       if (isSecp256k1Blake160Script(fromScript, config)) {
-        txSkeleton = await setupInputCell(
+        txSkeleton = await secp256k1Blake160.setupInputCell(
           txSkeleton,
           txSkeleton.get("inputs").size - 1,
           { config }
@@ -565,7 +566,7 @@ async function _transfer(
     return [txSkeleton, amount];
   }
 
-  if (amount > 0) {
+  if (amount > 0n) {
     throw new Error("Not enough capacity in from address!");
   }
 
@@ -606,6 +607,59 @@ export function prepareSigningEntries(
   return txSkeleton;
 }
 
+export async function injectCapacity(
+  txSkeleton: TransactionSkeletonType,
+  outputIndex: number,
+  fromInfos: FromInfo[],
+  tipHeader: Header,
+  {
+    config = undefined,
+    cellCollector = collectCells,
+  }: Options & {
+    cellCollector?: (...params: any[]) => AsyncIterable<LocktimeCell>;
+  } = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+  if (outputIndex >= txSkeleton.get("outputs").size) {
+    throw new Error("Invalid output index!");
+  }
+  const capacity = BigInt(
+    txSkeleton.get("outputs").get(outputIndex)!.cell_output.capacity
+  );
+  return transfer(txSkeleton, fromInfos, undefined, capacity, tipHeader, {
+    config,
+    requireToAddress: false,
+    cellCollector,
+  });
+}
+
+export async function setupInputCell(
+  txSkeleton: TransactionSkeletonType,
+  inputIndex: number,
+  fromInfo?: FromInfo,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+  if (inputIndex >= txSkeleton.get("inputs").size) {
+    throw new Error("Invalid input index!");
+  }
+  const input = txSkeleton.get("inputs").get(inputIndex)!;
+  const inputLock = input.cell_output.lock;
+
+  if (isSecp256k1Blake160Script(inputLock, config)) {
+    return secp256k1Blake160.setupInputCell(txSkeleton, inputIndex, { config });
+  } else if (isSecp256k1Blake160MultisigScript(inputLock, config)) {
+    return secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      inputIndex,
+      fromInfo,
+      { config }
+    );
+  } else {
+    throw new Error(`Not supported input lock!`);
+  }
+}
+
 function _parseMultisigArgsSince(args: HexString): bigint {
   if (args.length !== 58) {
     throw new Error("Invalid multisig with since args!");
@@ -618,4 +672,6 @@ export default {
   transfer,
   payFee,
   prepareSigningEntries,
+  injectCapacity,
+  setupInputCell,
 };

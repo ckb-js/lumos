@@ -67,6 +67,15 @@ const AGGRON4 = deepFreeze({
       INDEX: "0x2",
       DEP_TYPE: "code",
     },
+    SUDT: {
+      CODE_HASH:
+        "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
+      HASH_TYPE: "data",
+      TX_HASH:
+        "0xc1b2ae129fad7465aaa9acc9785f842ba3e6e8b8051d899defa89f5508a77958",
+      INDEX: "0x0",
+      DEP_TYPE: "code",
+    },
   },
 });
 

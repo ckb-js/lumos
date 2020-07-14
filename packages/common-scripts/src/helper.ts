@@ -103,6 +103,23 @@ export function isDaoScript(
   );
 }
 
+export function isSudtScript(
+  script: Script | undefined,
+  config: Config
+): boolean {
+  const template = config.SCRIPTS.SUDT;
+
+  if (!template) {
+    throw new Error(`SUDT script not defined in config!`);
+  }
+
+  return (
+    !!script &&
+    script.code_hash === template.CODE_HASH &&
+    script.hash_type === template.HASH_TYPE
+  );
+}
+
 export function hashWitness(hasher: any, witness: HexString): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
@@ -205,6 +222,7 @@ export default {
   isSecp256k1Blake160Script,
   isSecp256k1Blake160MultisigScript,
   isDaoScript,
+  isSudtScript,
   prepareSigningEntries,
   isSecp256k1Blake160Address,
   isSecp256k1Blake160MultisigAddress,

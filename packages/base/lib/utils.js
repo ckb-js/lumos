@@ -1,5 +1,6 @@
 const blake2b = require("blake2b");
-const { Reader } = require("ckb-js-toolkit");
+const { validators, normalizers, Reader } = require("ckb-js-toolkit");
+const { SerializeScript } = require("./core");
 
 class CKBHasher {
   constructor() {
@@ -45,9 +46,43 @@ function readBigUInt64LE(hex) {
   return buf.readBigUInt64LE();
 }
 
+function toBigUInt128LE(u128) {
+  if (u128 < this.U128_MIN) {
+    throw new Error(`u128 ${u128} too small`);
+  }
+  if (u128 > this.U128_MAX) {
+    throw new Error(`u128 ${u128} too large`);
+  }
+  const buf = Buffer.alloc(16);
+  buf.writeBigUInt64LE(u128 & BigInt("0xFFFFFFFFFFFFFFFF"), 0);
+  buf.writeBigUInt64LE(u128 >> BigInt(64), 8);
+  return "0x" + buf.toString("hex");
+}
+
+function readBigUInt128LE(leHex) {
+  if (leHex.length !== 34 || !leHex.startsWith("0x")) {
+    throw new Error(`leHex format error`);
+  }
+  const buf = Buffer.from(leHex.slice(2), "hex");
+  return (buf.readBigUInt64LE(8) << BigInt(64)) + buf.readBigUInt64LE(0);
+}
+
+function computeScriptHash(script, { validate = true } = {}) {
+  if (validate) {
+    validators.ValidateScript(script);
+  }
+
+  return ckbHash(
+    new Reader(SerializeScript(normalizers.NormalizeScript(script)))
+  ).serializeJson();
+}
+
 module.exports = {
   CKBHasher,
   ckbHash,
   toBigUInt64LE,
   readBigUInt64LE,
+  toBigUInt128LE,
+  readBigUInt128LE,
+  computeScriptHash,
 };
