@@ -1,5 +1,13 @@
 import { addCellDep } from "./helper";
-import { utils, Hash, Address, Cell, Script, Header } from "@ckb-lumos/base";
+import {
+  utils,
+  Hash,
+  Address,
+  Cell,
+  Script,
+  Header,
+  CellCollector,
+} from "@ckb-lumos/base";
 const { toBigUInt128LE, readBigUInt64LE, computeScriptHash } = utils;
 import {
   serializeMultisigScript,
@@ -13,8 +21,9 @@ import {
   TransactionSkeletonType,
   Options,
 } from "@ckb-lumos/helpers";
-import { Set } from "immutable";
+import { Set, List } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
+import { collectCells, LocktimeCell } from "./locktime_pool";
 
 export async function createToken(
   txSkeleton: TransactionSkeletonType,
@@ -103,7 +112,7 @@ export async function createToken(
  * @param amount
  * @param changeAddress if not provided, will use first fromInfo
  * @param capacity
- * @param param7
+ * @param options
  */
 export async function transfer(
   txSkeleton: TransactionSkeletonType,
@@ -114,7 +123,14 @@ export async function transfer(
   changeAddress?: Address,
   capacity?: bigint,
   tipHeader?: Header,
-  { config = undefined }: Options = {}
+  {
+    config = undefined,
+    locktimePoolCellCollector = collectCells,
+  }: Options & {
+    locktimePoolCellCollector?: (
+      ...params: any[]
+    ) => AsyncIterable<LocktimeCell>;
+  } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
 
@@ -199,23 +215,89 @@ export async function transfer(
       `${input.out_point!.tx_hash}_${input.out_point!.index}`
     );
   }
-  const cellCollectors = fromScripts.map((fromScript) => {
-    return cellProvider.collector({
+  let cellCollectorInfos: List<{
+    cellCollector: CellCollector;
+    index: number;
+  }> = List();
+  if (tipHeader) {
+    fromInfos.forEach((fromInfo, index) => {
+      const collect = async function* () {
+        const result = locktimePoolCellCollector(cellProvider, fromInfo, {
+          config,
+          tipHeader,
+          assertScriptSupported: false,
+          queryOptions: {
+            type: sudtType,
+            data: undefined,
+          },
+        });
+        for await (const r of result) {
+          yield r;
+        }
+      };
+      const collector = {
+        collect,
+      };
+
+      cellCollectorInfos = cellCollectorInfos.push({
+        cellCollector: collector,
+        index,
+      });
+    });
+  }
+  fromScripts.forEach((fromScript, index) => {
+    const collector = cellProvider.collector({
       lock: fromScript,
       type: sudtType,
       data: undefined,
     });
+    cellCollectorInfos = cellCollectorInfos.push({
+      cellCollector: collector,
+      index,
+    });
   });
-  for (const [index, cellCollector] of cellCollectors.entries()) {
+  if (tipHeader) {
+    fromInfos.forEach((fromInfo, index) => {
+      const collect = async function* () {
+        const result = locktimePoolCellCollector(cellProvider, fromInfo, {
+          config,
+          tipHeader,
+          assertScriptSupported: false,
+        });
+        for await (const r of result) {
+          yield r;
+        }
+      };
+      const collector = {
+        collect,
+      };
+
+      cellCollectorInfos = cellCollectorInfos.push({
+        cellCollector: collector,
+        index,
+      });
+    });
+  }
+  fromScripts.forEach((fromScript, index) => {
+    const collector = cellProvider.collector({
+      lock: fromScript,
+    });
+
+    cellCollectorInfos = cellCollectorInfos.push({
+      cellCollector: collector,
+      index,
+    });
+  });
+  for (const { index, cellCollector } of cellCollectorInfos) {
     for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
-      if (
-        previousInputs.has(
-          `${inputCell.out_point!.tx_hash}_${inputCell.out_point!.index}`
-        )
-      ) {
+      const key = `${inputCell.out_point!.tx_hash}_${
+        inputCell.out_point!.index
+      }`;
+      if (previousInputs.has(key)) {
         continue;
       }
+      previousInputs = previousInputs.add(key);
       txSkeleton = txSkeleton.update("inputs", (inputs) =>
         inputs.push(inputCell)
       );
@@ -229,10 +311,14 @@ export async function transfer(
         fromInfo,
         { config }
       );
-      const inputCapacity = BigInt(inputCell.cell_output.capacity);
-      const inputAmount = readBigUInt64LE(inputCell.data);
-      let deductCapacity = inputCapacity;
-      let deductAmount = inputAmount;
+      const inputCapacity: bigint = BigInt(
+        (inputCell as any).maximumCapacity || inputCell.cell_output.capacity
+      );
+      const inputAmount: bigint = inputCell.cell_output.type
+        ? readBigUInt64LE(inputCell.data)
+        : 0n;
+      let deductCapacity: bigint = inputCapacity;
+      let deductAmount: bigint = inputAmount;
       if (deductCapacity > capacity) {
         deductCapacity = capacity;
       }
@@ -265,13 +351,13 @@ export async function transfer(
     changeAmount > 0n &&
     changeCapacity < minimalCellCapacity(changeCell)
   ) {
-    throw new Error("Not enough capacity for change in from address!");
+    throw new Error("Not enough capacity for change in from infos!");
   }
   if (capacity > 0) {
-    throw new Error("Not enough capacity in from address!");
+    throw new Error("Not enough capacity in from infos!");
   }
   if (amount > 0) {
-    throw new Error("Not enough amount in from address!");
+    throw new Error("Not enough amount in from infos!");
   }
 
   return txSkeleton;

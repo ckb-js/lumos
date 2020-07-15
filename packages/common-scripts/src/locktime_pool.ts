@@ -24,6 +24,7 @@ import {
   HexString,
   Address,
   Header,
+  QueryOptions,
 } from "@ckb-lumos/base";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
@@ -61,13 +62,26 @@ export interface LocktimeCell extends Cell {
   sinceBaseValue?: SinceBaseValue;
 }
 
+/**
+ * If tipHeader provided, only return cells valid in tipHeader.
+ *
+ * @param cellProvider
+ * @param fromInfo
+ * @param options
+ */
 export async function* collectCells(
   cellProvider: CellProvider,
   fromInfo: FromInfo,
   {
     config = undefined,
     assertScriptSupported = true,
-  }: Options & { assertScriptSupported?: boolean } = {}
+    queryOptions = {},
+    tipHeader = undefined,
+  }: Options & {
+    assertScriptSupported?: boolean;
+    queryOptions?: QueryOptions;
+    tipHeader?: Header;
+  } = {}
 ): AsyncGenerator<LocktimeCell> {
   config = config || getConfig();
   const rpc = new RPC(cellProvider.uri!);
@@ -85,37 +99,41 @@ export async function* collectCells(
     cellCollectors = cellCollectors.push(
       cellProvider.collector({
         lock,
-        argsLen: 28,
-        type: "empty",
-        data: "0x",
+        argsLen: queryOptions.argsLen || 28,
+        type: queryOptions.type || "empty",
+        data: queryOptions.data || "0x",
       })
     );
     // multisig without locktime, dao
-    cellCollectors = cellCollectors.push(
-      cellProvider.collector({
-        lock,
-        type: generateDaoScript(config),
-        data: undefined,
-      })
-    );
-    // multisig with locktime, dao
-    cellCollectors = cellCollectors.push(
-      cellProvider.collector({
-        lock,
-        argsLen: 28,
-        type: generateDaoScript(config),
-        data: undefined,
-      })
-    );
+    if (!queryOptions.type && !queryOptions.data) {
+      cellCollectors = cellCollectors.push(
+        cellProvider.collector({
+          lock,
+          type: generateDaoScript(config),
+          data: undefined,
+        })
+      );
+      // multisig with locktime, dao
+      cellCollectors = cellCollectors.push(
+        cellProvider.collector({
+          lock,
+          argsLen: 28,
+          type: generateDaoScript(config),
+          data: undefined,
+        })
+      );
+    }
   } else if (isSecp256k1Blake160Script(fromScript, config)) {
     // secp256k1_blake160, dao
-    cellCollectors = cellCollectors.push(
-      cellProvider.collector({
-        lock: fromScript,
-        type: generateDaoScript(config),
-        data: undefined,
-      })
-    );
+    if (!queryOptions.type && !queryOptions.data) {
+      cellCollectors = cellCollectors.push(
+        cellProvider.collector({
+          lock: fromScript,
+          type: generateDaoScript(config),
+          data: undefined,
+        })
+      );
+    }
   } else {
     if (assertScriptSupported) {
       throw new Error("Non supported fromScript type!");
@@ -205,6 +223,13 @@ export async function* collectCells(
         } else {
           since = daoSince;
         }
+      }
+
+      if (
+        tipHeader &&
+        !validateSince(since!, tipHeader, sinceBaseValue as Header)
+      ) {
+        continue;
       }
 
       yield {
