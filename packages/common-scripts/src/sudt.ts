@@ -207,6 +207,16 @@ export async function transfer(
     out_point: undefined,
     block_hash: undefined,
   };
+  const changeCellWithoutSudt: Cell = {
+    cell_output: {
+      capacity: "0x0",
+      lock: changeOutputLockScript,
+      type: undefined,
+    },
+    data: "0x",
+    out_point: undefined,
+    block_hash: undefined,
+  };
   let changeCapacity = BigInt(0);
   let changeAmount = BigInt(0);
   let previousInputs = Set<string>();
@@ -329,12 +339,24 @@ export async function transfer(
       }
       amount -= deductAmount;
       changeAmount += inputAmount - deductAmount;
+
+      // changeAmount = 0n, the change output no need to include sudt type script
       if (
         capacity === 0n &&
         amount === 0n &&
         ((changeCapacity === 0n && changeAmount === 0n) ||
-          (changeCapacity > minimalCellCapacity(changeCell) &&
-            changeAmount >= 0n))
+          (changeCapacity > minimalCellCapacity(changeCellWithoutSudt) &&
+            changeAmount === 0n))
+      ) {
+        changeCell.cell_output.type = undefined;
+        changeCell.data = "0x";
+        break;
+      }
+      if (
+        capacity === 0n &&
+        amount === 0n &&
+        changeCapacity > minimalCellCapacity(changeCellWithoutSudt) &&
+        changeAmount > 0n
       ) {
         break;
       }
@@ -343,7 +365,9 @@ export async function transfer(
 
   if (changeCapacity >= minimalCellCapacity(changeCell)) {
     changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
-    changeCell.data = toBigUInt128LE(changeAmount);
+    if (changeAmount > 0n) {
+      changeCell.data = toBigUInt128LE(changeAmount);
+    }
     txSkeleton = txSkeleton.update("outputs", (outputs) =>
       outputs.push(changeCell)
     );
