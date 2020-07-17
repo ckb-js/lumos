@@ -13,6 +13,7 @@ import {
   serializeMultisigScript,
   multisigArgs,
   FromInfo,
+  parseFromInfo,
 } from "./secp256k1_blake160_multisig";
 import common from "./common";
 import {
@@ -443,7 +444,24 @@ function _fromInfoToScript(fromInfo: FromInfo, config: Config): Script {
   return fromScript;
 }
 
+/**
+ * Compute sudt token by owner from info.
+ *
+ * @param fromInfo
+ * @param options
+ */
+export function ownerForSudt(
+  fromInfo: FromInfo,
+  { config = undefined }: Options = {}
+): Token {
+  config = config || getConfig();
+  const { fromScript } = parseFromInfo(fromInfo, { config });
+  const lockHash = computeScriptHash(fromScript);
+  return lockHash;
+}
+
 export default {
   issueToken,
   transfer,
+  ownerForSudt,
 };

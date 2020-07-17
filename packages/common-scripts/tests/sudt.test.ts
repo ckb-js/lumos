@@ -154,14 +154,14 @@ test("issueToken", async (t) => {
   );
 });
 
+const bobLockHash =
+  "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d";
+
 test("transfer secp", async (t) => {
   const cellProvider = new CellProvider(sudtInputs);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
-
-  const bobLockHash =
-    "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d";
 
   const amount = BigInt(10000);
   txSkeleton = await sudt.transfer(
@@ -213,9 +213,6 @@ test("transfer locktime pool multisig & secp", async (t) => {
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
-
-  const bobLockHash =
-    "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d";
 
   const since = "0x0";
   const amount = BigInt(10000);
@@ -280,4 +277,19 @@ test("transfer locktime pool multisig & secp", async (t) => {
   t.true(
     isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
   );
+});
+
+test("ownerForSudt, by address", (t) => {
+  const sudtToken = sudt.ownerForSudt(bob.testnetAddress, { config: AGGRON4 });
+
+  t.is(sudtToken, bobLockHash);
+});
+
+test("ownerForSudt, by MultisigScript", (t) => {
+  const sudtToken = sudt.ownerForSudt(bob.fromInfo);
+
+  const expectedToken =
+    "0x52ac8ff1f0486783a5a6a30659715fcee67709c75172ff7b015910ced4586436";
+
+  t.is(sudtToken, expectedToken);
 });
