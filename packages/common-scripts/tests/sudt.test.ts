@@ -119,14 +119,14 @@ const tipHeader: Header = {
   version: "0x0",
 };
 
-test("createToken", async (t) => {
+test("issueToken", async (t) => {
   const cellProvider = new CellProvider(secpInputs);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
 
   const amount = BigInt(10000);
-  txSkeleton = await sudt.createToken(
+  txSkeleton = await sudt.issueToken(
     txSkeleton,
     bob.testnetAddress,
     amount,

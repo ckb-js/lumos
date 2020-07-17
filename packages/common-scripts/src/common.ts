@@ -88,7 +88,7 @@ export async function transfer(
   if (useLocktimeCellsFirst) {
     // if provider tipHeader
     if (tipHeader) {
-      const result = await lockTimePool.transfer(
+      [txSkeleton, deductAmount] = await lockTimePool.transfer(
         txSkeleton,
         fromInfos,
         toAddress,
@@ -96,19 +96,19 @@ export async function transfer(
         tipHeader,
         { config, requireToAddress, assertAmountEnough: false }
       );
-      txSkeleton = result[0];
-      deductAmount = result[1];
     }
 
-    [txSkeleton, deductAmount] = await _commonTransfer(
-      txSkeleton,
-      fromInfos,
-      deductAmount === amount ? toAddress : undefined,
-      deductAmount,
-      {
-        config,
-      }
-    );
+    if (deductAmount > 0n) {
+      [txSkeleton, deductAmount] = await _commonTransfer(
+        txSkeleton,
+        fromInfos,
+        deductAmount === amount ? toAddress : undefined,
+        deductAmount,
+        {
+          config,
+        }
+      );
+    }
   } else {
     [txSkeleton, deductAmount] = await _commonTransfer(
       txSkeleton,
@@ -120,7 +120,7 @@ export async function transfer(
       }
     );
 
-    if (tipHeader) {
+    if (tipHeader && deductAmount > 0n) {
       // if provider tipHeader
       [txSkeleton, deductAmount] = await lockTimePool.transfer(
         txSkeleton,

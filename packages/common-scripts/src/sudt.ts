@@ -25,7 +25,19 @@ import { Set, List } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { collectCells, LocktimeCell } from "./locktime_pool";
 
-export async function createToken(
+export type Token = Hash;
+
+/**
+ * Issue an sUDT cell
+ *
+ * @param txSkeleton
+ * @param fromInfo
+ * @param amount
+ * @param capacity
+ * @param tipHeader
+ * @param param5
+ */
+export async function issueToken(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
   amount: bigint,
@@ -112,12 +124,13 @@ export async function createToken(
  * @param amount
  * @param changeAddress if not provided, will use first fromInfo
  * @param capacity
+ * @param tipHeader
  * @param options
  */
 export async function transfer(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  sudtToken: Hash,
+  sudtToken: Token,
   toAddress: Address,
   amount: bigint,
   changeAddress?: Address,
@@ -416,6 +429,6 @@ function _fromInfoToScript(fromInfo: FromInfo, config: Config): Script {
 }
 
 export default {
-  createToken,
+  issueToken,
   transfer,
 };
