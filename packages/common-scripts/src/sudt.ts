@@ -197,6 +197,13 @@ export async function transfer(
     return outputs.push(targetOutput);
   });
 
+  txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+    return fixedEntries.push({
+      field: "outputs",
+      index: txSkeleton.get("outputs").size - 1,
+    });
+  });
+
   txSkeleton = addCellDep(txSkeleton, {
     out_point: {
       tx_hash: SUDT_SCRIPT.TX_HASH,
@@ -384,6 +391,14 @@ export async function transfer(
     txSkeleton = txSkeleton.update("outputs", (outputs) =>
       outputs.push(changeCell)
     );
+    if (changeAmount > 0n) {
+      txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+        return fixedEntries.push({
+          field: "outputs",
+          index: txSkeleton.get("outputs").size - 1,
+        });
+      });
+    }
   } else if (
     changeAmount > 0n &&
     changeCapacity < minimalCellCapacity(changeCell)
