@@ -268,7 +268,7 @@ export async function transfer(
   /*
    * Collect and add new input cells so as to prepare remaining capacities.
    */
-  if (amount > 0) {
+  if (amount > 0n) {
     const cellProvider = txSkeleton.get("cellProvider");
     if (!cellProvider) {
       throw new Error("cell provider is missing!");

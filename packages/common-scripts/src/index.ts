@@ -6,6 +6,7 @@ import secp256k1Blake160Multisig, {
 import dao from "./dao";
 import locktimePool, { SinceBaseValue, LocktimeCell } from "./locktime_pool";
 import common from "./common";
+import sudt from "./sudt";
 
 export {
   secp256k1Blake160,
@@ -17,6 +18,7 @@ export {
   LocktimeCell,
   MultisigScript,
   FromInfo,
+  sudt,
 };
 
 export default {
@@ -25,4 +27,5 @@ export default {
   dao,
   locktimePool,
   common,
+  sudt,
 };

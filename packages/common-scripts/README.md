@@ -1,6 +1,6 @@
 # `@ckb-lumos/common-scripts`
 
-Common script implementation for lumos. Includes `secp256k1_blake2b` lock script, `secp256k1_blake160_multisig` lock script, `dao` type script now.
+Common script implementation for lumos. Includes `secp256k1_blake2b` lock script, `secp256k1_blake160_multisig` lock script, `dao` type script, `sudt` type script now.
 
 `LocktimePool` script includes `secp256k1_blake160_multisig` cells which with locktime in lock `args` (which `args` total length is 28 bytes, last 8 bytes is a `since` format locktime in BigUInt64LE encode) and `DAO` step2 cells.
 
@@ -116,4 +116,29 @@ txSkeleton = await dao.withdraw(
 )
 
 // Then if want to unlock dao withdrew cells, just use `common.transfer`.
+```
+
+Following script will show how to use `sUDT` script.
+
+```javascript
+const { sudt } = require("@ckb-lumos/common-scripts")
+let txSkeleton = TransactionSkeleton({ cellProvider: indexer })
+
+// issue an sudt token, will use the second param address to generate sudt token(it's lock hash).
+txSkeleton = await sudt.issueToken(
+  txSkeleton,
+  "ckb1qyqrdsefa43s6m882pcj53m4gdnj4k440axqdt9rtd",
+  10000n,
+);
+
+// and transfer sUDT
+const sudtToken = "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d"
+txSkeleton = await sudt.transfer(
+  txSkeleton,
+  ["ckb1qyqrdsefa43s6m882pcj53m4gdnj4k440axqdt9rtd"],
+  sudtToken,
+  "ckb1qyqwyxfa75whssgkq9ukkdd30d8c7txct0gq5f9mxs",
+  1000n,
+  "ckb1qyqrdsefa43s6m882pcj53m4gdnj4k440axqdt9rtd",
+);
 ```

@@ -12,6 +12,8 @@ import {
   isSecp256k1Blake160Address,
   isSecp256k1Blake160MultisigAddress,
   prepareSigningEntries as _prepareSigningEntries,
+  isSecp256k1Blake160Script,
+  isSecp256k1Blake160MultisigScript,
 } from "./helper";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import lockTimePool from "./locktime_pool";
@@ -248,10 +250,68 @@ async function _commonTransfer(
   return [txSkeleton, amount];
 }
 
+export async function injectCapacity(
+  txSkeleton: TransactionSkeletonType,
+  outputIndex: number,
+  fromInfos: FromInfo[],
+  tipHeader?: Header,
+  {
+    config = undefined,
+    useLocktimeCellsFirst = true,
+  }: {
+    config?: Config;
+    useLocktimeCellsFirst?: boolean;
+  } = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+
+  if (outputIndex >= txSkeleton.get("outputs").size) {
+    throw new Error("Invalid output index!");
+  }
+
+  const output = txSkeleton.get("outputs").get(outputIndex)!;
+  const capacity = BigInt(output.cell_output.capacity);
+
+  return transfer(txSkeleton, fromInfos, undefined, capacity, tipHeader, {
+    config,
+    requireToAddress: false,
+    useLocktimeCellsFirst,
+  });
+}
+
+export async function setupInputCell(
+  txSkeleton: TransactionSkeletonType,
+  inputIndex: number,
+  fromInfo: FromInfo,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+  if (inputIndex >= txSkeleton.get("inputs").size) {
+    throw new Error("Invalid input index!");
+  }
+  const input = txSkeleton.get("inputs").get(inputIndex)!;
+  const inputLock = input.cell_output.lock;
+
+  if (isSecp256k1Blake160Script(inputLock, config)) {
+    return secp256k1Blake160.setupInputCell(txSkeleton, inputIndex, { config });
+  } else if (isSecp256k1Blake160MultisigScript(inputLock, config)) {
+    return secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      inputIndex,
+      fromInfo,
+      { config }
+    );
+  } else {
+    throw new Error(`Not supported input lock!`);
+  }
+}
+
 export default {
   transfer,
   payFee,
   prepareSigningEntries,
+  injectCapacity,
+  setupInputCell,
   __tests__: {
     _commonTransfer,
   },
