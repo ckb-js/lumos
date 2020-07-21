@@ -192,6 +192,47 @@ for await (const tx of txCollector.collect()) {
 
 The `skip` field represents the number of transactions being skipped, which in the above code snippet means it would skip the first 100 transactions and return from the 101st one.
 
+### EventEmitter
+
+Event-driven pattern is also supported besides the above polling pattern. By specifying a `lock|type` script and subscribing for certain topics, it will emit related events(`cell_generated|transaction_generated|chain_forked`) when a new block is indexed.
+
+```javascript
+// subscribe for Cell related events
+eventEmitter = indexer.subscribeForCell({
+  lock: {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+});
+
+eventEmitter.on("cell_generated",  (outPointBuffer) => {
+    console.log(outPointBuffer);
+    // do something according to the event
+})
+
+eventEmitter.on("chain_forked", (block_number, block_hash) => {
+    console.log(block_number + "," + block_hash);
+    // do something according to the event
+})
+
+// subscribe for Transaction related events
+eventEmitter = indexer.subscribeForTransaction({
+  lock: {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+});
+
+eventEmitter.on("transaction_generated",  (txHash) => {
+    console.log(txHash);
+    // do something according to the event
+})
+```
+
 
 ## Electron note
 

@@ -20,7 +20,7 @@ use std::convert::TryInto;
 use std::fmt;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
-    Arc,
+    Arc, RwLock,
 };
 use std::thread;
 use std::time::Duration;
@@ -60,11 +60,21 @@ pub struct TransactionIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)>>)
 pub struct LiveCellIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)>>);
 
 #[derive(Clone)]
+pub struct Emitter {
+    cb: Option<EventHandler>,
+    lock: Option<Script>,
+    type_: Option<Script>,
+    // 0: cell, 1: transaction
+    subscription_topic: u8,
+}
+
+#[derive(Clone)]
 pub struct NativeIndexer {
     uri: String,
     poll_interval: Duration,
     running: Arc<AtomicBool>,
     indexer: Arc<Indexer<RocksdbStore>>,
+    emitters: Arc<RwLock<Vec<Emitter>>>,
 }
 
 impl NativeIndexer {
@@ -93,9 +103,11 @@ impl NativeIndexer {
                     if block.parent_hash() == tip_hash {
                         debug!("append {}, {}", block.number(), block.hash());
                         self.indexer.append(&block)?;
+                        self.publish_new_block_info(&block);
                     } else {
                         info!("rollback {}, {}", tip_number, tip_hash);
                         self.indexer.rollback()?;
+                        self.publish_fork_info(tip_number, tip_hash);
                     }
                 } else {
                     thread::sleep(self.poll_interval);
@@ -109,6 +121,92 @@ impl NativeIndexer {
             }
         }
         Ok(())
+    }
+
+    fn publish_new_block_info(&self, block: &CoreBlockView) {
+        let emitters = self.emitters.read().unwrap();
+        let lock_script_emitters = emitters.iter().filter(|x| x.lock.is_some());
+        let type_script_emitters = emitters.iter().filter(|x| x.type_.is_some());
+
+        let transactions = block.transactions();
+        for (_tx_index, tx) in transactions.iter().enumerate() {
+            // TODO: cell_consumed event ?
+            for (output_index, output) in tx.outputs().into_iter().enumerate() {
+                let lock_script = output.lock();
+                for emitter in lock_script_emitters.clone() {
+                    if lock_script == emitter.lock.clone().unwrap() {
+                        if emitter.subscription_topic == 0 {
+                            self.emit_cell_generated_event(emitter, tx.hash(), output_index);
+                        } else {
+                            self.emit_transaction_generated_event(emitter, tx.hash());
+                        }
+                    }
+                }
+                if let Some(type_script) = output.type_().to_opt() {
+                    for emitter in type_script_emitters.clone() {
+                        if type_script == emitter.type_.clone().unwrap() {
+                            if emitter.subscription_topic == 0 {
+                                self.emit_cell_generated_event(emitter, tx.hash(), output_index);
+                            } else {
+                                self.emit_transaction_generated_event(emitter, tx.hash());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn publish_fork_info(&self, tip_number: u64, tip_hash: Byte32) {
+        let emitters = self.emitters.read().unwrap();
+        for emitter in emitters.iter() {
+            self.emit_chain_forked_event(emitter, tip_number, tip_hash.clone())
+        }
+    }
+
+    fn emit_cell_generated_event(&self, emitter: &Emitter, tx_hash: Byte32, output_index: usize) {
+        if let Some(cb) = &emitter.cb {
+            cb.schedule(move |cx| {
+                let out_point = OutPoint::new(tx_hash, output_index as u32);
+                let mut out_point_buffer =
+                    JsArrayBuffer::new(cx, out_point.as_slice().len() as u32).unwrap();
+                {
+                    let guard = cx.lock();
+                    let buffer = out_point_buffer.borrow_mut(&guard);
+                    buffer.as_mut_slice().copy_from_slice(out_point.as_slice());
+                }
+                let args: Vec<Handle<JsValue>> = vec![
+                    cx.string("cell_generated").upcast(),
+                    out_point_buffer.upcast(),
+                ];
+                args
+            });
+        }
+    }
+
+    fn emit_transaction_generated_event(&self, emitter: &Emitter, tx_hash: Byte32) {
+        if let Some(cb) = &emitter.cb {
+            cb.schedule(move |cx| {
+                let args: Vec<Handle<JsValue>> = vec![
+                    cx.string("transaction_generated").upcast(),
+                    cx.string(format!("{:#}", tx_hash)).upcast(),
+                ];
+                args
+            });
+        }
+    }
+
+    fn emit_chain_forked_event(&self, emitter: &Emitter, block_number: u64, block_hash: Byte32) {
+        if let Some(cb) = &emitter.cb {
+            cb.schedule(move |cx| {
+                let args: Vec<Handle<JsValue>> = vec![
+                    cx.string("chain_forked").upcast(),
+                    cx.number(block_number as f64).upcast(),
+                    cx.string(format!("{:#x}", block_hash)).upcast(),
+                ];
+                args
+            });
+        }
     }
 }
 
@@ -130,7 +228,8 @@ declare_types! {
                 uri: uri.value(),
                 poll_interval: Duration::from_secs(interval_secs as u64),
                 running: Arc::new(AtomicBool::new(false)),
-                indexer,
+                indexer: indexer,
+                emitters: Arc::new(RwLock::new(vec![]))
             })
         }
 
@@ -322,6 +421,83 @@ declare_types! {
             result.set(&mut cx, "data", js_data)?;
 
             Ok(result.upcast())
+        }
+
+        method getEmitter(mut cx) {
+            let mut this = cx.this();
+            let js_script = cx.argument::<JsValue>(0)?;
+            let script_type = cx.argument::<JsValue>(1)?;
+            let subscription_topic = cx.argument::<JsValue>(2)?;
+            let emitter = JsEmitter::new(&mut cx, vec![js_script, script_type, subscription_topic])?;
+            {
+                let guard = cx.lock();
+                let emitter = emitter.borrow(&guard);
+                let native_indexer = this.borrow_mut(&guard);
+                let mut emitters = native_indexer.emitters.write().unwrap();
+                emitters.push(emitter.clone());
+            }
+            Ok(emitter.upcast())
+        }
+    }
+
+    pub class JsEmitter for Emitter {
+        init(mut cx) {
+            let js_script  = cx.argument::<JsObject>(0)?;
+            let js_code_hash = js_script.get(&mut cx, "code_hash")?
+            .downcast::<JsArrayBuffer>()
+            .or_throw(&mut cx)?;
+            let code_hash = {
+                let guard = cx.lock();
+                let code_hash = js_code_hash.borrow(&guard);
+                code_hash.as_slice().to_vec()
+            };
+            let js_hash_type = js_script.get(&mut cx, "hash_type")?
+                .downcast::<JsNumber>()
+                .or_throw(&mut cx)?
+                .value();
+            let js_args = js_script.get(&mut cx, "args")?
+                .downcast::<JsArrayBuffer>()
+                .or_throw(&mut cx)?;
+            let args = {
+                let guard = cx.lock();
+                let args = js_args.borrow(&guard);
+                args.as_slice().to_vec()
+            };
+            let script = assemble_packed_script(&code_hash, js_hash_type, &args);
+            if script.is_err() {
+                return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
+            }
+            let script = script.unwrap();
+            let script_type = cx.argument::<JsNumber>(1)?.value() as u8;
+            let subscription_topic = cx.argument::<JsNumber>(2)?.value() as u8;
+            let emitter = if script_type == 0  {
+                Emitter {
+                    cb: None,
+                    lock: Some(script),
+                    type_: None,
+                    subscription_topic: subscription_topic,
+                }
+            } else {
+                Emitter {
+                    cb: None,
+                    lock: None,
+                    type_: Some(script),
+                    subscription_topic: subscription_topic,
+                }
+            };
+            Ok(emitter)
+        }
+
+        constructor(mut cx) {
+            let mut this = cx.this();
+            let f = this.get(&mut cx, "emit")?.downcast::<JsFunction>().or_throw(&mut cx)?;
+            let cb = EventHandler::new(&cx, this, f);
+            {
+              let guard = cx.lock();
+              let mut emitter = this.borrow_mut(&guard);
+              emitter.cb = Some(cb);
+            }
+            Ok(None)
         }
     }
 
@@ -636,5 +812,7 @@ register_module!(mut cx, {
         return cx.throw_error("lumos indexer requires at least 2 cores to function!");
     }
     debug!("Native indexer module initialized!");
-    cx.export_class::<JsNativeIndexer>("Indexer")
+    cx.export_class::<JsNativeIndexer>("Indexer")?;
+    cx.export_class::<JsEmitter>("Emitter")?;
+    Ok(())
 });

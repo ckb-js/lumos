@@ -25,7 +25,7 @@ jsonrpc-core-client = { version = "14.0", features = ["http"] }
 jsonrpc-derive = "14.0"
 hyper = "0.12"
 log = "0.4.8"
-neon = "0.4.0"
+neon = { version = "0.4.0", features = ["event-handler-api"] }
 num_cpus = "1.13.0"
 
 [patch.crates-io]

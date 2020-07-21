@@ -1,7 +1,12 @@
 const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const { OrderedSet } = require("immutable");
 const XXHash = require("xxhash");
-const { Indexer: NativeIndexer } = require("../native");
+const { Indexer: NativeIndexer, Emitter } = require("../native");
+const { EventEmitter } = require("events");
+const util = require("util");
+
+util.inherits(Emitter, EventEmitter);
+
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
 }
@@ -74,6 +79,13 @@ class Indexer {
     );
   }
 
+  _getEmitter(script, scriptType, subscriptionTopic) {
+    return this.nativeIndexer.getEmitter(
+      normalizers.NormalizeScript(script),
+      scriptType,
+      subscriptionTopic
+    );
+  }
   startForever() {
     this.nativeIndexer.start();
     setInterval(() => {
@@ -89,6 +101,31 @@ class Indexer {
 
   collector({ lock = null, type = null, argsLen = -1, data = "0x" } = {}) {
     return new CellCollector(this, { lock, type, argsLen, data });
+  }
+
+  subscribeForCell({ lock = null, type = null } = {}) {
+    return this.subscribe(lock, type, 0);
+  }
+
+  subscribeForTransaction({ lock = null, type = null } = {}) {
+    return this.subscribe(lock, type, 1);
+  }
+
+  subscribe(lock, type, subscriptionTopic) {
+    let script = null;
+    let scriptType = null;
+    if (lock) {
+      validators.ValidateScript(lock);
+      scriptType = 0;
+      script = lock;
+    } else if (type) {
+      validators.ValidateScript(type);
+      scriptType = 1;
+      script = type;
+    } else {
+      throw new Error("Either lock or type script must be provided!");
+    }
+    return this._getEmitter(script, scriptType, subscriptionTopic);
   }
 }
 
