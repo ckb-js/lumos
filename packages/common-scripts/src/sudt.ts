@@ -1,4 +1,4 @@
-import { addCellDep } from "./helper";
+import { addCellDep, isAcpScript } from "./helper";
 import {
   utils,
   Hash,
@@ -7,8 +7,9 @@ import {
   Script,
   Header,
   CellCollector,
+  values,
 } from "@ckb-lumos/base";
-const { toBigUInt128LE, readBigUInt64LE, computeScriptHash } = utils;
+const { toBigUInt128LE, readBigUInt128LE, computeScriptHash } = utils;
 import {
   serializeMultisigScript,
   multisigArgs,
@@ -21,10 +22,14 @@ import {
   minimalCellCapacity,
   TransactionSkeletonType,
   Options,
+  generateAddress,
 } from "@ckb-lumos/helpers";
 import { Set, List } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { collectCells, LocktimeCell } from "./locktime_pool";
+import { CellCollector as AnyoneCanPayCellCollector } from "./anyone_can_pay";
+import anyoneCanPay from "./anyone_can_pay";
+const { ScriptValue } = values;
 
 export type Token = Hash;
 
@@ -177,6 +182,46 @@ export async function transfer(
 
   const sudtType = _generateSudtScript(sudtToken, config);
 
+  const cellProvider = txSkeleton.get("cellProvider");
+  if (!cellProvider) {
+    throw new Error("Cell provider is missing!");
+  }
+
+  // if toScript is an anyone-can-pay script
+  let toAddressInputCapacity: bigint = 0n;
+  let toAddressInputAmount: bigint = 0n;
+  if (isAcpScript(toScript, config)) {
+    const toAddressCellCollector = new AnyoneCanPayCellCollector(
+      toAddress,
+      cellProvider,
+      {
+        config,
+        queryOptions: {
+          type: sudtType,
+          data: undefined,
+        },
+      }
+    );
+
+    const toAddressInput: Cell | void = (
+      await toAddressCellCollector.collect().next()
+    ).value;
+    if (!toAddressInput) {
+      throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
+    }
+
+    txSkeleton = txSkeleton.update("inputs", (inputs) => {
+      return inputs.push(toAddressInput);
+    });
+
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+      return witnesses.push("0x");
+    });
+
+    toAddressInputCapacity = BigInt(toAddressInput.cell_output.capacity);
+    toAddressInputAmount = readBigUInt128LE(toAddressInput.data);
+  }
+
   const targetOutput: Cell = {
     cell_output: {
       capacity: "0x0",
@@ -187,11 +232,22 @@ export async function transfer(
     out_point: undefined,
     block_hash: undefined,
   };
-  if (!capacity) {
-    capacity = minimalCellCapacity(targetOutput);
+  if (capacity) {
+    capacity = BigInt(capacity);
   }
-  capacity = BigInt(capacity);
-  targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
+  if (isAcpScript(toScript, config)) {
+    if (!capacity) {
+      capacity = 0n;
+    }
+    targetOutput.cell_output.capacity =
+      "0x" + (toAddressInputCapacity + capacity).toString(16);
+    targetOutput.data = toBigUInt128LE(toAddressInputAmount + BigInt(amount));
+  } else {
+    if (!capacity) {
+      capacity = minimalCellCapacity(targetOutput);
+    }
+    targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
+  }
 
   // collect cells with which includes sUDT info
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -214,10 +270,6 @@ export async function transfer(
   });
 
   // collect cells
-  const cellProvider = txSkeleton.get("cellProvider");
-  if (!cellProvider) {
-    throw new Error("Cell provider is missing!");
-  }
   const changeCell: Cell = {
     cell_output: {
       capacity: "0x0",
@@ -249,6 +301,7 @@ export async function transfer(
   let cellCollectorInfos: List<{
     cellCollector: CellCollector;
     index: number;
+    isAnyoneCanPay?: boolean;
   }> = List();
   if (tipHeader) {
     fromInfos.forEach((fromInfo, index) => {
@@ -277,15 +330,34 @@ export async function transfer(
     });
   }
   fromScripts.forEach((fromScript, index) => {
-    const collector = cellProvider.collector({
-      lock: fromScript,
-      type: sudtType,
-      data: undefined,
-    });
-    cellCollectorInfos = cellCollectorInfos.push({
-      cellCollector: collector,
-      index,
-    });
+    if (isAcpScript(fromScript, config!)) {
+      const collector = new AnyoneCanPayCellCollector(
+        generateAddress(fromScript, { config }),
+        cellProvider,
+        {
+          config,
+          queryOptions: {
+            type: sudtType,
+            data: undefined,
+          },
+        }
+      );
+      cellCollectorInfos = cellCollectorInfos.push({
+        cellCollector: collector,
+        index,
+        isAnyoneCanPay: true,
+      });
+    } else {
+      const collector = cellProvider.collector({
+        lock: fromScript,
+        type: sudtType,
+        data: undefined,
+      });
+      cellCollectorInfos = cellCollectorInfos.push({
+        cellCollector: collector,
+        index,
+      });
+    }
   });
   if (tipHeader) {
     fromInfos.forEach((fromInfo, index) => {
@@ -310,16 +382,31 @@ export async function transfer(
     });
   }
   fromScripts.forEach((fromScript, index) => {
-    const collector = cellProvider.collector({
-      lock: fromScript,
-    });
+    if (isAcpScript(fromScript, config!)) {
+      const collector = new AnyoneCanPayCellCollector(
+        generateAddress(fromScript, { config }),
+        cellProvider,
+        {
+          config,
+        }
+      );
+      cellCollectorInfos = cellCollectorInfos.push({
+        cellCollector: collector,
+        index,
+        isAnyoneCanPay: true,
+      });
+    } else {
+      const collector = cellProvider.collector({
+        lock: fromScript,
+      });
 
-    cellCollectorInfos = cellCollectorInfos.push({
-      cellCollector: collector,
-      index,
-    });
+      cellCollectorInfos = cellCollectorInfos.push({
+        cellCollector: collector,
+        index,
+      });
+    }
   });
-  for (const { index, cellCollector } of cellCollectorInfos) {
+  for (const { index, cellCollector, isAnyoneCanPay } of cellCollectorInfos) {
     for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
       const key = `${inputCell.out_point!.tx_hash}_${
@@ -335,31 +422,75 @@ export async function transfer(
       txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
         witnesses.push("0x")
       );
+
       const fromInfo = fromInfos[index];
-      txSkeleton = await common.setupInputCell(
-        txSkeleton,
-        txSkeleton.get("inputs").size - 1,
-        fromInfo,
-        { config }
-      );
+      // TODO: update after integrate anyone-can-pay to common
+      if (isAnyoneCanPay) {
+        txSkeleton = await anyoneCanPay.setupInputCell(
+          txSkeleton,
+          txSkeleton.get("inputs").size - 1,
+          { config }
+        );
+      } else {
+        txSkeleton = await common.setupInputCell(
+          txSkeleton,
+          txSkeleton.get("inputs").size - 1,
+          fromInfo,
+          { config }
+        );
+      }
       const inputCapacity: bigint = BigInt(
         (inputCell as any).maximumCapacity || inputCell.cell_output.capacity
       );
       const inputAmount: bigint = inputCell.cell_output.type
-        ? readBigUInt64LE(inputCell.data)
+        ? readBigUInt128LE(inputCell.data)
         : 0n;
-      let deductCapacity: bigint = inputCapacity;
+      let deductCapacity: bigint = isAnyoneCanPay
+        ? inputCapacity - minimalCellCapacity(inputCell)
+        : inputCapacity;
       let deductAmount: bigint = inputAmount;
       if (deductCapacity > capacity) {
         deductCapacity = capacity;
       }
       capacity -= deductCapacity;
-      changeCapacity += inputCapacity - deductCapacity;
+      const currentChangeCapacity: bigint = inputCapacity - deductCapacity;
+      if (!isAnyoneCanPay) {
+        changeCapacity += currentChangeCapacity;
+      }
       if (deductAmount > amount) {
         deductAmount = amount;
       }
       amount -= deductAmount;
-      changeAmount += inputAmount - deductAmount;
+      const currentChangeAmount: bigint = inputAmount - deductAmount;
+      if (!isAnyoneCanPay) {
+        changeAmount += currentChangeAmount;
+      }
+
+      if (isAnyoneCanPay) {
+        const acpChangeCell: Cell = {
+          cell_output: {
+            capacity: "0x" + currentChangeCapacity.toString(16),
+            lock: inputCell.cell_output.lock,
+            type: inputCell.cell_output.type,
+          },
+          data: inputCell.cell_output.type
+            ? toBigUInt128LE(currentChangeAmount)
+            : "0x",
+        };
+
+        txSkeleton = txSkeleton.update("outputs", (outputs) => {
+          return outputs.push(acpChangeCell);
+        });
+
+        if (inputCell.cell_output.type) {
+          txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+            return fixedEntries.push({
+              field: "outputs",
+              index: txSkeleton.get("outputs").size - 1,
+            });
+          });
+        }
+      }
 
       // changeAmount = 0n, the change output no need to include sudt type script
       if (
@@ -384,7 +515,29 @@ export async function transfer(
     }
   }
 
-  if (changeCapacity >= minimalCellCapacity(changeCell)) {
+  // if change cell is an anyone-can-pay cell and exists in txSkeleton.get("outputs")
+  let changeOutputIndex = -1;
+  if (
+    isAcpScript(changeCell.cell_output.lock, config) &&
+    (changeOutputIndex = txSkeleton.get("outputs").findIndex((output) => {
+      return new ScriptValue(changeCell.cell_output.lock, {
+        validate: false,
+      }).equals(new ScriptValue(output.cell_output.lock, { validate: false }));
+    })) !== -1
+  ) {
+    txSkeleton.update("outputs", (outputs) => {
+      return outputs.update(changeOutputIndex, (output) => {
+        output.cell_output.capacity =
+          "0x" +
+          (BigInt(output.cell_output.capacity) + changeCapacity).toString(16);
+        output.data = toBigUInt128LE(
+          readBigUInt128LE(output.data) + changeAmount
+        );
+
+        return output;
+      });
+    });
+  } else if (changeCapacity >= minimalCellCapacity(changeCell)) {
     changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
     if (changeAmount > 0n) {
       changeCell.data = toBigUInt128LE(changeAmount);
