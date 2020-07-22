@@ -205,16 +205,12 @@ export async function injectCapacity(
         new ScriptValue(fromScript, { validate: false })
       )
     ) {
-      const cellCapacity = BigInt(output.cell_output.capacity);
-      let deductCapacity;
-      if (capacity >= cellCapacity) {
-        deductCapacity = cellCapacity;
-      } else {
-        deductCapacity = cellCapacity - minimalCellCapacity(output);
-        if (deductCapacity > capacity) {
-          deductCapacity = capacity;
-        }
-      }
+      const cellCapacity: bigint = BigInt(output.cell_output.capacity);
+      const availableCapacity: bigint =
+        cellCapacity - minimalCellCapacity(output);
+      // should maintain minimal cell capcity in anyone-can-pay output
+      const deductCapacity: bigint =
+        capacity >= availableCapacity ? availableCapacity : capacity;
       capacity -= deductCapacity;
       output.cell_output.capacity =
         "0x" + (cellCapacity - deductCapacity).toString(16);
