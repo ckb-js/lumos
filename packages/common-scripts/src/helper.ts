@@ -120,6 +120,26 @@ export function isSudtScript(
   );
 }
 
+export function isAcpScript(script: Script, config: Config): boolean {
+  const template = config.SCRIPTS.ANYONE_CAN_PAY;
+
+  if (!template) {
+    throw new Error(`ANYONE_CAN_PAY script not defined in config!`);
+  }
+
+  return (
+    !!script &&
+    script.code_hash === template.CODE_HASH &&
+    script.hash_type === template.HASH_TYPE
+  );
+}
+
+export function isAcpAddress(address: Address, config: Config): boolean {
+  const script = parseAddress(address, { config });
+
+  return isAcpScript(script, config);
+}
+
 export function hashWitness(hasher: any, witness: HexString): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
@@ -227,4 +247,6 @@ export default {
   isSecp256k1Blake160Address,
   isSecp256k1Blake160MultisigAddress,
   ensureScript,
+  isAcpScript,
+  isAcpAddress,
 };
