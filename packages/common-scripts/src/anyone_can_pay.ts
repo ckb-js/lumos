@@ -315,6 +315,22 @@ export async function transfer(
     throw new Error("`toAddress` is not ANYONE_CAN_PAY address!");
   }
 
+  capacity = BigInt(capacity);
+  if (toScript.args.length >= 46) {
+    const minimalAmount: bigint =
+      10n ** BigInt("0x" + toScript.args.slice(44, 46));
+    throw new Error(
+      `Requires to transfer ${minimalAmount} to \`toAddress\` at least! please use sudt.transfer.`
+    );
+  }
+  if (toScript.args.length >= 44) {
+    const minimalCapcity: bigint =
+      10n ** BigInt("0x" + toScript.args.slice(42, 44));
+    if (capacity < minimalCapcity) {
+      throw new Error(`capacity less than toAddress minimal capacity`);
+    }
+  }
+
   const cellCollector = new CellCollector(fromAddress, cellProvider, {
     config,
   });
