@@ -139,3 +139,53 @@ test("prepareSigningEntries", async (t) => {
   t.is(txSkeleton.get("signingEntries").size, 1);
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
+
+test("destroyAnyoneCanPayInput", async (t) => {
+  const cellProvider = new CellProvider([bobCell, aliceCell]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const fee: bigint = BigInt(1000);
+  txSkeleton = await anyoneCanPay.destroyAnyoneCanPayInput(
+    txSkeleton,
+    bobCell,
+    bob.testnetAddress,
+    fee,
+    { config: AGGRON4 }
+  );
+
+  // sum of outputs capacity should be equal to sum of inputs capacity
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  t.is(sumOfOutputCapacity + fee, sumOfInputCapacity);
+
+  t.is(txSkeleton.get("cellDeps").size, 1);
+  t.is(
+    txSkeleton.get("cellDeps").get(0)!.out_point.tx_hash,
+    AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH
+  );
+
+  t.is(txSkeleton.get("headerDeps").size, 0);
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 1);
+
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  const expectedMessage =
+    "0x60dc5f16f2097f516946f69540280b4079ce30d976939144e5acff5de3388db1";
+
+  txSkeleton = anyoneCanPay.prepareSigningEntries(txSkeleton, {
+    config: AGGRON4,
+  });
+
+  t.is(txSkeleton.get("signingEntries").size, 1);
+  t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
+});
