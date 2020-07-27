@@ -103,15 +103,7 @@ class Indexer {
     return new CellCollector(this, { lock, type, argsLen, data });
   }
 
-  subscribeForCell({ lock = null, type = null } = {}) {
-    return this.subscribe(lock, type, 0);
-  }
-
-  subscribeForTransaction({ lock = null, type = null } = {}) {
-    return this.subscribe(lock, type, 1);
-  }
-
-  subscribe(lock, type, subscriptionTopic) {
+  subscribe({ lock = null, type = null } = {}) {
     let script = null;
     let scriptType = null;
     if (lock) {
@@ -125,7 +117,7 @@ class Indexer {
     } else {
       throw new Error("Either lock or type script must be provided!");
     }
-    return this._getEmitter(script, scriptType, subscriptionTopic);
+    return this._getEmitter(script, scriptType);
   }
 }
 

@@ -194,11 +194,12 @@ The `skip` field represents the number of transactions being skipped, which in t
 
 ### EventEmitter
 
-Event-driven pattern is also supported besides the above polling pattern. By specifying a `lock|type` script and subscribing for certain topics(`cell|transaction`), it will emit `changed` events when a block with such script is newly indexed or rollbacked.
+Event-driven pattern is also supported besides the above polling pattern. After subsribing for certain `lock|type` script, it will emit a `changed` event when a block containing the subsribed script is indexed or rollbacked. 
+
+The principle of the design is unreliable notification queue, so developers are supposed to pull from the data sources via `CellCollector|TransactionCollector`, to find out what might happened: cell consumed, new cell generated, new transaction generated, or a chain fork happened, etc; and take the next step accordingly.
 
 ```javascript
-// subscribe for Cell related events
-eventEmitter = indexer.subscribeForCell({
+eventEmitter = indexer.subscribe({
   lock: {
     code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
@@ -208,7 +209,7 @@ eventEmitter = indexer.subscribeForCell({
 });
 
 eventEmitter.on("changed",  () => {
-  console.log("Something changed with script, please pull the data sources from the indexer to find it out what happend");
+  console.log("States changed with the script, please pull the data sources from the indexer to find out what happend");
 })
 
 ```

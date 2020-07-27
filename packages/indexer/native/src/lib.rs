@@ -64,8 +64,6 @@ pub struct Emitter {
     cb: Option<EventHandler>,
     lock: Option<Script>,
     type_: Option<Script>,
-    // 0: cell, 1: transaction
-    subscription_topic: u8,
 }
 
 #[derive(Clone)]
@@ -233,10 +231,7 @@ impl NativeIndexer {
 
     fn emit_changed_event(&self, emitter: &Emitter) {
         if let Some(cb) = &emitter.cb {
-            cb.schedule(move |cx| {
-                let args: Vec<Handle<JsValue>> = vec![cx.string("changed").upcast()];
-                args
-            })
+            cb.schedule(move |cx| vec![cx.string("changed").upcast()] as Vec<Handle<JsValue>>)
         }
     }
 }
@@ -458,8 +453,7 @@ declare_types! {
             let mut this = cx.this();
             let js_script = cx.argument::<JsValue>(0)?;
             let script_type = cx.argument::<JsValue>(1)?;
-            let subscription_topic = cx.argument::<JsValue>(2)?;
-            let emitter = JsEmitter::new(&mut cx, vec![js_script, script_type, subscription_topic])?;
+            let emitter = JsEmitter::new(&mut cx, vec![js_script, script_type])?;
             {
                 let guard = cx.lock();
                 let emitter = emitter.borrow(&guard);
@@ -500,20 +494,17 @@ declare_types! {
             }
             let script = script.unwrap();
             let script_type = cx.argument::<JsNumber>(1)?.value() as u8;
-            let subscription_topic = cx.argument::<JsNumber>(2)?.value() as u8;
             let emitter = if script_type == 0  {
                 Emitter {
                     cb: None,
                     lock: Some(script),
                     type_: None,
-                    subscription_topic: subscription_topic,
                 }
             } else {
                 Emitter {
                     cb: None,
                     lock: None,
                     type_: Some(script),
-                    subscription_topic: subscription_topic,
                 }
             };
             Ok(emitter)
