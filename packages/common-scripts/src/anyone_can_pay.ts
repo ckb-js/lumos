@@ -30,6 +30,7 @@ import {
 import { Reader, normalizers } from "ckb-js-toolkit";
 const { ScriptValue } = values;
 import { Set, List } from "immutable";
+import { FromInfo, parseFromInfo } from "./secp256k1_blake160_multisig";
 const { CKBHasher, ckbHash, readBigUInt128LE } = utils;
 
 export class CellCollector {
@@ -38,7 +39,7 @@ export class CellCollector {
   public readonly fromScript: Script;
 
   constructor(
-    fromAddress: Address,
+    fromInfo: FromInfo,
     cellProvider: CellProvider,
     {
       config = undefined,
@@ -51,7 +52,7 @@ export class CellCollector {
       throw new Error(`Cell provider is missing!`);
     }
     config = config || getConfig();
-    this.fromScript = parseAddress(fromAddress, { config });
+    this.fromScript = parseFromInfo(fromInfo, { config }).fromScript;
 
     this.config = config;
 
