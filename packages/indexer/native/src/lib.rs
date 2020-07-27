@@ -2,13 +2,13 @@
 extern crate log;
 
 use ckb_indexer::{
-    indexer::{Error as IndexerError, Indexer, KeyPrefix, SCRIPT_SERIALIZE_OFFSET},
+    indexer::{Error as IndexerError, Indexer, Key, KeyPrefix, Value, SCRIPT_SERIALIZE_OFFSET},
     store::{IteratorDirection, RocksdbStore, Store},
 };
 use ckb_jsonrpc_types::{BlockNumber, BlockView};
 use ckb_types::{
     core::{BlockView as CoreBlockView, ScriptHashType},
-    packed::{Byte32, OutPoint, Script, ScriptBuilder},
+    packed::{Byte32, CellOutput, OutPoint, Script, ScriptBuilder},
     prelude::*,
 };
 use futures::Future;
@@ -103,11 +103,11 @@ impl NativeIndexer {
                     if block.parent_hash() == tip_hash {
                         debug!("append {}, {}", block.number(), block.hash());
                         self.indexer.append(&block)?;
-                        self.publish_new_block_info(&block);
+                        self.publish_append_block_events(&block)?;
                     } else {
                         info!("rollback {}, {}", tip_number, tip_hash);
                         self.indexer.rollback()?;
-                        self.publish_fork_info(tip_number, tip_hash);
+                        self.publish_rollback_events()?;
                     }
                 } else {
                     thread::sleep(self.poll_interval);
@@ -117,95 +117,126 @@ impl NativeIndexer {
                     let block: CoreBlockView = block.into();
                     debug!("append genesis block hash: {}", block.hash());
                     self.indexer.append(&block)?;
+                    self.publish_append_block_events(&block)?;
                 }
             }
         }
         Ok(())
     }
 
-    fn publish_new_block_info(&self, block: &CoreBlockView) {
+    fn publish_append_block_events(&self, block: &CoreBlockView) -> Result<(), IndexerError> {
+        let transactions = block.transactions();
+        for (tx_index, tx) in transactions.iter().enumerate() {
+            if tx_index > 0 {
+                for (_input_index, input) in tx.inputs().into_iter().enumerate() {
+                    let out_point = input.previous_output();
+                    let consumed_cell = self
+                        .indexer
+                        .store()
+                        .get(Key::ConsumedOutPoint(block.number(), &out_point).into_vec())?
+                        .expect("Transaction inputs' previous_output should be consumed already");
+                    let (_generated_by_block_number, _generated_by_tx_index, output, _output_data) =
+                        Value::parse_cell_value(&consumed_cell);
+                    self.filter_events_by_script(output);
+                }
+            }
+            for (_output_index, output) in tx.outputs().into_iter().enumerate() {
+                self.filter_events_by_script(output);
+            }
+        }
+        Ok(())
+    }
+
+    fn publish_rollback_events(&self) -> Result<(), IndexerError> {
+        if let Some((block_number, block_hash)) = self.indexer.tip()? {
+            let txs = Value::parse_transactions_value(
+                &self
+                    .indexer
+                    .store()
+                    .get(Key::Header(block_number, &block_hash).into_vec())?
+                    .expect("stored block"),
+            );
+            for (tx_index, (tx_hash, outputs_len)) in txs.into_iter().enumerate().rev() {
+                let tx_index = tx_index as u32;
+                for output_index in 0..outputs_len {
+                    let out_point = OutPoint::new(tx_hash.clone(), output_index);
+                    let out_point_key = Key::OutPoint(&out_point).into_vec();
+
+                    let (_generated_by_block_number, _generated_by_tx_index, output, _output_data) =
+                        if let Some(stored_live_cell) = self.indexer.store().get(&out_point_key)? {
+                            Value::parse_cell_value(&stored_live_cell)
+                        } else {
+                            let consumed_cell = self
+                                .indexer
+                                .store()
+                                .get(Key::ConsumedOutPoint(block_number, &out_point).into_vec())?
+                                .expect("stored live cell or consume output in same block");
+                            Value::parse_cell_value(&consumed_cell)
+                        };
+                    self.filter_events_by_script(output);
+                }
+                let transaction_key = Key::TxHash(&tx_hash).into_vec();
+                if tx_index > 0 {
+                    for (_input_index, out_point) in self
+                        .indexer
+                        .store()
+                        .get(&transaction_key)?
+                        .expect("stored transaction inputs")
+                        .chunks_exact(OutPoint::TOTAL_SIZE)
+                        .map(|slice| {
+                            OutPoint::from_slice(slice)
+                                .expect("stored transaction inputs out_point slice")
+                        })
+                        .enumerate()
+                    {
+                        let consumed_out_point_key =
+                            Key::ConsumedOutPoint(block_number, &out_point).into_vec();
+
+                        let stored_consumed_cell = self
+                            .indexer
+                            .store()
+                            .get(consumed_out_point_key)?
+                            .expect("stored consumed cells value");
+                        let (
+                            _generated_by_block_number,
+                            _generated_by_tx_index,
+                            output,
+                            _output_data,
+                        ) = Value::parse_cell_value(&stored_consumed_cell);
+                        self.filter_events_by_script(output);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn filter_events_by_script(&self, output: CellOutput) {
         let emitters = self.emitters.read().unwrap();
         let lock_script_emitters = emitters.iter().filter(|x| x.lock.is_some());
         let type_script_emitters = emitters.iter().filter(|x| x.type_.is_some());
 
-        let transactions = block.transactions();
-        for (_tx_index, tx) in transactions.iter().enumerate() {
-            // TODO: cell_consumed event ?
-            for (output_index, output) in tx.outputs().into_iter().enumerate() {
-                let lock_script = output.lock();
-                for emitter in lock_script_emitters.clone() {
-                    if lock_script == emitter.lock.clone().unwrap() {
-                        if emitter.subscription_topic == 0 {
-                            self.emit_cell_generated_event(emitter, tx.hash(), output_index);
-                        } else {
-                            self.emit_transaction_generated_event(emitter, tx.hash());
-                        }
-                    }
-                }
-                if let Some(type_script) = output.type_().to_opt() {
-                    for emitter in type_script_emitters.clone() {
-                        if type_script == emitter.type_.clone().unwrap() {
-                            if emitter.subscription_topic == 0 {
-                                self.emit_cell_generated_event(emitter, tx.hash(), output_index);
-                            } else {
-                                self.emit_transaction_generated_event(emitter, tx.hash());
-                            }
-                        }
-                    }
+        let lock_script = output.lock();
+        for emitter in lock_script_emitters.clone() {
+            if lock_script == emitter.lock.clone().unwrap() {
+                self.emit_changed_event(emitter);
+            }
+        }
+        if let Some(type_script) = output.type_().to_opt() {
+            for emitter in type_script_emitters.clone() {
+                if type_script == emitter.type_.clone().unwrap() {
+                    self.emit_changed_event(emitter);
                 }
             }
         }
     }
 
-    fn publish_fork_info(&self, tip_number: u64, tip_hash: Byte32) {
-        let emitters = self.emitters.read().unwrap();
-        for emitter in emitters.iter() {
-            self.emit_chain_forked_event(emitter, tip_number, tip_hash.clone())
-        }
-    }
-
-    fn emit_cell_generated_event(&self, emitter: &Emitter, tx_hash: Byte32, output_index: usize) {
+    fn emit_changed_event(&self, emitter: &Emitter) {
         if let Some(cb) = &emitter.cb {
             cb.schedule(move |cx| {
-                let out_point = OutPoint::new(tx_hash, output_index as u32);
-                let mut out_point_buffer =
-                    JsArrayBuffer::new(cx, out_point.as_slice().len() as u32).unwrap();
-                {
-                    let guard = cx.lock();
-                    let buffer = out_point_buffer.borrow_mut(&guard);
-                    buffer.as_mut_slice().copy_from_slice(out_point.as_slice());
-                }
-                let args: Vec<Handle<JsValue>> = vec![
-                    cx.string("cell_generated").upcast(),
-                    out_point_buffer.upcast(),
-                ];
+                let args: Vec<Handle<JsValue>> = vec![cx.string("changed").upcast()];
                 args
-            });
-        }
-    }
-
-    fn emit_transaction_generated_event(&self, emitter: &Emitter, tx_hash: Byte32) {
-        if let Some(cb) = &emitter.cb {
-            cb.schedule(move |cx| {
-                let args: Vec<Handle<JsValue>> = vec![
-                    cx.string("transaction_generated").upcast(),
-                    cx.string(format!("{:#}", tx_hash)).upcast(),
-                ];
-                args
-            });
-        }
-    }
-
-    fn emit_chain_forked_event(&self, emitter: &Emitter, block_number: u64, block_hash: Byte32) {
-        if let Some(cb) = &emitter.cb {
-            cb.schedule(move |cx| {
-                let args: Vec<Handle<JsValue>> = vec![
-                    cx.string("chain_forked").upcast(),
-                    cx.number(block_number as f64).upcast(),
-                    cx.string(format!("{:#x}", block_hash)).upcast(),
-                ];
-                args
-            });
+            })
         }
     }
 }
