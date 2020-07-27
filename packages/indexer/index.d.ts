@@ -1,8 +1,9 @@
 import {
-  CellCollectorResults,
+  QueryOptions,
+  Transaction,
   CellCollector as CellCollectorInterface,
-} from "ckb-js-toolkit";
-import { QueryOptions, Transaction } from "@ckb-lumos/base";
+  CellCollectorResults,
+} from "@ckb-lumos/base";
 
 export type Logger = (level: string, message: string) => void;
 
