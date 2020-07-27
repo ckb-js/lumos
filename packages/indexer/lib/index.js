@@ -204,7 +204,7 @@ class CellCollector {
       if (cell && this.type === "empty" && cell.cell_output.type) {
         continue;
       }
-      if (this.data && cell.data !== this.data) {
+      if (this.data !== "empty" && cell.data !== this.data) {
         continue;
       }
       counter += 1;
@@ -220,7 +220,7 @@ class CellCollector {
       if (cell && this.type === "empty" && cell.cell_output.type) {
         continue;
       }
-      if (this.data && cell.data !== this.data) {
+      if (this.data !== "empty" && cell.data !== this.data) {
         continue;
       }
       yield cell;
