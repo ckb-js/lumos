@@ -25,7 +25,6 @@ import {
   addCellDep,
   SECP_SIGNATURE_PLACEHOLDER,
   hashWitness,
-  isAcpAddress,
 } from "./helper";
 import { Reader, normalizers } from "ckb-js-toolkit";
 const { ScriptValue } = values;
@@ -293,92 +292,6 @@ export async function injectCapacity(
   return txSkeleton;
 }
 
-export async function transfer(
-  txSkeleton: TransactionSkeletonType,
-  fromAddress: Address,
-  toAddress: Address,
-  capacity: bigint,
-  { config = undefined }: Options = {}
-): Promise<TransactionSkeletonType> {
-  config = config || getConfig();
-
-  const cellProvider = txSkeleton.get("cellProvider");
-  if (!cellProvider) {
-    throw new Error(`Cell Provider is missing!`);
-  }
-
-  const toScript = parseAddress(toAddress, { config });
-
-  if (!isAcpAddress(fromAddress, config)) {
-    throw new Error("`fromAddress` is not ANYONE_CAN_PAY address!");
-  }
-  if (!isAcpScript(toScript, config)) {
-    throw new Error("`toAddress` is not ANYONE_CAN_PAY address!");
-  }
-
-  capacity = BigInt(capacity);
-  if (toScript.args.length >= 46) {
-    const minimalAmount: bigint =
-      10n ** BigInt("0x" + toScript.args.slice(44, 46));
-    throw new Error(
-      `Requires to transfer ${minimalAmount} to \`toAddress\` at least! please use sudt.transfer.`
-    );
-  }
-  if (toScript.args.length >= 44) {
-    const minimalCapcity: bigint =
-      10n ** BigInt("0x" + toScript.args.slice(42, 44));
-    if (capacity < minimalCapcity) {
-      throw new Error(`capacity less than toAddress minimal capacity`);
-    }
-  }
-
-  const cellCollector = new CellCollector(fromAddress, cellProvider, {
-    config,
-  });
-
-  const toAddressCellCollector = new CellCollector(toAddress, cellProvider, {
-    config,
-  });
-
-  const toAddressInput: Cell | void = (
-    await toAddressCellCollector.collect().next()
-  ).value;
-  if (!toAddressInput) {
-    throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
-  }
-
-  const outputCapacity: bigint =
-    BigInt(capacity) + BigInt(toAddressInput.cell_output.capacity);
-  txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.push({
-      cell_output: {
-        capacity: "0x" + outputCapacity.toString(16),
-        lock: toScript,
-        type: undefined,
-      },
-      data: "0x",
-      out_point: undefined,
-      block_hash: undefined,
-    });
-  });
-  txSkeleton = txSkeleton.update("inputs", (inputs) => {
-    return inputs.push(toAddressInput);
-  });
-  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-    return witnesses.push("0x");
-  });
-
-  txSkeleton = await injectCapacity(
-    cellCollector,
-    txSkeleton,
-    txSkeleton.get("outputs").size - 1,
-    capacity,
-    { config }
-  );
-
-  return txSkeleton;
-}
-
 export function prepareSigningEntries(
   txSkeleton: TransactionSkeletonType,
   { config = undefined }: Options = {}
@@ -483,60 +396,6 @@ export function prepareSigningEntries(
     }
   }
   txSkeleton = txSkeleton.set("signingEntries", signingEntries);
-  return txSkeleton;
-}
-
-export async function destroyAnyoneCanPayInput(
-  txSkeleton: TransactionSkeletonType,
-  input: Cell,
-  toAddress: Address,
-  fee: bigint = 0n,
-  { config = undefined }: Options = {}
-): Promise<TransactionSkeletonType> {
-  config = config || getConfig();
-
-  if (!isAcpScript(input.cell_output.lock, config)) {
-    throw new Error(`input is not an ANYONE_CAN_PAY input!`);
-  }
-
-  if (!toAddress) {
-    throw new Error(`You must provide toAddress!`);
-  }
-  const toScript: Script = parseAddress(toAddress, { config });
-
-  const targetCapacity: bigint =
-    BigInt(input.cell_output.capacity) - BigInt(fee);
-  const targetOutput: Cell = {
-    cell_output: {
-      capacity: "0x" + targetCapacity.toString(16),
-      lock: toScript,
-      type: input.cell_output.type,
-    },
-    data: input.data,
-  };
-
-  if (targetCapacity < minimalCellCapacity(targetOutput)) {
-    throw new Error("Input capacity not enough!");
-  }
-
-  txSkeleton = txSkeleton.update("inputs", (inputs) => {
-    return inputs.push(input);
-  });
-
-  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-    return witnesses.push("0x");
-  });
-
-  txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.push(targetOutput);
-  });
-
-  txSkeleton = await setupInputCell(
-    txSkeleton,
-    txSkeleton.get("inputs").size - 1,
-    { config }
-  );
-
   return txSkeleton;
 }
 
@@ -667,8 +526,6 @@ export default {
   CellCollector,
   setupInputCell,
   injectCapacity,
-  transfer,
   prepareSigningEntries,
-  destroyAnyoneCanPayInput,
   withdraw,
 };
