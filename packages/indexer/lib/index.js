@@ -79,11 +79,10 @@ class Indexer {
     );
   }
 
-  _getEmitter(script, scriptType, subscriptionTopic) {
+  _getEmitter(script, scriptType) {
     return this.nativeIndexer.getEmitter(
       normalizers.NormalizeScript(script),
-      scriptType,
-      subscriptionTopic
+      scriptType
     );
   }
   startForever() {
