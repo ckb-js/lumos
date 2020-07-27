@@ -540,6 +540,129 @@ export async function destroyAnyoneCanPayInput(
   return txSkeleton;
 }
 
+export async function withdraw(
+  txSkeleton: TransactionSkeletonType,
+  fromInput: Cell,
+  toAddress: Address,
+  capacity: bigint,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+
+  // from input must be a anyone-can-pay script
+  if (!isAcpScript(fromInput.cell_output.lock, config)) {
+    throw new Error(`fromInput is not a ANYONE_CAN_PAY cell!`);
+  }
+
+  // check capacity
+  capacity = BigInt(capacity);
+  const fromInputCapacity: bigint = BigInt(fromInput.cell_output.capacity);
+  const inputMinimalCellCapacity: bigint = minimalCellCapacity(fromInput);
+  if (
+    !(
+      (capacity >= 0n &&
+        capacity <= fromInputCapacity - inputMinimalCellCapacity) ||
+      capacity === fromInputCapacity
+    )
+  ) {
+    throw new Error(
+      `capacity must be in [0, ${
+        fromInputCapacity - inputMinimalCellCapacity
+      }] or ${fromInputCapacity} !`
+    );
+  }
+
+  const toScript = parseAddress(toAddress, { config });
+
+  const targetOutput: Cell = {
+    cell_output: {
+      capacity: "0x" + capacity.toString(16),
+      lock: toScript,
+      type: undefined,
+    },
+    data: "0x",
+    out_point: undefined,
+    block_hash: undefined,
+  };
+
+  if (isAcpScript(toScript, config)) {
+    if (toScript.args.length >= 46) {
+      const minimalAmount: bigint =
+        10n ** BigInt("0x" + toScript.args.slice(44, 46));
+      throw new Error(
+        `Requires to transfer ${minimalAmount} to \`toAddress\` at least! please use sudt.transfer.`
+      );
+    }
+    if (toScript.args.length >= 44) {
+      const minimalCapcity: bigint =
+        10n ** BigInt("0x" + toScript.args.slice(42, 44));
+      if (capacity < minimalCapcity) {
+        throw new Error(`capacity less than toAddress minimal capacity`);
+      }
+    }
+
+    const cellProvider = txSkeleton.get("cellProvider");
+    if (!cellProvider) {
+      throw new Error(`Cell Provider is missing!`);
+    }
+
+    const toAddressCellCollector = new CellCollector(toAddress, cellProvider, {
+      config,
+    });
+
+    const toAddressInput: Cell | void = (
+      await toAddressCellCollector.collect().next()
+    ).value;
+    if (!toAddressInput) {
+      throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
+    }
+
+    const outputCapacity: bigint =
+      BigInt(capacity) + BigInt(toAddressInput.cell_output.capacity);
+    targetOutput.cell_output.capacity = "0x" + outputCapacity.toString(16);
+
+    txSkeleton = txSkeleton.update("inputs", (inputs) => {
+      return inputs.push(toAddressInput);
+    });
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+      return witnesses.push("0x");
+    });
+  }
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push(targetOutput);
+  });
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) => {
+    return inputs.push(fromInput);
+  });
+
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+    return witnesses.push("0x");
+  });
+
+  if (capacity !== fromInputCapacity) {
+    txSkeleton = txSkeleton.update("outputs", (outputs) => {
+      return outputs.push({
+        cell_output: {
+          capacity: "0x" + (fromInputCapacity - capacity).toString(16),
+          lock: fromInput.cell_output.lock,
+          type: fromInput.cell_output.type,
+        },
+        data: fromInput.data,
+      });
+    });
+  }
+
+  txSkeleton = await setupInputCell(
+    txSkeleton,
+    txSkeleton.get("inputs").size - 1,
+    { config }
+  );
+
+  return txSkeleton;
+}
+
 export default {
   CellCollector,
   setupInputCell,
@@ -547,4 +670,5 @@ export default {
   transfer,
   prepareSigningEntries,
   destroyAnyoneCanPayInput,
+  withdraw,
 };

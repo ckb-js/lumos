@@ -1,5 +1,5 @@
 import test from "ava";
-import { sudt, LocktimeCell } from "../src";
+import { sudt, LocktimeCell, anyoneCanPay } from "../src";
 import { CellProvider } from "./cell_provider";
 import {
   TransactionSkeletonType,
@@ -10,7 +10,6 @@ import { bob, alice } from "./account_info";
 import { predefined } from "@ckb-lumos/config-manager";
 import { utils } from "@ckb-lumos/base";
 import { isSudtScript } from "../src/helper";
-import { anyoneCanPay } from "../lib";
 const { readBigUInt128LE } = utils;
 const { AGGRON4 } = predefined;
 
