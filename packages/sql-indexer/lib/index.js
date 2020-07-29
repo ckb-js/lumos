@@ -1,10 +1,14 @@
 const { RPC, Reader, validators } = require("ckb-js-toolkit");
-
+const { EventEmitter } = require("events");
 const SCRIPT_TYPE_LOCK = 0;
 const SCRIPT_TYPE_TYPE = 1;
 
 const IO_TYPE_INPUT = 0;
 const IO_TYPE_OUTPUT = 1;
+
+class IndexerEmitter extends EventEmitter {}
+IndexerEmitter.prototype.lock = undefined;
+IndexerEmitter.prototype.type = undefined;
 
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
@@ -74,6 +78,7 @@ class Indexer {
       logger = defaultLogger,
       keepNum = 10000,
       pruneInterval = 2000,
+      emitters = [],
     } = {}
   ) {
     this.rpc = new RPC(uri);
@@ -84,6 +89,7 @@ class Indexer {
     this.isRunning = false;
     this.keepNum = keepNum;
     this.pruneInterval = pruneInterval;
+    this.emitters = emitters;
   }
 
   _hasReturning() {
@@ -151,6 +157,7 @@ class Indexer {
       if (block) {
         if (block.header.parent_hash === block_hash) {
           await this.append(block);
+          await this.publishAppendBlockEvents(block);
         } else {
           await this.rollback();
         }
@@ -160,6 +167,7 @@ class Indexer {
     } else {
       const block = await this.rpc.get_block_by_number(dbBigIntToHex(0));
       await this.append(block);
+      await this.publishAppendBlockEvents(block);
     }
     return timeout;
   }
@@ -311,6 +319,16 @@ class Indexer {
           .where({ transaction_digest_id: id })
           .select("previous_tx_hash", "previous_index");
         for (const { previous_tx_hash, previous_index } of inputs) {
+          // publish changed event before update previous output cells
+          const cells = await trx("cells")
+            .where({
+              tx_hash: previous_tx_hash,
+              index: previous_index,
+            })
+            .select("lock_script_id", "type_script_id");
+          for (const { lock_script_id, type_script_id } of cells) {
+            await this.filterEventByScriptId(lock_script_id, type_script_id);
+          }
           await trx("cells")
             .where({
               tx_hash: previous_tx_hash,
@@ -325,7 +343,17 @@ class Indexer {
           .where({ transaction_digest_id: id })
           .del();
       }
+      // publish changed event before delete the output cells
+      const cells = await trx("cells")
+        .select("lock_script_id", "type_script_id")
+        .where({ block_number: blockNumber });
+      for (const { lock_script_id, type_script_id } of cells) {
+        await this.filterEventByScriptId(lock_script_id, type_script_id);
+      }
       await trx("cells").where({ block_number: blockNumber }).del();
+      await trx("transaction_digests")
+        .where({ block_number: blockNumber })
+        .del();
       await trx("block_digests").where({ block_number: blockNumber }).del();
     });
   }
@@ -354,8 +382,95 @@ class Indexer {
     }
   }
 
+  async publishAppendBlockEvents(block) {
+    for (const [txIndex, tx] of block.transactions.entries()) {
+      if (txIndex > 0) {
+        for (const input of tx.inputs) {
+          const [{ lock_script_id, type_script_id }] = await this.knex
+            .select("lock_script_id", "type_script_id")
+            .from("cells")
+            .where({
+              tx_hash: hexToNodeBuffer(input.previous_output.tx_hash),
+              index: hexToDbBigInt(input.previous_output.index),
+            });
+          await this.filterEventByScriptId(lock_script_id, type_script_id);
+        }
+      }
+      for (const output of tx.outputs) {
+        this.filterEventsByOutput(output);
+      }
+    }
+  }
+
+  async filterEventByScriptId(lock_script_id, type_script_id) {
+    const [{ code_hash, hash_type, args }] = await this.knex
+      .select("*")
+      .from("scripts")
+      .where({ id: lock_script_id });
+    let output = {
+      lock: {
+        code_hash: nodeBufferToHex(code_hash),
+        args: nodeBufferToHex(args),
+        hash_type: hash_type == 0 ? "data" : "type",
+      },
+      type: null,
+    };
+    if (type_script_id !== null) {
+      const [{ code_hash, hash_type, args }] = await this.knex
+        .select("*")
+        .from("scripts")
+        .where({ id: type_script_id });
+      output.type = {
+        code_hash: nodeBufferToHex(code_hash),
+        args: nodeBufferToHex(args),
+        hash_type: hash_type == 0 ? "data" : "type",
+      };
+    }
+    this.filterEventsByOutput(output);
+  }
+
+  filterEventsByOutput(output) {
+    for (const emitter of this.emitters) {
+      if (
+        emitter.lock !== undefined &&
+        emitter.lock.code_hash == output.lock.code_hash &&
+        emitter.lock.hash_type == output.lock.hash_type &&
+        emitter.lock.args == output.lock.args
+      ) {
+        emitter.emit("changed");
+      }
+    }
+    if (output.type !== null) {
+      for (const emitter of this.emitters) {
+        if (
+          emitter.type !== undefined &&
+          emitter.type.code_hash == output.type.code_hash &&
+          emitter.type.hash_type == output.type.hash_type &&
+          emitter.type.args == output.type.args
+        ) {
+          emitter.emit("changed");
+        }
+      }
+    }
+  }
+
   collector({ lock = null, type = null, argsLen = -1, data = "0x" } = {}) {
     return new CellCollector(this.knex, { lock, type, argsLen, data });
+  }
+
+  subscribe({ lock = null, type = null } = {}) {
+    let emitter = new IndexerEmitter();
+    if (lock) {
+      validators.ValidateScript(lock);
+      emitter.lock = lock;
+    } else if (type) {
+      validators.ValidateScript(type);
+      emitter.type = type;
+    } else {
+      throw new Error("Either lock or type script must be provided!");
+    }
+    this.emitters.push(emitter);
+    return emitter;
   }
 }
 
