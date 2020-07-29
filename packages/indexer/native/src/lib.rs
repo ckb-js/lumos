@@ -104,8 +104,10 @@ impl NativeIndexer {
                         self.publish_append_block_events(&block)?;
                     } else {
                         info!("rollback {}, {}", tip_number, tip_hash);
-                        self.indexer.rollback()?;
+                        // Publish changed events before rollback. It's possible the event published while the rollback operation failed.
+                        // Make sure to pull data from db after get notified, as the notification mechanism's design principle is unreliable queue.
                         self.publish_rollback_events()?;
+                        self.indexer.rollback()?;
                     }
                 } else {
                     thread::sleep(self.poll_interval);

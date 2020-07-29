@@ -159,6 +159,7 @@ class Indexer {
           await this.append(block);
           await this.publishAppendBlockEvents(block);
         } else {
+          await this.publishRollbackEvents();
           await this.rollback();
         }
       } else {
@@ -319,16 +320,6 @@ class Indexer {
           .where({ transaction_digest_id: id })
           .select("previous_tx_hash", "previous_index");
         for (const { previous_tx_hash, previous_index } of inputs) {
-          // publish changed event before update previous output cells
-          const cells = await trx("cells")
-            .where({
-              tx_hash: previous_tx_hash,
-              index: previous_index,
-            })
-            .select("lock_script_id", "type_script_id");
-          for (const { lock_script_id, type_script_id } of cells) {
-            await this.filterEventByScriptId(lock_script_id, type_script_id);
-          }
           await trx("cells")
             .where({
               tx_hash: previous_tx_hash,
@@ -342,13 +333,6 @@ class Indexer {
         await trx("transactions_scripts")
           .where({ transaction_digest_id: id })
           .del();
-      }
-      // publish changed event before delete the output cells
-      const cells = await trx("cells")
-        .select("lock_script_id", "type_script_id")
-        .where({ block_number: blockNumber });
-      for (const { lock_script_id, type_script_id } of cells) {
-        await this.filterEventByScriptId(lock_script_id, type_script_id);
       }
       await trx("cells").where({ block_number: blockNumber }).del();
       await trx("transaction_digests")
@@ -398,6 +382,46 @@ class Indexer {
       }
       for (const output of tx.outputs) {
         this.filterEventsByOutput(output);
+      }
+    }
+  }
+
+  async publishRollbackEvents() {
+    const tip = await this.tip();
+    if (!tip) {
+      return;
+    }
+    const { block_number } = tip;
+    const blockNumber = hexToDbBigInt(block_number);
+
+    const cells = await this.knex
+      .select("lock_script_id", "type_script_id")
+      .from("cells")
+      .where({ block_number: blockNumber });
+    for (const { lock_script_id, type_script_id } of cells) {
+      await this.filterEventByScriptId(lock_script_id, type_script_id);
+    }
+
+    const txs = await this.knex
+      .select("id")
+      .from("transaction_digests")
+      .where({ block_number: blockNumber });
+    for (const { id } of txs) {
+      const inputs = await this.knex
+        .select("previous_tx_hash", "previous_index")
+        .from("transaction_inputs")
+        .where({ transaction_digest_id: id });
+      for (const { previous_tx_hash, previous_index } of inputs) {
+        const cells = await this.knex
+          .select("lock_script_id", "type_script_id")
+          .from("cells")
+          .where({
+            tx_hash: previous_tx_hash,
+            index: previous_index,
+          });
+        for (const { lock_script_id, type_script_id } of cells) {
+          await this.filterEventByScriptId(lock_script_id, type_script_id);
+        }
       }
     }
   }
