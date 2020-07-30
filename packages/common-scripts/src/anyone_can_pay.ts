@@ -32,7 +32,7 @@ import { Set, List } from "immutable";
 import { FromInfo, parseFromInfo } from "./secp256k1_blake160_multisig";
 const { CKBHasher, ckbHash, readBigUInt128LE } = utils;
 
-export class CellCollector {
+export class CellCollector implements CellCollectorType {
   private cellCollector: CellCollectorType;
   private config: Config;
   public readonly fromScript: Script;

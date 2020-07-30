@@ -41,7 +41,7 @@ export type Token = Hash;
  * @param amount
  * @param capacity
  * @param tipHeader
- * @param param5
+ * @param options
  */
 export async function issueToken(
   txSkeleton: TransactionSkeletonType,

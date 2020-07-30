@@ -134,7 +134,7 @@ export function parseFromInfo(
   };
 }
 
-export class CellCollector {
+export class CellCollector implements CellCollectorType {
   private cellCollector: CellCollectorType;
   private config: Config;
   public readonly fromScript: Script;

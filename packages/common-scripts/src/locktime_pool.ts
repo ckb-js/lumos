@@ -59,7 +59,7 @@ export interface LocktimeCell extends Cell {
   sinceBaseValue?: SinceBaseValue;
 }
 
-export class CellCollector {
+export class CellCollector implements CellCollectorType {
   private cellCollectors: List<CellCollectorType>;
   private config: Config;
   private rpc: RPC;
