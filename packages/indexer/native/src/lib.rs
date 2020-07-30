@@ -127,6 +127,7 @@ impl NativeIndexer {
     fn publish_append_block_events(&self, block: &CoreBlockView) -> Result<(), IndexerError> {
         let transactions = block.transactions();
         for (tx_index, tx) in transactions.iter().enumerate() {
+            // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
             if tx_index > 0 {
                 for (_input_index, input) in tx.inputs().into_iter().enumerate() {
                     let out_point = input.previous_output();
@@ -140,6 +141,7 @@ impl NativeIndexer {
                     self.filter_events_by_script(output);
                 }
             }
+            // publish changed events if subscribed script exists in output cells.
             for (_output_index, output) in tx.outputs().into_iter().enumerate() {
                 self.filter_events_by_script(output);
             }
@@ -158,10 +160,12 @@ impl NativeIndexer {
             );
             for (tx_index, (tx_hash, outputs_len)) in txs.into_iter().enumerate().rev() {
                 let tx_index = tx_index as u32;
+                // publish changed events if subscribed script exists in output cells.
                 for output_index in 0..outputs_len {
                     let out_point = OutPoint::new(tx_hash.clone(), output_index);
                     let out_point_key = Key::OutPoint(&out_point).into_vec();
 
+                    // output cells might be alive or be consumed by tx in the same block.
                     let (_generated_by_block_number, _generated_by_tx_index, output, _output_data) =
                         if let Some(stored_live_cell) = self.indexer.store().get(&out_point_key)? {
                             Value::parse_cell_value(&stored_live_cell)
@@ -176,6 +180,7 @@ impl NativeIndexer {
                     self.filter_events_by_script(output);
                 }
                 let transaction_key = Key::TxHash(&tx_hash).into_vec();
+                // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
                 if tx_index > 0 {
                     for (_input_index, out_point) in self
                         .indexer

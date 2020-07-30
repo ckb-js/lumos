@@ -368,6 +368,7 @@ class Indexer {
 
   async publishAppendBlockEvents(block) {
     for (const [txIndex, tx] of block.transactions.entries()) {
+      // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
       if (txIndex > 0) {
         for (const input of tx.inputs) {
           const [{ lock_script_id, type_script_id }] = await this.knex
@@ -380,6 +381,7 @@ class Indexer {
           await this.filterEventByScriptId(lock_script_id, type_script_id);
         }
       }
+      // publish changed events if subscribed script exists in output cells.
       for (const output of tx.outputs) {
         this.filterEventsByOutput(output);
       }
@@ -403,24 +405,28 @@ class Indexer {
     }
 
     const txs = await this.knex
-      .select("id")
+      .select("id", "tx_index")
       .from("transaction_digests")
-      .where({ block_number: blockNumber });
-    for (const { id } of txs) {
-      const inputs = await this.knex
-        .select("previous_tx_hash", "previous_index")
-        .from("transaction_inputs")
-        .where({ transaction_digest_id: id });
-      for (const { previous_tx_hash, previous_index } of inputs) {
-        const cells = await this.knex
-          .select("lock_script_id", "type_script_id")
-          .from("cells")
-          .where({
-            tx_hash: previous_tx_hash,
-            index: previous_index,
-          });
-        for (const { lock_script_id, type_script_id } of cells) {
-          await this.filterEventByScriptId(lock_script_id, type_script_id);
+      .where({ block_number: blockNumber })
+      .orderBy("tx_index");
+    for (const { id, tx_index } of txs) {
+      // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
+      if (tx_index > 0) {
+        const inputs = await this.knex
+          .select("previous_tx_hash", "previous_index")
+          .from("transaction_inputs")
+          .where({ transaction_digest_id: id });
+        for (const { previous_tx_hash, previous_index } of inputs) {
+          const cells = await this.knex
+            .select("lock_script_id", "type_script_id")
+            .from("cells")
+            .where({
+              tx_hash: previous_tx_hash,
+              index: previous_index,
+            });
+          for (const { lock_script_id, type_script_id } of cells) {
+            await this.filterEventByScriptId(lock_script_id, type_script_id);
+          }
         }
       }
     }
