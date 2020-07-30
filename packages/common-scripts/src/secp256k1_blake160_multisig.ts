@@ -1,7 +1,6 @@
 import {
   parseAddress,
   minimalCellCapacity,
-  generateAddress,
   TransactionSkeletonType,
   Options,
 } from "@ckb-lumos/helpers";
@@ -17,6 +16,9 @@ import {
   OutPoint,
   Cell,
   WitnessArgs,
+  CellCollector as CellCollectorType,
+  CellProvider,
+  QueryOptions,
 } from "@ckb-lumos/base";
 const { CKBHasher, toBigUInt64LE } = utils;
 import { getConfig, Config } from "@ckb-lumos/config-manager";
@@ -28,6 +30,7 @@ import {
   ensureScript,
   SECP_SIGNATURE_PLACEHOLDER,
   prepareSigningEntries as _prepareSigningEntries,
+  isSecp256k1Blake160MultisigScript,
 } from "./helper";
 
 /**
@@ -129,6 +132,189 @@ export function parseFromInfo(
     fromScript,
     multisigScript,
   };
+}
+
+export class CellCollector {
+  private cellCollector: CellCollectorType;
+  private config: Config;
+  public readonly fromScript: Script;
+  public readonly multisigScript?: HexString;
+
+  constructor(
+    fromInfo: FromInfo,
+    cellProvider: CellProvider,
+    {
+      config = undefined,
+      queryOptions = {},
+    }: Options & {
+      queryOptions?: QueryOptions;
+    } = {}
+  ) {
+    if (!cellProvider) {
+      throw new Error(`Cell provider is missing!`);
+    }
+    config = config || getConfig();
+    const result = parseFromInfo(fromInfo, { config });
+    this.fromScript = result.fromScript;
+    this.multisigScript = result.multisigScript;
+
+    this.config = config;
+
+    queryOptions = {
+      ...queryOptions,
+      lock: this.fromScript,
+      type: queryOptions.type || "empty",
+    };
+
+    this.cellCollector = cellProvider.collector(queryOptions);
+  }
+
+  async *collect(): AsyncGenerator<Cell> {
+    if (!isSecp256k1Blake160MultisigScript(this.fromScript, this.config)) {
+      return;
+    }
+
+    for await (const inputCell of this.cellCollector.collect()) {
+      yield inputCell;
+    }
+  }
+}
+
+/**
+ * Setup input cell infos, such as cell deps and witnesses.
+ *
+ * @param txSkeleton
+ * @param inputIndex
+ * @param fromInfo
+ * @param options
+ */
+export function setupInputCell(
+  txSkeleton: TransactionSkeletonType,
+  inputIndex: number,
+  fromInfo?: FromInfo,
+  {
+    config = undefined,
+    requireMultisigScript = true,
+  }: Options & {
+    requireMultisigScript?: boolean;
+  } = {}
+): TransactionSkeletonType {
+  config = config || getConfig();
+
+  if (requireMultisigScript && typeof fromInfo !== "object") {
+    throw new Error("`fromInfo` must be MultisigScript format!");
+  }
+
+  if (inputIndex >= txSkeleton.get("inputs").size) {
+    throw new Error("Invalid input index!");
+  }
+  const input: Cell = txSkeleton.get("inputs").get(inputIndex)!;
+  const fromScript: Script = input.cell_output.lock;
+
+  if (fromInfo) {
+    const parsedFromScript: Script = parseFromInfo(fromInfo, { config })
+      .fromScript;
+    if (
+      !new ScriptValue(parsedFromScript, { validate: false }).equals(
+        new ScriptValue(fromScript, { validate: false })
+      )
+    ) {
+      throw new Error("`fromInfo` not match to input lock!");
+    }
+  }
+
+  if (!isSecp256k1Blake160MultisigScript(fromScript, config)) {
+    throw new Error(`Not SECP256K1_BLAKE160_MULTISIG input!`);
+  }
+
+  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+  if (!template) {
+    throw new Error(
+      `SECP256K1_BLAKE160_MULTISIG script not defined in config!`
+    );
+  }
+
+  const scriptOutPoint: OutPoint = {
+    tx_hash: template.TX_HASH,
+    index: template.INDEX,
+  };
+
+  // add cell dep
+  txSkeleton = addCellDep(txSkeleton, {
+    out_point: scriptOutPoint,
+    dep_type: template.DEP_TYPE,
+  });
+
+  // add witness
+  const firstIndex = txSkeleton
+    .get("inputs")
+    .findIndex((input) =>
+      new ScriptValue(input.cell_output.lock, { validate: false }).equals(
+        new ScriptValue(fromScript!, { validate: false })
+      )
+    );
+  if (firstIndex !== -1) {
+    while (firstIndex >= txSkeleton.get("witnesses").size) {
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.push("0x")
+      );
+    }
+
+    const firstIndexWitness = txSkeleton.get("witnesses").get(firstIndex)!;
+    // If never prepared witness of this lock script before, should using fromInfo(MultisigScript) to update witness
+    if (firstIndexWitness === "0x" && typeof fromInfo !== "object") {
+      throw new Error("`fromInfo` must be MultisigScript format!");
+    }
+
+    // if using MultisigScript, check witnesses
+    if (typeof fromInfo === "object") {
+      const multisigScript: HexString = parseFromInfo(fromInfo, { config })
+        .multisigScript!;
+      let witness = txSkeleton.get("witnesses").get(firstIndex)!;
+      const newWitnessArgs: WitnessArgs = {
+        lock:
+          "0x" +
+          multisigScript.slice(2) +
+          SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat(
+            (fromInfo as MultisigScript).M
+          ),
+      };
+      if (witness !== "0x") {
+        const witnessArgs = new core.WitnessArgs(new Reader(witness));
+        const lock = witnessArgs.getLock();
+        if (
+          lock.hasValue() &&
+          new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
+        ) {
+          throw new Error(
+            "Lock field in first witness is set aside for signature!"
+          );
+        }
+        const inputType = witnessArgs.getInputType();
+        if (inputType.hasValue()) {
+          newWitnessArgs.input_type = new Reader(
+            inputType.value().raw()
+          ).serializeJson();
+        }
+        const outputType = witnessArgs.getOutputType();
+        if (outputType.hasValue()) {
+          newWitnessArgs.output_type = new Reader(
+            outputType.value().raw()
+          ).serializeJson();
+        }
+      }
+      witness = new Reader(
+        core.SerializeWitnessArgs(
+          normalizers.NormalizeWitnessArgs(newWitnessArgs)
+        )
+      ).serializeJson();
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.set(firstIndex, witness)
+      );
+    }
+  }
+
+  return txSkeleton;
 }
 
 export async function transfer(
@@ -449,32 +635,6 @@ export async function injectCapacity(
 }
 
 /**
- * Setup input cell infos, such as cell deps and witnesses.
- *
- * @param txSkeleton
- * @param inputIndex
- * @param fromInfo
- * @param options
- */
-export async function setupInputCell(
-  txSkeleton: TransactionSkeletonType,
-  inputIndex: number,
-  fromInfo?: FromInfo | undefined,
-  { config = undefined }: Options = {}
-): Promise<TransactionSkeletonType> {
-  config = config || getConfig();
-  if (inputIndex >= txSkeleton.get("inputs").size) {
-    throw new Error("Invalid input index!");
-  }
-  const inputLock = txSkeleton.get("inputs").get(inputIndex)!.cell_output.lock;
-  const fromAddress = generateAddress(inputLock, { config });
-  return transfer(txSkeleton, fromInfo || fromAddress, undefined, 0n, {
-    config,
-    requireToAddress: false,
-  });
-}
-
-/**
  * prepare for txSkeleton signingEntries, will update txSkeleton.get("signingEntries")
  *
  * @param txSkeleton
@@ -501,4 +661,5 @@ export default {
   multisigArgs,
   injectCapacity,
   setupInputCell,
+  CellCollector,
 };

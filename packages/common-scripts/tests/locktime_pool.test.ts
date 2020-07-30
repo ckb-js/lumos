@@ -2,6 +2,7 @@ import test from "ava";
 import {
   TransactionSkeleton,
   TransactionSkeletonType,
+  Options,
 } from "@ckb-lumos/helpers";
 import { locktimePool, LocktimeCell, FromInfo } from "../src";
 const { transfer, prepareSigningEntries, payFee } = locktimePool;
@@ -117,19 +118,31 @@ const depositDao =
 const withdrawDao =
   "0x39d32247d33f90523d37dae613dd280037e9cc1d7b01c708003d8849d8ac0200";
 
-async function* cellCollector(
-  _: any,
-  fromInfo: FromInfo,
-  { config }: { config: Config }
-): AsyncGenerator<LocktimeCell> {
-  const { fromScript } = parseFromInfo(fromInfo, { config });
-  for (const info of inputInfos) {
-    const lock = info.cell_output.lock;
-    if (
-      lock.code_hash === fromScript.code_hash &&
-      lock.hash_type === fromScript.hash_type
-    ) {
-      yield info;
+class LocktimeCellCollector {
+  private fromInfo: FromInfo;
+  private config: Config;
+
+  constructor(
+    fromInfo: FromInfo,
+    _: any,
+    { config = undefined }: Options = {}
+  ) {
+    this.fromInfo = fromInfo;
+    this.config = config!;
+  }
+
+  async *collect() {
+    const { fromScript } = parseFromInfo(this.fromInfo, {
+      config: this.config,
+    });
+    for (const info of inputInfos) {
+      const lock = info.cell_output.lock;
+      if (
+        lock.code_hash === fromScript.code_hash &&
+        lock.hash_type === fromScript.hash_type
+      ) {
+        yield info;
+      }
     }
   }
 }
@@ -171,7 +184,7 @@ test("transfer multisig", async (t) => {
     bobAddress,
     BigInt(500 * 10 ** 8),
     tipHeader,
-    { config: DEV_CONFIG, cellCollector }
+    { config: DEV_CONFIG, LocktimeCellCollector }
   );
 
   // sum of outputs capacity should be equal to sum of inputs capacity
@@ -200,7 +213,7 @@ test("prepareSigningEntries, multisig", async (t) => {
     bobAddress,
     BigInt(500 * 10 ** 8),
     tipHeader,
-    { config: DEV_CONFIG, cellCollector }
+    { config: DEV_CONFIG, LocktimeCellCollector }
   );
 
   txSkeleton = await prepareSigningEntries(txSkeleton, { config: DEV_CONFIG });
@@ -223,7 +236,7 @@ test("transfer multisig & dao", async (t) => {
     bobAddress,
     BigInt(2500 * 10 ** 8),
     tipHeader,
-    { config: DEV_CONFIG, cellCollector }
+    { config: DEV_CONFIG, LocktimeCellCollector }
   );
 
   // sum of outputs capacity should be equal to sum of inputs capacity
@@ -265,7 +278,7 @@ test("prepareSigningEntries, multisig & dao", async (t) => {
     bobAddress,
     BigInt(2500 * 10 ** 8),
     tipHeader,
-    { config: DEV_CONFIG, cellCollector }
+    { config: DEV_CONFIG, LocktimeCellCollector }
   );
 
   txSkeleton = await prepareSigningEntries(txSkeleton, { config: DEV_CONFIG });
@@ -294,7 +307,7 @@ test("payFee, multisig & dao", async (t) => {
     bobAddress,
     BigInt(2500 * 10 ** 8),
     tipHeader,
-    { config: DEV_CONFIG, cellCollector }
+    { config: DEV_CONFIG, LocktimeCellCollector }
   );
 
   const fee = BigInt(1 * 10 ** 8);
@@ -303,7 +316,7 @@ test("payFee, multisig & dao", async (t) => {
     [fromInfo, aliceAddress],
     fee,
     tipHeader,
-    { config: DEV_CONFIG, cellCollector }
+    { config: DEV_CONFIG, LocktimeCellCollector }
   );
 
   const sumOfInputCapacity = txSkeleton

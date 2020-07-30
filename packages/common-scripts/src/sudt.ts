@@ -26,7 +26,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { Set, List } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-import { collectCells, LocktimeCell } from "./locktime_pool";
+import { CellCollector as LocktimeCellCollector } from "./locktime_pool";
 import { CellCollector as AnyoneCanPayCellCollector } from "./anyone_can_pay";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
@@ -110,8 +110,9 @@ export async function issueToken(
 
   txSkeleton = await common.injectCapacity(
     txSkeleton,
-    outputIndex,
     [fromInfo],
+    undefined,
+    BigInt(targetOutput.cell_output.capacity),
     tipHeader,
     {
       config,
@@ -144,11 +145,9 @@ export async function transfer(
   tipHeader?: Header,
   {
     config = undefined,
-    locktimePoolCellCollector = collectCells,
+    LocktimePoolCellCollector = LocktimeCellCollector,
   }: Options & {
-    locktimePoolCellCollector?: (
-      ...params: any[]
-    ) => AsyncIterable<LocktimeCell>;
+    LocktimePoolCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -306,16 +305,19 @@ export async function transfer(
   if (tipHeader) {
     fromInfos.forEach((fromInfo, index) => {
       const collect = async function* () {
-        const result = locktimePoolCellCollector(cellProvider, fromInfo, {
-          config,
-          tipHeader,
-          assertScriptSupported: false,
-          queryOptions: {
-            type: sudtType,
-            data: undefined,
-          },
-        });
-        for await (const r of result) {
+        const locktimePoolCellCollector = new LocktimePoolCellCollector(
+          fromInfo,
+          cellProvider,
+          {
+            config,
+            tipHeader,
+            queryOptions: {
+              type: sudtType,
+              data: "any",
+            },
+          }
+        );
+        for await (const r of locktimePoolCellCollector.collect()) {
           yield r;
         }
       };
@@ -362,12 +364,15 @@ export async function transfer(
   if (tipHeader) {
     fromInfos.forEach((fromInfo, index) => {
       const collect = async function* () {
-        const result = locktimePoolCellCollector(cellProvider, fromInfo, {
-          config,
-          tipHeader,
-          assertScriptSupported: false,
-        });
-        for await (const r of result) {
+        const locktimeCellCollector = new LocktimePoolCellCollector(
+          fromInfo,
+          cellProvider,
+          {
+            config,
+            tipHeader,
+          }
+        );
+        for await (const r of locktimeCellCollector.collect()) {
           yield r;
         }
       };

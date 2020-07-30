@@ -74,11 +74,11 @@ export class CellCollector {
   }
 }
 
-export async function setupInputCell(
+export function setupInputCell(
   txSkeleton: TransactionSkeletonType,
   inputIndex: number,
   { config = undefined }: Options = {}
-): Promise<TransactionSkeletonType> {
+): TransactionSkeletonType {
   config = config || getConfig();
 
   if (inputIndex >= txSkeleton.get("inputs").size) {

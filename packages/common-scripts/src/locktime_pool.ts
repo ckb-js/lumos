@@ -4,11 +4,7 @@ import {
   Options,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import {
-  setupInputCell as setupMultisigInputCell,
-  FromInfo,
-  parseFromInfo,
-} from "./secp256k1_blake160_multisig";
+import { FromInfo, parseFromInfo } from "./secp256k1_blake160_multisig";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { calculateMaximumWithdraw, calculateDaoEarliestSince } from "./dao";
 import {
@@ -25,6 +21,7 @@ import {
   Address,
   Header,
   QueryOptions,
+  CellCollector as CellCollectorType,
 } from "@ckb-lumos/base";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
@@ -62,185 +59,207 @@ export interface LocktimeCell extends Cell {
   sinceBaseValue?: SinceBaseValue;
 }
 
-/**
- * If tipHeader provided, only return cells valid in tipHeader.
- *
- * @param cellProvider
- * @param fromInfo
- * @param options
- */
-export async function* collectCells(
-  cellProvider: CellProvider,
-  fromInfo: FromInfo,
-  {
-    config = undefined,
-    assertScriptSupported = true,
-    queryOptions = {},
-    tipHeader = undefined,
-  }: Options & {
-    assertScriptSupported?: boolean;
-    queryOptions?: QueryOptions;
-    tipHeader?: Header;
-  } = {}
-): AsyncGenerator<LocktimeCell> {
-  config = config || getConfig();
-  const rpc = new RPC(cellProvider.uri!);
+export class CellCollector {
+  private cellCollectors: List<CellCollectorType>;
+  private config: Config;
+  private rpc: RPC;
+  private tipHeader?: Header;
+  public readonly fromScript: Script;
+  public readonly multisigScript?: HexString;
 
-  const { fromScript } = parseFromInfo(fromInfo, { config });
+  constructor(
+    fromInfo: FromInfo,
+    cellProvider: CellProvider,
+    {
+      config = undefined,
+      queryOptions = {},
+      tipHeader = undefined,
+      NodeRPC = RPC,
+    }: Options & {
+      queryOptions?: QueryOptions;
+      tipHeader?: Header;
+      NodeRPC?: any;
+    } = {}
+  ) {
+    if (!cellProvider) {
+      throw new Error(`Cell provider is missing!`);
+    }
+    config = config || getConfig();
+    const result = parseFromInfo(fromInfo, { config });
+    const fromScript = result.fromScript;
+    this.multisigScript = result.multisigScript;
+    this.fromScript = fromScript;
 
-  let cellCollectors = List();
-  if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
-    const lock: Script = {
-      code_hash: fromScript.code_hash,
-      hash_type: fromScript.hash_type,
-      args: fromScript.args.slice(0, 42),
+    this.config = config;
+    this.tipHeader = tipHeader;
+
+    this.rpc = new NodeRPC(cellProvider.uri!);
+
+    queryOptions = {
+      ...queryOptions,
+      lock: this.fromScript,
+      type: queryOptions.type || "empty",
     };
-    // multisig with locktime, not dao
-    cellCollectors = cellCollectors.push(
-      cellProvider.collector({
-        lock,
-        argsLen: queryOptions.argsLen || 28,
-        type: queryOptions.type || "empty",
-        data: queryOptions.data || "0x",
-      })
-    );
-    // multisig without locktime, dao
-    if (!queryOptions.type && !queryOptions.data) {
+
+    let cellCollectors = List<CellCollectorType>([]);
+    if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
+      const lock: Script = {
+        code_hash: fromScript.code_hash,
+        hash_type: fromScript.hash_type,
+        args: fromScript.args.slice(0, 42),
+      };
+      // multisig with locktime, not dao
       cellCollectors = cellCollectors.push(
         cellProvider.collector({
           lock,
-          type: generateDaoScript(config),
-          data: undefined,
+          argsLen: queryOptions.argsLen || 28,
+          type: queryOptions.type || "empty",
+          data: queryOptions.data || "0x",
         })
       );
-      // multisig with locktime, dao
-      cellCollectors = cellCollectors.push(
-        cellProvider.collector({
-          lock,
-          argsLen: 28,
-          type: generateDaoScript(config),
-          data: undefined,
-        })
-      );
+      // multisig without locktime, dao
+      if (!queryOptions.type && !queryOptions.data) {
+        cellCollectors = cellCollectors.push(
+          cellProvider.collector({
+            lock,
+            type: generateDaoScript(config),
+            data: "any",
+          })
+        );
+        // multisig with locktime, dao
+        cellCollectors = cellCollectors.push(
+          cellProvider.collector({
+            lock,
+            argsLen: 28,
+            type: generateDaoScript(config),
+            data: "any",
+          })
+        );
+      }
+    } else if (isSecp256k1Blake160Script(fromScript, config)) {
+      // secp256k1_blake160, dao
+      if (!queryOptions.type && !queryOptions.data) {
+        cellCollectors = cellCollectors.push(
+          cellProvider.collector({
+            lock: fromScript,
+            type: generateDaoScript(config),
+            data: "any",
+          })
+        );
+      }
     }
-  } else if (isSecp256k1Blake160Script(fromScript, config)) {
-    // secp256k1_blake160, dao
-    if (!queryOptions.type && !queryOptions.data) {
-      cellCollectors = cellCollectors.push(
-        cellProvider.collector({
-          lock: fromScript,
-          type: generateDaoScript(config),
-          data: undefined,
-        })
-      );
-    }
-  } else {
-    if (assertScriptSupported) {
-      throw new Error("Non supported fromScript type!");
-    }
+
+    this.cellCollectors = cellCollectors;
   }
 
-  for (const cellCollector of cellCollectors) {
-    for await (const inputCell of cellCollector.collect()) {
-      const lock = inputCell.cell_output.lock;
+  async *collect(): AsyncGenerator<LocktimeCell> {
+    for (const cellCollector of this.cellCollectors) {
+      for await (const inputCell of cellCollector.collect()) {
+        const lock = inputCell.cell_output.lock;
 
-      let since: PackedSince | undefined;
-      let maximumCapacity: bigint | undefined;
-      let depositBlockHash: Hash | undefined;
-      let withdrawBlockHash: Hash | undefined;
-      let sinceBaseValue: SinceBaseValue | undefined;
+        let since: PackedSince | undefined;
+        let maximumCapacity: bigint | undefined;
+        let depositBlockHash: Hash | undefined;
+        let withdrawBlockHash: Hash | undefined;
+        let sinceBaseValue: SinceBaseValue | undefined;
 
-      // multisig
-      if (lock.args.length === 58) {
-        const header = await rpc.get_header(inputCell.block_hash);
-        since = "0x" + _parseMultisigArgsSince(lock.args).toString(16);
-        sinceBaseValue = {
-          epoch: header.epoch,
-          number: header.number,
-          timestamp: header.timestamp,
-        };
-      }
-
-      // dao
-      if (isDaoScript(inputCell.cell_output.type, config)) {
-        if (inputCell.data === "0x0000000000000000") {
-          continue;
+        // multisig
+        if (lock.args.length === 58) {
+          const header = await this.rpc.get_header(inputCell.block_hash);
+          since = "0x" + _parseMultisigArgsSince(lock.args).toString(16);
+          sinceBaseValue = {
+            epoch: header.epoch,
+            number: header.number,
+            timestamp: header.timestamp,
+          };
         }
-        const transactionWithStatus = await rpc.get_transaction(
-          inputCell.out_point.tx_hash
-        );
-        withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
-        const transaction = transactionWithStatus.transaction;
-        const depositOutPoint =
-          transaction.inputs[+inputCell.out_point.index].previous_output;
-        depositBlockHash = (await rpc.get_transaction(depositOutPoint.tx_hash))
-          .tx_status.block_hash;
-        const depositBlockHeader = await rpc.get_header(depositBlockHash);
-        const withdrawBlockHeader = await rpc.get_header(withdrawBlockHash);
-        let daoSince: PackedSince =
-          "0x" +
-          calculateDaoEarliestSince(
-            depositBlockHeader.epoch,
-            withdrawBlockHeader.epoch
-          ).toString(16);
-        maximumCapacity = calculateMaximumWithdraw(
-          inputCell,
-          depositBlockHeader.dao,
-          withdrawBlockHeader.dao
-        );
-        const withdrawEpochValue = parseEpoch(withdrawBlockHeader.epoch);
-        const fourEpochsLater = {
-          number: withdrawEpochValue.number + 4,
-          length: withdrawEpochValue.length,
-          index: withdrawEpochValue.index,
-        };
-        daoSince = maximumAbsoluteEpochSince(
-          daoSince,
-          generateAbsoluteEpochSince(fourEpochsLater)
-        );
 
-        // if multisig with locktime
-        if (since) {
-          const multisigSince = parseSince(since);
-          if (
-            !(
-              multisigSince.relative === false &&
-              multisigSince.type === "epochNumber"
-            )
-          ) {
-            // throw new Error(
-            //   "Multisig since not an absolute-epoch-number since format!"
-            // );
-            // skip multisig with locktime in non-absolute-epoch-number format, can't unlock it
+        // dao
+        if (isDaoScript(inputCell.cell_output.type, this.config)) {
+          if (inputCell.data === "0x0000000000000000") {
             continue;
           }
+          const transactionWithStatus = await this.rpc.get_transaction(
+            inputCell.out_point!.tx_hash
+          );
+          withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
+          const transaction = transactionWithStatus.transaction;
+          const depositOutPoint =
+            transaction.inputs[+inputCell.out_point!.index].previous_output;
+          depositBlockHash = (
+            await this.rpc.get_transaction(depositOutPoint.tx_hash)
+          ).tx_status.block_hash;
+          const depositBlockHeader = await this.rpc.get_header(
+            depositBlockHash
+          );
+          const withdrawBlockHeader = await this.rpc.get_header(
+            withdrawBlockHash
+          );
+          let daoSince: PackedSince =
+            "0x" +
+            calculateDaoEarliestSince(
+              depositBlockHeader.epoch,
+              withdrawBlockHeader.epoch
+            ).toString(16);
+          maximumCapacity = calculateMaximumWithdraw(
+            inputCell,
+            depositBlockHeader.dao,
+            withdrawBlockHeader.dao
+          );
+          const withdrawEpochValue = parseEpoch(withdrawBlockHeader.epoch);
+          const fourEpochsLater = {
+            number: withdrawEpochValue.number + 4,
+            length: withdrawEpochValue.length,
+            index: withdrawEpochValue.index,
+          };
+          daoSince = maximumAbsoluteEpochSince(
+            daoSince,
+            generateAbsoluteEpochSince(fourEpochsLater)
+          );
 
-          try {
-            since = maximumAbsoluteEpochSince(daoSince, since);
-          } catch {
+          // if multisig with locktime
+          if (since) {
+            const multisigSince = parseSince(since);
+            if (
+              !(
+                multisigSince.relative === false &&
+                multisigSince.type === "epochNumber"
+              )
+            ) {
+              // throw new Error(
+              //   "Multisig since not an absolute-epoch-number since format!"
+              // );
+              // skip multisig with locktime in non-absolute-epoch-number format, can't unlock it
+              continue;
+            }
+
+            try {
+              since = maximumAbsoluteEpochSince(daoSince, since);
+            } catch {
+              since = daoSince;
+            }
+          } else {
             since = daoSince;
           }
-        } else {
-          since = daoSince;
         }
-      }
 
-      if (
-        tipHeader &&
-        !validateSince(since!, tipHeader, sinceBaseValue as Header)
-      ) {
-        continue;
-      }
+        if (
+          this.tipHeader &&
+          !validateSince(since!, this.tipHeader, sinceBaseValue as Header)
+        ) {
+          continue;
+        }
 
-      yield {
-        ...inputCell,
-        maximumCapacity:
-          maximumCapacity || BigInt(inputCell.cell_output.capacity),
-        since,
-        depositBlockHash: depositBlockHash,
-        withdrawBlockHash: withdrawBlockHash,
-        sinceBaseValue,
-      };
+        yield {
+          ...inputCell,
+          maximumCapacity:
+            maximumCapacity || BigInt(inputCell.cell_output.capacity),
+          since: since!,
+          depositBlockHash: depositBlockHash,
+          withdrawBlockHash: withdrawBlockHash,
+          sinceBaseValue,
+        };
+      }
     }
   }
 }
@@ -254,13 +273,13 @@ export async function transfer(
   {
     config,
     requireToAddress,
-    cellCollector,
     assertAmountEnough,
+    LocktimeCellCollector,
   }: {
     config?: Config;
     requireToAddress?: boolean;
-    cellCollector?: (...params: any[]) => AsyncIterable<LocktimeCell>;
     assertAmountEnough?: true;
+    LocktimeCellCollector?: any;
   }
 ): Promise<TransactionSkeletonType>;
 
@@ -273,13 +292,13 @@ export async function transfer(
   {
     config,
     requireToAddress,
-    cellCollector,
     assertAmountEnough,
+    LocktimeCellCollector,
   }: {
     config?: Config;
     requireToAddress?: boolean;
-    cellCollector?: (...params: any[]) => AsyncIterable<LocktimeCell>;
     assertAmountEnough: false;
+    LocktimeCellCollector?: any;
   }
 ): Promise<[TransactionSkeletonType, bigint]>;
 
@@ -292,13 +311,13 @@ export async function transfer(
   {
     config = undefined,
     requireToAddress = true,
-    cellCollector = collectCells,
     assertAmountEnough = true,
+    LocktimeCellCollector = CellCollector,
   }: {
     config?: Config;
     requireToAddress?: boolean;
-    cellCollector?: (...params: any[]) => AsyncIterable<LocktimeCell>;
     assertAmountEnough?: boolean;
+    LocktimeCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
   amount = BigInt(amount);
@@ -313,7 +332,7 @@ export async function transfer(
         config,
         requireToAddress: index === 0 ? requireToAddress : false,
         assertAmountEnough: false,
-        cellCollector,
+        LocktimeCellCollector,
       }
     )) as [TransactionSkeletonType, bigint];
     // [txSkeleton, amount] = value
@@ -344,12 +363,14 @@ async function _transfer(
     config = undefined,
     requireToAddress = true,
     assertAmountEnough = true,
-    cellCollector = collectCells,
+    LocktimeCellCollector = CellCollector,
+    changeAddress = undefined,
   }: {
     config?: Config;
     requireToAddress?: boolean;
     assertAmountEnough?: boolean;
-    cellCollector?: (...params: any[]) => AsyncIterable<LocktimeCell>;
+    LocktimeCellCollector: any;
+    changeAddress?: Address;
   }
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
   config = config || getConfig();
@@ -428,10 +449,13 @@ async function _transfer(
       throw new Error("cell provider is missing!");
     }
 
+    const changeLockScript: Script = changeAddress
+      ? parseAddress(changeAddress, { config })
+      : fromScript;
     const changeCell: Cell = {
       cell_output: {
         capacity: "0x0",
-        lock: fromScript,
+        lock: changeLockScript,
         type: undefined,
       },
       data: "0x",
@@ -446,25 +470,11 @@ async function _transfer(
         `${input.out_point!.tx_hash}_${input.out_point!.index}`
       );
     }
-    const iter: AsyncIterable<LocktimeCell> = cellCollector(
-      cellProvider,
-      fromInfo,
-      {
-        config,
-        assertScriptSupported: false,
-      }
-    );
-    for await (const inputCell of iter) {
-      if (
-        !validateSince(
-          inputCell.since,
-          tipHeader,
-          inputCell.sinceBaseValue as Header
-        )
-      ) {
-        continue;
-      }
-
+    const cellCollector = new LocktimeCellCollector(fromInfo, cellProvider, {
+      config,
+      tipHeader,
+    });
+    for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
       if (
         previousInputs.has(
@@ -529,9 +539,10 @@ async function _transfer(
       changeCapacity += inputCapacity - deductCapacity;
 
       if (isSecp256k1Blake160Script(fromScript, config)) {
-        txSkeleton = await secp256k1Blake160.setupInputCell(
+        txSkeleton = await setupInputCell(
           txSkeleton,
           txSkeleton.get("inputs").size - 1,
+          undefined,
           { config }
         );
       } else {
@@ -543,7 +554,7 @@ async function _transfer(
           lockArgs.length === 58
             ? _parseMultisigArgsSince(lockArgs)
             : undefined;
-        txSkeleton = await setupMultisigInputCell(
+        txSkeleton = await setupInputCell(
           txSkeleton,
           inputSize - 1,
           Object.assign({}, fromInfo, { since: multisigSince }),
@@ -598,6 +609,218 @@ async function _transfer(
   return txSkeleton;
 }
 
+async function injectCapacityWithoutChange(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  amount: bigint,
+  tipHeader: Header,
+  minimalChangeCapacity: bigint,
+  {
+    config = undefined,
+    LocktimeCellCollector = CellCollector,
+  }: {
+    config?: Config;
+    LocktimeCellCollector?: any;
+  }
+): Promise<{
+  txSkeleton: TransactionSkeletonType;
+  capacity: bigint;
+  changeCapacity: bigint;
+}> {
+  config = config || getConfig();
+  // fromScript can be secp256k1_blake160 / secp256k1_blake160_multisig
+
+  amount = BigInt(amount || 0);
+
+  for (const fromInfo of fromInfos) {
+    const fromScript: Script = parseFromInfo(fromInfo, { config }).fromScript;
+    // validate fromScript
+    if (
+      !isSecp256k1Blake160MultisigScript(fromScript, config) &&
+      !isSecp256k1Blake160Script(fromScript, config)
+    ) {
+      throw new Error("fromInfo not supported!");
+    }
+    const lastFreezedOutput = txSkeleton
+      .get("fixedEntries")
+      .filter(({ field }) => field === "outputs")
+      .maxBy(({ index }) => index);
+    let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
+    for (; i < txSkeleton.get("outputs").size && amount > 0; ++i) {
+      const output = txSkeleton.get("outputs").get(i)!;
+      if (
+        new ScriptValue(output.cell_output.lock, { validate: false }).equals(
+          new ScriptValue(fromScript, { validate: false })
+        )
+      ) {
+        const cellCapacity = BigInt(output.cell_output.capacity);
+        let deductCapacity;
+        if (amount >= cellCapacity) {
+          deductCapacity = cellCapacity;
+        } else {
+          deductCapacity = cellCapacity - minimalCellCapacity(output);
+          if (deductCapacity > amount) {
+            deductCapacity = amount;
+          }
+        }
+        amount -= deductCapacity;
+        output.cell_output.capacity =
+          "0x" + (cellCapacity - deductCapacity).toString(16);
+      }
+    }
+    // remove all output cells with capacity equal to 0
+    txSkeleton = txSkeleton.update("outputs", (outputs) => {
+      return outputs.filter(
+        (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
+      );
+    });
+  }
+
+  /*
+   * Collect and add new input cells so as to prepare remaining capacities.
+   */
+  let changeCapacity = BigInt(0);
+  if (amount > 0n) {
+    const cellProvider = txSkeleton.get("cellProvider");
+    if (!cellProvider) {
+      throw new Error("cell provider is missing!");
+    }
+
+    const getInputKey = (input: Cell) =>
+      `${input.out_point!.tx_hash}_${input.out_point!.index}`;
+    let previousInputs = Set<string>();
+    for (const input of txSkeleton.get("inputs")) {
+      previousInputs = previousInputs.add(getInputKey(input));
+    }
+
+    for (const fromInfo of fromInfos) {
+      const fromScript: Script = parseFromInfo(fromInfo, { config }).fromScript;
+      const cellCollector = new LocktimeCellCollector(fromInfo, cellProvider, {
+        config,
+        tipHeader,
+      });
+      for await (const inputCell of cellCollector.collect()) {
+        // skip inputs already exists in txSkeleton.inputs
+        if (previousInputs.has(getInputKey(inputCell))) {
+          continue;
+        }
+
+        txSkeleton = txSkeleton.update("inputs", (inputs) =>
+          inputs.push(inputCell)
+        );
+        txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
+          return inputSinces.set(
+            txSkeleton.get("inputs").size - 1,
+            inputCell.since
+          );
+        });
+        if (isDaoScript(inputCell.cell_output.type, config)) {
+          txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
+            return headerDeps.push(
+              inputCell.depositBlockHash!,
+              inputCell.withdrawBlockHash!
+            );
+          });
+
+          const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
+
+          txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+            const witnessArgs = {
+              input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
+            };
+            return witnesses.push(
+              new Reader(
+                core.SerializeWitnessArgs(
+                  normalizers.NormalizeWitnessArgs(witnessArgs)
+                )
+              ).serializeJson()
+            );
+          });
+
+          // add dao cell dep
+          const template = config.SCRIPTS.DAO!;
+          txSkeleton = addCellDep(txSkeleton, {
+            dep_type: template.DEP_TYPE,
+            out_point: {
+              tx_hash: template.TX_HASH,
+              index: template.INDEX,
+            },
+          });
+        } else {
+          txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+            witnesses.push("0x")
+          );
+        }
+        const inputCapacity = BigInt(inputCell.maximumCapacity);
+        let deductCapacity = inputCapacity;
+        if (deductCapacity > amount) {
+          deductCapacity = amount;
+        }
+        amount -= deductCapacity;
+        changeCapacity += inputCapacity - deductCapacity;
+
+        if (isSecp256k1Blake160Script(fromScript, config)) {
+          txSkeleton = await setupInputCell(
+            txSkeleton,
+            txSkeleton.get("inputs").size - 1,
+            undefined,
+            { config }
+          );
+        } else {
+          // multisig
+          const inputSize = txSkeleton.get("inputs").size;
+          const lockArgs = txSkeleton.get("inputs").get(inputSize - 1)!
+            .cell_output.lock.args;
+          const multisigSince =
+            lockArgs.length === 58
+              ? _parseMultisigArgsSince(lockArgs)
+              : undefined;
+          txSkeleton = await setupInputCell(
+            txSkeleton,
+            inputSize - 1,
+            Object.assign({}, fromInfo, { since: multisigSince }),
+            { config }
+          );
+        }
+
+        if (isDaoScript(inputCell.cell_output.type, config)) {
+          // fix inputs / outputs / witnesses
+          txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+            return fixedEntries.push(
+              {
+                field: "inputs",
+                index: txSkeleton.get("inputs").size - 1,
+              },
+              {
+                field: "witnesses",
+                index: txSkeleton.get("witnesses").size - 1,
+              },
+              {
+                field: "headerDeps",
+                index: txSkeleton.get("headerDeps").size - 2,
+              }
+            );
+          });
+        }
+
+        if (
+          amount === BigInt(0) &&
+          (changeCapacity === BigInt(0) ||
+            changeCapacity > minimalChangeCapacity)
+        ) {
+          break;
+        }
+      }
+    }
+  }
+
+  return {
+    txSkeleton,
+    capacity: amount,
+    changeCapacity: changeCapacity,
+  };
+}
+
 export async function payFee(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
@@ -605,16 +828,16 @@ export async function payFee(
   tipHeader: Header,
   {
     config = undefined,
-    cellCollector = collectCells,
+    LocktimeCellCollector = CellCollector,
   }: {
     config?: Config;
-    cellCollector?: (...params: any[]) => AsyncIterable<LocktimeCell>;
+    LocktimeCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
   return transfer(txSkeleton, fromInfos, undefined, amount, tipHeader, {
     config,
     requireToAddress: false,
-    cellCollector,
+    LocktimeCellCollector,
   });
 }
 
@@ -639,9 +862,10 @@ export async function injectCapacity(
   tipHeader: Header,
   {
     config = undefined,
-    cellCollector = collectCells,
+    LocktimeCellCollector = CellCollector,
   }: Options & {
     cellCollector?: (...params: any[]) => AsyncIterable<LocktimeCell>;
+    LocktimeCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -654,7 +878,7 @@ export async function injectCapacity(
   return transfer(txSkeleton, fromInfos, undefined, capacity, tipHeader, {
     config,
     requireToAddress: false,
-    cellCollector,
+    LocktimeCellCollector,
   });
 }
 
@@ -693,10 +917,11 @@ function _parseMultisigArgsSince(args: HexString): bigint {
 }
 
 export default {
-  collectCells,
+  CellCollector,
   transfer,
   payFee,
   prepareSigningEntries,
   injectCapacity,
   setupInputCell,
+  injectCapacityWithoutChange,
 };

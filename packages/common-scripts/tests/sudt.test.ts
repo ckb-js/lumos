@@ -273,9 +273,13 @@ test("transfer locktime pool multisig & secp", async (t) => {
   const since = "0x0";
   const amount = BigInt(10000);
 
-  const locktimePoolCellCollector = async function* () {
-    yield multisigSudtInput;
-  };
+  class LocktimePoolCellCollector {
+    constructor() {}
+
+    async *collect() {
+      yield multisigSudtInput;
+    }
+  }
 
   txSkeleton = await sudt.transfer(
     txSkeleton,
@@ -292,7 +296,7 @@ test("transfer locktime pool multisig & secp", async (t) => {
     bob.testnetAddress,
     undefined,
     tipHeader,
-    { config: AGGRON4, locktimePoolCellCollector }
+    { config: AGGRON4, LocktimePoolCellCollector }
   );
 
   const sumOfInputCapacity = txSkeleton
