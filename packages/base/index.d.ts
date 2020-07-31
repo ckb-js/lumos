@@ -85,7 +85,8 @@ export interface Cell {
 export interface QueryOptions {
   lock?: Script | ScriptWrapper;
   type?: Script | ScriptWrapper | "empty";
-  data?: string;
+  // data = any means any data content is ok
+  data?: string | "any";
   argsLen?: number;
   /** `fromBlock` itself is included in range query. */
   fromBlock?: number;
