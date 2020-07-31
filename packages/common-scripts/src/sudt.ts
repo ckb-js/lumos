@@ -198,7 +198,7 @@ export async function transfer(
         config,
         queryOptions: {
           type: sudtType,
-          data: undefined,
+          data: "any",
         },
       }
     );
