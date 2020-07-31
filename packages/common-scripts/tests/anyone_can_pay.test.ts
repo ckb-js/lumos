@@ -11,7 +11,7 @@ import { predefined } from "@ckb-lumos/config-manager";
 import { bob, alice } from "./account_info";
 const { AGGRON4 } = predefined;
 
-const bobCell: Cell = {
+export const bobCell: Cell = {
   cell_output: {
     capacity: "0x174876e800",
     lock: {
@@ -33,7 +33,7 @@ const bobCell: Cell = {
   block_number: "0x1",
 };
 
-const aliceCell: Cell = {
+export const aliceCell: Cell = {
   cell_output: {
     capacity: "0x174876e800",
     lock: {
@@ -55,7 +55,9 @@ const aliceCell: Cell = {
   block_number: "0x1",
 };
 
-const aliceAcpAddress =
+export const bobAcpAddress =
+  "ckt1qjr2r35c0f9vhcdgslx2fjwa9tylevr5qka7mfgmscd33wlhfykykdkr98kkxrtvuag8z2j8w4pkw2k6k4l5cgxhkrr";
+export const aliceAcpAddress =
   "ckt1qjr2r35c0f9vhcdgslx2fjwa9tylevr5qka7mfgmscd33wlhfykyhcse8h6367zpzcqhj6e4k9a5lrevmpdaq9kve7y";
 
 test("withdraw, acp to acp, all", async (t) => {

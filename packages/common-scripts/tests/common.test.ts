@@ -12,6 +12,13 @@ import { FromInfo } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4 } = predefined;
 
+import {
+  bobCell as bobAcpCell,
+  aliceCell as aliceAcpCell,
+  bobAcpAddress,
+  aliceAcpAddress,
+} from "./anyone_can_pay.test";
+
 const aliceInput: Cell = {
   cell_output: {
     capacity: "0x1d1a3543f00",
@@ -101,4 +108,47 @@ test("_commonTransfer, alice and fromInfo", async (t) => {
   t.is(txSkeleton.get("outputs").size, 0);
   t.is(result.capacity, BigInt(0));
   t.is(result.changeCapacity, inputCapacity - amount);
+});
+
+test("transfer, acp => acp", async (t) => {
+  const cellProvider = new CellProvider([bobAcpCell, aliceAcpCell]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(500 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [bobAcpAddress],
+    aliceAcpAddress,
+    amount,
+    undefined,
+    undefined,
+    { config: AGGRON4 }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputCapcity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+
+  t.is(txSkeleton.get("witnesses").size, 2);
+
+  t.is(txSkeleton.get("witnesses").get(0)!, "0x");
+
+  const expectedMessage =
+    "0xeb8b009b831ec0db5afb8a2b975e112099a8f2061e2a653c4b659ecb970277e4";
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.is(txSkeleton.get("signingEntries").size, 1);
+
+  t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
