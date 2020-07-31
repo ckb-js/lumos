@@ -112,8 +112,8 @@ export async function issueToken(
   txSkeleton = await common.injectCapacity(
     txSkeleton,
     [fromInfo],
-    undefined,
     BigInt(targetOutput.cell_output.capacity),
+    undefined,
     tipHeader,
     {
       config,

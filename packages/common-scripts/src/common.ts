@@ -36,8 +36,8 @@ export async function transfer(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
   toAddress: Address,
-  changeAddress: Address | undefined,
   amount: bigint,
+  changeAddress?: Address,
   tipHeader?: Header,
   {
     config = undefined,
@@ -119,8 +119,8 @@ export async function transfer(
   txSkeleton = await injectCapacity(
     txSkeleton,
     fromInfos,
-    changeAddress,
     amount,
+    changeAddress,
     tipHeader,
     {
       config,
@@ -135,8 +135,8 @@ export async function transfer(
 export async function injectCapacity(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  changeAddress: Address | undefined,
   amount: bigint,
+  changeAddress?: Address,
   tipHeader?: Header,
   {
     config = undefined,
@@ -300,7 +300,7 @@ export async function payFee(
     useLocktimeCellsFirst?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
-  return injectCapacity(txSkeleton, fromInfos, undefined, amount, tipHeader, {
+  return injectCapacity(txSkeleton, fromInfos, amount, undefined, tipHeader, {
     config,
     useLocktimeCellsFirst,
   });
