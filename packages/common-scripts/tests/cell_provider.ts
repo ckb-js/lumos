@@ -20,7 +20,8 @@ class CellCollector {
         const cellLock = cell.cell_output.lock;
         if (
           cellLock.code_hash === optionLock.code_hash &&
-          cellLock.hash_type === optionLock.hash_type
+          cellLock.hash_type === optionLock.hash_type &&
+          cellLock.args === optionLock.args
         ) {
           yield cell;
         } else {

@@ -7,6 +7,7 @@ import dao from "./dao";
 import locktimePool, { SinceBaseValue, LocktimeCell } from "./locktime_pool";
 import common from "./common";
 import sudt from "./sudt";
+import anyoneCanPay from "./anyone_can_pay";
 
 export {
   secp256k1Blake160,
@@ -19,6 +20,7 @@ export {
   MultisigScript,
   FromInfo,
   sudt,
+  anyoneCanPay,
 };
 
 export default {
@@ -28,4 +30,5 @@ export default {
   locktimePool,
   common,
   sudt,
+  anyoneCanPay,
 };
