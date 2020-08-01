@@ -214,6 +214,24 @@ eventEmitter.on("changed",  () => {
 
 ```
 
+Other query options like `fromBlock|argsLen|data` are also supported.
+```javascript
+eventEmitter = indexer.subscribe({
+  lock: {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    // the args bytes length is 18, truncate the last 2 bytes.
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d",
+  },
+  // default value is -1
+  argsLen: 18,
+  // default value is "any"
+  data: "0x",
+  // default value is 0
+  fromBlock: 1000
+});
+```
 
 ## Electron note
 

@@ -79,10 +79,14 @@ class Indexer {
     );
   }
 
-  _getEmitter(script, scriptType) {
+  _getEmitter(script, scriptType, argsLen, data, fromBlock) {
+    const outputData = data == "any" ? null : new Reader(data).toArrayBuffer();
     return this.nativeIndexer.getEmitter(
       normalizers.NormalizeScript(script),
-      scriptType
+      scriptType,
+      argsLen,
+      outputData,
+      fromBlock
     );
   }
   startForever() {
@@ -98,11 +102,17 @@ class Indexer {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
-  collector({ lock = null, type = null, argsLen = -1, data = "0x" } = {}) {
+  collector({ lock = null, type = null, argsLen = -1, data = "any" } = {}) {
     return new CellCollector(this, { lock, type, argsLen, data });
   }
 
-  subscribe({ lock = null, type = null } = {}) {
+  subscribe({
+    lock = null,
+    type = null,
+    argsLen = -1,
+    data = "any",
+    fromBlock = null,
+  } = {}) {
     let script = null;
     let scriptType = null;
     if (lock) {
@@ -116,7 +126,7 @@ class Indexer {
     } else {
       throw new Error("Either lock or type script must be provided!");
     }
-    return this._getEmitter(script, scriptType);
+    return this._getEmitter(script, scriptType, argsLen, data, fromBlock);
   }
 }
 
@@ -145,7 +155,7 @@ class CellCollector {
       lock = null,
       type = null,
       argsLen = -1,
-      data = "0x",
+      data = "any",
       fromBlock = null,
       toBlock = null,
       skip = null,
