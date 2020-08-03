@@ -52,7 +52,6 @@ export interface SinceBaseValue {
 }
 
 export interface LocktimeCell extends Cell {
-  maximumCapacity: bigint;
   since: PackedSince;
   depositBlockHash?: Hash;
   withdrawBlockHash?: Hash;
@@ -250,15 +249,20 @@ export class CellCollector implements CellCollectorType {
           continue;
         }
 
-        yield {
+        const result = {
           ...inputCell,
-          maximumCapacity:
-            maximumCapacity || BigInt(inputCell.cell_output.capacity),
           since: since!,
           depositBlockHash: depositBlockHash,
           withdrawBlockHash: withdrawBlockHash,
           sinceBaseValue,
         };
+        result.cell_output.capacity =
+          "0x" +
+          (maximumCapacity || BigInt(inputCell.cell_output.capacity)).toString(
+            16
+          );
+
+        yield result;
       }
     }
   }
@@ -531,7 +535,7 @@ async function _transfer(
         { config, defaultWitness: witness, since: inputCell.since }
       ).txSkeleton;
 
-      const inputCapacity = BigInt(inputCell.maximumCapacity);
+      const inputCapacity = BigInt(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
       if (deductCapacity > amount) {
         deductCapacity = amount;
@@ -726,7 +730,7 @@ async function injectCapacityWithoutChange(
           { config, defaultWitness: witness, since: inputCell.since }
         ).txSkeleton;
 
-        const inputCapacity = BigInt(inputCell.maximumCapacity);
+        const inputCapacity = BigInt(inputCell.cell_output.capacity);
         let deductCapacity = inputCapacity;
         if (deductCapacity > amount) {
           deductCapacity = amount;

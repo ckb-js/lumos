@@ -69,7 +69,8 @@ const sudtInputs: Cell[] = [
 
 const multisigSudtInput: LocktimeCell = {
   cell_output: {
-    capacity: "0x4a817c800",
+    // origin capacity: "0x4a817c800"
+    capacity: "0x" + BigInt(20000000000).toString(16),
     lock: {
       code_hash:
         "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
@@ -93,7 +94,6 @@ const multisigSudtInput: LocktimeCell = {
   block_hash:
     "0x1111111111111111111111111111111111111111111111111111111111111111",
   block_number: "0x1",
-  maximumCapacity: BigInt(20000000000),
   since: "0x0",
   depositBlockHash: undefined,
   withdrawBlockHash: undefined,

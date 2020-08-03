@@ -458,10 +458,7 @@ export async function transfer(
         }
       ).txSkeleton;
 
-      // TODO: merge maiximumCapacity & capacity
-      const inputCapacity: bigint = BigInt(
-        (inputCell as any).maximumCapacity || inputCell.cell_output.capacity
-      );
+      const inputCapacity: bigint = BigInt(inputCell.cell_output.capacity);
       const inputAmount: bigint = inputCell.cell_output.type
         ? readBigUInt128LE(inputCell.data)
         : 0n;
