@@ -7,7 +7,6 @@ import {
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
-import { isAcpScript } from "./helper";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import locktimePool from "./locktime_pool";
 import {
@@ -50,6 +49,11 @@ export interface LockScriptInfo {
       txSkeleton: TransactionSkeletonType,
       options: Options
     ): TransactionSkeletonType;
+    setupOutputCell?: (
+      txSkeleton: TransactionSkeletonType,
+      outputCell: Cell,
+      options: Options
+    ) => Promise<TransactionSkeletonType>;
   };
 }
 
@@ -124,57 +128,36 @@ export async function transfer(
     },
     data: "0x",
   };
-  if (isAcpScript(toScript, config)) {
-    if (toScript.args.length >= 46) {
-      const minimalAmount: bigint =
-        10n ** BigInt("0x" + toScript.args.slice(44, 46));
-      throw new Error(
-        `Requires to transfer ${minimalAmount} to \`toAddress\` at least! please use sudt.transfer.`
+
+  const lockScriptInfos: List<LockScriptInfo> = List(
+    customLockScriptInfos
+  ).merge(List(getPredefinedLockScriptInfos({ config })));
+
+  const targetLockScriptInfo: LockScriptInfo | undefined = lockScriptInfos.find(
+    (lockScriptInfo) => {
+      return (
+        lockScriptInfo.code_hash === toScript.code_hash &&
+        lockScriptInfo.hash_type === toScript.hash_type
       );
     }
-    if (toScript.args.length >= 44) {
-      const minimalCapcity: bigint =
-        10n ** BigInt("0x" + toScript.args.slice(42, 44));
-      if (amount < minimalCapcity) {
-        throw new Error(`capacity less than toAddress minimal capacity`);
-      }
-    }
+  );
 
-    const cellProvider = txSkeleton.get("cellProvider");
-    if (!cellProvider) {
-      throw new Error(`Cell Provider is missing!`);
-    }
-
-    const toAddressCellCollector = new anyoneCanPay.CellCollector(
-      toAddress,
-      cellProvider,
+  if (
+    targetLockScriptInfo &&
+    "setupOutputCell" in targetLockScriptInfo.lockScriptInfo
+  ) {
+    txSkeleton = await targetLockScriptInfo.lockScriptInfo.setupOutputCell!(
+      txSkeleton,
+      targetOutput,
       {
         config,
       }
     );
-
-    const toAddressInput: Cell | void = (
-      await toAddressCellCollector.collect().next()
-    ).value;
-    if (!toAddressInput) {
-      throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
-    }
-
-    const outputCapacity: bigint =
-      BigInt(amount) + BigInt(toAddressInput.cell_output.capacity);
-    targetOutput.cell_output.capacity = "0x" + outputCapacity.toString(16);
-
-    txSkeleton = txSkeleton.update("inputs", (inputs) => {
-      return inputs.push(toAddressInput);
-    });
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-      return witnesses.push("0x");
+  } else {
+    txSkeleton = txSkeleton.update("outputs", (outputs) => {
+      return outputs.push(targetOutput);
     });
   }
-
-  txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.push(targetOutput);
-  });
 
   txSkeleton = await injectCapacity(
     txSkeleton,

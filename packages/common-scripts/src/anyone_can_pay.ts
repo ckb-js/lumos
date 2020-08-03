@@ -237,6 +237,66 @@ export function setupInputCell(
   };
 }
 
+export async function setupOutputCell(
+  txSkeleton: TransactionSkeletonType,
+  outputCell: Cell,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+
+  const toScript: Script = outputCell.cell_output.lock;
+
+  const capacity: bigint = BigInt(outputCell.cell_output.capacity);
+
+  if (toScript.args.length >= 46) {
+    const minimalAmount: bigint =
+      10n ** BigInt("0x" + toScript.args.slice(44, 46));
+    throw new Error(
+      `Requires to transfer ${minimalAmount} to \`toAddress\` at least! please use sudt.transfer.`
+    );
+  }
+  if (toScript.args.length >= 44) {
+    const minimalCapcity: bigint =
+      10n ** BigInt("0x" + toScript.args.slice(42, 44));
+    if (capacity < minimalCapcity) {
+      throw new Error(`capacity less than toAddress minimal capacity`);
+    }
+  }
+
+  const cellProvider = txSkeleton.get("cellProvider");
+  if (!cellProvider) {
+    throw new Error(`Cell Provider is missing!`);
+  }
+
+  const toAddress: Address = generateAddress(toScript, { config });
+  const toAddressCellCollector = new CellCollector(toAddress, cellProvider, {
+    config,
+  });
+
+  const toAddressInput: Cell | void = (
+    await toAddressCellCollector.collect().next()
+  ).value;
+  if (!toAddressInput) {
+    throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
+  }
+
+  const outputCapacity: bigint =
+    capacity + BigInt(toAddressInput.cell_output.capacity);
+  outputCell.cell_output.capacity = "0x" + outputCapacity.toString(16);
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push(outputCell);
+  });
+  txSkeleton = txSkeleton.update("inputs", (inputs) => {
+    return inputs.push(toAddressInput);
+  });
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+    return witnesses.push("0x");
+  });
+
+  return txSkeleton;
+}
+
 export async function injectCapacity(
   cellCollector: CellCollector,
   txSkeleton: TransactionSkeletonType,
@@ -589,6 +649,7 @@ export async function withdraw(
 export default {
   CellCollector,
   setupInputCell,
+  setupOutputCell,
   injectCapacity,
   prepareSigningEntries,
   withdraw,
