@@ -535,7 +535,15 @@ class Indexer {
     argsLen = -1,
     data = "any",
     fromBlock = null,
+    toBlock = null,
+    skip = null,
   } = {}) {
+    if (toBlock != null || skip != null) {
+      this.logger(
+        "warn",
+        "The passing fields such as toBlock and skip are ignored in subscribe() method."
+      );
+    }
     let emitter = new IndexerEmitter();
     emitter.argsLen = argsLen;
     emitter.outputData = data;

@@ -112,9 +112,17 @@ class Indexer {
     argsLen = -1,
     data = "any",
     fromBlock = null,
+    toBlock = null,
+    skip = null,
   } = {}) {
     let script = null;
     let scriptType = null;
+    if (toBlock != null || skip != null) {
+      this.logger(
+        "warn",
+        "The passing fields such as toBlock and skip are ignored in subscribe() method."
+      );
+    }
     if (lock) {
       validators.ValidateScript(lock);
       scriptType = 0;
