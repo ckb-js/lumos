@@ -44,6 +44,27 @@ for await (const cell of collector.collect()) {
 }
 ```
 
+You can also specify both `lock` and `type` script: 
+```javascript
+collector = new CellCollector(indexer, {
+    lock: {
+        args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
+        code_hash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        hash_type: "type"
+    },
+    type: {
+        args: "0x",
+        code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+        hash_type: "type"
+    }
+})
+
+for await (const cell of collector.collect()) {
+  console.log(cell);
+}
+```
+
+
 Prefix search is supported on `args`.
 
 Range query for cells between given block_numbers is supported:
