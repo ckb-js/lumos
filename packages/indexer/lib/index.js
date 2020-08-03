@@ -204,7 +204,7 @@ class CellCollector {
     );
   }
   isOutPointEqual(a, b) {
-    return a.tx_hash == b.tx_hash && a.index == b.index;
+    return a.tx_hash === b.tx_hash && a.index === b.index;
   }
 
   async count() {
