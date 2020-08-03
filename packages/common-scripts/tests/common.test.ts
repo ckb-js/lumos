@@ -79,6 +79,7 @@ test("_commonTransfer, only alice", async (t) => {
     [aliceAddress],
     amount,
     BigInt(61 * 10 ** 8),
+    [],
     { config: AGGRON4 }
   );
   txSkeleton = result.txSkeleton;
@@ -95,6 +96,7 @@ test("_commonTransfer, alice and fromInfo", async (t) => {
     [aliceAddress, fromInfo],
     amount,
     BigInt(61 * 10 ** 8),
+    [],
     { config: AGGRON4 }
   );
   txSkeleton = result.txSkeleton;

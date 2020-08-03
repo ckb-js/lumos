@@ -7,12 +7,7 @@ import {
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
-import {
-  prepareSigningEntries as _prepareSigningEntries,
-  isSecp256k1Blake160Script,
-  isSecp256k1Blake160MultisigScript,
-  isAcpScript,
-} from "./helper";
+import { isAcpScript } from "./helper";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import locktimePool from "./locktime_pool";
 import {
@@ -22,10 +17,68 @@ import {
   values,
   Cell,
   HexString,
+  Hash,
+  PackedSince,
 } from "@ckb-lumos/base";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
-import { Set } from "immutable";
+import { Set, List } from "immutable";
+
+/**
+ * CellCollector should be a class which implement CellCollectorInterface.
+ */
+export interface LockScriptInfo {
+  code_hash: Hash;
+  hash_type: "type" | "data";
+  lockScriptInfo: {
+    CellCollector: any;
+    setupInputCell(
+      txSkeleton: TransactionSkeletonType,
+      inputCell: Cell,
+      fromInfo: FromInfo,
+      options: {
+        config?: Config;
+        defaultWitness?: HexString;
+        since?: PackedSince;
+        needCapacity?: HexString;
+      }
+    ): {
+      txSkeleton: TransactionSkeletonType;
+      usedCapacity: HexString;
+    };
+    prepareSigningEntries(
+      txSkeleton: TransactionSkeletonType,
+      options: Options
+    ): TransactionSkeletonType;
+  };
+}
+
+function getPredefinedLockScriptInfos({
+  config = undefined,
+}: Options = {}): LockScriptInfo[] {
+  config = config || getConfig();
+  const secpTemplate = config.SCRIPTS.SECP256K1_BLAKE160!;
+  const multisigTemplate = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
+  const acpTemplate = config.SCRIPTS.ANYONE_CAN_PAY!;
+
+  return [
+    {
+      code_hash: secpTemplate.CODE_HASH,
+      hash_type: secpTemplate.HASH_TYPE,
+      lockScriptInfo: secp256k1Blake160,
+    },
+    {
+      code_hash: multisigTemplate.CODE_HASH,
+      hash_type: multisigTemplate.HASH_TYPE,
+      lockScriptInfo: secp256k1Blake160Multisig,
+    },
+    {
+      code_hash: acpTemplate.CODE_HASH,
+      hash_type: acpTemplate.HASH_TYPE,
+      lockScriptInfo: anyoneCanPay,
+    },
+  ];
+}
 
 /**
  *
@@ -47,10 +100,12 @@ export async function transfer(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
+    customLockScriptInfos = [],
     LocktimePoolCellCollector = locktimePool.CellCollector,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
+    customLockScriptInfos?: LockScriptInfo[];
     LocktimePoolCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
@@ -130,6 +185,7 @@ export async function transfer(
     {
       config,
       useLocktimeCellsFirst,
+      customLockScriptInfos,
       LocktimePoolCellCollector,
     }
   );
@@ -146,10 +202,12 @@ export async function injectCapacity(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
+    customLockScriptInfos = [],
     LocktimePoolCellCollector = locktimePool.CellCollector,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
+    customLockScriptInfos?: LockScriptInfo[];
     LocktimePoolCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
@@ -201,6 +259,7 @@ export async function injectCapacity(
         fromInfos,
         deductAmount,
         minimalChangeCapacity,
+        customLockScriptInfos,
         { config }
       );
       txSkeleton = result.txSkeleton;
@@ -216,6 +275,7 @@ export async function injectCapacity(
         fromInfos,
         minimalChangeCapacity - changeCapacity,
         0n,
+        customLockScriptInfos,
         { config }
       );
       txSkeleton = result.txSkeleton;
@@ -228,6 +288,7 @@ export async function injectCapacity(
       fromInfos,
       deductAmount,
       minimalChangeCapacity,
+      customLockScriptInfos,
       { config }
     );
     txSkeleton = result.txSkeleton;
@@ -313,16 +374,26 @@ export async function payFee(
 
 export function prepareSigningEntries(
   txSkeleton: TransactionSkeletonType,
-  { config = undefined }: Options = {}
+  {
+    config = undefined,
+    customLockScriptInfos = [],
+  }: Options & {
+    customLockScriptInfos?: LockScriptInfo[];
+  } = {}
 ): TransactionSkeletonType {
   config = config || getConfig();
-  txSkeleton = _prepareSigningEntries(txSkeleton, config, "SECP256K1_BLAKE160");
-  txSkeleton = _prepareSigningEntries(
-    txSkeleton,
-    config,
-    "SECP256K1_BLAKE160_MULTISIG"
-  );
-  txSkeleton = anyoneCanPay.prepareSigningEntries(txSkeleton, { config });
+
+  const lockScriptInfos: List<LockScriptInfo> = List(
+    customLockScriptInfos
+  ).merge(List(getPredefinedLockScriptInfos({ config })));
+
+  for (const lockScriptInfo of lockScriptInfos) {
+    txSkeleton = lockScriptInfo.lockScriptInfo.prepareSigningEntries(
+      txSkeleton,
+      { config }
+    );
+  }
+
   return txSkeleton;
 }
 
@@ -331,6 +402,7 @@ async function _commonTransfer(
   fromInfos: FromInfo[],
   amount: bigint,
   minimalChangeCapacity: bigint,
+  customLockScriptInfos: LockScriptInfo[],
   { config = undefined }: Options = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
@@ -362,21 +434,24 @@ async function _commonTransfer(
     }
   }
 
+  let lockScriptInfos: List<LockScriptInfo> = List(customLockScriptInfos);
+  lockScriptInfos = lockScriptInfos.merge(
+    List(getPredefinedLockScriptInfos({ config }))
+  );
+
   let changeCapacity: bigint = 0n;
 
   // collect cells
   loop1: for (const fromInfo of fromInfos) {
-    const cellCollectors = [
-      new secp256k1Blake160.CellCollector(fromInfo, cellProvider, {
-        config,
-      }),
-      new secp256k1Blake160Multisig.CellCollector(fromInfo, cellProvider, {
-        config,
-      }),
-      new anyoneCanPay.CellCollector(fromInfo, cellProvider, {
-        config,
-      }),
-    ];
+    const cellCollectors = lockScriptInfos.map((lockScriptInfo) => {
+      return new lockScriptInfo.lockScriptInfo.CellCollector(
+        fromInfo,
+        cellProvider,
+        {
+          config,
+        }
+      );
+    });
 
     for (const cellCollector of cellCollectors) {
       for await (const inputCell of cellCollector.collect()) {
@@ -389,6 +464,7 @@ async function _commonTransfer(
         const result = setupInputCell(txSkeleton, inputCell, fromInfo, {
           config,
           needCapacity: "0x" + amount.toString(16),
+          customLockScriptInfos,
         });
         txSkeleton = result.txSkeleton;
 
@@ -475,34 +551,45 @@ export function setupInputCell(
   {
     config = undefined,
     needCapacity = undefined,
-  }: Options & { needCapacity?: HexString } = {}
+    customLockScriptInfos = [],
+  }: Options & {
+    needCapacity?: HexString;
+    customLockScriptInfos?: LockScriptInfo[];
+  } = {}
 ): {
   txSkeleton: TransactionSkeletonType;
   usedCapacity: HexString;
 } {
   config = config || getConfig();
 
+  const lockScriptInfos: List<LockScriptInfo> = List(
+    customLockScriptInfos
+  ).merge(getPredefinedLockScriptInfos({ config }));
+
   const inputLock = inputCell.cell_output.lock;
 
-  if (isSecp256k1Blake160Script(inputLock, config)) {
-    return secp256k1Blake160.setupInputCell(txSkeleton, inputCell, fromInfo, {
-      config,
-    });
-  } else if (isSecp256k1Blake160MultisigScript(inputLock, config)) {
-    return secp256k1Blake160Multisig.setupInputCell(
-      txSkeleton,
-      inputCell,
-      fromInfo,
-      { config }
-    );
-  } else if (isAcpScript(inputLock, config)) {
-    return anyoneCanPay.setupInputCell(txSkeleton, inputCell, fromInfo, {
+  const targetLockScriptInfo: LockScriptInfo | undefined = lockScriptInfos.find(
+    (lockScriptInfo) => {
+      return (
+        lockScriptInfo.code_hash === inputLock.code_hash &&
+        lockScriptInfo.hash_type === inputLock.hash_type
+      );
+    }
+  );
+
+  if (!targetLockScriptInfo) {
+    throw new Error(`No LockScriptInfo found for setupInputCell!`);
+  }
+
+  return targetLockScriptInfo.lockScriptInfo.setupInputCell(
+    txSkeleton,
+    inputCell,
+    fromInfo,
+    {
       config,
       needCapacity,
-    });
-  } else {
-    throw new Error(`Not supported input lock!`);
-  }
+    }
+  );
 }
 
 export default {
