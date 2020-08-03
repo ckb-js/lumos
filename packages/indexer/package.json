@@ -38,7 +38,6 @@
     "@ckb-lumos/base": "^0.6.0",
     "ckb-js-toolkit": "^0.9.1",
     "immutable": "^4.0.0-rc.12",
-    "lodash": "^4.17.19",
     "neon-cli": "^0.4.0",
     "node-pre-gyp": "^0.14.0",
     "request": "^2.88.2",

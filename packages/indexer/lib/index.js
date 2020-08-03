@@ -2,7 +2,6 @@ const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const { OrderedSet } = require("immutable");
 const XXHash = require("xxhash");
 const { Indexer: NativeIndexer } = require("../native");
-const lodash = require("lodash");
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
 }
@@ -161,6 +160,7 @@ class CellCollector {
           )
           .collect(returnRawBuffer)
       );
+      lockOutPoints = this.wrapOutPoints(lockOutPoints);
     }
 
     if (this.type) {
@@ -177,34 +177,25 @@ class CellCollector {
           )
           .collect(returnRawBuffer)
       );
+      typeOutPoints = this.wrapOutPoints(typeOutPoints);
     }
     let outPoints = null;
     if (this.lock && this.type) {
-      outPoints = this.outPointsIntersection(lockOutPoints, typeOutPoints);
+      outPoints = lockOutPoints.intersect(typeOutPoints);
     } else if (this.lock) {
       outPoints = lockOutPoints;
     } else {
       outPoints = typeOutPoints;
     }
+    return outPoints;
+  }
+
+  wrapOutPoints(outPoints) {
     let outPointsBufferValue = new OrderedSet();
     for (const o of outPoints) {
       outPointsBufferValue = outPointsBufferValue.add(new BufferValue(o));
     }
-
     return outPointsBufferValue;
-  }
-
-  outPointsIntersection(lockOutPoints, typeOutPoints) {
-    return new OrderedSet(
-      lodash.intersectionWith(
-        [...lockOutPoints],
-        [...typeOutPoints],
-        this.isOutPointEqual
-      )
-    );
-  }
-  isOutPointEqual(a, b) {
-    return a.tx_hash === b.tx_hash && a.index === b.index;
   }
 
   async count() {
