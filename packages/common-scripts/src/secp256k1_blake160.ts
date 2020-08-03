@@ -12,6 +12,8 @@ import {
   CellProvider,
   QueryOptions,
   OutPoint,
+  HexString,
+  PackedSince,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { TransactionSkeletonType, Options } from "@ckb-lumos/helpers";
@@ -23,7 +25,7 @@ import {
   isSecp256k1Blake160Script,
 } from "./helper";
 import { FromInfo } from ".";
-import { parseFromInfo } from "./secp256k1_blake160_multisig";
+import { parseFromInfo } from "./from_info";
 const { ScriptValue } = values;
 
 export class CellCollector implements CellCollectorType {
@@ -73,25 +75,48 @@ export class CellCollector implements CellCollectorType {
  * Setup input cell infos, such as cell deps and witnesses.
  *
  * @param txSkeleton
- * @param inputIndex
+ * @param inputCell
  * @param options
  */
 export function setupInputCell(
   txSkeleton: TransactionSkeletonType,
-  inputIndex: number,
-  { config = undefined }: Options = {}
-): TransactionSkeletonType {
+  inputCell: Cell,
+  _fromInfo?: FromInfo,
+  {
+    config = undefined,
+    defaultWitness = "0x",
+    since = undefined,
+  }: Options & {
+    defaultWitness?: HexString;
+    since?: PackedSince;
+    needCapacity?: HexString;
+  } = {}
+): {
+  txSkeleton: TransactionSkeletonType;
+  usedCapacity: HexString;
+} {
   config = config || getConfig();
 
-  if (inputIndex >= txSkeleton.get("inputs").size) {
-    throw new Error(`Invalid input index!`);
-  }
-  const input = txSkeleton.get("inputs").get(inputIndex)!;
-  const fromScript = input.cell_output.lock;
-
+  const fromScript = inputCell.cell_output.lock;
   if (!isSecp256k1Blake160Script(fromScript, config)) {
     throw new Error(`Not SECP256K1_BLAKE160 input!`);
   }
+
+  // add inputCell to txSkeleton
+  txSkeleton = txSkeleton.update("inputs", (inputs) => {
+    return inputs.push(inputCell);
+  });
+
+  if (since) {
+    txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
+      return inputSinces.set(txSkeleton.get("inputs").size - 1, since);
+    });
+  }
+
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+    return witnesses.push(defaultWitness);
+  });
+  const usedCapacity: HexString = inputCell.cell_output.capacity;
 
   const template = config.SCRIPTS.SECP256K1_BLAKE160;
   if (!template) {
@@ -167,7 +192,10 @@ export function setupInputCell(
     );
   }
 
-  return txSkeleton;
+  return {
+    txSkeleton,
+    usedCapacity,
+  };
 }
 
 export async function transfer(

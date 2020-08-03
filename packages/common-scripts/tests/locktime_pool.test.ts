@@ -12,7 +12,7 @@ import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config } from "@ckb-lumos/config-manager";
 import { Header } from "@ckb-lumos/base";
-import { parseFromInfo } from "../src/secp256k1_blake160_multisig";
+import { parseFromInfo } from "../src/from_info";
 
 const inputInfos: LocktimeCell[] = [
   {

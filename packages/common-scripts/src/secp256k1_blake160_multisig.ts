@@ -7,11 +7,8 @@ import {
 import {
   core,
   values,
-  utils,
   HexString,
   Script,
-  Hash,
-  PackedSince,
   Address,
   OutPoint,
   Cell,
@@ -19,8 +16,8 @@ import {
   CellCollector as CellCollectorType,
   CellProvider,
   QueryOptions,
+  PackedSince,
 } from "@ckb-lumos/base";
-const { CKBHasher, toBigUInt64LE } = utils;
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { ScriptValue } = values;
 import { normalizers, Reader } from "ckb-js-toolkit";
@@ -32,107 +29,15 @@ import {
   prepareSigningEntries as _prepareSigningEntries,
   isSecp256k1Blake160MultisigScript,
 } from "./helper";
+import {
+  FromInfo,
+  parseFromInfo,
+  MultisigScript,
+  serializeMultisigScript,
+  multisigArgs,
+} from "./from_info";
 
-/**
- * secp256k1_blake160_multisig script requires S, R, M, N and public key hashes
- * S must be zero now
- * and N equals to publicKeyHashes size
- * so only need to provide R, M and public key hashes
- */
-export interface MultisigScript {
-  /** first nth public keys must match, 1 byte */
-  R: number;
-  /** threshold, 1 byte */
-  M: number;
-  /** blake160 hashes of compressed public keys */
-  publicKeyHashes: Hash[];
-  /** locktime in since format */
-  since?: PackedSince;
-}
-
-export type FromInfo = MultisigScript | Address;
-
-/**
- *
- * @param params multisig script params
- * @returns serialized multisig script
- */
-export function serializeMultisigScript({
-  R,
-  M,
-  publicKeyHashes,
-}: MultisigScript): HexString {
-  if (R < 0 || R > 255) {
-    throw new Error("`R` should be less than 256!");
-  }
-  if (M < 0 || M > 255) {
-    throw new Error("`M` should be less than 256!");
-  }
-  // TODO: validate publicKeyHashes
-  return (
-    "0x00" +
-    ("00" + R.toString(16)).slice(-2) +
-    ("00" + M.toString(16)).slice(-2) +
-    ("00" + publicKeyHashes.length.toString(16)).slice(-2) +
-    publicKeyHashes.map((h) => h.slice(2)).join("")
-  );
-}
-
-/**
- *
- * @param serializedMultisigScript
- * @param since
- * @returns lock script args
- */
-export function multisigArgs(
-  serializedMultisigScript: HexString,
-  since?: PackedSince
-): HexString {
-  let sinceLE = "0x";
-  if (since != null) {
-    sinceLE = toBigUInt64LE(BigInt(since));
-  }
-  return (
-    new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +
-    sinceLE.slice(2)
-  );
-}
-
-export function parseFromInfo(
-  fromInfo: FromInfo,
-  { config = undefined }: Options = {}
-): {
-  fromScript: Script;
-  multisigScript?: HexString;
-} {
-  config = config || getConfig();
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
-  if (!template) {
-    throw new Error(
-      "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
-    );
-  }
-
-  let fromScript: Script | undefined;
-  let multisigScript: HexString | undefined;
-  if (typeof fromInfo === "string") {
-    // fromInfo is an address
-    fromScript = parseAddress(fromInfo, { config });
-  } else {
-    multisigScript = serializeMultisigScript(fromInfo);
-    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
-    fromScript = {
-      code_hash: template.CODE_HASH,
-      hash_type: template.HASH_TYPE,
-      args: fromScriptArgs,
-    };
-  }
-
-  return {
-    fromScript,
-    multisigScript,
-  };
-}
+export { serializeMultisigScript, multisigArgs };
 
 export class CellCollector implements CellCollectorType {
   private cellCollector: CellCollectorType;
@@ -184,32 +89,36 @@ export class CellCollector implements CellCollectorType {
  * Setup input cell infos, such as cell deps and witnesses.
  *
  * @param txSkeleton
- * @param inputIndex
+ * @param inputCell
  * @param fromInfo
  * @param options
  */
 export function setupInputCell(
   txSkeleton: TransactionSkeletonType,
-  inputIndex: number,
+  inputCell: Cell,
   fromInfo?: FromInfo,
   {
     config = undefined,
+    defaultWitness = "0x",
+    since = undefined,
     requireMultisigScript = true,
   }: Options & {
+    defaultWitness?: HexString;
     requireMultisigScript?: boolean;
+    since?: PackedSince;
+    needCapacity?: HexString;
   } = {}
-): TransactionSkeletonType {
+): {
+  txSkeleton: TransactionSkeletonType;
+  usedCapacity: HexString;
+} {
   config = config || getConfig();
 
   if (requireMultisigScript && typeof fromInfo !== "object") {
     throw new Error("`fromInfo` must be MultisigScript format!");
   }
 
-  if (inputIndex >= txSkeleton.get("inputs").size) {
-    throw new Error("Invalid input index!");
-  }
-  const input: Cell = txSkeleton.get("inputs").get(inputIndex)!;
-  const fromScript: Script = input.cell_output.lock;
+  const fromScript: Script = inputCell.cell_output.lock;
 
   if (fromInfo) {
     const parsedFromScript: Script = parseFromInfo(fromInfo, { config })
@@ -226,6 +135,22 @@ export function setupInputCell(
   if (!isSecp256k1Blake160MultisigScript(fromScript, config)) {
     throw new Error(`Not SECP256K1_BLAKE160_MULTISIG input!`);
   }
+
+  // add inputCell to txSkeleton
+  txSkeleton = txSkeleton.update("inputs", (inputs) => {
+    return inputs.push(inputCell);
+  });
+
+  if (since) {
+    txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
+      return inputSinces.set(txSkeleton.get("inputs").size - 1, since);
+    });
+  }
+
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+    return witnesses.push(defaultWitness);
+  });
+  const usedCapacity: HexString = inputCell.cell_output.capacity;
 
   const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
   if (!template) {
@@ -314,7 +239,10 @@ export function setupInputCell(
     }
   }
 
-  return txSkeleton;
+  return {
+    txSkeleton,
+    usedCapacity,
+  };
 }
 
 export async function transfer(

@@ -4,7 +4,7 @@ import {
   Options,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { FromInfo, parseFromInfo } from "./secp256k1_blake160_multisig";
+import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { calculateMaximumWithdraw, calculateDaoEarliestSince } from "./dao";
 import {
@@ -27,12 +27,12 @@ const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
 import { normalizers, Reader, RPC } from "ckb-js-toolkit";
 import {
-  addCellDep,
   generateDaoScript,
   isSecp256k1Blake160MultisigScript,
   isSecp256k1Blake160Script,
   isDaoScript,
   prepareSigningEntries as _prepareSigningEntries,
+  addCellDep,
 } from "./helper";
 const {
   parseSince,
@@ -484,16 +484,25 @@ async function _transfer(
         continue;
       }
 
-      txSkeleton = txSkeleton.update("inputs", (inputs) =>
-        inputs.push(inputCell)
-      );
-      txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
-        return inputSinces.set(
-          txSkeleton.get("inputs").size - 1,
-          inputCell.since
-        );
-      });
+      let multisigSince: bigint | undefined;
+      if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
+        const lockArgs = inputCell.cell_output.lock.args;
+        multisigSince =
+          lockArgs.length === 58
+            ? _parseMultisigArgsSince(lockArgs)
+            : undefined;
+      }
+      let witness: HexString = "0x";
       if (isDaoScript(inputCell.cell_output.type, config)) {
+        const template = config.SCRIPTS.DAO!;
+        txSkeleton = addCellDep(txSkeleton, {
+          dep_type: template.DEP_TYPE,
+          out_point: {
+            tx_hash: template.TX_HASH,
+            index: template.INDEX,
+          },
+        });
+
         txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
           return headerDeps.push(
             inputCell.depositBlockHash!,
@@ -503,33 +512,25 @@ async function _transfer(
 
         const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
 
-        txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-          const witnessArgs = {
-            input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
-          };
-          return witnesses.push(
-            new Reader(
-              core.SerializeWitnessArgs(
-                normalizers.NormalizeWitnessArgs(witnessArgs)
-              )
-            ).serializeJson()
-          );
-        });
-
-        // add dao cell dep
-        const template = config.SCRIPTS.DAO!;
-        txSkeleton = addCellDep(txSkeleton, {
-          dep_type: template.DEP_TYPE,
-          out_point: {
-            tx_hash: template.TX_HASH,
-            index: template.INDEX,
-          },
-        });
-      } else {
-        txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-          witnesses.push("0x")
-        );
+        const witnessArgs = {
+          input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
+        };
+        witness = new Reader(
+          core.SerializeWitnessArgs(
+            normalizers.NormalizeWitnessArgs(witnessArgs)
+          )
+        ).serializeJson();
       }
+
+      txSkeleton = setupInputCell(
+        txSkeleton,
+        inputCell,
+        isSecp256k1Blake160MultisigScript(fromScript, config)
+          ? Object.assign({}, fromInfo, { since: multisigSince })
+          : fromInfo,
+        { config, defaultWitness: witness, since: inputCell.since }
+      ).txSkeleton;
+
       const inputCapacity = BigInt(inputCell.maximumCapacity);
       let deductCapacity = inputCapacity;
       if (deductCapacity > amount) {
@@ -537,30 +538,6 @@ async function _transfer(
       }
       amount -= deductCapacity;
       changeCapacity += inputCapacity - deductCapacity;
-
-      if (isSecp256k1Blake160Script(fromScript, config)) {
-        txSkeleton = await setupInputCell(
-          txSkeleton,
-          txSkeleton.get("inputs").size - 1,
-          undefined,
-          { config }
-        );
-      } else {
-        // multisig
-        const inputSize = txSkeleton.get("inputs").size;
-        const lockArgs = txSkeleton.get("inputs").get(inputSize - 1)!
-          .cell_output.lock.args;
-        const multisigSince =
-          lockArgs.length === 58
-            ? _parseMultisigArgsSince(lockArgs)
-            : undefined;
-        txSkeleton = await setupInputCell(
-          txSkeleton,
-          inputSize - 1,
-          Object.assign({}, fromInfo, { since: multisigSince }),
-          { config }
-        );
-      }
 
       if (isDaoScript(inputCell.cell_output.type, config)) {
         // fix inputs / outputs / witnesses
@@ -705,39 +682,8 @@ async function injectCapacityWithoutChange(
           continue;
         }
 
-        txSkeleton = txSkeleton.update("inputs", (inputs) =>
-          inputs.push(inputCell)
-        );
-        txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
-          return inputSinces.set(
-            txSkeleton.get("inputs").size - 1,
-            inputCell.since
-          );
-        });
+        let witness: HexString = "0x";
         if (isDaoScript(inputCell.cell_output.type, config)) {
-          txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
-            return headerDeps.push(
-              inputCell.depositBlockHash!,
-              inputCell.withdrawBlockHash!
-            );
-          });
-
-          const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
-
-          txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-            const witnessArgs = {
-              input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
-            };
-            return witnesses.push(
-              new Reader(
-                core.SerializeWitnessArgs(
-                  normalizers.NormalizeWitnessArgs(witnessArgs)
-                )
-              ).serializeJson()
-            );
-          });
-
-          // add dao cell dep
           const template = config.SCRIPTS.DAO!;
           txSkeleton = addCellDep(txSkeleton, {
             dep_type: template.DEP_TYPE,
@@ -746,11 +692,40 @@ async function injectCapacityWithoutChange(
               index: template.INDEX,
             },
           });
-        } else {
-          txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-            witnesses.push("0x")
-          );
+
+          txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
+            return headerDeps.push(
+              inputCell.depositBlockHash!,
+              inputCell.withdrawBlockHash!
+            );
+          });
+
+          const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
+          const witnessArgs = {
+            input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
+          };
+          witness = new Reader(
+            core.SerializeWitnessArgs(
+              normalizers.NormalizeWitnessArgs(witnessArgs)
+            )
+          ).serializeJson();
         }
+        let multisigSince: bigint | undefined;
+        if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
+          // multisig
+          const lockArgs = inputCell.cell_output.lock.args;
+          multisigSince =
+            lockArgs.length === 58
+              ? _parseMultisigArgsSince(lockArgs)
+              : undefined;
+        }
+        txSkeleton = setupInputCell(
+          txSkeleton,
+          inputCell,
+          Object.assign({}, fromInfo, { since: multisigSince }),
+          { config, defaultWitness: witness, since: inputCell.since }
+        ).txSkeleton;
+
         const inputCapacity = BigInt(inputCell.maximumCapacity);
         let deductCapacity = inputCapacity;
         if (deductCapacity > amount) {
@@ -758,30 +733,6 @@ async function injectCapacityWithoutChange(
         }
         amount -= deductCapacity;
         changeCapacity += inputCapacity - deductCapacity;
-
-        if (isSecp256k1Blake160Script(fromScript, config)) {
-          txSkeleton = await setupInputCell(
-            txSkeleton,
-            txSkeleton.get("inputs").size - 1,
-            undefined,
-            { config }
-          );
-        } else {
-          // multisig
-          const inputSize = txSkeleton.get("inputs").size;
-          const lockArgs = txSkeleton.get("inputs").get(inputSize - 1)!
-            .cell_output.lock.args;
-          const multisigSince =
-            lockArgs.length === 58
-              ? _parseMultisigArgsSince(lockArgs)
-              : undefined;
-          txSkeleton = await setupInputCell(
-            txSkeleton,
-            inputSize - 1,
-            Object.assign({}, fromInfo, { since: multisigSince }),
-            { config }
-          );
-        }
 
         if (isDaoScript(inputCell.cell_output.type, config)) {
           // fix inputs / outputs / witnesses
@@ -882,27 +833,34 @@ export async function injectCapacity(
   });
 }
 
-export async function setupInputCell(
+export function setupInputCell(
   txSkeleton: TransactionSkeletonType,
-  inputIndex: number,
+  inputCell: Cell,
   fromInfo?: FromInfo,
-  { config = undefined }: Options = {}
-): Promise<TransactionSkeletonType> {
+  {
+    config = undefined,
+    since = undefined,
+    defaultWitness = "0x",
+  }: Options & { defaultWitness?: HexString; since?: PackedSince } = {}
+): {
+  txSkeleton: TransactionSkeletonType;
+  usedCapacity: HexString;
+} {
   config = config || getConfig();
-  if (inputIndex >= txSkeleton.get("inputs").size) {
-    throw new Error("Invalid input index!");
-  }
-  const input = txSkeleton.get("inputs").get(inputIndex)!;
-  const inputLock = input.cell_output.lock;
+  const inputLock = inputCell.cell_output.lock;
 
   if (isSecp256k1Blake160Script(inputLock, config)) {
-    return secp256k1Blake160.setupInputCell(txSkeleton, inputIndex, { config });
+    return secp256k1Blake160.setupInputCell(txSkeleton, inputCell, fromInfo, {
+      config,
+      defaultWitness,
+      since,
+    });
   } else if (isSecp256k1Blake160MultisigScript(inputLock, config)) {
     return secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
-      inputIndex,
+      inputCell,
       fromInfo,
-      { config }
+      { config, defaultWitness, since }
     );
   } else {
     throw new Error(`Not supported input lock!`);

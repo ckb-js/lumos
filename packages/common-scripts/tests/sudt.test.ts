@@ -382,8 +382,6 @@ test("transfer acp", async (t) => {
     config: AGGRON4,
   });
 
-  t.log("txSkeleton:", JSON.stringify(txSkeleton, null, 2));
-
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
     .map((i) => BigInt(i.cell_output.capacity))

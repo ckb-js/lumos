@@ -10,12 +10,8 @@ import {
   values,
 } from "@ckb-lumos/base";
 const { toBigUInt128LE, readBigUInt128LE, computeScriptHash } = utils;
-import secp256k1Blake160Multisig, {
-  serializeMultisigScript,
-  multisigArgs,
-  FromInfo,
-  parseFromInfo,
-} from "./secp256k1_blake160_multisig";
+import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
+import { FromInfo, parseFromInfo, ACP } from "./from_info";
 import common from "./common";
 import {
   parseAddress,
@@ -68,7 +64,7 @@ export async function issueToken(
     dep_type: template.DEP_TYPE,
   });
 
-  const fromScript = _fromInfoToScript(fromInfo, config);
+  const fromScript = parseFromInfo(fromInfo, { config }).fromScript;
 
   const toScript = fromScript;
 
@@ -168,8 +164,8 @@ export async function transfer(
   }
   const toScript = parseAddress(toAddress, { config });
 
-  const fromScripts: Script[] = fromInfos.map((fromInfo) =>
-    _fromInfoToScript(fromInfo, config!)
+  const fromScripts: Script[] = fromInfos.map(
+    (fromInfo) => parseFromInfo(fromInfo, { config }).fromScript
   );
   const changeOutputLockScript = changeAddress
     ? parseAddress(changeAddress, { config })
@@ -441,20 +437,28 @@ export async function transfer(
         continue;
       }
       previousInputs = previousInputs.add(key);
-      txSkeleton = txSkeleton.update("inputs", (inputs) =>
-        inputs.push(inputCell)
-      );
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-        witnesses.push("0x")
-      );
 
       const fromInfo = fromInfos[index];
       txSkeleton = common.setupInputCell(
         txSkeleton,
-        txSkeleton.get("inputs").size - 1,
-        fromInfo,
-        { config }
-      );
+        inputCell,
+        isAnyoneCanPay
+          ? typeof fromInfo === "string"
+            ? {
+                address: fromInfo,
+                destroyable: true,
+              }
+            : {
+                address: (fromInfo as ACP).address,
+                destroyable: true,
+              }
+          : fromInfo,
+        {
+          config,
+        }
+      ).txSkeleton;
+
+      // TODO: merge maiximumCapacity & capacity
       const inputCapacity: bigint = BigInt(
         (inputCell as any).maximumCapacity || inputCell.cell_output.capacity
       );
@@ -593,24 +597,6 @@ function _generateSudtScript(token: Hash, config: Config): Script {
     hash_type: SUDT_SCRIPT.HASH_TYPE,
     args: token,
   };
-}
-
-function _fromInfoToScript(fromInfo: FromInfo, config: Config): Script {
-  let fromScript;
-  if (typeof fromInfo === "string") {
-    // fromInfo is an address
-    fromScript = parseAddress(fromInfo, { config });
-  } else {
-    const multisigScript = serializeMultisigScript(fromInfo);
-    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
-    fromScript = {
-      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.CODE_HASH,
-      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.HASH_TYPE,
-      args: fromScriptArgs,
-    };
-  }
-
-  return fromScript;
 }
 
 /**

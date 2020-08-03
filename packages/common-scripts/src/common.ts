@@ -4,10 +4,8 @@ import {
   Options,
   minimalCellCapacity,
 } from "@ckb-lumos/helpers";
-import secp256k1Blake160Multisig, {
-  FromInfo,
-  parseFromInfo,
-} from "./secp256k1_blake160_multisig";
+import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
+import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import {
   prepareSigningEntries as _prepareSigningEntries,
@@ -17,7 +15,14 @@ import {
 } from "./helper";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import locktimePool from "./locktime_pool";
-import { Address, Header, Script, values, Cell } from "@ckb-lumos/base";
+import {
+  Address,
+  Header,
+  Script,
+  values,
+  Cell,
+  HexString,
+} from "@ckb-lumos/base";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
 import { Set } from "immutable";
@@ -353,12 +358,7 @@ async function _commonTransfer(
 
   for (const fromScript of fromScripts) {
     if (amount > 0n) {
-      [txSkeleton, amount] = _deductCapacity(
-        txSkeleton,
-        fromScript,
-        amount,
-        config
-      );
+      [txSkeleton, amount] = _deductCapacity(txSkeleton, fromScript, amount);
     }
   }
 
@@ -385,82 +385,20 @@ async function _commonTransfer(
           continue;
         }
 
-        // if acp cell
-        const acpChangeCell: Cell = {
-          cell_output: {
-            capacity: "0x0",
-            lock: inputCell.cell_output.lock,
-          },
-          data: "0x",
-        };
-        const acpMinimalChangeCapacity: bigint = minimalCellCapacity(
-          acpChangeCell
-        );
+        previousInputs = previousInputs.add(inputKey);
+        const result = setupInputCell(txSkeleton, inputCell, fromInfo, {
+          config,
+          needCapacity: "0x" + amount.toString(16),
+        });
+        txSkeleton = result.txSkeleton;
 
-        const inputCapacity: bigint = BigInt(inputCell.cell_output.capacity);
-        const isAcpCell: boolean = isAcpScript(
-          inputCell.cell_output.lock,
-          config
-        );
-        const canUseCapacity: bigint = isAcpCell
-          ? inputCapacity - acpMinimalChangeCapacity
-          : inputCapacity;
-        let deductCapacity: bigint = canUseCapacity;
+        const inputCapacity: bigint = BigInt(result.usedCapacity);
+        let deductCapacity: bigint = inputCapacity;
         if (deductCapacity > amount) {
           deductCapacity = amount;
         }
         amount -= deductCapacity;
-        changeCapacity += isAcpCell ? 0n : inputCapacity - deductCapacity;
-
-        if (canUseCapacity > 0n) {
-          previousInputs = previousInputs.add(inputKey);
-          txSkeleton = txSkeleton.update("inputs", (inputs) => {
-            return inputs.push(inputCell);
-          });
-          txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-            return witnesses.push("0x");
-          });
-          // setup input cell
-          txSkeleton = setupInputCell(
-            txSkeleton,
-            txSkeleton.get("inputs").size - 1,
-            fromInfo,
-            { config }
-          );
-        }
-
-        if (isAcpCell) {
-          // If acp change cell already exists in txSkeleton.outputs, add capacity to it.
-          const oIndex: number = txSkeleton
-            .get("outputs")
-            .findIndex((output) => {
-              return new ScriptValue(inputCell.cell_output.lock, {
-                validate: false,
-              }).equals(
-                new ScriptValue(output.cell_output.lock, { validate: false })
-              );
-            });
-
-          if (oIndex !== -1) {
-            const originOutput: Cell = txSkeleton.get("outputs").get(oIndex)!;
-            originOutput.cell_output.capacity =
-              "0x" +
-              (
-                BigInt(originOutput.cell_output.capacity) +
-                (inputCapacity - deductCapacity)
-              ).toString(16);
-            txSkeleton = txSkeleton.update("outputs", (outputs) => {
-              return outputs.set(oIndex, originOutput);
-            });
-          } else {
-            acpChangeCell.cell_output.capacity =
-              "0x" + (inputCapacity - deductCapacity).toString(16);
-
-            txSkeleton = txSkeleton.update("outputs", (outputs) => {
-              return outputs.push(acpChangeCell);
-            });
-          }
-        }
+        changeCapacity += inputCapacity - deductCapacity;
 
         if (
           amount === 0n &&
@@ -482,8 +420,7 @@ async function _commonTransfer(
 function _deductCapacity(
   txSkeleton: TransactionSkeletonType,
   fromScript: Script,
-  capacity: bigint,
-  config: Config
+  capacity: bigint
 ): [TransactionSkeletonType, bigint] {
   /*
    * First, check if there is any output cells that contains enough capacity
@@ -506,9 +443,7 @@ function _deductCapacity(
       )
     ) {
       const cellCapacity = BigInt(output.cell_output.capacity);
-      const availableCapacity: bigint = isAcpScript(fromScript, config)
-        ? cellCapacity - minimalCellCapacity(output)
-        : cellCapacity;
+      const availableCapacity: bigint = cellCapacity;
       let deductCapacity;
       if (capacity >= availableCapacity) {
         deductCapacity = availableCapacity;
@@ -535,28 +470,36 @@ function _deductCapacity(
 
 export function setupInputCell(
   txSkeleton: TransactionSkeletonType,
-  inputIndex: number,
+  inputCell: Cell,
   fromInfo: FromInfo,
-  { config = undefined }: Options = {}
-): TransactionSkeletonType {
+  {
+    config = undefined,
+    needCapacity = undefined,
+  }: Options & { needCapacity?: HexString } = {}
+): {
+  txSkeleton: TransactionSkeletonType;
+  usedCapacity: HexString;
+} {
   config = config || getConfig();
-  if (inputIndex >= txSkeleton.get("inputs").size) {
-    throw new Error("Invalid input index!");
-  }
-  const input = txSkeleton.get("inputs").get(inputIndex)!;
-  const inputLock = input.cell_output.lock;
+
+  const inputLock = inputCell.cell_output.lock;
 
   if (isSecp256k1Blake160Script(inputLock, config)) {
-    return secp256k1Blake160.setupInputCell(txSkeleton, inputIndex, { config });
+    return secp256k1Blake160.setupInputCell(txSkeleton, inputCell, fromInfo, {
+      config,
+    });
   } else if (isSecp256k1Blake160MultisigScript(inputLock, config)) {
     return secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
-      inputIndex,
+      inputCell,
       fromInfo,
       { config }
     );
   } else if (isAcpScript(inputLock, config)) {
-    return anyoneCanPay.setupInputCell(txSkeleton, inputIndex, { config });
+    return anyoneCanPay.setupInputCell(txSkeleton, inputCell, fromInfo, {
+      config,
+      needCapacity,
+    });
   } else {
     throw new Error(`Not supported input lock!`);
   }
