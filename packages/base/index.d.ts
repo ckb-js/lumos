@@ -161,6 +161,8 @@ export declare const utils: {
    * @param options
    */
   computeScriptHash(script: Script, options?: { validate?: boolean }): Hash;
+
+  hashCode(buffer: Buffer): number;
 };
 
 export interface EpochSinceValue {

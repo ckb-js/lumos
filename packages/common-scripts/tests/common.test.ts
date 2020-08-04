@@ -8,9 +8,9 @@ import {
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
 import { Cell } from "@ckb-lumos/base";
-import { FromInfo } from "../src";
+import { FromInfo, anyoneCanPay } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
-const { AGGRON4 } = predefined;
+const { AGGRON4, LINA } = predefined;
 
 import {
   bobCell as bobAcpCell,
@@ -79,7 +79,6 @@ test("_commonTransfer, only alice", async (t) => {
     [aliceAddress],
     amount,
     BigInt(61 * 10 ** 8),
-    [],
     { config: AGGRON4 }
   );
   txSkeleton = result.txSkeleton;
@@ -96,7 +95,6 @@ test("_commonTransfer, alice and fromInfo", async (t) => {
     [aliceAddress, fromInfo],
     amount,
     BigInt(61 * 10 ** 8),
-    [],
     { config: AGGRON4 }
   );
   txSkeleton = result.txSkeleton;
@@ -153,4 +151,34 @@ test("transfer, acp => acp", async (t) => {
   t.is(txSkeleton.get("signingEntries").size, 1);
 
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
+});
+
+test("lockScriptInfos", (t) => {
+  common.__tests__.resetLockScriptInfos();
+  t.is(common.__tests__.getLockScriptInfos().infos.length, 0);
+  common.registerCustomLockScriptInfos([
+    {
+      code_hash: "",
+      hash_type: "type",
+      lockScriptInfo: anyoneCanPay,
+    },
+  ]);
+  t.is(common.__tests__.getLockScriptInfos().infos.length, 1);
+
+  common.__tests__.resetLockScriptInfos();
+  t.is(common.__tests__.getLockScriptInfos().infos.length, 0);
+  common.__tests__.generateLockScriptInfos({ config: AGGRON4 });
+  t.is(common.__tests__.getLockScriptInfos().infos.length, 3);
+  const configCodeHash = common.__tests__.getLockScriptInfos().configHashCode;
+  t.not(configCodeHash, 0);
+
+  // run again, won't change
+  common.__tests__.generateLockScriptInfos({ config: AGGRON4 });
+  t.is(common.__tests__.getLockScriptInfos().infos.length, 3);
+  t.is(common.__tests__.getLockScriptInfos().configHashCode, configCodeHash);
+
+  // using LINA
+  common.__tests__.generateLockScriptInfos({ config: LINA });
+  t.is(common.__tests__.getLockScriptInfos().infos.length, 2);
+  t.not(common.__tests__.getLockScriptInfos().configHashCode, configCodeHash);
 });

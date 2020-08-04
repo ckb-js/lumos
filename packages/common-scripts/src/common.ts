@@ -18,10 +18,15 @@ import {
   HexString,
   Hash,
   PackedSince,
+  utils,
 } from "@ckb-lumos/base";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
-import { Set, List } from "immutable";
+import { Set } from "immutable";
+
+function defaultLogger(level: string, message: string) {
+  console.log(`[${level}] ${message}`);
+}
 
 /**
  * CellCollector should be a class which implement CellCollectorInterface.
@@ -57,31 +62,96 @@ export interface LockScriptInfo {
   };
 }
 
-function getPredefinedLockScriptInfos({
-  config = undefined,
-}: Options = {}): LockScriptInfo[] {
-  config = config || getConfig();
-  const secpTemplate = config.SCRIPTS.SECP256K1_BLAKE160!;
-  const multisigTemplate = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
-  const acpTemplate = config.SCRIPTS.ANYONE_CAN_PAY!;
+/**
+ * `infos` includes predefined and customized.
+ */
+let lockScriptInfos: {
+  configHashCode: number;
+  _predefinedInfos: LockScriptInfo[];
+  _customInfos: LockScriptInfo[];
+  infos: LockScriptInfo[];
+} = {
+  configHashCode: 0,
+  _predefinedInfos: [],
+  _customInfos: [],
+  get infos(): LockScriptInfo[] {
+    return [...this._predefinedInfos, ...this._customInfos];
+  },
+};
 
-  return [
-    {
+function resetLockScriptInfos(): void {
+  lockScriptInfos.configHashCode = 0;
+  lockScriptInfos._predefinedInfos = [];
+  lockScriptInfos._customInfos = [];
+}
+
+function getLockScriptInfos() {
+  return lockScriptInfos;
+}
+
+export function registerCustomLockScriptInfos(infos: LockScriptInfo[]): void {
+  lockScriptInfos._customInfos = infos;
+}
+
+function generateLockScriptInfos({ config = undefined }: Options = {}): void {
+  config = config || getConfig();
+
+  const secpTemplate = config.SCRIPTS.SECP256K1_BLAKE160;
+  const multisigTemplate = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+  const acpTemplate = config.SCRIPTS.ANYONE_CAN_PAY;
+
+  const predefinedInfos: LockScriptInfo[] = [];
+
+  if (secpTemplate) {
+    predefinedInfos.push({
       code_hash: secpTemplate.CODE_HASH,
       hash_type: secpTemplate.HASH_TYPE,
       lockScriptInfo: secp256k1Blake160,
-    },
-    {
+    });
+  } else {
+    defaultLogger(
+      "warn",
+      "SECP256K1_BLAKE160 script info not found in config!"
+    );
+  }
+
+  if (multisigTemplate) {
+    predefinedInfos.push({
       code_hash: multisigTemplate.CODE_HASH,
       hash_type: multisigTemplate.HASH_TYPE,
       lockScriptInfo: secp256k1Blake160Multisig,
-    },
-    {
+    });
+  } else {
+    defaultLogger(
+      "warn",
+      "SECP256K1_BLAKE160_MULTISIG script info not found in config!"
+    );
+  }
+
+  if (acpTemplate) {
+    predefinedInfos.push({
       code_hash: acpTemplate.CODE_HASH,
       hash_type: acpTemplate.HASH_TYPE,
       lockScriptInfo: anyoneCanPay,
-    },
-  ];
+    });
+  } else {
+    defaultLogger("warn", "ANYONE_CAN_PAY script info not found in config!");
+  }
+
+  const configHashCode: number = utils.hashCode(
+    Buffer.from(JSON.stringify(config!))
+  );
+
+  if (lockScriptInfos.infos === []) {
+    lockScriptInfos._predefinedInfos = predefinedInfos;
+    lockScriptInfos.configHashCode = configHashCode;
+  } else {
+    if (configHashCode !== lockScriptInfos.configHashCode) {
+      defaultLogger(`warn`, "`config` changed, regenerate lockScriptInfos!");
+      lockScriptInfos._predefinedInfos = predefinedInfos;
+      lockScriptInfos.configHashCode = configHashCode;
+    }
+  }
 }
 
 /**
@@ -104,12 +174,10 @@ export async function transfer(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
-    customLockScriptInfos = [],
     LocktimePoolCellCollector = locktimePool.CellCollector,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
-    customLockScriptInfos?: LockScriptInfo[];
     LocktimePoolCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
@@ -129,18 +197,16 @@ export async function transfer(
     data: "0x",
   };
 
-  const lockScriptInfos: List<LockScriptInfo> = List(
-    customLockScriptInfos
-  ).merge(List(getPredefinedLockScriptInfos({ config })));
+  generateLockScriptInfos({ config });
 
-  const targetLockScriptInfo: LockScriptInfo | undefined = lockScriptInfos.find(
-    (lockScriptInfo) => {
-      return (
-        lockScriptInfo.code_hash === toScript.code_hash &&
-        lockScriptInfo.hash_type === toScript.hash_type
-      );
-    }
-  );
+  const targetLockScriptInfo:
+    | LockScriptInfo
+    | undefined = lockScriptInfos.infos.find((lockScriptInfo) => {
+    return (
+      lockScriptInfo.code_hash === toScript.code_hash &&
+      lockScriptInfo.hash_type === toScript.hash_type
+    );
+  });
 
   if (
     targetLockScriptInfo &&
@@ -168,7 +234,6 @@ export async function transfer(
     {
       config,
       useLocktimeCellsFirst,
-      customLockScriptInfos,
       LocktimePoolCellCollector,
     }
   );
@@ -185,12 +250,10 @@ export async function injectCapacity(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
-    customLockScriptInfos = [],
     LocktimePoolCellCollector = locktimePool.CellCollector,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
-    customLockScriptInfos?: LockScriptInfo[];
     LocktimePoolCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
@@ -242,7 +305,6 @@ export async function injectCapacity(
         fromInfos,
         deductAmount,
         minimalChangeCapacity,
-        customLockScriptInfos,
         { config }
       );
       txSkeleton = result.txSkeleton;
@@ -258,7 +320,6 @@ export async function injectCapacity(
         fromInfos,
         minimalChangeCapacity - changeCapacity,
         0n,
-        customLockScriptInfos,
         { config }
       );
       txSkeleton = result.txSkeleton;
@@ -271,7 +332,6 @@ export async function injectCapacity(
       fromInfos,
       deductAmount,
       minimalChangeCapacity,
-      customLockScriptInfos,
       { config }
     );
     txSkeleton = result.txSkeleton;
@@ -357,20 +417,13 @@ export async function payFee(
 
 export function prepareSigningEntries(
   txSkeleton: TransactionSkeletonType,
-  {
-    config = undefined,
-    customLockScriptInfos = [],
-  }: Options & {
-    customLockScriptInfos?: LockScriptInfo[];
-  } = {}
+  { config = undefined }: Options = {}
 ): TransactionSkeletonType {
   config = config || getConfig();
 
-  const lockScriptInfos: List<LockScriptInfo> = List(
-    customLockScriptInfos
-  ).merge(List(getPredefinedLockScriptInfos({ config })));
+  generateLockScriptInfos({ config });
 
-  for (const lockScriptInfo of lockScriptInfos) {
+  for (const lockScriptInfo of lockScriptInfos.infos) {
     txSkeleton = lockScriptInfo.lockScriptInfo.prepareSigningEntries(
       txSkeleton,
       { config }
@@ -385,7 +438,6 @@ async function _commonTransfer(
   fromInfos: FromInfo[],
   amount: bigint,
   minimalChangeCapacity: bigint,
-  customLockScriptInfos: LockScriptInfo[],
   { config = undefined }: Options = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
@@ -417,16 +469,13 @@ async function _commonTransfer(
     }
   }
 
-  let lockScriptInfos: List<LockScriptInfo> = List(customLockScriptInfos);
-  lockScriptInfos = lockScriptInfos.merge(
-    List(getPredefinedLockScriptInfos({ config }))
-  );
+  generateLockScriptInfos({ config });
 
   let changeCapacity: bigint = 0n;
 
   // collect cells
   loop1: for (const fromInfo of fromInfos) {
-    const cellCollectors = lockScriptInfos.map((lockScriptInfo) => {
+    const cellCollectors = lockScriptInfos.infos.map((lockScriptInfo) => {
       return new lockScriptInfo.lockScriptInfo.CellCollector(
         fromInfo,
         cellProvider,
@@ -447,7 +496,6 @@ async function _commonTransfer(
         const result = await setupInputCell(txSkeleton, inputCell, fromInfo, {
           config,
           needCapacity: "0x" + amount.toString(16),
-          customLockScriptInfos,
         });
         txSkeleton = result.txSkeleton;
 
@@ -534,10 +582,8 @@ export async function setupInputCell(
   {
     config = undefined,
     needCapacity = undefined,
-    customLockScriptInfos = [],
   }: Options & {
     needCapacity?: HexString;
-    customLockScriptInfos?: LockScriptInfo[];
   } = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
@@ -545,20 +591,17 @@ export async function setupInputCell(
 }> {
   config = config || getConfig();
 
-  const lockScriptInfos: List<LockScriptInfo> = List(
-    customLockScriptInfos
-  ).merge(getPredefinedLockScriptInfos({ config }));
-
+  generateLockScriptInfos({ config });
   const inputLock = inputCell.cell_output.lock;
 
-  const targetLockScriptInfo: LockScriptInfo | undefined = lockScriptInfos.find(
-    (lockScriptInfo) => {
-      return (
-        lockScriptInfo.code_hash === inputLock.code_hash &&
-        lockScriptInfo.hash_type === inputLock.hash_type
-      );
-    }
-  );
+  const targetLockScriptInfo:
+    | LockScriptInfo
+    | undefined = lockScriptInfos.infos.find((lockScriptInfo) => {
+    return (
+      lockScriptInfo.code_hash === inputLock.code_hash &&
+      lockScriptInfo.hash_type === inputLock.hash_type
+    );
+  });
 
   if (!targetLockScriptInfo) {
     throw new Error(`No LockScriptInfo found for setupInputCell!`);
@@ -581,7 +624,11 @@ export default {
   prepareSigningEntries,
   injectCapacity,
   setupInputCell,
+  registerCustomLockScriptInfos,
   __tests__: {
     _commonTransfer,
+    resetLockScriptInfos,
+    getLockScriptInfos,
+    generateLockScriptInfos,
   },
 };
