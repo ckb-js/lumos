@@ -76,7 +76,7 @@ export class CellCollector implements CellCollectorType {
   }
 }
 
-export function setupInputCell(
+export async function setupInputCell(
   txSkeleton: TransactionSkeletonType,
   inputCell: Cell,
   fromInfo?: FromInfo,
@@ -90,10 +90,10 @@ export function setupInputCell(
     since?: PackedSince;
     needCapacity?: HexString;
   } = {}
-): {
+): Promise<{
   txSkeleton: TransactionSkeletonType;
   usedCapacity: HexString;
-} {
+}> {
   config = config || getConfig();
 
   const inputLock: Script = inputCell.cell_output.lock;
@@ -386,9 +386,11 @@ export async function injectCapacity(
         continue;
       }
 
-      txSkeleton = setupInputCell(txSkeleton, inputCell, undefined, {
-        config,
-      }).txSkeleton;
+      txSkeleton = (
+        await setupInputCell(txSkeleton, inputCell, undefined, {
+          config,
+        })
+      ).txSkeleton;
 
       const inputCapacity = BigInt(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
@@ -620,14 +622,16 @@ export async function withdraw(
     return outputs.push(targetOutput);
   });
 
-  txSkeleton = setupInputCell(
-    txSkeleton,
-    fromInput,
-    {
-      address: generateAddress(fromInput.cell_output.lock, { config }),
-      destroyable: true,
-    },
-    { config }
+  txSkeleton = (
+    await setupInputCell(
+      txSkeleton,
+      fromInput,
+      {
+        address: generateAddress(fromInput.cell_output.lock, { config }),
+        destroyable: true,
+      },
+      { config }
+    )
   ).txSkeleton;
 
   if (capacity !== fromInputCapacity) {

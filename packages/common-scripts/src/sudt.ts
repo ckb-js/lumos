@@ -439,23 +439,25 @@ export async function transfer(
       previousInputs = previousInputs.add(key);
 
       const fromInfo = fromInfos[index];
-      txSkeleton = common.setupInputCell(
-        txSkeleton,
-        inputCell,
-        isAnyoneCanPay
-          ? typeof fromInfo === "string"
-            ? {
-                address: fromInfo,
-                destroyable: true,
-              }
-            : {
-                address: (fromInfo as ACP).address,
-                destroyable: true,
-              }
-          : fromInfo,
-        {
-          config,
-        }
+      txSkeleton = (
+        await common.setupInputCell(
+          txSkeleton,
+          inputCell,
+          isAnyoneCanPay
+            ? typeof fromInfo === "string"
+              ? {
+                  address: fromInfo,
+                  destroyable: true,
+                }
+              : {
+                  address: (fromInfo as ACP).address,
+                  destroyable: true,
+                }
+            : fromInfo,
+          {
+            config,
+          }
+        )
       ).txSkeleton;
 
       const inputCapacity: bigint = BigInt(inputCell.cell_output.capacity);

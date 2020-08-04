@@ -526,13 +526,15 @@ async function _transfer(
         ).serializeJson();
       }
 
-      txSkeleton = setupInputCell(
-        txSkeleton,
-        inputCell,
-        isSecp256k1Blake160MultisigScript(fromScript, config)
-          ? Object.assign({}, fromInfo, { since: multisigSince })
-          : fromInfo,
-        { config, defaultWitness: witness, since: inputCell.since }
+      txSkeleton = (
+        await setupInputCell(
+          txSkeleton,
+          inputCell,
+          isSecp256k1Blake160MultisigScript(fromScript, config)
+            ? Object.assign({}, fromInfo, { since: multisigSince })
+            : fromInfo,
+          { config, defaultWitness: witness, since: inputCell.since }
+        )
       ).txSkeleton;
 
       const inputCapacity = BigInt(inputCell.cell_output.capacity);
@@ -723,11 +725,13 @@ async function injectCapacityWithoutChange(
               ? _parseMultisigArgsSince(lockArgs)
               : undefined;
         }
-        txSkeleton = setupInputCell(
-          txSkeleton,
-          inputCell,
-          Object.assign({}, fromInfo, { since: multisigSince }),
-          { config, defaultWitness: witness, since: inputCell.since }
+        txSkeleton = (
+          await setupInputCell(
+            txSkeleton,
+            inputCell,
+            Object.assign({}, fromInfo, { since: multisigSince }),
+            { config, defaultWitness: witness, since: inputCell.since }
+          )
         ).txSkeleton;
 
         const inputCapacity = BigInt(inputCell.cell_output.capacity);
@@ -837,7 +841,7 @@ export async function injectCapacity(
   });
 }
 
-export function setupInputCell(
+export async function setupInputCell(
   txSkeleton: TransactionSkeletonType,
   inputCell: Cell,
   fromInfo?: FromInfo,
@@ -846,10 +850,10 @@ export function setupInputCell(
     since = undefined,
     defaultWitness = "0x",
   }: Options & { defaultWitness?: HexString; since?: PackedSince } = {}
-): {
+): Promise<{
   txSkeleton: TransactionSkeletonType;
   usedCapacity: HexString;
-} {
+}> {
   config = config || getConfig();
   const inputLock = inputCell.cell_output.lock;
 

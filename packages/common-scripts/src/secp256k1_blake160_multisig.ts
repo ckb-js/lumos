@@ -93,7 +93,7 @@ export class CellCollector implements CellCollectorType {
  * @param fromInfo
  * @param options
  */
-export function setupInputCell(
+export async function setupInputCell(
   txSkeleton: TransactionSkeletonType,
   inputCell: Cell,
   fromInfo?: FromInfo,
@@ -108,10 +108,10 @@ export function setupInputCell(
     since?: PackedSince;
     needCapacity?: HexString;
   } = {}
-): {
+): Promise<{
   txSkeleton: TransactionSkeletonType;
   usedCapacity: HexString;
-} {
+}> {
   config = config || getConfig();
 
   if (requireMultisigScript && typeof fromInfo !== "object") {

@@ -41,10 +41,10 @@ export interface LockScriptInfo {
         since?: PackedSince;
         needCapacity?: HexString;
       }
-    ): {
+    ): Promise<{
       txSkeleton: TransactionSkeletonType;
       usedCapacity: HexString;
-    };
+    }>;
     prepareSigningEntries(
       txSkeleton: TransactionSkeletonType,
       options: Options
@@ -444,7 +444,7 @@ async function _commonTransfer(
         }
 
         previousInputs = previousInputs.add(inputKey);
-        const result = setupInputCell(txSkeleton, inputCell, fromInfo, {
+        const result = await setupInputCell(txSkeleton, inputCell, fromInfo, {
           config,
           needCapacity: "0x" + amount.toString(16),
           customLockScriptInfos,
@@ -527,7 +527,7 @@ function _deductCapacity(
   return [txSkeleton, capacity];
 }
 
-export function setupInputCell(
+export async function setupInputCell(
   txSkeleton: TransactionSkeletonType,
   inputCell: Cell,
   fromInfo: FromInfo,
@@ -539,10 +539,10 @@ export function setupInputCell(
     needCapacity?: HexString;
     customLockScriptInfos?: LockScriptInfo[];
   } = {}
-): {
+): Promise<{
   txSkeleton: TransactionSkeletonType;
   usedCapacity: HexString;
-} {
+}> {
   config = config || getConfig();
 
   const lockScriptInfos: List<LockScriptInfo> = List(

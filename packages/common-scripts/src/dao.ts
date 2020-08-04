@@ -244,18 +244,19 @@ async function withdraw(
   // setup input cell
   const fromLockScript = fromInput.cell_output.lock;
   if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = secp256k1Blake160.setupInputCell(
-      txSkeleton,
-      fromInput,
-      undefined,
-      { config }
+    txSkeleton = (
+      await secp256k1Blake160.setupInputCell(txSkeleton, fromInput, undefined, {
+        config,
+      })
     ).txSkeleton;
   } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
-    txSkeleton = secp256k1Blake160Multisig.setupInputCell(
-      txSkeleton,
-      fromInput,
-      fromInfo || generateAddress(fromLockScript, { config }),
-      { config }
+    txSkeleton = (
+      await secp256k1Blake160Multisig.setupInputCell(
+        txSkeleton,
+        fromInput,
+        fromInfo || generateAddress(fromLockScript, { config }),
+        { config }
+      )
     ).txSkeleton;
   }
 
@@ -416,18 +417,22 @@ export async function unlock(
   // setup input cell
   const fromLockScript = withdrawInput.cell_output.lock;
   if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = secp256k1Blake160.setupInputCell(
-      txSkeleton,
-      withdrawInput,
-      undefined,
-      { config, since }
+    txSkeleton = (
+      await secp256k1Blake160.setupInputCell(
+        txSkeleton,
+        withdrawInput,
+        undefined,
+        { config, since }
+      )
     ).txSkeleton;
   } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
-    txSkeleton = secp256k1Blake160Multisig.setupInputCell(
-      txSkeleton,
-      withdrawInput,
-      fromInfo || generateAddress(fromLockScript, { config }),
-      { config, since }
+    txSkeleton = (
+      await secp256k1Blake160Multisig.setupInputCell(
+        txSkeleton,
+        withdrawInput,
+        fromInfo || generateAddress(fromLockScript, { config }),
+        { config, since }
+      )
     ).txSkeleton;
   }
 
