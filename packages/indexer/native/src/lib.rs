@@ -2,13 +2,13 @@
 extern crate log;
 
 use ckb_indexer::{
-    indexer::{Error as IndexerError, Indexer, KeyPrefix, SCRIPT_SERIALIZE_OFFSET},
+    indexer::{Error as IndexerError, Indexer, Key, KeyPrefix, Value, SCRIPT_SERIALIZE_OFFSET},
     store::{IteratorDirection, RocksdbStore, Store},
 };
 use ckb_jsonrpc_types::{BlockNumber, BlockView};
 use ckb_types::{
     core::{BlockView as CoreBlockView, ScriptHashType},
-    packed::{Byte32, OutPoint, Script, ScriptBuilder},
+    packed::{Byte32, Bytes, CellOutput, OutPoint, Script, ScriptBuilder},
     prelude::*,
 };
 use futures::Future;
@@ -20,7 +20,7 @@ use std::convert::TryInto;
 use std::fmt;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
-    Arc,
+    Arc, RwLock,
 };
 use std::thread;
 use std::time::Duration;
@@ -60,11 +60,22 @@ pub struct TransactionIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)>>)
 pub struct LiveCellIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)>>);
 
 #[derive(Clone)]
+pub struct Emitter {
+    cb: Option<EventHandler>,
+    lock: Option<Script>,
+    type_: Option<Script>,
+    args_len: usize,
+    output_data: Option<Bytes>,
+    from_block: u64,
+}
+
+#[derive(Clone)]
 pub struct NativeIndexer {
     uri: String,
     poll_interval: Duration,
     running: Arc<AtomicBool>,
     indexer: Arc<Indexer<RocksdbStore>>,
+    emitters: Arc<RwLock<Vec<Emitter>>>,
 }
 
 impl NativeIndexer {
@@ -93,8 +104,12 @@ impl NativeIndexer {
                     if block.parent_hash() == tip_hash {
                         debug!("append {}, {}", block.number(), block.hash());
                         self.indexer.append(&block)?;
+                        self.publish_append_block_events(&block)?;
                     } else {
                         info!("rollback {}, {}", tip_number, tip_hash);
+                        // Publish changed events before rollback. It's possible the event published while the rollback operation failed.
+                        // Make sure to pull data from db after get notified, as the notification mechanism's design principle is unreliable queue.
+                        self.publish_rollback_events()?;
                         self.indexer.rollback()?;
                     }
                 } else {
@@ -105,10 +120,181 @@ impl NativeIndexer {
                     let block: CoreBlockView = block.into();
                     debug!("append genesis block hash: {}", block.hash());
                     self.indexer.append(&block)?;
+                    self.publish_append_block_events(&block)?;
                 }
             }
         }
         Ok(())
+    }
+
+    fn publish_append_block_events(&self, block: &CoreBlockView) -> Result<(), IndexerError> {
+        let transactions = block.transactions();
+        for (tx_index, tx) in transactions.iter().enumerate() {
+            // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
+            if tx_index > 0 {
+                for (_input_index, input) in tx.inputs().into_iter().enumerate() {
+                    let out_point = input.previous_output();
+                    let consumed_cell = self
+                        .indexer
+                        .store()
+                        .get(Key::ConsumedOutPoint(block.number(), &out_point).into_vec())?
+                        .expect("Transaction inputs' previous_output should be consumed already");
+                    let (_generated_by_block_number, _generated_by_tx_index, output, output_data) =
+                        Value::parse_cell_value(&consumed_cell);
+                    self.filter_events(output, block.number(), output_data);
+                }
+            }
+            // publish changed events if subscribed script exists in output cells.
+            for (output_index, output) in tx.outputs().into_iter().enumerate() {
+                let output_data = tx
+                    .outputs_data()
+                    .get(output_index)
+                    .expect("outputs_data len should equals outputs len");
+                self.filter_events(output, block.number(), output_data);
+            }
+        }
+        Ok(())
+    }
+
+    fn publish_rollback_events(&self) -> Result<(), IndexerError> {
+        if let Some((block_number, block_hash)) = self.indexer.tip()? {
+            let txs = Value::parse_transactions_value(
+                &self
+                    .indexer
+                    .store()
+                    .get(Key::Header(block_number, &block_hash).into_vec())?
+                    .expect("stored block"),
+            );
+            for (tx_index, (tx_hash, outputs_len)) in txs.into_iter().enumerate().rev() {
+                let tx_index = tx_index as u32;
+                // publish changed events if subscribed script exists in output cells.
+                for output_index in 0..outputs_len {
+                    let out_point = OutPoint::new(tx_hash.clone(), output_index);
+                    let out_point_key = Key::OutPoint(&out_point).into_vec();
+
+                    // output cells might be alive or be consumed by tx in the same block.
+                    let (_generated_by_block_number, _generated_by_tx_index, output, output_data) =
+                        if let Some(stored_live_cell) = self.indexer.store().get(&out_point_key)? {
+                            Value::parse_cell_value(&stored_live_cell)
+                        } else {
+                            let consumed_cell = self
+                                .indexer
+                                .store()
+                                .get(Key::ConsumedOutPoint(block_number, &out_point).into_vec())?
+                                .expect("stored live cell or consume output in same block");
+                            Value::parse_cell_value(&consumed_cell)
+                        };
+                    self.filter_events(output, block_number, output_data);
+                }
+                let transaction_key = Key::TxHash(&tx_hash).into_vec();
+                // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
+                if tx_index > 0 {
+                    for (_input_index, out_point) in self
+                        .indexer
+                        .store()
+                        .get(&transaction_key)?
+                        .expect("stored transaction inputs")
+                        .chunks_exact(OutPoint::TOTAL_SIZE)
+                        .map(|slice| {
+                            OutPoint::from_slice(slice)
+                                .expect("stored transaction inputs out_point slice")
+                        })
+                        .enumerate()
+                    {
+                        let consumed_out_point_key =
+                            Key::ConsumedOutPoint(block_number, &out_point).into_vec();
+
+                        let stored_consumed_cell = self
+                            .indexer
+                            .store()
+                            .get(consumed_out_point_key)?
+                            .expect("stored consumed cells value");
+                        let (
+                            _generated_by_block_number,
+                            _generated_by_tx_index,
+                            output,
+                            output_data,
+                        ) = Value::parse_cell_value(&stored_consumed_cell);
+                        self.filter_events(output, block_number, output_data);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn filter_events(&self, output: CellOutput, block_number: u64, output_data: Bytes) {
+        let emitters = self.emitters.read().unwrap();
+        let lock_script_emitters = emitters.iter().filter(|x| x.lock.is_some());
+        let type_script_emitters = emitters.iter().filter(|x| x.type_.is_some());
+
+        let lock_script = output.lock();
+        for emitter in lock_script_emitters.clone() {
+            if self.check_filter_options(
+                emitter,
+                block_number,
+                output_data.clone(),
+                emitter.lock.clone().unwrap(),
+                lock_script.clone(),
+            ) {
+                self.emit_changed_event(emitter);
+            }
+        }
+        if let Some(type_script) = output.type_().to_opt() {
+            for emitter in type_script_emitters.clone() {
+                if self.check_filter_options(
+                    emitter,
+                    block_number,
+                    output_data.clone(),
+                    emitter.type_.clone().unwrap(),
+                    type_script.clone(),
+                ) {
+                    self.emit_changed_event(emitter);
+                }
+            }
+        }
+    }
+
+    /**
+     * 1. check emitter's from block number;
+     * 2. check emitter's output_data matches;
+     * 3. check emitter's script matches(support args prefix matching);
+     */
+    fn check_filter_options(
+        &self,
+        emitter: &Emitter,
+        block_number: u64,
+        output_data: Bytes,
+        emitter_script: Script,
+        script: Script,
+    ) -> bool {
+        let check_block_number = emitter.from_block <= block_number;
+        let check_output_data = if let Some(data) = &emitter.output_data {
+            data.as_slice() == output_data.as_slice()
+        } else {
+            true
+        };
+        let check_script = if emitter.args_len == script.args().len() {
+            script == emitter_script
+        } else {
+            // when emitter's args_len smaller than actual script args' len, meaning it's prefix match
+            let script_args = script.args();
+            // the first 4 bytes mark the byteslength of script_args according to molecule
+            let args_prefix = &script_args.as_slice()[4..emitter.args_len + 4];
+            let emitter_args = emitter_script.args();
+            let emitter_args_prefix = &emitter_args.as_slice()[4..];
+            let check_args_prefix = args_prefix == emitter_args_prefix;
+            emitter_script.code_hash() == script.code_hash()
+                && emitter_script.hash_type() == script.hash_type()
+                && check_args_prefix
+        };
+        check_block_number && check_output_data && check_script
+    }
+
+    fn emit_changed_event(&self, emitter: &Emitter) {
+        if let Some(cb) = &emitter.cb {
+            cb.schedule(move |cx| vec![cx.string("changed").upcast()] as Vec<Handle<JsValue>>)
+        }
     }
 }
 
@@ -130,7 +316,8 @@ declare_types! {
                 uri: uri.value(),
                 poll_interval: Duration::from_secs(interval_secs as u64),
                 running: Arc::new(AtomicBool::new(false)),
-                indexer,
+                indexer: indexer,
+                emitters: Arc::new(RwLock::new(vec![]))
             })
         }
 
@@ -323,6 +510,107 @@ declare_types! {
 
             Ok(result.upcast())
         }
+
+        method getEmitter(mut cx) {
+            let mut this = cx.this();
+            let js_script = cx.argument::<JsValue>(0)?;
+            let script_type = cx.argument::<JsValue>(1)?;
+            let args_len = cx.argument::<JsValue>(2)?;
+            let data = cx.argument::<JsValue>(3)?;
+            let from_block = cx.argument::<JsValue>(4)?;
+            let emitter = JsEmitter::new(&mut cx, vec![js_script, script_type, args_len, data, from_block])?;
+            {
+                let guard = cx.lock();
+                let emitter = emitter.borrow(&guard);
+                let native_indexer = this.borrow_mut(&guard);
+                let mut emitters = native_indexer.emitters.write().unwrap();
+                emitters.push(emitter.clone());
+            }
+            Ok(emitter.upcast())
+        }
+    }
+
+    pub class JsEmitter for Emitter {
+        init(mut cx) {
+            let js_script  = cx.argument::<JsObject>(0)?;
+            let js_code_hash = js_script.get(&mut cx, "code_hash")?
+                .downcast::<JsArrayBuffer>()
+                .or_throw(&mut cx)?;
+            let code_hash = {
+                let guard = cx.lock();
+                let code_hash = js_code_hash.borrow(&guard);
+                code_hash.as_slice().to_vec()
+            };
+            let js_hash_type = js_script.get(&mut cx, "hash_type")?
+                .downcast::<JsNumber>()
+                .or_throw(&mut cx)?
+                .value();
+            let js_args = js_script.get(&mut cx, "args")?
+                .downcast::<JsArrayBuffer>()
+                .or_throw(&mut cx)?;
+            let args = {
+                let guard = cx.lock();
+                let args = js_args.borrow(&guard);
+                args.as_slice().to_vec()
+            };
+            let script = assemble_packed_script(&code_hash, js_hash_type, &args);
+            if script.is_err() {
+                return cx.throw_error(format!("Error assembling script: {:?}", script.unwrap_err()));
+            }
+            let script = script.unwrap();
+            let script_type = cx.argument::<JsNumber>(1)?.value() as u8;
+            let args_len = cx.argument::<JsNumber>(2)?.value();
+            if args_len > u32::max_value() as f64 {
+                return cx.throw_error("args length must fit in u32 value!");
+            }
+            let args_len = if args_len <= 0.0 {
+                script.args().len()
+            } else {
+                // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
+                args_len as usize
+            };
+            let js_output_data = cx.argument::<JsValue>(3)?;
+            let output_data = if js_output_data.is_a::<JsArrayBuffer>() {
+                let output_data = js_output_data.downcast::<JsArrayBuffer>().or_throw(&mut cx)?;
+                let data = cx.borrow(&output_data, |data| { data.as_slice().pack() });
+                Some(data)
+            } else {
+                None
+            };
+            let from_block = cx.argument::<JsValue>(4)?;
+            let from_block_number = if from_block.is_a::<JsNumber>() {
+                from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64
+            } else {
+                0_u64
+            };
+            let (lock, type_) = if script_type == 0  {
+                    (Some(script),None)
+            } else {
+                    (None, Some(script))
+            };
+            Ok(Emitter{
+                cb: None,
+                lock: lock,
+                type_: type_,
+                args_len: args_len,
+                output_data: output_data,
+                from_block: from_block_number,
+            })
+        }
+
+        constructor(mut cx) {
+            let mut this = cx.this();
+            let f = this.get(&mut cx, "emit")?
+                .downcast::<JsFunction>()
+                .or_throw(&mut cx)?;
+            let cb = EventHandler::new(&cx, this, f);
+            {
+              let guard = cx.lock();
+              let mut emitter = this.borrow_mut(&guard);
+              emitter.cb = Some(cb);
+            }
+            Ok(None)
+        }
     }
 
     pub class JsLiveCellIterator for LiveCellIterator {
@@ -370,10 +658,10 @@ declare_types! {
                 return cx.throw_error("args length must fit in u32 value!");
             }
             let args_len = if args_len <= 0.0 {
-                script.args().len() as u32
+                script.args().len()
             } else {
                 // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
-                args_len as u32
+                args_len as usize
             };
             let mut start_key = vec![prefix as u8];
             start_key.extend_from_slice(script.code_hash().as_slice());
@@ -636,5 +924,7 @@ register_module!(mut cx, {
         return cx.throw_error("lumos indexer requires at least 2 cores to function!");
     }
     debug!("Native indexer module initialized!");
-    cx.export_class::<JsNativeIndexer>("Indexer")
+    cx.export_class::<JsNativeIndexer>("Indexer")?;
+    cx.export_class::<JsEmitter>("Emitter")?;
+    Ok(())
 });

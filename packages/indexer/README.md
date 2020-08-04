@@ -192,6 +192,46 @@ for await (const tx of txCollector.collect()) {
 
 The `skip` field represents the number of transactions being skipped, which in the above code snippet means it would skip the first 100 transactions and return from the 101st one.
 
+### EventEmitter
+
+Event-driven pattern is also supported besides the above polling pattern. After subsribing for certain `lock|type` script, it will emit a `changed` event when a block containing the subsribed script is indexed or rollbacked. 
+
+The principle of the design is unreliable notification queue, so developers are supposed to pull from the data sources via `CellCollector|TransactionCollector`, to find out what might happened: cell consumed, new cell generated, new transaction generated, or a chain fork happened, etc; and take the next step accordingly.
+
+```javascript
+eventEmitter = indexer.subscribe({
+  lock: {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+});
+
+eventEmitter.on("changed",  () => {
+  console.log("States changed with the script, please pull the data sources from the indexer to find out what happend");
+})
+
+```
+
+Other query options like `fromBlock|argsLen|data` are also supported.
+```javascript
+eventEmitter = indexer.subscribe({
+  lock: {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    // the args bytes length is 18, truncate the last 2 bytes.
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d",
+  },
+  // default value is -1
+  argsLen: 18,
+  // default value is "any"
+  data: "0x",
+  // default value is 0
+  fromBlock: 1000
+});
+```
 
 ## Electron note
 

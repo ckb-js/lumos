@@ -1,7 +1,12 @@
 const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const { OrderedSet } = require("immutable");
 const XXHash = require("xxhash");
-const { Indexer: NativeIndexer } = require("../native");
+const { Indexer: NativeIndexer, Emitter } = require("../native");
+const { EventEmitter } = require("events");
+const util = require("util");
+
+util.inherits(Emitter, EventEmitter);
+
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
 }
@@ -74,6 +79,16 @@ class Indexer {
     );
   }
 
+  _getEmitter(script, scriptType, argsLen, data, fromBlock) {
+    const outputData = data === "any" ? null : new Reader(data).toArrayBuffer();
+    return this.nativeIndexer.getEmitter(
+      normalizers.NormalizeScript(script),
+      scriptType,
+      argsLen,
+      outputData,
+      fromBlock
+    );
+  }
   startForever() {
     this.nativeIndexer.start();
     setInterval(() => {
@@ -87,8 +102,39 @@ class Indexer {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
-  collector({ lock = null, type = null, argsLen = -1, data = "0x" } = {}) {
+  collector({ lock = null, type = null, argsLen = -1, data = "any" } = {}) {
     return new CellCollector(this, { lock, type, argsLen, data });
+  }
+
+  subscribe({
+    lock = null,
+    type = null,
+    argsLen = -1,
+    data = "any",
+    fromBlock = null,
+    toBlock = null,
+    skip = null,
+  } = {}) {
+    let script = null;
+    let scriptType = null;
+    if (toBlock !== null || skip !== null) {
+      this.logger(
+        "warn",
+        "The passing fields such as toBlock and skip are ignored in subscribe() method."
+      );
+    }
+    if (lock) {
+      validators.ValidateScript(lock);
+      scriptType = 0;
+      script = lock;
+    } else if (type) {
+      validators.ValidateScript(type);
+      scriptType = 1;
+      script = type;
+    } else {
+      throw new Error("Either lock or type script must be provided!");
+    }
+    return this._getEmitter(script, scriptType, argsLen, data, fromBlock);
   }
 }
 
@@ -117,7 +163,7 @@ class CellCollector {
       lock = null,
       type = null,
       argsLen = -1,
-      data = "0x",
+      data = "any",
       fromBlock = null,
       toBlock = null,
       skip = null,

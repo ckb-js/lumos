@@ -59,4 +59,5 @@ export declare class Indexer {
   tip(): Promise<Tip>;
 
   collector(queries: QueryOptions): CellCollector;
+  subscribe(queries: QueryOptions): NodeJS.EventEmitter;
 }
