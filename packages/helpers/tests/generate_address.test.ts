@@ -1,5 +1,5 @@
 import test from "ava";
-import { generateAddress } from "../src";
+import { generateAddress, scriptToAddress } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 const { LINA, AGGRON4 } = predefined;
 import {
@@ -50,4 +50,10 @@ test("full address, testnet", (t) => {
   });
 
   t.is(address, fullAddressInfo.testnetAddress);
+});
+
+test("short address, mainnet, scriptToAddress", (t) => {
+  const address = scriptToAddress(shortAddressInfo.script, { config: LINA });
+
+  t.is(address, shortAddressInfo.mainnetAddress);
 });
