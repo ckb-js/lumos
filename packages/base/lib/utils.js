@@ -1,6 +1,7 @@
 const blake2b = require("blake2b");
 const { validators, normalizers, Reader } = require("ckb-js-toolkit");
 const { SerializeScript } = require("./core");
+const XXHash = require("xxhash");
 
 class CKBHasher {
   constructor() {
@@ -77,6 +78,10 @@ function computeScriptHash(script, { validate = true } = {}) {
   ).serializeJson();
 }
 
+function hashCode(buffer) {
+  return XXHash.hash(buffer, 0);
+}
+
 module.exports = {
   CKBHasher,
   ckbHash,
@@ -85,4 +90,5 @@ module.exports = {
   toBigUInt128LE,
   readBigUInt128LE,
   computeScriptHash,
+  hashCode,
 };

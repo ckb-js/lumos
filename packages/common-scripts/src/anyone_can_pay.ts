@@ -4,6 +4,7 @@ import {
   parseAddress,
   minimalCellCapacity,
   createTransactionFromSkeleton,
+  generateAddress,
 } from "@ckb-lumos/helpers";
 import {
   values,
@@ -18,6 +19,7 @@ import {
   core,
   Cell,
   utils,
+  PackedSince,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import {
@@ -29,10 +31,10 @@ import {
 import { Reader, normalizers } from "ckb-js-toolkit";
 const { ScriptValue } = values;
 import { Set, List } from "immutable";
-import { FromInfo, parseFromInfo } from "./secp256k1_blake160_multisig";
+import { FromInfo, parseFromInfo } from "./from_info";
 const { CKBHasher, ckbHash, readBigUInt128LE } = utils;
 
-export class CellCollector {
+export class CellCollector implements CellCollectorType {
   private cellCollector: CellCollectorType;
   private config: Config;
   public readonly fromScript: Script;
@@ -76,20 +78,43 @@ export class CellCollector {
 
 export async function setupInputCell(
   txSkeleton: TransactionSkeletonType,
-  inputIndex: number,
-  { config = undefined }: Options = {}
-): Promise<TransactionSkeletonType> {
+  inputCell: Cell,
+  fromInfo?: FromInfo,
+  {
+    config = undefined,
+    defaultWitness = "0x",
+    since = undefined,
+    needCapacity = undefined,
+  }: Options & {
+    defaultWitness?: HexString;
+    since?: PackedSince;
+    needCapacity?: HexString;
+  } = {}
+): Promise<{
+  txSkeleton: TransactionSkeletonType;
+  usedCapacity: HexString;
+}> {
   config = config || getConfig();
 
-  if (inputIndex >= txSkeleton.get("inputs").size) {
-    throw new Error("Invalid input index!");
-  }
-  const input = txSkeleton.get("inputs").get(inputIndex)!;
-  const inputLock = input.cell_output.lock;
-
+  const inputLock: Script = inputCell.cell_output.lock;
   if (!isAcpScript(inputLock, config)) {
     throw new Error("Not anyone-can-pay input!");
   }
+
+  // add inputCell to txSkeleton
+  txSkeleton = txSkeleton.update("inputs", (inputs) => {
+    return inputs.push(inputCell);
+  });
+
+  if (since) {
+    txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
+      return inputSinces.set(txSkeleton.get("inputs").size - 1, since);
+    });
+  }
+
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+    return witnesses.push(defaultWitness);
+  });
 
   const template = config.SCRIPTS.ANYONE_CAN_PAY;
   if (!template) {
@@ -106,6 +131,54 @@ export async function setupInputCell(
     out_point: scriptOutPoint,
     dep_type: template.DEP_TYPE,
   });
+
+  let usedCapacity = inputCell.cell_output.capacity;
+
+  const destroyable: boolean = !!(
+    fromInfo &&
+    typeof fromInfo === "object" &&
+    "destroyable" in fromInfo &&
+    fromInfo.destroyable
+  );
+  if (!destroyable) {
+    const acpOutput: Cell = {
+      cell_output: {
+        capacity: "0x0",
+        lock: inputLock,
+        type: inputCell.cell_output.type,
+      },
+      data: inputCell.data,
+    };
+    const minimalAcpOutputCapacity: bigint = minimalCellCapacity(acpOutput);
+    let acpOutputCapacity: bigint = 0n;
+    if (needCapacity) {
+      acpOutputCapacity =
+        BigInt(inputCell.cell_output.capacity) - BigInt(needCapacity);
+    }
+    if (acpOutputCapacity < minimalAcpOutputCapacity) {
+      acpOutputCapacity = minimalAcpOutputCapacity;
+    }
+
+    acpOutput.cell_output.capacity = "0x" + acpOutputCapacity.toString(16);
+
+    txSkeleton = txSkeleton.update("outputs", (outputs) => {
+      return outputs.push(acpOutput);
+    });
+
+    txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+      return fixedEntries.push({
+        field: "outputs",
+        index: txSkeleton.get("outputs").size - 1,
+      });
+    });
+
+    usedCapacity =
+      "0x" +
+      (
+        BigInt(inputCell.cell_output.capacity) -
+        BigInt(acpOutput.cell_output.capacity)
+      ).toString(16);
+  }
 
   // add witness
   const firstIndex = txSkeleton.get("inputs").findIndex((input) => {
@@ -157,6 +230,69 @@ export async function setupInputCell(
       return witnesses.set(firstIndex, witness);
     });
   }
+
+  return {
+    txSkeleton,
+    usedCapacity,
+  };
+}
+
+export async function setupOutputCell(
+  txSkeleton: TransactionSkeletonType,
+  outputCell: Cell,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+
+  const toScript: Script = outputCell.cell_output.lock;
+
+  const capacity: bigint = BigInt(outputCell.cell_output.capacity);
+
+  if (toScript.args.length >= 46) {
+    const minimalAmount: bigint =
+      10n ** BigInt("0x" + toScript.args.slice(44, 46));
+    throw new Error(
+      `Requires to transfer ${minimalAmount} to \`toAddress\` at least! please use sudt.transfer.`
+    );
+  }
+  if (toScript.args.length >= 44) {
+    const minimalCapcity: bigint =
+      10n ** BigInt("0x" + toScript.args.slice(42, 44));
+    if (capacity < minimalCapcity) {
+      throw new Error(`capacity less than toAddress minimal capacity`);
+    }
+  }
+
+  const cellProvider = txSkeleton.get("cellProvider");
+  if (!cellProvider) {
+    throw new Error(`Cell Provider is missing!`);
+  }
+
+  const toAddress: Address = generateAddress(toScript, { config });
+  const toAddressCellCollector = new CellCollector(toAddress, cellProvider, {
+    config,
+  });
+
+  const toAddressInput: Cell | void = (
+    await toAddressCellCollector.collect().next()
+  ).value;
+  if (!toAddressInput) {
+    throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
+  }
+
+  const outputCapacity: bigint =
+    capacity + BigInt(toAddressInput.cell_output.capacity);
+  outputCell.cell_output.capacity = "0x" + outputCapacity.toString(16);
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push(outputCell);
+  });
+  txSkeleton = txSkeleton.update("inputs", (inputs) => {
+    return inputs.push(toAddressInput);
+  });
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+    return witnesses.push("0x");
+  });
 
   return txSkeleton;
 }
@@ -238,7 +374,6 @@ export async function injectCapacity(
     };
     let changeCapacity = 0n;
     const minimalChangeCapacity: bigint = minimalCellCapacity(changeCell);
-    const firstInjectInputIndex = txSkeleton.get("inputs").size;
 
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
@@ -251,12 +386,11 @@ export async function injectCapacity(
         continue;
       }
 
-      txSkeleton = txSkeleton.update("inputs", (inputs) => {
-        return inputs.push(inputCell);
-      });
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-        return witnesses.push("0x");
-      });
+      txSkeleton = (
+        await setupInputCell(txSkeleton, inputCell, undefined, {
+          config,
+        })
+      ).txSkeleton;
 
       const inputCapacity = BigInt(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
@@ -282,10 +416,6 @@ export async function injectCapacity(
     changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push(changeCell);
-    });
-
-    txSkeleton = await setupInputCell(txSkeleton, firstInjectInputIndex, {
-      config,
     });
   }
 
@@ -492,13 +622,17 @@ export async function withdraw(
     return outputs.push(targetOutput);
   });
 
-  txSkeleton = txSkeleton.update("inputs", (inputs) => {
-    return inputs.push(fromInput);
-  });
-
-  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-    return witnesses.push("0x");
-  });
+  txSkeleton = (
+    await setupInputCell(
+      txSkeleton,
+      fromInput,
+      {
+        address: generateAddress(fromInput.cell_output.lock, { config }),
+        destroyable: true,
+      },
+      { config }
+    )
+  ).txSkeleton;
 
   if (capacity !== fromInputCapacity) {
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -513,18 +647,13 @@ export async function withdraw(
     });
   }
 
-  txSkeleton = await setupInputCell(
-    txSkeleton,
-    txSkeleton.get("inputs").size - 1,
-    { config }
-  );
-
   return txSkeleton;
 }
 
 export default {
   CellCollector,
   setupInputCell,
+  setupOutputCell,
   injectCapacity,
   prepareSigningEntries,
   withdraw,

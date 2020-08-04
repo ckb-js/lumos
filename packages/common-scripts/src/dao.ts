@@ -15,15 +15,15 @@ import {
   Cell,
   WitnessArgs,
   PackedDao,
+  PackedSince,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { parseSince } = sinceUtils;
 import { normalizers, Reader, RPC } from "ckb-js-toolkit";
 import secp256k1Blake160 from "./secp256k1_blake160";
-import secp256k1Blake160Multisig, {
-  FromInfo,
-} from "./secp256k1_blake160_multisig";
+import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
+import { FromInfo } from "./from_info";
 import {
   addCellDep,
   isSecp256k1Blake160Script,
@@ -135,7 +135,7 @@ function _checkFromInfoSince(fromInfo: FromInfo, config: Config): void {
     if (args.length === 58) {
       since = "0x" + readBigUInt64LE("0x" + args.slice(42)).toString(16);
     }
-  } else {
+  } else if ("R" in fromInfo) {
     since = fromInfo.since;
   }
 
@@ -241,14 +241,24 @@ async function withdraw(
     });
   });
 
-  txSkeleton = txSkeleton.update("inputs", (inputs) => {
-    return inputs.push(fromInput);
-  });
-
-  // add an empty witness
-  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-    return witnesses.push("0x");
-  });
+  // setup input cell
+  const fromLockScript = fromInput.cell_output.lock;
+  if (isSecp256k1Blake160Script(fromLockScript, config)) {
+    txSkeleton = (
+      await secp256k1Blake160.setupInputCell(txSkeleton, fromInput, undefined, {
+        config,
+      })
+    ).txSkeleton;
+  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
+    txSkeleton = (
+      await secp256k1Blake160Multisig.setupInputCell(
+        txSkeleton,
+        fromInput,
+        fromInfo || generateAddress(fromLockScript, { config }),
+        { config }
+      )
+    ).txSkeleton;
+  }
 
   // add header deps
   txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
@@ -268,23 +278,6 @@ async function withdraw(
       }
     );
   });
-
-  // setup input cell
-  const fromLockScript = fromInput.cell_output.lock;
-  if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160.setupInputCell(
-      txSkeleton,
-      txSkeleton.get("inputs").size - 1,
-      { config }
-    );
-  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
-      txSkeleton,
-      txSkeleton.get("inputs").size - 1,
-      fromInfo || generateAddress(fromLockScript, { config }),
-      { config }
-    );
-  }
 
   return txSkeleton;
 }
@@ -419,16 +412,29 @@ export async function unlock(
     });
   });
 
-  txSkeleton = txSkeleton.update("inputs", (inputs) => {
-    return inputs.push(withdrawInput);
-  });
+  const since: PackedSince = "0x" + minimalSince.toString(16);
 
-  txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
-    return (inputSinces = inputSinces.set(
-      txSkeleton.get("inputs").size - 1,
-      "0x" + minimalSince.toString(16)
-    ));
-  });
+  // setup input cell
+  const fromLockScript = withdrawInput.cell_output.lock;
+  if (isSecp256k1Blake160Script(fromLockScript, config)) {
+    txSkeleton = (
+      await secp256k1Blake160.setupInputCell(
+        txSkeleton,
+        withdrawInput,
+        undefined,
+        { config, since }
+      )
+    ).txSkeleton;
+  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
+    txSkeleton = (
+      await secp256k1Blake160Multisig.setupInputCell(
+        txSkeleton,
+        withdrawInput,
+        fromInfo || generateAddress(fromLockScript, { config }),
+        { config, since }
+      )
+    ).txSkeleton;
+  }
 
   while (txSkeleton.get("witnesses").size < txSkeleton.get("inputs").size - 1) {
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
@@ -476,23 +482,6 @@ export async function unlock(
       }
     );
   });
-
-  // setup input cell
-  const fromLockScript = withdrawInput.cell_output.lock;
-  if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160.setupInputCell(
-      txSkeleton,
-      txSkeleton.get("inputs").size - 1,
-      { config }
-    );
-  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
-      txSkeleton,
-      txSkeleton.get("inputs").size - 1,
-      fromInfo || generateAddress(fromLockScript, { config }),
-      { config }
-    );
-  }
 
   return txSkeleton;
 }

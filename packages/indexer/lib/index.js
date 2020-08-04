@@ -123,7 +123,7 @@ class CellCollector {
       skip = null,
     } = {}
   ) {
-    if (!lock && !type) {
+    if (!lock && typeof type !== "object") {
       throw new Error("Either lock or type script must be provided!");
     }
     if (lock) {
@@ -163,7 +163,7 @@ class CellCollector {
       lockOutPoints = this.wrapOutPoints(lockOutPoints);
     }
 
-    if (this.type) {
+    if (this.type && typeof this.type === "object") {
       const scriptType = 1;
       typeOutPoints = new OrderedSet(
         this.indexer
@@ -180,7 +180,7 @@ class CellCollector {
       typeOutPoints = this.wrapOutPoints(typeOutPoints);
     }
     let outPoints = null;
-    if (this.lock && this.type) {
+    if (this.lock && this.type && this.type !== "empty") {
       outPoints = lockOutPoints.intersect(typeOutPoints);
     } else if (this.lock) {
       outPoints = lockOutPoints;

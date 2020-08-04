@@ -6,30 +6,27 @@ import {
   Cell,
   Script,
   Header,
-  CellCollector,
+  CellCollector as CellCollectorInterface,
   values,
 } from "@ckb-lumos/base";
 const { toBigUInt128LE, readBigUInt128LE, computeScriptHash } = utils;
-import {
-  serializeMultisigScript,
-  multisigArgs,
-  FromInfo,
-  parseFromInfo,
-} from "./secp256k1_blake160_multisig";
+import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
+import { FromInfo, parseFromInfo, ACP } from "./from_info";
 import common from "./common";
 import {
   parseAddress,
   minimalCellCapacity,
   TransactionSkeletonType,
   Options,
-  generateAddress,
 } from "@ckb-lumos/helpers";
 import { Set, List } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-import { collectCells, LocktimeCell } from "./locktime_pool";
-import { CellCollector as AnyoneCanPayCellCollector } from "./anyone_can_pay";
-import anyoneCanPay from "./anyone_can_pay";
+import { CellCollector as LocktimeCellCollector } from "./locktime_pool";
+import anyoneCanPay, {
+  CellCollector as AnyoneCanPayCellCollector,
+} from "./anyone_can_pay";
 const { ScriptValue } = values;
+import secp256k1Blake160 from "./secp256k1_blake160";
 
 export type Token = Hash;
 
@@ -41,7 +38,7 @@ export type Token = Hash;
  * @param amount
  * @param capacity
  * @param tipHeader
- * @param param5
+ * @param options
  */
 export async function issueToken(
   txSkeleton: TransactionSkeletonType,
@@ -67,7 +64,7 @@ export async function issueToken(
     dep_type: template.DEP_TYPE,
   });
 
-  const fromScript = _fromInfoToScript(fromInfo, config);
+  const fromScript = parseFromInfo(fromInfo, { config }).fromScript;
 
   const toScript = fromScript;
 
@@ -110,8 +107,9 @@ export async function issueToken(
 
   txSkeleton = await common.injectCapacity(
     txSkeleton,
-    outputIndex,
     [fromInfo],
+    BigInt(targetOutput.cell_output.capacity),
+    undefined,
     tipHeader,
     {
       config,
@@ -144,11 +142,9 @@ export async function transfer(
   tipHeader?: Header,
   {
     config = undefined,
-    locktimePoolCellCollector = collectCells,
+    LocktimePoolCellCollector = LocktimeCellCollector,
   }: Options & {
-    locktimePoolCellCollector?: (
-      ...params: any[]
-    ) => AsyncIterable<LocktimeCell>;
+    LocktimePoolCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -168,8 +164,8 @@ export async function transfer(
   }
   const toScript = parseAddress(toAddress, { config });
 
-  const fromScripts: Script[] = fromInfos.map((fromInfo) =>
-    _fromInfoToScript(fromInfo, config!)
+  const fromScripts: Script[] = fromInfos.map(
+    (fromInfo) => parseFromInfo(fromInfo, { config }).fromScript
   );
   const changeOutputLockScript = changeAddress
     ? parseAddress(changeAddress, { config })
@@ -198,7 +194,7 @@ export async function transfer(
         config,
         queryOptions: {
           type: sudtType,
-          data: undefined,
+          data: "any",
         },
       }
     );
@@ -299,112 +295,137 @@ export async function transfer(
     );
   }
   let cellCollectorInfos: List<{
-    cellCollector: CellCollector;
+    cellCollector: CellCollectorInterface;
     index: number;
     isAnyoneCanPay?: boolean;
   }> = List();
   if (tipHeader) {
     fromInfos.forEach((fromInfo, index) => {
-      const collect = async function* () {
-        const result = locktimePoolCellCollector(cellProvider, fromInfo, {
+      const locktimePoolCellCollector = new LocktimePoolCellCollector(
+        fromInfo,
+        cellProvider,
+        {
           config,
           tipHeader,
-          assertScriptSupported: false,
           queryOptions: {
             type: sudtType,
-            data: undefined,
+            data: "any",
           },
-        });
-        for await (const r of result) {
-          yield r;
         }
-      };
-      const collector = {
-        collect,
-      };
+      );
 
       cellCollectorInfos = cellCollectorInfos.push({
-        cellCollector: collector,
+        cellCollector: locktimePoolCellCollector,
         index,
       });
     });
   }
-  fromScripts.forEach((fromScript, index) => {
-    if (isAcpScript(fromScript, config!)) {
-      const collector = new AnyoneCanPayCellCollector(
-        generateAddress(fromScript, { config }),
-        cellProvider,
-        {
-          config,
-          queryOptions: {
-            type: sudtType,
-            data: undefined,
-          },
-        }
-      );
-      cellCollectorInfos = cellCollectorInfos.push({
-        cellCollector: collector,
+  fromInfos.forEach((fromInfo, index) => {
+    const secpCollector = new secp256k1Blake160.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+        queryOptions: {
+          type: sudtType,
+          data: "any",
+        },
+      }
+    );
+    const multisigCollector = new secp256k1Blake160Multisig.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+        queryOptions: {
+          type: sudtType,
+          data: "any",
+        },
+      }
+    );
+    const acpCollector = new anyoneCanPay.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+        queryOptions: {
+          type: sudtType,
+          data: "any",
+        },
+      }
+    );
+
+    cellCollectorInfos = cellCollectorInfos.push(
+      {
+        cellCollector: secpCollector,
+        index,
+      },
+      {
+        cellCollector: multisigCollector,
+        index,
+      },
+      {
+        cellCollector: acpCollector,
         index,
         isAnyoneCanPay: true,
-      });
-    } else {
-      const collector = cellProvider.collector({
-        lock: fromScript,
-        type: sudtType,
-        data: undefined,
-      });
-      cellCollectorInfos = cellCollectorInfos.push({
-        cellCollector: collector,
-        index,
-      });
-    }
+      }
+    );
   });
   if (tipHeader) {
     fromInfos.forEach((fromInfo, index) => {
-      const collect = async function* () {
-        const result = locktimePoolCellCollector(cellProvider, fromInfo, {
+      const locktimeCellCollector = new LocktimePoolCellCollector(
+        fromInfo,
+        cellProvider,
+        {
           config,
           tipHeader,
-          assertScriptSupported: false,
-        });
-        for await (const r of result) {
-          yield r;
         }
-      };
-      const collector = {
-        collect,
-      };
+      );
 
       cellCollectorInfos = cellCollectorInfos.push({
-        cellCollector: collector,
+        cellCollector: locktimeCellCollector,
         index,
       });
     });
   }
-  fromScripts.forEach((fromScript, index) => {
-    if (isAcpScript(fromScript, config!)) {
-      const collector = new AnyoneCanPayCellCollector(
-        generateAddress(fromScript, { config }),
-        cellProvider,
-        {
-          config,
-        }
-      );
-      cellCollectorInfos = cellCollectorInfos.push({
-        cellCollector: collector,
+  fromInfos.forEach((fromInfo, index) => {
+    const secpCollector = new secp256k1Blake160.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+      }
+    );
+    const multisigCollector = new secp256k1Blake160Multisig.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+      }
+    );
+    const acpCollector = new anyoneCanPay.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+      }
+    );
+
+    cellCollectorInfos = cellCollectorInfos.push(
+      {
+        cellCollector: secpCollector,
+        index,
+      },
+      {
+        cellCollector: multisigCollector,
+        index,
+      },
+      {
+        cellCollector: acpCollector,
         index,
         isAnyoneCanPay: true,
-      });
-    } else {
-      const collector = cellProvider.collector({
-        lock: fromScript,
-      });
-
-      cellCollectorInfos = cellCollectorInfos.push({
-        cellCollector: collector,
-        index,
-      });
-    }
+      }
+    );
   });
   for (const { index, cellCollector, isAnyoneCanPay } of cellCollectorInfos) {
     for await (const inputCell of cellCollector.collect()) {
@@ -416,32 +437,30 @@ export async function transfer(
         continue;
       }
       previousInputs = previousInputs.add(key);
-      txSkeleton = txSkeleton.update("inputs", (inputs) =>
-        inputs.push(inputCell)
-      );
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-        witnesses.push("0x")
-      );
 
       const fromInfo = fromInfos[index];
-      // TODO: update after integrate anyone-can-pay to common
-      if (isAnyoneCanPay) {
-        txSkeleton = await anyoneCanPay.setupInputCell(
+      txSkeleton = (
+        await common.setupInputCell(
           txSkeleton,
-          txSkeleton.get("inputs").size - 1,
-          { config }
-        );
-      } else {
-        txSkeleton = await common.setupInputCell(
-          txSkeleton,
-          txSkeleton.get("inputs").size - 1,
-          fromInfo,
-          { config }
-        );
-      }
-      const inputCapacity: bigint = BigInt(
-        (inputCell as any).maximumCapacity || inputCell.cell_output.capacity
-      );
+          inputCell,
+          isAnyoneCanPay
+            ? typeof fromInfo === "string"
+              ? {
+                  address: fromInfo,
+                  destroyable: true,
+                }
+              : {
+                  address: (fromInfo as ACP).address,
+                  destroyable: true,
+                }
+            : fromInfo,
+          {
+            config,
+          }
+        )
+      ).txSkeleton;
+
+      const inputCapacity: bigint = BigInt(inputCell.cell_output.capacity);
       const inputAmount: bigint = inputCell.cell_output.type
         ? readBigUInt128LE(inputCell.data)
         : 0n;
@@ -577,24 +596,6 @@ function _generateSudtScript(token: Hash, config: Config): Script {
     hash_type: SUDT_SCRIPT.HASH_TYPE,
     args: token,
   };
-}
-
-function _fromInfoToScript(fromInfo: FromInfo, config: Config): Script {
-  let fromScript;
-  if (typeof fromInfo === "string") {
-    // fromInfo is an address
-    fromScript = parseAddress(fromInfo, { config });
-  } else {
-    const multisigScript = serializeMultisigScript(fromInfo);
-    const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
-    fromScript = {
-      code_hash: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.CODE_HASH,
-      hash_type: config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!.HASH_TYPE,
-      args: fromScriptArgs,
-    };
-  }
-
-  return fromScript;
 }
 
 /**
