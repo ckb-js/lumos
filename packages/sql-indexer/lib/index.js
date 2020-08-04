@@ -455,7 +455,7 @@ class Indexer {
       lock: {
         code_hash: nodeBufferToHex(code_hash),
         args: nodeBufferToHex(args),
-        hash_type: hash_type == 0 ? "data" : "type",
+        hash_type: hash_type === 0 ? "data" : "type",
       },
       type: null,
     };
@@ -467,7 +467,7 @@ class Indexer {
       output.type = {
         code_hash: nodeBufferToHex(code_hash),
         args: nodeBufferToHex(args),
-        hash_type: hash_type == 0 ? "data" : "type",
+        hash_type: hash_type === 0 ? "data" : "type",
       };
     }
     return output;
@@ -509,19 +509,19 @@ class Indexer {
   checkFilterOptions(emitter, blockNumber, outputData, emitterScript, script) {
     const checkBlockNumber = emitter.fromBlock <= blockNumber;
     const checkOutputData =
-      emitter.outputData == "any" ? true : emitter.outputData == outputData;
+      emitter.outputData === "any" ? true : emitter.outputData === outputData;
     const checkScript =
-      emitterScript.code_hash == script.code_hash &&
-      emitterScript.hash_type == script.hash_type &&
+      emitterScript.code_hash === script.code_hash &&
+      emitterScript.hash_type === script.hash_type &&
       this.checkArgs(emitter.argsLen, emitterScript.args, script.args);
     return checkBlockNumber && checkOutputData && checkScript;
   }
 
   checkArgs(argsLen, emitterArgs, args) {
-    if (argsLen == -1) {
-      return emitterArgs == args;
+    if (argsLen === -1) {
+      return emitterArgs === args;
     } else {
-      return emitterArgs.substring(0, argsLen * 2 + 2) == args;
+      return emitterArgs.substring(0, argsLen * 2 + 2) === args;
     }
   }
 
@@ -538,7 +538,7 @@ class Indexer {
     toBlock = null,
     skip = null,
   } = {}) {
-    if (toBlock != null || skip != null) {
+    if (toBlock !== null || skip !== null) {
       this.logger(
         "warn",
         "The passing fields such as toBlock and skip are ignored in subscribe() method."
@@ -547,7 +547,7 @@ class Indexer {
     let emitter = new IndexerEmitter();
     emitter.argsLen = argsLen;
     emitter.outputData = data;
-    emitter.fromBlock = fromBlock == null ? 0 : fromBlock;
+    emitter.fromBlock = fromBlock === null ? 0 : fromBlock;
     if (lock) {
       validators.ValidateScript(lock);
       emitter.lock = lock;

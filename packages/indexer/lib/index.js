@@ -80,7 +80,7 @@ class Indexer {
   }
 
   _getEmitter(script, scriptType, argsLen, data, fromBlock) {
-    const outputData = data == "any" ? null : new Reader(data).toArrayBuffer();
+    const outputData = data === "any" ? null : new Reader(data).toArrayBuffer();
     return this.nativeIndexer.getEmitter(
       normalizers.NormalizeScript(script),
       scriptType,
@@ -117,7 +117,7 @@ class Indexer {
   } = {}) {
     let script = null;
     let scriptType = null;
-    if (toBlock != null || skip != null) {
+    if (toBlock !== null || skip !== null) {
       this.logger(
         "warn",
         "The passing fields such as toBlock and skip are ignored in subscribe() method."

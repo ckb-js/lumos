@@ -279,6 +279,7 @@ impl NativeIndexer {
         } else {
             // when emitter's args_len smaller than actual script args' len, meaning it's prefix match
             let script_args = script.args();
+            // the first 4 bytes mark the byteslength of script_args according to molecule
             let args_prefix = &script_args.as_slice()[4..emitter.args_len + 4];
             let emitter_args = emitter_script.args();
             let emitter_args_prefix = &emitter_args.as_slice()[4..];
@@ -533,8 +534,8 @@ declare_types! {
         init(mut cx) {
             let js_script  = cx.argument::<JsObject>(0)?;
             let js_code_hash = js_script.get(&mut cx, "code_hash")?
-            .downcast::<JsArrayBuffer>()
-            .or_throw(&mut cx)?;
+                .downcast::<JsArrayBuffer>()
+                .or_throw(&mut cx)?;
             let code_hash = {
                 let guard = cx.lock();
                 let code_hash = js_code_hash.borrow(&guard);
@@ -599,7 +600,9 @@ declare_types! {
 
         constructor(mut cx) {
             let mut this = cx.this();
-            let f = this.get(&mut cx, "emit")?.downcast::<JsFunction>().or_throw(&mut cx)?;
+            let f = this.get(&mut cx, "emit")?
+                .downcast::<JsFunction>()
+                .or_throw(&mut cx)?;
             let cb = EventHandler::new(&cx, this, f);
             {
               let guard = cx.lock();
