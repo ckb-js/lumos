@@ -2,7 +2,6 @@ const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const { OrderedSet } = require("immutable");
 const XXHash = require("xxhash");
 const { Indexer: NativeIndexer } = require("../native");
-
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
 }
@@ -146,10 +145,9 @@ class CellCollector {
   getLiveCellOutPoints() {
     let lockOutPoints = null;
     let typeOutPoints = null;
+    const returnRawBuffer = true;
     if (this.lock) {
       const scriptType = 0;
-      const returnRawBuffer = true;
-
       lockOutPoints = new OrderedSet(
         this.indexer
           ._getLiveCellsByScriptIterator(
@@ -162,11 +160,11 @@ class CellCollector {
           )
           .collect(returnRawBuffer)
       );
+      lockOutPoints = this.wrapOutPoints(lockOutPoints);
     }
 
     if (this.type && typeof this.type === "object") {
       const scriptType = 1;
-      const returnRawBuffer = true;
       typeOutPoints = new OrderedSet(
         this.indexer
           ._getLiveCellsByScriptIterator(
@@ -179,20 +177,24 @@ class CellCollector {
           )
           .collect(returnRawBuffer)
       );
+      typeOutPoints = this.wrapOutPoints(typeOutPoints);
     }
     let outPoints = null;
     if (this.lock && this.type && this.type !== "empty") {
-      outPoints = lockOutPoints.intersect(typeOoutPoints);
+      outPoints = lockOutPoints.intersect(typeOutPoints);
     } else if (this.lock) {
       outPoints = lockOutPoints;
     } else {
       outPoints = typeOutPoints;
     }
+    return outPoints;
+  }
+
+  wrapOutPoints(outPoints) {
     let outPointsBufferValue = new OrderedSet();
     for (const o of outPoints) {
       outPointsBufferValue = outPointsBufferValue.add(new BufferValue(o));
     }
-
     return outPointsBufferValue;
   }
 
