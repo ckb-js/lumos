@@ -10,7 +10,7 @@ function defaultLogger(level, message) {
 class TransactionManager {
   constructor(
     indexer,
-    { logger = defaultLogger, pollIntervalSeconds = 30 } = {}
+    { logger = defaultLogger, pollIntervalSeconds = 30 } = { logger: defaultLogger, pollIntervalSeconds: 30 }
   ) {
     this.indexer = indexer;
     this.rpc = new RPC(indexer.uri);
