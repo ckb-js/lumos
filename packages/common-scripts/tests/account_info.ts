@@ -4,6 +4,8 @@ export const bob = {
   blake160: "0x36c329ed630d6ce750712a477543672adab57f4c",
   acpTestnetAddress:
     "ckt1qjr2r35c0f9vhcdgslx2fjwa9tylevr5qka7mfgmscd33wlhfykykdkr98kkxrtvuag8z2j8w4pkw2k6k4l5cgxhkrr",
+  secpLockHash:
+    "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
   get fromInfo() {
     return {
       R: 0,

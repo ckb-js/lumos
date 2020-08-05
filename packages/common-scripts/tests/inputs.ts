@@ -1,4 +1,5 @@
 import { Cell, Header } from "@ckb-lumos/base";
+import { LocktimeCell } from "../src";
 
 export const bobSecpInputs: Cell[] = [
   {
@@ -72,36 +73,6 @@ export const bobMultisigLockInputs: Cell[] = [
   },
 ];
 
-export const bobSudtInputs: Cell[] = [
-  {
-    cell_output: {
-      capacity: "0x174876e800",
-      lock: {
-        code_hash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-        hash_type: "type",
-        args: "0x36c329ed630d6ce750712a477543672adab57f4c",
-      },
-      type: {
-        code_hash:
-          "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
-        hash_type: "data",
-        args:
-          "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
-      },
-    },
-    data: "0x10270000000000000000000000000000",
-    out_point: {
-      tx_hash:
-        "0x6747f0fa9ae72efc75079b5f7b2347f965df0754e22818f511750f1f2d08d2cc",
-      index: "0x0",
-    },
-    block_hash:
-      "0x1111111111111111111111111111111111111111111111111111111111111111",
-    block_number: "0x1",
-  },
-];
-
 export const bobAcpCells: Cell[] = [
   {
     cell_output: {
@@ -142,6 +113,131 @@ export const aliceAcpCells: Cell[] = [
     out_point: {
       tx_hash:
         "0x0a2955b8ac416a660bff138a8d33d1722086e264c5cdf5a33fea07e9613ec860",
+      index: "0x0",
+    },
+    block_hash:
+      "0x1111111111111111111111111111111111111111111111111111111111111111",
+    block_number: "0x1",
+  },
+];
+
+export const bobSecpSudtInputs: Cell[] = [
+  {
+    cell_output: {
+      capacity: "0x174876e800",
+      lock: {
+        code_hash:
+          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        hash_type: "type",
+        args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+      },
+      type: {
+        code_hash:
+          "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
+        hash_type: "data",
+        args:
+          "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
+      },
+    },
+    data: "0x10270000000000000000000000000000",
+    out_point: {
+      tx_hash:
+        "0x6747f0fa9ae72efc75079b5f7b2347f965df0754e22818f511750f1f2d08d2cc",
+      index: "0x0",
+    },
+    block_hash:
+      "0x1111111111111111111111111111111111111111111111111111111111111111",
+    block_number: "0x1",
+  },
+];
+
+export const bobMultisigLockSudtInputs: LocktimeCell[] = [
+  {
+    cell_output: {
+      // origin capacity: "0x4a817c800"
+      capacity: "0x" + BigInt(20000000000).toString(16),
+      lock: {
+        code_hash:
+          "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+        hash_type: "type",
+        args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d80000000000000000",
+      },
+      type: {
+        code_hash:
+          "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
+        hash_type: "data",
+        args:
+          "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
+      },
+    },
+    data: "0x10270000000000000000000000000000",
+    out_point: {
+      tx_hash:
+        "0x6747f0fa9ae72efc75079b5f7b2347f965df0754e22818f511750f1f2d08d2cc",
+      index: "0x1",
+    },
+    block_hash:
+      "0x1111111111111111111111111111111111111111111111111111111111111111",
+    block_number: "0x1",
+    since: "0x0",
+    depositBlockHash: undefined,
+    withdrawBlockHash: undefined,
+    sinceBaseValue: undefined,
+  },
+];
+
+export const bobAcpSudtInputs: Cell[] = [
+  {
+    cell_output: {
+      capacity: "0x174876e800",
+      lock: {
+        code_hash:
+          "0x86a1c6987a4acbe1a887cca4c9dd2ac9fcb07405bbeda51b861b18bbf7492c4b",
+        hash_type: "type",
+        args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+      },
+      type: {
+        code_hash:
+          "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
+        hash_type: "data",
+        args:
+          "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
+      },
+    },
+    data: "0x10270000000000000000000000000000",
+    out_point: {
+      tx_hash:
+        "0xbe405f293f2a7c981b7ff77a3b59eac192ebd5416a4f5c41728f84e94fb9f8fa",
+      index: "0x0",
+    },
+    block_hash:
+      "0x1111111111111111111111111111111111111111111111111111111111111111",
+    block_number: "0x1",
+  },
+];
+
+export const aliceAcpSudtInputs: Cell[] = [
+  {
+    cell_output: {
+      capacity: "0x174876e800",
+      lock: {
+        code_hash:
+          "0x86a1c6987a4acbe1a887cca4c9dd2ac9fcb07405bbeda51b861b18bbf7492c4b",
+        hash_type: "type",
+        args: "0xe2193df51d78411601796b35b17b4f8f2cd85bd0",
+      },
+      type: {
+        code_hash:
+          "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
+        hash_type: "data",
+        args:
+          "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
+      },
+    },
+    data: "0xd0070000000000000000000000000000",
+    out_point: {
+      tx_hash:
+        "0xde542cd098d64b3420b5a9f08d48d8745bff268655e51f473a009423193a30fd",
       index: "0x0",
     },
     block_hash:
