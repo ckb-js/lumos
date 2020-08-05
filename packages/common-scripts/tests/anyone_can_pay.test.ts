@@ -1,4 +1,3 @@
-import { Cell } from "@ckb-lumos/base";
 import test from "ava";
 import { anyoneCanPay } from "../src";
 import { CellProvider } from "./cell_provider";
@@ -9,67 +8,19 @@ import {
 } from "@ckb-lumos/helpers";
 import { predefined } from "@ckb-lumos/config-manager";
 import { bob, alice } from "./account_info";
+import { bobAcpCells, aliceAcpCells } from "./inputs";
 const { AGGRON4 } = predefined;
 
-export const bobCell: Cell = {
-  cell_output: {
-    capacity: "0x174876e800",
-    lock: {
-      code_hash:
-        "0x86a1c6987a4acbe1a887cca4c9dd2ac9fcb07405bbeda51b861b18bbf7492c4b",
-      hash_type: "type",
-      args: "0x36c329ed630d6ce750712a477543672adab57f4c",
-    },
-    type: undefined,
-  },
-  data: "0x",
-  out_point: {
-    tx_hash:
-      "0xcd56140e689205eeda3a0b853abf985f7cc405df758091601783844c18153527",
-    index: "0x0",
-  },
-  block_hash:
-    "0x1111111111111111111111111111111111111111111111111111111111111111",
-  block_number: "0x1",
-};
-
-export const aliceCell: Cell = {
-  cell_output: {
-    capacity: "0x174876e800",
-    lock: {
-      code_hash:
-        "0x86a1c6987a4acbe1a887cca4c9dd2ac9fcb07405bbeda51b861b18bbf7492c4b",
-      hash_type: "type",
-      args: "0xe2193df51d78411601796b35b17b4f8f2cd85bd0",
-    },
-    type: undefined,
-  },
-  data: "0x",
-  out_point: {
-    tx_hash:
-      "0x0a2955b8ac416a660bff138a8d33d1722086e264c5cdf5a33fea07e9613ec860",
-    index: "0x0",
-  },
-  block_hash:
-    "0x1111111111111111111111111111111111111111111111111111111111111111",
-  block_number: "0x1",
-};
-
-export const bobAcpAddress =
-  "ckt1qjr2r35c0f9vhcdgslx2fjwa9tylevr5qka7mfgmscd33wlhfykykdkr98kkxrtvuag8z2j8w4pkw2k6k4l5cgxhkrr";
-export const aliceAcpAddress =
-  "ckt1qjr2r35c0f9vhcdgslx2fjwa9tylevr5qka7mfgmscd33wlhfykyhcse8h6367zpzcqhj6e4k9a5lrevmpdaq9kve7y";
-
 test("withdraw, acp to acp, all", async (t) => {
-  const cellProvider = new CellProvider([bobCell, aliceCell]);
+  const cellProvider = new CellProvider([bobAcpCells[0], aliceAcpCells[0]]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
 
   txSkeleton = await anyoneCanPay.withdraw(
     txSkeleton,
-    bobCell,
-    aliceAcpAddress,
+    bobAcpCells[0],
+    alice.acpTestnetAddress,
     BigInt(1000 * 10 ** 8),
     { config: AGGRON4 }
   );
@@ -127,7 +78,7 @@ test("withdraw, acp to acp, all", async (t) => {
 });
 
 test("withdraw, acp to acp, half", async (t) => {
-  const cellProvider = new CellProvider([bobCell, aliceCell]);
+  const cellProvider = new CellProvider([...bobAcpCells, ...aliceAcpCells]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
@@ -135,8 +86,8 @@ test("withdraw, acp to acp, half", async (t) => {
   const capacity = BigInt(500 * 10 ** 8);
   txSkeleton = await anyoneCanPay.withdraw(
     txSkeleton,
-    bobCell,
-    aliceAcpAddress,
+    bobAcpCells[0],
+    alice.acpTestnetAddress,
     capacity,
     { config: AGGRON4 }
   );
@@ -200,7 +151,7 @@ test("withdraw, acp to acp, half", async (t) => {
 });
 
 test("withdraw, acp to secp, half", async (t) => {
-  const cellProvider = new CellProvider([bobCell, aliceCell]);
+  const cellProvider = new CellProvider([...bobAcpCells, ...aliceAcpCells]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
@@ -208,7 +159,7 @@ test("withdraw, acp to secp, half", async (t) => {
   const capacity = BigInt(500 * 10 ** 8);
   txSkeleton = await anyoneCanPay.withdraw(
     txSkeleton,
-    bobCell,
+    bobAcpCells[0],
     alice.testnetAddress,
     capacity,
     { config: AGGRON4 }
@@ -276,7 +227,7 @@ test("withdraw, acp to secp, half", async (t) => {
 });
 
 test("withdraw, acp to secp, all", async (t) => {
-  const cellProvider = new CellProvider([bobCell, aliceCell]);
+  const cellProvider = new CellProvider([...bobAcpCells, ...aliceAcpCells]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
@@ -284,7 +235,7 @@ test("withdraw, acp to secp, all", async (t) => {
   const capacity = BigInt(1000 * 10 ** 8);
   txSkeleton = await anyoneCanPay.withdraw(
     txSkeleton,
-    bobCell,
+    bobAcpCells[0],
     alice.testnetAddress,
     capacity,
     { config: AGGRON4 }
@@ -352,10 +303,12 @@ test("withdraw, acp to secp, all", async (t) => {
 });
 
 test("withdraw, acp to secp, greater than capacity - minimal", async (t) => {
-  const cellProvider = new CellProvider([bobCell, aliceCell]);
+  const cellProvider = new CellProvider([...bobAcpCells, ...aliceAcpCells]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
+
+  const bobCell = bobAcpCells[0]!;
 
   const capacity =
     BigInt(bobCell.cell_output.capacity) -

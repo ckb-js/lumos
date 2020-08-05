@@ -13,12 +13,6 @@ import { predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4, LINA } = predefined;
 
 import {
-  bobCell as bobAcpCell,
-  aliceCell as aliceAcpCell,
-  bobAcpAddress,
-  aliceAcpAddress,
-} from "./anyone_can_pay.test";
-import {
   bobSecpInputs,
   bobMultisigInputs,
   bobMultisigLockInputs,
@@ -120,7 +114,7 @@ test("_commonTransfer, alice and fromInfo", async (t) => {
 });
 
 test("transfer, acp => acp", async (t) => {
-  const cellProvider = new CellProvider([bobAcpCell, aliceAcpCell]);
+  const cellProvider = new CellProvider([...bobAcpCells, ...aliceAcpCells]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
@@ -128,8 +122,8 @@ test("transfer, acp => acp", async (t) => {
   const amount = BigInt(500 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
-    [bobAcpAddress],
-    aliceAcpAddress,
+    [bob.acpTestnetAddress],
+    alice.acpTestnetAddress,
     amount,
     undefined,
     undefined,
@@ -374,7 +368,7 @@ test("transfer secp => acp", async (t) => {
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
-    aliceAcpAddress,
+    alice.acpTestnetAddress,
     amount,
     undefined,
     undefined,
@@ -434,7 +428,7 @@ test("transfer acp => secp, destroy", async (t) => {
     txSkeleton,
     [
       {
-        address: bobAcpAddress,
+        address: bob.acpTestnetAddress,
         destroyable: true,
       },
     ],
