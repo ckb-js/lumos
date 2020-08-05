@@ -18,6 +18,15 @@ import {
   bobAcpAddress,
   aliceAcpAddress,
 } from "./anyone_can_pay.test";
+import {
+  bobSecpInputs,
+  bobMultisigInputs,
+  bobMultisigLockInputs,
+  tipHeader,
+  bobAcpCells,
+  aliceAcpCells,
+} from "./inputs";
+import { bob, alice } from "./account_info";
 
 const aliceInput: Cell = {
   cell_output: {
@@ -181,4 +190,291 @@ test("lockScriptInfos", (t) => {
   common.__tests__.generateLockScriptInfos({ config: LINA });
   t.is(common.__tests__.getLockScriptInfos().infos.length, 2);
   t.not(common.__tests__.getLockScriptInfos().configHashCode, configCodeHash);
+});
+
+test("transfer secp => secp", async (t) => {
+  const cellProvider = new CellProvider([...bobSecpInputs]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(600 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [bob.testnetAddress],
+    aliceAddress,
+    amount,
+    undefined,
+    undefined,
+    { config: AGGRON4 }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputCapcity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  const expectedMessages = [
+    "0x997f7d53307a114104b37c0fcdef97240d250d468189e71632d79e1c3b20a4f9",
+  ];
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.deepEqual(
+    txSkeleton
+      .get("signingEntries")
+      .sort((a, b) => a.index - b.index)
+      .map((s) => s.message)
+      .toArray(),
+    expectedMessages
+  );
+});
+
+test("transfer secp & multisig => secp", async (t) => {
+  const cellProvider = new CellProvider([
+    ...bobSecpInputs,
+    ...bobMultisigInputs,
+  ]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(1500 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [bob.testnetAddress, bob.fromInfo],
+    aliceAddress,
+    amount,
+    undefined,
+    undefined,
+    { config: AGGRON4 }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputCapcity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+
+  t.is(txSkeleton.get("inputs").size, 2);
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+
+  t.is(txSkeleton.get("witnesses").size, 2);
+
+  const expectedMessages = [
+    "0x45e7955cbc1ae0f8c2fbb3392a3afcea9ae1ae83c48e4355f131d751325ea615",
+    "0x051a18a11dacfd6573a689328ea7ee0cc3f2533de9c15e4f9e12f0e4a6e9691c",
+  ];
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.deepEqual(
+    txSkeleton
+      .get("signingEntries")
+      .sort((a, b) => a.index - b.index)
+      .map((s) => s.message)
+      .toArray(),
+    expectedMessages
+  );
+});
+
+test("transfer multisig lock => secp", async (t) => {
+  const cellProvider = new CellProvider([...bobMultisigLockInputs]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  class LocktimePoolCellCollector {
+    async *collect() {
+      yield {
+        ...bobMultisigLockInputs[0],
+        since: "0x0",
+        depositBlockHash: undefined,
+        withdrawBlockHash: undefined,
+        sinceBaseValue: undefined,
+      };
+    }
+  }
+
+  const amount = BigInt(600 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [bob.fromInfo],
+    alice.testnetAddress,
+    amount,
+    undefined,
+    tipHeader,
+    {
+      config: AGGRON4,
+      LocktimePoolCellCollector,
+    }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputCapcity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  const expectedMessages = [
+    "0x54f766189f91dcf10a23833c5b1f0d318044c7237a2a703ad77ea46990190b8b",
+  ];
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.deepEqual(
+    txSkeleton
+      .get("signingEntries")
+      .sort((a, b) => a.index - b.index)
+      .map((s) => s.message)
+      .toArray(),
+    expectedMessages
+  );
+});
+
+test("transfer secp => acp", async (t) => {
+  const cellProvider = new CellProvider([...bobSecpInputs, ...aliceAcpCells]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(600 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [bob.testnetAddress],
+    aliceAcpAddress,
+    amount,
+    undefined,
+    undefined,
+    { config: AGGRON4 }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputCapcity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+
+  t.is(txSkeleton.get("inputs").size, 2);
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.is(
+    BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity) -
+      BigInt(aliceAcpCells[0]!.cell_output.capacity),
+    amount
+  );
+
+  const expectedWitnesses = [
+    "0x",
+    "0x55000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  ];
+  t.deepEqual(txSkeleton.get("witnesses").toJS(), expectedWitnesses);
+
+  const expectedMessages = [
+    "0x8bcb37f6a098de84cb2349f76e09af71e786ccac68a1f9b594468d3507d2449a",
+  ];
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.deepEqual(
+    txSkeleton
+      .get("signingEntries")
+      .sort((a, b) => a.index - b.index)
+      .map((s) => s.message)
+      .toArray(),
+    expectedMessages
+  );
+});
+
+test("transfer acp => secp, destroy", async (t) => {
+  const cellProvider = new CellProvider([...bobAcpCells]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(1000 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [
+      {
+        address: bobAcpAddress,
+        destroyable: true,
+      },
+    ],
+    bob.testnetAddress,
+    amount,
+    undefined,
+    undefined,
+    { config: AGGRON4 }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputCapcity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 1);
+  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  const expectedMessages = [
+    "0x023d971a9519417e2f3f49985f23bc641ab1adee4cafa063368a96242d0fba1a",
+  ];
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.deepEqual(
+    txSkeleton
+      .get("signingEntries")
+      .sort((a, b) => a.index - b.index)
+      .map((s) => s.message)
+      .toArray(),
+    expectedMessages
+  );
 });

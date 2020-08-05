@@ -214,7 +214,7 @@ test("prepareSigningEntries, multisig", async (t) => {
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
 
-  txSkeleton = await prepareSigningEntries(txSkeleton, { config: DEV_CONFIG });
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: DEV_CONFIG });
 
   t.is(txSkeleton.get("signingEntries").size, 1);
 
