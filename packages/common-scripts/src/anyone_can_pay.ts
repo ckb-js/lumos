@@ -294,6 +294,22 @@ export async function setupOutputCell(
     return witnesses.push("0x");
   });
 
+  const template = config.SCRIPTS.ANYONE_CAN_PAY;
+  if (!template) {
+    throw new Error(`ANYONE_CAN_PAY script not defined in config!`);
+  }
+
+  const scriptOutPoint: OutPoint = {
+    tx_hash: template.TX_HASH,
+    index: template.INDEX,
+  };
+
+  // add cell_dep
+  txSkeleton = addCellDep(txSkeleton, {
+    out_point: scriptOutPoint,
+    dep_type: template.DEP_TYPE,
+  });
+
   return txSkeleton;
 }
 

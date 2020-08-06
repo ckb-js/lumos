@@ -142,7 +142,7 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
     Buffer.from(JSON.stringify(config!))
   );
 
-  if (lockScriptInfos.infos === []) {
+  if (lockScriptInfos.infos.length === 0) {
     lockScriptInfos._predefinedInfos = predefinedInfos;
     lockScriptInfos.configHashCode = configHashCode;
   } else {
