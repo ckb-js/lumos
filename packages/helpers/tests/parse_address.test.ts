@@ -1,5 +1,5 @@
 import test from "ava";
-import { parseAddress } from "../src";
+import { parseAddress, addressToScript } from "../src";
 import {
   shortAddressInfo,
   multisigAddressInfo,
@@ -56,4 +56,12 @@ test("full address, testnet", (t) => {
   });
 
   t.deepEqual(script, fullAddressInfo.script);
+});
+
+test("short address, mainnet, addressToScript", (t) => {
+  const script = addressToScript(shortAddressInfo.mainnetAddress, {
+    config: LINA,
+  });
+
+  t.deepEqual(script, shortAddressInfo.script);
 });

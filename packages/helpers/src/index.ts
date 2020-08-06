@@ -108,6 +108,8 @@ export function generateAddress(
   return bech32.encode(config.PREFIX, words, BECH32_LIMIT);
 }
 
+export const scriptToAddress = generateAddress;
+
 export function parseAddress(
   address: Address,
   { config = undefined }: Options = {}
@@ -157,6 +159,8 @@ export function parseAddress(
   }
   throw Error(`Invalid payload format type: ${data[0]}`);
 }
+
+export const addressToScript = parseAddress;
 
 export interface TransactionSkeletonInterface {
   cellProvider: CellProvider | null;
