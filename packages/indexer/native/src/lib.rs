@@ -658,14 +658,15 @@ declare_types! {
                 return cx.throw_error("args length must fit in u32 value!");
             }
             let args_len = if args_len <= 0.0 {
-                script.args().len()
+                script.args().len() as u32
             } else {
                 // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
-                args_len as usize
+                args_len as u32
             };
             let mut start_key = vec![prefix as u8];
             start_key.extend_from_slice(script.code_hash().as_slice());
             start_key.extend_from_slice(script.hash_type().as_slice());
+            // args_len must cast to u32, matching the 4 bytes length rule in molecule encoding
             start_key.extend_from_slice(&args_len.to_le_bytes());
             start_key.extend_from_slice(&script.args().raw_data());
 
