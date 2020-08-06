@@ -43,7 +43,7 @@ class TransactionManager {
       this.logger("error", `Error checking transactions: ${e}`);
     }
     if (this.running) {
-      setTimeout(this._loopMonitor, this.pollIntervalSeconds * 1000);
+      setTimeout(() => this._loopMonitor(), this.pollIntervalSeconds * 1000);
     }
   }
 
