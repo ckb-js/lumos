@@ -113,15 +113,12 @@ class TransactionManager {
     return txHash;
   }
 
-  collector({ lock = null, type = null, argsLen = -1, data = "0x" } = {}) {
-    const innerCollector = new CellCollector(this.indexer, {
-      lock,
-      type,
-      argsLen,
-      data,
-    });
-    const filteredCreatedCells = this.createdCells.filter((cell) => {
-      if (lock) {
+  _filterCells(
+    createdCells,
+    { lock = null, type = null, argsLen = -1, data = "any" } = {}
+  ) {
+    const filteredCreatedCells = createdCells.filter((cell) => {
+      if (lock && argsLen === -1) {
         if (
           !is(
             new values.ScriptValue(cell.cell_output.lock, { validate: false }),
@@ -131,18 +128,93 @@ class TransactionManager {
           return false;
         }
       }
-      if (type_) {
+      if (lock && argsLen >= 0) {
+        const length = argsLen * 2 + 2;
+        const lockArgsLength = lock.args.length;
+        const minLength = Math.min(length, lockArgsLength);
+
+        const cellLock = cell.cell_output.lock;
+        if (cellLock.args.length !== length) {
+          return false;
+        }
         if (
-          !cell.cell_output.type_ ||
-          !is(
-            new values.ScriptValue(cell.cell_output.type_, { validate: false }),
-            new values.ScriptValue(type_, { validate: false })
+          !(
+            cellLock.code_hash === lock.code_hash &&
+            cellLock.hash_type === lock.hash_type &&
+            cellLock.args.slice(0, minLength) === lock.args.slice(0, minLength)
           )
         ) {
           return false;
         }
       }
+      if (type && type === "empty" && cell.cell_output.type) {
+        return false;
+      }
+      if (type && typeof type === "object") {
+        if (
+          !cell.cell_output.type ||
+          !is(
+            new values.ScriptValue(cell.cell_output.type, { validate: false }),
+            new values.ScriptValue(type, { validate: false })
+          )
+        ) {
+          return false;
+        }
+      }
+      if (data && data !== "any" && cell.data !== data) {
+        return false;
+      }
       return true;
+    });
+    return filteredCreatedCells;
+  }
+
+  collector({
+    lock = null,
+    type = null,
+    argsLen = -1,
+    data = "any",
+    fromBlock = null,
+    toBlock = null,
+    skip = null,
+  } = {}) {
+    const params = [
+      {
+        name: "fromBlock",
+        value: fromBlock,
+      },
+      {
+        name: "toBlock",
+        value: toBlock,
+      },
+      {
+        name: "skip",
+        value: skip,
+      },
+    ]
+      .filter((param) => param.value != null)
+      .map((param) => param.name);
+    if (params.length !== 0) {
+      this.logger(
+        "warn",
+        params.map((param) => `\`${param}\``).join(", ") +
+          " will not effect on pending cells."
+      );
+    }
+    const innerCollector = new CellCollector(this.indexer, {
+      lock,
+      type,
+      argsLen,
+      data,
+      fromBlock,
+      toBlock,
+      skip,
+    });
+    const filteredCreatedCells = this._filterCells(this.createdCells, {
+      lock,
+      type,
+      argsLen,
+      data,
     });
     return new TransactionManagerCellCollector(
       innerCollector,

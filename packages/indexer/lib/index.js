@@ -102,8 +102,24 @@ class Indexer {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
-  collector({ lock = null, type = null, argsLen = -1, data = "any" } = {}) {
-    return new CellCollector(this, { lock, type, argsLen, data });
+  collector({
+    lock = null,
+    type = null,
+    argsLen = -1,
+    data = "any",
+    fromBlock = null,
+    toBlock = null,
+    skip = null,
+  } = {}) {
+    return new CellCollector(this, {
+      lock,
+      type,
+      argsLen,
+      data,
+      fromBlock,
+      toBlock,
+      skip,
+    });
   }
 
   subscribe({
@@ -156,7 +172,7 @@ class BufferValue {
 }
 
 class CellCollector {
-  // if data left null, means every data content is ok
+  // if data equals "any", means every data content is ok
   constructor(
     indexer,
     {
