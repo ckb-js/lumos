@@ -96,59 +96,64 @@ export function registerCustomLockScriptInfos(infos: LockScriptInfo[]): void {
 function generateLockScriptInfos({ config = undefined }: Options = {}): void {
   config = config || getConfig();
 
-  const secpTemplate = config.SCRIPTS.SECP256K1_BLAKE160;
-  const multisigTemplate = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
-  const acpTemplate = config.SCRIPTS.ANYONE_CAN_PAY;
+  // lazy load
+  const getPredefinedInfos = () => {
+    const secpTemplate = config!.SCRIPTS.SECP256K1_BLAKE160;
+    const multisigTemplate = config!.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+    const acpTemplate = config!.SCRIPTS.ANYONE_CAN_PAY;
 
-  const predefinedInfos: LockScriptInfo[] = [];
+    const predefinedInfos: LockScriptInfo[] = [];
 
-  if (secpTemplate) {
-    predefinedInfos.push({
-      code_hash: secpTemplate.CODE_HASH,
-      hash_type: secpTemplate.HASH_TYPE,
-      lockScriptInfo: secp256k1Blake160,
-    });
-  } else {
-    defaultLogger(
-      "warn",
-      "SECP256K1_BLAKE160 script info not found in config!"
-    );
-  }
+    if (secpTemplate) {
+      predefinedInfos.push({
+        code_hash: secpTemplate.CODE_HASH,
+        hash_type: secpTemplate.HASH_TYPE,
+        lockScriptInfo: secp256k1Blake160,
+      });
+    } else {
+      defaultLogger(
+        "warn",
+        "SECP256K1_BLAKE160 script info not found in config!"
+      );
+    }
 
-  if (multisigTemplate) {
-    predefinedInfos.push({
-      code_hash: multisigTemplate.CODE_HASH,
-      hash_type: multisigTemplate.HASH_TYPE,
-      lockScriptInfo: secp256k1Blake160Multisig,
-    });
-  } else {
-    defaultLogger(
-      "warn",
-      "SECP256K1_BLAKE160_MULTISIG script info not found in config!"
-    );
-  }
+    if (multisigTemplate) {
+      predefinedInfos.push({
+        code_hash: multisigTemplate.CODE_HASH,
+        hash_type: multisigTemplate.HASH_TYPE,
+        lockScriptInfo: secp256k1Blake160Multisig,
+      });
+    } else {
+      defaultLogger(
+        "warn",
+        "SECP256K1_BLAKE160_MULTISIG script info not found in config!"
+      );
+    }
 
-  if (acpTemplate) {
-    predefinedInfos.push({
-      code_hash: acpTemplate.CODE_HASH,
-      hash_type: acpTemplate.HASH_TYPE,
-      lockScriptInfo: anyoneCanPay,
-    });
-  } else {
-    defaultLogger("warn", "ANYONE_CAN_PAY script info not found in config!");
-  }
+    if (acpTemplate) {
+      predefinedInfos.push({
+        code_hash: acpTemplate.CODE_HASH,
+        hash_type: acpTemplate.HASH_TYPE,
+        lockScriptInfo: anyoneCanPay,
+      });
+    } else {
+      defaultLogger("warn", "ANYONE_CAN_PAY script info not found in config!");
+    }
+
+    return predefinedInfos;
+  };
 
   const configHashCode: number = utils.hashCode(
     Buffer.from(JSON.stringify(config!))
   );
 
   if (lockScriptInfos.infos.length === 0) {
-    lockScriptInfos._predefinedInfos = predefinedInfos;
+    lockScriptInfos._predefinedInfos = getPredefinedInfos();
     lockScriptInfos.configHashCode = configHashCode;
   } else {
     if (configHashCode !== lockScriptInfos.configHashCode) {
       defaultLogger(`warn`, "`config` changed, regenerate lockScriptInfos!");
-      lockScriptInfos._predefinedInfos = predefinedInfos;
+      lockScriptInfos._predefinedInfos = getPredefinedInfos();
       lockScriptInfos.configHashCode = configHashCode;
     }
   }
