@@ -169,15 +169,18 @@ class TransactionManager {
     return filteredCreatedCells;
   }
 
-  collector({
-    lock = null,
-    type = null,
-    argsLen = -1,
-    data = "any",
-    fromBlock = null,
-    toBlock = null,
-    skip = null,
-  } = {}) {
+  collector(
+    {
+      lock = null,
+      type = null,
+      argsLen = -1,
+      data = "any",
+      fromBlock = null,
+      toBlock = null,
+      skip = null,
+    } = {},
+    { usePendingOutputs = true } = {}
+  ) {
     const params = [
       {
         name: "fromBlock",
@@ -194,7 +197,7 @@ class TransactionManager {
     ]
       .filter((param) => param.value != null)
       .map((param) => param.name);
-    if (params.length !== 0) {
+    if (usePendingOutputs && params.length !== 0) {
       this.logger(
         "warn",
         params.map((param) => `\`${param}\``).join(", ") +
@@ -219,16 +222,23 @@ class TransactionManager {
     return new TransactionManagerCellCollector(
       innerCollector,
       this.spentCells,
-      filteredCreatedCells
+      filteredCreatedCells,
+      { usePendingOutputs }
     );
   }
 }
 
 class TransactionManagerCellCollector {
-  constructor(collector, spentCells, filteredCreatedCells) {
+  constructor(
+    collector,
+    spentCells,
+    filteredCreatedCells,
+    { usePendingOutputs = true } = {}
+  ) {
     this.collector = collector;
     this.spentCells = spentCells;
     this.filteredCreatedCells = filteredCreatedCells;
+    this.usePendingOutputs = usePendingOutputs;
   }
 
   // TODO: optimize this
@@ -251,8 +261,10 @@ class TransactionManagerCellCollector {
         yield cell;
       }
     }
-    for (const cell of this.filteredCreatedCells) {
-      yield cell;
+    if (this.usePendingOutputs) {
+      for (const cell of this.filteredCreatedCells) {
+        yield cell;
+      }
     }
   }
 }
