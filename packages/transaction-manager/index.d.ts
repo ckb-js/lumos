@@ -16,7 +16,16 @@ declare class TransactionManager {
 
   send_transaction(tx: Transaction): Promise<Hash>;
 
-  collector(queryOptions?: QueryOptions): CellCollector;
+  /**
+   * If set `usePendingOutputs` to false, will not use pending outputs, default to true.
+   *
+   * @param queryOptions
+   * @param options
+   */
+  collector(
+    queryOptions?: QueryOptions,
+    options?: { usePendingOutputs?: boolean }
+  ): CellCollector;
 }
 
 export = TransactionManager;
