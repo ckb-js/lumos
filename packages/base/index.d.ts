@@ -82,6 +82,11 @@ export interface Cell {
   block_hash?: Hash;
   block_number?: HexString;
 }
+
+/**
+ * argsLen: if argsLen = 20, it means collected cells cell.cell_output.lock.args should be 20-byte length, and prefix match to lock.args.
+ * And if argsLen = -1 (default), means cell.cell_output.lock.args should equals to lock.args.
+ */
 export interface QueryOptions {
   lock?: Script | ScriptWrapper;
   type?: Script | ScriptWrapper | "empty";
