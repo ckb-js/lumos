@@ -35,20 +35,16 @@ function hexToNodeBuffer(b) {
   return Buffer.from(new Reader(b).toArrayBuffer());
 }
 
-function dbItemToScript(item) {
-  return {
-    code_hash: nodeBufferToHex(item.code_hash),
-    hash_type: item.hash_type === 1 ? "type" : "data",
-    args: nodeBufferToHex(item.args),
-  };
-}
-
-async function locateScript(knex, id) {
-  const data = await knex("scripts").where("id", id);
-  if (data.length === 0) {
-    throw new Error("Script cannot be found!");
+function dbItemToScript(code_hash, hash_type, args) {
+  if (code_hash === null) {
+    return null;
+  } else {
+    return {
+      code_hash: nodeBufferToHex(code_hash),
+      hash_type: hash_type === 1 ? "type" : "data",
+      args: nodeBufferToHex(args),
+    };
   }
-  return dbItemToScript(data[0]);
 }
 
 async function ensureScriptInserted(trx, script, hasReturning) {
@@ -666,25 +662,42 @@ class CellCollector {
         "cells.block_number",
         "block_digests.block_number"
       )
-      .innerJoin("scripts", "cells.lock_script_id", "scripts.id");
-    const foundScripts = {};
+      .innerJoin(
+        this.knex.ref("scripts").as("lock_scripts"),
+        "cells.lock_script_id",
+        "lock_scripts.id"
+      )
+      .leftJoin(this.knex.ref("scripts").as("type_scripts"), function () {
+        this.onNotNull("cells.type_script_id").on(
+          "cells.type_script_id",
+          "=",
+          "type_scripts.id"
+        );
+      })
+      .select(
+        "block_digests.*",
+        "cells.*",
+        this.knex.ref("lock_scripts.code_hash").as("lock_script_code_hash"),
+        this.knex.ref("lock_scripts.hash_type").as("lock_script_hash_type"),
+        this.knex.ref("lock_scripts.args").as("lock_script_args"),
+        this.knex.ref("type_scripts.code_hash").as("type_script_code_hash"),
+        this.knex.ref("type_scripts.hash_type").as("type_script_hash_type"),
+        this.knex.ref("type_scripts.args").as("type_script_args")
+      );
     for (const item of items) {
-      let type = null;
-      // TODO: find a way to join type scripts as well
-      if (item.type_script_id) {
-        if (!foundScripts[item.type_script_id]) {
-          foundScripts[item.type_script_id] = await locateScript(
-            this.knex,
-            item.type_script_id
-          );
-        }
-        type = foundScripts[item.type_script_id];
-      }
       yield {
         cell_output: {
           capacity: dbBigIntToHex(item.capacity),
-          lock: dbItemToScript(item),
-          type,
+          lock: dbItemToScript(
+            item.lock_script_code_hash,
+            item.lock_script_hash_type,
+            item.lock_script_args
+          ),
+          type: dbItemToScript(
+            item.type_script_code_hash,
+            item.type_script_hash_type,
+            item.type_script_args
+          ),
         },
         out_point: {
           tx_hash: nodeBufferToHex(item.tx_hash),
