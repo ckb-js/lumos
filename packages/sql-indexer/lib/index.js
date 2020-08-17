@@ -601,11 +601,11 @@ class CellCollector {
     }
     if (this.fromBlock) {
       const fromBlock = BigInt(this.fromBlock);
-      query = query.andWhere("block_number", ">=", fromBlock);
+      query = query.andWhere("cells.block_number", ">=", fromBlock);
     }
     if (this.toBlock) {
       const toBlock = BigInt(this.toBlock);
-      query = query.andWhere("block_number", "<=", toBlock);
+      query = query.andWhere("cells.block_number", "<=", toBlock);
     }
     if (this.lock) {
       const binaryArgs = hexToNodeBuffer(this.lock.args);
