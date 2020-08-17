@@ -565,7 +565,15 @@ class Indexer {
 class CellCollector {
   constructor(
     knex,
-    { lock = null, type = null, argsLen = -1, data = "any" } = {}
+    {
+      lock = null,
+      type = null,
+      argsLen = -1,
+      data = "any",
+      fromBlock = null,
+      toBlock = null,
+      skip = null,
+    } = {}
   ) {
     if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
@@ -581,12 +589,23 @@ class CellCollector {
     this.type = type;
     this.data = data;
     this.argsLen = argsLen;
+    this.fromBlock = fromBlock;
+    this.toBlock = toBlock;
+    this.skip = skip;
   }
 
   _assembleQuery(order = true) {
     let query = this.knex("cells").where("consumed", false);
     if (order) {
       query = query.orderBy(["cells.block_number", "tx_index", "index"], "asc");
+    }
+    if (this.fromBlock) {
+      const fromBlock = BigInt(this.fromBlock);
+      query = query.andWhere("block_number", ">=", fromBlock);
+    }
+    if (this.toBlock) {
+      const toBlock = BigInt(this.toBlock);
+      query = query.andWhere("block_number", "<=", toBlock);
     }
     if (this.lock) {
       const binaryArgs = hexToNodeBuffer(this.lock.args);
@@ -626,14 +645,17 @@ class CellCollector {
         return this.whereIn("type_script_id", typeQuery);
       });
     }
-    if (this.data) {
+    if (this.data !== "any") {
       query = query.andWhere("data", hexToNodeBuffer(this.data));
+    }
+    if (this.skip) {
+      query = query.offset(this.skip);
     }
     return query;
   }
 
   async count() {
-    return parseInt((await this._assembleQuery(false).count())[0].count);
+    return parseInt((await this._assembleQuery(false)).length);
   }
 
   async *collect() {
