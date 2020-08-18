@@ -434,8 +434,13 @@ async function _transfer(
         }
       }
       amount -= deductCapacity;
-      output.cell_output.capacity =
+
+      const clonedOutput = JSON.parse(JSON.stringify(output));
+      clonedOutput.cell_output.capacity =
         "0x" + (cellCapacity - deductCapacity).toString(16);
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.update(i, () => clonedOutput);
+      });
     }
   }
   // remove all output cells with capacity equal to 0
@@ -636,19 +641,24 @@ async function injectCapacityWithoutChange(
           new ScriptValue(fromScript, { validate: false })
         )
       ) {
-        const cellCapacity = BigInt(output.cell_output.capacity);
+        const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
+        const cellCapacity = BigInt(clonedOutput.cell_output.capacity);
         let deductCapacity;
         if (amount >= cellCapacity) {
           deductCapacity = cellCapacity;
         } else {
-          deductCapacity = cellCapacity - minimalCellCapacity(output);
+          deductCapacity = cellCapacity - minimalCellCapacity(clonedOutput);
           if (deductCapacity > amount) {
             deductCapacity = amount;
           }
         }
         amount -= deductCapacity;
-        output.cell_output.capacity =
+        clonedOutput.cell_output.capacity =
           "0x" + (cellCapacity - deductCapacity).toString(16);
+
+        txSkeleton = txSkeleton.update("outputs", (outputs) => {
+          return outputs.update(i, () => clonedOutput);
+        });
       }
     }
     // remove all output cells with capacity equal to 0

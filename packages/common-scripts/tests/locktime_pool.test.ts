@@ -11,7 +11,7 @@ import { calculateMaximumWithdraw } from "../src/dao";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config } from "@ckb-lumos/config-manager";
-import { Header } from "@ckb-lumos/base";
+import { Header, Cell } from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 
 const originCapacity = "0x174876e800";
@@ -366,4 +366,72 @@ test("payFee, multisig & dao", async (t) => {
   t.is(txSkeleton.get("outputs").size, 2);
   t.is(txSkeleton.get("cellDeps").size, 3);
   t.is(txSkeleton.get("headerDeps").size, 2);
+});
+
+test("Don't update capacity directly when deduct", async (t) => {
+  class LocktimeCellCollector {
+    private fromInfo: FromInfo;
+    private config: Config;
+
+    constructor(
+      fromInfo: FromInfo,
+      _: any,
+      { config = undefined }: Options = {}
+    ) {
+      this.fromInfo = fromInfo;
+      this.config = config!;
+    }
+
+    async *collect() {
+      const { fromScript } = parseFromInfo(this.fromInfo, {
+        config: this.config,
+      });
+      for (const info of [inputInfos[0]]) {
+        const lock = info.cell_output.lock;
+        if (
+          lock.code_hash === fromScript.code_hash &&
+          lock.hash_type === fromScript.hash_type
+        ) {
+          yield info;
+        }
+      }
+    }
+  }
+
+  txSkeleton = await transfer(
+    txSkeleton,
+    [fromInfo, aliceAddress],
+    bobAddress,
+    BigInt(600 * 10 ** 8),
+    tipHeader,
+    { config: DEV_CONFIG, LocktimeCellCollector }
+  );
+
+  const getCapacities = (cells: List<Cell>): string[] => {
+    return cells.map((c) => c.cell_output.capacity).toJS();
+  };
+
+  const inputCapacitiesBefore = getCapacities(txSkeleton.get("inputs"));
+  const outputCapacitiesBefore = getCapacities(txSkeleton.get("outputs"));
+
+  let errFlag: boolean = false;
+  try {
+    await transfer(
+      txSkeleton,
+      [fromInfo, aliceAddress],
+      bobAddress,
+      BigInt(500 * 10 ** 8),
+      tipHeader,
+      { config: DEV_CONFIG, LocktimeCellCollector }
+    );
+  } catch {
+    errFlag = true;
+  }
+
+  const inputCapacitiesAfter = getCapacities(txSkeleton.get("inputs"));
+  const outputCapacitiesAfter = getCapacities(txSkeleton.get("outputs"));
+
+  t.true(errFlag);
+  t.deepEqual(inputCapacitiesBefore, inputCapacitiesAfter);
+  t.deepEqual(outputCapacitiesBefore, outputCapacitiesAfter);
 });
