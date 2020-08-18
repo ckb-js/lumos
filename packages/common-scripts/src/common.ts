@@ -554,20 +554,25 @@ function _deductCapacity(
         new ScriptValue(fromScript, { validate: false })
       )
     ) {
-      const cellCapacity = BigInt(output.cell_output.capacity);
+      const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
+      const cellCapacity = BigInt(clonedOutput.cell_output.capacity);
       const availableCapacity: bigint = cellCapacity;
       let deductCapacity;
       if (capacity >= availableCapacity) {
         deductCapacity = availableCapacity;
       } else {
-        deductCapacity = cellCapacity - minimalCellCapacity(output);
+        deductCapacity = cellCapacity - minimalCellCapacity(clonedOutput);
         if (deductCapacity > capacity) {
           deductCapacity = capacity;
         }
       }
       capacity -= deductCapacity;
-      output.cell_output.capacity =
+      clonedOutput.cell_output.capacity =
         "0x" + (cellCapacity - deductCapacity).toString(16);
+
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.update(i, () => clonedOutput);
+      });
     }
   }
   // Remove all output cells with capacity equal to 0

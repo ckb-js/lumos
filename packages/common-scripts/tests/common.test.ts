@@ -21,6 +21,7 @@ import {
   aliceAcpCells,
 } from "./inputs";
 import { bob, alice } from "./account_info";
+import { List } from "immutable";
 
 const aliceInput: Cell = {
   cell_output: {
@@ -471,4 +472,51 @@ test("transfer acp => secp, destroy", async (t) => {
       .toArray(),
     expectedMessages
   );
+});
+
+test("Don't update capacity directly when deduct", async (t) => {
+  const cellProvider = new CellProvider([bobSecpInputs[0]]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(600 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [bob.testnetAddress],
+    aliceAddress,
+    amount,
+    undefined,
+    undefined,
+    { config: AGGRON4 }
+  );
+
+  const getCapacities = (cells: List<Cell>): string[] => {
+    return cells.map((c) => c.cell_output.capacity).toJS();
+  };
+
+  const inputCapacitiesBefore = getCapacities(txSkeleton.get("inputs"));
+  const outputCapacitiesBefore = getCapacities(txSkeleton.get("outputs"));
+
+  let errFlag = false;
+  try {
+    await common.transfer(
+      txSkeleton,
+      [bob.testnetAddress],
+      aliceAddress,
+      BigInt(500 * 10 ** 8),
+      undefined,
+      undefined,
+      { config: AGGRON4 }
+    );
+  } catch {
+    errFlag = true;
+  }
+
+  const inputCapacitiesAfter = getCapacities(txSkeleton.get("inputs"));
+  const outputCapacitiesAfter = getCapacities(txSkeleton.get("outputs"));
+
+  t.true(errFlag);
+  t.deepEqual(inputCapacitiesBefore, inputCapacitiesAfter);
+  t.deepEqual(outputCapacitiesBefore, outputCapacitiesAfter);
 });

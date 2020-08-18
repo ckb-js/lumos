@@ -546,14 +546,15 @@ export async function transfer(
   ) {
     txSkeleton.update("outputs", (outputs) => {
       return outputs.update(changeOutputIndex, (output) => {
-        output.cell_output.capacity =
+        const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
+        clonedOutput.cell_output.capacity =
           "0x" +
           (BigInt(output.cell_output.capacity) + changeCapacity).toString(16);
-        output.data = toBigUInt128LE(
+        clonedOutput.data = toBigUInt128LE(
           readBigUInt128LE(output.data) + changeAmount
         );
 
-        return output;
+        return clonedOutput;
       });
     });
   } else if (changeCapacity >= minimalCellCapacity(changeCell)) {
