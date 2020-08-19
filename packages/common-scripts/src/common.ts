@@ -592,8 +592,12 @@ export async function setupInputCell(
   {
     config = undefined,
     needCapacity = undefined,
+    since = undefined,
+    defaultWitness = "0x",
   }: Options & {
     needCapacity?: HexString;
+    since?: PackedSince;
+    defaultWitness?: HexString;
   } = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
@@ -624,6 +628,8 @@ export async function setupInputCell(
     {
       config,
       needCapacity,
+      since,
+      defaultWitness,
     }
   );
 }
