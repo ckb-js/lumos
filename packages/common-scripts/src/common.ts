@@ -48,7 +48,7 @@ export interface LockScriptInfo {
       }
     ): Promise<{
       txSkeleton: TransactionSkeletonType;
-      usedCapacity: HexString;
+      availableCapacity: HexString;
     }>;
     prepareSigningEntries(
       txSkeleton: TransactionSkeletonType,
@@ -504,7 +504,7 @@ async function _commonTransfer(
         });
         txSkeleton = result.txSkeleton;
 
-        const inputCapacity: bigint = BigInt(result.usedCapacity);
+        const inputCapacity: bigint = BigInt(result.availableCapacity);
         let deductCapacity: bigint = inputCapacity;
         if (deductCapacity > amount) {
           deductCapacity = amount;
@@ -601,7 +601,7 @@ export async function setupInputCell(
   } = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
-  usedCapacity: HexString;
+  availableCapacity: HexString;
 }> {
   config = config || getConfig();
 

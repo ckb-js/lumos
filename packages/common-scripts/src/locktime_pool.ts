@@ -862,7 +862,7 @@ export async function setupInputCell(
   }: Options & { defaultWitness?: HexString; since?: PackedSince } = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
-  usedCapacity: HexString;
+  availableCapacity: HexString;
 }> {
   config = config || getConfig();
   const inputLock = inputCell.cell_output.lock;

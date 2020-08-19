@@ -92,7 +92,7 @@ export async function setupInputCell(
   } = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
-  usedCapacity: HexString;
+  availableCapacity: HexString;
 }> {
   config = config || getConfig();
 
@@ -132,7 +132,7 @@ export async function setupInputCell(
     dep_type: template.DEP_TYPE,
   });
 
-  let usedCapacity = inputCell.cell_output.capacity;
+  let availableCapacity = inputCell.cell_output.capacity;
 
   const destroyable: boolean = !!(
     fromInfo &&
@@ -172,7 +172,7 @@ export async function setupInputCell(
       });
     });
 
-    usedCapacity =
+    availableCapacity =
       "0x" +
       (
         BigInt(inputCell.cell_output.capacity) -
@@ -233,7 +233,7 @@ export async function setupInputCell(
 
   return {
     txSkeleton,
-    usedCapacity,
+    availableCapacity,
   };
 }
 
