@@ -110,7 +110,7 @@ export async function setupInputCell(
   } = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
-  usedCapacity: HexString;
+  availableCapacity: HexString;
 }> {
   config = config || getConfig();
 
@@ -150,7 +150,7 @@ export async function setupInputCell(
   txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
     return witnesses.push(defaultWitness);
   });
-  const usedCapacity: HexString = inputCell.cell_output.capacity;
+  const availableCapacity: HexString = inputCell.cell_output.capacity;
 
   const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
   if (!template) {
@@ -241,7 +241,7 @@ export async function setupInputCell(
 
   return {
     txSkeleton,
-    usedCapacity,
+    availableCapacity,
   };
 }
 
