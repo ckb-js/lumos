@@ -593,7 +593,7 @@ export async function setupInputCell(
     config = undefined,
     needCapacity = undefined,
     since = undefined,
-    defaultWitness = "0x",
+    defaultWitness = undefined,
   }: Options & {
     needCapacity?: HexString;
     since?: PackedSince;
