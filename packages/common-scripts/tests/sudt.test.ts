@@ -107,7 +107,7 @@ test("transfer secp", async (t) => {
 });
 
 test("transfer locktime pool multisig & secp", async (t) => {
-  const cellProvider = new CellProvider(bobSecpInputs);
+  const cellProvider = new CellProvider([bobSecpInputs[0]]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
