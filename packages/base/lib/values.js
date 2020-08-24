@@ -54,7 +54,9 @@ class TransactionValue extends Value {
       validators.ValidateTransaction(transaction);
     }
     super(
-      core.SerializeTransaction(normalizers.NormalizeTransaction(transaction)),
+      core.SerializeRawTransaction(
+        normalizers.NormalizeRawTransaction(transaction)
+      ),
       transaction
     );
   }
