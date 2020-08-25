@@ -48,15 +48,27 @@ class OutPointValue extends Value {
   }
 }
 
+class RawTransactionValue extends Value {
+  constructor(rawTransaction, { validate = true } = {}) {
+    if (validate) {
+      validators.ValidateRawTransaction(rawTransaction);
+    }
+    super(
+      core.SerializeRawTransaction(
+        normalizers.NormalizeRawTransaction(rawTransaction)
+      ),
+      transaction
+    );
+  }
+}
+
 class TransactionValue extends Value {
   constructor(transaction, { validate = true } = {}) {
     if (validate) {
       validators.ValidateTransaction(transaction);
     }
     super(
-      core.SerializeRawTransaction(
-        normalizers.NormalizeRawTransaction(transaction)
-      ),
+      core.SerializeTransaction(normalizers.NormalizeTransaction(transaction)),
       transaction
     );
   }
@@ -65,5 +77,6 @@ class TransactionValue extends Value {
 module.exports = {
   ScriptValue,
   OutPointValue,
+  RawTransactionValue,
   TransactionValue,
 };

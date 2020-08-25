@@ -67,7 +67,9 @@ class TransactionManager {
           lock: output.lock,
         });
         const txHashes = transactionCollector.getTransactionHashes();
-        const targetTxHash = new values.TransactionValue(tx, {
+        // remove witnesses property because it's redundant for calculating tx_hash
+        delete tx.witnesses;
+        const targetTxHash = new values.RawTransactionValue(tx, {
           validate: false,
         }).hash();
         if (txHashes.includes(targetTxHash)) {
