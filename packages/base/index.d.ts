@@ -303,10 +303,10 @@ declare class ScriptValue extends Value {
 }
 
 declare class OutPointValue extends Value {
-  constructor(out_point: OutPoint, options: { validate?: boolean });
+  constructor(outPoint: OutPoint, options: { validate?: boolean });
 }
 declare class RawTransactionValue extends Value {
-  constructor(transaction: RawTransaction, options?: { validate?: boolean });
+  constructor(rawTransaction: RawTransaction, options?: { validate?: boolean });
 }
 
 declare class TransactionValue extends Value {

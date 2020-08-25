@@ -43,7 +43,7 @@ class OutPointValue extends Value {
     }
     super(
       core.SerializeOutPoint(normalizers.NormalizeOutPoint(outPoint)),
-      out_point
+      outPoint
     );
   }
 }
