@@ -59,7 +59,15 @@ export interface WitnessArgs {
   input_type?: HexString;
   output_type?: HexString;
 }
-
+export interface RawTransaction {
+  cell_deps: CellDep[];
+  hash?: Hash;
+  header_deps: Hash[];
+  inputs: Input[];
+  outputs: Output[];
+  outputs_data: HexString[];
+  version: HexString;
+}
 export interface Transaction {
   cell_deps: CellDep[];
   hash?: Hash;
@@ -296,6 +304,9 @@ declare class ScriptValue extends Value {
 
 declare class OutPointValue extends Value {
   constructor(out_point: OutPoint, options: { validate?: boolean });
+}
+declare class RawTransactionValue extends Value {
+  constructor(transaction: RawTransaction, options?: { validate?: boolean });
 }
 
 declare class TransactionValue extends Value {
