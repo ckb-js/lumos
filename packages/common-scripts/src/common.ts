@@ -3,6 +3,7 @@ import {
   TransactionSkeletonType,
   Options,
   minimalCellCapacity,
+  createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
@@ -19,10 +20,13 @@ import {
   Hash,
   PackedSince,
   utils,
+  Transaction,
 } from "@ckb-lumos/base";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
 import { Set } from "immutable";
+import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
+import { normalizers } from "ckb-js-toolkit";
 
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
@@ -478,45 +482,46 @@ async function _commonTransfer(
 
   let changeCapacity: bigint = 0n;
 
-  // collect cells
-  loop1: for (const fromInfo of fromInfos) {
-    const cellCollectors = lockScriptInfos.infos.map((lockScriptInfo) => {
-      return new lockScriptInfo.lockScriptInfo.CellCollector(
-        fromInfo,
-        cellProvider,
-        {
-          config,
-        }
-      );
-    });
+  if (amount > 0n) {
+    // collect cells
+    loop1: for (const fromInfo of fromInfos) {
+      const cellCollectors = lockScriptInfos.infos.map((lockScriptInfo) => {
+        return new lockScriptInfo.lockScriptInfo.CellCollector(
+          fromInfo,
+          cellProvider,
+          {
+            config,
+          }
+        );
+      });
 
-    for (const cellCollector of cellCollectors) {
-      for await (const inputCell of cellCollector.collect()) {
-        const inputKey: string = getInputKey(inputCell);
-        if (previousInputs.has(inputKey)) {
-          continue;
-        }
+      for (const cellCollector of cellCollectors) {
+        for await (const inputCell of cellCollector.collect()) {
+          const inputKey: string = getInputKey(inputCell);
+          if (previousInputs.has(inputKey)) {
+            continue;
+          }
+          previousInputs = previousInputs.add(inputKey);
+          const result = await setupInputCell(txSkeleton, inputCell, fromInfo, {
+            config,
+            needCapacity: "0x" + amount.toString(16),
+          });
+          txSkeleton = result.txSkeleton;
 
-        previousInputs = previousInputs.add(inputKey);
-        const result = await setupInputCell(txSkeleton, inputCell, fromInfo, {
-          config,
-          needCapacity: "0x" + amount.toString(16),
-        });
-        txSkeleton = result.txSkeleton;
+          const inputCapacity: bigint = BigInt(result.availableCapacity);
+          let deductCapacity: bigint = inputCapacity;
+          if (deductCapacity > amount) {
+            deductCapacity = amount;
+          }
+          amount -= deductCapacity;
+          changeCapacity += inputCapacity - deductCapacity;
 
-        const inputCapacity: bigint = BigInt(result.availableCapacity);
-        let deductCapacity: bigint = inputCapacity;
-        if (deductCapacity > amount) {
-          deductCapacity = amount;
-        }
-        amount -= deductCapacity;
-        changeCapacity += inputCapacity - deductCapacity;
-
-        if (
-          amount === 0n &&
-          (changeCapacity === 0n || changeCapacity > minimalChangeCapacity)
-        ) {
-          break loop1;
+          if (
+            amount === 0n &&
+            (changeCapacity === 0n || changeCapacity > minimalChangeCapacity)
+          ) {
+            break loop1;
+          }
         }
       }
     }
@@ -634,6 +639,67 @@ export async function setupInputCell(
   );
 }
 
+export async function payFeeByFeeRate(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  feeRate: bigint,
+  tipHeader?: Header,
+  {
+    config = undefined,
+    useLocktimeCellsFirst = true,
+  }: {
+    config?: Config;
+    useLocktimeCellsFirst?: boolean;
+  } = {}
+): Promise<TransactionSkeletonType> {
+  feeRate = BigInt(feeRate);
+  let size: number = 0;
+  let newTxSkeleton: TransactionSkeletonType = txSkeleton;
+
+  /**
+   * Only one case `currentTransactionSize < size` :
+   * change output capacity equals current fee (feeA), so one output reduced,
+   * and if reduce the fee, change output will add again, fee will increase to feeA.
+   */
+  let currentTransactionSize: number = getTransactionSize(newTxSkeleton);
+  while (currentTransactionSize > size) {
+    size = currentTransactionSize;
+    const fee: bigint = calculateFee(size, feeRate);
+
+    newTxSkeleton = await payFee(txSkeleton, fromInfos, fee, tipHeader, {
+      config,
+      useLocktimeCellsFirst,
+    });
+    currentTransactionSize = getTransactionSize(newTxSkeleton);
+  }
+
+  return newTxSkeleton;
+}
+
+function calculateFee(size: number, feeRate: bigint): bigint {
+  const ratio = 1000n;
+  const base = BigInt(size) * feeRate;
+  const fee = base / ratio;
+  if (fee * ratio < base) {
+    return fee + 1n;
+  }
+  return fee;
+}
+
+function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
+  const tx = createTransactionFromSkeleton(txSkeleton);
+  return getTransactionSizeByTx(tx);
+}
+
+function getTransactionSizeByTx(tx: Transaction): number {
+  const serializedTx = SerializeTransaction(
+    normalizers.NormalizeTransaction(tx)
+  );
+  // 4 is serialized offset bytesize
+  const size = serializedTx.byteLength + 4;
+  return size;
+}
+
 export default {
   transfer,
   payFee,
@@ -641,10 +707,14 @@ export default {
   injectCapacity,
   setupInputCell,
   registerCustomLockScriptInfos,
+  payFeeByFeeRate,
   __tests__: {
     _commonTransfer,
     resetLockScriptInfos,
     getLockScriptInfos,
     generateLockScriptInfos,
+    getTransactionSizeByTx,
+    getTransactionSize,
+    calculateFee,
   },
 };
