@@ -37,12 +37,12 @@ class ScriptValue extends Value {
 }
 
 class OutPointValue extends Value {
-  constructor(out_point, { validate = true } = {}) {
+  constructor(outPoint, { validate = true } = {}) {
     if (validate) {
-      validators.ValidateOutPoint(out_point);
+      validators.ValidateOutPoint(outPoint);
     }
     super(
-      core.SerializeOutPoint(normalizers.NormalizeOutPoint(out_point)),
+      core.SerializeOutPoint(normalizers.NormalizeOutPoint(outPoint)),
       out_point
     );
   }
