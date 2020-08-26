@@ -531,16 +531,14 @@ async function _transfer(
         ).serializeJson();
       }
 
-      txSkeleton = (
-        await setupInputCell(
-          txSkeleton,
-          inputCell,
-          isSecp256k1Blake160MultisigScript(fromScript, config)
-            ? Object.assign({}, fromInfo, { since: multisigSince })
-            : fromInfo,
-          { config, defaultWitness: witness, since: inputCell.since }
-        )
-      ).txSkeleton;
+      txSkeleton = await collectInput(
+        txSkeleton,
+        inputCell,
+        isSecp256k1Blake160MultisigScript(fromScript, config)
+          ? Object.assign({}, fromInfo, { since: multisigSince })
+          : fromInfo,
+        { config, defaultWitness: witness, since: inputCell.since }
+      );
 
       const inputCapacity = BigInt(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
@@ -735,14 +733,12 @@ async function injectCapacityWithoutChange(
               ? _parseMultisigArgsSince(lockArgs)
               : undefined;
         }
-        txSkeleton = (
-          await setupInputCell(
-            txSkeleton,
-            inputCell,
-            Object.assign({}, fromInfo, { since: multisigSince }),
-            { config, defaultWitness: witness, since: inputCell.since }
-          )
-        ).txSkeleton;
+        txSkeleton = await collectInput(
+          txSkeleton,
+          inputCell,
+          Object.assign({}, fromInfo, { since: multisigSince }),
+          { config, defaultWitness: witness, since: inputCell.since }
+        );
 
         const inputCapacity = BigInt(inputCell.cell_output.capacity);
         let deductCapacity = inputCapacity;
@@ -851,6 +847,31 @@ export async function injectCapacity(
   });
 }
 
+async function collectInput(
+  txSkeleton: TransactionSkeletonType,
+  inputCell: Cell,
+  fromInfo?: FromInfo,
+  {
+    config = undefined,
+    since = undefined,
+    defaultWitness = "0x",
+  }: Options & { defaultWitness?: HexString; since?: PackedSince } = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+
+  txSkeleton = await setupInputCell(txSkeleton, inputCell, fromInfo, {
+    config,
+    since,
+    defaultWitness,
+  });
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.remove(outputs.size - 1);
+  });
+
+  return txSkeleton;
+}
+
 export async function setupInputCell(
   txSkeleton: TransactionSkeletonType,
   inputCell: Cell,
@@ -860,10 +881,7 @@ export async function setupInputCell(
     since = undefined,
     defaultWitness = "0x",
   }: Options & { defaultWitness?: HexString; since?: PackedSince } = {}
-): Promise<{
-  txSkeleton: TransactionSkeletonType;
-  availableCapacity: HexString;
-}> {
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   const inputLock = inputCell.cell_output.lock;
 

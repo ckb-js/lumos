@@ -1,37 +1,37 @@
 import {
-  TransactionSkeletonType,
-  Options,
-  parseAddress,
-  minimalCellCapacity,
+  Address,
+  Cell,
+  CellCollector as CellCollectorType,
+  CellProvider,
+  core,
+  HexString,
+  OutPoint,
+  PackedSince,
+  QueryOptions,
+  Script,
+  utils,
+  values,
+  WitnessArgs,
+} from "@ckb-lumos/base";
+import { Config, getConfig } from "@ckb-lumos/config-manager";
+import {
   createTransactionFromSkeleton,
   generateAddress,
+  minimalCellCapacity,
+  Options,
+  parseAddress,
+  TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import {
-  values,
-  Address,
-  Script,
-  QueryOptions,
-  CellProvider,
-  CellCollector as CellCollectorType,
-  OutPoint,
-  HexString,
-  WitnessArgs,
-  core,
-  Cell,
-  utils,
-  PackedSince,
-} from "@ckb-lumos/base";
-import { getConfig, Config } from "@ckb-lumos/config-manager";
-import {
-  isAcpScript,
-  addCellDep,
-  SECP_SIGNATURE_PLACEHOLDER,
-  hashWitness,
-} from "./helper";
-import { Reader, normalizers } from "ckb-js-toolkit";
-const { ScriptValue } = values;
-import { Set, List } from "immutable";
+import { normalizers, Reader } from "ckb-js-toolkit";
+import { List, Set } from "immutable";
 import { FromInfo, parseFromInfo } from "./from_info";
+import {
+  addCellDep,
+  hashWitness,
+  isAcpScript,
+  SECP_SIGNATURE_PLACEHOLDER,
+} from "./helper";
+const { ScriptValue } = values;
 const { CKBHasher, ckbHash, readBigUInt128LE } = utils;
 
 export class CellCollector implements CellCollectorType {
@@ -79,21 +79,16 @@ export class CellCollector implements CellCollectorType {
 export async function setupInputCell(
   txSkeleton: TransactionSkeletonType,
   inputCell: Cell,
-  fromInfo?: FromInfo,
+  _fromInfo?: FromInfo,
   {
     config = undefined,
     defaultWitness = "0x",
     since = undefined,
-    needCapacity = undefined,
   }: Options & {
     defaultWitness?: HexString;
     since?: PackedSince;
-    needCapacity?: HexString;
   } = {}
-): Promise<{
-  txSkeleton: TransactionSkeletonType;
-  availableCapacity: HexString;
-}> {
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
 
   const inputLock: Script = inputCell.cell_output.lock;
@@ -116,6 +111,26 @@ export async function setupInputCell(
     return witnesses.push(defaultWitness);
   });
 
+  const outputCell: Cell = {
+    cell_output: {
+      capacity: inputCell.cell_output.capacity,
+      lock: inputCell.cell_output.lock,
+      type: inputCell.cell_output.type,
+    },
+    data: inputCell.data,
+  };
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push(outputCell);
+  });
+
+  txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+    return fixedEntries.push({
+      field: "outputs",
+      index: txSkeleton.get("outputs").size - 1,
+    });
+  });
+
   const template = config.SCRIPTS.ANYONE_CAN_PAY;
   if (!template) {
     throw new Error(`ANYONE_CAN_PAY script not defined in config!`);
@@ -131,54 +146,6 @@ export async function setupInputCell(
     out_point: scriptOutPoint,
     dep_type: template.DEP_TYPE,
   });
-
-  let availableCapacity = inputCell.cell_output.capacity;
-
-  const destroyable: boolean = !!(
-    fromInfo &&
-    typeof fromInfo === "object" &&
-    "destroyable" in fromInfo &&
-    fromInfo.destroyable
-  );
-  if (!destroyable) {
-    const acpOutput: Cell = {
-      cell_output: {
-        capacity: "0x0",
-        lock: inputLock,
-        type: inputCell.cell_output.type,
-      },
-      data: inputCell.data,
-    };
-    const minimalAcpOutputCapacity: bigint = minimalCellCapacity(acpOutput);
-    let acpOutputCapacity: bigint = 0n;
-    if (needCapacity) {
-      acpOutputCapacity =
-        BigInt(inputCell.cell_output.capacity) - BigInt(needCapacity);
-    }
-    if (acpOutputCapacity < minimalAcpOutputCapacity) {
-      acpOutputCapacity = minimalAcpOutputCapacity;
-    }
-
-    acpOutput.cell_output.capacity = "0x" + acpOutputCapacity.toString(16);
-
-    txSkeleton = txSkeleton.update("outputs", (outputs) => {
-      return outputs.push(acpOutput);
-    });
-
-    txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
-      return fixedEntries.push({
-        field: "outputs",
-        index: txSkeleton.get("outputs").size - 1,
-      });
-    });
-
-    availableCapacity =
-      "0x" +
-      (
-        BigInt(inputCell.cell_output.capacity) -
-        BigInt(acpOutput.cell_output.capacity)
-      ).toString(16);
-  }
 
   // add witness
   const firstIndex = txSkeleton.get("inputs").findIndex((input) => {
@@ -231,10 +198,7 @@ export async function setupInputCell(
     });
   }
 
-  return {
-    txSkeleton,
-    availableCapacity,
-  };
+  return txSkeleton;
 }
 
 export async function setupOutputCell(
@@ -402,11 +366,26 @@ export async function injectCapacity(
         continue;
       }
 
-      txSkeleton = (
-        await setupInputCell(txSkeleton, inputCell, undefined, {
-          config,
-        })
-      ).txSkeleton;
+      txSkeleton = await setupInputCell(txSkeleton, inputCell, undefined, {
+        config,
+      });
+      const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.remove(lastOutputIndex);
+      });
+      const fixedEntryIndex: number = txSkeleton
+        .get("fixedEntries")
+        .findIndex((fixedEntry) => {
+          return (
+            fixedEntry.field === "outputs" &&
+            fixedEntry.index === lastOutputIndex
+          );
+        });
+      if (fixedEntryIndex >= 0) {
+        txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+          return fixedEntries.remove(fixedEntryIndex);
+        });
+      }
 
       const inputCapacity = BigInt(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
@@ -638,17 +617,29 @@ export async function withdraw(
     return outputs.push(targetOutput);
   });
 
-  txSkeleton = (
-    await setupInputCell(
-      txSkeleton,
-      fromInput,
-      {
-        address: generateAddress(fromInput.cell_output.lock, { config }),
-        destroyable: true,
-      },
-      { config }
-    )
-  ).txSkeleton;
+  txSkeleton = await setupInputCell(
+    txSkeleton,
+    fromInput,
+    generateAddress(fromInput.cell_output.lock, { config }),
+    { config }
+  );
+  // remove output and fixedEntry added by `setupInputCell`
+  const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.remove(lastOutputIndex);
+  });
+  const fixedEntryIndex: number = txSkeleton
+    .get("fixedEntries")
+    .findIndex((fixedEntry) => {
+      return (
+        fixedEntry.field === "outputs" && fixedEntry.index === lastOutputIndex
+      );
+    });
+  if (fixedEntryIndex >= 0) {
+    txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+      return fixedEntries.remove(fixedEntryIndex);
+    });
+  }
 
   if (capacity !== fromInputCapacity) {
     txSkeleton = txSkeleton.update("outputs", (outputs) => {

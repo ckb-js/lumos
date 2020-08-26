@@ -106,12 +106,8 @@ export async function setupInputCell(
     defaultWitness?: HexString;
     requireMultisigScript?: boolean;
     since?: PackedSince;
-    needCapacity?: HexString;
   } = {}
-): Promise<{
-  txSkeleton: TransactionSkeletonType;
-  availableCapacity: HexString;
-}> {
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
 
   if (requireMultisigScript && typeof fromInfo !== "object") {
@@ -150,7 +146,19 @@ export async function setupInputCell(
   txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
     return witnesses.push(defaultWitness);
   });
-  const availableCapacity: HexString = inputCell.cell_output.capacity;
+
+  const outputCell: Cell = {
+    cell_output: {
+      capacity: inputCell.cell_output.capacity,
+      lock: inputCell.cell_output.lock,
+      type: inputCell.cell_output.type,
+    },
+    data: inputCell.data,
+  };
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push(outputCell);
+  });
 
   const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
   if (!template) {
@@ -239,10 +247,7 @@ export async function setupInputCell(
     }
   }
 
-  return {
-    txSkeleton,
-    availableCapacity,
-  };
+  return txSkeleton;
 }
 
 export async function transfer(
