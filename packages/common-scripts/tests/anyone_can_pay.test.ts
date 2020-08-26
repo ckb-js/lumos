@@ -9,6 +9,7 @@ import {
 import { predefined } from "@ckb-lumos/config-manager";
 import { bob, alice } from "./account_info";
 import { bobAcpCells, aliceAcpCells } from "./inputs";
+import { Cell, values } from "@ckb-lumos/base";
 const { AGGRON4 } = predefined;
 
 test("withdraw, acp to acp, all", async (t) => {
@@ -327,5 +328,45 @@ test("withdraw, acp to secp, greater than capacity - minimal", async (t) => {
     },
     null,
     "capacity must be in [0, 93900000000] or 100000000000 !"
+  );
+});
+
+test("setupInputCell", async (t) => {
+  const cellProvider = new CellProvider([...bobAcpCells, ...aliceAcpCells]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+  const inputCell: Cell = bobAcpCells[0];
+
+  txSkeleton = await anyoneCanPay.setupInputCell(
+    txSkeleton,
+    inputCell,
+    bob.testnetAddress,
+    {
+      config: AGGRON4,
+    }
+  );
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 1);
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  const input: Cell = txSkeleton.get("inputs").get(0)!;
+  const output: Cell = txSkeleton.get("outputs").get(0)!;
+
+  t.is(input.cell_output.capacity, output.cell_output.capacity);
+  t.is(input.data, output.data);
+  t.true(
+    new values.ScriptValue(input.cell_output.lock, { validate: false }).equals(
+      new values.ScriptValue(output.cell_output.lock, { validate: false })
+    )
+  );
+  t.true(
+    (!input.cell_output.type && !output.cell_output.type) ||
+      new values.ScriptValue(input.cell_output.type!, {
+        validate: false,
+      }).equals(
+        new values.ScriptValue(output.cell_output.type!, { validate: false })
+      )
   );
 });
