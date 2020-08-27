@@ -687,6 +687,16 @@ async function collectInput(
   };
 }
 
+/**
+ * A function to transfer input to output, and add input & output to txSkeleton.
+ * And it will deal with cell deps and witnesses too. (Add the input required cell deps and witnesses.)
+ * It should be noted that the output must be added to the end of txSkeleton.get("outputs").
+ *
+ * @param txSkeleton
+ * @param inputCell
+ * @param fromInfo
+ * @param options
+ */
 export async function setupInputCell(
   txSkeleton: TransactionSkeletonType,
   inputCell: Cell,
