@@ -317,4 +317,5 @@ export declare const values: {
   ScriptValue: typeof ScriptValue;
   OutPointValue: typeof OutPointValue;
   TransactionValue: typeof TransactionValue;
+  RawTransactionValue: typeof RawTransactionValue;
 };

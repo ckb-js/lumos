@@ -57,7 +57,7 @@ class RawTransactionValue extends Value {
       core.SerializeRawTransaction(
         normalizers.NormalizeRawTransaction(rawTransaction)
       ),
-      transaction
+      rawTransaction
     );
   }
 }

@@ -49,7 +49,9 @@ class TransactionManager {
   }
 
   _checkTransactions() {
-    this.transactions = this.transactions.filter((tx) => {
+    this.transactions = this.transactions.filter((transactionValue) => {
+      /* Extract tx value from TransactionValue wrapper */
+      let tx = transactionValue.value;
       /* First, remove all transactions that use already spent cells */
       for (const input of tx.inputs) {
         const opBuffer = new values.OutPointValue(input.previous_output, {
