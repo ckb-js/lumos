@@ -26,7 +26,7 @@ import keccak, { Keccak } from "keccak";
 
 const { ScriptValue } = values;
 
-// https://github.com/lay2dev/pw-lock pw-lock is a lock script which uses secp256k1_keccak256 algorithm.
+// https://github.com/lay2dev/pw-lock/commit/b447c2bb3f855e933e36212b45af4dec92adf705 pw-lock is a lock script which uses secp256k1_keccak256 algorithm.
 
 /* 65-byte zeros in hex */
 export const SIGNATURE_PLACEHOLDER =
@@ -328,7 +328,7 @@ function prepareSigningEntries(
         hashWitness(hasher, witnesses.get(j)!);
       }
       const hh = new Keccak256Hasher();
-      // This magic number is from https://github.com/lay2dev/pw-lock/blob/master/c/secp256k1_keccak256_lock.h#L523
+      // This magic number is from https://github.com/lay2dev/pw-lock/blob/b447c2bb3f855e933e36212b45af4dec92adf705/c/secp256k1_keccak256_lock.h#L523
       hh.update("0x19457468657265756d205369676e6564204d6573736167653a0a3332");
       hh.update(hasher.digestHex());
       const signingEntry = {

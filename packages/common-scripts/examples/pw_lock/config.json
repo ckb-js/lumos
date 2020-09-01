@@ -1,4 +1,5 @@
 {
+  "__COMMENT__": "It's a devnet config, different devnet has different config. Set env.LUMOS_CONFIG_FILE to this config file (or your own config file) and call `initializeConfig()`, see ./lock.ts#L349-L350 as an example.",
   "PREFIX": "ckt",
   "SCRIPTS": {
     "SECP256K1_BLAKE160": {
