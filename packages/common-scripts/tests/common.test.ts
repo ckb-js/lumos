@@ -183,7 +183,7 @@ test("lockScriptInfos", (t) => {
 
   // using LINA
   common.__tests__.generateLockScriptInfos({ config: LINA });
-  t.is(common.__tests__.getLockScriptInfos().infos.length, 2);
+  t.is(common.__tests__.getLockScriptInfos().infos.length, 3);
   t.not(common.__tests__.getLockScriptInfos().configHashCode, configCodeHash);
 });
 
