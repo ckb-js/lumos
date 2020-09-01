@@ -32,6 +32,24 @@ const LINA = deepFreeze({
       INDEX: "0x2",
       DEP_TYPE: "code",
     },
+    SUDT: {
+      CODE_HASH:
+        "0x5e7a36a77e68eecc013dfa2fe6a23f3b6c344b04005808694ae6dd45eea4cfd5",
+      HASH_TYPE: "type",
+      TX_HASH:
+        "0xc7813f6a415144643970c2e88e0bb6ca6a8edc5dd7c1022746f628284a9936d5",
+      INDEX: "0x0",
+      DEP_TYPE: "code",
+    },
+    ANYONE_CAN_PAY: {
+      CODE_HASH:
+        "0x0fb343953ee78c9986b091defb6252154e0bb51044fd2879fde5b27314506111",
+      HASH_TYPE: "data",
+      TX_HASH:
+        "0xa05f28c9b867f8c5682039c10d8e864cf661685252aa74a008d255c33813bb81",
+      INDEX: "0x0",
+      DEP_TYPE: "dep_group",
+    },
   },
 });
 
