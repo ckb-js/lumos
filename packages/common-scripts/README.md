@@ -8,6 +8,8 @@ Common script implementation for lumos. Includes `secp256k1_blake2b` lock script
 
 ## Usage
 
+`common` script support new lock scripts provided by user, and [`pw-lock`](./examples/pw_lock/lock.ts) shows how to do it.
+
 Following script will show how to use `common` script to transfer capacity to another address. `secp256k1_blake160`, `secp256k1_blake160_multisig` and `locktime_pool` script are similar to `common`, and `common` maybe a better choose.
 
 ```javascript

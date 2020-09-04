@@ -7,7 +7,7 @@ import {
   TransactionSkeleton,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { Cell, Transaction } from "@ckb-lumos/base";
+import { Cell, Transaction, values } from "@ckb-lumos/base";
 import { FromInfo, anyoneCanPay } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4, LINA } = predefined;
@@ -519,6 +519,47 @@ test("Don't update capacity directly when deduct", async (t) => {
   t.true(errFlag);
   t.deepEqual(inputCapacitiesBefore, inputCapacitiesAfter);
   t.deepEqual(outputCapacitiesBefore, outputCapacitiesAfter);
+});
+
+test("setupInputCell secp", async (t) => {
+  const cellProvider = new CellProvider([...bobSecpInputs]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const inputCell: Cell = bobSecpInputs[0];
+
+  txSkeleton = await common.setupInputCell(
+    txSkeleton,
+    inputCell,
+    bob.testnetAddress,
+    {
+      config: AGGRON4,
+    }
+  );
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 1);
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  const input: Cell = txSkeleton.get("inputs").get(0)!;
+  const output: Cell = txSkeleton.get("outputs").get(0)!;
+
+  t.is(input.cell_output.capacity, output.cell_output.capacity);
+  t.is(input.data, output.data);
+  t.true(
+    new values.ScriptValue(input.cell_output.lock, { validate: false }).equals(
+      new values.ScriptValue(output.cell_output.lock, { validate: false })
+    )
+  );
+  t.true(
+    (!input.cell_output.type && !output.cell_output.type) ||
+      new values.ScriptValue(input.cell_output.type!, {
+        validate: false,
+      }).equals(
+        new values.ScriptValue(output.cell_output.type!, { validate: false })
+      )
+  );
 });
 
 const testTx: Transaction = {

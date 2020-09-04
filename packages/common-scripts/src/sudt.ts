@@ -11,7 +11,7 @@ import {
 } from "@ckb-lumos/base";
 const { toBigUInt128LE, readBigUInt128LE, computeScriptHash } = utils;
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
-import { FromInfo, parseFromInfo, ACP } from "./from_info";
+import { FromInfo, parseFromInfo } from "./from_info";
 import common from "./common";
 import {
   parseAddress,
@@ -439,26 +439,33 @@ export async function transfer(
       previousInputs = previousInputs.add(key);
 
       const fromInfo = fromInfos[index];
-      txSkeleton = (
-        await common.setupInputCell(
-          txSkeleton,
-          inputCell,
-          isAnyoneCanPay
-            ? typeof fromInfo === "string"
-              ? {
-                  address: fromInfo,
-                  destroyable: true,
-                }
-              : {
-                  address: (fromInfo as ACP).address,
-                  destroyable: true,
-                }
-            : fromInfo,
-          {
-            config,
-          }
-        )
-      ).txSkeleton;
+      txSkeleton = await common.setupInputCell(
+        txSkeleton,
+        inputCell,
+        fromInfo,
+        {
+          config,
+        }
+      );
+      // remove output which added by `setupInputCell`
+      const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.remove(lastOutputIndex);
+      });
+      // remove output fixedEntry
+      const fixedEntryIndex: number = txSkeleton
+        .get("fixedEntries")
+        .findIndex((fixedEntry) => {
+          return (
+            fixedEntry.field === "outputs" &&
+            fixedEntry.index === lastOutputIndex
+          );
+        });
+      if (fixedEntryIndex >= 0) {
+        txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+          return fixedEntries.remove(fixedEntryIndex);
+        });
+      }
 
       const inputCapacity: bigint = BigInt(inputCell.cell_output.capacity);
       const inputAmount: bigint = inputCell.cell_output.type

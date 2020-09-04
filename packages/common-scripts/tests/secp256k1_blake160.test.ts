@@ -6,9 +6,10 @@ import {
 } from "@ckb-lumos/helpers";
 import { secp256k1Blake160 } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
-const { LINA } = predefined;
+const { LINA, AGGRON4 } = predefined;
 import { bob, alice, fullAddressInfo } from "./account_info";
 import { inputs } from "./secp256k1_blake160_inputs";
+import { Cell, values } from "@ckb-lumos/base";
 
 const cellProvider = new CellProvider(inputs);
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
@@ -174,5 +175,44 @@ test("transfer, skip duplicated input", async (t) => {
   t.notDeepEqual(
     txSkeleton.get("inputs").get(0)!.out_point,
     txSkeleton.get("inputs").get(1)!.out_point
+  );
+});
+
+test("setupInputCell", async (t) => {
+  const inputCell: Cell = inputs[0];
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  txSkeleton = await secp256k1Blake160.setupInputCell(
+    txSkeleton,
+    inputCell,
+    undefined,
+    {
+      config: AGGRON4,
+    }
+  );
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 1);
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  const input: Cell = txSkeleton.get("inputs").get(0)!;
+  const output: Cell = txSkeleton.get("outputs").get(0)!;
+
+  t.is(input.cell_output.capacity, output.cell_output.capacity);
+  t.is(input.data, output.data);
+  t.true(
+    new values.ScriptValue(input.cell_output.lock, { validate: false }).equals(
+      new values.ScriptValue(output.cell_output.lock, { validate: false })
+    )
+  );
+  t.true(
+    (!input.cell_output.type && !output.cell_output.type) ||
+      new values.ScriptValue(input.cell_output.type!, {
+        validate: false,
+      }).equals(
+        new values.ScriptValue(output.cell_output.type!, { validate: false })
+      )
   );
 });
