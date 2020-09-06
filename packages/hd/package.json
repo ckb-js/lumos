@@ -30,6 +30,7 @@
     "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
+    "@ckb-lumos/base": "^0.11.0-rc2"
   },
   "repository": {
     "type": "git",
