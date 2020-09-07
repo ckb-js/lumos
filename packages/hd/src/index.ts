@@ -4,7 +4,7 @@ import Keystore, {
   InvalidKeystore,
   HexStringWithoutPrefix,
 } from "./keystore";
-import Keychain, { privateToPublic } from "./keychain";
+import Keychain from "./keychain";
 import {
   AddressType,
   ExtendedPublicKey,
@@ -30,7 +30,6 @@ export {
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
   AccountExtendedPrivateKey,
-  privateToPublic,
   PrivateKeyInfo,
   PublicKeyInfo,
   key,
@@ -48,6 +47,5 @@ export default {
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
   AccountExtendedPrivateKey,
-  privateToPublic,
   key,
 };

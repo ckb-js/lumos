@@ -1,4 +1,5 @@
-import Keychain, { privateToPublic } from "./keychain";
+import Keychain from "./keychain";
+import { privateToPublic } from "./key";
 import { utils, HexString } from "@ckb-lumos/base";
 
 export enum AddressType {
@@ -106,11 +107,7 @@ export class ExtendedPrivateKey {
   }
 
   toExtendedPublicKey(): ExtendedPublicKey {
-    const publicKey: HexString =
-      "0x" +
-      privateToPublic(Buffer.from(this.privateKey.slice(2), "hex")).toString(
-        "hex"
-      );
+    const publicKey: HexString = privateToPublic(this.privateKey);
     return new ExtendedPublicKey(publicKey, this.chainCode);
   }
 

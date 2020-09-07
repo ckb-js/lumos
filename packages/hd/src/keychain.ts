@@ -1,19 +1,9 @@
 import crypto from "crypto";
 import { ec as EC } from "elliptic";
 import BN from "bn.js";
+import { privateToPublic } from "./key";
 
 const ec = new EC("secp256k1");
-
-export function privateToPublic(privateKey: Buffer): Buffer {
-  if (privateKey.length !== 32) {
-    throw new Error("Private key must be 32 bytes");
-  }
-
-  return Buffer.from(
-    ec.keyFromPrivate(privateKey).getPublic(true, "hex") as string,
-    "hex"
-  );
-}
 
 const EMPTY_BUFFER = Buffer.from("");
 

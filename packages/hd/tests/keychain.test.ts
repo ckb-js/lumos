@@ -1,5 +1,5 @@
 import test from "ava";
-import { Keychain, privateToPublic } from "../src";
+import { Keychain } from "../src";
 
 // https://en.bitcoin.it/wiki/BIP_0032_TestVectors
 const shortSeed = Buffer.from("000102030405060708090a0b0c0d0e0f", "hex");
@@ -371,38 +371,4 @@ test("public key add", (t) => {
     sum.toString("hex"),
     "03db6eab66f918e434bae0e24fd73de1a2b293a2af9bd3ad53123996fa94494f37"
   );
-});
-
-test("privateToPublic, derive public key from private key", (t) => {
-  const privateKey = Buffer.from(
-    "bb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
-    "hex"
-  );
-  const publicKey = Buffer.from(
-    "03e5b310636a0f6e7dcdfffa98f28d7ed70df858bb47acf13db830bfde3510b3f3",
-    "hex"
-  );
-  t.deepEqual(privateToPublic(privateKey), publicKey);
-});
-
-test("privateToPublic, derive public key from private key wrong length", (t) => {
-  t.throws(() => {
-    privateToPublic(Buffer.from(""));
-  });
-  t.throws(() => {
-    privateToPublic(
-      Buffer.from(
-        "39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
-        "hex"
-      )
-    );
-  });
-  t.throws(() => {
-    privateToPublic(
-      Buffer.from(
-        "0xbb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
-        "hex"
-      )
-    );
-  });
 });

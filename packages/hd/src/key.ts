@@ -44,7 +44,30 @@ export function recoverFromSignature(
   return publicKey;
 }
 
+export function privateToPublic(privateKey: Buffer): Buffer;
+export function privateToPublic(privateKey: HexString): HexString;
+
+export function privateToPublic(
+  privateKey: Buffer | HexString
+): Buffer | HexString {
+  let pkBuffer = privateKey;
+  if (typeof privateKey === "string") {
+    utils.assertHexString("privateKey", privateKey);
+    pkBuffer = Buffer.from(privateKey.slice(2), "hex");
+  }
+  if (pkBuffer.length !== 32) {
+    throw new Error("Private key must be 32 bytes!");
+  }
+
+  const publickey = ec.keyFromPrivate(pkBuffer).getPublic(true, "hex");
+  if (typeof privateKey === "string") {
+    return "0x" + publickey;
+  }
+  return Buffer.from(publickey, "hex");
+}
+
 export default {
   signRecoverable,
   recoverFromSignature,
+  privateToPublic,
 };

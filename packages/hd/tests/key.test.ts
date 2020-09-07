@@ -23,3 +23,45 @@ test("recoverFromMessage", (t) => {
   );
   t.is(publicKey, signInfo.publicKey);
 });
+
+test("privateToPublic, derive public key from private key, Buffer", (t) => {
+  const privateKey = Buffer.from(
+    "bb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
+    "hex"
+  );
+  const publicKey = Buffer.from(
+    "03e5b310636a0f6e7dcdfffa98f28d7ed70df858bb47acf13db830bfde3510b3f3",
+    "hex"
+  );
+  t.deepEqual(key.privateToPublic(privateKey), publicKey);
+});
+
+test("privateToPublic, derive public key from private key, HexString", (t) => {
+  const privateKey =
+    "0xbb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016";
+  const publicKey =
+    "0x03e5b310636a0f6e7dcdfffa98f28d7ed70df858bb47acf13db830bfde3510b3f3";
+  t.deepEqual(key.privateToPublic(privateKey), publicKey);
+});
+
+test("privateToPublic, derive public key from private key wrong length", (t) => {
+  t.throws(() => {
+    key.privateToPublic(Buffer.from(""));
+  });
+  t.throws(() => {
+    key.privateToPublic(
+      Buffer.from(
+        "39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
+        "hex"
+      )
+    );
+  });
+  t.throws(() => {
+    key.privateToPublic(
+      Buffer.from(
+        "0xbb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
+        "hex"
+      )
+    );
+  });
+});
