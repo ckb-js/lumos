@@ -5,6 +5,7 @@ import {
   mnemonicToSeed,
   mnemonicToSeedSync,
   validateMnemonic,
+  generateMnemonic,
 } from "../../src/mnemonic/index";
 
 const fixtures = require("./fixtures.json");
@@ -45,4 +46,9 @@ test("generate seed", async (t) => {
       }
     )
   );
+});
+
+test("generate mnemonic 12 words code", (t) => {
+  const mnemonic = generateMnemonic();
+  t.is(mnemonic.split(" ").length, 12);
 });

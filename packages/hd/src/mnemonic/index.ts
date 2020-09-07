@@ -169,10 +169,19 @@ export function validateMnemonic(mnemonic: string): boolean {
   return true;
 }
 
+// Generate 12 words mnemonic code
+export function generateMnemonic(): string {
+  const entropySize = 16;
+  const entropy: HexString =
+    "0x" + crypto.randomBytes(entropySize).toString("hex");
+  return entropyToMnemonic(entropy);
+}
+
 export default {
   entropyToMnemonic,
   mnemonicToEntropy,
   mnemonicToSeed,
   mnemonicToSeedSync,
   validateMnemonic,
+  generateMnemonic,
 };

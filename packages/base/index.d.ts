@@ -176,6 +176,8 @@ export declare const utils: {
   computeScriptHash(script: Script, options?: { validate?: boolean }): Hash;
 
   hashCode(buffer: Buffer): number;
+
+  assertHexString(debugPath: string, str: string): void
 };
 
 export interface EpochSinceValue {
