@@ -30,9 +30,9 @@
     "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
+    "@ckb-lumos/base": "^0.11.0-rc2",
     "@ckb-lumos/config-manager": "^0.11.0-rc2",
     "@ckb-lumos/helpers": "^0.11.0-rc2",
-    "@ckb-lumos/base": "^0.11.0-rc2",
     "ckb-js-toolkit": "^0.9.1",
     "immutable": "^4.0.0-rc.12"
   },
@@ -41,8 +41,8 @@
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
-    "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "ava **/*.test.ts",
     "build": "tsc",
     "clean": "rm -rf lib",
@@ -59,5 +59,9 @@
     "require": [
       "ts-node/register"
     ]
+  },
+  "devDependencies": {
+    "@types/keccak": "^3.0.1",
+    "keccak": "^3.0.1"
   }
 }

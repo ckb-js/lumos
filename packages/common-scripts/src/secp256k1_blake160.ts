@@ -89,12 +89,8 @@ export async function setupInputCell(
   }: Options & {
     defaultWitness?: HexString;
     since?: PackedSince;
-    needCapacity?: HexString;
   } = {}
-): Promise<{
-  txSkeleton: TransactionSkeletonType;
-  availableCapacity: HexString;
-}> {
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
 
   const fromScript = inputCell.cell_output.lock;
@@ -107,6 +103,19 @@ export async function setupInputCell(
     return inputs.push(inputCell);
   });
 
+  const output: Cell = {
+    cell_output: {
+      capacity: inputCell.cell_output.capacity,
+      lock: inputCell.cell_output.lock,
+      type: inputCell.cell_output.type,
+    },
+    data: inputCell.data,
+  };
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push(output);
+  });
+
   if (since) {
     txSkeleton = txSkeleton.update("inputSinces", (inputSinces) => {
       return inputSinces.set(txSkeleton.get("inputs").size - 1, since);
@@ -116,7 +125,6 @@ export async function setupInputCell(
   txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
     return witnesses.push(defaultWitness);
   });
-  const availableCapacity: HexString = inputCell.cell_output.capacity;
 
   const template = config.SCRIPTS.SECP256K1_BLAKE160;
   if (!template) {
@@ -192,10 +200,7 @@ export async function setupInputCell(
     );
   }
 
-  return {
-    txSkeleton,
-    availableCapacity,
-  };
+  return txSkeleton;
 }
 
 export async function transfer(

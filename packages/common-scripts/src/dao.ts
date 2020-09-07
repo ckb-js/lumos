@@ -228,37 +228,33 @@ async function withdraw(
     throw new Error("fromInput is not a DAO deposit cell.");
   }
 
-  txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.push({
-      cell_output: {
-        capacity: fromInput.cell_output.capacity,
-        lock: fromInput.cell_output.lock,
-        type: fromInput.cell_output.type,
-      },
-      data: toBigUInt64LE(BigInt(fromInput.block_number!)),
-      out_point: undefined,
-      block_hash: undefined,
-    });
-  });
-
   // setup input cell
   const fromLockScript = fromInput.cell_output.lock;
   if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = (
-      await secp256k1Blake160.setupInputCell(txSkeleton, fromInput, undefined, {
+    txSkeleton = await secp256k1Blake160.setupInputCell(
+      txSkeleton,
+      fromInput,
+      undefined,
+      {
         config,
-      })
-    ).txSkeleton;
+      }
+    );
   } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
-    txSkeleton = (
-      await secp256k1Blake160Multisig.setupInputCell(
-        txSkeleton,
-        fromInput,
-        fromInfo || generateAddress(fromLockScript, { config }),
-        { config }
-      )
-    ).txSkeleton;
+    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      fromInput,
+      fromInfo || generateAddress(fromLockScript, { config }),
+      { config }
+    );
   }
+
+  const targetOutputIndex: number = txSkeleton.get("outputs").size - 1;
+  const targetOutput: Cell = txSkeleton.get("outputs").get(targetOutputIndex)!;
+  const clonedTargetOutput: Cell = JSON.parse(JSON.stringify(targetOutput));
+  clonedTargetOutput.data = toBigUInt64LE(BigInt(fromInput.block_number!));
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.update(targetOutputIndex, () => clonedTargetOutput);
+  });
 
   // add header deps
   txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
@@ -417,24 +413,25 @@ export async function unlock(
   // setup input cell
   const fromLockScript = withdrawInput.cell_output.lock;
   if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = (
-      await secp256k1Blake160.setupInputCell(
-        txSkeleton,
-        withdrawInput,
-        undefined,
-        { config, since }
-      )
-    ).txSkeleton;
+    txSkeleton = await secp256k1Blake160.setupInputCell(
+      txSkeleton,
+      withdrawInput,
+      undefined,
+      { config, since }
+    );
   } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
-    txSkeleton = (
-      await secp256k1Blake160Multisig.setupInputCell(
-        txSkeleton,
-        withdrawInput,
-        fromInfo || generateAddress(fromLockScript, { config }),
-        { config, since }
-      )
-    ).txSkeleton;
+    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      withdrawInput,
+      fromInfo || generateAddress(fromLockScript, { config }),
+      { config, since }
+    );
   }
+
+  const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.remove(lastOutputIndex);
+  });
 
   while (txSkeleton.get("witnesses").size < txSkeleton.get("inputs").size - 1) {
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
