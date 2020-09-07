@@ -130,7 +130,7 @@ export interface PrivateKeyInfo {
 }
 
 export class AccountExtendedPrivateKey extends ExtendedPrivateKey {
-  static parse(serialized: HexString): ExtendedPrivateKey {
+  static parse(serialized: HexString): AccountExtendedPrivateKey {
     utils.assertHexString("serialized", serialized);
     return new AccountExtendedPrivateKey(
       serialized.slice(66),
