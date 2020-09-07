@@ -131,7 +131,9 @@ export default class Keystore {
       throw new UnsupportedCipher();
     }
     const ciphertext: Buffer = Buffer.concat([
-      cipher.update(Buffer.from(extendedPrivateKey.serialize().slice(2), "hex")),
+      cipher.update(
+        Buffer.from(extendedPrivateKey.serialize().slice(2), "hex")
+      ),
       cipher.final(),
     ]);
 

@@ -10,6 +10,9 @@ import {
   ExtendedPublicKey,
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
+  AccountExtendedPrivateKey,
+  PrivateKeyInfo,
+  PublicKeyInfo,
 } from "./extended_key";
 import mnemonic from "./mnemonic";
 
@@ -25,7 +28,10 @@ export {
   ExtendedPublicKey,
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
+  AccountExtendedPrivateKey,
   privateToPublic,
+  PrivateKeyInfo,
+  PublicKeyInfo,
 };
 
 export default {
@@ -39,5 +45,6 @@ export default {
   ExtendedPublicKey,
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
+  AccountExtendedPrivateKey,
   privateToPublic,
 };

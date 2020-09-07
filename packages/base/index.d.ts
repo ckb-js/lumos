@@ -177,7 +177,7 @@ export declare const utils: {
 
   hashCode(buffer: Buffer): number;
 
-  assertHexString(debugPath: string, str: string): void
+  assertHexString(debugPath: string, str: string): void;
 };
 
 export interface EpochSinceValue {

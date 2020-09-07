@@ -95,5 +95,5 @@ test("empty keystore won't verify password", (t) => {
 
 test("empty keystore cannot decrypt", (t) => {
   const err = t.throws(() => emptyKeystore.decrypt(""));
-  t.true(err instanceof IncorrectPassword)
+  t.true(err instanceof IncorrectPassword);
 });

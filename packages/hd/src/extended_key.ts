@@ -122,3 +122,52 @@ export class ExtendedPrivateKey {
     );
   }
 }
+
+export interface PrivateKeyInfo {
+  privateKey: HexString;
+  publicKey: HexString;
+  path: string;
+}
+
+export class AccountExtendedPrivateKey extends ExtendedPrivateKey {
+  static parse(serialized: HexString): ExtendedPrivateKey {
+    utils.assertHexString("serialized", serialized);
+    return new AccountExtendedPrivateKey(
+      serialized.slice(66),
+      "0x" + serialized.slice(66)
+    );
+  }
+
+  static fromSeed(seed: Buffer): AccountExtendedPrivateKey {
+    const keychain = Keychain.fromSeed(seed);
+    return new AccountExtendedPrivateKey(
+      "0x" + keychain.privateKey.toString("hex"),
+      "0x" + keychain.chainCode.toString("hex")
+    );
+  }
+
+  privateKeyInfo(type: AddressType, index: number): PrivateKeyInfo {
+    const path = AccountExtendedPublicKey.pathFor(type, index);
+    return this.privateKeyInfoByPath(path);
+  }
+
+  privateKeyInfoByPath(path: string): PrivateKeyInfo {
+    const keychain = new Keychain(
+      Buffer.from(this.privateKey.slice(2), "hex"),
+      Buffer.from(this.chainCode.slice(2), "hex")
+    ).derivePath(path);
+
+    return this.privateKeyInfoFromKeychain(keychain, path);
+  }
+
+  private privateKeyInfoFromKeychain(
+    keychain: Keychain,
+    path: string
+  ): PrivateKeyInfo {
+    return {
+      privateKey: "0x" + keychain.privateKey.toString("hex"),
+      publicKey: "0x" + keychain.publicKey.toString("hex"),
+      path: path,
+    };
+  }
+}

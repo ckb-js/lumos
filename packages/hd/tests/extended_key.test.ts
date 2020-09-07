@@ -4,7 +4,10 @@ import {
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
   AddressType,
+  AccountExtendedPrivateKey,
 } from "../src";
+import { mnemonicToSeedSync } from "../src/mnemonic";
+import { PrivateKeyInfo } from "../src/extended_key";
 
 const fixture = {
   privateKey:
@@ -80,4 +83,60 @@ test("ExtendedPrivateKey, derivate extended public key", (t) => {
   ).toExtendedPublicKey();
   t.is(extendedKey.publicKey, fixture.publicKey);
   t.is(extendedKey.chainCode, fixture.chainCode);
+});
+
+const mnemonic =
+  "tank planet champion pottery together intact quick police asset flower sudden question";
+const receivingKeyInfo: PrivateKeyInfo = {
+  privateKey:
+    "0x848422863825f69e66dc7f48a3302459ec845395370c23578817456ad6b04b14",
+  publicKey:
+    "0x034dc074f2663d73aedd36f5fc2d1a1e4ec846a4dffa62d8d8bae8a4d6fffdf2b0",
+  path: `m/44'/309'/0'/0/0`,
+};
+
+const changeKeyInfo: PrivateKeyInfo = {
+  privateKey:
+    "0x15ec3e9ba7024557a116f37f08a99ee7769882c2cb4cfabeced1662394279747",
+  publicKey:
+    "0x03f3600eb8f2bd7675fd7763dbe3fc36a1103e45b46629860a88a374bcf015df03",
+  path: `m/44'/309'/0'/1/0`,
+};
+
+test("AccountExtendedPrivateKey#privateKeyInfoByPath", (t) => {
+  const seed = mnemonicToSeedSync(mnemonic);
+  const extendedKey = AccountExtendedPrivateKey.fromSeed(seed);
+  const receivingPrivateKeyInfo = extendedKey.privateKeyInfoByPath(
+    receivingKeyInfo.path
+  );
+  t.is(receivingPrivateKeyInfo.privateKey, receivingKeyInfo.privateKey);
+  t.is(receivingPrivateKeyInfo.publicKey, receivingKeyInfo.publicKey);
+  t.is(receivingPrivateKeyInfo.path, receivingKeyInfo.path);
+
+  const changePrivateKeyInfo = extendedKey.privateKeyInfoByPath(
+    changeKeyInfo.path
+  );
+  t.is(changePrivateKeyInfo.privateKey, changeKeyInfo.privateKey);
+  t.is(changePrivateKeyInfo.publicKey, changeKeyInfo.publicKey);
+  t.is(changePrivateKeyInfo.path, changeKeyInfo.path);
+});
+
+test("AccountExtendedPrivateKey#privateKeyInfo", (t) => {
+  const seed = mnemonicToSeedSync(mnemonic);
+  const extendedKey = AccountExtendedPrivateKey.fromSeed(seed);
+  const receivingPrivateKeyInfo = extendedKey.privateKeyInfo(
+    AddressType.Receiving,
+    0
+  );
+  t.is(receivingPrivateKeyInfo.privateKey, receivingKeyInfo.privateKey);
+  t.is(receivingPrivateKeyInfo.publicKey, receivingKeyInfo.publicKey);
+  t.is(receivingPrivateKeyInfo.path, receivingKeyInfo.path);
+
+  const changePrivateKeyInfo = extendedKey.privateKeyInfo(
+    AddressType.Change,
+    0
+  );
+  t.is(changePrivateKeyInfo.privateKey, changeKeyInfo.privateKey);
+  t.is(changePrivateKeyInfo.publicKey, changeKeyInfo.publicKey);
+  t.is(changePrivateKeyInfo.path, changeKeyInfo.path);
 });
