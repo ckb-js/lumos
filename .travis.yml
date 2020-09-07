@@ -40,6 +40,7 @@ install:
 script:
   - yarn workspace @ckb-lumos/helpers build
   - yarn workspace @ckb-lumos/common-scripts build
+  - yarn workspace @ckb-lumos/hd build
   - yarn workspaces run test
   - yarn workspaces run fmt
   - yarn workspaces run lint
