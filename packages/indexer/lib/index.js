@@ -195,6 +195,9 @@ class CellCollector {
     if (type && typeof type === "object") {
       validators.ValidateScript(type);
     }
+    if (order !== "asc" && order != "desc") {
+      throw new Error("Order must be either asc or desc");
+    }
     this.indexer = indexer;
     this.lock = lock;
     this.type = type;
@@ -251,7 +254,7 @@ class CellCollector {
     } else {
       outPoints = typeOutPoints;
     }
-    if (this.order === "Desc") {
+    if (this.order === "desc") {
       return outPoints.reverse();
     } else {
       return outPoints;
@@ -336,6 +339,10 @@ class TransactionCollector {
       this.type = type;
     }
 
+    if (order !== "asc" && order != "desc") {
+      throw new Error("Order must be either asc or desc");
+    }
+
     this.indexer = indexer;
     this.skipMissing = skipMissing;
     this.includeStatus = includeStatus;
@@ -390,7 +397,7 @@ class TransactionCollector {
     } else {
       hashes = typeHashes;
     }
-    if (this.order === "Desc") {
+    if (this.order === "desc") {
       return hashes.reverse();
     } else {
       return hashes;

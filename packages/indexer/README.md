@@ -117,7 +117,7 @@ cellCollector = new CellCollector(indexer, {
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  order: "Desc", // default option is "Asc"
+  order: "desc", // default option is "asc"
 });
 
 for await (const cell of cellCollector.collect()) {
@@ -220,7 +220,7 @@ txCollector = new TransactionCollector(indexer, {
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  order: "Desc", // default option is "Asc"
+  order: "desc", // default option is "asc"
 });
 
 for await (const tx of txCollector.collect()) {
