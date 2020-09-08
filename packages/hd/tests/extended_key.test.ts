@@ -76,6 +76,17 @@ test("ExtendedPrivateKey, serialize and parse", (t) => {
   t.is(parsed.chainCode, fixture.chainCode);
 });
 
+test("AccountExtendedPrivateKey, serialize and parse", (t) => {
+  const extendedKey = new AccountExtendedPrivateKey(
+    fixture.privateKey,
+    fixture.chainCode
+  );
+  const serialized = extendedKey.serialize();
+  const parsed = AccountExtendedPrivateKey.parse(serialized);
+  t.is(parsed.privateKey, fixture.privateKey);
+  t.is(parsed.chainCode, fixture.chainCode);
+});
+
 test("ExtendedPrivateKey, derivate extended public key", (t) => {
   const extendedKey = new ExtendedPrivateKey(
     fixture.privateKey,
@@ -83,6 +94,16 @@ test("ExtendedPrivateKey, derivate extended public key", (t) => {
   ).toExtendedPublicKey();
   t.is(extendedKey.publicKey, fixture.publicKey);
   t.is(extendedKey.chainCode, fixture.chainCode);
+});
+
+test("AccountExtendedPrivateKey, derivate extended public key", (t) => {
+  const extendedKey = new AccountExtendedPrivateKey(
+    fixture.privateKey,
+    fixture.chainCode
+  ).toExtendedPublicKey();
+  t.is(extendedKey.publicKey, fixture.publicKey);
+  t.is(extendedKey.chainCode, fixture.chainCode);
+  t.true(extendedKey instanceof AccountExtendedPublicKey);
 });
 
 const mnemonic =
