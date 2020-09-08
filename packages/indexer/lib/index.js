@@ -183,6 +183,7 @@ class CellCollector {
       fromBlock = null,
       toBlock = null,
       skip = null,
+      order = "Asc",
     } = {}
   ) {
     if (!lock && typeof type !== "object") {
@@ -202,6 +203,7 @@ class CellCollector {
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
     this.skip = skip;
+    this.order = order;
   }
 
   getLiveCellOutPoints() {
@@ -249,7 +251,11 @@ class CellCollector {
     } else {
       outPoints = typeOutPoints;
     }
-    return outPoints;
+    if (this.order === "Desc") {
+      return outPoints.reverse();
+    } else {
+      return outPoints;
+    }
   }
 
   wrapOutPoints(outPoints) {
@@ -306,6 +312,7 @@ class TransactionCollector {
       fromBlock = null,
       toBlock = null,
       skip = null,
+      order = "Asc",
     } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
@@ -335,6 +342,7 @@ class TransactionCollector {
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
     this.skip = skip;
+    this.order = order;
     this.rpc = new RPC(indexer.uri);
   }
 
@@ -382,7 +390,11 @@ class TransactionCollector {
     } else {
       hashes = typeHashes;
     }
-    return hashes;
+    if (this.order === "Desc") {
+      return hashes.reverse();
+    } else {
+      return hashes;
+    }
   }
 
   async count() {

@@ -81,8 +81,8 @@ cellCollector = new CellCollector(indexer, {
   toBlock: 2252000,
 });
 
-for await (const tx of cellCollector.collect()) {
-  console.log(tx);
+for await (const cell of cellCollector.collect()) {
+  console.log(cell);
 }
 ```
 It will fetch cells between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
@@ -106,6 +106,24 @@ for await (const tx of cellCollector.collect()) {
 ```
 
 The `skip` field represents the number of cells being skipped, which in the above code snippet means it would skip the first 100 cells and return from the 101st one.
+
+Order by block number is supported:
+
+```javascript
+cellCollector = new CellCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+  order: "Desc", // default option is "Asc"
+});
+
+for await (const cell of cellCollector.collect()) {
+  console.log(cell);
+}
+```
 
 ### TransactionCollector 
 
@@ -191,6 +209,24 @@ for await (const tx of txCollector.collect()) {
 ```
 
 The `skip` field represents the number of transactions being skipped, which in the above code snippet means it would skip the first 100 transactions and return from the 101st one.
+
+Order by block number is supported:
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+  order: "Desc", // default option is "Asc"
+});
+
+for await (const tx of txCollector.collect()) {
+  console.log(tx);
+}
+```
 
 ### EventEmitter
 
