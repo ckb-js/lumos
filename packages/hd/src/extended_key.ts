@@ -132,6 +132,11 @@ export class AccountExtendedPrivateKey extends ExtendedPrivateKey {
     );
   }
 
+  toExtendedPublicKey(): AccountExtendedPublicKey {
+    const publicKey: HexString = privateToPublic(this.privateKey);
+    return new AccountExtendedPublicKey(publicKey, this.chainCode);
+  }
+
   static fromSeed(seed: Buffer): AccountExtendedPrivateKey {
     const keychain = Keychain.fromSeed(seed);
     return new AccountExtendedPrivateKey(
