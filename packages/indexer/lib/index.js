@@ -195,7 +195,7 @@ class CellCollector {
     if (type && typeof type === "object") {
       validators.ValidateScript(type);
     }
-    if (order !== "asc" && order != "desc") {
+    if (order !== "asc" && order !== "desc") {
       throw new Error("Order must be either asc or desc");
     }
     this.indexer = indexer;
@@ -339,7 +339,7 @@ class TransactionCollector {
       this.type = type;
     }
 
-    if (order !== "asc" && order != "desc") {
+    if (order !== "asc" && order !== "desc") {
       throw new Error("Order must be either asc or desc");
     }
 
