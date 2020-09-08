@@ -1,9 +1,12 @@
 import crypto from "crypto";
 import { Keccak } from "sha3";
 import { v4 as uuid } from "uuid";
+import fs from "fs";
+import Path from "path";
 
 import { ExtendedPrivateKey } from "./extended_key";
 import { HexString } from "@ckb-lumos/base";
+import { AccountExtendedPrivateKey } from ".";
 
 export type HexStringWithoutPrefix = string;
 
@@ -69,6 +72,44 @@ export default class Keystore {
     } catch {
       throw new InvalidKeystore();
     }
+  }
+
+  /**
+   * Load keystore file from path.
+   *
+   * @param path
+   */
+  static load(path: string): Keystore {
+    const json = fs.readFileSync(path, "utf-8");
+    return this.fromJson(json);
+  }
+
+  /**
+   * Keystore file default name is `${id}.json`.
+   *
+   * @param dir
+   * @param options If you are sure to overwrite existing keystore file, set `overwrite` to true.
+   */
+  save(
+    dir: string,
+    {
+      name = this.filename(),
+      overwrite = false,
+    }: { name?: string; overwrite?: boolean } = {}
+  ): void {
+    const path: string = Path.join(dir, name);
+    if (!overwrite && fs.existsSync(path)) {
+      throw new Error("Keystore file already exists!");
+    }
+    fs.writeFileSync(path, this.toJson());
+  }
+
+  private filename(): string {
+    return this.id + ".json";
+  }
+
+  toJson(): string {
+    return JSON.stringify(this);
   }
 
   isFromCkbCli(): boolean {
@@ -177,8 +218,8 @@ export default class Keystore {
     );
   }
 
-  extendedPrivateKey(password: string): ExtendedPrivateKey {
-    return ExtendedPrivateKey.parse(this.decrypt(password));
+  extendedPrivateKey(password: string): AccountExtendedPrivateKey {
+    return AccountExtendedPrivateKey.parse(this.decrypt(password));
   }
 
   checkPassword(password: string): boolean {

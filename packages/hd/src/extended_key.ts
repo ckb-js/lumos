@@ -127,7 +127,7 @@ export class AccountExtendedPrivateKey extends ExtendedPrivateKey {
   static parse(serialized: HexString): AccountExtendedPrivateKey {
     utils.assertHexString("serialized", serialized);
     return new AccountExtendedPrivateKey(
-      serialized.slice(66),
+      serialized.slice(0, 66),
       "0x" + serialized.slice(66)
     );
   }
