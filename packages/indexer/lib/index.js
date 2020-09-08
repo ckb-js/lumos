@@ -183,7 +183,7 @@ class CellCollector {
       fromBlock = null,
       toBlock = null,
       skip = null,
-      order = "Asc",
+      order = "asc",
     } = {}
   ) {
     if (!lock && typeof type !== "object") {
@@ -315,7 +315,7 @@ class TransactionCollector {
       fromBlock = null,
       toBlock = null,
       skip = null,
-      order = "Asc",
+      order = "asc",
     } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
