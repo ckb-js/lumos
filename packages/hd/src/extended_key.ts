@@ -1,5 +1,5 @@
 import Keychain from "./keychain";
-import { privateToPublic } from "./key";
+import key, { privateToPublic } from "./key";
 import { utils, HexString } from "@ckb-lumos/base";
 
 export enum AddressType {
@@ -54,10 +54,7 @@ export class AccountExtendedPublicKey extends ExtendedPublicKey {
 
   publicKeyInfo(type: AddressType, index: number): PublicKeyInfo {
     const publicKey: string = this.getPublicKey(type, index);
-    const blake160: string = new utils.CKBHasher()
-      .update(publicKey)
-      .digestHex()
-      .slice(0, 42);
+    const blake160: string = key.publicKeyToBlake160(publicKey);
     return {
       publicKey,
       blake160,

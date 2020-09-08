@@ -1,5 +1,11 @@
 import test from "ava";
 import { key } from "../src";
+const {
+  signRecoverable,
+  recoverFromSignature,
+  privateToPublic,
+  publicKeyToBlake160,
+} = key;
 
 const signInfo = {
   message: "0x95e919c41e1ae7593730097e9bb1185787b046ae9f47b4a10ff4e22f9c3e3eab",
@@ -9,18 +15,16 @@ const signInfo = {
     "0xe79f3207ea4980b7fed79956d5934249ceac4751a4fae01a0f7c4a96884bc4e3",
   publicKey:
     "0x024a501efd328e062c8675f2365970728c859c592beeefd6be8ead3d901330bc01",
+  blake160: "0x36c329ed630d6ce750712a477543672adab57f4c",
 };
 
 test("signRecoverable", (t) => {
-  const signature = key.signRecoverable(signInfo.message, signInfo.privateKey);
+  const signature = signRecoverable(signInfo.message, signInfo.privateKey);
   t.is(signature, signInfo.signature);
 });
 
 test("recoverFromMessage", (t) => {
-  const publicKey = key.recoverFromSignature(
-    signInfo.message,
-    signInfo.signature
-  );
+  const publicKey = recoverFromSignature(signInfo.message, signInfo.signature);
   t.is(publicKey, signInfo.publicKey);
 });
 
@@ -33,7 +37,7 @@ test("privateToPublic, derive public key from private key, Buffer", (t) => {
     "03e5b310636a0f6e7dcdfffa98f28d7ed70df858bb47acf13db830bfde3510b3f3",
     "hex"
   );
-  t.deepEqual(key.privateToPublic(privateKey), publicKey);
+  t.deepEqual(privateToPublic(privateKey), publicKey);
 });
 
 test("privateToPublic, derive public key from private key, HexString", (t) => {
@@ -41,15 +45,15 @@ test("privateToPublic, derive public key from private key, HexString", (t) => {
     "0xbb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016";
   const publicKey =
     "0x03e5b310636a0f6e7dcdfffa98f28d7ed70df858bb47acf13db830bfde3510b3f3";
-  t.deepEqual(key.privateToPublic(privateKey), publicKey);
+  t.deepEqual(privateToPublic(privateKey), publicKey);
 });
 
 test("privateToPublic, derive public key from private key wrong length", (t) => {
   t.throws(() => {
-    key.privateToPublic(Buffer.from(""));
+    privateToPublic(Buffer.from(""));
   });
   t.throws(() => {
-    key.privateToPublic(
+    privateToPublic(
       Buffer.from(
         "39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
         "hex"
@@ -57,11 +61,16 @@ test("privateToPublic, derive public key from private key wrong length", (t) => 
     );
   });
   t.throws(() => {
-    key.privateToPublic(
+    privateToPublic(
       Buffer.from(
         "0xbb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
         "hex"
       )
     );
   });
+});
+
+test("publicKeyToBlake160", (t) => {
+  const blake160 = publicKeyToBlake160(signInfo.publicKey);
+  t.is(blake160, signInfo.blake160);
 });

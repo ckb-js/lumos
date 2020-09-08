@@ -66,8 +66,20 @@ export function privateToPublic(
   return Buffer.from(publickey, "hex");
 }
 
+export function publicKeyToBlake160(publicKey: HexString): HexString {
+  utils.assertHexString("publicKey", publicKey);
+
+  const blake160: string = new utils.CKBHasher()
+    .update(publicKey)
+    .digestHex()
+    .slice(0, 42);
+
+  return blake160;
+}
+
 export default {
   signRecoverable,
   recoverFromSignature,
   privateToPublic,
+  publicKeyToBlake160,
 };
