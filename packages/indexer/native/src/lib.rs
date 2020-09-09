@@ -714,22 +714,26 @@ declare_types! {
                                .skip(skip_number);
                 Ok(LiveCellIterator(Box::new(iter)))
             } else if order == "desc" {
+                let prefix = start_key.clone();
+                let remain_args_len = (args_len as usize) - script.args().len();
+                let start_key = [start_key, vec![0xff; remain_args_len + 16]].concat();
                 let iter = store.iter(&start_key, IteratorDirection::Reverse);
                 if iter.is_err() {
                     return cx.throw_error("Error creating iterator!");
                 }
                 let iter = iter.unwrap()
                                .take_while(move |(key, _)| {
-                                    // iterate from the maxiaml key start with `start_key`, stop til meet the key with the block number smaller than `from_block_number_slice`
+                                    // iterate from the maxiaml key start with `prefix`, stop til meet the key with the block number smaller than `from_block_number_slice`
                                    let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                   key.starts_with(&start_key) && from_block_number_slice < block_number_slice.unwrap()
+                                   key.starts_with(&prefix) && from_block_number_slice < block_number_slice.unwrap()
                                })
                                .filter( move |(key, _)| {
-                                   // filter out all keys start with `start_key` but the block number larger than `to_block_number_slice`
+                                   // filter out all keys start with `prefix` but the block number larger than `to_block_number_slice`
                                    let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
                                    to_block_number_slice >= block_number_slice.unwrap()
                                })
-                               .skip(skip_number);
+                               .skip(skip_number)
+                            ;
                 Ok(LiveCellIterator(Box::new(iter)))
             } else {
                 return cx.throw_error("Order must be either asc or desc!");
