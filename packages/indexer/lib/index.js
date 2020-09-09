@@ -49,7 +49,8 @@ class Indexer {
     argsLen,
     fromBlock,
     toBlock,
-    skip
+    skip,
+    order
   ) {
     return this.nativeIndexer.getLiveCellsByScriptIterator(
       normalizers.NormalizeScript(script),
@@ -57,7 +58,8 @@ class Indexer {
       argsLen,
       fromBlock,
       toBlock,
-      skip
+      skip,
+      order
     );
   }
 
@@ -67,6 +69,7 @@ class Indexer {
     ioType,
     fromBlock,
     toBlock,
+    order,
     skip
   ) {
     return this.nativeIndexer.getTransactionsByScriptIterator(
@@ -75,6 +78,7 @@ class Indexer {
       ioType,
       fromBlock,
       toBlock,
+      order,
       skip
     );
   }
@@ -182,8 +186,8 @@ class CellCollector {
       data = "any",
       fromBlock = null,
       toBlock = null,
-      skip = null,
       order = "asc",
+      skip = null,
     } = {}
   ) {
     if (!lock && typeof type !== "object") {
@@ -205,8 +209,8 @@ class CellCollector {
     this.argsLen = argsLen;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
-    this.skip = skip;
     this.order = order;
+    this.skip = skip;
   }
 
   getLiveCellOutPoints() {
@@ -223,6 +227,7 @@ class CellCollector {
             this.argsLen,
             this.fromBlock,
             this.toBlock,
+            this.order,
             this.skip
           )
           .collect(returnRawBuffer)
@@ -240,6 +245,7 @@ class CellCollector {
             this.argsLen,
             this.fromBlock,
             this.toBlock,
+            this.order,
             this.skip
           )
           .collect(returnRawBuffer)
@@ -254,11 +260,7 @@ class CellCollector {
     } else {
       outPoints = typeOutPoints;
     }
-    if (this.order === "desc") {
-      return outPoints.reverse();
-    } else {
-      return outPoints;
-    }
+    return outPoints;
   }
 
   wrapOutPoints(outPoints) {
@@ -314,8 +316,8 @@ class TransactionCollector {
       type = null,
       fromBlock = null,
       toBlock = null,
-      skip = null,
       order = "asc",
+      skip = null,
     } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
@@ -348,8 +350,8 @@ class TransactionCollector {
     this.includeStatus = includeStatus;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
-    this.skip = skip;
     this.order = order;
+    this.skip = skip;
     this.rpc = new RPC(indexer.uri);
   }
 
@@ -368,6 +370,7 @@ class TransactionCollector {
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,
+            this.order,
             this.skip
           )
           .collect()
@@ -379,11 +382,12 @@ class TransactionCollector {
       typeHashes = new OrderedSet(
         this.indexer
           ._getTransactionsByScriptIterator(
-            script,
+            this.type.script,
             scriptType,
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,
+            this.order,
             this.skip
           )
           .collect()
@@ -397,11 +401,7 @@ class TransactionCollector {
     } else {
       hashes = typeHashes;
     }
-    if (this.order === "desc") {
-      return hashes.reverse();
-    } else {
-      return hashes;
-    }
+    return hashes;
   }
 
   async count() {

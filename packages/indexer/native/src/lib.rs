@@ -400,9 +400,10 @@ declare_types! {
 
             let from_block = cx.argument::<JsValue>(3)?;
             let to_block = cx.argument::<JsValue>(4)?;
-            let skip = cx.argument::<JsValue>(5)?;
+            let order = cx.argument::<JsValue>(5)?;
+            let skip = cx.argument::<JsValue>(6)?;
 
-            Ok(JsLiveCellIterator::new(&mut cx, vec![this, js_script, script_type, args_len, from_block, to_block, skip])?.upcast())
+            Ok(JsLiveCellIterator::new(&mut cx, vec![this, js_script, script_type, args_len, from_block, to_block, order, skip])?.upcast())
         }
 
 
@@ -686,30 +687,53 @@ declare_types! {
                 u64::MAX.to_be_bytes()
             };
 
-            let skip = cx.argument::<JsValue>(6)?;
+            let order = cx.argument::<JsString>(6)?.value();
+            let skip = cx.argument::<JsValue>(7)?;
             let skip_number = if skip.is_a::<JsNumber>() {
                 skip.downcast::<JsNumber>().or_throw(&mut cx)?.value() as usize
             } else {
                 0_usize
             };
 
-            let iter = store.iter(&start_key, IteratorDirection::Forward);
-            if iter.is_err() {
-                return cx.throw_error("Error creating iterator!");
+            if order == "asc" {
+                let iter = store.iter(&start_key, IteratorDirection::Forward);
+                if iter.is_err() {
+                    return cx.throw_error("Error creating iterator!");
+                }
+                let iter = iter.unwrap()
+                               .take_while(move |(key, _)| {
+                                   // iterate from the minimal key start with `start_key`, stop til meet the key with the block number larger than `to_block_number_slice`
+                                   let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                   key.starts_with(&start_key) && to_block_number_slice > block_number_slice.unwrap()
+                               })
+                               .filter( move |(key, _)| {
+                                   // filter out all keys start with `start_key` but the block number smaller than `from_block_number_slice`
+                                   let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                   from_block_number_slice <= block_number_slice.unwrap()
+                               })
+                               .skip(skip_number);
+                Ok(LiveCellIterator(Box::new(iter)))
+            } else if order == "desc" {
+                let iter = store.iter(&start_key, IteratorDirection::Reverse);
+                if iter.is_err() {
+                    return cx.throw_error("Error creating iterator!");
+                }
+                let iter = iter.unwrap()
+                               .take_while(move |(key, _)| {
+                                    // iterate from the maxiaml key start with `start_key`, stop til meet the key with the block number smaller than `from_block_number_slice`
+                                   let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                   key.starts_with(&start_key) && from_block_number_slice < block_number_slice.unwrap()
+                               })
+                               .filter( move |(key, _)| {
+                                   // filter out all keys start with `start_key` but the block number larger than `to_block_number_slice`
+                                   let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                   to_block_number_slice >= block_number_slice.unwrap()
+                               })
+                               .skip(skip_number);
+                Ok(LiveCellIterator(Box::new(iter)))
+            } else {
+                return cx.throw_error("Order must be either asc or desc!");
             }
-
-            let iter = iter.unwrap()
-            .take_while(move |(key, _)| {
-                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                key.starts_with(&start_key) && to_block_number_slice > block_number_slice.unwrap()
-            })
-            .filter( move |(key, _)| {
-                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                from_block_number_slice <= block_number_slice.unwrap()
-            })
-            .skip(skip_number);
-
-            Ok(LiveCellIterator(Box::new(iter)))
         }
 
         method collect(mut cx) {
