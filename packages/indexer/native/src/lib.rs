@@ -416,9 +416,10 @@ declare_types! {
 
             let from_block = cx.argument::<JsValue>(3)?;
             let to_block = cx.argument::<JsValue>(4)?;
-            let skip = cx.argument::<JsValue>(5)?;
+            let order = cx.argument::<JsValue>(5)?;
+            let skip = cx.argument::<JsValue>(6)?;
 
-            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, io_type, from_block, to_block, skip])?.upcast())
+            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, io_type, from_block, to_block, order, skip])?.upcast())
         }
 
         method getDetailedLiveCell(mut cx) {
@@ -849,20 +850,39 @@ declare_types! {
                 end_key.extend_from_slice(&u64::MAX.to_be_bytes());
             }
 
-            let skip = cx.argument::<JsValue>(6)?;
+            let order = cx.argument::<JsString>(6)?.value();
+            let skip = cx.argument::<JsValue>(7)?;
             let skip_number = if skip.is_a::<JsNumber>() {
                 skip.downcast::<JsNumber>().or_throw(&mut cx)?.value() as usize
             } else {
                 0_usize
             };
 
-            let iter = store.iter(&start_key, IteratorDirection::Forward);
-            if iter.is_err() {
-                return cx.throw_error("Error creating iterator!");
-            }
-            let iter = iter.unwrap().take_while(move |(key, _)| key.to_vec() < end_key).filter(move |(key, _)| key.ends_with(&io_type_mark)).skip(skip_number);
+            if order == "asc" {
+                let iter = store.iter(&start_key, IteratorDirection::Forward);
+                if iter.is_err() {
+                    return cx.throw_error("Error creating iterator!");
+                }
+                let iter = iter.unwrap()
+                               .take_while(move |(key, _)| key.to_vec() < end_key)
+                               .filter(move |(key, _)| key.ends_with(&io_type_mark))
+                               .skip(skip_number);
 
-            Ok(TransactionIterator(Box::new(iter)))
+                Ok(TransactionIterator(Box::new(iter)))
+            } else if order == "desc" {
+                let iter = store.iter(&end_key, IteratorDirection::Reverse);
+                if iter.is_err() {
+                    return cx.throw_error("Error creating iterator!");
+                }
+                let iter = iter.unwrap()
+                               .take_while(move |(key, _)| key.to_vec() > start_key)
+                               .filter(move |(key, _)| key.ends_with(&io_type_mark))
+                               .skip(skip_number);
+
+                Ok(TransactionIterator(Box::new(iter)))
+            } else {
+                return cx.throw_error("Order must be either asc or desc!");
+            }
         }
 
         method count(mut cx) {
