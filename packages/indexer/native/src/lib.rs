@@ -867,7 +867,6 @@ declare_types! {
                                .take_while(move |(key, _)| key.to_vec() < end_key)
                                .filter(move |(key, _)| key.ends_with(&io_type_mark))
                                .skip(skip_number);
-
                 Ok(TransactionIterator(Box::new(iter)))
             } else if order == "desc" {
                 let iter = store.iter(&end_key, IteratorDirection::Reverse);
@@ -878,7 +877,6 @@ declare_types! {
                                .take_while(move |(key, _)| key.to_vec() > start_key)
                                .filter(move |(key, _)| key.ends_with(&io_type_mark))
                                .skip(skip_number);
-
                 Ok(TransactionIterator(Box::new(iter)))
             } else {
                 return cx.throw_error("Order must be either asc or desc!");

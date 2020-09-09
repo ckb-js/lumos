@@ -49,8 +49,8 @@ class Indexer {
     argsLen,
     fromBlock,
     toBlock,
-    skip,
-    order
+    order,
+    skip
   ) {
     return this.nativeIndexer.getLiveCellsByScriptIterator(
       normalizers.NormalizeScript(script),
@@ -58,8 +58,8 @@ class Indexer {
       argsLen,
       fromBlock,
       toBlock,
-      skip,
-      order
+      order,
+      skip
     );
   }
 
@@ -332,7 +332,6 @@ class TransactionCollector {
       validators.ValidateScript(lock.script);
       this.lock = lock;
     }
-
     if (type && !type.script) {
       validators.ValidateScript(type);
       this.lock = { script: type, ioType: "both" };
@@ -340,11 +339,9 @@ class TransactionCollector {
       validators.ValidateScript(type.script);
       this.type = type;
     }
-
     if (order !== "asc" && order !== "desc") {
       throw new Error("Order must be either asc or desc");
     }
-
     this.indexer = indexer;
     this.skipMissing = skipMissing;
     this.includeStatus = includeStatus;
