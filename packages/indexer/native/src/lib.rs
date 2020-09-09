@@ -702,7 +702,7 @@ declare_types! {
                 }
                 let iter = iter.unwrap()
                                .take_while(move |(key, _)| {
-                                   // 16 is TxIndex + OutputIndex length, 8 is OutputIndex length 
+                                   // 16 is TxIndex + OutputIndex length, 8 is OutputIndex length
                                    let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
                                    // iterate from the minimal key start with `start_key`, stop til meet a key with the block number bigger than `to_block_number_slice`
                                    key.starts_with(&start_key) && to_block_number_slice >= block_number_slice.unwrap()
@@ -726,7 +726,7 @@ declare_types! {
                 }
                 let iter = iter.unwrap()
                                .take_while(move |(key, _)| {
-                                   // 16 is TxIndex + OutputIndex length, 8 is OutputIndex length 
+                                   // 16 is TxIndex + OutputIndex length, 8 is OutputIndex length
                                    let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
                                    // iterate from the maximal key start with `prefix`, stop til meet a key with the block number smaller than `from_block_number_slice`
                                    key.starts_with(&base_prefix) && from_block_number_slice <= block_number_slice.unwrap()
