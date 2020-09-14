@@ -132,9 +132,19 @@ export class AccountExtendedPrivateKey extends ExtendedPrivateKey {
     );
   }
 
-  toExtendedPublicKey(): AccountExtendedPublicKey {
-    const publicKey: HexString = privateToPublic(this.privateKey);
-    return new AccountExtendedPublicKey(publicKey, this.chainCode);
+  toAccountExtendedPublicKey(): AccountExtendedPublicKey {
+    const masterKeychain = new Keychain(
+      Buffer.from(this.privateKey.slice(2), "hex"),
+      Buffer.from(this.chainCode.slice(2), "hex")
+    );
+    const accountKeychain = masterKeychain.derivePath(
+      AccountExtendedPublicKey.ckbAccountPath
+    );
+
+    return new AccountExtendedPublicKey(
+      "0x" + accountKeychain.publicKey.toString("hex"),
+      "0x" + accountKeychain.chainCode.toString("hex")
+    );
   }
 
   static fromSeed(seed: Buffer): AccountExtendedPrivateKey {
