@@ -78,8 +78,18 @@ const mockTxs: Transaction[] = [
           args: "0xfa7b46aa28cb233db373e5712e16edcaaa4c4999",
         },
       },
+      // master public key
+      {
+        capacity: "0x" + BigInt(50 * 10 ** 8).toString(16),
+        lock: {
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
+          args: "0xa6ee79109863906e75668acd75d6c6adbd56469c",
+        },
+      },
     ],
-    outputs_data: ["0x1234", "0x"],
+    outputs_data: ["0x1234", "0x", "0x"],
     witnesses: [],
   },
 ];
@@ -99,6 +109,9 @@ HDCache.changeKeyInitCount = 2;
 HDCache.receivingKeyThreshold = 2;
 HDCache.changeKeyThreshold = 1;
 
+// Private Key: 0x37d25afe073a6ba17badc2df8e91fc0de59ed88bcad6b9a0c2210f325fafca61
+// Public Key: 0x020720a7a11a9ac4f0330e2b9537f594388ea4f1cd660301f40b5a70e0bc231065
+// blake160: 0xa6ee79109863906e75668acd75d6c6adbd56469c
 const mnemonic =
   "tank planet champion pottery together intact quick police asset flower sudden question";
 
@@ -130,6 +143,8 @@ class MockTransactionCollector extends TransactionCollector {
         "0x0ce445e32d7f91c9392485ddb9bc6885ce46ad64",
         "0xaa5aa575dedb6f5d7a5c835428c3b4a3ea7ba1eb",
         "0xfa7b46aa28cb233db373e5712e16edcaaa4c4999",
+        // master key
+        "0xa6ee79109863906e75668acd75d6c6adbd56469c",
       ].includes(args)
     ) {
       yield mockTxs[1];
@@ -245,4 +260,49 @@ test("getNextChangePublicKeyInfo", async (t) => {
     cacheManager.getNextChangePublicKeyInfo().blake160,
     "0xbba6e863e838bae614fd6df9828f3bf1eed57964"
   );
+});
+
+test("getMasterPublicKeyInfo, default", async (t) => {
+  // @ts-ignore
+  await cacheManager.cache.loop();
+
+  t.false(!!cacheManager.getMasterPublicKeyInfo());
+});
+
+test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
+  const cacheManager = CacheManager.fromMnemonic(
+    indexer as Indexer,
+    mnemonic,
+    getDefaultInfos(),
+    {
+      TransactionCollector: MockTransactionCollector,
+      needMasterPublicKey: true,
+    }
+  );
+  // @ts-ignore
+  await cacheManager.cache.loop();
+
+  t.true(!!cacheManager.getMasterPublicKeyInfo());
+  t.is(
+    cacheManager.getMasterPublicKeyInfo()!.publicKey,
+    "0x020720a7a11a9ac4f0330e2b9537f594388ea4f1cd660301f40b5a70e0bc231065"
+  );
+});
+
+test("getBalance, needMasterPublicKey", async (t) => {
+  const cacheManager = CacheManager.fromMnemonic(
+    indexer as Indexer,
+    mnemonic,
+    getDefaultInfos(),
+    {
+      TransactionCollector: MockTransactionCollector,
+      needMasterPublicKey: true,
+    }
+  );
+  // @ts-ignore
+  await cacheManager.cache.loop();
+
+  const balance = cacheManager.getBalance();
+
+  t.is(BigInt(balance), BigInt(950 * 10 ** 8));
 });

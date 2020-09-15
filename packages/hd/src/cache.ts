@@ -47,6 +47,7 @@ export interface LockScriptMappingInfo {
 }
 
 export class HDCache {
+  private masterPublicKeyInfo?: PublicKeyInfo;
   private publicKey: HexString;
   private chainCode: HexString;
   private accountExtendedPublicKey: AccountExtendedPublicKey;
@@ -66,8 +67,18 @@ export class HDCache {
   constructor(
     publicKey: HexString,
     chainCode: HexString,
-    infos: LockScriptMappingInfo[] = []
+    infos: LockScriptMappingInfo[] = [],
+    masterPublicKey?: HexString
   ) {
+    if (masterPublicKey) {
+      this.masterPublicKeyInfo = {
+        publicKey: masterPublicKey,
+        blake160: publicKeyToBlake160(masterPublicKey),
+        path: AccountExtendedPublicKey.ckbAccountPath,
+        index: -1,
+        historyTxCount: 0,
+      };
+    }
     this.publicKey = publicKey;
     this.chainCode = chainCode;
     this.receivingKeys = [];
@@ -81,6 +92,16 @@ export class HDCache {
     this.infos = infos;
     this.lockScriptInfos = [];
     this.updateInfos(infos);
+  }
+
+  getMasterPublicKeyInfo(): PublicKeyInfo | undefined {
+    return this.masterPublicKeyInfo;
+  }
+
+  updateMasterPublicKeyHistoryTxCount(count: number): void {
+    if (this.masterPublicKeyInfo) {
+      this.masterPublicKeyInfo.historyTxCount = count;
+    }
   }
 
   getLockScriptInfos(): LockScriptInfo[] {
@@ -106,7 +127,11 @@ export class HDCache {
   }
 
   getKeys(): PublicKeyInfo[] {
-    return this.receivingKeys.concat(this.changeKeys);
+    let keys = this.receivingKeys.concat(this.changeKeys);
+    if (this.masterPublicKeyInfo) {
+      keys = keys.concat([this.masterPublicKeyInfo]);
+    }
+    return keys;
   }
 
   private init(): void {
@@ -272,6 +297,11 @@ export class TransactionCache {
       );
       if (changeIndex >= 0) {
         this.hdCache.changeKeys[changeIndex].historyTxCount = count;
+      } else {
+        const masterPublicKeyInfo = this.hdCache.getMasterPublicKeyInfo();
+        if (masterPublicKeyInfo && masterPublicKeyInfo.publicKey === key) {
+          this.hdCache.updateMasterPublicKeyHistoryTxCount(count);
+        }
       }
     }
   }
@@ -334,12 +364,14 @@ export class Cache {
     infos: LockScriptMappingInfo[],
     {
       TransactionCollector = TxCollector,
+      masterPublicKey = undefined,
     }: {
       TransactionCollector?: any;
+      masterPublicKey?: HexString;
     } = {}
   ) {
     this.indexer = indexer;
-    this.hdCache = new HDCache(publicKey, chainCode, infos);
+    this.hdCache = new HDCache(publicKey, chainCode, infos, masterPublicKey);
     this.txCache = new TransactionCache(this.hdCache);
 
     this.TransactionCollector = TransactionCollector;
@@ -449,6 +481,7 @@ export class CacheManager {
     indexer: Indexer,
     publicKey: HexString,
     chainCode: HexString,
+    masterPublicKey?: HexString,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
     {
       logger = defaultLogger,
@@ -465,12 +498,23 @@ export class CacheManager {
     this.logger = logger;
     this.cache = new Cache(indexer, publicKey, chainCode, infos, {
       TransactionCollector,
+      masterPublicKey,
     });
     this.isRunning = false;
     this.pollIntervalSeconds = pollIntervalSeconds;
     this.livenessCheckIntervalSeconds = livenessCheckIntervalSeconds;
   }
 
+  /**
+   * Load from keystore, if needMasterPublicKey set to true or origin = "ckb-cli",
+   * will enable masterPublicKey
+   *
+   * @param indexer
+   * @param path
+   * @param password
+   * @param infos
+   * @param options
+   */
   static loadFromKeystore(
     indexer: Indexer,
     path: string,
@@ -481,16 +525,24 @@ export class CacheManager {
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
       TransactionCollector?: any;
+      needMasterPublicKey?: boolean;
     } = {}
   ): CacheManager {
     const keystore = Keystore.load(path);
     const extendedPrivateKey = keystore.extendedPrivateKey(password);
-    const extendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
+    const accountExtendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
+
+    let masterPublicKey: HexString | undefined;
+    if (options.needMasterPublicKey || keystore.isFromCkbCli()) {
+      const extendedPublicKey = extendedPrivateKey.toExtendedPublicKey();
+      masterPublicKey = extendedPublicKey.publicKey;
+    }
 
     return new CacheManager(
       indexer,
-      extendedPublicKey.publicKey,
-      extendedPublicKey.chainCode,
+      accountExtendedPublicKey.publicKey,
+      accountExtendedPublicKey.chainCode,
+      masterPublicKey,
       infos,
       options
     );
@@ -505,16 +557,24 @@ export class CacheManager {
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
       TransactionCollector?: any;
+      needMasterPublicKey?: boolean;
     } = {}
   ): CacheManager {
     const seed = mnemonicToSeedSync(mnemonic);
     const extendedPrivateKey = AccountExtendedPrivateKey.fromSeed(seed);
-    const extendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
+    const accountExtendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
+
+    let masterPublicKey: HexString | undefined;
+    if (options.needMasterPublicKey) {
+      const extendedPublicKey = extendedPrivateKey.toExtendedPublicKey();
+      masterPublicKey = extendedPublicKey.publicKey;
+    }
 
     return new CacheManager(
       indexer,
-      extendedPublicKey.publicKey,
-      extendedPublicKey.chainCode,
+      accountExtendedPublicKey.publicKey,
+      accountExtendedPublicKey.chainCode,
+      masterPublicKey,
       infos,
       options
     );
@@ -685,6 +745,10 @@ export class CacheManager {
       }
     }
     return "0x" + balance.toString(16);
+  }
+
+  getMasterPublicKeyInfo(): PublicKeyInfo | undefined {
+    return this.cache.hdCache.getMasterPublicKeyInfo();
   }
 
   getNextReceivingPublicKeyInfo(): PublicKeyInfo {
