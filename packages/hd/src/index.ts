@@ -4,6 +4,7 @@ import Keystore, {
   InvalidKeystore,
   HexStringWithoutPrefix,
 } from "./keystore";
+import { XPubStore } from "./xpub_store";
 import Keychain from "./keychain";
 import {
   AddressType,
@@ -39,6 +40,7 @@ export {
   CacheManager,
   PublicKeyCacheInfo,
   getDefaultInfos,
+  XPubStore,
 };
 
 export default {
@@ -55,4 +57,5 @@ export default {
   key,
   CacheManager,
   getDefaultInfos,
+  XPubStore,
 };

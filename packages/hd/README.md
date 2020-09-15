@@ -19,6 +19,20 @@ keystore.save("you path, only dir")
 const keystore = Keystore.load("you file path, with file name")
 ```
 
+XPub support.
+```javascript
+const { XPubStore } = require("@ckb-lumos/hd")
+
+// load from xpub file.
+const xpub = XPubStore.load("you path")
+
+// to AccountExtendedPublicKey
+const accountExtendedPublicKey = xpub.toAccountExtendedPublicKey()
+
+// save xpub file.
+xpub.save("your path")
+```
+
 Using HD CacheManager
 
 ```javascript
