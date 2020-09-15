@@ -106,6 +106,7 @@ export interface QueryOptions {
   /** `toBlock` itself is included in range query. */
   toBlock?: number;
   skip?: number;
+  order?: "asc" | "desc";
 }
 
 export interface ScriptWrapper {

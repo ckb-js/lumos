@@ -49,6 +49,7 @@ class Indexer {
     argsLen,
     fromBlock,
     toBlock,
+    order,
     skip
   ) {
     return this.nativeIndexer.getLiveCellsByScriptIterator(
@@ -57,6 +58,7 @@ class Indexer {
       argsLen,
       fromBlock,
       toBlock,
+      order,
       skip
     );
   }
@@ -67,6 +69,7 @@ class Indexer {
     ioType,
     fromBlock,
     toBlock,
+    order,
     skip
   ) {
     return this.nativeIndexer.getTransactionsByScriptIterator(
@@ -75,6 +78,7 @@ class Indexer {
       ioType,
       fromBlock,
       toBlock,
+      order,
       skip
     );
   }
@@ -182,6 +186,7 @@ class CellCollector {
       data = "any",
       fromBlock = null,
       toBlock = null,
+      order = "asc",
       skip = null,
     } = {}
   ) {
@@ -194,6 +199,9 @@ class CellCollector {
     if (type && typeof type === "object") {
       validators.ValidateScript(type);
     }
+    if (order !== "asc" && order !== "desc") {
+      throw new Error("Order must be either asc or desc");
+    }
     this.indexer = indexer;
     this.lock = lock;
     this.type = type;
@@ -201,6 +209,7 @@ class CellCollector {
     this.argsLen = argsLen;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
+    this.order = order;
     this.skip = skip;
   }
 
@@ -218,6 +227,7 @@ class CellCollector {
             this.argsLen,
             this.fromBlock,
             this.toBlock,
+            this.order,
             this.skip
           )
           .collect(returnRawBuffer)
@@ -235,6 +245,7 @@ class CellCollector {
             this.argsLen,
             this.fromBlock,
             this.toBlock,
+            this.order,
             this.skip
           )
           .collect(returnRawBuffer)
@@ -305,6 +316,7 @@ class TransactionCollector {
       type = null,
       fromBlock = null,
       toBlock = null,
+      order = "asc",
       skip = null,
     } = {},
     { skipMissing = false, includeStatus = true } = {}
@@ -320,7 +332,6 @@ class TransactionCollector {
       validators.ValidateScript(lock.script);
       this.lock = lock;
     }
-
     if (type && !type.script) {
       validators.ValidateScript(type);
       this.lock = { script: type, ioType: "both" };
@@ -328,12 +339,15 @@ class TransactionCollector {
       validators.ValidateScript(type.script);
       this.type = type;
     }
-
+    if (order !== "asc" && order !== "desc") {
+      throw new Error("Order must be either asc or desc");
+    }
     this.indexer = indexer;
     this.skipMissing = skipMissing;
     this.includeStatus = includeStatus;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
+    this.order = order;
     this.skip = skip;
     this.rpc = new RPC(indexer.uri);
   }
@@ -353,6 +367,7 @@ class TransactionCollector {
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,
+            this.order,
             this.skip
           )
           .collect()
@@ -364,11 +379,12 @@ class TransactionCollector {
       typeHashes = new OrderedSet(
         this.indexer
           ._getTransactionsByScriptIterator(
-            script,
+            this.type.script,
             scriptType,
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,
+            this.order,
             this.skip
           )
           .collect()

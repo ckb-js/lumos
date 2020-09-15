@@ -569,6 +569,7 @@ class CellCollector {
       fromBlock = null,
       toBlock = null,
       skip = null,
+      order = "asc",
     } = {}
   ) {
     if (!lock && !type) {
@@ -580,6 +581,9 @@ class CellCollector {
     if (type && typeof type === "object") {
       validators.ValidateScript(type);
     }
+    if (order !== "asc" && order !== "desc") {
+      throw new Error("Order must be either asc or desc");
+    }
     this.knex = knex;
     this.lock = lock;
     this.type = type;
@@ -588,12 +592,16 @@ class CellCollector {
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
     this.skip = skip;
+    this.order = order;
   }
 
   _assembleQuery(order = true) {
     let query = this.knex("cells").where("consumed", false);
     if (order) {
-      query = query.orderBy(["cells.block_number", "tx_index", "index"], "asc");
+      query = query.orderBy(
+        ["cells.block_number", "tx_index", "index"],
+        this.order
+      );
     }
     if (this.fromBlock) {
       const fromBlock = BigInt(this.fromBlock);
