@@ -33,6 +33,7 @@
     "@ckb-lumos/base": "^0.11.0-rc2",
     "@ckb-lumos/config-manager": "^0.11.0-rc2",
     "@ckb-lumos/indexer": "^0.11.0-rc2",
+    "@ckb-lumos/sql-indexer": "^0.11.0-rc2",
     "bn.js": "^5.1.3",
     "elliptic": "^6.5.3",
     "immutable": "^4.0.0-rc.12",
