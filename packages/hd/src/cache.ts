@@ -92,7 +92,7 @@ export class HDCache {
 
     this.infos = infos;
     this.lockScriptInfos = [];
-    this.updateInfos(infos);
+    this.resetLockScripts();
   }
 
   getMasterPublicKeyInfo(): PublicKeyInfo | undefined {
@@ -109,11 +109,10 @@ export class HDCache {
     return this.lockScriptInfos;
   }
 
-  updateInfos(infos: LockScriptMappingInfo[]): void {
-    this.infos = infos;
+  resetLockScripts(): void {
     this.lockScriptInfos = this.getKeys()
       .map((publicKeyInfo) => {
-        return infos.map((info) => {
+        return this.infos.map((info) => {
           return {
             lockScript: {
               code_hash: info.code_hash,
@@ -145,7 +144,7 @@ export class HDCache {
     this.checkAndDeriveChangeKeys();
 
     // auto update LockScriptMappingInfos
-    this.updateInfos(this.infos);
+    this.resetLockScripts();
   }
 
   private checkAndDeriveReceivingKeys(): void {
@@ -387,10 +386,6 @@ export class Cache {
     return t.block_number;
   }
 
-  updateInfos(infos: LockScriptMappingInfo[]): void {
-    this.hdCache.updateInfos(infos);
-  }
-
   private async innerLoopTransactions(fromBlock: bigint, toBlock: bigint) {
     for (const lockScriptInfo of this.hdCache.getLockScriptInfos()) {
       const lockScript: Script = lockScriptInfo.lockScript;
@@ -626,10 +621,6 @@ export class CacheManager {
         this.start();
       }
     }, this.livenessCheckIntervalSeconds * 1000);
-  }
-
-  updateInfos(infos: LockScriptMappingInfo[]): void {
-    this.cache.updateInfos(infos);
   }
 
   *cellCollector(): Generator<Cell> {
