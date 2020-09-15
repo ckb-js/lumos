@@ -16,6 +16,7 @@ const fixture = {
     "0x0339a36013301597daef41fbe593a02cc513d0b55527ec2df1050e2e8ff49c85c2",
   chainCode:
     "0x873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d508",
+  // accountPublicKey:
 };
 
 test("ExtendedPublicKey, serialize and parse", (t) => {
@@ -96,13 +97,20 @@ test("ExtendedPrivateKey, derivate extended public key", (t) => {
   t.is(extendedKey.chainCode, fixture.chainCode);
 });
 
-test("AccountExtendedPrivateKey, derivate extended public key", (t) => {
+test("AccountExtendedPrivateKey, derivate account extended public key", (t) => {
   const extendedKey = new AccountExtendedPrivateKey(
     fixture.privateKey,
     fixture.chainCode
-  ).toExtendedPublicKey();
-  t.is(extendedKey.publicKey, fixture.publicKey);
-  t.is(extendedKey.chainCode, fixture.chainCode);
+  ).toAccountExtendedPublicKey();
+
+  t.is(
+    extendedKey.publicKey,
+    "0x03e5b310636a0f6e7dcdfffa98f28d7ed70df858bb47acf13db830bfde3510b3f3"
+  );
+  t.is(
+    extendedKey.chainCode,
+    "0x37e85a19f54f0a242a35599abac64a71aacc21e3a5860dd024377ffc7e6827d8"
+  );
   t.true(extendedKey instanceof AccountExtendedPublicKey);
 });
 

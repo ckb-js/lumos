@@ -16,7 +16,11 @@ import {
 } from "./extended_key";
 import mnemonic from "./mnemonic";
 import key from "./key";
-import { CacheManager } from "./cache";
+import {
+  CacheManager,
+  PublicKeyInfo as PublicKeyCacheInfo,
+  getDefaultInfos,
+} from "./cache";
 
 export {
   mnemonic,
@@ -35,6 +39,8 @@ export {
   PublicKeyInfo,
   key,
   CacheManager,
+  PublicKeyCacheInfo,
+  getDefaultInfos,
 };
 
 export default {
@@ -51,4 +57,5 @@ export default {
   AccountExtendedPrivateKey,
   key,
   CacheManager,
+  getDefaultInfos,
 };

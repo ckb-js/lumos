@@ -8,7 +8,10 @@ import {
   Output,
   values,
 } from "@ckb-lumos/base";
-import { TransactionCollector, Indexer } from "@ckb-lumos/indexer";
+import {
+  TransactionCollector as TxCollector,
+  Indexer,
+} from "@ckb-lumos/indexer";
 import {
   AccountExtendedPublicKey,
   AddressType,
@@ -322,16 +325,24 @@ export class Cache {
   private indexer: Indexer;
 
   private lastTipBlockNumber: bigint = 0n;
+  private TransactionCollector: any;
 
   constructor(
     indexer: Indexer,
     publicKey: HexString,
     chainCode: HexString,
-    infos: LockScriptMappingInfo[]
+    infos: LockScriptMappingInfo[],
+    {
+      TransactionCollector = TxCollector,
+    }: {
+      TransactionCollector?: any;
+    } = {}
   ) {
     this.indexer = indexer;
     this.hdCache = new HDCache(publicKey, chainCode, infos);
     this.txCache = new TransactionCache(this.hdCache);
+
+    this.TransactionCollector = TransactionCollector;
   }
 
   getLastTipBlockNumber(): HexString {
@@ -350,7 +361,7 @@ export class Cache {
   private async innerLoopTransactions(fromBlock: bigint, toBlock: bigint) {
     for (const lockScriptInfo of this.hdCache.getLockScriptInfos()) {
       const lockScript: Script = lockScriptInfo.lockScript;
-      const transactionCollector = new TransactionCollector(
+      const transactionCollector = new this.TransactionCollector(
         this.indexer,
         {
           lock: lockScript,
@@ -443,10 +454,18 @@ export class CacheManager {
       logger = defaultLogger,
       pollIntervalSeconds = 2,
       livenessCheckIntervalSeconds = 5,
+      TransactionCollector = TxCollector,
+    }: {
+      logger?: (level: string, message: string) => void;
+      pollIntervalSeconds?: number;
+      livenessCheckIntervalSeconds?: number;
+      TransactionCollector?: any;
     } = {}
   ) {
     this.logger = logger;
-    this.cache = new Cache(indexer, publicKey, chainCode, infos);
+    this.cache = new Cache(indexer, publicKey, chainCode, infos, {
+      TransactionCollector,
+    });
     this.isRunning = false;
     this.pollIntervalSeconds = pollIntervalSeconds;
     this.livenessCheckIntervalSeconds = livenessCheckIntervalSeconds;
@@ -455,7 +474,14 @@ export class CacheManager {
   static loadFromKeystore(
     indexer: Indexer,
     path: string,
-    password: string
+    password: string,
+    infos: LockScriptMappingInfo[] = getDefaultInfos(),
+    options: {
+      logger?: (level: string, message: string) => void;
+      pollIntervalSeconds?: number;
+      livenessCheckIntervalSeconds?: number;
+      TransactionCollector?: any;
+    } = {}
   ): CacheManager {
     const keystore = Keystore.load(path);
     const extendedPrivateKey = keystore.extendedPrivateKey(password);
@@ -464,11 +490,23 @@ export class CacheManager {
     return new CacheManager(
       indexer,
       extendedPublicKey.publicKey,
-      extendedPublicKey.chainCode
+      extendedPublicKey.chainCode,
+      infos,
+      options
     );
   }
 
-  static fromMnemonic(indexer: Indexer, mnemonic: string): CacheManager {
+  static fromMnemonic(
+    indexer: Indexer,
+    mnemonic: string,
+    infos: LockScriptMappingInfo[] = getDefaultInfos(),
+    options: {
+      logger?: (level: string, message: string) => void;
+      pollIntervalSeconds?: number;
+      livenessCheckIntervalSeconds?: number;
+      TransactionCollector?: any;
+    } = {}
+  ): CacheManager {
     const seed = mnemonicToSeedSync(mnemonic);
     const extendedPrivateKey = AccountExtendedPrivateKey.fromSeed(seed);
     const extendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
@@ -476,7 +514,9 @@ export class CacheManager {
     return new CacheManager(
       indexer,
       extendedPublicKey.publicKey,
-      extendedPublicKey.chainCode
+      extendedPublicKey.chainCode,
+      infos,
+      options
     );
   }
 
@@ -653,5 +693,13 @@ export class CacheManager {
 
   getNextChangePublicKeyInfo(): PublicKeyInfo {
     return this.cache.hdCache.getNextChangePublicKeyInfo();
+  }
+
+  getReceivingKeys(): PublicKeyInfo[] {
+    return this.cache.hdCache.receivingKeys;
+  }
+
+  getChangeKeys(): PublicKeyInfo[] {
+    return this.cache.hdCache.changeKeys;
   }
 }
