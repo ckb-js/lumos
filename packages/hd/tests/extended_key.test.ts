@@ -4,7 +4,6 @@ import {
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
   AddressType,
-  AccountExtendedPrivateKey,
 } from "../src";
 import { mnemonicToSeedSync } from "../src/mnemonic";
 import { PrivateKeyInfo } from "../src/extended_key";
@@ -77,17 +76,6 @@ test("ExtendedPrivateKey, serialize and parse", (t) => {
   t.is(parsed.chainCode, fixture.chainCode);
 });
 
-test("AccountExtendedPrivateKey, serialize and parse", (t) => {
-  const extendedKey = new AccountExtendedPrivateKey(
-    fixture.privateKey,
-    fixture.chainCode
-  );
-  const serialized = extendedKey.serialize();
-  const parsed = AccountExtendedPrivateKey.parse(serialized);
-  t.is(parsed.privateKey, fixture.privateKey);
-  t.is(parsed.chainCode, fixture.chainCode);
-});
-
 test("ExtendedPrivateKey, derivate extended public key", (t) => {
   const extendedKey = new ExtendedPrivateKey(
     fixture.privateKey,
@@ -97,8 +85,8 @@ test("ExtendedPrivateKey, derivate extended public key", (t) => {
   t.is(extendedKey.chainCode, fixture.chainCode);
 });
 
-test("AccountExtendedPrivateKey, derivate account extended public key", (t) => {
-  const extendedKey = new AccountExtendedPrivateKey(
+test("ExtendedPrivateKey, derivate account extended public key", (t) => {
+  const extendedKey = new ExtendedPrivateKey(
     fixture.privateKey,
     fixture.chainCode
   ).toAccountExtendedPublicKey();
@@ -132,9 +120,9 @@ const changeKeyInfo: PrivateKeyInfo = {
   path: `m/44'/309'/0'/1/0`,
 };
 
-test("AccountExtendedPrivateKey#privateKeyInfoByPath", (t) => {
+test("ExtendedPrivateKey#privateKeyInfoByPath", (t) => {
   const seed = mnemonicToSeedSync(mnemonic);
-  const extendedKey = AccountExtendedPrivateKey.fromSeed(seed);
+  const extendedKey = ExtendedPrivateKey.fromSeed(seed);
   const receivingPrivateKeyInfo = extendedKey.privateKeyInfoByPath(
     receivingKeyInfo.path
   );
@@ -150,9 +138,9 @@ test("AccountExtendedPrivateKey#privateKeyInfoByPath", (t) => {
   t.is(changePrivateKeyInfo.path, changeKeyInfo.path);
 });
 
-test("AccountExtendedPrivateKey#privateKeyInfo", (t) => {
+test("ExtendedPrivateKey#privateKeyInfo", (t) => {
   const seed = mnemonicToSeedSync(mnemonic);
-  const extendedKey = AccountExtendedPrivateKey.fromSeed(seed);
+  const extendedKey = ExtendedPrivateKey.fromSeed(seed);
   const receivingPrivateKeyInfo = extendedKey.privateKeyInfo(
     AddressType.Receiving,
     0

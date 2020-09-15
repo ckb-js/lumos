@@ -15,7 +15,7 @@ import {
 import {
   AccountExtendedPublicKey,
   AddressType,
-  AccountExtendedPrivateKey,
+  ExtendedPrivateKey,
 } from "./extended_key";
 import { Map, Set } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
@@ -561,7 +561,7 @@ export class CacheManager {
     } = {}
   ): CacheManager {
     const seed = mnemonicToSeedSync(mnemonic);
-    const extendedPrivateKey = AccountExtendedPrivateKey.fromSeed(seed);
+    const extendedPrivateKey = ExtendedPrivateKey.fromSeed(seed);
     const accountExtendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
 
     let masterPublicKey: HexString | undefined;

@@ -10,7 +10,6 @@ import {
   ExtendedPublicKey,
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
-  AccountExtendedPrivateKey,
   PrivateKeyInfo,
   PublicKeyInfo,
 } from "./extended_key";
@@ -34,7 +33,6 @@ export {
   ExtendedPublicKey,
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
-  AccountExtendedPrivateKey,
   PrivateKeyInfo,
   PublicKeyInfo,
   key,
@@ -54,7 +52,6 @@ export default {
   ExtendedPublicKey,
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
-  AccountExtendedPrivateKey,
   key,
   CacheManager,
   getDefaultInfos,

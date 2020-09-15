@@ -87,6 +87,12 @@ export class AccountExtendedPublicKey extends ExtendedPublicKey {
   }
 }
 
+export interface PrivateKeyInfo {
+  privateKey: HexString;
+  publicKey: HexString;
+  path: string;
+}
+
 export class ExtendedPrivateKey {
   privateKey: HexString;
   chainCode: HexString;
@@ -108,30 +114,6 @@ export class ExtendedPrivateKey {
     return new ExtendedPublicKey(publicKey, this.chainCode);
   }
 
-  static parse(serialized: HexString): ExtendedPrivateKey {
-    utils.assertHexString("serialized", serialized);
-    return new ExtendedPrivateKey(
-      serialized.slice(0, 66),
-      "0x" + serialized.slice(66)
-    );
-  }
-}
-
-export interface PrivateKeyInfo {
-  privateKey: HexString;
-  publicKey: HexString;
-  path: string;
-}
-
-export class AccountExtendedPrivateKey extends ExtendedPrivateKey {
-  static parse(serialized: HexString): AccountExtendedPrivateKey {
-    utils.assertHexString("serialized", serialized);
-    return new AccountExtendedPrivateKey(
-      serialized.slice(0, 66),
-      "0x" + serialized.slice(66)
-    );
-  }
-
   toAccountExtendedPublicKey(): AccountExtendedPublicKey {
     const masterKeychain = new Keychain(
       Buffer.from(this.privateKey.slice(2), "hex"),
@@ -147,9 +129,9 @@ export class AccountExtendedPrivateKey extends ExtendedPrivateKey {
     );
   }
 
-  static fromSeed(seed: Buffer): AccountExtendedPrivateKey {
+  static fromSeed(seed: Buffer): ExtendedPrivateKey {
     const keychain = Keychain.fromSeed(seed);
-    return new AccountExtendedPrivateKey(
+    return new ExtendedPrivateKey(
       "0x" + keychain.privateKey.toString("hex"),
       "0x" + keychain.chainCode.toString("hex")
     );
@@ -178,5 +160,13 @@ export class AccountExtendedPrivateKey extends ExtendedPrivateKey {
       publicKey: "0x" + keychain.publicKey.toString("hex"),
       path: path,
     };
+  }
+
+  static parse(serialized: HexString): ExtendedPrivateKey {
+    utils.assertHexString("serialized", serialized);
+    return new ExtendedPrivateKey(
+      serialized.slice(0, 66),
+      "0x" + serialized.slice(66)
+    );
   }
 }

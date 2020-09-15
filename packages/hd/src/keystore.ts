@@ -6,7 +6,6 @@ import Path from "path";
 
 import { ExtendedPrivateKey } from "./extended_key";
 import { HexString } from "@ckb-lumos/base";
-import { AccountExtendedPrivateKey } from ".";
 
 export type HexStringWithoutPrefix = string;
 
@@ -218,8 +217,8 @@ export default class Keystore {
     );
   }
 
-  extendedPrivateKey(password: string): AccountExtendedPrivateKey {
-    return AccountExtendedPrivateKey.parse(this.decrypt(password));
+  extendedPrivateKey(password: string): ExtendedPrivateKey {
+    return ExtendedPrivateKey.parse(this.decrypt(password));
   }
 
   checkPassword(password: string): boolean {
