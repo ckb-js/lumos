@@ -306,3 +306,20 @@ test("getBalance, needMasterPublicKey", async (t) => {
 
   t.is(BigInt(balance), BigInt(950 * 10 ** 8));
 });
+
+test("loadFromKeystore, ckb-cli", async (t) => {
+  const cacheManager = CacheManager.loadFromKeystore(
+    indexer as Indexer,
+    __dirname + "/fixtures/ckb_cli_keystore.json",
+    "aaaaaa",
+    getDefaultInfos(),
+    {
+      TransactionCollector: MockTransactionCollector,
+    }
+  );
+
+  // @ts-ignore
+  await cacheManager.cache.loop();
+
+  t.true(!!cacheManager.getMasterPublicKeyInfo());
+});
