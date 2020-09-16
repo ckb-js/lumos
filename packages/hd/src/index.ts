@@ -20,6 +20,9 @@ import {
   CacheManager,
   PublicKeyInfo as PublicKeyCacheInfo,
   getDefaultInfos,
+  CellCollector,
+  CellCollectorWithQueryOptions,
+  getBalance,
 } from "./cache";
 
 export {
@@ -41,6 +44,9 @@ export {
   PublicKeyCacheInfo,
   getDefaultInfos,
   XPubStore,
+  CellCollector,
+  CellCollectorWithQueryOptions,
+  getBalance,
 };
 
 export default {
@@ -58,4 +64,7 @@ export default {
   CacheManager,
   getDefaultInfos,
   XPubStore,
+  CellCollector,
+  CellCollectorWithQueryOptions,
+  getBalance,
 };

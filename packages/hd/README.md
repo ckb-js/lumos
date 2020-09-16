@@ -36,7 +36,7 @@ xpub.save("your path")
 Using HD CacheManager
 
 ```javascript
-const { CacheManager } = require("@ckb-lumos/hd")
+const { CacheManager, CellCollector, CellCollectorWithQueryOptions, getBalance } = require("@ckb-lumos/hd")
 const { Indexer } = require("@ckb-lumos/indexer")
 const indexer = new Indexer("http://localhost:8114", "./indexer-data")
 const cacheManger = CacheManager.loadFromKeystore(indexer, "You keystore path", "You password")
@@ -47,11 +47,21 @@ cacheManager.startForever()
 cacheManager.getMasterPublicKeyInfo() // ckb-cli using this key by default
 
 // now you can using following methods
-cacheManager.getBalance() // or with QueryOptions in arguments
 cacheManager.getNextReceivingPublicKeyInfo()
 cacheManager.getNextChangePublicKeyInfo()
 
-// or collect cells  by 
-cacheManager.cellCollector()
-cacheManager.cellCollectorByQueryOptions(queryOptions)
+// or collect cells  by CellCollectors
+const cellCollector = new CellCollector(cacheManager)
+// or with queryOptions
+const cellCollector = new CellCollectorWithQueryOptions(
+  new CellCollector(cacheManger),
+  queryOptions,
+)
+
+for await (const cell of cellCollector.collect()) {
+  console.log(cell)
+}
+
+// get HD wallet balance
+await getBalance(cellCollector)
 ```

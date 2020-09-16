@@ -7,6 +7,7 @@ import {
   Transaction,
   Output,
   values,
+  CellCollector as CellCollectorInterface,
 } from "@ckb-lumos/base";
 import {
   TransactionCollector as TxCollector,
@@ -623,120 +624,8 @@ export class CacheManager {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
-  *cellCollector(): Generator<Cell> {
-    const cells = this.cache.txCache.getLiveCellCache();
-    for (const cell of cells.values()) {
-      yield cell;
-    }
-  }
-
-  // In fact, not support fromBlock | toBlock | skip now.
-  *cellCollectorByQueryOptions({
-    lock = undefined,
-    type = undefined,
-    argsLen = -1,
-    data = "any",
-    fromBlock = undefined,
-    toBlock = undefined,
-    skip = undefined,
-  }: QueryOptions = {}): Generator<Cell> {
-    for (const cell of this.cellCollector()) {
-      if (
-        this.checkCell(cell, {
-          lock,
-          type,
-          argsLen,
-          data,
-          fromBlock,
-          toBlock,
-          skip,
-        })
-      ) {
-        yield cell;
-      }
-    }
-  }
-
-  private checkCell(
-    cell: Cell,
-    {
-      lock = undefined,
-      type = undefined,
-      argsLen = -1,
-      data = "any",
-      fromBlock = undefined,
-      toBlock = undefined,
-    }: QueryOptions
-  ): boolean {
-    lock = lock as Script | undefined;
-
-    if (lock && argsLen === -1) {
-      if (
-        !new values.ScriptValue(cell.cell_output.lock, {
-          validate: false,
-        }).equals(new values.ScriptValue(lock, { validate: false }))
-      ) {
-        return false;
-      }
-    }
-    if (lock && argsLen >= 0) {
-      const length = argsLen * 2 + 2;
-      const lockArgsLength = lock.args.length;
-      const minLength = Math.min(length, lockArgsLength);
-
-      const cellLock = cell.cell_output.lock;
-      if (cellLock.args.length !== length) {
-        return false;
-      }
-      if (
-        !(
-          cellLock.code_hash === lock.code_hash &&
-          cellLock.hash_type === lock.hash_type &&
-          cellLock.args.slice(0, minLength) === lock.args.slice(0, minLength)
-        )
-      ) {
-        return false;
-      }
-    }
-
-    if (type && type === "empty" && cell.cell_output.type) {
-      return false;
-    }
-    if (type && typeof type === "object") {
-      if (
-        !cell.cell_output.type ||
-        !new values.ScriptValue(cell.cell_output.type, {
-          validate: false,
-        }).equals(new values.ScriptValue(type as Script, { validate: false }))
-      ) {
-        return false;
-      }
-    }
-    if (data && data !== "any" && cell.data !== data) {
-      return false;
-    }
-    if (cell.block_number && BigInt(cell.block_number) < BigInt(fromBlock)) {
-      return false;
-    }
-    if (cell.block_number && BigInt(cell.block_number) > BigInt(toBlock)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  getBalance(queryOptions: QueryOptions | "any" = "any"): HexString {
-    let balance: bigint = 0n;
-    if (queryOptions === "any") {
-      for (const cell of this.cellCollector()) {
-        balance += BigInt(cell.cell_output.capacity);
-      }
-    } else {
-      for (const cell of this.cellCollectorByQueryOptions(queryOptions)) {
-        balance += BigInt(cell.cell_output.capacity);
-      }
-    }
-    return "0x" + balance.toString(16);
+  getLiveCellsCache(): Map<string, Cell> {
+    return this.cache.txCache.getLiveCellCache();
   }
 
   getMasterPublicKeyInfo(): PublicKeyInfo | undefined {
@@ -758,4 +647,133 @@ export class CacheManager {
   getChangeKeys(): PublicKeyInfo[] {
     return this.cache.hdCache.changeKeys;
   }
+}
+
+function checkCell(
+  cell: Cell,
+  {
+    lock = undefined,
+    type = undefined,
+    argsLen = -1,
+    data = "any",
+    fromBlock = undefined,
+    toBlock = undefined,
+  }: QueryOptions
+): boolean {
+  lock = lock as Script | undefined;
+
+  if (lock && argsLen === -1) {
+    if (
+      !new values.ScriptValue(cell.cell_output.lock, {
+        validate: false,
+      }).equals(new values.ScriptValue(lock, { validate: false }))
+    ) {
+      return false;
+    }
+  }
+  if (lock && argsLen >= 0) {
+    const length = argsLen * 2 + 2;
+    const lockArgsLength = lock.args.length;
+    const minLength = Math.min(length, lockArgsLength);
+
+    const cellLock = cell.cell_output.lock;
+    if (cellLock.args.length !== length) {
+      return false;
+    }
+    if (
+      !(
+        cellLock.code_hash === lock.code_hash &&
+        cellLock.hash_type === lock.hash_type &&
+        cellLock.args.slice(0, minLength) === lock.args.slice(0, minLength)
+      )
+    ) {
+      return false;
+    }
+  }
+
+  if (type && type === "empty" && cell.cell_output.type) {
+    return false;
+  }
+  if (type && typeof type === "object") {
+    if (
+      !cell.cell_output.type ||
+      !new values.ScriptValue(cell.cell_output.type, {
+        validate: false,
+      }).equals(new values.ScriptValue(type as Script, { validate: false }))
+    ) {
+      return false;
+    }
+  }
+  if (data && data !== "any" && cell.data !== data) {
+    return false;
+  }
+  if (cell.block_number && BigInt(cell.block_number) < BigInt(fromBlock)) {
+    return false;
+  }
+  if (cell.block_number && BigInt(cell.block_number) > BigInt(toBlock)) {
+    return false;
+  }
+
+  return true;
+}
+
+export class CellCollector implements CellCollectorInterface {
+  private cacheManager: CacheManager;
+
+  constructor(cacheManger: CacheManager) {
+    this.cacheManager = cacheManger;
+  }
+
+  async *collect(): AsyncGenerator<Cell> {
+    for (const cell of this.cacheManager.getLiveCellsCache().values()) {
+      yield cell;
+    }
+  }
+}
+
+export class CellCollectorWithQueryOptions implements CellCollectorInterface {
+  private collector: CellCollector;
+  private queryOptions: QueryOptions;
+
+  constructor(
+    collector: CellCollector,
+    {
+      lock = undefined,
+      type = undefined,
+      argsLen = -1,
+      data = "any",
+      fromBlock = undefined,
+      toBlock = undefined,
+      skip = undefined,
+    }: QueryOptions = {}
+  ) {
+    this.collector = collector;
+    this.queryOptions = {
+      lock,
+      type,
+      argsLen,
+      data,
+      fromBlock,
+      toBlock,
+      skip,
+    };
+  }
+
+  async *collect(): AsyncGenerator<Cell> {
+    for await (const cell of this.collector.collect()) {
+      if (checkCell(cell, this.queryOptions)) {
+        yield cell;
+      }
+    }
+  }
+}
+
+export async function getBalance(
+  cellCollector: CellCollector | CellCollectorWithQueryOptions
+): Promise<HexString> {
+  let balance: bigint = 0n;
+  for await (const cell of cellCollector.collect()) {
+    balance += BigInt(cell.cell_output.capacity);
+  }
+  return "0x" + balance.toString(16);
 }

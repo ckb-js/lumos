@@ -1,8 +1,13 @@
 import test from "ava";
 import { Indexer, TransactionCollector } from "@ckb-lumos/indexer";
 
-import { CacheManager } from "../src";
-import { HDCache, getDefaultInfos } from "../src/cache";
+import { CacheManager, getBalance } from "../src";
+import {
+  HDCache,
+  getDefaultInfos,
+  CellCollector,
+  CellCollectorWithQueryOptions,
+} from "../src/cache";
 import { Transaction, Cell, QueryOptions } from "@ckb-lumos/base";
 
 const mockTxs: Transaction[] = [
@@ -163,15 +168,6 @@ const cacheManager = CacheManager.fromMnemonic(
   }
 );
 
-test("getBalance", async (t) => {
-  // @ts-ignore
-  await cacheManager.cache.loop();
-
-  const balance = cacheManager.getBalance();
-
-  t.is(BigInt(balance), BigInt(900 * 10 ** 8));
-});
-
 test("derive threshold", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
     indexer as Indexer,
@@ -198,47 +194,6 @@ test("derive threshold", async (t) => {
   t.deepEqual(
     cacheManager.getChangeKeys().map((key) => key.index),
     Array.from({ length: 3 }).map((_, i) => i)
-  );
-});
-
-test("cellCollector", async (t) => {
-  // @ts-ignore
-  await cacheManager.cache.loop();
-
-  const cells: Cell[] = [];
-  for (const cell of cacheManager.cellCollector()) {
-    cells.push(cell);
-  }
-
-  t.is(cells.length, 3);
-  t.deepEqual(
-    cells.map((cell) => BigInt(cell.cell_output.capacity)),
-    [BigInt(200 * 10 ** 8), BigInt(300 * 10 ** 8), BigInt(400 * 10 ** 8)]
-  );
-});
-
-test("cellCollectorByQueryOptions", async (t) => {
-  // @ts-ignore
-  await cacheManager.cache.loop();
-
-  const queryOptions: QueryOptions = {
-    lock: {
-      code_hash:
-        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hash_type: "type",
-      args: "0x0ce445e32d7f91c9392485ddb9bc6885ce46ad64",
-    },
-  };
-
-  const cells: Cell[] = [];
-  for (const cell of cacheManager.cellCollectorByQueryOptions(queryOptions)) {
-    cells.push(cell);
-  }
-
-  t.is(cells.length, 1);
-  t.deepEqual(
-    cells.map((cell) => BigInt(cell.cell_output.capacity)),
-    [BigInt(200 * 10 ** 8)]
   );
 });
 
@@ -289,24 +244,6 @@ test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
   );
 });
 
-test("getBalance, needMasterPublicKey", async (t) => {
-  const cacheManager = CacheManager.fromMnemonic(
-    indexer as Indexer,
-    mnemonic,
-    getDefaultInfos(),
-    {
-      TransactionCollector: MockTransactionCollector,
-      needMasterPublicKey: true,
-    }
-  );
-  // @ts-ignore
-  await cacheManager.cache.loop();
-
-  const balance = cacheManager.getBalance();
-
-  t.is(BigInt(balance), BigInt(950 * 10 ** 8));
-});
-
 test("loadFromKeystore, ckb-cli", async (t) => {
   const cacheManager = CacheManager.loadFromKeystore(
     indexer as Indexer,
@@ -322,4 +259,79 @@ test("loadFromKeystore, ckb-cli", async (t) => {
   await cacheManager.cache.loop();
 
   t.true(!!cacheManager.getMasterPublicKeyInfo());
+});
+
+test("CellCollector", async (t) => {
+  // @ts-ignore
+  await cacheManager.cache.loop();
+
+  const cellCollector = new CellCollector(cacheManager);
+
+  const cells: Cell[] = [];
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+
+  t.is(cells.length, 3);
+  t.deepEqual(
+    cells.map((cell) => BigInt(cell.cell_output.capacity)),
+    [BigInt(200 * 10 ** 8), BigInt(300 * 10 ** 8), BigInt(400 * 10 ** 8)]
+  );
+});
+
+test("CellCollectorWithQueryOptions", async (t) => {
+  // @ts-ignore
+  await cacheManager.cache.loop();
+
+  const queryOptions: QueryOptions = {
+    lock: {
+      code_hash:
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0x0ce445e32d7f91c9392485ddb9bc6885ce46ad64",
+    },
+  };
+
+  const cellCollector = new CellCollectorWithQueryOptions(
+    new CellCollector(cacheManager),
+    queryOptions
+  );
+
+  const cells: Cell[] = [];
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+
+  t.is(cells.length, 1);
+  t.deepEqual(
+    cells.map((cell) => BigInt(cell.cell_output.capacity)),
+    [BigInt(200 * 10 ** 8)]
+  );
+});
+
+test("getBalance", async (t) => {
+  // @ts-ignore
+  await cacheManager.cache.loop();
+
+  const balance = await getBalance(new CellCollector(cacheManager));
+
+  t.is(BigInt(balance), BigInt(900 * 10 ** 8));
+});
+
+test("getBalance, needMasterPublicKey", async (t) => {
+  const cacheManager = CacheManager.fromMnemonic(
+    indexer as Indexer,
+    mnemonic,
+    getDefaultInfos(),
+    {
+      TransactionCollector: MockTransactionCollector,
+      needMasterPublicKey: true,
+    }
+  );
+  // @ts-ignore
+  await cacheManager.cache.loop();
+
+  const balance = await getBalance(new CellCollector(cacheManager));
+
+  t.is(BigInt(balance), BigInt(950 * 10 ** 8));
 });
