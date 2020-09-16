@@ -102,9 +102,9 @@ export interface QueryOptions {
   data?: string | "any";
   argsLen?: number;
   /** `fromBlock` itself is included in range query. */
-  fromBlock?: number;
+  fromBlock?: HexString;
   /** `toBlock` itself is included in range query. */
-  toBlock?: number;
+  toBlock?: HexString;
   skip?: number;
   order?: "asc" | "desc";
 }
