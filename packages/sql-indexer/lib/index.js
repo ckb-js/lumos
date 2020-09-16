@@ -543,7 +543,7 @@ class Indexer {
     let emitter = new IndexerEmitter();
     emitter.argsLen = argsLen;
     emitter.outputData = data;
-    emitter.fromBlock = fromBlock === null ? 0 : fromBlock;
+    emitter.fromBlock = fromBlock === null ? 0n : BigInt(fromBlock);
     if (lock) {
       validators.ValidateScript(lock);
       emitter.lock = lock;
@@ -589,8 +589,8 @@ class CellCollector {
     this.type = type;
     this.data = data;
     this.argsLen = argsLen;
-    this.fromBlock = fromBlock;
-    this.toBlock = toBlock;
+    this.fromBlock = fromBlock === null ? null : BigInt(fromBlock);
+    this.toBlock = toBlock === null ? null : BigInt(toBlock);
     this.skip = skip;
     this.order = order;
   }
@@ -604,11 +604,9 @@ class CellCollector {
       );
     }
     if (this.fromBlock) {
-      const fromBlock = BigInt(this.fromBlock);
       query = query.andWhere("cells.block_number", ">=", fromBlock);
     }
     if (this.toBlock) {
-      const toBlock = BigInt(this.toBlock);
       query = query.andWhere("cells.block_number", "<=", toBlock);
     }
     if (this.lock) {
