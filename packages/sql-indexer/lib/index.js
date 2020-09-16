@@ -543,6 +543,11 @@ class Indexer {
     let emitter = new IndexerEmitter();
     emitter.argsLen = argsLen;
     emitter.outputData = data;
+    if (fromBlock && !fromBlock.startsWith("0x")) {
+      throw new Error(
+        "The field fromBlock must be a hexString start with 0x prefix"
+      );
+    }
     emitter.fromBlock = fromBlock === null ? 0n : BigInt(fromBlock);
     if (lock) {
       validators.ValidateScript(lock);
@@ -580,6 +585,16 @@ class CellCollector {
     }
     if (type && typeof type === "object") {
       validators.ValidateScript(type);
+    }
+    if (fromBlock && !fromBlock.startsWith("0x")) {
+      throw new Error(
+        "The field fromBlock must be a hexString start with 0x prefix"
+      );
+    }
+    if (toBlock && !toBlock.startsWith("0x")) {
+      throw new Error(
+        "The field toBlock must be a hexString start with 0x prefix"
+      );
     }
     if (order !== "asc" && order !== "desc") {
       throw new Error("Order must be either asc or desc");
