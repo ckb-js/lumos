@@ -769,7 +769,7 @@ export class CellCollectorWithQueryOptions implements CellCollectorInterface {
 }
 
 export async function getBalance(
-  cellCollector: CellCollector | CellCollectorWithQueryOptions
+  cellCollector: CellCollectorInterface
 ): Promise<HexString> {
   let balance: bigint = 0n;
   for await (const cell of cellCollector.collect()) {
