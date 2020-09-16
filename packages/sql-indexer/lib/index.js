@@ -1,5 +1,6 @@
 const { RPC, Reader, validators } = require("ckb-js-toolkit");
 const { EventEmitter } = require("events");
+const { utils } = require("@ckb-lumos/base");
 const SCRIPT_TYPE_LOCK = 0;
 const SCRIPT_TYPE_TYPE = 1;
 
@@ -543,10 +544,8 @@ class Indexer {
     let emitter = new IndexerEmitter();
     emitter.argsLen = argsLen;
     emitter.outputData = data;
-    if (fromBlock && !fromBlock.startsWith("0x")) {
-      throw new Error(
-        "The field fromBlock must be a hexString start with 0x prefix"
-      );
+    if (fromBlock) {
+      utils.assertHexadecimal("fromBlock", fromBlock);
     }
     emitter.fromBlock = fromBlock === null ? 0n : BigInt(fromBlock);
     if (lock) {
@@ -586,15 +585,11 @@ class CellCollector {
     if (type && typeof type === "object") {
       validators.ValidateScript(type);
     }
-    if (fromBlock && !fromBlock.startsWith("0x")) {
-      throw new Error(
-        "The field fromBlock must be a hexString start with 0x prefix"
-      );
+    if (fromBlock) {
+      utils.assertHexadecimal("fromBlock", fromBlock);
     }
-    if (toBlock && !toBlock.startsWith("0x")) {
-      throw new Error(
-        "The field toBlock must be a hexString start with 0x prefix"
-      );
+    if (toBlock) {
+      utils.assertHexadecimal("toBlock", toBlock);
     }
     if (order !== "asc" && order !== "desc") {
       throw new Error("Order must be either asc or desc");

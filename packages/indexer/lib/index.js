@@ -4,6 +4,7 @@ const XXHash = require("xxhash");
 const { Indexer: NativeIndexer, Emitter } = require("../native");
 const { EventEmitter } = require("events");
 const util = require("util");
+const { utils } = require("@ckb-lumos/base");
 
 util.inherits(Emitter, EventEmitter);
 
@@ -137,15 +138,13 @@ class Indexer {
   } = {}) {
     let script = null;
     let scriptType = null;
-    if (fromBlock && !fromBlock.startsWith("0x")) {
-      throw new Error(
-        "The field fromBlock must be a hexString start with 0x prefix"
-      );
+    if (fromBlock) {
+      utils.assertHexadecimal("fromBlock", fromBlock);
     }
     if (toBlock !== null || skip !== null) {
       this.logger(
         "warn",
-        "The passing fields such as toBlock and skip are ignored in subscribe() method."
+        "The passing fileds toBlock and skip are ignored in subscribe() method."
       );
     }
     if (lock) {
@@ -204,15 +203,11 @@ class CellCollector {
     if (type && typeof type === "object") {
       validators.ValidateScript(type);
     }
-    if (fromBlock && !fromBlock.startsWith("0x")) {
-      throw new Error(
-        "The field fromBlock must be a hexString start with 0x prefix"
-      );
+    if (fromBlock) {
+      utils.assertHexadecimal("fromBlock", fromBlock);
     }
-    if (toBlock && !toBlock.startsWith("0x")) {
-      throw new Error(
-        "The field toBlock must be a hexString start with 0x prefix"
-      );
+    if (toBlock) {
+      utils.assertHexadecimal("toBlock", toBlock);
     }
     if (order !== "asc" && order !== "desc") {
       throw new Error("Order must be either asc or desc");
@@ -354,15 +349,11 @@ class TransactionCollector {
       validators.ValidateScript(type.script);
       this.type = type;
     }
-    if (fromBlock && !fromBlock.startsWith("0x")) {
-      throw new Error(
-        "The field fromBlock must be a hexString start with 0x prefix"
-      );
+    if (fromBlock) {
+      utils.assertHexadecimal("fromBlock", fromBlock);
     }
-    if (toBlock && !toBlock.startsWith("0x")) {
-      throw new Error(
-        "The field toBlock must be a hexString start with 0x prefix"
-      );
+    if (toBlock) {
+      utils.assertHexadecimal("toBlock", toBlock);
     }
     if (order !== "asc" && order !== "desc") {
       throw new Error("Order must be either asc or desc");
