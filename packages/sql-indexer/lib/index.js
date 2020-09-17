@@ -1,5 +1,6 @@
 const { RPC, Reader, validators } = require("ckb-js-toolkit");
 const { EventEmitter } = require("events");
+const { utils } = require("@ckb-lumos/base");
 const SCRIPT_TYPE_LOCK = 0;
 const SCRIPT_TYPE_TYPE = 1;
 
@@ -543,7 +544,10 @@ class Indexer {
     let emitter = new IndexerEmitter();
     emitter.argsLen = argsLen;
     emitter.outputData = data;
-    emitter.fromBlock = fromBlock === null ? 0 : fromBlock;
+    if (fromBlock) {
+      utils.assertHexadecimal("fromBlock", fromBlock);
+    }
+    emitter.fromBlock = fromBlock === null ? 0n : BigInt(fromBlock);
     if (lock) {
       validators.ValidateScript(lock);
       emitter.lock = lock;
@@ -581,6 +585,12 @@ class CellCollector {
     if (type && typeof type === "object") {
       validators.ValidateScript(type);
     }
+    if (fromBlock) {
+      utils.assertHexadecimal("fromBlock", fromBlock);
+    }
+    if (toBlock) {
+      utils.assertHexadecimal("toBlock", toBlock);
+    }
     if (order !== "asc" && order !== "desc") {
       throw new Error("Order must be either asc or desc");
     }
@@ -589,8 +599,8 @@ class CellCollector {
     this.type = type;
     this.data = data;
     this.argsLen = argsLen;
-    this.fromBlock = fromBlock;
-    this.toBlock = toBlock;
+    this.fromBlock = fromBlock === null ? null : BigInt(fromBlock);
+    this.toBlock = toBlock === null ? null : BigInt(toBlock);
     this.skip = skip;
     this.order = order;
   }
@@ -604,11 +614,9 @@ class CellCollector {
       );
     }
     if (this.fromBlock) {
-      const fromBlock = BigInt(this.fromBlock);
       query = query.andWhere("cells.block_number", ">=", fromBlock);
     }
     if (this.toBlock) {
-      const toBlock = BigInt(this.toBlock);
       query = query.andWhere("cells.block_number", "<=", toBlock);
     }
     if (this.lock) {

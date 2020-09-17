@@ -82,6 +82,18 @@ function hashCode(buffer) {
   return XXHash.hash(buffer, 0);
 }
 
+function assertHexString(debugPath, str) {
+  if (!/^0x([0-9a-fA-F][0-9a-fA-F])*$/.test(str)) {
+    throw new Error(`${debugPath} must be a hex string!`);
+  }
+}
+
+function assertHexadecimal(debugPath, str) {
+  if (!/^0x(0|[0-9a-fA-F]+)$/.test(str)) {
+    throw new Error(`${debugPath} must be a hexadecimal!`);
+  }
+}
+
 module.exports = {
   CKBHasher,
   ckbHash,
@@ -91,4 +103,6 @@ module.exports = {
   readBigUInt128LE,
   computeScriptHash,
   hashCode,
+  assertHexString,
+  assertHexadecimal,
 };
