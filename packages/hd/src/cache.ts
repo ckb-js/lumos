@@ -13,7 +13,6 @@ import {
   TransactionCollector as TxCollector,
   Indexer,
 } from "@ckb-lumos/indexer";
-import { Indexer as SqlIndexer } from "@ckb-lumos/sql-indexer";
 import {
   AccountExtendedPublicKey,
   AddressType,
@@ -362,7 +361,7 @@ export class TransactionCache {
 export class Cache {
   public readonly hdCache: HDCache;
   public readonly txCache: TransactionCache;
-  private indexer: Indexer | SqlIndexer;
+  private indexer: Indexer;
 
   private lastTipBlockNumber: bigint = 0n;
   private TransactionCollector: any;
@@ -370,7 +369,7 @@ export class Cache {
   private rpc: RPC;
 
   constructor(
-    indexer: Indexer | SqlIndexer,
+    indexer: Indexer,
     publicKey: HexString,
     chainCode: HexString,
     infos: LockScriptMappingInfo[],
@@ -496,7 +495,7 @@ export class CacheManager {
   private pollIntervalSeconds: number;
 
   constructor(
-    indexer: Indexer | SqlIndexer,
+    indexer: Indexer,
     publicKey: HexString,
     chainCode: HexString,
     masterPublicKey?: HexString,
@@ -537,7 +536,7 @@ export class CacheManager {
    * @param options
    */
   static loadFromKeystore(
-    indexer: Indexer | SqlIndexer,
+    indexer: Indexer,
     path: string,
     password: string,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
@@ -571,7 +570,7 @@ export class CacheManager {
   }
 
   static fromMnemonic(
-    indexer: Indexer | SqlIndexer,
+    indexer: Indexer,
     mnemonic: string,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
     options: {
