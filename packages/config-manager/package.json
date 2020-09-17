@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/config-manager",
-  "version": "0.12.0",
+  "version": "0.13.0-rc1",
   "description": "Config manager for lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
