@@ -580,8 +580,13 @@ declare_types! {
                 None
             };
             let from_block = cx.argument::<JsValue>(4)?;
-            let from_block_number = if from_block.is_a::<JsNumber>() {
-                from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64
+            let from_block_number = if from_block.is_a::<JsString>() {
+                let from_block_hex = from_block.downcast::<JsString>().or_throw(&mut cx)?.value();
+                let from_block_result = u64::from_str_radix(&from_block_hex[2..],16);
+                if from_block_result.is_err() {
+                    return cx.throw_error(format!("Error resolving from_block: {:?}", from_block_result.unwrap_err()));
+                }
+                from_block_result.unwrap()
             } else {
                 0_u64
             };
@@ -673,16 +678,24 @@ declare_types! {
             start_key.extend_from_slice(&script.args().raw_data());
 
             let from_block = cx.argument::<JsValue>(4)?;
-            let to_block = cx.argument::<JsValue>(5)?;
-            let from_block_number_slice = if from_block.is_a::<JsNumber>() {
-                let from_block_number = from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
-                from_block_number.to_be_bytes()
+            let from_block_number_slice = if from_block.is_a::<JsString>() {
+                let from_block_hex = from_block.downcast::<JsString>().or_throw(&mut cx)?.value();
+                let from_block_result = u64::from_str_radix(&from_block_hex[2..],16);
+                if from_block_result.is_err() {
+                    return cx.throw_error(format!("Error resolving fromBlock: {:?}", from_block_result.unwrap_err()));
+                }
+                from_block_result.unwrap().to_be_bytes()
             } else {
                 0_u64.to_be_bytes()
             };
-            let to_block_number_slice = if to_block.is_a::<JsNumber>() {
-                let to_block_number = to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
-                to_block_number.to_be_bytes()
+            let to_block = cx.argument::<JsValue>(5)?;
+            let to_block_number_slice = if to_block.is_a::<JsString>() {
+                let to_block_hex = to_block.downcast::<JsString>().or_throw(&mut cx)?.value();
+                let to_block_result = u64::from_str_radix(&to_block_hex[2..],16);
+                if to_block_result.is_err() {
+                    return cx.throw_error(format!("Error resolving toBlock: {:?}", to_block_result.unwrap_err()));
+                }
+                to_block_result.unwrap().to_be_bytes()
             } else {
                 u64::MAX.to_be_bytes()
             };
@@ -840,14 +853,24 @@ declare_types! {
             };
 
             let from_block = cx.argument::<JsValue>(4)?;
-            if from_block.is_a::<JsNumber>() {
-                let from_block_number = from_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
-                start_key.extend_from_slice(&from_block_number.to_be_bytes());
+            if from_block.is_a::<JsString>() {
+                let from_block_hex = from_block.downcast::<JsString>().or_throw(&mut cx)?.value();
+                let from_block_result = u64::from_str_radix(&from_block_hex[2..],16);
+                if from_block_result.is_err() {
+                    return cx.throw_error(format!("Error resolving fromBlock: {:?}", from_block_result.unwrap_err()));
+                }
+                let from_block_number_slice = from_block_result.unwrap().to_be_bytes();
+                start_key.extend_from_slice(&from_block_number_slice)
             }
             let to_block = cx.argument::<JsValue>(5)?;
-            if to_block.is_a::<JsNumber>() {
-                let to_block_number = to_block.downcast::<JsNumber>().or_throw(&mut cx)?.value() as u64;
-                end_key.extend_from_slice(&to_block_number.to_be_bytes());
+            if to_block.is_a::<JsString>() {
+                let to_block_hex = to_block.downcast::<JsString>().or_throw(&mut cx)?.value();
+                let to_block_result = u64::from_str_radix(&to_block_hex[2..],16);
+                if to_block_result.is_err() {
+                    return cx.throw_error(format!("Error resolving toBlock: {:?}", to_block_result.unwrap_err()));
+                }
+                let to_block_number_slice = to_block_result.unwrap().to_be_bytes();
+                end_key.extend_from_slice(&to_block_number_slice);
             } else {
                 end_key.extend_from_slice(&u64::MAX.to_be_bytes());
             }

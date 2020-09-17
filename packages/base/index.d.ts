@@ -4,6 +4,7 @@ export { core };
 import { Reader } from "ckb-js-toolkit";
 
 export type HexString = string;
+export type Hexadecimal = string;
 export type Hash = HexString;
 export type PackedSince = string;
 export type PackedDao = string;
@@ -112,9 +113,9 @@ export interface QueryOptions {
   data?: string | "any";
   argsLen?: number;
   /** `fromBlock` itself is included in range query. */
-  fromBlock?: number;
+  fromBlock?: Hexadecimal;
   /** `toBlock` itself is included in range query. */
-  toBlock?: number;
+  toBlock?: Hexadecimal;
   skip?: number;
   order?: "asc" | "desc";
 }
@@ -189,6 +190,8 @@ export declare const utils: {
   hashCode(buffer: Buffer): number;
 
   assertHexString(debugPath: string, str: string): void;
+
+  assertHexadecimal(debugPath: string, str: string): void;
 };
 
 export interface EpochSinceValue {

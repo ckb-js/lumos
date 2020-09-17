@@ -88,6 +88,12 @@ function assertHexString(debugPath, str) {
   }
 }
 
+function assertHexadecimal(debugPath, str) {
+  if (!/^0x(0|[0-9a-fA-F]+)$/.test(str)) {
+    throw new Error(`${debugPath} must be a hexadecimal!`);
+  }
+}
+
 module.exports = {
   CKBHasher,
   ckbHash,
@@ -98,4 +104,5 @@ module.exports = {
   computeScriptHash,
   hashCode,
   assertHexString,
+  assertHexadecimal,
 };

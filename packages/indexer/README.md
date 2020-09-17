@@ -77,8 +77,8 @@ cellCollector = new CellCollector(indexer, {
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: 2250000,
-  toBlock: 2252000,
+  fromBlock: "0x225510", // "0x" + 2250000n.toString(16)
+  toBlock: "0x225ce0", // "0x" + 2252000n.toString(16)
 });
 
 for await (const cell of cellCollector.collect()) {
@@ -117,8 +117,8 @@ cellCollector = new CellCollector(indexer, {
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: 2440000,
-  toBlock: 2441000,
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
   order: "desc", // default option is "asc"
   skip: 300,
 });
@@ -157,8 +157,8 @@ txCollector = new TransactionCollector(indexer, {
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: 0,
-  toBlock: 2000,
+  fromBlock: "0x0", // "0x" + 0n.toString(16) 
+  toBlock: "0x7d0" , // "0x" + 2000n.toString(16)
 });
 
 for await (const tx of txCollector.collect()) {
@@ -181,8 +181,8 @@ txCollector = new TransactionCollector(indexer, {
     },
     ioType: "input",
   },
-  fromBlock: 0,
-  toBlock: 2000,
+  romBlock: "0x0", // "0x" + 0n.toString(16) 
+  toBlock: "0x7d0" , // "0x" + 2000n.toString(16)
 });
 
 for await (const tx of txCollector.collect()) {
@@ -223,8 +223,8 @@ txCollector = new TransactionCollector(indexer, {
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: 20000,
-  toBlock: 21000,
+  fromBlock: "0x4e20", // "0x" + 20000n.toString(16)
+  toBlock: "0x5208", // "0x" + 21000n.toString(16)
   order: "desc", // default option is "asc"
   skip: 10,
 });
@@ -271,7 +271,7 @@ eventEmitter = indexer.subscribe({
   // default value is "any"
   data: "0x",
   // default value is 0
-  fromBlock: 1000
+  fromBlock: 0x3e8, // "0x" + 1000n.toString(16)
 });
 ```
 
