@@ -8,96 +8,143 @@ import {
   CellCollector,
   CellCollectorWithQueryOptions,
 } from "../src/cache";
-import { Transaction, Cell, QueryOptions } from "@ckb-lumos/base";
+import {
+  Cell,
+  QueryOptions,
+  TransactionWithStatus,
+  HexString,
+} from "@ckb-lumos/base";
 
-const mockTxs: Transaction[] = [
+const mockTxs: TransactionWithStatus[] = [
   {
-    version: "0",
-    hash: "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
-    header_deps: [],
-    cell_deps: [],
-    inputs: [
-      {
-        previous_output: {
-          tx_hash:
-            "0x58a29007f29ede069d49221f468107681c1a4d8d341de1d053b9b60596d6b233",
-          index: "0x0",
+    transaction: {
+      version: "0",
+      hash:
+        "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
+      header_deps: [],
+      cell_deps: [],
+      inputs: [
+        {
+          previous_output: {
+            tx_hash:
+              "0x58a29007f29ede069d49221f468107681c1a4d8d341de1d053b9b60596d6b233",
+            index: "0x0",
+          },
+          since: "0x0",
         },
-        since: "0x0",
-      },
-    ],
-    outputs: [
-      {
-        capacity: "0x" + BigInt(1000 * 10 ** 8).toString(16),
-        lock: {
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-          args: "0x89cba48c68b3978f185df19f31634bb870e94639",
+      ],
+      outputs: [
+        {
+          capacity: "0x" + BigInt(1000 * 10 ** 8).toString(16),
+          lock: {
+            code_hash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            hash_type: "type",
+            args: "0x89cba48c68b3978f185df19f31634bb870e94639",
+          },
         },
-      },
-    ],
-    outputs_data: ["0x"],
-    witnesses: [],
+      ],
+      outputs_data: ["0x"],
+      witnesses: [],
+    },
+    tx_status: {
+      status: "committed",
+      block_hash:
+        "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68",
+    },
   },
   {
-    version: "0",
-    hash: "78a2d0c8da6daaa9e9cb7b2f69f90f3492719bb566e039d5c7d6a1534fcb301b",
-    header_deps: [],
-    cell_deps: [],
-    inputs: [
-      {
-        previous_output: {
-          tx_hash:
-            "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
-          index: "0x0",
+    transaction: {
+      version: "0",
+      hash: "78a2d0c8da6daaa9e9cb7b2f69f90f3492719bb566e039d5c7d6a1534fcb301b",
+      header_deps: [],
+      cell_deps: [],
+      inputs: [
+        {
+          previous_output: {
+            tx_hash:
+              "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
+            index: "0x0",
+          },
+          since: "0x0",
         },
-        since: "0x0",
-      },
-    ],
-    outputs: [
-      {
-        capacity: "0x" + BigInt(200 * 10 ** 8).toString(16),
-        lock: {
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-          args: "0x0ce445e32d7f91c9392485ddb9bc6885ce46ad64",
+      ],
+      outputs: [
+        {
+          capacity: "0x" + BigInt(200 * 10 ** 8).toString(16),
+          lock: {
+            code_hash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            hash_type: "type",
+            args: "0x0ce445e32d7f91c9392485ddb9bc6885ce46ad64",
+          },
         },
-      },
-      {
-        capacity: "0x" + BigInt(300 * 10 ** 8).toString(16),
-        lock: {
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-          args: "0xaa5aa575dedb6f5d7a5c835428c3b4a3ea7ba1eb",
+        {
+          capacity: "0x" + BigInt(300 * 10 ** 8).toString(16),
+          lock: {
+            code_hash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            hash_type: "type",
+            args: "0xaa5aa575dedb6f5d7a5c835428c3b4a3ea7ba1eb",
+          },
         },
-      },
-      {
-        capacity: "0x" + BigInt(400 * 10 ** 8).toString(16),
-        lock: {
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-          args: "0xfa7b46aa28cb233db373e5712e16edcaaa4c4999",
+        {
+          capacity: "0x" + BigInt(400 * 10 ** 8).toString(16),
+          lock: {
+            code_hash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            hash_type: "type",
+            args: "0xfa7b46aa28cb233db373e5712e16edcaaa4c4999",
+          },
         },
-      },
-      // master public key
-      {
-        capacity: "0x" + BigInt(50 * 10 ** 8).toString(16),
-        lock: {
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-          args: "0xa6ee79109863906e75668acd75d6c6adbd56469c",
+        // master public key
+        {
+          capacity: "0x" + BigInt(50 * 10 ** 8).toString(16),
+          lock: {
+            code_hash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            hash_type: "type",
+            args: "0xa6ee79109863906e75668acd75d6c6adbd56469c",
+          },
         },
-      },
-    ],
-    outputs_data: ["0x1234", "0x", "0x"],
-    witnesses: [],
+      ],
+      outputs_data: ["0x1234", "0x", "0x"],
+      witnesses: [],
+    },
+    tx_status: {
+      status: "committed",
+      block_hash:
+        "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68",
+    },
   },
 ];
+
+class MockRpc {
+  constructor() {}
+
+  async get_header(blockHash: HexString) {
+    return {
+      compact_target: "0x1e083126",
+      dao: "0xb5a3e047474401001bc476b9ee573000c0c387962a38000000febffacf030000",
+      epoch: "0x7080018000001",
+      hash: blockHash,
+      nonce: "0x0",
+      number: "0x400",
+      parent_hash:
+        "0xae003585fa15309b30b31aed3dcf385e9472c3c3e93746a6c4540629a6a1ed2d",
+      proposals_hash:
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+      timestamp: "0x5cd2b117",
+      transactions_root:
+        "0xc47d5b78b3c4c4c853e2a32810818940d0ee403423bea9ec7b8e566d9595206c",
+      uncles_hash:
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+      version: "0x0",
+    };
+  }
+}
+
+const rpc: any = new MockRpc();
 
 class MockIndexer {
   async tip() {
@@ -136,7 +183,7 @@ const mnemonic =
  */
 
 class MockTransactionCollector extends TransactionCollector {
-  async *collect() {
+  async *collect(): any {
     const lock = (this as any).lock.script;
     const args = lock.args;
     if (args === "0x89cba48c68b3978f185df19f31634bb870e94639") {
@@ -165,6 +212,7 @@ const cacheManager = CacheManager.fromMnemonic(
   getDefaultInfos(),
   {
     TransactionCollector: MockTransactionCollector,
+    rpc,
   }
 );
 
@@ -175,6 +223,7 @@ test("derive threshold", async (t) => {
     getDefaultInfos(),
     {
       TransactionCollector: MockTransactionCollector,
+      rpc,
     }
   );
 
@@ -231,6 +280,7 @@ test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
     getDefaultInfos(),
     {
       TransactionCollector: MockTransactionCollector,
+      rpc,
       needMasterPublicKey: true,
     }
   );
@@ -277,6 +327,13 @@ test("CellCollector", async (t) => {
     cells.map((cell) => BigInt(cell.cell_output.capacity)),
     [BigInt(200 * 10 ** 8), BigInt(300 * 10 ** 8), BigInt(400 * 10 ** 8)]
   );
+
+  const firstCell = cells[0];
+  t.is(firstCell.block_number, "0x400");
+  t.is(
+    firstCell.block_hash,
+    "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68"
+  );
 });
 
 test("CellCollectorWithQueryOptions", async (t) => {
@@ -309,6 +366,31 @@ test("CellCollectorWithQueryOptions", async (t) => {
   );
 });
 
+test("CellCollectorWithQueryOptions, skip", async (t) => {
+  // @ts-ignore
+  await cacheManager.cache.loop();
+
+  const queryOptions: QueryOptions = {
+    skip: 1,
+  };
+
+  const cellCollector = new CellCollectorWithQueryOptions(
+    new CellCollector(cacheManager),
+    queryOptions
+  );
+
+  const cells: Cell[] = [];
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+
+  t.is(cells.length, 2);
+  t.deepEqual(
+    cells.map((cell) => BigInt(cell.cell_output.capacity)),
+    [BigInt(300 * 10 ** 8), BigInt(400 * 10 ** 8)]
+  );
+});
+
 test("getBalance", async (t) => {
   // @ts-ignore
   await cacheManager.cache.loop();
@@ -325,6 +407,7 @@ test("getBalance, needMasterPublicKey", async (t) => {
     getDefaultInfos(),
     {
       TransactionCollector: MockTransactionCollector,
+      rpc,
       needMasterPublicKey: true,
     }
   );

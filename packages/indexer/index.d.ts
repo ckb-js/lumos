@@ -50,6 +50,8 @@ export declare class TransactionCollector {
 }
 
 export declare class Indexer {
+  uri: string;
+
   constructor(uri: string, path: string, options?: IndexerOptions);
 
   running(): boolean;

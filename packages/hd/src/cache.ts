@@ -24,6 +24,7 @@ import { Config, getConfig } from "@ckb-lumos/config-manager";
 import { publicKeyToBlake160 } from "./key";
 import Keystore from "./keystore";
 import { mnemonicToSeedSync } from "./mnemonic";
+import { RPC } from "ckb-js-toolkit";
 
 export function serializeOutPoint(outPoint: OutPoint): string {
   return `${outPoint.tx_hash}_${outPoint.index}`;
@@ -232,7 +233,9 @@ function outputToCell(
   output: Output,
   data: HexString,
   txHash: HexString,
-  index: HexString
+  index: HexString,
+  blockHash: HexString,
+  blockNumber: HexString
 ): Cell {
   return {
     cell_output: {
@@ -245,6 +248,8 @@ function outputToCell(
       index,
     },
     data: data,
+    block_hash: blockHash,
+    block_number: blockNumber,
   };
 }
 
@@ -310,7 +315,9 @@ export class TransactionCache {
   parseTransaction(
     transaction: Transaction,
     lockScript: Script,
-    publicKey: HexString
+    publicKey: HexString,
+    blockHash: HexString,
+    blockNumber: HexString
   ): void {
     const txHash: HexString = transaction.hash!;
 
@@ -326,7 +333,9 @@ export class TransactionCache {
           output,
           transaction.outputs_data[index],
           txHash,
-          outputIndex
+          outputIndex,
+          blockHash,
+          blockNumber
         );
 
         return cell;
@@ -358,6 +367,8 @@ export class Cache {
   private lastTipBlockNumber: bigint = 0n;
   private TransactionCollector: any;
 
+  private rpc: RPC;
+
   constructor(
     indexer: Indexer | SqlIndexer,
     publicKey: HexString,
@@ -366,9 +377,11 @@ export class Cache {
     {
       TransactionCollector = TxCollector,
       masterPublicKey = undefined,
+      rpc = new RPC(indexer.uri),
     }: {
       TransactionCollector?: any;
       masterPublicKey?: HexString;
+      rpc?: RPC;
     } = {}
   ) {
     this.indexer = indexer;
@@ -376,6 +389,8 @@ export class Cache {
     this.txCache = new TransactionCache(this.hdCache);
 
     this.TransactionCollector = TransactionCollector;
+
+    this.rpc = rpc;
   }
 
   getLastTipBlockNumber(): HexString {
@@ -398,15 +413,21 @@ export class Cache {
           toBlock: +toBlock.toString(),
         },
         {
-          includeStatus: false,
+          includeStatus: true,
         }
       );
 
-      for await (const tx of transactionCollector.collect()) {
+      for await (const txWithStatus of transactionCollector.collect()) {
+        const tx = txWithStatus.transaction;
+        const blockHash: HexString = txWithStatus.tx_status.block_hash!;
+        const tipHeader = await this.rpc.get_header(blockHash);
+        const blockNumber: HexString = tipHeader.number;
         this.txCache.parseTransaction(
           tx,
           lockScript,
-          lockScriptInfo.publicKeyInfo.publicKey
+          lockScriptInfo.publicKeyInfo.publicKey,
+          blockHash,
+          blockNumber
         );
         this.hdCache.deriveKeys();
       }
@@ -485,17 +506,20 @@ export class CacheManager {
       pollIntervalSeconds = 2,
       livenessCheckIntervalSeconds = 5,
       TransactionCollector = TxCollector,
+      rpc = new RPC(indexer.uri),
     }: {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
       TransactionCollector?: any;
+      rpc?: RPC;
     } = {}
   ) {
     this.logger = logger;
     this.cache = new Cache(indexer, publicKey, chainCode, infos, {
       TransactionCollector,
       masterPublicKey,
+      rpc,
     });
     this.isRunning = false;
     this.pollIntervalSeconds = pollIntervalSeconds;
@@ -523,6 +547,7 @@ export class CacheManager {
       livenessCheckIntervalSeconds?: number;
       TransactionCollector?: any;
       needMasterPublicKey?: boolean;
+      rpc?: RPC;
     } = {}
   ): CacheManager {
     const keystore = Keystore.load(path);
@@ -555,6 +580,7 @@ export class CacheManager {
       livenessCheckIntervalSeconds?: number;
       TransactionCollector?: any;
       needMasterPublicKey?: boolean;
+      rpc?: RPC;
     } = {}
   ): CacheManager {
     const seed = mnemonicToSeedSync(mnemonic);
@@ -707,10 +733,18 @@ function checkCell(
   if (data && data !== "any" && cell.data !== data) {
     return false;
   }
-  if (cell.block_number && BigInt(cell.block_number) < BigInt(fromBlock)) {
+  if (
+    fromBlock &&
+    cell.block_number &&
+    BigInt(cell.block_number) < BigInt(fromBlock)
+  ) {
     return false;
   }
-  if (cell.block_number && BigInt(cell.block_number) > BigInt(toBlock)) {
+  if (
+    toBlock &&
+    cell.block_number &&
+    BigInt(cell.block_number) > BigInt(toBlock)
+  ) {
     return false;
   }
 
@@ -760,9 +794,15 @@ export class CellCollectorWithQueryOptions implements CellCollectorInterface {
   }
 
   async *collect(): AsyncGenerator<Cell> {
+    const skip = this.queryOptions.skip;
+    let skipCount = 0;
     for await (const cell of this.collector.collect()) {
       if (checkCell(cell, this.queryOptions)) {
-        yield cell;
+        if (skip && skipCount < skip) {
+          skipCount += 1;
+        } else {
+          yield cell;
+        }
       }
     }
   }

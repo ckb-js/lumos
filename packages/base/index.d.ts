@@ -79,6 +79,16 @@ export interface Transaction {
   witnesses: HexString[];
 }
 
+export interface TxStatus {
+  block_hash?: Hash;
+  status: string;
+}
+
+export interface TransactionWithStatus {
+  transaction: Transaction;
+  tx_status: TxStatus;
+}
+
 export interface Cell {
   cell_output: {
     capacity: HexString;
