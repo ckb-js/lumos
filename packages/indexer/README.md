@@ -65,7 +65,6 @@ for await (const cell of collector.collect()) {
 ```
 
 
-Prefix search is supported on `args`.
 
 Range query for cells between given block_numbers is supported:
 
@@ -107,7 +106,7 @@ for await (const tx of cellCollector.collect()) {
 
 The `skip` field represents the number of cells being skipped, which in the above code snippet means it would skip the first 100 cells and return from the 101st one.
 
-Order by block number is supported:
+Order by block number is supported by setting `order` field explicitly:
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -117,6 +116,50 @@ cellCollector = new CellCollector(indexer, {
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
+  order: "desc", // default option is "asc"
+  skip: 300,
+});
+
+for await (const cell of cellCollector.collect()) {
+  console.log(cell);
+}
+```
+
+Prefix search is supported on `args`. The default `argsLen` is -1, and you can specify it when the `args` field is the prefix of original args.
+
+```javascript
+cellCollector = new CellCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last byte of orignal args
+  },
+  argsLen: 20, // default option is -1
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
+  order: "desc", // default option is "asc"
+  skip: 300,
+});
+
+for await (const cell of cellCollector.collect()) {
+  console.log(cell);
+}
+```
+
+You can also set it as `any` when the argsLen of the `args` might have multiple cases. However, there's some performance lost when use `any` rather than explicit length due to the low-level implementation.
+
+```javascript
+cellCollector = new CellCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e", // truncate the last two bytes of original args
+  },
+  argsLen: "any",
   fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
   toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
   order: "desc", // default option is "asc"
@@ -181,7 +224,7 @@ txCollector = new TransactionCollector(indexer, {
     },
     ioType: "input",
   },
-  romBlock: "0x0", // "0x" + 0n.toString(16) 
+  fromBlock: "0x0", // "0x" + 0n.toString(16) 
   toBlock: "0x7d0" , // "0x" + 2000n.toString(16)
 });
 
