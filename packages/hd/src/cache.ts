@@ -409,8 +409,8 @@ export class Cache {
         this.indexer,
         {
           lock: lockScript,
-          fromBlock: +fromBlock.toString(),
-          toBlock: +toBlock.toString(),
+          fromBlock: "0x" + fromBlock.toString(16),
+          toBlock: "0x" + toBlock.toString(16),
         },
         {
           includeStatus: true,
