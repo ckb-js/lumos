@@ -24,6 +24,7 @@ import { publicKeyToBlake160 } from "./key";
 import Keystore from "./keystore";
 import { mnemonicToSeedSync } from "./mnemonic";
 import { RPC } from "ckb-js-toolkit";
+import { assertPublicKey, assertChainCode } from "./helper";
 
 export function serializeOutPoint(outPoint: OutPoint): string {
   return `${outPoint.tx_hash}_${outPoint.index}`;
@@ -514,6 +515,11 @@ export class CacheManager {
       rpc?: RPC;
     } = {}
   ) {
+    assertPublicKey(publicKey);
+    assertChainCode(chainCode);
+    if (masterPublicKey) {
+      assertPublicKey(masterPublicKey, "masterPublicKey");
+    }
     this.logger = logger;
     this.cache = new Cache(indexer, publicKey, chainCode, infos, {
       TransactionCollector,

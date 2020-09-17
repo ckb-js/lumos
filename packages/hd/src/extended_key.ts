@@ -1,6 +1,7 @@
 import Keychain from "./keychain";
 import key, { privateToPublic } from "./key";
 import { utils, HexString } from "@ckb-lumos/base";
+import { assertPublicKey, assertChainCode, assertPrivateKey } from "./helper";
 
 export enum AddressType {
   Receiving = 0,
@@ -18,8 +19,8 @@ export class ExtendedPublicKey {
   chainCode: HexString;
 
   constructor(publicKey: HexString, chainCode: HexString) {
-    utils.assertHexString("publicKey", publicKey);
-    utils.assertHexString("chainCode", chainCode);
+    assertPublicKey(publicKey);
+    assertChainCode(chainCode);
 
     this.publicKey = publicKey;
     this.chainCode = chainCode;
@@ -98,8 +99,8 @@ export class ExtendedPrivateKey {
   chainCode: HexString;
 
   constructor(privateKey: HexString, chainCode: HexString) {
-    utils.assertHexString("privateKey", privateKey);
-    utils.assertHexString("chainCode", chainCode);
+    assertPrivateKey(privateKey);
+    assertChainCode(chainCode);
 
     this.privateKey = privateKey;
     this.chainCode = chainCode;

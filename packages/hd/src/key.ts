@@ -1,5 +1,6 @@
 import { HexString, utils } from "@ckb-lumos/base";
 import { ec as EC, SignatureInput } from "elliptic";
+import { assertPrivateKey, assertPublicKey } from "./helper";
 
 const ec = new EC("secp256k1");
 
@@ -8,7 +9,7 @@ export function signRecoverable(
   privateKey: HexString
 ): HexString {
   utils.assertHexString("message", message);
-  utils.assertHexString("privateKey", privateKey);
+  assertPrivateKey(privateKey);
 
   const key = ec.keyFromPrivate(privateKey.slice(2));
   const { r, s, recoveryParam } = key.sign(message.slice(2), {
@@ -52,7 +53,7 @@ export function privateToPublic(
 ): Buffer | HexString {
   let pkBuffer = privateKey;
   if (typeof privateKey === "string") {
-    utils.assertHexString("privateKey", privateKey);
+    assertPrivateKey(privateKey);
     pkBuffer = Buffer.from(privateKey.slice(2), "hex");
   }
   if (pkBuffer.length !== 32) {
@@ -67,7 +68,7 @@ export function privateToPublic(
 }
 
 export function publicKeyToBlake160(publicKey: HexString): HexString {
-  utils.assertHexString("publicKey", publicKey);
+  assertPublicKey(publicKey);
 
   const blake160: string = new utils.CKBHasher()
     .update(publicKey)
