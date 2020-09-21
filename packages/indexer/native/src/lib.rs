@@ -32,7 +32,7 @@ pub enum Error {
     Other(String),
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ArgsLen {
     StringAny,
     UintValue(u32),
@@ -686,17 +686,12 @@ declare_types! {
                 };
                 ArgsLen::UintValue(args_len)
             } else {
-                return cx.throw_error(format!("The field argsLen must be either JsString or JsNumber"));
+                return cx.throw_error("The field argsLen must be either JsString or JsNumber");
             };
 
             let mut start_key = vec![prefix as u8];
             start_key.extend_from_slice(script.code_hash().as_slice());
             start_key.extend_from_slice(script.hash_type().as_slice());
-            if let ArgsLen::UintValue(length) = args_len {
-                // args_len must cast to u32, matching the 4 bytes length rule in molecule encoding
-                start_key.extend_from_slice(&length.to_le_bytes());
-                start_key.extend_from_slice(&script.args().raw_data());
-            }
 
             let from_block = cx.argument::<JsValue>(4)?;
             let from_block_number_slice = if from_block.is_a::<JsString>() {
@@ -730,13 +725,13 @@ declare_types! {
             };
 
             if order == "asc" {
-                let iter = store.iter(&start_key, IteratorDirection::Forward);
-                if iter.is_err() {
-                    return cx.throw_error("Error creating iterator!");
-                }
                 match args_len {
                     ArgsLen::StringAny => {
                         // The `start_key` includes key_prefix, script's code_hash and hash_type
+                        let iter = store.iter(&start_key, IteratorDirection::Forward);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
                         let iter = iter.unwrap()
                             .take_while(move |(key, _)| { key.starts_with(&start_key) })
                             .filter( move |(key, _)| {
@@ -755,8 +750,15 @@ declare_types! {
                             .skip(skip_number);
                        Ok(LiveCellIterator(Box::new(iter)))
                     }
-                    ArgsLen::UintValue(_args_len) => {
+                    ArgsLen::UintValue(args_len) => {
                         // The `start_key` includes key_prefix, script's code_hash, hash_type and args(total or partial)
+                        // args_len must cast to u32, matching the 4 bytes length rule in molecule encoding
+                        start_key.extend_from_slice(&args_len.to_le_bytes());
+                        start_key.extend_from_slice(&script.args().raw_data());
+                        let iter = store.iter(&start_key, IteratorDirection::Forward);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
                         let iter = iter.unwrap()
                             .take_while(move |(key, _)| {
                                 // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
@@ -767,8 +769,8 @@ declare_types! {
                             })
                             .filter( move |(key, _)| {
                                 let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                    // filter out all keys start with `start_key` but the block number smaller than `from_block_number_slice`
-                                    from_block_number_slice <= block_number_slice.unwrap()
+                                // filter out all keys start with `start_key` but the block number smaller than `from_block_number_slice`
+                                from_block_number_slice <= block_number_slice.unwrap()
                             })
                             .skip(skip_number);
                         Ok(LiveCellIterator(Box::new(iter)))
@@ -804,6 +806,10 @@ declare_types! {
                         Ok(LiveCellIterator(Box::new(iter)))
                     }
                     ArgsLen::UintValue(args_len) => {
+                        // The `start_key` includes key_prefix, script's code_hash, hash_type and args(total or partial)
+                        // args_len must cast to u32, matching the 4 bytes length rule in molecule encoding
+                        start_key.extend_from_slice(&args_len.to_le_bytes());
+                        start_key.extend_from_slice(&script.args().raw_data());
                         // base_prefix includes: key_prefix + script
                         let base_prefix = start_key.clone();
                         let remain_args_len = (args_len as usize) - script.args().len();

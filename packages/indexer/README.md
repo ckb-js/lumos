@@ -135,7 +135,7 @@ cellCollector = new CellCollector(indexer, {
     code_hash: 
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last byte of orignal args
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df3", // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
   },
   argsLen: 20, // default option is -1
   fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
@@ -149,7 +149,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-You can also set it as `any` when the argsLen of the `args` might have multiple cases. However, there's some performance lost when use `any` rather than explicit length due to the low-level implementation.
+You can also set it as `any` when the argsLen of the `args` might have multiple possibilities. However, there's some performance lost when use `any` rather than explicit specify length due to the low-level implementation.
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -157,7 +157,7 @@ cellCollector = new CellCollector(indexer, {
     code_hash: 
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e", // truncate the last two bytes of original args
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
   },
   argsLen: "any",
   fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
