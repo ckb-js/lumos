@@ -625,7 +625,8 @@ async function injectCapacityWithoutChange(
       !isSecp256k1Blake160MultisigScript(fromScript, config) &&
       !isSecp256k1Blake160Script(fromScript, config)
     ) {
-      throw new Error("fromInfo not supported!");
+      // Skip if not support.
+      continue;
     }
     const lastFreezedOutput = txSkeleton
       .get("fixedEntries")
