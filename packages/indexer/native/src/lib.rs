@@ -670,7 +670,7 @@ declare_types! {
             let args_len = if args_len.is_a::<JsString>() {
                 let args_len = args_len.downcast::<JsString>().or_throw(&mut cx)?.value();
                 if args_len != "any" {
-                    return cx.throw_error(format!("The field argsLen must be string \'any\' when it's String type, it's:{} now.", args_len));
+                    return cx.throw_error(format!("The field argsLen must be string \'any\' when it's String type, it's \'{}\' now.", args_len));
                 }
                 ArgsLen::StringAny
             } else if args_len.is_a::<JsNumber>() {
@@ -736,10 +736,15 @@ declare_types! {
                 }
                 match args_len {
                     ArgsLen::StringAny => {
+                        // The `start_key` includes key_prefix, script's code_hash and hash_type
                         let iter = iter.unwrap()
                             .take_while(move |(key, _)| { key.starts_with(&start_key) })
                             .filter( move |(key, _)| {
+                                // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
+                                // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
                                 let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
                                 let args_slice: Vec<u8> = key[38..key.len()-16].try_into().unwrap();
                                 if args_slice.starts_with(&args) {
                                     from_block_number_slice <= block_number_slice.unwrap() && block_number_slice.unwrap() <= to_block_number_slice
@@ -751,9 +756,11 @@ declare_types! {
                        Ok(LiveCellIterator(Box::new(iter)))
                     }
                     ArgsLen::UintValue(_args_len) => {
+                        // The `start_key` includes key_prefix, script's code_hash, hash_type and args(total or partial)
                         let iter = iter.unwrap()
                             .take_while(move |(key, _)| {
-                                // 16 is TxIndex + OutputIndex length, 8 is OutputIndex length
+                                // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
+                                // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
                                 let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
                                 // iterate from the minimal key start with `start_key`, stop til meet a key with the block number bigger than `to_block_number_slice`
                                 key.starts_with(&start_key) && to_block_number_slice >= block_number_slice.unwrap()
@@ -770,9 +777,9 @@ declare_types! {
             } else if order == "desc" {
                 match args_len {
                     ArgsLen::StringAny => {
-                        // base_prefix includes: key_prefix + code_hash + hash_type
+                        // The `base_prefix` includes key_prefix, script's code_hash and hash_type
                         let base_prefix = start_key.clone();
-                        // start_key includes base_prefix + maximum args_len
+                        // Although `args_len` is unknown when using `any`, we need set it large enough(here use maximum value), making sure it will traverse db from right to left.
                         let start_key = [start_key, vec![0xff; 4]].concat();
                         let iter = store.iter(&start_key, IteratorDirection::Reverse);
                         if iter.is_err() {
@@ -781,7 +788,11 @@ declare_types! {
                         let iter = iter.unwrap()
                             .take_while(move |(key, _)| { key.starts_with(&base_prefix) })
                             .filter( move |(key, _)| {
+                                // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
+                                // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
                                 let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
                                 let args_slice: Vec<u8> = key[38..key.len()-16].try_into().unwrap();
                                 if args_slice.starts_with(&args) {
                                     from_block_number_slice <= block_number_slice.unwrap() && block_number_slice.unwrap() <= to_block_number_slice
@@ -804,7 +815,8 @@ declare_types! {
                         }
                         let iter = iter.unwrap()
                             .take_while(move |(key, _)| {
-                                // 16 is TxIndex + OutputIndex length, 8 is OutputIndex length
+                                // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
+                                // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
                                 let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
                                 // iterate from the maximal key start with `prefix`, stop til meet a key with the block number smaller than `from_block_number_slice`
                                 key.starts_with(&base_prefix) && from_block_number_slice <= block_number_slice.unwrap()
