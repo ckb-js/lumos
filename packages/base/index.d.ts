@@ -111,7 +111,7 @@ export interface QueryOptions {
   type?: Script | ScriptWrapper | "empty";
   // data = any means any data content is ok
   data?: string | "any";
-  argsLen?: number;
+  argsLen?: number | "any";
   /** `fromBlock` itself is included in range query. */
   fromBlock?: Hexadecimal;
   /** `toBlock` itself is included in range query. */

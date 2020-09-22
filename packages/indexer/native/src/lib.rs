@@ -32,6 +32,12 @@ pub enum Error {
     Other(String),
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum ArgsLen {
+    StringAny,
+    UintValue(u32),
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
@@ -660,22 +666,32 @@ declare_types! {
             } else {
                 KeyPrefix::CellLockScript
             };
-            let args_len = cx.argument::<JsNumber>(3)?.value();
-            if args_len > u32::max_value() as f64 {
-                return cx.throw_error("args length must fit in u32 value!");
-            }
-            let args_len = if args_len <= 0.0 {
-                script.args().len() as u32
+            let args_len = cx.argument::<JsValue>(3)?;
+            let args_len = if args_len.is_a::<JsString>() {
+                let args_len = args_len.downcast::<JsString>().or_throw(&mut cx)?.value();
+                if args_len != "any" {
+                    return cx.throw_error(format!("The field argsLen must be string \'any\' when it's String type, it's \'{}\' now.", args_len));
+                }
+                ArgsLen::StringAny
+            } else if args_len.is_a::<JsNumber>() {
+                let args_len = args_len.downcast::<JsNumber>().or_throw(&mut cx)?.value();
+                if args_len > u32::max_value() as f64 {
+                    return cx.throw_error("args length must fit in u32 value!");
+                }
+                let args_len = if args_len <= 0.0 {
+                    script.args().len() as u32
+                } else {
+                    // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
+                    args_len as u32
+                };
+                ArgsLen::UintValue(args_len)
             } else {
-                // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
-                args_len as u32
+                return cx.throw_error("The field argsLen must be either JsString or JsNumber");
             };
+
             let mut start_key = vec![prefix as u8];
             start_key.extend_from_slice(script.code_hash().as_slice());
             start_key.extend_from_slice(script.hash_type().as_slice());
-            // args_len must cast to u32, matching the 4 bytes length rule in molecule encoding
-            start_key.extend_from_slice(&args_len.to_le_bytes());
-            start_key.extend_from_slice(&script.args().raw_data());
 
             let from_block = cx.argument::<JsValue>(4)?;
             let from_block_number_slice = if from_block.is_a::<JsString>() {
@@ -709,49 +725,117 @@ declare_types! {
             };
 
             if order == "asc" {
-                let iter = store.iter(&start_key, IteratorDirection::Forward);
-                if iter.is_err() {
-                    return cx.throw_error("Error creating iterator!");
+                match args_len {
+                    ArgsLen::StringAny => {
+                        // The `start_key` includes key_prefix, script's code_hash and hash_type
+                        let iter = store.iter(&start_key, IteratorDirection::Forward);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
+                        let iter = iter.unwrap()
+                            .take_while(move |(key, _)| { key.starts_with(&start_key) })
+                            .filter( move |(key, _)| {
+                                // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
+                                // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
+                                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
+                                let args_slice: Vec<u8> = key[38..key.len()-16].try_into().unwrap();
+                                if args_slice.starts_with(&args) {
+                                    from_block_number_slice <= block_number_slice.unwrap() && block_number_slice.unwrap() <= to_block_number_slice
+                                } else {
+                                    false
+                                }
+                            })
+                            .skip(skip_number);
+                       Ok(LiveCellIterator(Box::new(iter)))
+                    }
+                    ArgsLen::UintValue(args_len) => {
+                        // The `start_key` includes key_prefix, script's code_hash, hash_type and args(total or partial)
+                        // args_len must cast to u32, matching the 4 bytes length rule in molecule encoding
+                        start_key.extend_from_slice(&args_len.to_le_bytes());
+                        start_key.extend_from_slice(&script.args().raw_data());
+                        let iter = store.iter(&start_key, IteratorDirection::Forward);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
+                        let iter = iter.unwrap()
+                            .take_while(move |(key, _)| {
+                                // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
+                                // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
+                                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                // iterate from the minimal key start with `start_key`, stop til meet a key with the block number bigger than `to_block_number_slice`
+                                key.starts_with(&start_key) && to_block_number_slice >= block_number_slice.unwrap()
+                            })
+                            .filter( move |(key, _)| {
+                                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                // filter out all keys start with `start_key` but the block number smaller than `from_block_number_slice`
+                                from_block_number_slice <= block_number_slice.unwrap()
+                            })
+                            .skip(skip_number);
+                        Ok(LiveCellIterator(Box::new(iter)))
+                    }
                 }
-                let iter = iter.unwrap()
-                               .take_while(move |(key, _)| {
-                                   // 16 is TxIndex + OutputIndex length, 8 is OutputIndex length
-                                   let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                   // iterate from the minimal key start with `start_key`, stop til meet a key with the block number bigger than `to_block_number_slice`
-                                   key.starts_with(&start_key) && to_block_number_slice >= block_number_slice.unwrap()
-                               })
-                               .filter( move |(key, _)| {
-                                   // filter out all keys start with `start_key` but the block number smaller than `from_block_number_slice`
-                                   let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                   from_block_number_slice <= block_number_slice.unwrap()
-                               })
-                               .skip(skip_number);
-                Ok(LiveCellIterator(Box::new(iter)))
             } else if order == "desc" {
-                // base_prefix includes: KeyPrefix + script
-                let base_prefix = start_key.clone();
-                let remain_args_len = (args_len as usize) - script.args().len();
-                // start_key includes base_prefix + maximum block_number + tx_index + output_index
-                let start_key = [start_key, vec![0xff; remain_args_len + 16]].concat();
-                let iter = store.iter(&start_key, IteratorDirection::Reverse);
-                if iter.is_err() {
-                    return cx.throw_error("Error creating iterator!");
+                match args_len {
+                    ArgsLen::StringAny => {
+                        // The `base_prefix` includes key_prefix, script's code_hash and hash_type
+                        let base_prefix = start_key.clone();
+                        // Although `args_len` is unknown when using `any`, we need set it large enough(here use maximum value), making sure it will traverse db from right to left.
+                        let start_key = [start_key, vec![0xff; 4]].concat();
+                        let iter = store.iter(&start_key, IteratorDirection::Reverse);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
+                        let iter = iter.unwrap()
+                            .take_while(move |(key, _)| { key.starts_with(&base_prefix) })
+                            .filter( move |(key, _)| {
+                                // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
+                                // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
+                                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
+                                let args_slice: Vec<u8> = key[38..key.len()-16].try_into().unwrap();
+                                if args_slice.starts_with(&args) {
+                                    from_block_number_slice <= block_number_slice.unwrap() && block_number_slice.unwrap() <= to_block_number_slice
+                                } else {
+                                    false
+                                }
+                            })
+                            .skip(skip_number);
+                        Ok(LiveCellIterator(Box::new(iter)))
+                    }
+                    ArgsLen::UintValue(args_len) => {
+                        // The `start_key` includes key_prefix, script's code_hash, hash_type and args(total or partial)
+                        // args_len must cast to u32, matching the 4 bytes length rule in molecule encoding
+                        start_key.extend_from_slice(&args_len.to_le_bytes());
+                        start_key.extend_from_slice(&script.args().raw_data());
+                        // base_prefix includes: key_prefix + script
+                        let base_prefix = start_key.clone();
+                        let remain_args_len = (args_len as usize) - script.args().len();
+                        // start_key includes base_prefix + maximum block_number + tx_index + output_index
+                        let start_key = [start_key, vec![0xff; remain_args_len + 16]].concat();
+                        let iter = store.iter(&start_key, IteratorDirection::Reverse);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
+                        let iter = iter.unwrap()
+                            .take_while(move |(key, _)| {
+                                // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
+                                // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
+                                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                // iterate from the maximal key start with `prefix`, stop til meet a key with the block number smaller than `from_block_number_slice`
+                                key.starts_with(&base_prefix) && from_block_number_slice <= block_number_slice.unwrap()
+                            })
+                            .filter( move |(key, _)| {
+                                // filter out all keys start with `prefix` but the block number bigger than `to_block_number_slice`
+                                let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
+                                to_block_number_slice >= block_number_slice.unwrap()
+                            })
+                            .skip(skip_number);
+                        Ok(LiveCellIterator(Box::new(iter)))
+                    }
                 }
-                let iter = iter.unwrap()
-                               .take_while(move |(key, _)| {
-                                   // 16 is TxIndex + OutputIndex length, 8 is OutputIndex length
-                                   let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                   // iterate from the maximal key start with `prefix`, stop til meet a key with the block number smaller than `from_block_number_slice`
-                                   key.starts_with(&base_prefix) && from_block_number_slice <= block_number_slice.unwrap()
-                               })
-                               .filter( move |(key, _)| {
-                                   // filter out all keys start with `prefix` but the block number bigger than `to_block_number_slice`
-                                   let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                   to_block_number_slice >= block_number_slice.unwrap()
-                               })
-                               .skip(skip_number)
-                            ;
-                Ok(LiveCellIterator(Box::new(iter)))
             } else {
                 return cx.throw_error("Order must be either asc or desc!");
             }
