@@ -1,5 +1,5 @@
 import test from "ava";
-import { sudt, anyoneCanPay, common } from "../src";
+import { sudt, common } from "../src";
 import { CellProvider } from "./cell_provider";
 import {
   TransactionSkeletonType,
@@ -223,7 +223,7 @@ test("transfer acp", async (t) => {
     { config: AGGRON4 }
   );
 
-  txSkeleton = anyoneCanPay.prepareSigningEntries(txSkeleton, {
+  txSkeleton = common.prepareSigningEntries(txSkeleton, {
     config: AGGRON4,
   });
 
