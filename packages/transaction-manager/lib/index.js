@@ -1,8 +1,9 @@
 const { validators, RPC } = require("ckb-js-toolkit");
-const { List, Set, is } = require("immutable");
+const { List, Set } = require("immutable");
 const { CellCollector } = require("@ckb-lumos/indexer");
-const { values } = require("@ckb-lumos/base");
+const { values, check } = require("@ckb-lumos/base");
 const { TransactionCollector } = require("@ckb-lumos/indexer/lib");
+const { isCellMatchQueryOptions } = check;
 
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
@@ -124,53 +125,12 @@ class TransactionManager {
     { lock = null, type = null, argsLen = -1, data = "any" } = {}
   ) {
     const filteredCreatedCells = createdCells.filter((cell) => {
-      if (lock && argsLen === -1) {
-        if (
-          !is(
-            new values.ScriptValue(cell.cell_output.lock, { validate: false }),
-            new values.ScriptValue(lock, { validate: false })
-          )
-        ) {
-          return false;
-        }
-      }
-      if (lock && argsLen >= 0) {
-        const length = argsLen * 2 + 2;
-        const lockArgsLength = lock.args.length;
-        const minLength = Math.min(length, lockArgsLength);
-
-        const cellLock = cell.cell_output.lock;
-        if (cellLock.args.length !== length) {
-          return false;
-        }
-        if (
-          !(
-            cellLock.code_hash === lock.code_hash &&
-            cellLock.hash_type === lock.hash_type &&
-            cellLock.args.slice(0, minLength) === lock.args.slice(0, minLength)
-          )
-        ) {
-          return false;
-        }
-      }
-      if (type && type === "empty" && cell.cell_output.type) {
-        return false;
-      }
-      if (type && typeof type === "object") {
-        if (
-          !cell.cell_output.type ||
-          !is(
-            new values.ScriptValue(cell.cell_output.type, { validate: false }),
-            new values.ScriptValue(type, { validate: false })
-          )
-        ) {
-          return false;
-        }
-      }
-      if (data && data !== "any" && cell.data !== data) {
-        return false;
-      }
-      return true;
+      return isCellMatchQueryOptions(cell, {
+        lock,
+        type,
+        argsLen,
+        data,
+      });
     });
     return filteredCreatedCells;
   }
