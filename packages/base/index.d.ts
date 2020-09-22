@@ -194,7 +194,7 @@ export declare const utils: {
   assertHexadecimal(debugPath: string, str: string): void;
 };
 
-export declare const check: {
+export declare const helpers: {
   /**
    * Check a cell is match QueryOptions or not, not support `skip` and `order`
    *

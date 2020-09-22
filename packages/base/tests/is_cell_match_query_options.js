@@ -1,6 +1,6 @@
 const test = require("ava");
-const { check } = require("../lib");
-const { isCellMatchQueryOptions } = check;
+const { helpers } = require("../lib");
+const { isCellMatchQueryOptions } = helpers;
 
 const cells = [
   {

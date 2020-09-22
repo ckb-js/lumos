@@ -1,9 +1,9 @@
 const { validators, RPC } = require("ckb-js-toolkit");
 const { List, Set } = require("immutable");
 const { CellCollector } = require("@ckb-lumos/indexer");
-const { values, check } = require("@ckb-lumos/base");
+const { values, helpers } = require("@ckb-lumos/base");
 const { TransactionCollector } = require("@ckb-lumos/indexer/lib");
-const { isCellMatchQueryOptions } = check;
+const { isCellMatchQueryOptions } = helpers;
 
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);

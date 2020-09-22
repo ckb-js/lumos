@@ -4,5 +4,5 @@ module.exports = {
   values: require("./values"),
   utils: require("./utils"),
   since: require("./since"),
-  check: require("./check"),
+  helpers: require("./helpers"),
 };

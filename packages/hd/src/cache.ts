@@ -7,7 +7,7 @@ import {
   Transaction,
   Output,
   CellCollector as CellCollectorInterface,
-  check,
+  helpers,
 } from "@ckb-lumos/base";
 import {
   TransactionCollector as TxCollector,
@@ -25,7 +25,7 @@ import Keystore from "./keystore";
 import { mnemonicToSeedSync } from "./mnemonic";
 import { RPC } from "ckb-js-toolkit";
 import { assertPublicKey, assertChainCode } from "./helper";
-const { isCellMatchQueryOptions } = check;
+const { isCellMatchQueryOptions } = helpers;
 
 export function serializeOutPoint(outPoint: OutPoint): string {
   return `${outPoint.tx_hash}_${outPoint.index}`;
