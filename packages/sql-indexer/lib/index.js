@@ -81,6 +81,7 @@ class Indexer {
       emitters = [],
     } = {}
   ) {
+    this.uri = uri;
     this.rpc = new RPC(uri);
     this.knex = knex;
     this.pollIntervalSeconds = pollIntervalSeconds;
