@@ -298,6 +298,7 @@ export async function transfer(
     cellCollector: CellCollectorInterface;
     index: number;
     isAnyoneCanPay?: boolean;
+    destroyable?: boolean;
   }> = List();
   if (tipHeader) {
     fromInfos.forEach((fromInfo, index) => {
@@ -368,6 +369,7 @@ export async function transfer(
         cellCollector: acpCollector,
         index,
         isAnyoneCanPay: true,
+        destroyable: parseFromInfo(fromInfo, { config }).destroyable,
       }
     );
   });
@@ -424,10 +426,16 @@ export async function transfer(
         cellCollector: acpCollector,
         index,
         isAnyoneCanPay: true,
+        destroyable: parseFromInfo(fromInfo, { config }).destroyable,
       }
     );
   });
-  for (const { index, cellCollector, isAnyoneCanPay } of cellCollectorInfos) {
+  for (const {
+    index,
+    cellCollector,
+    isAnyoneCanPay,
+    destroyable,
+  } of cellCollectorInfos) {
     for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
       const key = `${inputCell.out_point!.tx_hash}_${
@@ -471,16 +479,17 @@ export async function transfer(
       const inputAmount: bigint = inputCell.cell_output.type
         ? readBigUInt128LE(inputCell.data)
         : 0n;
-      let deductCapacity: bigint = isAnyoneCanPay
-        ? inputCapacity - minimalCellCapacity(inputCell)
-        : inputCapacity;
+      let deductCapacity: bigint =
+        isAnyoneCanPay && !destroyable
+          ? inputCapacity - minimalCellCapacity(inputCell)
+          : inputCapacity;
       let deductAmount: bigint = inputAmount;
       if (deductCapacity > capacity) {
         deductCapacity = capacity;
       }
       capacity -= deductCapacity;
       const currentChangeCapacity: bigint = inputCapacity - deductCapacity;
-      if (!isAnyoneCanPay) {
+      if (!isAnyoneCanPay || (isAnyoneCanPay && destroyable)) {
         changeCapacity += currentChangeCapacity;
       }
       if (deductAmount > amount) {
@@ -488,11 +497,11 @@ export async function transfer(
       }
       amount -= deductAmount;
       const currentChangeAmount: bigint = inputAmount - deductAmount;
-      if (!isAnyoneCanPay) {
+      if (!isAnyoneCanPay || (isAnyoneCanPay && destroyable)) {
         changeAmount += currentChangeAmount;
       }
 
-      if (isAnyoneCanPay) {
+      if (isAnyoneCanPay && !destroyable) {
         const acpChangeCell: Cell = {
           cell_output: {
             capacity: "0x" + currentChangeCapacity.toString(16),
