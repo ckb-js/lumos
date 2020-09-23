@@ -67,6 +67,7 @@ class Indexer {
   _getTransactionsByScriptIterator(
     script,
     scriptType,
+    argsLen,
     ioType,
     fromBlock,
     toBlock,
@@ -76,6 +77,7 @@ class Indexer {
     return this.nativeIndexer.getTransactionsByScriptIterator(
       normalizers.NormalizeScript(script),
       scriptType,
+      argsLen,
       ioType,
       fromBlock,
       toBlock,
@@ -324,6 +326,7 @@ class TransactionCollector {
     {
       lock = null,
       type = null,
+      argsLen = -1,
       fromBlock = null,
       toBlock = null,
       order = "asc",
@@ -361,6 +364,7 @@ class TransactionCollector {
     this.indexer = indexer;
     this.skipMissing = skipMissing;
     this.includeStatus = includeStatus;
+    this.argsLen = argsLen;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
     this.order = order;
@@ -380,6 +384,7 @@ class TransactionCollector {
           ._getTransactionsByScriptIterator(
             this.lock.script,
             scriptType,
+            this.argsLen,
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,
@@ -397,6 +402,7 @@ class TransactionCollector {
           ._getTransactionsByScriptIterator(
             this.type.script,
             scriptType,
+            this.argsLen,
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,
