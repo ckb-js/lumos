@@ -6,8 +6,8 @@ import {
   QueryOptions,
   Transaction,
   Output,
-  values,
   CellCollector as CellCollectorInterface,
+  helpers,
 } from "@ckb-lumos/base";
 import {
   TransactionCollector as TxCollector,
@@ -25,6 +25,7 @@ import Keystore from "./keystore";
 import { mnemonicToSeedSync } from "./mnemonic";
 import { RPC } from "ckb-js-toolkit";
 import { assertPublicKey, assertChainCode } from "./helper";
+const { isCellMatchQueryOptions } = helpers;
 
 export function serializeOutPoint(outPoint: OutPoint): string {
   return `${outPoint.tx_hash}_${outPoint.index}`;
@@ -680,82 +681,6 @@ export class CacheManager {
   }
 }
 
-function checkCell(
-  cell: Cell,
-  {
-    lock = undefined,
-    type = undefined,
-    argsLen = -1,
-    data = "any",
-    fromBlock = undefined,
-    toBlock = undefined,
-  }: QueryOptions
-): boolean {
-  lock = lock as Script | undefined;
-
-  if (lock && argsLen === -1) {
-    if (
-      !new values.ScriptValue(cell.cell_output.lock, {
-        validate: false,
-      }).equals(new values.ScriptValue(lock, { validate: false }))
-    ) {
-      return false;
-    }
-  }
-  if (lock && argsLen >= 0) {
-    const length = argsLen * 2 + 2;
-    const lockArgsLength = lock.args.length;
-    const minLength = Math.min(length, lockArgsLength);
-
-    const cellLock = cell.cell_output.lock;
-    if (cellLock.args.length !== length) {
-      return false;
-    }
-    if (
-      !(
-        cellLock.code_hash === lock.code_hash &&
-        cellLock.hash_type === lock.hash_type &&
-        cellLock.args.slice(0, minLength) === lock.args.slice(0, minLength)
-      )
-    ) {
-      return false;
-    }
-  }
-
-  if (type && type === "empty" && cell.cell_output.type) {
-    return false;
-  }
-  if (type && typeof type === "object") {
-    if (
-      !cell.cell_output.type ||
-      !new values.ScriptValue(cell.cell_output.type, {
-        validate: false,
-      }).equals(new values.ScriptValue(type as Script, { validate: false }))
-    ) {
-      return false;
-    }
-  }
-  if (data && data !== "any" && cell.data !== data) {
-    return false;
-  }
-  if (
-    fromBlock &&
-    cell.block_number &&
-    BigInt(cell.block_number) < BigInt(fromBlock)
-  ) {
-    return false;
-  }
-  if (
-    toBlock &&
-    cell.block_number &&
-    BigInt(cell.block_number) > BigInt(toBlock)
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
 export class CellCollector implements CellCollectorInterface {
   private cacheManager: CacheManager;
 
@@ -802,7 +727,7 @@ export class CellCollectorWithQueryOptions implements CellCollectorInterface {
     const skip = this.queryOptions.skip;
     let skipCount = 0;
     for await (const cell of this.collector.collect()) {
-      if (checkCell(cell, this.queryOptions)) {
+      if (isCellMatchQueryOptions(cell, this.queryOptions)) {
         if (skip && skipCount < skip) {
           skipCount += 1;
         } else {

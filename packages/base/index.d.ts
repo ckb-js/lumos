@@ -194,6 +194,16 @@ export declare const utils: {
   assertHexadecimal(debugPath: string, str: string): void;
 };
 
+export declare const helpers: {
+  /**
+   * Check a cell is match QueryOptions or not, not support `skip` and `order`
+   *
+   * @param cell
+   * @param queryOptions
+   */
+  isCellMatchQueryOptions(cell: Cell, queryOptions: QueryOptions): boolean;
+};
+
 export interface EpochSinceValue {
   length: number;
   index: number;
