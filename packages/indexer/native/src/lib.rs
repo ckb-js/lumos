@@ -739,7 +739,7 @@ declare_types! {
                                 // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
                                 // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
                                 let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_len)
                                 // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
                                 let args_slice: Vec<u8> = key[38..key.len()-16].try_into().unwrap();
                                 if args_slice.starts_with(&args) {
@@ -782,7 +782,7 @@ declare_types! {
                     ArgsLen::StringAny => {
                         // The `base_prefix` includes key_prefix, script's code_hash and hash_type
                         let base_prefix = start_key.clone();
-                        // Although `args_len` is unknown when using `any`, we need set it large enough(here use maximum value), making sure it will traverse db from right to left.
+                        // Although `args_len` is unknown when using `any`, we need set it large enough(here use maximum value) to traverse db backward without missing any items.
                         let start_key = [start_key, vec![0xff; 4]].concat();
                         let iter = store.iter(&start_key, IteratorDirection::Reverse);
                         if iter.is_err() {
@@ -794,7 +794,7 @@ declare_types! {
                                 // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
                                 // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
                                 let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_len)
                                 // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
                                 let args_slice: Vec<u8> = key[38..key.len()-16].try_into().unwrap();
                                 if args_slice.starts_with(&args) {
@@ -814,7 +814,8 @@ declare_types! {
                         // base_prefix includes: key_prefix + script
                         let base_prefix = start_key.clone();
                         let remain_args_len = (args_len as usize) - script.args().len();
-                        // start_key includes base_prefix + maximum block_number + tx_index + output_index
+                        // `start_key` includes base_prefix + block_number + tx_index + output_index,
+                        // we need to set the `start_key` large enough to traverse db backward without missing any items.
                         let start_key = [start_key, vec![0xff; remain_args_len + 16]].concat();
                         let iter = store.iter(&start_key, IteratorDirection::Reverse);
                         if iter.is_err() {
@@ -1006,7 +1007,7 @@ declare_types! {
                                 // 17 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
                                 // 9 bytes = 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
                                 let block_number_slice = key[key.len() - 17..key.len() - 9].try_into();
-                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_len)
                                 // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
                                 let args_slice: Vec<u8> = key[38..key.len()-17].try_into().unwrap();
                                 if args_slice.starts_with(&args) {
@@ -1052,7 +1053,7 @@ declare_types! {
                     ArgsLen::StringAny => {
                         // The `base_prefix` includes key_prefix, script's code_hash and hash_type
                         let base_prefix = start_key.clone();
-                        // Although `args_len` is unknown when using `any`, we need set it large enough(here use maximum value), making sure it will traverse db from right to left.
+                        // Although `args_len` is unknown when using `any`, we need set it large enough(here use maximum value) to traverse db backward without missing any items.
                         let start_key = [start_key, vec![0xff; 4]].concat();
                         let iter = store.iter(&start_key, IteratorDirection::Reverse);
                         if iter.is_err() {
@@ -1064,7 +1065,7 @@ declare_types! {
                                 // 17 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
                                 // 9 bytes = 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
                                 let block_number_slice = key[key.len() - 17..key.len() - 9].try_into();
-                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_len)
                                 // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
                                 let args_slice: Vec<u8> = key[38..key.len()-17].try_into().unwrap();
                                 if args_slice.starts_with(&args) {
@@ -1086,8 +1087,9 @@ declare_types! {
                         // base_prefix includes: key_prefix + script
                         let base_prefix = start_key.clone();
                         let remain_args_len = (args_len as usize) - script.args().len();
-                        // start_key includes base_prefix + maximum block_number + tx_index + output_index
-                        let start_key = [start_key, vec![0xff; remain_args_len + 16]].concat();
+                        // `start_key` includes base_prefix + block_number + tx_index + output_index + io_type,
+                        // we need to set the `start_key` large enough to traverse db backward without missing any items.
+                        let start_key = [start_key, vec![0xff; remain_args_len + 17]].concat();
                         let iter = store.iter(&start_key, IteratorDirection::Reverse);
                         if iter.is_err() {
                             return cx.throw_error("Error creating iterator!");
