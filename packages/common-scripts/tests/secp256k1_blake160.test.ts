@@ -1,6 +1,7 @@
 import test from "ava";
 import { CellProvider } from "./cell_provider";
 import {
+  parseAddress,
   TransactionSkeleton,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
@@ -10,6 +11,7 @@ const { LINA, AGGRON4 } = predefined;
 import { bob, alice, fullAddressInfo } from "./account_info";
 import { inputs } from "./secp256k1_blake160_inputs";
 import { Cell, values } from "@ckb-lumos/base";
+import { bobSecpInputs } from "./inputs";
 
 const cellProvider = new CellProvider(inputs);
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
@@ -215,4 +217,56 @@ test("setupInputCell", async (t) => {
         new values.ScriptValue(output.cell_output.type!, { validate: false })
       )
   );
+});
+
+test("injectCapacity", async (t) => {
+  const cellProvider = new CellProvider(bobSecpInputs);
+  let txSkeleton = TransactionSkeleton({ cellProvider });
+
+  const amount = BigInt(500 * 10 ** 8);
+  const output: Cell = {
+    cell_output: {
+      capacity: "0x" + amount.toString(16),
+      lock: parseAddress(alice.testnetAddress, { config: AGGRON4 }),
+      type: undefined,
+    },
+    data: "0x",
+  };
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push(output);
+  });
+
+  txSkeleton = await secp256k1Blake160.injectCapacity(
+    txSkeleton,
+    0,
+    bob.testnetAddress,
+    { config: AGGRON4 }
+  );
+
+  txSkeleton = secp256k1Blake160.prepareSigningEntries(txSkeleton, {
+    config: AGGRON4,
+  });
+
+  // sum of outputs capacity should be equal to sum of inputs capacity
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+
+  t.is(txSkeleton.get("signingEntries").size, 1);
+  const expectedMessage =
+    "0xaeb7b9b819ae94b20bcb02abc7d156cfa771d71e8d8c136dc73f4e5de8d25bf2";
+  const message = txSkeleton.get("signingEntries").get(0)!.message;
+  t.is(message, expectedMessage);
+
+  t.is(txSkeleton.get("witnesses").size, 1);
+  const expectedWitness =
+    "0x55000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+  const witness = txSkeleton.get("witnesses").get(0)!;
+  t.is(witness, expectedWitness);
 });
