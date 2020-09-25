@@ -7,6 +7,7 @@ import {
   getDefaultInfos,
   CellCollector,
   CellCollectorWithQueryOptions,
+  publicKeyToMultisigArgs,
 } from "../src/cache";
 import {
   Cell,
@@ -417,4 +418,12 @@ test("getBalance, needMasterPublicKey", async (t) => {
   const balance = await getBalance(new CellCollector(cacheManager));
 
   t.is(BigInt(balance), BigInt(950 * 10 ** 8));
+});
+
+test("publicKeyToMultisigArgs", (t) => {
+  const publicKey =
+    "0x024a501efd328e062c8675f2365970728c859c592beeefd6be8ead3d901330bc01";
+  const multisigArgs = "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8";
+
+  t.is(publicKeyToMultisigArgs(publicKey), multisigArgs);
 });
