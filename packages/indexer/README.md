@@ -127,7 +127,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-Prefix search is supported on `args`. The default `argsLen` is -1, and you can specify it when the `args` field is the prefix of original args.
+Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -149,7 +149,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-You can also set it as `any` when the argsLen of the `args` might have multiple possibilities. However, there's some performance lost when use `any` rather than explicit specify length due to the low-level implementation.
+ You can also set it as any when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario,  or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicit specify length due to the low-level implementation.
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -278,7 +278,7 @@ for await (const tx of txCollector.collect()) {
 ```
 
 
-Prefix search is supported on `args`. The default `argsLen` is -1, and you can specify it when the `args` field is the prefix of original args.
+Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
 
 ```javascript
 txCollector = new TransactionCollector(indexer, {
@@ -300,7 +300,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-You can also set it as `any` when the argsLen of the `args` might have multiple possibilities. However, there's some performance lost when use `any` rather than explicit specify length due to the low-level implementation.
+ You can also set it as any when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario,  or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicit specify length due to the low-level implementation.
 
 ```javascript
 txCollector = new TransactionCollector(indexer, {
