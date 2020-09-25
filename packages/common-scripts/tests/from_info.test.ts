@@ -1,11 +1,10 @@
 import test from "ava";
 import { serializeMultisigScript, multisigArgs } from "../src/from_info";
 import { bob } from "./account_info";
-
-const bobInfo = {
-  script: bob.fromInfo,
-  multisigArgs: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8",
-};
+import { parseFromInfo } from "../src";
+import { predefined } from "@ckb-lumos/config-manager";
+import { parseAddress } from "@ckb-lumos/helpers";
+const { AGGRON4 } = predefined;
 
 // from https://github.com/nervosnetwork/rfcs/blob/v2020.01.15/rfcs/0021-ckb-address-format/0021-ckb-address-format.md
 const multiInfo = {
@@ -20,9 +19,9 @@ const multiInfo = {
 };
 
 test("multisigArgs, single", (t) => {
-  const serialized = serializeMultisigScript(bobInfo.script);
+  const serialized = serializeMultisigScript(bob.fromInfo);
   const args = multisigArgs(serialized);
-  t.is(args, bobInfo.multisigArgs);
+  t.is(args, bob.multisigArgs);
 });
 
 test("multisigArgs, multi", (t) => {
@@ -34,4 +33,96 @@ test("multisigArgs, multi", (t) => {
   const args = multisigArgs(serialized);
 
   t.is(args, multiInfo.multisigArgs);
+});
+
+test("parseFromInfo, secp address", (t) => {
+  const result = parseFromInfo(bob.testnetAddress, { config: AGGRON4 });
+  const template = AGGRON4.SCRIPTS.SECP256K1_BLAKE160!;
+
+  t.is(result.fromScript.code_hash, template.CODE_HASH);
+  t.is(result.fromScript.hash_type, template.HASH_TYPE);
+  t.is(result.fromScript.args, bob.blake160);
+  t.is(result.multisigScript, undefined);
+  t.is(result.destroyable, undefined);
+  t.is(result.customData, undefined);
+});
+
+test("parseFromInfo, MultisigScript", (t) => {
+  const result = parseFromInfo(bob.fromInfo, {
+    config: AGGRON4,
+  });
+
+  const template = AGGRON4.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
+
+  t.is(result.fromScript.code_hash, template.CODE_HASH);
+  t.is(result.fromScript.hash_type, template.HASH_TYPE);
+  t.is(result.fromScript.args, bob.multisigArgs);
+  t.is(result.multisigScript, serializeMultisigScript(bob.fromInfo));
+  t.is(result.destroyable, undefined);
+  t.is(result.customData, undefined);
+});
+
+test("parseFromInfo, ACP, destroyable", (t) => {
+  const result = parseFromInfo(
+    {
+      address: bob.acpTestnetAddress,
+      destroyable: true,
+    },
+    {
+      config: AGGRON4,
+    }
+  );
+
+  const template = AGGRON4.SCRIPTS.ANYONE_CAN_PAY!;
+
+  t.is(result.fromScript.code_hash, template.CODE_HASH);
+  t.is(result.fromScript.hash_type, template.HASH_TYPE);
+  t.is(result.fromScript.args, bob.blake160);
+  t.is(result.multisigScript, undefined);
+  t.true(result.destroyable);
+  t.is(result.customData, undefined);
+});
+
+test("parseFromInfo, ACP, default", (t) => {
+  const result = parseFromInfo(
+    {
+      address: bob.acpTestnetAddress,
+    },
+    {
+      config: AGGRON4,
+    }
+  );
+
+  const template = AGGRON4.SCRIPTS.ANYONE_CAN_PAY!;
+
+  t.is(result.fromScript.code_hash, template.CODE_HASH);
+  t.is(result.fromScript.hash_type, template.HASH_TYPE);
+  t.is(result.fromScript.args, bob.blake160);
+  t.is(result.multisigScript, undefined);
+  t.false(!!result.destroyable);
+  t.is(result.customData, undefined);
+});
+
+test("parseFromInfo, CustomScript", (t) => {
+  const script = parseAddress(bob.acpTestnetAddress, { config: AGGRON4 });
+  const customData = "0x1234ab";
+
+  const result = parseFromInfo(
+    {
+      script,
+      customData,
+    },
+    {
+      config: AGGRON4,
+    }
+  );
+
+  const template = AGGRON4.SCRIPTS.ANYONE_CAN_PAY!;
+
+  t.is(result.fromScript.code_hash, template.CODE_HASH);
+  t.is(result.fromScript.hash_type, template.HASH_TYPE);
+  t.is(result.fromScript.args, bob.blake160);
+  t.is(result.multisigScript, undefined);
+  t.is(result.destroyable, undefined);
+  t.is(result.customData, customData);
 });
