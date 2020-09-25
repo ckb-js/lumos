@@ -4,12 +4,13 @@ import {
   TransactionSkeleton,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { dao } from "../src";
+import { dao, common } from "../src";
 import { predefined, Config } from "@ckb-lumos/config-manager";
-const { LINA } = predefined;
+const { LINA, AGGRON4 } = predefined;
 import { bob } from "./account_info";
 import { inputs } from "./secp256k1_blake160_inputs";
 import { Script, Cell } from "@ckb-lumos/base";
+import { bobMultisigDaoInputs, bobMultisigInputs } from "./inputs";
 
 const cellProvider = new CellProvider(inputs);
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
@@ -115,8 +116,6 @@ test("withdraw secp256k1_blake160", async (t) => {
   t.is(outputCapacity, inputCapacity);
 });
 
-// TODO: add deposit/withdraw tests with secp256k1_blake160_multisig
-
 const calculateMaximumWithdrawInfo = {
   depositInput: {
     cell_output: {
@@ -197,4 +196,137 @@ test("calculateMaximumWithdraw", (t) => {
   );
 
   t.is(result, expectedWithdrawCapacity);
+});
+
+test("deposit multisig", async (t) => {
+  const cellProvider = new CellProvider(bobMultisigInputs);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  txSkeleton = await dao.deposit(
+    txSkeleton,
+    bob.fromInfo,
+    bob.multisigTestnetAddress,
+    BigInt(500 * 10 ** 8),
+    { config: AGGRON4 }
+  );
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  const inputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const outputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(outputCapacity, inputCapacity);
+
+  t.is(txSkeleton.get("cellDeps").size, 2);
+
+  t.deepEqual(txSkeleton.get("cellDeps").get(0)!.out_point, {
+    tx_hash: AGGRON4.SCRIPTS.DAO!.TX_HASH,
+    index: AGGRON4.SCRIPTS.DAO!.INDEX,
+  });
+  t.is(
+    txSkeleton.get("cellDeps").get(0)!.dep_type,
+    AGGRON4.SCRIPTS.DAO!.DEP_TYPE
+  );
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.deepEqual(
+    txSkeleton.get("outputs").get(0)!.cell_output!.type,
+    generateDaoTypeScript(AGGRON4)
+  );
+
+  t.is(txSkeleton.get("signingEntries").size, 1);
+  const expectedMessage =
+    "0x7899ba509887d89ccc1f5f93c0de758c6e87e99b35f4166125530129c8a91dda";
+  const message = txSkeleton.get("signingEntries").get(0)!.message;
+  t.is(message, expectedMessage);
+
+  t.is(txSkeleton.get("witnesses").size, 1);
+  const expectedWitness =
+    "0x6d000000100000006d0000006d000000590000000000010136c329ed630d6ce750712a477543672adab57f4c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+  const witness = txSkeleton.get("witnesses").get(0)!;
+  t.is(witness, expectedWitness);
+});
+
+test("withdraw multisig", async (t) => {
+  const cellProvider = new CellProvider(bobMultisigDaoInputs);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  txSkeleton = await dao.withdraw(
+    txSkeleton,
+    bobMultisigDaoInputs[0],
+    bob.fromInfo,
+    {
+      config: AGGRON4,
+    }
+  );
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.is(txSkeleton.get("cellDeps").size, 2);
+  t.deepEqual(txSkeleton.get("cellDeps").get(0)!.out_point, {
+    tx_hash: AGGRON4.SCRIPTS.DAO!.TX_HASH,
+    index: AGGRON4.SCRIPTS.DAO!.INDEX,
+  });
+  t.is(
+    txSkeleton.get("cellDeps").get(0)!.dep_type,
+    AGGRON4.SCRIPTS.DAO!.DEP_TYPE
+  );
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("witnesses").size, 1);
+  t.not(txSkeleton.get("witnesses").get(0)!, "0x");
+
+  t.is(txSkeleton.get("outputs").size, 1);
+  t.is(
+    txSkeleton.get("inputs").get(0)!.cell_output.capacity,
+    txSkeleton.get("outputs").get(0)!.cell_output.capacity
+  );
+  t.is(txSkeleton.get("headerDeps").size, 1);
+  t.is(
+    txSkeleton.get("headerDeps").get(0)!,
+    bobMultisigDaoInputs[0].block_hash
+  );
+  t.deepEqual(
+    txSkeleton.get("outputs").get(0)!.cell_output.type,
+    generateDaoTypeScript(AGGRON4)
+  );
+
+  const inputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const outputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(outputCapacity, inputCapacity);
+
+  const expectedMessage =
+    "0x0d54fdf2cb8ec8cfbb41376e8fbd2851866a07724e5f5075d83d8b519279e801";
+  const expectedWitness =
+    "0x6d000000100000006d0000006d000000590000000000010136c329ed630d6ce750712a477543672adab57f4c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+
+  t.is(txSkeleton.get("signingEntries").size, 1);
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  const message = txSkeleton.get("signingEntries").get(0)!.message;
+  t.is(message, expectedMessage);
+  const witness = txSkeleton.get("witnesses").get(0);
+  t.is(witness, expectedWitness);
 });

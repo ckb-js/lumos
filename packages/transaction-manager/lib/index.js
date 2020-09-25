@@ -1,6 +1,5 @@
 const { validators, RPC } = require("ckb-js-toolkit");
 const { List, Set } = require("immutable");
-const { CellCollector } = require("@ckb-lumos/indexer");
 const { values, helpers } = require("@ckb-lumos/base");
 const { TransactionCollector } = require("@ckb-lumos/indexer/lib");
 const { isCellMatchQueryOptions } = helpers;
@@ -12,10 +11,14 @@ function defaultLogger(level, message) {
 class TransactionManager {
   constructor(
     indexer,
-    { logger = defaultLogger, pollIntervalSeconds = 30 } = {}
+    {
+      logger = defaultLogger,
+      pollIntervalSeconds = 30,
+      rpc = new RPC(indexer.uri),
+    } = {}
   ) {
     this.indexer = indexer;
-    this.rpc = new RPC(indexer.uri);
+    this.rpc = rpc;
     this.transactions = Set();
     this.spentCells = Set();
     this.createdCells = List();
@@ -170,7 +173,7 @@ class TransactionManager {
           " will not effect on pending cells."
       );
     }
-    const innerCollector = new CellCollector(this.indexer, {
+    const innerCollector = this.indexer.collector({
       lock,
       type,
       argsLen,

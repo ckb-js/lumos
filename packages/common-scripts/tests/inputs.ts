@@ -285,3 +285,32 @@ export const tipHeader: Header = {
     "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };
+
+export const bobMultisigDaoInputs: Cell[] = [
+  {
+    cell_output: {
+      capacity: "0x174876e800",
+      lock: {
+        code_hash:
+          "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+        hash_type: "type",
+        args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8",
+      },
+      type: {
+        code_hash:
+          "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+        hash_type: "type",
+        args: "0x",
+      },
+    },
+    data: "0x0000000000000000",
+    out_point: {
+      tx_hash:
+        "0x391c9a8b9a521f85e898c368419f22e9b814e94266c757384aea2ef090056e6b",
+      index: "0x0",
+    },
+    block_hash:
+      "0x1111111111111111111111111111111111111111111111111111111111111111",
+    block_number: "0x1",
+  },
+];
