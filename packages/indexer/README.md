@@ -172,7 +172,7 @@ for await (const cell of cellCollector.collect()) {
 ```
 
 
-Fine grained query for cells can be achieved by using `ScriptWrapper`, within customized options like `argsLen`:
+Fine grained query for cells can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `argsLen`:
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -326,7 +326,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-Fine grained query for transactions can be achieved by using `ScriptWrapper`, within customized options like `ioType`, `argsLen`:
+Fine grained query for transactions can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `ioType`, `argsLen`:
 
 ```javascript
 txCollector = new TransactionCollector(indexer, {
