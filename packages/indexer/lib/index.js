@@ -199,11 +199,28 @@ class CellCollector {
     if (!lock && typeof type !== "object") {
       throw new Error("Either lock or type script must be provided!");
     }
-    if (lock) {
+    // Wrap the plain `Script` to `ScriptWrapper`.
+    if (lock && !lock.script) {
       validators.ValidateScript(lock);
+      this.lock = { script: lock, argsLen: argsLen };
+    } else if (lock && lock.script) {
+      validators.ValidateScript(lock.script);
+      this.lock = lock;
+      // check argsLen
+      if (!lock.argsLen) {
+        this.lock.argsLen = argsLen;
+      }
     }
-    if (type && typeof type === "object") {
+    if (type && !type.script) {
       validators.ValidateScript(type);
+      this.lock = { script: type, ioType: "both", argsLen: argsLen };
+    } else if (type && type.script) {
+      validators.ValidateScript(type.script);
+      this.type = type;
+      // check argsLen
+      if (!type.argsLen) {
+        this.type.argsLen = argsLen;
+      }
     }
     if (fromBlock) {
       utils.assertHexadecimal("fromBlock", fromBlock);
@@ -218,7 +235,6 @@ class CellCollector {
     this.lock = lock;
     this.type = type;
     this.data = data;
-    this.argsLen = argsLen;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
     this.order = order;
@@ -234,9 +250,9 @@ class CellCollector {
       lockOutPoints = new OrderedSet(
         this.indexer
           ._getLiveCellsByScriptIterator(
-            this.lock,
+            this.lock.script,
             scriptType,
-            this.argsLen,
+            this.lock.argsLen,
             this.fromBlock,
             this.toBlock,
             this.order,
@@ -252,9 +268,9 @@ class CellCollector {
       typeOutPoints = new OrderedSet(
         this.indexer
           ._getLiveCellsByScriptIterator(
-            this.type,
+            this.type.script,
             scriptType,
-            this.argsLen,
+            this.type.argsLen,
             this.fromBlock,
             this.toBlock,
             this.order,
@@ -340,17 +356,31 @@ class TransactionCollector {
     // Wrap the plain `Script` to `ScriptWrapper`.
     if (lock && !lock.script) {
       validators.ValidateScript(lock);
-      this.lock = { script: lock, ioType: "both" };
+      this.lock = { script: lock, ioType: "both", argsLen: argsLen };
     } else if (lock && lock.script) {
       validators.ValidateScript(lock.script);
       this.lock = lock;
+      // check ioType, argsLen
+      if (!lock.argsLen) {
+        this.lock.argsLen = argsLen;
+      }
+      if (!lock.ioType) {
+        this.lock.ioType = "both";
+      }
     }
     if (type && !type.script) {
       validators.ValidateScript(type);
-      this.lock = { script: type, ioType: "both" };
+      this.lock = { script: type, ioType: "both", argsLen: argsLen };
     } else if (type && type.script) {
       validators.ValidateScript(type.script);
       this.type = type;
+      // check ioType, argsLen
+      if (!type.argsLen) {
+        this.type.argsLen = argsLen;
+      }
+      if (!type.ioType) {
+        this.type.ioType = "both";
+      }
     }
     if (fromBlock) {
       utils.assertHexadecimal("fromBlock", fromBlock);
@@ -364,7 +394,6 @@ class TransactionCollector {
     this.indexer = indexer;
     this.skipMissing = skipMissing;
     this.includeStatus = includeStatus;
-    this.argsLen = argsLen;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
     this.order = order;
@@ -384,7 +413,7 @@ class TransactionCollector {
           ._getTransactionsByScriptIterator(
             this.lock.script,
             scriptType,
-            this.argsLen,
+            this.lock.argsLen,
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,
@@ -402,7 +431,7 @@ class TransactionCollector {
           ._getTransactionsByScriptIterator(
             this.type.script,
             scriptType,
-            this.argsLen,
+            this.type.argsLen,
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,

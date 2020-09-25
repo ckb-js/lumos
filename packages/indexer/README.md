@@ -171,6 +171,35 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
+
+Fine grained query for cells can be achieved by using `ScriptWrapper`, within customized options like `argsLen`:
+
+```javascript
+cellCollector = new CellCollector(indexer, {
+  lock: {
+    script: {
+      code_hash: 
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
+    },
+    argsLen: 20, 
+  },
+  type: {
+    script: {
+      code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      hash_type: "type",
+      args: "0x",
+    },
+    // when the `argsLen` is not setted here, it will use the outside `argsLen` config, which in this case is -1 by default
+  }
+});
+
+for await (const cell of cellCollector.collect()) {
+  console.log(cell);
+}
+```
+
 ### TransactionCollector 
 
 Similar solution can be used to query for transactions related to a lock script:
@@ -210,31 +239,6 @@ for await (const tx of txCollector.collect()) {
 ```
 
 It will fetch transactions between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
-
-Fine grained query for transactions by scripts with `ioType` is supported: 
-
-```javascript
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    script: {
-      code_hash: 
-        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hash_type: "type",
-      args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
-    },
-    ioType: "input",
-  },
-  fromBlock: "0x0", // "0x" + 0n.toString(16) 
-  toBlock: "0x7d0" , // "0x" + 2000n.toString(16)
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-}
-```
-
-The `ioType` field is among `input | output | both`.
-
 
 Page jump when queryring transactions is supported:
 
@@ -321,6 +325,37 @@ for await (const tx of txCollector.collect()) {
   console.log(tx);
 }
 ```
+
+Fine grained query for transactions can be achieved by using `ScriptWrapper`, within customized options like `ioType`, `argsLen`:
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    script: {
+      code_hash: 
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
+    },
+    ioType: "both",
+    argsLen: 20, // when the `argsLen` is not setted here, it will use the outside `argsLen` config
+  },
+  type: {
+    script: {
+      code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      hash_type: "type",
+      args: "0x",
+    },
+    ioType: "input",
+  }
+});
+
+for await (const tx of txCollector.collect()) {
+  console.log(tx);
+}
+```
+
+The `ioType` field is among `input | output | both`.
 
 ### EventEmitter
 
