@@ -30,7 +30,7 @@ indexer.startForever();
 To query existing cells, you can create a CellCollector:
 
 ```javascript
-collector = new CellCollector(indexer, {
+cellCollector = new CellCollector(indexer, {
   lock: {
     code_hash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -39,14 +39,14 @@ collector = new CellCollector(indexer, {
   },
 });
 
-for await (const cell of collector.collect()) {
+for await (const cell of cellCollector.collect()) {
   console.log(cell);
 }
 ```
 
 You can also specify both `lock` and `type` script: 
 ```javascript
-collector = new CellCollector(indexer, {
+cellCollector = new CellCollector(indexer, {
     lock: {
         args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
         code_hash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
@@ -59,7 +59,7 @@ collector = new CellCollector(indexer, {
     }
 })
 
-for await (const cell of collector.collect()) {
+for await (const cell of cellCollector.collect()) {
   console.log(cell);
 }
 ```

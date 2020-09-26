@@ -232,8 +232,6 @@ class CellCollector {
       throw new Error("Order must be either asc or desc");
     }
     this.indexer = indexer;
-    this.lock = lock;
-    this.type = type;
     this.data = data;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
