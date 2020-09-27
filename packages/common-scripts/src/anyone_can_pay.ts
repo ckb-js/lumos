@@ -201,6 +201,33 @@ export async function setupInputCell(
   return txSkeleton;
 }
 
+// export for tests
+export function checkLimit(acpArgs: HexString, capacity: bigint): void {
+  let minimalAmount: bigint | undefined;
+  let minimalCapacity: bigint | undefined;
+  if (acpArgs.length >= 46) {
+    minimalAmount = 10n ** BigInt("0x" + acpArgs.slice(44, 46));
+  }
+  if (acpArgs.length >= 44) {
+    // should convert to shannons
+    minimalCapacity = 10n ** BigInt("0x" + acpArgs.slice(42, 44)) * 10n ** 8n;
+  }
+  // Both minimalAmount & minimalCapacity OR only minimalCapacity
+  if (minimalCapacity && minimalAmount) {
+    if (capacity < minimalCapacity) {
+      throw new Error(
+        `capacity(${capacity}) less than toAddress minimal capacity limit(${minimalCapacity}), and amount less then toAddress minimal amount limit(${minimalAmount})! If you want to transfer sudt, maybe sudt.transfer can help you.`
+      );
+    }
+  } else if (minimalCapacity) {
+    if (capacity < minimalCapacity) {
+      throw new Error(
+        `capacity(${capacity}) less than toAddress minimal capacity limit(${minimalCapacity})!`
+      );
+    }
+  }
+}
+
 export async function setupOutputCell(
   txSkeleton: TransactionSkeletonType,
   outputCell: Cell,
@@ -212,20 +239,7 @@ export async function setupOutputCell(
 
   const capacity: bigint = BigInt(outputCell.cell_output.capacity);
 
-  if (toScript.args.length >= 46) {
-    const minimalAmount: bigint =
-      10n ** BigInt("0x" + toScript.args.slice(44, 46));
-    throw new Error(
-      `Requires to transfer ${minimalAmount} to \`toAddress\` at least! please use sudt.transfer.`
-    );
-  }
-  if (toScript.args.length >= 44) {
-    const minimalCapcity: bigint =
-      10n ** BigInt("0x" + toScript.args.slice(42, 44));
-    if (capacity < minimalCapcity) {
-      throw new Error(`capacity less than toAddress minimal capacity`);
-    }
-  }
+  checkLimit(toScript.args, capacity);
 
   const cellProvider = txSkeleton.get("cellProvider");
   if (!cellProvider) {
@@ -570,20 +584,7 @@ export async function withdraw(
   };
 
   if (isAcpScript(toScript, config)) {
-    if (toScript.args.length >= 46) {
-      const minimalAmount: bigint =
-        10n ** BigInt("0x" + toScript.args.slice(44, 46));
-      throw new Error(
-        `Requires to transfer ${minimalAmount} to \`toAddress\` at least! please use sudt.transfer.`
-      );
-    }
-    if (toScript.args.length >= 44) {
-      const minimalCapcity: bigint =
-        10n ** BigInt("0x" + toScript.args.slice(42, 44));
-      if (capacity < minimalCapcity) {
-        throw new Error(`capacity less than toAddress minimal capacity`);
-      }
-    }
+    checkLimit(toScript.args, capacity);
 
     const cellProvider = txSkeleton.get("cellProvider");
     if (!cellProvider) {
