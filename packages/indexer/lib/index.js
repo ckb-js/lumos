@@ -199,7 +199,7 @@ class CellCollector {
     if (!lock && typeof type !== "object") {
       throw new Error("Either lock or type script must be provided!");
     }
-    // Wrap the plain `Script` to `ScriptWrapper`.
+    // Wrap the plain `Script` into `ScriptWrapper`.
     if (lock && !lock.script) {
       validators.ValidateScript(lock);
       this.lock = { script: lock, argsLen: argsLen };
@@ -211,10 +211,12 @@ class CellCollector {
         this.lock.argsLen = argsLen;
       }
     }
-    if (type && !type.script) {
+    if (type && type === "empty") {
+      this.type = type;
+    } else if (type && typeof type === "object" && !type.script) {
       validators.ValidateScript(type);
-      this.lock = { script: type, ioType: "both", argsLen: argsLen };
-    } else if (type && type.script) {
+      this.lock = { script: type, argsLen: argsLen };
+    } else if (type && typeof type === "object" && type.script) {
       validators.ValidateScript(type.script);
       this.type = type;
       // check argsLen
@@ -351,7 +353,7 @@ class TransactionCollector {
     if (!lock && !type) {
       throw new Error("Either lock or type script must be provided!");
     }
-    // Wrap the plain `Script` to `ScriptWrapper`.
+    // Wrap the plain `Script` into `ScriptWrapper`.
     if (lock && !lock.script) {
       validators.ValidateScript(lock);
       this.lock = { script: lock, ioType: "both", argsLen: argsLen };

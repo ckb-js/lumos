@@ -86,7 +86,7 @@ for await (const cell of cellCollector.collect()) {
 ```
 It will fetch cells between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
 
-Page jump when queryring cells is supported:
+Page jump when query cells is supported:
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -149,7 +149,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
- You can also set it as any when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario,  or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicit specify length due to the low-level implementation.
+You can also set it as `any` when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario,  or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -240,7 +240,7 @@ for await (const tx of txCollector.collect()) {
 
 It will fetch transactions between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
 
-Page jump when queryring transactions is supported:
+Page jump when query transactions is supported:
 
 ```javascript
 txCollector = new TransactionCollector(indexer, {
@@ -304,7 +304,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
- You can also set it as any when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario,  or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicit specify length due to the low-level implementation.
+You can also set it as `any` when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario,  or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
 
 ```javascript
 txCollector = new TransactionCollector(indexer, {
