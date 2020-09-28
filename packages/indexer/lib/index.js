@@ -370,7 +370,7 @@ class TransactionCollector {
     }
     if (type && !type.script) {
       validators.ValidateScript(type);
-      this.lock = { script: type, ioType: "both", argsLen: argsLen };
+      this.type = { script: type, ioType: "both", argsLen: argsLen };
     } else if (type && type.script) {
       validators.ValidateScript(type.script);
       this.type = type;
@@ -389,7 +389,7 @@ class TransactionCollector {
       utils.assertHexadecimal("toBlock", toBlock);
     }
     if (order !== "asc" && order !== "desc") {
-      throw new Error("Order must be either asc or desc");
+      throw new Error("Order must be either asc or desc!");
     }
     this.indexer = indexer;
     this.skipMissing = skipMissing;

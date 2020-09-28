@@ -1,5 +1,5 @@
 const test = require("ava");
-const { CellCollector } = require("../lib");
+const { TransactionCollector } = require("../lib");
 test("wrap plain Script into ScriptWrapper ", (t) => {
   const lock = {
     args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
@@ -14,15 +14,18 @@ test("wrap plain Script into ScriptWrapper ", (t) => {
     args: "0x",
   };
   const argsLen = 20;
-  const wrappedLock = { script: lock, argsLen: argsLen };
-  const wrappedType = { script: type, argsLen: argsLen };
-  const queryOptions = { lock: lock, type: type, argsLen: 20 };
-  const cellCollector = new CellCollector("indexer placeholder", queryOptions);
-  t.deepEqual(cellCollector.lock, wrappedLock);
-  t.deepEqual(cellCollector.type, wrappedType);
+  const wrappedLock = { script: lock, argsLen: argsLen, ioType: "both" };
+  const wrappedType = { script: type, argsLen: argsLen, ioType: "both" };
+  const queryOptions = { lock: lock, type: type, argsLen: argsLen };
+  const transactionCollector = new TransactionCollector(
+    "indexer placeholder",
+    queryOptions
+  );
+  t.deepEqual(transactionCollector.lock, wrappedLock);
+  t.deepEqual(transactionCollector.type, wrappedType);
 });
 
-test("pass ScriptWrapper to CellCollector", (t) => {
+test("pass ScriptWrapper to TransactionCollector", (t) => {
   const lock = {
     args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
     code_hash:
@@ -36,39 +39,46 @@ test("pass ScriptWrapper to CellCollector", (t) => {
     args: "0x",
   };
   const argsLen = 20;
-  const wrappedLock = { script: lock, argsLen: argsLen };
-  const wrappedType = { script: type, argsLen: argsLen };
-  const queryOptions = { lock: wrappedLock, type: wrappedType, argsLen: 20 };
-  const cellCollector = new CellCollector("indexer placeholder", queryOptions);
-  t.deepEqual(cellCollector.lock, wrappedLock);
-  t.deepEqual(cellCollector.type, wrappedType);
+  const wrappedLock = { script: lock, argsLen: argsLen, ioType: "input" };
+  const wrappedType = { script: type, argsLen: argsLen, ioType: "input" };
+  const queryOptions = {
+    lock: wrappedLock,
+    type: wrappedType,
+    argsLen: argsLen,
+  };
+  const transactionCollector = new TransactionCollector(
+    "indexer placeholder",
+    queryOptions
+  );
+  t.deepEqual(transactionCollector.lock, wrappedLock);
+  t.deepEqual(transactionCollector.type, wrappedType);
 });
 
-test("throw error when pass null lock and null type to CellCollector", (t) => {
+test("throw error when pass null lock and null type to TransactionCollector", (t) => {
   const error = t.throws(
     () => {
       const queryOptions = {};
-      new CellCollector("indexer placeholder", queryOptions);
+      new TransactionCollector("indexer placeholder", queryOptions);
     },
     { instanceOf: Error }
   );
   t.is(error.message, "Either lock or type script must be provided!");
 });
 
-test("throw error when pass null lock and empty type to CellCollector", (t) => {
+test("throw error when pass null lock and empty type to TransactionCollector", (t) => {
   const error = t.throws(
     () => {
       const queryOptions = {
         type: "empty",
       };
-      new CellCollector("indexer placeholder", queryOptions);
+      new TransactionCollector("indexer placeholder", queryOptions);
     },
     { instanceOf: Error }
   );
   t.is(error.message, "Either lock or type script must be provided!");
 });
 
-test("throw error when pass wrong order to CellCollector", (t) => {
+test("throw error when pass wrong order to TransactionCollector", (t) => {
   const error = t.throws(
     () => {
       const queryOptions = {
@@ -80,14 +90,14 @@ test("throw error when pass wrong order to CellCollector", (t) => {
         },
         order: "some",
       };
-      new CellCollector("indexer placeholder", queryOptions);
+      new TransactionCollector("indexer placeholder", queryOptions);
     },
     { instanceOf: Error }
   );
   t.is(error.message, "Order must be either asc or desc!");
 });
 
-test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
+test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (t) => {
   let error = t.throws(
     () => {
       const queryOptions = {
@@ -100,7 +110,7 @@ test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
         order: "asc",
         fromBlock: 1000,
       };
-      new CellCollector("indexer placeholder", queryOptions);
+      new TransactionCollector("indexer placeholder", queryOptions);
     },
     { instanceOf: Error }
   );
@@ -118,7 +128,7 @@ test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
         order: "asc",
         toBlock: "0x",
       };
-      new CellCollector("indexer placeholder", queryOptions);
+      new TransactionCollector("indexer placeholder", queryOptions);
     },
     { instanceOf: Error }
   );
