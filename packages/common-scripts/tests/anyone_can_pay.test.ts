@@ -11,6 +11,7 @@ import { bob, alice } from "./account_info";
 import { bobAcpCells, aliceAcpCells } from "./inputs";
 import { Cell, values } from "@ckb-lumos/base";
 const { AGGRON4 } = predefined;
+import { checkLimit } from "../src/anyone_can_pay";
 
 test("withdraw, acp to acp, all", async (t) => {
   const cellProvider = new CellProvider([bobAcpCells[0], aliceAcpCells[0]]);
@@ -369,4 +370,23 @@ test("setupInputCell", async (t) => {
         new values.ScriptValue(output.cell_output.type!, { validate: false })
       )
   );
+});
+
+test("checkLimit, amount and capacity", (t) => {
+  const args = bob.blake160 + "01" + "02";
+  t.throws(() => checkLimit(args, BigInt(0)));
+  t.throws(() => checkLimit(args, BigInt(10 * 10 ** 8 - 1)));
+  t.notThrows(() => checkLimit(args, BigInt(10 * 10 ** 8)));
+});
+
+test("checkLimit, only capacity", (t) => {
+  const args = bob.blake160 + "01";
+  t.throws(() => checkLimit(args, BigInt(0)));
+  t.throws(() => checkLimit(args, BigInt(10 * 10 ** 8 - 1)));
+  t.notThrows(() => checkLimit(args, BigInt(10 * 10 ** 8)));
+});
+
+test("checkLimit, no limit", (t) => {
+  const args = bob.blake160;
+  t.notThrows(() => checkLimit(args, BigInt(0)));
 });
