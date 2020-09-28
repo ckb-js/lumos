@@ -8,6 +8,7 @@ import {
   Output,
   CellCollector as CellCollectorInterface,
   helpers,
+  utils,
 } from "@ckb-lumos/base";
 import {
   TransactionCollector as TxCollector,
@@ -451,6 +452,28 @@ export class Cache {
   }
 }
 
+// export for tests
+export function publicKeyToMultisigArgs(publicKey: HexString): HexString {
+  const blake160: HexString = publicKeyToBlake160(publicKey);
+
+  const R = 0;
+  const M = 1;
+  const publicKeyHashes = [blake160];
+
+  const serialized =
+    "0x00" +
+    ("00" + R.toString(16)).slice(-2) +
+    ("00" + M.toString(16)).slice(-2) +
+    ("00" + publicKeyHashes.length.toString(16)).slice(-2) +
+    publicKeyHashes.map((h) => h.slice(2)).join("");
+
+  const args = new utils.CKBHasher()
+    .update(serialized)
+    .digestHex()
+    .slice(0, 42);
+  return args;
+}
+
 export function getDefaultInfos(
   config: Config | undefined = undefined
 ): LockScriptMappingInfo[] {
@@ -469,7 +492,7 @@ export function getDefaultInfos(
     infos.push({
       code_hash: multisigTemplate.CODE_HASH,
       hash_type: multisigTemplate.HASH_TYPE,
-      publicKeyToArgs: publicKeyToBlake160,
+      publicKeyToArgs: publicKeyToMultisigArgs,
     });
   }
   const anyoneCanPayTemplate = config.SCRIPTS.ANYONE_CAN_PAY;

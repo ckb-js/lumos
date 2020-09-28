@@ -248,7 +248,7 @@ test("deposit multisig", async (t) => {
 
   t.is(txSkeleton.get("signingEntries").size, 1);
   const expectedMessage =
-    "0x7899ba509887d89ccc1f5f93c0de758c6e87e99b35f4166125530129c8a91dda";
+    "0xa41875ea85b7abda153b7aa3c24e2874e30c88d69203a2f8b9bceb6e52e8b73c";
   const message = txSkeleton.get("signingEntries").get(0)!.message;
   t.is(message, expectedMessage);
 
