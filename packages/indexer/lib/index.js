@@ -196,7 +196,7 @@ class CellCollector {
       skip = null,
     } = {}
   ) {
-    if (!lock && typeof type !== "object") {
+    if (!lock && (!type || type === "empty")) {
       throw new Error("Either lock or type script must be provided!");
     }
     // Wrap the plain `Script` into `ScriptWrapper`.
@@ -215,7 +215,7 @@ class CellCollector {
       this.type = type;
     } else if (type && typeof type === "object" && !type.script) {
       validators.ValidateScript(type);
-      this.lock = { script: type, argsLen: argsLen };
+      this.type = { script: type, argsLen: argsLen };
     } else if (type && typeof type === "object" && type.script) {
       validators.ValidateScript(type.script);
       this.type = type;
@@ -231,7 +231,7 @@ class CellCollector {
       utils.assertHexadecimal("toBlock", toBlock);
     }
     if (order !== "asc" && order !== "desc") {
-      throw new Error("Order must be either asc or desc");
+      throw new Error("Order must be either asc or desc!");
     }
     this.indexer = indexer;
     this.data = data;
@@ -350,7 +350,7 @@ class TransactionCollector {
     } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
-    if (!lock && !type) {
+    if (!lock && (!type || type === "empty")) {
       throw new Error("Either lock or type script must be provided!");
     }
     // Wrap the plain `Script` into `ScriptWrapper`.
