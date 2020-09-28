@@ -84,6 +84,23 @@ class TransactionManager {
       }
       return true;
     });
+    let createdCells = List();
+    this.transactions.forEach((transactionValue) => {
+      const tx = transactionValue.value;
+      tx.outputs.forEach((output, i) => {
+        const out_point = {
+          tx_hash: tx.hash,
+          index: "0x" + i.toString(16),
+        };
+        createdCells = createdCells.push({
+          out_point,
+          cell_output: output,
+          data: tx.outputs_data[i],
+          block_hash: null,
+        });
+      });
+    });
+    this.createdCells = createdCells;
   }
 
   async send_transaction(tx) {
@@ -100,6 +117,7 @@ class TransactionManager {
       }
     });
     const txHash = await this.rpc.send_transaction(tx);
+    tx.hash = txHash;
     this.transactions = this.transactions.add(
       new values.TransactionValue(tx, { validate: false })
     );
@@ -205,7 +223,7 @@ class TransactionManagerCellCollector {
     { usePendingOutputs = true } = {}
   ) {
     this.collector = collector;
-    this.spentCells = spentCells;
+    this.spentCells = Set(spentCells);
     this.filteredCreatedCells = filteredCreatedCells;
     this.usePendingOutputs = usePendingOutputs;
   }
@@ -226,7 +244,7 @@ class TransactionManagerCellCollector {
 
   async *collect() {
     for await (const cell of this.collector.collect()) {
-      if (!this.spentCells.includes(new values.OutPointValue(cell.out_point))) {
+      if (!this.spentCells.has(new values.OutPointValue(cell.out_point))) {
         yield cell;
       }
     }
