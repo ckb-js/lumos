@@ -211,7 +211,7 @@ class CellCollector {
         this.lock.argsLen = argsLen;
       }
     }
-    if (type && type === "empty") {
+    if (type === "empty") {
       this.type = type;
     } else if (type && typeof type === "object" && !type.script) {
       validators.ValidateScript(type);
@@ -368,7 +368,7 @@ class TransactionCollector {
         this.lock.ioType = "both";
       }
     }
-    if (type && type === "empty") {
+    if (type === "empty") {
       this.type = type;
     } else if (type && !type.script) {
       validators.ValidateScript(type);
