@@ -263,7 +263,7 @@ class CellCollector {
       lockOutPoints = this.wrapOutPoints(lockOutPoints);
     }
 
-    if (this.type && typeof this.type === "object") {
+    if (this.type && this.type !== "empty") {
       const scriptType = 1;
       typeOutPoints = new OrderedSet(
         this.indexer
@@ -281,7 +281,7 @@ class CellCollector {
       typeOutPoints = this.wrapOutPoints(typeOutPoints);
     }
     let outPoints = null;
-    if (this.lock && this.type && this.type !== "empty") {
+    if (this.lock && this.type) {
       outPoints = lockOutPoints.intersect(typeOutPoints);
     } else if (this.lock) {
       outPoints = lockOutPoints;
@@ -368,7 +368,9 @@ class TransactionCollector {
         this.lock.ioType = "both";
       }
     }
-    if (type && !type.script) {
+    if (type && type === "empty") {
+      this.type = type;
+    } else if (type && !type.script) {
       validators.ValidateScript(type);
       this.type = { script: type, ioType: "both", argsLen: argsLen };
     } else if (type && type.script) {
@@ -424,7 +426,7 @@ class TransactionCollector {
       );
     }
 
-    if (this.type) {
+    if (this.type && this.type !== "empty") {
       const scriptType = 1;
       typeHashes = new OrderedSet(
         this.indexer

@@ -98,6 +98,21 @@ test("filter by lock", (t) => {
   t.deepEqual(filterIndex(cells, queryOptions), [0, 1]);
 });
 
+test("filter by wrapped lock", (t) => {
+  const queryOptions = {
+    lock: {
+      script: {
+        code_hash:
+          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        hash_type: "type",
+        args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+      },
+    },
+  };
+
+  t.deepEqual(filterIndex(cells, queryOptions), [0, 1]);
+});
+
 test("filter by lock & empty type", (t) => {
   const queryOptions = {
     lock: {
@@ -105,6 +120,22 @@ test("filter by lock & empty type", (t) => {
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
       hash_type: "type",
       args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+    },
+    type: "empty",
+  };
+
+  t.deepEqual(filterIndex(cells, queryOptions), [0]);
+});
+
+test("filter by wrapped lock & empty type", (t) => {
+  const queryOptions = {
+    lock: {
+      script: {
+        code_hash:
+          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        hash_type: "type",
+        args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+      },
     },
     type: "empty",
   };
@@ -126,6 +157,30 @@ test("filter by lock & type", (t) => {
       hash_type: "type",
       args:
         "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
+    },
+  };
+
+  t.deepEqual(filterIndex(cells, queryOptions), [1]);
+});
+
+test("filter by wrapped lock & wrapped type", (t) => {
+  const queryOptions = {
+    lock: {
+      script: {
+        code_hash:
+          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        hash_type: "type",
+        args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+      },
+    },
+    type: {
+      script: {
+        code_hash:
+          "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+        hash_type: "type",
+        args:
+          "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
+      },
     },
   };
 
@@ -155,6 +210,22 @@ test("filter by lock & argsLen", (t) => {
       args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8",
     },
     argsLen: 28,
+  };
+
+  t.deepEqual(filterIndex(cells, queryOptions), [2]);
+});
+
+test("filter by wrapped lock & argsLen", (t) => {
+  const queryOptions = {
+    lock: {
+      script: {
+        code_hash:
+          "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+        hash_type: "type",
+        args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8",
+      },
+      argsLen: 28,
+    },
   };
 
   t.deepEqual(filterIndex(cells, queryOptions), [2]);
