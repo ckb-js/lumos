@@ -11,30 +11,59 @@ function isCellMatchQueryOptions(
     toBlock = undefined,
   }
 ) {
-  if (lock && argsLen === -1) {
+  let wrappedLock = null;
+  let wrappedType = null;
+  // Wrap the plain `Script` into `ScriptWrapper`.
+  if (lock && !lock.script) {
+    wrappedLock = { script: lock, argsLen: argsLen };
+  } else if (lock && lock.script) {
+    wrappedLock = lock;
+    // check argsLen
+    if (!lock.argsLen) {
+      wrappedLock.argsLen = argsLen;
+    }
+  }
+  if (type && type === "empty") {
+    wrappedType = type;
+  } else if (type && typeof type === "object" && !type.script) {
+    wrappedType = { script: type, argsLen: argsLen };
+  } else if (type && typeof type === "object" && type.script) {
+    wrappedType = type;
+    // check argsLen
+    if (!type.argsLen) {
+      wrappedType.argsLen = argsLen;
+    }
+  }
+
+  if (wrappedLock && wrappedLock.script && wrappedLock.argsLen === -1) {
     if (
       !new ScriptValue(cell.cell_output.lock, {
         validate: false,
-      }).equals(new ScriptValue(lock, { validate: false }))
+      }).equals(new ScriptValue(wrappedLock.script, { validate: false }))
     ) {
       return false;
     }
   }
 
-  if (lock && argsLen === "any") {
+  if (wrappedLock && wrappedLock.script && wrappedLock.argsLen === "any") {
     const cellLock = cell.cell_output.lock;
     if (
-      cellLock.code_hash !== lock.code_hash ||
-      cellLock.hash_type !== lock.hash_type ||
-      !cellLock.args.startsWith(lock.args)
+      cellLock.code_hash !== wrappedLock.script.code_hash ||
+      cellLock.hash_type !== wrappedLock.script.hash_type ||
+      !cellLock.args.startsWith(wrappedLock.script.args)
     ) {
       return false;
     }
   }
 
-  if (lock && typeof argsLen === "number" && argsLen >= 0) {
-    const length = argsLen * 2 + 2;
-    const lockArgsLength = lock.args.length;
+  if (
+    wrappedLock &&
+    wrappedLock.script &&
+    typeof wrappedLock.argsLen === "number" &&
+    wrappedLock.argsLen >= 0
+  ) {
+    const length = wrappedLock.argsLen * 2 + 2;
+    const lockArgsLength = wrappedLock.script.args.length;
     const minLength = Math.min(length, lockArgsLength);
 
     const cellLock = cell.cell_output.lock;
@@ -43,24 +72,25 @@ function isCellMatchQueryOptions(
     }
     if (
       !(
-        cellLock.code_hash === lock.code_hash &&
-        cellLock.hash_type === lock.hash_type &&
-        cellLock.args.slice(0, minLength) === lock.args.slice(0, minLength)
+        cellLock.code_hash === wrappedLock.script.code_hash &&
+        cellLock.hash_type === wrappedLock.script.hash_type &&
+        cellLock.args.slice(0, minLength) ===
+          wrappedLock.script.args.slice(0, minLength)
       )
     ) {
       return false;
     }
   }
 
-  if (type && type === "empty" && cell.cell_output.type) {
+  if (wrappedType && wrappedType === "empty" && cell.cell_output.type) {
     return false;
   }
-  if (type && typeof type === "object") {
+  if (wrappedType && typeof wrappedType === "object") {
     if (
       !cell.cell_output.type ||
       !new ScriptValue(cell.cell_output.type, {
         validate: false,
-      }).equals(new ScriptValue(type, { validate: false }))
+      }).equals(new ScriptValue(wrappedType.script, { validate: false }))
     ) {
       return false;
     }

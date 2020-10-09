@@ -577,14 +577,33 @@ class CellCollector {
       order = "asc",
     } = {}
   ) {
-    if (!lock && !type) {
+    if (!lock && (!type || type === "empty")) {
       throw new Error("Either lock or type script must be provided!");
     }
-    if (lock) {
+    // Wrap the plain `Script` into `ScriptWrapper`.
+    if (lock && !lock.script) {
       validators.ValidateScript(lock);
+      this.lock = { script: lock, argsLen: argsLen };
+    } else if (lock && lock.script) {
+      validators.ValidateScript(lock.script);
+      this.lock = lock;
+      // check argsLen
+      if (!lock.argsLen) {
+        this.lock.argsLen = argsLen;
+      }
     }
-    if (type && typeof type === "object") {
+    if (type === "empty") {
+      this.type = type;
+    } else if (type && typeof type === "object" && !type.script) {
       validators.ValidateScript(type);
+      this.type = { script: type, argsLen: argsLen };
+    } else if (type && typeof type === "object" && type.script) {
+      validators.ValidateScript(type.script);
+      this.type = type;
+      // check argsLen
+      if (!type.argsLen) {
+        this.type.argsLen = argsLen;
+      }
     }
     if (fromBlock) {
       utils.assertHexadecimal("fromBlock", fromBlock);
@@ -593,11 +612,9 @@ class CellCollector {
       utils.assertHexadecimal("toBlock", toBlock);
     }
     if (order !== "asc" && order !== "desc") {
-      throw new Error("Order must be either asc or desc");
+      throw new Error("Order must be either asc or desc!");
     }
     this.knex = knex;
-    this.lock = lock;
-    this.type = type;
     this.data = data;
     this.argsLen = argsLen;
     this.fromBlock = fromBlock === null ? null : BigInt(fromBlock);
@@ -621,38 +638,38 @@ class CellCollector {
       query = query.andWhere("cells.block_number", "<=", toBlock);
     }
     if (this.lock) {
-      const binaryArgs = hexToNodeBuffer(this.lock.args);
+      const binaryArgs = hexToNodeBuffer(this.lock.script.args);
       let lockQuery = this.knex("scripts")
         .select("id")
         .where({
-          code_hash: hexToNodeBuffer(this.lock.code_hash),
-          hash_type: this.lock.hash_type === "type" ? 1 : 0,
+          code_hash: hexToNodeBuffer(this.lock.script.code_hash),
+          hash_type: this.lock.script.hash_type === "type" ? 1 : 0,
         })
         .whereRaw("substring(args, 1, ?) = ?", [
           binaryArgs.byteLength,
           binaryArgs,
         ]);
-      if (this.argsLen > 0) {
-        lockQuery = lockQuery.whereRaw("length(args) = ?", [this.argsLen]);
+      if (this.lock.argsLen !== "any" && this.lock.argsLen > 0) {
+        lockQuery = lockQuery.whereRaw("length(args) = ?", [this.lock.argsLen]);
       }
       query = query.andWhere(function () {
         return this.whereIn("lock_script_id", lockQuery);
       });
     }
-    if (this.type) {
-      const binaryArgs = hexToNodeBuffer(this.type.args);
+    if (this.type && this.type !== "empty") {
+      const binaryArgs = hexToNodeBuffer(this.type.script.args);
       let typeQuery = this.knex("scripts")
         .select("id")
         .where({
-          code_hash: hexToNodeBuffer(this.type.code_hash),
-          hash_type: this.type.hash_type === "type" ? 1 : 0,
+          code_hash: hexToNodeBuffer(this.type.script.code_hash),
+          hash_type: this.type.script.hash_type === "type" ? 1 : 0,
         })
         .whereRaw("substring(args, 1, ?) = ?", [
           binaryArgs.byteLength,
           binaryArgs,
         ]);
-      if (this.argsLen > 0) {
-        typeQuery = typeQuery.whereRaw("length(args) = ?", [this.argsLen]);
+      if (this.type.argsLen !== "any" && this.type.argsLen > 0) {
+        typeQuery = typeQuery.whereRaw("length(args) = ?", [this.type.argsLen]);
       }
       query = query.andWhere(function () {
         return this.whereIn("type_script_id", typeQuery);

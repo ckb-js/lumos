@@ -30,7 +30,7 @@ indexer.startForever();
 To query existing cells, you can create a CellCollector:
 
 ```javascript
-collector = new CellCollector(indexer, {
+cellCollector = new CellCollector(indexer, {
   lock: {
     code_hash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -39,14 +39,14 @@ collector = new CellCollector(indexer, {
   },
 });
 
-for await (const cell of collector.collect()) {
+for await (const cell of cellCollector.collect()) {
   console.log(cell);
 }
 ```
 
 You can also specify both `lock` and `type` script: 
 ```javascript
-collector = new CellCollector(indexer, {
+cellCollector = new CellCollector(indexer, {
     lock: {
         args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
         code_hash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
@@ -59,7 +59,7 @@ collector = new CellCollector(indexer, {
     }
 })
 
-for await (const cell of collector.collect()) {
+for await (const cell of cellCollector.collect()) {
   console.log(cell);
 }
 ```
@@ -86,7 +86,7 @@ for await (const cell of cellCollector.collect()) {
 ```
 It will fetch cells between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
 
-Page jump when queryring cells is supported:
+Page jump when query cells is supported:
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -127,7 +127,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-Prefix search is supported on `args`. The default `argsLen` is -1, and you can specify it when the `args` field is the prefix of original args.
+Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -149,7 +149,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-You can also set it as `any` when the argsLen of the `args` might have multiple possibilities. However, there's some performance lost when use `any` rather than explicit specify length due to the low-level implementation.
+You can also set it as `any` when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario,  or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
 
 ```javascript
 cellCollector = new CellCollector(indexer, {
@@ -164,6 +164,35 @@ cellCollector = new CellCollector(indexer, {
   toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
   order: "desc", // default option is "asc"
   skip: 300,
+});
+
+for await (const cell of cellCollector.collect()) {
+  console.log(cell);
+}
+```
+
+
+Fine grained query for cells can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `argsLen`:
+
+```javascript
+cellCollector = new CellCollector(indexer, {
+  lock: {
+    script: {
+      code_hash: 
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
+    },
+    argsLen: 20, 
+  },
+  type: {
+    script: {
+      code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      hash_type: "type",
+      args: "0x",
+    },
+    // when the `argsLen` is not setted here, it will use the outside `argsLen` config, which in this case is -1 by default
+  }
 });
 
 for await (const cell of cellCollector.collect()) {
@@ -211,32 +240,7 @@ for await (const tx of txCollector.collect()) {
 
 It will fetch transactions between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
 
-Fine grained query for transactions by scripts with `ioType` is supported: 
-
-```javascript
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    script: {
-      code_hash: 
-        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hash_type: "type",
-      args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
-    },
-    ioType: "input",
-  },
-  fromBlock: "0x0", // "0x" + 0n.toString(16) 
-  toBlock: "0x7d0" , // "0x" + 2000n.toString(16)
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-}
-```
-
-The `ioType` field is among `input | output | both`.
-
-
-Page jump when queryring transactions is supported:
+Page jump when query transactions is supported:
 
 ```javascript
 txCollector = new TransactionCollector(indexer, {
@@ -276,6 +280,82 @@ for await (const tx of txCollector.collect()) {
   console.log(tx);
 }
 ```
+
+
+Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df3", // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
+  },
+  argsLen: 20, // default option is -1
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
+  order: "desc", // default option is "asc"
+  skip: 300,
+});
+
+for await (const tx of txCollector.collect()) {
+  console.log(tx);
+}
+```
+
+You can also set it as `any` when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario,  or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    code_hash: 
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
+  },
+  argsLen: "any",
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
+  order: "desc", // default option is "asc"
+  skip: 300,
+});
+
+for await (const tx of txCollector.collect()) {
+  console.log(tx);
+}
+```
+
+Fine grained query for transactions can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `ioType`, `argsLen`:
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    script: {
+      code_hash: 
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
+    },
+    ioType: "both",
+    argsLen: 20, // when the `argsLen` is not setted here, it will use the outside `argsLen` config
+  },
+  type: {
+    script: {
+      code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      hash_type: "type",
+      args: "0x",
+    },
+    ioType: "input",
+  }
+});
+
+for await (const tx of txCollector.collect()) {
+  console.log(tx);
+}
+```
+
+The `ioType` field is among `input | output | both`.
 
 ### EventEmitter
 

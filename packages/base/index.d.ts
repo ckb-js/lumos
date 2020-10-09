@@ -122,7 +122,8 @@ export interface QueryOptions {
 
 export interface ScriptWrapper {
   script: Script;
-  ioType: "input" | "output" | "both";
+  ioType?: "input" | "output" | "both";
+  argsLen?: number | "any";
 }
 
 export interface CellCollectorResults {

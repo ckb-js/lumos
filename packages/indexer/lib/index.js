@@ -67,6 +67,7 @@ class Indexer {
   _getTransactionsByScriptIterator(
     script,
     scriptType,
+    argsLen,
     ioType,
     fromBlock,
     toBlock,
@@ -76,6 +77,7 @@ class Indexer {
     return this.nativeIndexer.getTransactionsByScriptIterator(
       normalizers.NormalizeScript(script),
       scriptType,
+      argsLen,
       ioType,
       fromBlock,
       toBlock,
@@ -194,14 +196,33 @@ class CellCollector {
       skip = null,
     } = {}
   ) {
-    if (!lock && typeof type !== "object") {
+    if (!lock && (!type || type === "empty")) {
       throw new Error("Either lock or type script must be provided!");
     }
-    if (lock) {
+    // Wrap the plain `Script` into `ScriptWrapper`.
+    if (lock && !lock.script) {
       validators.ValidateScript(lock);
+      this.lock = { script: lock, argsLen: argsLen };
+    } else if (lock && lock.script) {
+      validators.ValidateScript(lock.script);
+      this.lock = lock;
+      // check argsLen
+      if (!lock.argsLen) {
+        this.lock.argsLen = argsLen;
+      }
     }
-    if (type && typeof type === "object") {
+    if (type === "empty") {
+      this.type = type;
+    } else if (type && typeof type === "object" && !type.script) {
       validators.ValidateScript(type);
+      this.type = { script: type, argsLen: argsLen };
+    } else if (type && typeof type === "object" && type.script) {
+      validators.ValidateScript(type.script);
+      this.type = type;
+      // check argsLen
+      if (!type.argsLen) {
+        this.type.argsLen = argsLen;
+      }
     }
     if (fromBlock) {
       utils.assertHexadecimal("fromBlock", fromBlock);
@@ -210,13 +231,10 @@ class CellCollector {
       utils.assertHexadecimal("toBlock", toBlock);
     }
     if (order !== "asc" && order !== "desc") {
-      throw new Error("Order must be either asc or desc");
+      throw new Error("Order must be either asc or desc!");
     }
     this.indexer = indexer;
-    this.lock = lock;
-    this.type = type;
     this.data = data;
-    this.argsLen = argsLen;
     this.fromBlock = fromBlock;
     this.toBlock = toBlock;
     this.order = order;
@@ -232,9 +250,9 @@ class CellCollector {
       lockOutPoints = new OrderedSet(
         this.indexer
           ._getLiveCellsByScriptIterator(
-            this.lock,
+            this.lock.script,
             scriptType,
-            this.argsLen,
+            this.lock.argsLen,
             this.fromBlock,
             this.toBlock,
             this.order,
@@ -245,14 +263,14 @@ class CellCollector {
       lockOutPoints = this.wrapOutPoints(lockOutPoints);
     }
 
-    if (this.type && typeof this.type === "object") {
+    if (this.type && this.type !== "empty") {
       const scriptType = 1;
       typeOutPoints = new OrderedSet(
         this.indexer
           ._getLiveCellsByScriptIterator(
-            this.type,
+            this.type.script,
             scriptType,
-            this.argsLen,
+            this.type.argsLen,
             this.fromBlock,
             this.toBlock,
             this.order,
@@ -263,7 +281,7 @@ class CellCollector {
       typeOutPoints = this.wrapOutPoints(typeOutPoints);
     }
     let outPoints = null;
-    if (this.lock && this.type && this.type !== "empty") {
+    if (this.lock && this.type) {
       outPoints = lockOutPoints.intersect(typeOutPoints);
     } else if (this.lock) {
       outPoints = lockOutPoints;
@@ -324,6 +342,7 @@ class TransactionCollector {
     {
       lock = null,
       type = null,
+      argsLen = -1,
       fromBlock = null,
       toBlock = null,
       order = "asc",
@@ -331,23 +350,39 @@ class TransactionCollector {
     } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
-    if (!lock && !type) {
+    if (!lock && (!type || type === "empty")) {
       throw new Error("Either lock or type script must be provided!");
     }
-    // Wrap the plain `Script` to `ScriptWrapper`.
+    // Wrap the plain `Script` into `ScriptWrapper`.
     if (lock && !lock.script) {
       validators.ValidateScript(lock);
-      this.lock = { script: lock, ioType: "both" };
+      this.lock = { script: lock, ioType: "both", argsLen: argsLen };
     } else if (lock && lock.script) {
       validators.ValidateScript(lock.script);
       this.lock = lock;
+      // check ioType, argsLen
+      if (!lock.argsLen) {
+        this.lock.argsLen = argsLen;
+      }
+      if (!lock.ioType) {
+        this.lock.ioType = "both";
+      }
     }
-    if (type && !type.script) {
+    if (type === "empty") {
+      this.type = type;
+    } else if (type && !type.script) {
       validators.ValidateScript(type);
-      this.lock = { script: type, ioType: "both" };
+      this.type = { script: type, ioType: "both", argsLen: argsLen };
     } else if (type && type.script) {
       validators.ValidateScript(type.script);
       this.type = type;
+      // check ioType, argsLen
+      if (!type.argsLen) {
+        this.type.argsLen = argsLen;
+      }
+      if (!type.ioType) {
+        this.type.ioType = "both";
+      }
     }
     if (fromBlock) {
       utils.assertHexadecimal("fromBlock", fromBlock);
@@ -356,7 +391,7 @@ class TransactionCollector {
       utils.assertHexadecimal("toBlock", toBlock);
     }
     if (order !== "asc" && order !== "desc") {
-      throw new Error("Order must be either asc or desc");
+      throw new Error("Order must be either asc or desc!");
     }
     this.indexer = indexer;
     this.skipMissing = skipMissing;
@@ -380,6 +415,7 @@ class TransactionCollector {
           ._getTransactionsByScriptIterator(
             this.lock.script,
             scriptType,
+            this.lock.argsLen,
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,
@@ -390,13 +426,14 @@ class TransactionCollector {
       );
     }
 
-    if (this.type) {
+    if (this.type && this.type !== "empty") {
       const scriptType = 1;
       typeHashes = new OrderedSet(
         this.indexer
           ._getTransactionsByScriptIterator(
             this.type.script,
             scriptType,
+            this.type.argsLen,
             this.lock.ioType,
             this.fromBlock,
             this.toBlock,

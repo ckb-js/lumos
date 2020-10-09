@@ -2,7 +2,7 @@
 extern crate log;
 
 use ckb_indexer::{
-    indexer::{Error as IndexerError, Indexer, Key, KeyPrefix, Value, SCRIPT_SERIALIZE_OFFSET},
+    indexer::{Error as IndexerError, Indexer, Key, KeyPrefix, Value},
     store::{IteratorDirection, RocksdbStore, Store},
 };
 use ckb_jsonrpc_types::{BlockNumber, BlockView};
@@ -418,14 +418,15 @@ declare_types! {
 
             let js_script = cx.argument::<JsValue>(0)?;
             let script_type = cx.argument::<JsValue>(1)?;
-            let io_type = cx.argument::<JsValue>(2)?;
+            let args_len = cx.argument::<JsValue>(2)?;
+            let io_type = cx.argument::<JsValue>(3)?;
 
-            let from_block = cx.argument::<JsValue>(3)?;
-            let to_block = cx.argument::<JsValue>(4)?;
-            let order = cx.argument::<JsValue>(5)?;
-            let skip = cx.argument::<JsValue>(6)?;
+            let from_block = cx.argument::<JsValue>(4)?;
+            let to_block = cx.argument::<JsValue>(5)?;
+            let order = cx.argument::<JsValue>(6)?;
+            let skip = cx.argument::<JsValue>(7)?;
 
-            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, io_type, from_block, to_block, order, skip])?.upcast())
+            Ok(JsTransactionIterator::new(&mut cx, vec![this, js_script, script_type, args_len, io_type, from_block, to_block, order, skip])?.upcast())
         }
 
         method getDetailedLiveCell(mut cx) {
@@ -689,10 +690,6 @@ declare_types! {
                 return cx.throw_error("The field argsLen must be either JsString or JsNumber");
             };
 
-            let mut start_key = vec![prefix as u8];
-            start_key.extend_from_slice(script.code_hash().as_slice());
-            start_key.extend_from_slice(script.hash_type().as_slice());
-
             let from_block = cx.argument::<JsValue>(4)?;
             let from_block_number_slice = if from_block.is_a::<JsString>() {
                 let from_block_hex = from_block.downcast::<JsString>().or_throw(&mut cx)?.value();
@@ -724,6 +721,10 @@ declare_types! {
                 0_usize
             };
 
+            let mut start_key = vec![prefix as u8];
+            start_key.extend_from_slice(script.code_hash().as_slice());
+            start_key.extend_from_slice(script.hash_type().as_slice());
+
             if order == "asc" {
                 match args_len {
                     ArgsLen::StringAny => {
@@ -738,7 +739,7 @@ declare_types! {
                                 // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
                                 // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
                                 let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_len)
                                 // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
                                 let args_slice: Vec<u8> = key[38..key.len()-16].try_into().unwrap();
                                 if args_slice.starts_with(&args) {
@@ -781,7 +782,7 @@ declare_types! {
                     ArgsLen::StringAny => {
                         // The `base_prefix` includes key_prefix, script's code_hash and hash_type
                         let base_prefix = start_key.clone();
-                        // Although `args_len` is unknown when using `any`, we need set it large enough(here use maximum value), making sure it will traverse db from right to left.
+                        // Although `args_len` is unknown when using `any`, we need set it large enough(here use maximum value) to traverse db backward without missing any items.
                         let start_key = [start_key, vec![0xff; 4]].concat();
                         let iter = store.iter(&start_key, IteratorDirection::Reverse);
                         if iter.is_err() {
@@ -793,7 +794,7 @@ declare_types! {
                                 // 16 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index)
                                 // 8 bytes = 4 bytes(tx_index) + 4 bytes(io_index)
                                 let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
-                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_leng)
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_len)
                                 // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
                                 let args_slice: Vec<u8> = key[38..key.len()-16].try_into().unwrap();
                                 if args_slice.starts_with(&args) {
@@ -813,7 +814,8 @@ declare_types! {
                         // base_prefix includes: key_prefix + script
                         let base_prefix = start_key.clone();
                         let remain_args_len = (args_len as usize) - script.args().len();
-                        // start_key includes base_prefix + maximum block_number + tx_index + output_index
+                        // `start_key` includes base_prefix + block_number + tx_index + output_index,
+                        // we need to set the `start_key` large enough to traverse db backward without missing any items.
                         let start_key = [start_key, vec![0xff; remain_args_len + 16]].concat();
                         let iter = store.iter(&start_key, IteratorDirection::Reverse);
                         if iter.is_err() {
@@ -924,11 +926,31 @@ declare_types! {
                 KeyPrefix::TxLockScript
             };
 
-            let mut start_key = vec![prefix as u8];
-            start_key.extend_from_slice(&script.as_slice()[SCRIPT_SERIALIZE_OFFSET..]);
-            let mut end_key = start_key.clone();
 
-            let io_type: String = cx.argument::<JsString>(3)?.value();
+            let args_len = cx.argument::<JsValue>(3)?;
+            let args_len = if args_len.is_a::<JsString>() {
+                let args_len = args_len.downcast::<JsString>().or_throw(&mut cx)?.value();
+                if args_len != "any" {
+                    return cx.throw_error(format!("The field argsLen must be string \'any\' when it's String type, it's \'{}\' now.", args_len));
+                }
+                ArgsLen::StringAny
+            } else if args_len.is_a::<JsNumber>() {
+                let args_len = args_len.downcast::<JsNumber>().or_throw(&mut cx)?.value();
+                if args_len > u32::max_value() as f64 {
+                    return cx.throw_error("args length must fit in u32 value!");
+                }
+                let args_len = if args_len <= 0.0 {
+                    script.args().len() as u32
+                } else {
+                    // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
+                    args_len as u32
+                };
+                ArgsLen::UintValue(args_len)
+            } else {
+                return cx.throw_error("The field argsLen must be either JsString or JsNumber");
+            };
+
+            let io_type: String = cx.argument::<JsString>(4)?.value();
             let io_type_mark = match &io_type[..] {
                 "input" => vec![0],
                 "output" => vec![1],
@@ -936,59 +958,160 @@ declare_types! {
                 _ => return cx.throw_error("io_type should be input or output or both!")
             };
 
-            let from_block = cx.argument::<JsValue>(4)?;
-            if from_block.is_a::<JsString>() {
+            let from_block = cx.argument::<JsValue>(5)?;
+            let from_block_number_slice = if from_block.is_a::<JsString>() {
                 let from_block_hex = from_block.downcast::<JsString>().or_throw(&mut cx)?.value();
                 let from_block_result = u64::from_str_radix(&from_block_hex[2..],16);
                 if from_block_result.is_err() {
                     return cx.throw_error(format!("Error resolving fromBlock: {:?}", from_block_result.unwrap_err()));
                 }
-                let from_block_number_slice = from_block_result.unwrap().to_be_bytes();
-                start_key.extend_from_slice(&from_block_number_slice)
-            }
-            let to_block = cx.argument::<JsValue>(5)?;
-            if to_block.is_a::<JsString>() {
+                from_block_result.unwrap().to_be_bytes()
+            } else {
+                0_u64.to_be_bytes()
+            };
+            let to_block = cx.argument::<JsValue>(6)?;
+            let to_block_number_slice = if to_block.is_a::<JsString>() {
                 let to_block_hex = to_block.downcast::<JsString>().or_throw(&mut cx)?.value();
                 let to_block_result = u64::from_str_radix(&to_block_hex[2..],16);
                 if to_block_result.is_err() {
                     return cx.throw_error(format!("Error resolving toBlock: {:?}", to_block_result.unwrap_err()));
                 }
-                let to_block_number_slice = to_block_result.unwrap().to_be_bytes();
-                end_key.extend_from_slice(&to_block_number_slice);
+                to_block_result.unwrap().to_be_bytes()
             } else {
-                end_key.extend_from_slice(&u64::MAX.to_be_bytes());
-            }
+                u64::MAX.to_be_bytes()
+            };
 
-            let order = cx.argument::<JsString>(6)?.value();
-            let skip = cx.argument::<JsValue>(7)?;
+            let order = cx.argument::<JsString>(7)?.value();
+            let skip = cx.argument::<JsValue>(8)?;
             let skip_number = if skip.is_a::<JsNumber>() {
                 skip.downcast::<JsNumber>().or_throw(&mut cx)?.value() as usize
             } else {
                 0_usize
             };
 
+            let mut start_key = vec![prefix as u8];
+            start_key.extend_from_slice(script.code_hash().as_slice());
+            start_key.extend_from_slice(script.hash_type().as_slice());
+
             if order == "asc" {
-                // iterate from the minimal start_key, stop til meet a key with block number bigger than `to_block_number_slice`
-                let iter = store.iter(&start_key, IteratorDirection::Forward);
-                if iter.is_err() {
-                    return cx.throw_error("Error creating iterator!");
+                match args_len {
+                    ArgsLen::StringAny => {
+                        // The `start_key` includes key_prefix, script's code_hash and hash_type
+                        let iter = store.iter(&start_key, IteratorDirection::Forward);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
+                        let iter = iter.unwrap()
+                            .take_while(move |(key, _)| { key.starts_with(&start_key) })
+                            .filter( move |(key, _)| {
+                                // 17 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
+                                // 9 bytes = 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
+                                let block_number_slice = key[key.len() - 17..key.len() - 9].try_into();
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_len)
+                                // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
+                                let args_slice: Vec<u8> = key[38..key.len()-17].try_into().unwrap();
+                                if args_slice.starts_with(&args) {
+                                    from_block_number_slice <= block_number_slice.unwrap()
+                                    && block_number_slice.unwrap() <= to_block_number_slice
+                                    && key.ends_with(&io_type_mark)
+                                } else {
+                                    false
+                                }
+                            })
+                            .skip(skip_number);
+                        Ok(TransactionIterator(Box::new(iter)))
+                    }
+                    ArgsLen::UintValue(args_len) => {
+                        // The `start_key` includes key_prefix, script's code_hash, hash_type and args(total or partial)
+                        // args_len must cast to u32, matching the 4 bytes length rule in molecule encoding
+                        start_key.extend_from_slice(&args_len.to_le_bytes());
+                        start_key.extend_from_slice(&script.args().raw_data());
+                        let iter = store.iter(&start_key, IteratorDirection::Forward);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
+                        let iter = iter.unwrap()
+                            .take_while(move |(key, _)| {
+                                // 17 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
+                                // 9 bytes = 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
+                                let block_number_slice = key[key.len() - 17..key.len() - 9].try_into();
+                                // iterate from the minimal key start with `start_key`, stop til meet a key with the block number bigger than `to_block_number_slice`
+                                key.starts_with(&start_key) && to_block_number_slice >= block_number_slice.unwrap()
+                            })
+                            .filter( move |(key, _)| {
+                                let block_number_slice = key[key.len() - 17..key.len() - 9].try_into();
+                                // filter out all keys start with `start_key` but the block number smaller than `from_block_number_slice`
+                                from_block_number_slice <= block_number_slice.unwrap()
+                                && key.ends_with(&io_type_mark)
+                            })
+                            .skip(skip_number);
+                        Ok(TransactionIterator(Box::new(iter)))
+                    }
                 }
-                let iter = iter.unwrap()
-                               .take_while(move |(key, _)| key.to_vec() <= end_key)
-                               .filter(move |(key, _)| key.ends_with(&io_type_mark))
-                               .skip(skip_number);
-                Ok(TransactionIterator(Box::new(iter)))
             } else if order == "desc" {
-                // iterate from the maximal start_key, stop til meet a key with block number smaller than `from_block_number_slice`
-                let iter = store.iter(&end_key, IteratorDirection::Reverse);
-                if iter.is_err() {
-                    return cx.throw_error("Error creating iterator!");
+                match args_len {
+                    ArgsLen::StringAny => {
+                        // The `base_prefix` includes key_prefix, script's code_hash and hash_type
+                        let base_prefix = start_key.clone();
+                        // Although `args_len` is unknown when using `any`, we need set it large enough(here use maximum value) to traverse db backward without missing any items.
+                        let start_key = [start_key, vec![0xff; 4]].concat();
+                        let iter = store.iter(&start_key, IteratorDirection::Reverse);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
+                        let iter = iter.unwrap()
+                            .take_while(move |(key, _)| { key.starts_with(&base_prefix) })
+                            .filter( move |(key, _)| {
+                                // 17 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
+                                // 9 bytes = 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
+                                let block_number_slice = key[key.len() - 17..key.len() - 9].try_into();
+                                // 38 bytes = 1 byte(key_prefix) + 32 bytes(code_hash) + 1 byte(hash_type) + 4 bytes(args_len)
+                                // the `args_len` is unknown when using `any`, but we can extract the full args_slice and do the prefix match.
+                                let args_slice: Vec<u8> = key[38..key.len()-17].try_into().unwrap();
+                                if args_slice.starts_with(&args) {
+                                    from_block_number_slice <= block_number_slice.unwrap()
+                                    && block_number_slice.unwrap() <= to_block_number_slice
+                                    && key.ends_with(&io_type_mark)
+                                } else {
+                                    false
+                                }
+                            })
+                            .skip(skip_number);
+                        Ok(TransactionIterator(Box::new(iter)))
+                    }
+                    ArgsLen::UintValue(args_len) => {
+                        // The `start_key` includes key_prefix, script's code_hash, hash_type and args(total or partial)
+                        // args_len must cast to u32, matching the 4 bytes length rule in molecule encoding
+                        start_key.extend_from_slice(&args_len.to_le_bytes());
+                        start_key.extend_from_slice(&script.args().raw_data());
+                        // base_prefix includes: key_prefix + script
+                        let base_prefix = start_key.clone();
+                        let remain_args_len = (args_len as usize) - script.args().len();
+                        // `start_key` includes base_prefix + block_number + tx_index + output_index + io_type,
+                        // we need to set the `start_key` large enough to traverse db backward without missing any items.
+                        let start_key = [start_key, vec![0xff; remain_args_len + 17]].concat();
+                        let iter = store.iter(&start_key, IteratorDirection::Reverse);
+                        if iter.is_err() {
+                            return cx.throw_error("Error creating iterator!");
+                        }
+                        let iter = iter.unwrap()
+                            .take_while(move |(key, _)| {
+                                // 17 bytes = 8 bytes(block_number) + 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
+                                // 9 bytes = 4 bytes(tx_index) + 4 bytes(io_index) + 1 byte(io_type)
+                                let block_number_slice = key[key.len() - 17..key.len() - 9].try_into();
+                                // iterate from the maximal key start with `prefix`, stop til meet a key with the block number smaller than `from_block_number_slice`
+                                key.starts_with(&base_prefix) && from_block_number_slice <= block_number_slice.unwrap()
+                            })
+                            .filter( move |(key, _)| {
+                                // filter out all keys start with `prefix` but the block number bigger than `to_block_number_slice`
+                                let block_number_slice = key[key.len() - 17..key.len() - 9].try_into();
+                                to_block_number_slice >= block_number_slice.unwrap()
+                                && key.ends_with(&io_type_mark)
+                            })
+                            .skip(skip_number);
+                        Ok(TransactionIterator(Box::new(iter)))
+                    }
                 }
-                let iter = iter.unwrap()
-                               .take_while(move |(key, _)| key.to_vec() >= start_key)
-                               .filter(move |(key, _)| key.ends_with(&io_type_mark))
-                               .skip(skip_number);
-                Ok(TransactionIterator(Box::new(iter)))
             } else {
                 return cx.throw_error("Order must be either asc or desc!");
             }
