@@ -47,11 +47,13 @@ function readBigUInt64LE(hex) {
   return buf.readBigUInt64LE();
 }
 
+const U128_MIN = BigInt(0);
+const U128_MAX = BigInt(2) ** BigInt(128) - BigInt(1);
 function toBigUInt128LE(u128) {
-  if (u128 < this.U128_MIN) {
+  if (u128 < U128_MIN) {
     throw new Error(`u128 ${u128} too small`);
   }
-  if (u128 > this.U128_MAX) {
+  if (u128 > U128_MAX) {
     throw new Error(`u128 ${u128} too large`);
   }
   const buf = Buffer.alloc(16);
