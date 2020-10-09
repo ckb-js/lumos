@@ -211,6 +211,7 @@ test("_checkTransactions, uncommitted", async (t) => {
 
   transactionManager._checkTransactions();
   t.is(transactionManager.transactions.size, 1);
+  t.is(transactionManager.createdCells.size, 2);
 });
 
 test("_checkTransactions, committed", async (t) => {
@@ -269,4 +270,22 @@ test("TransactionManagerCellCollector#count", async (t) => {
   const count = await collector.count();
 
   t.is(count, 2);
+});
+
+test("TransactionManagerCellCollector, update createdCells if committed", async (t) => {
+  const indexer = new MockIndexer([txHash]);
+  const rpc = new MockRPC();
+
+  const transactionManager = new TransactionManager(indexer, {
+    rpc,
+  });
+
+  await transactionManager.send_transaction(tx);
+  transactionManager._checkTransactions();
+
+  const collector = transactionManager.collector();
+
+  const count = await collector.count();
+
+  t.is(count, 0);
 });
