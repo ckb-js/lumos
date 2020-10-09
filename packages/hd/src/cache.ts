@@ -413,6 +413,7 @@ export class Cache {
           lock: lockScript,
           fromBlock: "0x" + fromBlock.toString(16),
           toBlock: "0x" + toBlock.toString(16),
+          argsLen: "any",
         },
         {
           includeStatus: true,
