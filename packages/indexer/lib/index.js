@@ -281,7 +281,7 @@ class CellCollector {
       typeOutPoints = this.wrapOutPoints(typeOutPoints);
     }
     let outPoints = null;
-    if (this.lock && this.type) {
+    if (this.lock && this.type && this.type !== "empty") {
       outPoints = lockOutPoints.intersect(typeOutPoints);
     } else if (this.lock) {
       outPoints = lockOutPoints;
@@ -444,7 +444,7 @@ class TransactionCollector {
       );
     }
 
-    if (this.lock && this.type) {
+    if (this.lock && this.type && this.type !== "empty") {
       hashes = lockHashes.intersect(typeHashes);
     } else if (this.lock) {
       hashes = lockHashes;
