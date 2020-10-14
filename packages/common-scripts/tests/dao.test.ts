@@ -432,6 +432,24 @@ test("CellCollector, withdraw", async (t) => {
   t.is(count, 0);
 });
 
+test("listDaoCells, deposit", async (t) => {
+  const cellProvider = new CellProvider(bobMultisigDaoInputs);
+  const iter = dao.listDaoCells(
+    cellProvider,
+    bob.multisigTestnetAddress,
+    "deposit",
+    {
+      config: AGGRON4,
+    }
+  );
+  let count = 0;
+  while (!(await iter.next()).done) {
+    count += 1;
+  }
+
+  t.is(count, 1);
+});
+
 test("calculateDaoEarliestSince", (t) => {
   const { depositHeader, withdrawHeader } = calculateMaximumWithdrawInfo;
 

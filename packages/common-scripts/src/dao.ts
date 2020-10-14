@@ -75,6 +75,29 @@ export class CellCollector implements CellCollectorInterface {
   }
 }
 
+/**
+ * list DAO cells,
+ *
+ * @param cellProvider
+ * @param fromAddress
+ * @param cellType
+ * @param options
+ */
+export async function* listDaoCells(
+  cellProvider: CellProvider,
+  fromAddress: Address,
+  cellType: "all" | "deposit" | "withdraw",
+  { config = undefined }: Options = {}
+): AsyncIterator<Cell> {
+  const collector = new CellCollector(fromAddress, cellProvider, cellType, {
+    config,
+  });
+
+  for await (const cell of collector.collect()) {
+    yield cell;
+  }
+}
+
 // TODO: reject multisig with non absolute-epoch-number locktime lock
 /**
  * deposit a cell to DAO
@@ -598,4 +621,5 @@ export default {
   calculateMaximumWithdraw,
   calculateDaoEarliestSince,
   CellCollector,
+  listDaoCells,
 };
