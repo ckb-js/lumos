@@ -16,6 +16,7 @@ import {
   WitnessArgs,
   PackedDao,
   PackedSince,
+  CellCollector as CellCollectorInterface,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
@@ -23,7 +24,7 @@ const { parseSince } = sinceUtils;
 import { normalizers, Reader, RPC } from "ckb-js-toolkit";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
-import { FromInfo } from "./from_info";
+import { FromInfo, parseFromInfo } from "./from_info";
 import {
   addCellDep,
   isSecp256k1Blake160Script,
@@ -33,6 +34,46 @@ import {
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS: bigint = BigInt(180);
+
+export class CellCollector implements CellCollectorInterface {
+  private cellCollector: CellCollectorInterface;
+  private cellType: "all" | "deposit" | "withdraw";
+
+  constructor(
+    fromInfo: FromInfo,
+    cellProvider: CellProvider,
+    cellType: "all" | "deposit" | "withdraw",
+    { config = undefined }: Options = {}
+  ) {
+    if (!cellProvider) {
+      throw new Error("Cell Provider is missing!");
+    }
+
+    config = config || getConfig();
+
+    const fromScript = parseFromInfo(fromInfo, { config }).fromScript;
+    const daoTypeScript = generateDaoScript(config);
+    const data: HexString | string =
+      cellType === "deposit" ? DEPOSIT_DAO_DATA : "any";
+    this.cellType = cellType;
+
+    this.cellCollector = cellProvider.collector({
+      lock: fromScript,
+      type: daoTypeScript,
+      data,
+    });
+  }
+
+  async *collect(): AsyncGenerator<Cell> {
+    for await (const inputCell of this.cellCollector.collect()) {
+      if (this.cellType === "withdraw" && inputCell.data === DEPOSIT_DAO_DATA) {
+        continue;
+      }
+
+      yield inputCell;
+    }
+  }
+}
 
 // TODO: reject multisig with non absolute-epoch-number locktime lock
 /**
@@ -146,41 +187,6 @@ function _checkFromInfoSince(fromInfo: FromInfo, config: Config): void {
         "Can't deposit a dao cell with multisig locktime which not using absolute-epoch-number format!"
       );
     }
-  }
-}
-
-/**
- * list DAO cells,
- *
- * @param cellProvider
- * @param fromAddress
- * @param cellType
- * @param options
- */
-export async function* listDaoCells(
-  cellProvider: CellProvider,
-  fromAddress: Address,
-  cellType: "all" | "deposit" | "withdraw",
-  { config = undefined }: Options = {}
-): AsyncIterator<Cell> {
-  config = config || getConfig();
-  const fromScript = parseAddress(fromAddress, { config });
-  const daoTypeScript = generateDaoScript(config);
-  let data: HexString | undefined;
-  if (cellType === "deposit") {
-    data = DEPOSIT_DAO_DATA;
-  }
-  const cellCollector = cellProvider.collector({
-    lock: fromScript,
-    type: daoTypeScript,
-    data,
-  });
-  for await (const inputCell of cellCollector.collect()) {
-    if (cellType === "withdraw" && inputCell.data === DEPOSIT_DAO_DATA) {
-      continue;
-    }
-
-    yield inputCell;
   }
 }
 
@@ -589,9 +595,9 @@ export function calculateMaximumWithdraw(
 
 export default {
   deposit,
-  listDaoCells,
   withdraw,
   unlock,
   calculateMaximumWithdraw,
   calculateDaoEarliestSince,
+  CellCollector,
 };

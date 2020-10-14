@@ -103,12 +103,16 @@ txSkeleton = await dao.deposit(
   BigInt(1000*10**8),
 )
 
-// Using `listDaoCells` to list all deposited cells.
-const daoDepositedCells = await dao.listDaoCells(
-  indexer,
+// Using `dao.CellCollector` to list all deposited cells.
+const daoDepositedCellCollector = new dao.CellCollector(
   "ckb1qyqwyxfa75whssgkq9ukkdd30d8c7txct0gq5f9mxs",
+  indexer,
   "deposit",
 )
+
+for await (const inputCell of daoDepositedCellCollector.collect()) {
+  console.log(inputCell)
+}
 
 // And pick one to withdraw.
 // `fromInfo` only required for multisig script.

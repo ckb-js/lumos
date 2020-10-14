@@ -330,3 +330,57 @@ test("withdraw multisig", async (t) => {
   const witness = txSkeleton.get("witnesses").get(0);
   t.is(witness, expectedWitness);
 });
+
+test("CellCollector, all", async (t) => {
+  const cellProvider = new CellProvider(bobMultisigDaoInputs);
+  const iter = new dao.CellCollector(
+    bob.multisigTestnetAddress,
+    cellProvider,
+    "all",
+    {
+      config: AGGRON4,
+    }
+  ).collect();
+  let count = 0;
+  while (!(await iter.next()).done) {
+    count += 1;
+  }
+
+  t.is(count, 1);
+});
+
+test("CellCollector, deposit", async (t) => {
+  const cellProvider = new CellProvider(bobMultisigDaoInputs);
+  const iter = new dao.CellCollector(
+    bob.multisigTestnetAddress,
+    cellProvider,
+    "deposit",
+    {
+      config: AGGRON4,
+    }
+  ).collect();
+  let count = 0;
+  while (!(await iter.next()).done) {
+    count += 1;
+  }
+
+  t.is(count, 1);
+});
+
+test("CellCollector, withdraw", async (t) => {
+  const cellProvider = new CellProvider(bobMultisigDaoInputs);
+  const iter = new dao.CellCollector(
+    bob.multisigTestnetAddress,
+    cellProvider,
+    "withdraw",
+    {
+      config: AGGRON4,
+    }
+  ).collect();
+  let count = 0;
+  while (!(await iter.next()).done) {
+    count += 1;
+  }
+
+  t.is(count, 0);
+});
