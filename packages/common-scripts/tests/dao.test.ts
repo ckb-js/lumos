@@ -9,8 +9,13 @@ import { predefined, Config } from "@ckb-lumos/config-manager";
 const { LINA, AGGRON4 } = predefined;
 import { bob } from "./account_info";
 import { inputs } from "./secp256k1_blake160_inputs";
-import { Script, Cell } from "@ckb-lumos/base";
-import { bobMultisigDaoInputs, bobMultisigInputs } from "./inputs";
+import { Script, Cell, HexString } from "@ckb-lumos/base";
+import {
+  bobMultisigDaoInputs,
+  bobMultisigInputs,
+  bobSecpDaoDepositInput,
+  bobSecpDaoWithdrawInput,
+} from "./inputs";
 
 const cellProvider = new CellProvider(inputs);
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
@@ -331,6 +336,48 @@ test("withdraw multisig", async (t) => {
   t.is(witness, expectedWitness);
 });
 
+test("deposit, dao script not exists", async (t) => {
+  await t.throwsAsync(
+    async () => {
+      await dao.deposit(
+        txSkeleton,
+        bob.mainnetAddress,
+        bob.mainnetAddress,
+        BigInt(1000 * 10 ** 8),
+        {
+          config: {
+            PREFIX: "ckt",
+            SCRIPTS: {},
+          },
+        }
+      );
+    },
+    undefined,
+    "Provided config does not have DAO script setup!"
+  );
+});
+
+test("deposit, toAddress not exists", async (t) => {
+  await t.throwsAsync(
+    async () => {
+      await dao.deposit(
+        txSkeleton,
+        bob.mainnetAddress,
+        undefined as any,
+        BigInt(1000 * 10 ** 8),
+        {
+          config: {
+            PREFIX: "ckt",
+            SCRIPTS: {},
+          },
+        }
+      );
+    },
+    undefined,
+    "You must provide a to address!"
+  );
+});
+
 test("CellCollector, all", async (t) => {
   const cellProvider = new CellProvider(bobMultisigDaoInputs);
   const iter = new dao.CellCollector(
@@ -383,4 +430,71 @@ test("CellCollector, withdraw", async (t) => {
   }
 
   t.is(count, 0);
+});
+
+test("calculateDaoEarliestSince", (t) => {
+  const { depositHeader, withdrawHeader } = calculateMaximumWithdrawInfo;
+
+  const result = dao.calculateDaoEarliestSince(
+    depositHeader.epoch,
+    withdrawHeader.epoch
+  );
+
+  // since: relative = false, type = epochNumber value = { length: 10, index: 5, number: 10478 }
+  // if decrease index to 4, will false to validation by dao script
+  t.is(result, BigInt("0x20000a00050028ee"));
+});
+
+class RpcMocker {
+  async get_header(hash: HexString) {
+    if (hash === calculateMaximumWithdrawInfo.depositHeader.hash) {
+      return calculateMaximumWithdrawInfo.depositHeader;
+    }
+    if (hash === calculateMaximumWithdrawInfo.withdrawHeader.hash) {
+      return calculateMaximumWithdrawInfo.withdrawHeader;
+    }
+    throw new Error("RpcMocker get_header error!");
+  }
+}
+
+test("unlock", async (t) => {
+  const cellProvider = new CellProvider([bobSecpDaoWithdrawInput]);
+  let txSkeleton = TransactionSkeleton({ cellProvider });
+
+  txSkeleton = await dao.unlock(
+    txSkeleton,
+    bobSecpDaoDepositInput,
+    bobSecpDaoWithdrawInput,
+    bob.testnetAddress,
+    bob.testnetAddress,
+    {
+      config: AGGRON4,
+      RpcClient: RpcMocker,
+    }
+  );
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, {
+    config: AGGRON4,
+  });
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 1);
+  t.deepEqual(txSkeleton.get("headerDeps").toJS(), [
+    calculateMaximumWithdrawInfo.depositHeader.hash,
+    calculateMaximumWithdrawInfo.withdrawHeader.hash,
+  ]);
+
+  const expectedMessage =
+    "0xf276a45b7dbc018c2e10c4cd0a61915dd28db768894efc1b2c557c9566fc43fd";
+  const expectedWitness =
+    "0x61000000100000005500000061000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000";
+
+  t.is(txSkeleton.get("signingEntries").size, 1);
+  t.is(txSkeleton.get("witnesses").size, 1);
+
+  const message = txSkeleton.get("signingEntries").get(0)!.message;
+  const witness = txSkeleton.get("witnesses").get(0)!;
+
+  t.is(message, expectedMessage);
+  t.is(witness, expectedWitness);
 });

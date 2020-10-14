@@ -332,7 +332,7 @@ export async function unlock(
   withdrawInput: Cell,
   toAddress: Address,
   fromInfo: FromInfo,
-  { config = undefined }: Options = {}
+  { config = undefined, RpcClient = RPC }: Options & { RpcClient?: any } = {}
 ) {
   config = config || getConfig();
   _checkDaoScript(config);
@@ -346,7 +346,7 @@ export async function unlock(
   if (!cellProvider) {
     throw new Error("Cell provider is missing!");
   }
-  const rpc = new RPC(cellProvider.uri!);
+  const rpc = new RpcClient(cellProvider.uri!);
 
   const typeScript = depositInput.cell_output.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
@@ -368,8 +368,6 @@ export async function unlock(
   ) {
     throw new Error("withdrawInput is not a DAO withdraw cell.");
   }
-
-  // TODO: check depositInput and withdrawInput match
 
   // calculate since & capacity (interest)
   const depositBlockHeader = await rpc.get_header(depositInput.block_hash);
@@ -395,10 +393,14 @@ export async function unlock(
     length: depositEpoch.length,
   };
   const minimalSince = epochSince(minimalSinceEpoch);
-  const outputCapacity = await rpc.calculate_dao_maximum_withdraw(
-    depositInput.out_point,
-    withdrawBlockHeader.hash
-  );
+
+  const outputCapacity: HexString =
+    "0x" +
+    calculateMaximumWithdraw(
+      withdrawInput,
+      depositBlockHeader.dao,
+      withdrawBlockHeader.dao
+    ).toString(16);
 
   const toScript = parseAddress(toAddress, { config });
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -416,29 +418,6 @@ export async function unlock(
 
   const since: PackedSince = "0x" + minimalSince.toString(16);
 
-  // setup input cell
-  const fromLockScript = withdrawInput.cell_output.lock;
-  if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160.setupInputCell(
-      txSkeleton,
-      withdrawInput,
-      undefined,
-      { config, since }
-    );
-  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
-      txSkeleton,
-      withdrawInput,
-      fromInfo || generateAddress(fromLockScript, { config }),
-      { config, since }
-    );
-  }
-
-  const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
-  txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.remove(lastOutputIndex);
-  });
-
   while (txSkeleton.get("witnesses").size < txSkeleton.get("inputs").size - 1) {
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.push("0x")
@@ -452,16 +431,35 @@ export async function unlock(
 
   const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
 
-  // add an empty witness
-  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-    const witnessArgs: WitnessArgs = {
-      input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
-    };
-    return witnesses.push(
-      new Reader(
-        core.SerializeWitnessArgs(normalizers.NormalizeWitnessArgs(witnessArgs))
-      ).serializeJson()
+  // setup input cell
+  const defaultWitnessArgs: WitnessArgs = {
+    input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
+  };
+  const defaultWitness: HexString = new Reader(
+    core.SerializeWitnessArgs(
+      normalizers.NormalizeWitnessArgs(defaultWitnessArgs)
+    )
+  ).serializeJson();
+  const fromLockScript = withdrawInput.cell_output.lock;
+  if (isSecp256k1Blake160Script(fromLockScript, config)) {
+    txSkeleton = await secp256k1Blake160.setupInputCell(
+      txSkeleton,
+      withdrawInput,
+      undefined,
+      { config, since, defaultWitness }
     );
+  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
+    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      withdrawInput,
+      fromInfo || generateAddress(fromLockScript, { config }),
+      { config, since, defaultWitness }
+    );
+  }
+  // remove change output by setupInputCell
+  const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.remove(lastOutputIndex);
   });
 
   // fix inputs / outputs / witnesses
