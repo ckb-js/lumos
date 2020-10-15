@@ -314,3 +314,57 @@ export const bobMultisigDaoInputs: Cell[] = [
     block_number: "0x1",
   },
 ];
+
+export const bobSecpDaoDepositInput: Cell = {
+  cell_output: {
+    capacity: "0x174876e800",
+    lock: {
+      code_hash:
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+    },
+    type: {
+      code_hash:
+        "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      hash_type: "type",
+      args: "0x",
+    },
+  },
+  data: "0x0000000000000000",
+  out_point: {
+    tx_hash:
+      "0xd28e3c0cb927d5e9ee2103a4f95887558c2f45d3e9711c1d08d7c9e8773cae54",
+    index: "0x0",
+  },
+  block_hash:
+    "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
+  block_number: "0x1",
+};
+
+export const bobSecpDaoWithdrawInput: Cell = {
+  cell_output: {
+    capacity: "0x174876e800",
+    lock: {
+      code_hash:
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+    },
+    type: {
+      code_hash:
+        "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      hash_type: "type",
+      args: "0x",
+    },
+  },
+  data: "0x4992010000000000",
+  out_point: {
+    tx_hash:
+      "0x48cfb73ccd70be0cbfbd1abd7ecf316acbd3e1710db581bf4b8c2d724efdae7f",
+    index: "0x0",
+  },
+  block_hash:
+    "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
+  block_number: "0x1",
+};

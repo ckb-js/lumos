@@ -16,6 +16,7 @@ import {
   WitnessArgs,
   PackedDao,
   PackedSince,
+  CellCollector as CellCollectorInterface,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
@@ -23,7 +24,7 @@ const { parseSince } = sinceUtils;
 import { normalizers, Reader, RPC } from "ckb-js-toolkit";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
-import { FromInfo } from "./from_info";
+import { FromInfo, parseFromInfo } from "./from_info";
 import {
   addCellDep,
   isSecp256k1Blake160Script,
@@ -33,6 +34,69 @@ import {
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS: bigint = BigInt(180);
+
+export class CellCollector implements CellCollectorInterface {
+  private cellCollector: CellCollectorInterface;
+  private cellType: "all" | "deposit" | "withdraw";
+
+  constructor(
+    fromInfo: FromInfo,
+    cellProvider: CellProvider,
+    cellType: "all" | "deposit" | "withdraw",
+    { config = undefined }: Options = {}
+  ) {
+    if (!cellProvider) {
+      throw new Error("Cell Provider is missing!");
+    }
+
+    config = config || getConfig();
+
+    const fromScript = parseFromInfo(fromInfo, { config }).fromScript;
+    const daoTypeScript = generateDaoScript(config);
+    const data: HexString | string =
+      cellType === "deposit" ? DEPOSIT_DAO_DATA : "any";
+    this.cellType = cellType;
+
+    this.cellCollector = cellProvider.collector({
+      lock: fromScript,
+      type: daoTypeScript,
+      data,
+    });
+  }
+
+  async *collect(): AsyncGenerator<Cell> {
+    for await (const inputCell of this.cellCollector.collect()) {
+      if (this.cellType === "withdraw" && inputCell.data === DEPOSIT_DAO_DATA) {
+        continue;
+      }
+
+      yield inputCell;
+    }
+  }
+}
+
+/**
+ * list DAO cells,
+ *
+ * @param cellProvider
+ * @param fromAddress
+ * @param cellType
+ * @param options
+ */
+export async function* listDaoCells(
+  cellProvider: CellProvider,
+  fromAddress: Address,
+  cellType: "all" | "deposit" | "withdraw",
+  { config = undefined }: Options = {}
+): AsyncIterator<Cell> {
+  const collector = new CellCollector(fromAddress, cellProvider, cellType, {
+    config,
+  });
+
+  for await (const cell of collector.collect()) {
+    yield cell;
+  }
+}
 
 // TODO: reject multisig with non absolute-epoch-number locktime lock
 /**
@@ -146,41 +210,6 @@ function _checkFromInfoSince(fromInfo: FromInfo, config: Config): void {
         "Can't deposit a dao cell with multisig locktime which not using absolute-epoch-number format!"
       );
     }
-  }
-}
-
-/**
- * list DAO cells,
- *
- * @param cellProvider
- * @param fromAddress
- * @param cellType
- * @param options
- */
-export async function* listDaoCells(
-  cellProvider: CellProvider,
-  fromAddress: Address,
-  cellType: "all" | "deposit" | "withdraw",
-  { config = undefined }: Options = {}
-): AsyncIterator<Cell> {
-  config = config || getConfig();
-  const fromScript = parseAddress(fromAddress, { config });
-  const daoTypeScript = generateDaoScript(config);
-  let data: HexString | undefined;
-  if (cellType === "deposit") {
-    data = DEPOSIT_DAO_DATA;
-  }
-  const cellCollector = cellProvider.collector({
-    lock: fromScript,
-    type: daoTypeScript,
-    data,
-  });
-  for await (const inputCell of cellCollector.collect()) {
-    if (cellType === "withdraw" && inputCell.data === DEPOSIT_DAO_DATA) {
-      continue;
-    }
-
-    yield inputCell;
   }
 }
 
@@ -326,7 +355,7 @@ export async function unlock(
   withdrawInput: Cell,
   toAddress: Address,
   fromInfo: FromInfo,
-  { config = undefined }: Options = {}
+  { config = undefined, RpcClient = RPC }: Options & { RpcClient?: any } = {}
 ) {
   config = config || getConfig();
   _checkDaoScript(config);
@@ -340,7 +369,7 @@ export async function unlock(
   if (!cellProvider) {
     throw new Error("Cell provider is missing!");
   }
-  const rpc = new RPC(cellProvider.uri!);
+  const rpc = new RpcClient(cellProvider.uri!);
 
   const typeScript = depositInput.cell_output.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
@@ -362,8 +391,6 @@ export async function unlock(
   ) {
     throw new Error("withdrawInput is not a DAO withdraw cell.");
   }
-
-  // TODO: check depositInput and withdrawInput match
 
   // calculate since & capacity (interest)
   const depositBlockHeader = await rpc.get_header(depositInput.block_hash);
@@ -389,10 +416,14 @@ export async function unlock(
     length: depositEpoch.length,
   };
   const minimalSince = epochSince(minimalSinceEpoch);
-  const outputCapacity = await rpc.calculate_dao_maximum_withdraw(
-    depositInput.out_point,
-    withdrawBlockHeader.hash
-  );
+
+  const outputCapacity: HexString =
+    "0x" +
+    calculateMaximumWithdraw(
+      withdrawInput,
+      depositBlockHeader.dao,
+      withdrawBlockHeader.dao
+    ).toString(16);
 
   const toScript = parseAddress(toAddress, { config });
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -410,29 +441,6 @@ export async function unlock(
 
   const since: PackedSince = "0x" + minimalSince.toString(16);
 
-  // setup input cell
-  const fromLockScript = withdrawInput.cell_output.lock;
-  if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160.setupInputCell(
-      txSkeleton,
-      withdrawInput,
-      undefined,
-      { config, since }
-    );
-  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
-      txSkeleton,
-      withdrawInput,
-      fromInfo || generateAddress(fromLockScript, { config }),
-      { config, since }
-    );
-  }
-
-  const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
-  txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.remove(lastOutputIndex);
-  });
-
   while (txSkeleton.get("witnesses").size < txSkeleton.get("inputs").size - 1) {
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.push("0x")
@@ -446,16 +454,35 @@ export async function unlock(
 
   const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
 
-  // add an empty witness
-  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-    const witnessArgs: WitnessArgs = {
-      input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
-    };
-    return witnesses.push(
-      new Reader(
-        core.SerializeWitnessArgs(normalizers.NormalizeWitnessArgs(witnessArgs))
-      ).serializeJson()
+  // setup input cell
+  const defaultWitnessArgs: WitnessArgs = {
+    input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
+  };
+  const defaultWitness: HexString = new Reader(
+    core.SerializeWitnessArgs(
+      normalizers.NormalizeWitnessArgs(defaultWitnessArgs)
+    )
+  ).serializeJson();
+  const fromLockScript = withdrawInput.cell_output.lock;
+  if (isSecp256k1Blake160Script(fromLockScript, config)) {
+    txSkeleton = await secp256k1Blake160.setupInputCell(
+      txSkeleton,
+      withdrawInput,
+      undefined,
+      { config, since, defaultWitness }
     );
+  } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
+    txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      withdrawInput,
+      fromInfo || generateAddress(fromLockScript, { config }),
+      { config, since, defaultWitness }
+    );
+  }
+  // remove change output by setupInputCell
+  const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.remove(lastOutputIndex);
   });
 
   // fix inputs / outputs / witnesses
@@ -589,9 +616,10 @@ export function calculateMaximumWithdraw(
 
 export default {
   deposit,
-  listDaoCells,
   withdraw,
   unlock,
   calculateMaximumWithdraw,
   calculateDaoEarliestSince,
+  CellCollector,
+  listDaoCells,
 };
