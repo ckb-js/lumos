@@ -1,4 +1,5 @@
-import { Cell, Script } from "@ckb-lumos/base";
+import { Cell, Script, helpers } from "@ckb-lumos/base";
+const { isCellMatchQueryOptions } = helpers;
 
 interface Options {
   lock?: Script;
@@ -15,19 +16,7 @@ class CellCollector {
 
   async *collect(): AsyncGenerator<Cell> {
     for (const cell of this.cells) {
-      const optionLock = this.options.lock;
-      if (optionLock) {
-        const cellLock = cell.cell_output.lock;
-        if (
-          cellLock.code_hash === optionLock.code_hash &&
-          cellLock.hash_type === optionLock.hash_type &&
-          cellLock.args === optionLock.args
-        ) {
-          yield cell;
-        } else {
-          continue;
-        }
-      } else {
+      if (isCellMatchQueryOptions(cell, this.options)) {
         yield cell;
       }
     }

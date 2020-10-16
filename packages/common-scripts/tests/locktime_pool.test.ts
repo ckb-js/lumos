@@ -4,15 +4,29 @@ import {
   TransactionSkeletonType,
   Options,
 } from "@ckb-lumos/helpers";
-import { locktimePool, LocktimeCell, FromInfo } from "../src";
+import {
+  locktimePool,
+  LocktimeCell,
+  FromInfo,
+  secp256k1Blake160Multisig,
+} from "../src";
 const { transfer, prepareSigningEntries, payFee } = locktimePool;
 import { CellProvider } from "./cell_provider";
 import { calculateMaximumWithdraw } from "../src/dao";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
-import { Config } from "@ckb-lumos/config-manager";
-import { Header, Cell } from "@ckb-lumos/base";
+import { Config, predefined } from "@ckb-lumos/config-manager";
+import { Header, Cell, CellCollector, Script } from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
+import {
+  bobMultisigInputs,
+  bobSecpDaoDepositInput,
+  bobSecpDaoWithdrawInput,
+  tipHeader as inputTipHeader,
+} from "./inputs";
+import { bob } from "./account_info";
+import { since as SinceUtils } from "@ckb-lumos/base";
+const { AGGRON4 } = predefined;
 
 const originCapacity = "0x174876e800";
 const inputInfos: LocktimeCell[] = [
@@ -434,4 +448,403 @@ test("Don't update capacity directly when deduct", async (t) => {
   t.true(errFlag);
   t.deepEqual(inputCapacitiesBefore, inputCapacitiesAfter);
   t.deepEqual(outputCapacitiesBefore, outputCapacitiesAfter);
+});
+
+const depositHeader = {
+  compact_target: "0x20010000",
+  dao: "0x8eedf002d7c88852433518952edc28002dd416364532c50800d096d05aac0200",
+  epoch: "0xa000500283a",
+  hash: "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
+  nonce: "0x98e10e0a992f7274c7dc0c62e9d42f02",
+  number: "0x19249",
+  parent_hash:
+    "0xd4f3e8725de77aedadcf15755c0f6cdd00bc8d4a971e251385b59ce8215a5d70",
+  proposals_hash:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  timestamp: "0x17293289266",
+  transactions_root:
+    "0x9294a800ec389d1b0d9e7c570c249da260a44cc2790bd4aa250f3d5c83eb8cde",
+  uncles_hash:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  version: "0x0",
+};
+const withdrawHeader = {
+  compact_target: "0x20010000",
+  dao: "0x39d32247d33f90523d37dae613dd280037e9cc1d7b01c708003d8849d8ac0200",
+  epoch: "0xa0008002842",
+  hash: "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
+  nonce: "0x7ffb49f45f12f2b30ac45586ecf13de2",
+  number: "0x1929c",
+  parent_hash:
+    "0xfe601308a34f1faf68906d2338e60246674ed1f1fbbad3d8471daca21a11cdf7",
+  proposals_hash:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  timestamp: "0x1729cdd69c9",
+  transactions_root:
+    "0x467d72af12af6cb122985f9838bfc47073bba30cc37a4075aef54b0f0768f384",
+  uncles_hash:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  version: "0x0",
+};
+
+class RpcMocker {
+  constructor() {}
+
+  async get_header(hash: string) {
+    if (hash === depositHeader.hash) {
+      return depositHeader;
+    }
+    if (hash === withdrawHeader.hash) {
+      return withdrawHeader;
+    }
+
+    throw new Error(`Error header hash!`);
+  }
+
+  async get_transaction(hash: string): Promise<any> {
+    if (hash === bobSecpDaoWithdrawInput.out_point!.tx_hash) {
+      return {
+        tx_status: {
+          block_hash: bobSecpDaoWithdrawInput.block_hash,
+        },
+        transaction: {
+          inputs: [
+            {
+              previous_output: bobSecpDaoDepositInput.out_point,
+            },
+          ],
+        },
+      };
+    }
+
+    if (hash === bobSecpDaoDepositInput.out_point!.tx_hash) {
+      return {
+        tx_status: {
+          block_hash: bobSecpDaoDepositInput.block_hash,
+        },
+      };
+    }
+
+    throw new Error("Error transaction hash!");
+  }
+}
+
+function cloneObject<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+async function collectAllCells(collector: CellCollector): Promise<Cell[]> {
+  const cells = [];
+  for await (const cell of collector.collect()) {
+    cells.push(cell);
+  }
+  return cells;
+}
+
+test("CellCollector, dao", async (t) => {
+  const cellProvider = new CellProvider([bobSecpDaoWithdrawInput]);
+  const tipHeader = cloneObject(inputTipHeader);
+  const epochValue = { length: 10, index: 5, number: 10478 };
+  const epoch = SinceUtils.generateHeaderEpoch(epochValue);
+  tipHeader.epoch = epoch;
+  const collector = new locktimePool.CellCollector(
+    bob.testnetAddress,
+    cellProvider,
+    {
+      config: AGGRON4,
+      NodeRPC: RpcMocker,
+      tipHeader,
+    }
+  );
+
+  const maximumWithdrawCapacity = calculateMaximumWithdraw(
+    bobSecpDaoWithdrawInput,
+    depositHeader.dao,
+    withdrawHeader.dao
+  );
+
+  const cells = await collectAllCells(collector);
+
+  t.is(cells.length, 1);
+
+  const cell = cells[0]! as LocktimeCell;
+
+  const parsedSince = SinceUtils.parseSince(cell.since);
+  t.deepEqual(parsedSince.value, epochValue);
+  t.is(cell.depositBlockHash, depositHeader.hash);
+  t.is(cell.withdrawBlockHash, withdrawHeader.hash);
+  t.is(cell.block_hash, withdrawHeader.hash);
+  t.is(cell.block_number, withdrawHeader.number);
+  t.is(BigInt(cell.cell_output.capacity), maximumWithdrawCapacity);
+});
+
+test("CellCollector, dao, invalid", async (t) => {
+  const cellProvider = new CellProvider([bobSecpDaoWithdrawInput]);
+  const tipHeader = cloneObject(inputTipHeader);
+  const epochValue = { length: 10, index: 4, number: 10478 };
+  const epoch = SinceUtils.generateHeaderEpoch(epochValue);
+  tipHeader.epoch = epoch;
+  const collector = new locktimePool.CellCollector(
+    bob.testnetAddress,
+    cellProvider,
+    {
+      config: AGGRON4,
+      NodeRPC: RpcMocker,
+      tipHeader,
+    }
+  );
+
+  const cells = await collectAllCells(collector);
+
+  t.is(cells.length, 0);
+});
+
+test("CellCollector, multisig", async (t) => {
+  const tipHeader = inputTipHeader;
+  const epochValue = { length: 653, index: 174, number: 318 };
+  const since = SinceUtils.generateSince({
+    relative: false,
+    type: "epochNumber",
+    value: epochValue,
+  });
+  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
+    bob.fromInfo
+  );
+  const args = secp256k1Blake160Multisig.multisigArgs(multisigScript, since);
+  const input: Cell = cloneObject(bobMultisigInputs[0]);
+  input.cell_output.lock.args = args;
+  // For using RpcMocker
+  input.block_hash = withdrawHeader.hash;
+
+  const cellProvider = new CellProvider([input]);
+
+  const collector = new locktimePool.CellCollector(
+    bob.multisigTestnetAddress,
+    cellProvider,
+    {
+      config: AGGRON4,
+      NodeRPC: RpcMocker,
+      tipHeader,
+    }
+  );
+
+  const cells = await collectAllCells(collector);
+
+  t.is(cells.length, 1);
+  const cell = cells[0]! as LocktimeCell;
+  t.is(cell.cell_output.capacity, bobMultisigInputs[0]!.cell_output.capacity);
+  t.is(cell.block_hash, withdrawHeader.hash);
+  t.is(cell.since, since);
+  t.deepEqual(cell.sinceBaseValue, {
+    epoch: withdrawHeader.epoch,
+    number: withdrawHeader.number,
+    timestamp: withdrawHeader.timestamp,
+  });
+});
+
+test("CellCollector, dao & multisig, dao since > multisig since", async (t) => {
+  const tipHeader = cloneObject(inputTipHeader);
+
+  const epochValue = { length: 10, index: 4, number: 10478 };
+  const multisigSince = SinceUtils.generateSince({
+    relative: false,
+    type: "epochNumber",
+    value: epochValue,
+  });
+  const daoEpochValue = { length: 10, index: 5, number: 10478 };
+  const daoSince = SinceUtils.generateSince({
+    relative: false,
+    type: "epochNumber",
+    value: daoEpochValue,
+  });
+  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
+    bob.fromInfo
+  );
+  const args = secp256k1Blake160Multisig.multisigArgs(
+    multisigScript,
+    multisigSince
+  );
+  const depositCell: Cell = cloneObject(bobSecpDaoDepositInput);
+  const withdrawCell: Cell = cloneObject(bobSecpDaoWithdrawInput);
+
+  const multisigLock: Script = {
+    code_hash:
+      "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+    hash_type: "type",
+    args,
+  };
+
+  depositCell.cell_output.lock = cloneObject(multisigLock);
+  depositCell.block_hash = depositHeader.hash;
+  withdrawCell.cell_output.lock = cloneObject(multisigLock);
+  withdrawCell.block_hash = withdrawHeader.hash;
+
+  const headerEpochValue = { length: 10, index: 5, number: 10479 };
+  const epoch = SinceUtils.generateHeaderEpoch(headerEpochValue);
+  tipHeader.epoch = epoch;
+
+  const cellProvider = new CellProvider([withdrawCell]);
+  const collector = new locktimePool.CellCollector(
+    bob.multisigTestnetAddress,
+    cellProvider,
+    {
+      config: AGGRON4,
+      NodeRPC: RpcMocker,
+      tipHeader,
+    }
+  );
+
+  const maximumWithdrawCapacity = calculateMaximumWithdraw(
+    withdrawCell,
+    depositHeader.dao,
+    withdrawHeader.dao
+  );
+
+  const cells = await collectAllCells(collector);
+
+  t.is(cells.length, 1);
+
+  const cell = cells[0]! as LocktimeCell;
+
+  t.is(cell.depositBlockHash, depositHeader.hash);
+  t.is(cell.withdrawBlockHash, withdrawHeader.hash);
+  t.is(cell.block_hash, withdrawHeader.hash);
+  t.is(cell.block_number, withdrawHeader.number);
+
+  // t.is(cell.since, multisigSince)
+  t.is(cell.since, daoSince);
+  t.is(BigInt(cell.cell_output.capacity), maximumWithdrawCapacity);
+});
+
+test("CellCollector, dao & multisig, multisig since > dao since", async (t) => {
+  const tipHeader = cloneObject(inputTipHeader);
+
+  const epochValue = { length: 10, index: 6, number: 10478 };
+  const multisigSince = SinceUtils.generateSince({
+    relative: false,
+    type: "epochNumber",
+    value: epochValue,
+  });
+  // const daoEpochValue = { length: 10, index: 5, number: 10478 }
+  // const daoSince = SinceUtils.generateSince({
+  //   relative: false,
+  //   type: "epochNumber",
+  //   value: daoEpochValue
+  // })
+  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
+    bob.fromInfo
+  );
+  const args = secp256k1Blake160Multisig.multisigArgs(
+    multisigScript,
+    multisigSince
+  );
+  const depositCell: Cell = cloneObject(bobSecpDaoDepositInput);
+  const withdrawCell: Cell = cloneObject(bobSecpDaoWithdrawInput);
+
+  const multisigLock: Script = {
+    code_hash:
+      "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+    hash_type: "type",
+    args,
+  };
+
+  depositCell.cell_output.lock = cloneObject(multisigLock);
+  depositCell.block_hash = depositHeader.hash;
+  withdrawCell.cell_output.lock = cloneObject(multisigLock);
+  withdrawCell.block_hash = withdrawHeader.hash;
+
+  // number add 1
+  const headerEpochValue = { length: 10, index: 5, number: 10479 };
+  const epoch = SinceUtils.generateHeaderEpoch(headerEpochValue);
+  tipHeader.epoch = epoch;
+
+  const cellProvider = new CellProvider([withdrawCell]);
+  const collector = new locktimePool.CellCollector(
+    bob.multisigTestnetAddress,
+    cellProvider,
+    {
+      config: AGGRON4,
+      NodeRPC: RpcMocker,
+      tipHeader,
+    }
+  );
+
+  const maximumWithdrawCapacity = calculateMaximumWithdraw(
+    withdrawCell,
+    depositHeader.dao,
+    withdrawHeader.dao
+  );
+
+  const cells = await collectAllCells(collector);
+
+  t.is(cells.length, 1);
+
+  const cell = cells[0]! as LocktimeCell;
+
+  t.is(cell.depositBlockHash, depositHeader.hash);
+  t.is(cell.withdrawBlockHash, withdrawHeader.hash);
+  t.is(cell.block_hash, withdrawHeader.hash);
+  t.is(cell.block_number, withdrawHeader.number);
+  t.is(BigInt(cell.cell_output.capacity), maximumWithdrawCapacity);
+
+  t.is(cell.since, multisigSince);
+});
+
+test("CellCollector, dao & multisig, multisig since type = blockNumber", async (t) => {
+  const tipHeader = cloneObject(inputTipHeader);
+
+  const epochValue = BigInt(1024);
+  const multisigSince = SinceUtils.generateSince({
+    relative: false,
+    type: "blockNumber",
+    value: epochValue,
+  });
+  // const daoEpochValue = { length: 10, index: 5, number: 10478 }
+  // const daoSince = SinceUtils.generateSince({
+  //   relative: false,
+  //   type: "epochNumber",
+  //   value: daoEpochValue
+  // })
+  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
+    bob.fromInfo
+  );
+  const args = secp256k1Blake160Multisig.multisigArgs(
+    multisigScript,
+    multisigSince
+  );
+  const depositCell: Cell = cloneObject(bobSecpDaoDepositInput);
+  const withdrawCell: Cell = cloneObject(bobSecpDaoWithdrawInput);
+
+  const multisigLock: Script = {
+    code_hash:
+      "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+    hash_type: "type",
+    args,
+  };
+
+  depositCell.cell_output.lock = cloneObject(multisigLock);
+  depositCell.block_hash = depositHeader.hash;
+  withdrawCell.cell_output.lock = cloneObject(multisigLock);
+  withdrawCell.block_hash = withdrawHeader.hash;
+
+  // number add 1
+  const headerEpochValue = { length: 10, index: 5, number: 10479 };
+  const epoch = SinceUtils.generateHeaderEpoch(headerEpochValue);
+  tipHeader.epoch = epoch;
+
+  const cellProvider = new CellProvider([withdrawCell]);
+  const collector = new locktimePool.CellCollector(
+    bob.multisigTestnetAddress,
+    cellProvider,
+    {
+      config: AGGRON4,
+      NodeRPC: RpcMocker,
+      tipHeader,
+    }
+  );
+
+  const cells = await collectAllCells(collector);
+
+  // will skip
+  t.is(cells.length, 0);
 });

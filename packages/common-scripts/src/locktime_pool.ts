@@ -97,7 +97,6 @@ export class CellCollector implements CellCollectorType {
     queryOptions = {
       ...queryOptions,
       lock: this.fromScript,
-      type: queryOptions.type || "empty",
     };
 
     let cellCollectors = List<CellCollectorType>([]);
@@ -117,7 +116,10 @@ export class CellCollector implements CellCollectorType {
         })
       );
       // multisig without locktime, dao
-      if (!queryOptions.type && !queryOptions.data) {
+      if (
+        !queryOptions.type &&
+        (!queryOptions.data || queryOptions.data === "any")
+      ) {
         cellCollectors = cellCollectors.push(
           cellProvider.collector({
             lock,
@@ -137,7 +139,10 @@ export class CellCollector implements CellCollectorType {
       }
     } else if (isSecp256k1Blake160Script(fromScript, config)) {
       // secp256k1_blake160, dao
-      if (!queryOptions.type && !queryOptions.data) {
+      if (
+        !queryOptions.type &&
+        (!queryOptions.data || queryOptions.data === "any")
+      ) {
         cellCollectors = cellCollectors.push(
           cellProvider.collector({
             lock: fromScript,

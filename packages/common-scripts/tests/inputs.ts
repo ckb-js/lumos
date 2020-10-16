@@ -339,7 +339,7 @@ export const bobSecpDaoDepositInput: Cell = {
   },
   block_hash:
     "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
-  block_number: "0x1",
+  block_number: "0x19249",
 };
 
 export const bobSecpDaoWithdrawInput: Cell = {
@@ -366,5 +366,5 @@ export const bobSecpDaoWithdrawInput: Cell = {
   },
   block_hash:
     "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
-  block_number: "0x1",
+  block_number: "0x1929c",
 };
