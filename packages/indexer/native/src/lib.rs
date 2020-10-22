@@ -18,6 +18,8 @@ use jsonrpc_derive::rpc;
 use neon::prelude::*;
 use std::convert::TryInto;
 use std::fmt;
+use std::fs::File;
+use std::path::PathBuf;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, RwLock,
@@ -129,6 +131,16 @@ impl NativeIndexer {
                     self.publish_append_block_events(&block)?;
                 }
             }
+        }
+        Ok(())
+    }
+
+    fn init_db_from_json_file(&self, file_path: &str) -> Result<(), Error> {
+        let blocks: Vec<BlockView> = load_blocks_from_json_file(file_path);
+        for block_item in blocks.iter() {
+            let block: CoreBlockView = block_item.to_owned().into();
+            self.indexer.append(&block)?;
+            self.publish_append_block_events(&block)?;
         }
         Ok(())
     }
@@ -363,6 +375,21 @@ declare_types! {
             Ok(cx.undefined().upcast())
         }
 
+        method init_db_from_json_file(mut cx) {
+            let this = cx.this();
+            let file_path = cx.argument::<JsString>(0)?.value();
+            let indexer = {
+                let guard = cx.lock();
+                let indexer = this.borrow(&guard);
+                indexer.clone()
+            };
+            match indexer.init_db_from_json_file(&file_path) {
+                Ok(()) =>
+            Ok(cx.undefined().upcast()),
+                Err(e) => cx.throw_error(format!("init_db_from_json_file failed: {:?}", e)),
+            }
+        }
+
         method stop(mut cx) {
             let this = cx.this();
             {
@@ -411,7 +438,6 @@ declare_types! {
 
             Ok(JsLiveCellIterator::new(&mut cx, vec![this, js_script, script_type, args_len, from_block, to_block, order, skip])?.upcast())
         }
-
 
         method getTransactionsByScriptIterator(mut cx) {
             let this = cx.this().upcast();
@@ -1197,6 +1223,20 @@ fn assemble_packed_script(code_hash: &[u8], hash_type: f64, args: &[u8]) -> Resu
         .args(args)
         .build();
     Ok(script)
+}
+fn load_blocks_from_json_file(file_path: &str) -> Vec<BlockView> {
+    let path = PathBuf::from(file_path);
+    let file = File::open(path).expect("opening test blocks data json file");
+    let blocks_data: serde_json::Value =
+        serde_json::from_reader(file).expect("reading test blocks data json file");
+    let blocks_data_array = blocks_data.as_array().expect("loading in array format");
+    let mut block_view_vec = vec![];
+    for i in 0..blocks_data_array.len() {
+        let block_value = blocks_data_array[i].clone();
+        let block_view: BlockView = serde_json::from_value(block_value).unwrap();
+        block_view_vec.push(block_view);
+    }
+    block_view_vec
 }
 
 register_module!(mut cx, {

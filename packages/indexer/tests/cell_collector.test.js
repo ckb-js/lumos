@@ -1,5 +1,36 @@
 const test = require("ava");
-const { CellCollector } = require("../lib");
+const { Indexer, CellCollector } = require("../lib");
+const { cellCollectorTestData } = require("./cell_collector_cases.js");
+const fs = require("fs");
+// the node_uri will not be used dnode_uring the test process, only serves as a placeholde here.
+const node_uri = "http://127.0.0.1:8114";
+const tmpIndexedDataPath = __dirname + "/tmp_indexed_data";
+const blocksDataFilePath = __dirname + "/blocks_data.json";
+
+const indexer = new Indexer(node_uri, tmpIndexedDataPath);
+test.before((t) => {
+  // clear rocksdb test data if exists
+  fs.rmdirSync(tmpIndexedDataPath, { recursive: true });
+  // setup rocksdb test data
+  indexer.init_db_from_json_file(blocksDataFilePath);
+});
+
+test.after((t) => {
+  // clear rocksdb test data
+  fs.rmdirSync(tmpIndexedDataPath, { recursive: true });
+});
+
+test("query cells with different queryOptions", async (t) => {
+  for (const queryCase of cellCollectorTestData) {
+    const cellCollector = new CellCollector(indexer, queryCase.queryOption);
+    let cells = [];
+    for await (const cell of cellCollector.collect()) {
+      cells.push(cell);
+    }
+    t.deepEqual(cells, queryCase.expectedResult);
+  }
+});
+
 test("wrap plain Script into ScriptWrapper ", (t) => {
   const lock = {
     args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",

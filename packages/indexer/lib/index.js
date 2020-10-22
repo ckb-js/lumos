@@ -109,6 +109,10 @@ class Indexer {
     }, this.livenessCheckIntervalSeconds * 1000);
   }
 
+  init_db_from_json_file(file_path) {
+    this.nativeIndexer.init_db_from_json_file(file_path);
+  }
+
   collector({
     lock = null,
     type = null,
