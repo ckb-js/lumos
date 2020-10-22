@@ -384,8 +384,7 @@ declare_types! {
                 indexer.clone()
             };
             match indexer.init_db_from_json_file(&file_path) {
-                Ok(()) =>
-            Ok(cx.undefined().upcast()),
+                Ok(()) => Ok(cx.undefined().upcast()),
                 Err(e) => cx.throw_error(format!("init_db_from_json_file failed: {:?}", e)),
             }
         }

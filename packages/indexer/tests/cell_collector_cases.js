@@ -816,13 +816,13 @@ const cellCollectorTestData = [
       },
     ],
   },
-    {
-        queryOption: {
-            lock: lock,
-            type: type,
-        },
-        expectedResult: [],
+  {
+    queryOption: {
+      lock: lock,
+      type: type,
     },
+    expectedResult: [],
+  },
 ];
 
 module.exports = { cellCollectorTestData };
