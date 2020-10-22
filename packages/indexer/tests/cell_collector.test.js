@@ -27,7 +27,7 @@ test("query cells with different queryOptions", async (t) => {
     for await (const cell of cellCollector.collect()) {
       cells.push(cell);
     }
-    t.deepEqual(cells, queryCase.expectedResult);
+    t.deepEqual(cells, queryCase.expectedResult, queryCase.desc);
   }
 });
 

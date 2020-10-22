@@ -20,6 +20,7 @@ const nonexistLock = {
   args: "0x0e5e3ee1d580d3b5aaff5d430b2ca6c93684d575",
 };
 
+// lock script that exist in a nervosdao deposit transaction: 0x8bc43f5819bfcc32a840c0f60d9eafe6bde3a67f9f018eb258783afc60798a07
 const lock2 = {
   code_hash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
@@ -377,6 +378,23 @@ const cellCollectorTestCases = [
     queryOption: {
       lock: lock,
       type: type,
+    },
+    expectedResult: [],
+  },
+  {
+    desc: "Test query cells by both lock and empty type script",
+    queryOption: {
+      lock: lock,
+      type: "empty",
+    },
+    expectedResult: cellsByLock,
+  },
+  {
+    desc:
+      "Test query cells by both lock and empty type script and return empty result",
+    queryOption: {
+      lock: lock2,
+      type: "empty",
     },
     expectedResult: [],
   },

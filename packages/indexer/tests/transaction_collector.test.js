@@ -1,5 +1,40 @@
 const test = require("ava");
-const { TransactionCollector } = require("../lib");
+const { Indexer, TransactionCollector } = require("../lib");
+const {
+  transactionCollectorTestCases,
+} = require("./transaction_collector_cases.js");
+const fs = require("fs");
+// the node_uri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
+const node_uri = "http://127.0.0.1:8115";
+const tmpIndexedDataPath = __dirname + "/tmp_indexed_data2";
+const blocksDataFilePath = __dirname + "/blocks_data.json";
+const indexer = new Indexer(node_uri, tmpIndexedDataPath);
+test.before((t) => {
+  // clear rocksdb test data if exists
+  fs.rmdirSync(tmpIndexedDataPath, { recursive: true });
+  // setup rocksdb test data
+  indexer.init_db_from_json_file(blocksDataFilePath);
+});
+
+test.after((t) => {
+  // clear rocksdb test data
+  fs.rmdirSync(tmpIndexedDataPath, { recursive: true });
+});
+
+test("query transactions with different queryOptions", async (t) => {
+  for (const queryCase of transactionCollectorTestCases) {
+    const transactionCollector = new TransactionCollector(
+      indexer,
+      queryCase.queryOption
+    );
+    let transactionHashes = [];
+    for (const hash of transactionCollector.getTransactionHashes()) {
+      transactionHashes.push(hash);
+    }
+    t.deepEqual(transactionHashes, queryCase.expectedResult, queryCase.desc);
+  }
+});
+
 test("wrap plain Script into ScriptWrapper ", (t) => {
   const lock = {
     args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
