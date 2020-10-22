@@ -1,8 +1,8 @@
 const test = require("ava");
 const { Indexer, CellCollector } = require("../lib");
-const { cellCollectorTestData } = require("./cell_collector_cases.js");
+const { cellCollectorTestCases } = require("./cell_collector_cases.js");
 const fs = require("fs");
-// the node_uri will not be used dnode_uring the test process, only serves as a placeholde here.
+// the node_uri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
 const node_uri = "http://127.0.0.1:8114";
 const tmpIndexedDataPath = __dirname + "/tmp_indexed_data";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
@@ -21,7 +21,7 @@ test.after((t) => {
 });
 
 test("query cells with different queryOptions", async (t) => {
-  for (const queryCase of cellCollectorTestData) {
+  for (const queryCase of cellCollectorTestCases) {
     const cellCollector = new CellCollector(indexer, queryCase.queryOption);
     let cells = [];
     for await (const cell of cellCollector.collect()) {
