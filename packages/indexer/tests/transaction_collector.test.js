@@ -9,6 +9,7 @@ const node_uri = "http://127.0.0.1:8115";
 const tmpIndexedDataPath = __dirname + "/tmp_indexed_data2";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(node_uri, tmpIndexedDataPath);
+
 test.before((t) => {
   // clear rocksdb test data if exists
   fs.rmdirSync(tmpIndexedDataPath, { recursive: true });

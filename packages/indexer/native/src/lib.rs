@@ -72,7 +72,7 @@ pub struct Emitter {
     cb: Option<EventHandler>,
     lock: Option<Script>,
     type_: Option<Script>,
-    args_len: usize,
+    args_len: ArgsLen,
     output_data: Option<Bytes>,
     from_block: u64,
 }
@@ -292,19 +292,40 @@ impl NativeIndexer {
         } else {
             true
         };
-        let check_script = if emitter.args_len == script.args().len() {
-            script == emitter_script
-        } else {
-            // when emitter's args_len smaller than actual script args' len, meaning it's prefix match
-            let script_args = script.args();
-            // the first 4 bytes mark the byteslength of script_args according to molecule
-            let args_prefix = &script_args.as_slice()[4..emitter.args_len + 4];
-            let emitter_args = emitter_script.args();
-            let emitter_args_prefix = &emitter_args.as_slice()[4..];
-            let check_args_prefix = args_prefix == emitter_args_prefix;
-            emitter_script.code_hash() == script.code_hash()
-                && emitter_script.hash_type() == script.hash_type()
-                && check_args_prefix
+        let check_script = match emitter.args_len {
+            ArgsLen::UintValue(args_len) => {
+                if args_len == script.args().len() as u32 {
+                    if args_len == emitter_script.args().len() as u32 {
+                        script == emitter_script
+                    } else {
+                        // when emitter_script's args_len smaller than actual script args' len, meaning it's prefix match
+                        let script_args = script.args();
+                        // the first 4 bytes mark the byteslength of script_args according to molecule
+                        let args_prefix = &script_args.as_slice()[4..];
+                        let emitter_script_args = emitter_script.args();
+                        let emitter_script_args_prefix = &emitter_script_args.as_slice()[4..];
+                        let check_args_prefix =
+                            args_prefix.starts_with(&emitter_script_args_prefix);
+                        emitter_script.code_hash() == script.code_hash()
+                            && emitter_script.hash_type() == script.hash_type()
+                            && check_args_prefix
+                    }
+                } else {
+                    false
+                }
+            }
+            ArgsLen::StringAny => {
+                // when emitter_script's args_len smaller than actual script args' len, meaning it's prefix match
+                let script_args = script.args();
+                // the first 4 bytes mark the byteslength of script_args according to molecule
+                let args_prefix = &script_args.as_slice()[4..];
+                let emitter_script_args = emitter_script.args();
+                let emitter_script_args_prefix = &emitter_script_args.as_slice()[4..];
+                let check_args_prefix = args_prefix.starts_with(&emitter_script_args_prefix);
+                emitter_script.code_hash() == script.code_hash()
+                    && emitter_script.hash_type() == script.hash_type()
+                    && check_args_prefix
+            }
         };
         check_block_number && check_output_data && check_script
     }
@@ -593,15 +614,27 @@ declare_types! {
             }
             let script = script.unwrap();
             let script_type = cx.argument::<JsNumber>(1)?.value() as u8;
-            let args_len = cx.argument::<JsNumber>(2)?.value();
-            if args_len > u32::max_value() as f64 {
-                return cx.throw_error("args length must fit in u32 value!");
-            }
-            let args_len = if args_len <= 0.0 {
-                script.args().len()
+            let args_len = cx.argument::<JsValue>(2)?;
+            let args_len = if args_len.is_a::<JsString>() {
+                let args_len = args_len.downcast::<JsString>().or_throw(&mut cx)?.value();
+                if args_len != "any" {
+                    return cx.throw_error(format!("The field argsLen must be string \'any\' when it's String type, it's \'{}\' now.", args_len));
+                }
+                ArgsLen::StringAny
+            } else if args_len.is_a::<JsNumber>() {
+                let args_len = args_len.downcast::<JsNumber>().or_throw(&mut cx)?.value();
+                if args_len > u32::max_value() as f64 {
+                    return cx.throw_error("args length must fit in u32 value!");
+                }
+                let args_len = if args_len <= 0.0 {
+                    script.args().len() as u32
+                } else {
+                    // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
+                    args_len as u32
+                };
+                ArgsLen::UintValue(args_len)
             } else {
-                // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
-                args_len as usize
+                return cx.throw_error("The field argsLen must be either JsString or JsNumber");
             };
             let js_output_data = cx.argument::<JsValue>(3)?;
             let output_data = if js_output_data.is_a::<JsArrayBuffer>() {

@@ -52,7 +52,7 @@
     "install": "node scripts/install_binary.js || npm run build-release",
     "package": "npm run build-release && rm -rf native/target && node-pre-gyp package",
     "package-for-electron": "node scripts/build_for_electron.js && rm -rf native/target && node scripts/package_for_electron.js",
-    "test": "ava **/*.test.js"
+    "test": "ava **/*.test.js --timeout=2m"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
