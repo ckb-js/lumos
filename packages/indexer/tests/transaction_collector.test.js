@@ -1,8 +1,10 @@
 const test = require("ava");
 const { Indexer, TransactionCollector } = require("../lib");
 const {
+  lock,
+  type,
   transactionCollectorTestCases,
-} = require("./transaction_collector_cases.js");
+} = require("./test_cases.js");
 const fs = require("fs");
 // the node_uri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
 const node_uri = "http://127.0.0.1:8115";
@@ -37,18 +39,6 @@ test("query transactions with different queryOptions", async (t) => {
 });
 
 test("wrap plain Script into ScriptWrapper ", (t) => {
-  const lock = {
-    args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-    code_hash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type",
-  };
-  const type = {
-    code_hash:
-      "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-    hash_type: "type",
-    args: "0x",
-  };
   const argsLen = 20;
   const wrappedLock = { script: lock, argsLen: argsLen, ioType: "both" };
   const wrappedType = { script: type, argsLen: argsLen, ioType: "both" };
@@ -62,18 +52,6 @@ test("wrap plain Script into ScriptWrapper ", (t) => {
 });
 
 test("pass ScriptWrapper to TransactionCollector", (t) => {
-  const lock = {
-    args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-    code_hash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type",
-  };
-  const type = {
-    code_hash:
-      "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-    hash_type: "type",
-    args: "0x",
-  };
   const argsLen = 20;
   const wrappedLock = { script: lock, argsLen: argsLen, ioType: "input" };
   const wrappedType = { script: type, argsLen: argsLen, ioType: "input" };
@@ -118,12 +96,7 @@ test("throw error when pass wrong order to TransactionCollector", (t) => {
   const error = t.throws(
     () => {
       const queryOptions = {
-        lock: {
-          args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-        },
+        lock: lock,
         order: "some",
       };
       new TransactionCollector("indexer placeholder", queryOptions);
@@ -137,12 +110,7 @@ test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (
   let error = t.throws(
     () => {
       const queryOptions = {
-        lock: {
-          args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-        },
+        lock: lock,
         order: "asc",
         fromBlock: 1000,
       };
@@ -155,12 +123,7 @@ test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (
   error = t.throws(
     () => {
       const queryOptions = {
-        lock: {
-          args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-        },
+        lock: lock,
         order: "asc",
         toBlock: "0x",
       };

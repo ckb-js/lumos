@@ -298,34 +298,13 @@ impl NativeIndexer {
                     if args_len == emitter_script.args().len() as u32 {
                         script == emitter_script
                     } else {
-                        // when emitter_script's args_len smaller than actual script args' len, meaning it's prefix match
-                        let script_args = script.args();
-                        // the first 4 bytes mark the byteslength of script_args according to molecule
-                        let args_prefix = &script_args.as_slice()[4..];
-                        let emitter_script_args = emitter_script.args();
-                        let emitter_script_args_prefix = &emitter_script_args.as_slice()[4..];
-                        let check_args_prefix =
-                            args_prefix.starts_with(&emitter_script_args_prefix);
-                        emitter_script.code_hash() == script.code_hash()
-                            && emitter_script.hash_type() == script.hash_type()
-                            && check_args_prefix
+                        check_script_args_prefix_match(emitter_script, script)
                     }
                 } else {
                     false
                 }
             }
-            ArgsLen::StringAny => {
-                // when emitter_script's args_len smaller than actual script args' len, meaning it's prefix match
-                let script_args = script.args();
-                // the first 4 bytes mark the byteslength of script_args according to molecule
-                let args_prefix = &script_args.as_slice()[4..];
-                let emitter_script_args = emitter_script.args();
-                let emitter_script_args_prefix = &emitter_script_args.as_slice()[4..];
-                let check_args_prefix = args_prefix.starts_with(&emitter_script_args_prefix);
-                emitter_script.code_hash() == script.code_hash()
-                    && emitter_script.hash_type() == script.hash_type()
-                    && check_args_prefix
-            }
+            ArgsLen::StringAny => check_script_args_prefix_match(emitter_script, script),
         };
         check_block_number && check_output_data && check_script
     }
@@ -1269,6 +1248,18 @@ fn load_blocks_from_json_file(file_path: &str) -> Vec<BlockView> {
         block_view_vec.push(block_view);
     }
     block_view_vec
+}
+fn check_script_args_prefix_match(emitter_script: Script, script: Script) -> bool {
+    // when emitter_script's args_len smaller than actual script args' len, meaning it's prefix match
+    let script_args = script.args();
+    // the first 4 bytes mark the byteslength of script_args according to molecule
+    let args_prefix = &script_args.as_slice()[4..];
+    let emitter_script_args = emitter_script.args();
+    let emitter_script_args_prefix = &emitter_script_args.as_slice()[4..];
+    let check_args_prefix = args_prefix.starts_with(&emitter_script_args_prefix);
+    emitter_script.code_hash() == script.code_hash()
+        && emitter_script.hash_type() == script.hash_type()
+        && check_args_prefix
 }
 
 register_module!(mut cx, {

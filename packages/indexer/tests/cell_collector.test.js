@@ -1,6 +1,6 @@
 const test = require("ava");
 const { Indexer, CellCollector } = require("../lib");
-const { cellCollectorTestCases } = require("./cell_collector_cases.js");
+const { lock, type, cellCollectorTestCases } = require("./test_cases.js");
 const fs = require("fs");
 // the node_uri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
 const node_uri = "http://127.0.0.1:8114";
@@ -32,40 +32,16 @@ test("query cells with different queryOptions", async (t) => {
 });
 
 test("wrap plain Script into ScriptWrapper ", (t) => {
-  const lock = {
-    args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-    code_hash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type",
-  };
-  const type = {
-    code_hash:
-      "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-    hash_type: "type",
-    args: "0x",
-  };
   const argsLen = 20;
   const wrappedLock = { script: lock, argsLen: argsLen };
   const wrappedType = { script: type, argsLen: argsLen };
   const queryOptions = { lock: lock, type: type, argsLen: argsLen };
-  const cellCollector = new CellCollector("indexer placeholder", queryOptions);
+  const cellCollector = new CellCollector(indexer, queryOptions);
   t.deepEqual(cellCollector.lock, wrappedLock);
   t.deepEqual(cellCollector.type, wrappedType);
 });
 
 test("pass ScriptWrapper to CellCollector", (t) => {
-  const lock = {
-    args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-    code_hash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type",
-  };
-  const type = {
-    code_hash:
-      "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-    hash_type: "type",
-    args: "0x",
-  };
   const argsLen = 20;
   const wrappedLock = { script: lock, argsLen: argsLen };
   const wrappedType = { script: type, argsLen: argsLen };
@@ -74,7 +50,7 @@ test("pass ScriptWrapper to CellCollector", (t) => {
     type: wrappedType,
     argsLen: argsLen,
   };
-  const cellCollector = new CellCollector("indexer placeholder", queryOptions);
+  const cellCollector = new CellCollector(indexer, queryOptions);
   t.deepEqual(cellCollector.lock, wrappedLock);
   t.deepEqual(cellCollector.type, wrappedType);
 });
@@ -107,15 +83,10 @@ test("throw error when pass wrong order to CellCollector", (t) => {
   const error = t.throws(
     () => {
       const queryOptions = {
-        lock: {
-          args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-        },
+        lock: lock,
         order: "some",
       };
-      new CellCollector("indexer placeholder", queryOptions);
+      new CellCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );
@@ -126,16 +97,11 @@ test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
   let error = t.throws(
     () => {
       const queryOptions = {
-        lock: {
-          args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-        },
+        lock: lock,
         order: "asc",
         fromBlock: 1000,
       };
-      new CellCollector("indexer placeholder", queryOptions);
+      new CellCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );
@@ -144,12 +110,7 @@ test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
   error = t.throws(
     () => {
       const queryOptions = {
-        lock: {
-          args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-        },
+        lock: lock,
         order: "asc",
         toBlock: "0x",
       };

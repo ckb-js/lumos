@@ -19,8 +19,8 @@ Note for the moment, SQLite is not officially supported, single-node users or El
 ### Start Indexer
 
 ```javascript
-const { Indexer, CellCollector, TransactionCollector } = require('@ckb-lumos/indexer');
-const indexer = new Indexer('http://127.0.0.1:8114', '/tmp/indexed-data');
+const { Indexer, CellCollector, TransactionCollector } = require("@ckb-lumos/indexer");
+const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data");
 indexer.startForever();
 ```
 
@@ -33,9 +33,9 @@ To query existing cells, you can create a CellCollector:
 cellCollector = new CellCollector(indexer, {
   lock: {
     code_hash:
-      '0x0000000000000000000000000000000000000000000000000000000000000000',
-    hash_type: 'data',
-    args: '0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18',
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
+    hash_type: "data",
+    args: "0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18",
   },
 });
 
@@ -48,14 +48,14 @@ You can also specify both `lock` and `type` script:
 ```javascript
 cellCollector = new CellCollector(indexer, {
     lock: {
-        args: '0x92aad3bbab20f225cff28ec1d856c6ab63284c7a',
-        code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-        hash_type: 'type'
+        args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
+        code_hash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        hash_type: "type"
     },
     type: {
-        args: '0x',
-        code_hash: '0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e',
-        hash_type: 'type'
+        args: "0x",
+        code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+        hash_type: "type"
     }
 })
 
@@ -72,12 +72,12 @@ Range query for cells between given block_numbers is supported:
 cellCollector = new CellCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7df323',
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: '0x225510', // '0x' + 2250000n.toString(16)
-  toBlock: '0x225ce0', // '0x' + 2252000n.toString(16)
+  fromBlock: "0x225510", // "0x" + 2250000n.toString(16)
+  toBlock: "0x225ce0", // "0x" + 2252000n.toString(16)
 });
 
 for await (const cell of cellCollector.collect()) {
@@ -92,9 +92,9 @@ Page jump when query cells is supported:
 cellCollector = new CellCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7df323',
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
   skip: 100,
 });
@@ -112,13 +112,13 @@ Order by block number is supported by setting `order` field explicitly:
 cellCollector = new CellCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7df323',
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: '0x253b40', // '0x' + 2440000n.toString(16)
-  toBlock: '0x253f28', // '0x' + 2441000n.toString(16)
-  order: 'desc', // default option is 'asc'
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
+  order: "desc", // default option is "asc"
   skip: 300,
 });
 
@@ -133,14 +133,14 @@ Prefix search is supported on `args`. The default `argsLen` is -1, which means y
 cellCollector = new CellCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7df3', // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df3", // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
   },
   argsLen: 20, // default option is -1
-  fromBlock: '0x253b40', // '0x' + 2440000n.toString(16)
-  toBlock: '0x253f28', // '0x' + 2441000n.toString(16)
-  order: 'desc', // default option is 'asc'
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
+  order: "desc", // default option is "asc"
   skip: 300,
 });
 
@@ -155,14 +155,14 @@ You can also set it as `any` when the argsLen of the field args might have multi
 cellCollector = new CellCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7d', // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
   },
-  argsLen: 'any',
-  fromBlock: '0x253b40', // '0x' + 2440000n.toString(16)
-  toBlock: '0x253f28', // '0x' + 2441000n.toString(16)
-  order: 'desc', // default option is 'asc'
+  argsLen: "any",
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
+  order: "desc", // default option is "asc"
   skip: 300,
 });
 
@@ -179,17 +179,17 @@ cellCollector = new CellCollector(indexer, {
   lock: {
     script: {
       code_hash: 
-        '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-      hash_type: 'type',
-      args: '0xe60f7f88c94ef365d540afc1574c46bb017765', // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
     },
     argsLen: 20, 
   },
   type: {
     script: {
-      code_hash: '0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e',
-      hash_type: 'type',
-      args: '0x',
+      code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      hash_type: "type",
+      args: "0x",
     },
     // when the `argsLen` is not setted here, it will use the outside `argsLen` config, which in this case is -1 by default
   }
@@ -208,9 +208,9 @@ Similar solution can be used to query for transactions related to a lock script:
 txCollector = new TransactionCollector(indexer, {
   lock: {
     code_hash:
-      '0x0000000000000000000000000000000000000000000000000000000000000000',
-    hash_type: 'data',
-    args: '0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18',
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
+    hash_type: "data",
+    args: "0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18",
   },
 });
 
@@ -225,12 +225,12 @@ Range query for transactions between given block_numbers is supported:
 txCollector = new TransactionCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7df323',
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: '0x0', // '0x' + 0n.toString(16) 
-  toBlock: '0x7d0' , // '0x' + 2000n.toString(16)
+  fromBlock: "0x0", // "0x" + 0n.toString(16) 
+  toBlock: "0x7d0" , // "0x" + 2000n.toString(16)
 });
 
 for await (const tx of txCollector.collect()) {
@@ -246,9 +246,9 @@ Page jump when query transactions is supported:
 txCollector = new TransactionCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7df323',
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
   skip: 100,
 });
@@ -266,13 +266,13 @@ Order by block number is supported:
 txCollector = new TransactionCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7df323',
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: '0x4e20', // '0x' + 20000n.toString(16)
-  toBlock: '0x5208', // '0x' + 21000n.toString(16)
-  order: 'desc', // default option is 'asc'
+  fromBlock: "0x4e20", // "0x" + 20000n.toString(16)
+  toBlock: "0x5208", // "0x" + 21000n.toString(16)
+  order: "desc", // default option is "asc"
   skip: 10,
 });
 
@@ -288,14 +288,14 @@ Prefix search is supported on `args`. The default `argsLen` is -1, which means y
 txCollector = new TransactionCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7df3', // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df3", // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
   },
   argsLen: 20, // default option is -1
-  fromBlock: '0x253b40', // '0x' + 2440000n.toString(16)
-  toBlock: '0x253f28', // '0x' + 2441000n.toString(16)
-  order: 'desc', // default option is 'asc'
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
+  order: "desc", // default option is "asc"
   skip: 300,
 });
 
@@ -310,14 +310,14 @@ You can also set it as `any` when the argsLen of the field args might have multi
 txCollector = new TransactionCollector(indexer, {
   lock: {
     code_hash: 
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7d', // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
   },
-  argsLen: 'any',
-  fromBlock: '0x253b40', // '0x' + 2440000n.toString(16)
-  toBlock: '0x253f28', // '0x' + 2441000n.toString(16)
-  order: 'desc', // default option is 'asc'
+  argsLen: "any",
+  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
+  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
+  order: "desc", // default option is "asc"
   skip: 300,
 });
 
@@ -333,20 +333,20 @@ txCollector = new TransactionCollector(indexer, {
   lock: {
     script: {
       code_hash: 
-        '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-      hash_type: 'type',
-      args: '0xe60f7f88c94ef365d540afc1574c46bb017765', // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hash_type: "type",
+      args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
     },
-    ioType: 'both',
+    ioType: "both",
     argsLen: 20, // when the `argsLen` is not setted here, it will use the outside `argsLen` config
   },
   type: {
     script: {
-      code_hash: '0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e',
-      hash_type: 'type',
-      args: '0x',
+      code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      hash_type: "type",
+      args: "0x",
     },
-    ioType: 'input',
+    ioType: "input",
   }
 });
 
@@ -367,14 +367,14 @@ The principle of the design is unreliable notification queue, so developers are 
 eventEmitter = indexer.subscribe({
   lock: {
     code_hash:
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7df323',
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
 });
 
-eventEmitter.on('changed',  () => {
-  console.log('States changed with the script, please pull the data sources from the indexer to find out what happend');
+eventEmitter.on("changed",  () => {
+  console.log("States changed with the script, please pull the data sources from the indexer to find out what happend");
 })
 
 ```
@@ -384,17 +384,17 @@ Other query options like `fromBlock|argsLen|data` are also supported.
 eventEmitter = indexer.subscribe({
   lock: {
     code_hash:
-      '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-    hash_type: 'type',
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
     // the args bytes length is 18, truncate the last 2 bytes.
-    args: '0xa528f2b9a51118b193178db4cf2f3db92e7d',
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d",
   },
   // default value is -1
   argsLen: 20,
-  // default value is 'any'
-  data: '0x',
+  // default value is "any"
+  data: "0x",
   // default value is 0
-  fromBlock: 0x3e8, // '0x' + 1000n.toString(16)
+  fromBlock: 0x3e8, // "0x" + 1000n.toString(16)
 });
 ```
 

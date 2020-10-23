@@ -142,6 +142,11 @@ class Indexer {
     toBlock = null,
     skip = null,
   } = {}) {
+    if (lock && type) {
+      throw new Error(
+        "The notification machanism only supports you subscribing for one script once so far!"
+      );
+    }
     let script = null;
     let scriptType = null;
     if (fromBlock) {
