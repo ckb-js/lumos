@@ -4,7 +4,7 @@ const { lock, type, cellCollectorTestCases } = require("./test_cases.js");
 const fs = require("fs");
 // the node_uri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
 const node_uri = "http://127.0.0.1:8114";
-const tmpIndexedDataPath = __dirname + "/tmp_indexed_data";
+const tmpIndexedDataPath = "/tmp/indexed_data";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(node_uri, tmpIndexedDataPath);
 
@@ -13,11 +13,6 @@ test.before((t) => {
   fs.rmdirSync(tmpIndexedDataPath, { recursive: true });
   // setup rocksdb test data
   indexer.init_db_from_json_file(blocksDataFilePath);
-});
-
-test.after((t) => {
-  // clear rocksdb test data
-  fs.rmdirSync(tmpIndexedDataPath, { recursive: true });
 });
 
 test("query cells with different queryOptions", async (t) => {

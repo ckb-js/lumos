@@ -5,7 +5,7 @@ const { Indexer } = require("../lib");
 const { lock, type, indexerSubscribeTestCases } = require("./test_cases.js");
 // the node_uri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
 const node_uri = "http://127.0.0.1:8116";
-const tmpIndexedDataPath = __dirname + "/tmp_indexed_data3";
+const tmpIndexedDataPath = "/tmp/indexed_data3";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(node_uri, tmpIndexedDataPath);
 
@@ -26,8 +26,6 @@ test("test indexer subscribe by differen queryOptions", async (t) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     t.is(spy.callCount, queryCase.expectedResult, queryCase.desc);
     spy.resetHistory();
-    // clear rocksdb test data
-    fs.rmdirSync(tmpIndexedDataPath, { recursive: true });
   }
 });
 
