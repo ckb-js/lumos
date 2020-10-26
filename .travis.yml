@@ -12,11 +12,14 @@ dist: bionic
 language: node_js
 node_js:
   - lts/*
-  - node
+  - 14
 
 cache:
   - cargo
   - npm
+
+services: 
+ - mysql
 
 before_install:
   # Install Rust and Cargo
@@ -33,6 +36,9 @@ before_install:
   - npm -g install neon-cli
   - npm -g install yarn
   - yarn -v
+  # Create database
+  - mysql -e 'CREATE DATABASE sql_indexer_test;'
+  - mysql -e 'CREATE DATABASE sql_indexer_test2;'
 
 install:
   - travis_wait 30 yarn

@@ -38,7 +38,7 @@ function hexToNodeBuffer(b) {
 
 function dbItemToScript(code_hash, hash_type, args) {
   if (code_hash === null) {
-    return null;
+    return undefined;
   } else {
     return {
       code_hash: nodeBufferToHex(code_hash),
@@ -518,8 +518,12 @@ class Indexer {
   checkArgs(argsLen, emitterArgs, args) {
     if (argsLen === -1) {
       return emitterArgs === args;
+    } else if (typeof argsLen === "number" && args.length === argsLen * 2 + 2) {
+      return args.substring(0, emitterArgs.length) === emitterArgs;
+    } else if (argsLen === "any") {
+      return args.substring(0, emitterArgs.length) === emitterArgs;
     } else {
-      return emitterArgs.substring(0, argsLen * 2 + 2) === args;
+      return false;
     }
   }
 
@@ -536,6 +540,11 @@ class Indexer {
     toBlock = null,
     skip = null,
   } = {}) {
+    if (lock && type) {
+      throw new Error(
+        "The notification machanism only supports you subscribing for one script once so far!"
+      );
+    }
     if (toBlock !== null || skip !== null) {
       this.logger(
         "warn",
@@ -626,16 +635,17 @@ class CellCollector {
   _assembleQuery(order = true) {
     let query = this.knex("cells").where("consumed", false);
     if (order) {
-      query = query.orderBy(
-        ["cells.block_number", "tx_index", "index"],
-        this.order
-      );
+      query = query.orderBy([
+        { column: "cells.block_number", order: this.order },
+        { column: "cells.tx_index", order: this.order },
+        { column: "cells.index", order: this.order },
+      ]);
     }
     if (this.fromBlock) {
-      query = query.andWhere("cells.block_number", ">=", fromBlock);
+      query = query.andWhere("cells.block_number", ">=", this.fromBlock);
     }
     if (this.toBlock) {
-      query = query.andWhere("cells.block_number", "<=", toBlock);
+      query = query.andWhere("cells.block_number", "<=", this.toBlock);
     }
     if (this.lock) {
       const binaryArgs = hexToNodeBuffer(this.lock.script.args);
@@ -656,24 +666,30 @@ class CellCollector {
         return this.whereIn("lock_script_id", lockQuery);
       });
     }
-    if (this.type && this.type !== "empty") {
-      const binaryArgs = hexToNodeBuffer(this.type.script.args);
-      let typeQuery = this.knex("scripts")
-        .select("id")
-        .where({
-          code_hash: hexToNodeBuffer(this.type.script.code_hash),
-          hash_type: this.type.script.hash_type === "type" ? 1 : 0,
-        })
-        .whereRaw("substring(args, 1, ?) = ?", [
-          binaryArgs.byteLength,
-          binaryArgs,
-        ]);
-      if (this.type.argsLen !== "any" && this.type.argsLen > 0) {
-        typeQuery = typeQuery.whereRaw("length(args) = ?", [this.type.argsLen]);
+    if (this.type) {
+      if (this.type !== "empty") {
+        const binaryArgs = hexToNodeBuffer(this.type.script.args);
+        let typeQuery = this.knex("scripts")
+          .select("id")
+          .where({
+            code_hash: hexToNodeBuffer(this.type.script.code_hash),
+            hash_type: this.type.script.hash_type === "type" ? 1 : 0,
+          })
+          .whereRaw("substring(args, 1, ?) = ?", [
+            binaryArgs.byteLength,
+            binaryArgs,
+          ]);
+        if (this.type.argsLen !== "any" && this.type.argsLen > 0) {
+          typeQuery = typeQuery.whereRaw("length(args) = ?", [
+            this.type.argsLen,
+          ]);
+        }
+        query = query.andWhere(function () {
+          return this.whereIn("type_script_id", typeQuery);
+        });
+      } else {
+        query = query.whereNull("type_script_id");
       }
-      query = query.andWhere(function () {
-        return this.whereIn("type_script_id", typeQuery);
-      });
     }
     if (this.data !== "any") {
       query = query.andWhere("data", hexToNodeBuffer(this.data));
