@@ -41,10 +41,7 @@ test("wrap plain Script into ScriptWrapper ", (t) => {
   const wrappedLock = { script: lock, argsLen: argsLen, ioType: "both" };
   const wrappedType = { script: type, argsLen: argsLen, ioType: "both" };
   const queryOptions = { lock: lock, type: type, argsLen: argsLen };
-  const transactionCollector = new TransactionCollector(
-    "indexer placeholder",
-    queryOptions
-  );
+  const transactionCollector = new TransactionCollector(indexer, queryOptions);
   t.deepEqual(transactionCollector.lock, wrappedLock);
   t.deepEqual(transactionCollector.type, wrappedType);
 });
@@ -58,10 +55,7 @@ test("pass ScriptWrapper to TransactionCollector", (t) => {
     type: wrappedType,
     argsLen: argsLen,
   };
-  const transactionCollector = new TransactionCollector(
-    "indexer placeholder",
-    queryOptions
-  );
+  const transactionCollector = new TransactionCollector(indexer, queryOptions);
   t.deepEqual(transactionCollector.lock, wrappedLock);
   t.deepEqual(transactionCollector.type, wrappedType);
 });
@@ -70,7 +64,7 @@ test("throw error when pass null lock and null type to TransactionCollector", (t
   const error = t.throws(
     () => {
       const queryOptions = {};
-      new TransactionCollector("indexer placeholder", queryOptions);
+      new TransactionCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );
@@ -83,7 +77,7 @@ test("throw error when pass null lock and empty type to TransactionCollector", (
       const queryOptions = {
         type: "empty",
       };
-      new TransactionCollector("indexer placeholder", queryOptions);
+      new TransactionCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );
@@ -97,7 +91,7 @@ test("throw error when pass wrong order to TransactionCollector", (t) => {
         lock: lock,
         order: "some",
       };
-      new TransactionCollector("indexer placeholder", queryOptions);
+      new TransactionCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );
@@ -112,7 +106,7 @@ test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (
         order: "asc",
         fromBlock: 1000,
       };
-      new TransactionCollector("indexer placeholder", queryOptions);
+      new TransactionCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );
@@ -125,7 +119,7 @@ test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (
         order: "asc",
         toBlock: "0x",
       };
-      new TransactionCollector("indexer placeholder", queryOptions);
+      new TransactionCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );

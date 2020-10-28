@@ -56,7 +56,7 @@ test("throw error when pass null lock and null type to CellCollector", (t) => {
   const error = t.throws(
     () => {
       const queryOptions = {};
-      new CellCollector("indexer placeholder", queryOptions);
+      new CellCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );
@@ -69,7 +69,7 @@ test("throw error when pass null lock and empty type to CellCollector", (t) => {
       const queryOptions = {
         type: "empty",
       };
-      new CellCollector("indexer placeholder", queryOptions);
+      new CellCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );
@@ -111,7 +111,7 @@ test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
         order: "asc",
         toBlock: "0x",
       };
-      new CellCollector("indexer placeholder", queryOptions);
+      new CellCollector(indexer, queryOptions);
     },
     { instanceOf: Error }
   );
