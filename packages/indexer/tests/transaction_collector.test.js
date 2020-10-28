@@ -1,5 +1,6 @@
 const test = require("ava");
-const { Indexer, TransactionCollector } = require("../lib");
+const { TransactionCollector } = require("../lib");
+const { Indexer } = require("./helper.js");
 const {
   lock,
   type,
@@ -12,11 +13,13 @@ const tmpIndexedDataPath = "/tmp/indexed_data2";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(node_uri, tmpIndexedDataPath);
 
-test.before((t) => {
-  // clear rocksdb test data if exists
-  fs.rmdirSync(tmpIndexedDataPath, { recursive: true });
+test.before(async (t) => {
   // setup rocksdb test data
-  indexer.init_db_from_json_file(blocksDataFilePath);
+  await indexer.initDbFromJsonFile(blocksDataFilePath);
+});
+
+test.after(async (t) => {
+  await indexer.clearDb(blocksDataFilePath);
 });
 
 test("query transactions with different queryOptions", async (t) => {

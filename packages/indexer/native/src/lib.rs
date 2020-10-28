@@ -145,6 +145,15 @@ impl NativeIndexer {
         Ok(())
     }
 
+    fn clear_db(&self, file_path: &str) -> Result<(), Error> {
+        let blocks: Vec<BlockView> = load_blocks_from_json_file(file_path);
+        for _block_item in blocks.iter() {
+            self.publish_rollback_events()?;
+            self.indexer.rollback()?;
+        }
+        Ok(())
+    }
+
     fn publish_append_block_events(&self, block: &CoreBlockView) -> Result<(), IndexerError> {
         let transactions = block.transactions();
         for (tx_index, tx) in transactions.iter().enumerate() {
@@ -386,6 +395,20 @@ declare_types! {
             match indexer.init_db_from_json_file(&file_path) {
                 Ok(()) => Ok(cx.undefined().upcast()),
                 Err(e) => cx.throw_error(format!("init_db_from_json_file failed: {:?}", e)),
+            }
+        }
+
+        method clear_db(mut cx) {
+            let this = cx.this();
+            let file_path = cx.argument::<JsString>(0)?.value();
+            let indexer = {
+                let guard = cx.lock();
+                let indexer = this.borrow(&guard);
+                indexer.clone()
+            };
+            match indexer.clear_db(&file_path) {
+                Ok(()) => Ok(cx.undefined().upcast()),
+                Err(e) => cx.throw_error(format!("clear_db failed: {:?}", e)),
             }
         }
 
