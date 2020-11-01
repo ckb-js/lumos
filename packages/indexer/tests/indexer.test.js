@@ -3,11 +3,11 @@ const sinon = require("sinon");
 const fs = require("fs");
 const { Indexer } = require("./helper.js");
 const { lock, type, indexerSubscribeTestCases } = require("./test_cases.js");
-// the node_uri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
-const node_uri = "http://127.0.0.1:8116";
+// the nodeUri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
+const nodeUri = "http://127.0.0.1:8116";
 const tmpIndexedDataPath = "/tmp/indexed_data3";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
-const indexer = new Indexer(node_uri, tmpIndexedDataPath);
+const indexer = new Indexer(nodeUri, tmpIndexedDataPath);
 
 test("test indexer subscribe by differen queryOptions", async (t) => {
   t.timeout(
@@ -20,7 +20,6 @@ test("test indexer subscribe by differen queryOptions", async (t) => {
     eventEmitter.on("changed", spy);
     // setup rocksdb test data
     await indexer.initDbFromJsonFile(blocksDataFilePath);
-    // TODO
     await new Promise((resulve) => setTimeout(resulve, 1000));
     t.is(spy.callCount, queryCase.expectedResult, queryCase.desc);
     await indexer.clearDb(blocksDataFilePath);

@@ -7,11 +7,11 @@ const {
   transactionCollectorTestCases,
 } = require("./test_cases.js");
 const fs = require("fs");
-// the node_uri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
-const node_uri = "http://127.0.0.1:8115";
+// the nodeUri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
+const nodeUri = "http://127.0.0.1:8115";
 const tmpIndexedDataPath = "/tmp/indexed_data2";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
-const indexer = new Indexer(node_uri, tmpIndexedDataPath);
+const indexer = new Indexer(nodeUri, tmpIndexedDataPath);
 
 test.before(async (t) => {
   // setup rocksdb test data
