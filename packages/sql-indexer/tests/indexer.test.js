@@ -3,11 +3,11 @@ const sinon = require("sinon");
 const fs = require("fs");
 const { lock, type, indexerSubscribeTestCases } = require("./test_cases.js");
 const { knex, migrateDbUp, migrateDbDown, Indexer } = require("./helper.js");
-// the node_uri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
-const node_uri = "http://127.0.0.1:8114";
+// the nodeUri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
+const nodeUri = "http://127.0.0.1:8114";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
 
-const indexer = new Indexer(node_uri, knex);
+const indexer = new Indexer(nodeUri, knex);
 
 test.before(async (t) => {
   await migrateDbUp(knex);
