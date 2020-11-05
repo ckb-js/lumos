@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/indexer",
-  "version": "0.13.1",
+  "version": "0.13.2-rc1",
   "description": "CKB Indexer for Lumos framework, might be suitable for independent usage as well",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -35,7 +35,7 @@
     "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.13.1",
+    "@ckb-lumos/base": "^0.13.2-rc1",
     "ckb-js-toolkit": "^0.9.2",
     "immutable": "^4.0.0-rc.12",
     "neon-cli": "^0.4.0",
@@ -52,7 +52,7 @@
     "install": "node scripts/install_binary.js || npm run build-release",
     "package": "npm run build-release && rm -rf native/target && node-pre-gyp package",
     "package-for-electron": "node scripts/build_for_electron.js && rm -rf native/target && node scripts/package_for_electron.js",
-    "test": "ava"
+    "test": "ava **/*.test.js --timeout=2m"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"

@@ -138,6 +138,11 @@ class Indexer {
     toBlock = null,
     skip = null,
   } = {}) {
+    if (lock && type) {
+      throw new Error(
+        "The notification machanism only supports you subscribing for one script once so far!"
+      );
+    }
     let script = null;
     let scriptType = null;
     if (fromBlock) {
@@ -182,7 +187,7 @@ class BufferValue {
 }
 
 class CellCollector {
-  // if data equals "any", means every data content is ok
+  // if data equals 'any', means every data content is ok
   constructor(
     indexer,
     {
@@ -434,7 +439,7 @@ class TransactionCollector {
             this.type.script,
             scriptType,
             this.type.argsLen,
-            this.lock.ioType,
+            this.type.ioType,
             this.fromBlock,
             this.toBlock,
             this.order,

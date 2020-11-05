@@ -390,7 +390,7 @@ eventEmitter = indexer.subscribe({
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7d",
   },
   // default value is -1
-  argsLen: 18,
+  argsLen: 20,
   // default value is "any"
   data: "0x",
   // default value is 0

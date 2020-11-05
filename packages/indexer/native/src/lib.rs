@@ -18,6 +18,8 @@ use jsonrpc_derive::rpc;
 use neon::prelude::*;
 use std::convert::TryInto;
 use std::fmt;
+use std::fs::File;
+use std::path::PathBuf;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, RwLock,
@@ -70,7 +72,7 @@ pub struct Emitter {
     cb: Option<EventHandler>,
     lock: Option<Script>,
     type_: Option<Script>,
-    args_len: usize,
+    args_len: ArgsLen,
     output_data: Option<Bytes>,
     from_block: u64,
 }
@@ -129,6 +131,25 @@ impl NativeIndexer {
                     self.publish_append_block_events(&block)?;
                 }
             }
+        }
+        Ok(())
+    }
+
+    fn init_db_from_json_file(&self, file_path: &str) -> Result<(), Error> {
+        let blocks: Vec<BlockView> = load_blocks_from_json_file(file_path);
+        for block_item in blocks.iter() {
+            let block: CoreBlockView = block_item.to_owned().into();
+            self.indexer.append(&block)?;
+            self.publish_append_block_events(&block)?;
+        }
+        Ok(())
+    }
+
+    fn clear_db(&self, file_path: &str) -> Result<(), Error> {
+        let blocks: Vec<BlockView> = load_blocks_from_json_file(file_path);
+        for _block_item in blocks.iter() {
+            self.publish_rollback_events()?;
+            self.indexer.rollback()?;
         }
         Ok(())
     }
@@ -280,19 +301,19 @@ impl NativeIndexer {
         } else {
             true
         };
-        let check_script = if emitter.args_len == script.args().len() {
-            script == emitter_script
-        } else {
-            // when emitter's args_len smaller than actual script args' len, meaning it's prefix match
-            let script_args = script.args();
-            // the first 4 bytes mark the byteslength of script_args according to molecule
-            let args_prefix = &script_args.as_slice()[4..emitter.args_len + 4];
-            let emitter_args = emitter_script.args();
-            let emitter_args_prefix = &emitter_args.as_slice()[4..];
-            let check_args_prefix = args_prefix == emitter_args_prefix;
-            emitter_script.code_hash() == script.code_hash()
-                && emitter_script.hash_type() == script.hash_type()
-                && check_args_prefix
+        let check_script = match emitter.args_len {
+            ArgsLen::UintValue(args_len) => {
+                if args_len == script.args().len() as u32 {
+                    if args_len == emitter_script.args().len() as u32 {
+                        script == emitter_script
+                    } else {
+                        check_script_args_prefix_match(emitter_script, script)
+                    }
+                } else {
+                    false
+                }
+            }
+            ArgsLen::StringAny => check_script_args_prefix_match(emitter_script, script),
         };
         check_block_number && check_output_data && check_script
     }
@@ -363,6 +384,34 @@ declare_types! {
             Ok(cx.undefined().upcast())
         }
 
+        method init_db_from_json_file(mut cx) {
+            let this = cx.this();
+            let file_path = cx.argument::<JsString>(0)?.value();
+            let indexer = {
+                let guard = cx.lock();
+                let indexer = this.borrow(&guard);
+                indexer.clone()
+            };
+            match indexer.init_db_from_json_file(&file_path) {
+                Ok(()) => Ok(cx.undefined().upcast()),
+                Err(e) => cx.throw_error(format!("init_db_from_json_file failed: {:?}", e)),
+            }
+        }
+
+        method clear_db(mut cx) {
+            let this = cx.this();
+            let file_path = cx.argument::<JsString>(0)?.value();
+            let indexer = {
+                let guard = cx.lock();
+                let indexer = this.borrow(&guard);
+                indexer.clone()
+            };
+            match indexer.clear_db(&file_path) {
+                Ok(()) => Ok(cx.undefined().upcast()),
+                Err(e) => cx.throw_error(format!("clear_db failed: {:?}", e)),
+            }
+        }
+
         method stop(mut cx) {
             let this = cx.this();
             {
@@ -411,7 +460,6 @@ declare_types! {
 
             Ok(JsLiveCellIterator::new(&mut cx, vec![this, js_script, script_type, args_len, from_block, to_block, order, skip])?.upcast())
         }
-
 
         method getTransactionsByScriptIterator(mut cx) {
             let this = cx.this().upcast();
@@ -568,15 +616,27 @@ declare_types! {
             }
             let script = script.unwrap();
             let script_type = cx.argument::<JsNumber>(1)?.value() as u8;
-            let args_len = cx.argument::<JsNumber>(2)?.value();
-            if args_len > u32::max_value() as f64 {
-                return cx.throw_error("args length must fit in u32 value!");
-            }
-            let args_len = if args_len <= 0.0 {
-                script.args().len()
+            let args_len = cx.argument::<JsValue>(2)?;
+            let args_len = if args_len.is_a::<JsString>() {
+                let args_len = args_len.downcast::<JsString>().or_throw(&mut cx)?.value();
+                if args_len != "any" {
+                    return cx.throw_error(format!("The field argsLen must be string \'any\' when it's String type, it's \'{}\' now.", args_len));
+                }
+                ArgsLen::StringAny
+            } else if args_len.is_a::<JsNumber>() {
+                let args_len = args_len.downcast::<JsNumber>().or_throw(&mut cx)?.value();
+                if args_len > u32::max_value() as f64 {
+                    return cx.throw_error("args length must fit in u32 value!");
+                }
+                let args_len = if args_len <= 0.0 {
+                    script.args().len() as u32
+                } else {
+                    // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
+                    args_len as u32
+                };
+                ArgsLen::UintValue(args_len)
             } else {
-                // when prefix search on args, the args parameter is be shorter than actual args, so need set the args_len manully.
-                args_len as usize
+                return cx.throw_error("The field argsLen must be either JsString or JsNumber");
             };
             let js_output_data = cx.argument::<JsValue>(3)?;
             let output_data = if js_output_data.is_a::<JsArrayBuffer>() {
@@ -1197,6 +1257,32 @@ fn assemble_packed_script(code_hash: &[u8], hash_type: f64, args: &[u8]) -> Resu
         .args(args)
         .build();
     Ok(script)
+}
+fn load_blocks_from_json_file(file_path: &str) -> Vec<BlockView> {
+    let path = PathBuf::from(file_path);
+    let file = File::open(path).expect("opening test blocks data json file");
+    let blocks_data: serde_json::Value =
+        serde_json::from_reader(file).expect("reading test blocks data json file");
+    let blocks_data_array = blocks_data.as_array().expect("loading in array format");
+    let mut block_view_vec = vec![];
+    for i in 0..blocks_data_array.len() {
+        let block_value = blocks_data_array[i].clone();
+        let block_view: BlockView = serde_json::from_value(block_value).unwrap();
+        block_view_vec.push(block_view);
+    }
+    block_view_vec
+}
+fn check_script_args_prefix_match(emitter_script: Script, script: Script) -> bool {
+    // when emitter_script's args_len smaller than actual script args' len, meaning it's prefix match
+    let script_args = script.args();
+    // the first 4 bytes mark the byteslength of script_args according to molecule
+    let args_prefix = &script_args.as_slice()[4..];
+    let emitter_script_args = emitter_script.args();
+    let emitter_script_args_prefix = &emitter_script_args.as_slice()[4..];
+    let check_args_prefix = args_prefix.starts_with(&emitter_script_args_prefix);
+    emitter_script.code_hash() == script.code_hash()
+        && emitter_script.hash_type() == script.hash_type()
+        && check_args_prefix
 }
 
 register_module!(mut cx, {
