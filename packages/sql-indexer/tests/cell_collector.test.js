@@ -2,7 +2,7 @@ const test = require("ava");
 const fs = require("fs");
 const { CellCollector } = require("../lib");
 const { lock, type, cellCollectorTestCases } = require("./test_cases.js");
-const { knex2, migrateDbUp, migrateDbDown, Indexer } = require("./helper.js");
+const { knex2, Indexer } = require("./helper.js");
 // the nodeUri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
 const nodeUri = "http://127.0.0.1:8114";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
@@ -10,12 +10,12 @@ const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(nodeUri, knex2);
 
 test.before(async (t) => {
-  await migrateDbUp(knex2);
+  await knex2.migrate.up();
   await indexer.initDbFromJsonFile(blocksDataFilePath);
 });
 
 test.after(async (t) => {
-  await migrateDbDown(knex2);
+  await knex2.migrate.down();
 });
 
 test("query cells with different queryOptions", async (t) => {

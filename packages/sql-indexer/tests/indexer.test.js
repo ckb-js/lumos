@@ -2,7 +2,7 @@ const test = require("ava");
 const sinon = require("sinon");
 const fs = require("fs");
 const { lock, type, indexerSubscribeTestCases } = require("./test_cases.js");
-const { knex, migrateDbUp, migrateDbDown, Indexer } = require("./helper.js");
+const { knex, Indexer } = require("./helper.js");
 // the nodeUri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
 const nodeUri = "http://127.0.0.1:8114";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
@@ -10,11 +10,11 @@ const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(nodeUri, knex);
 
 test.before(async (t) => {
-  await migrateDbUp(knex);
+  await knex.migrate.up();
 });
 
 test.after(async (t) => {
-  await migrateDbDown(knex);
+  await knex.migrate.down();
 });
 
 test("test indexer subscribe by differen queryOptions", async (t) => {
