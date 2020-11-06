@@ -18,6 +18,9 @@ cache:
   - cargo
   - npm
 
+services: 
+ - mysql
+
 before_install:
   # Install Rust and Cargo
   - curl https://sh.rustup.rs -sSf > /tmp/rustup.sh
@@ -33,6 +36,8 @@ before_install:
   - npm -g install neon-cli
   - npm -g install yarn
   - yarn -v
+  # Create database
+  - if [ "TRAVIS_OS_NAME" == "linux" ]; then mysql -e 'CREATE DATABASE sql_indexer_test;' && mysql -e 'CREATE DATABASE sql_indexer_test2;';fi
 
 install:
   - travis_wait 30 yarn
@@ -41,7 +46,14 @@ script:
   - yarn workspace @ckb-lumos/helpers build
   - yarn workspace @ckb-lumos/common-scripts build
   - yarn workspace @ckb-lumos/hd build
-  - yarn workspaces run test
+  - yarn workspace @ckb-lumos/base test
+  - yarn workspace @ckb-lumos/common-scripts test
+  - yarn workspace @ckb-lumos/config-manager test
+  - yarn workspace @ckb-lumos/hd test
+  - yarn workspace @ckb-lumos/helpers test
+  - yarn workspace @ckb-lumos/indexer test
+  - yarn workspace @ckb-lumos/transaction-manager test
+  - if [ "TRAVIS_OS_NAME" == "linux" ]; then yarn workspaces @ckb-lumos/sql-indexer test; fi
   - yarn workspaces run fmt
   - yarn workspaces run lint
   - if [ "$TRAVIS_OS_NAME" != "windows" ]; then yarn run docs; fi
