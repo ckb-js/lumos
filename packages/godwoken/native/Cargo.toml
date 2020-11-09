@@ -1,0 +1,19 @@
+[package]
+name = "lumos-godwoken"
+version = "0.1.0"
+authors = ["Xuejie Xiao <xxuejie@gmail.com>"]
+license = "MIT"
+build = "build.rs"
+edition = "2018"
+exclude = ["artifacts.json", "index.node"]
+
+[lib]
+name = "lumos_godwoken"
+crate-type = ["cdylib"]
+
+[build-dependencies]
+neon-build = "0.5.0"
+
+[dependencies]
+gw-chain = { git = "https://github.com/nervosnetwork/godwoken", branch = "master" }
+neon = "0.5.0"
