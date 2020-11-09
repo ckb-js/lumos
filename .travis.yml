@@ -12,14 +12,14 @@ dist: bionic
 language: node_js
 node_js:
   - lts/*
-  - 14
+  - node
 
 cache:
   - cargo
   - npm
 
 services: 
- - mysql
+  - mysql
 
 before_install:
   # Install Rust and Cargo
