@@ -2,24 +2,6 @@ const addon = require("../native");
 
 const fs = require("fs");
 
-class ChainBuilder {
-  construct(configPath) {
-    this.config = parseConfig(configPath);
-  }
-  build() {
-    return new Chain(
-      this.config,
-      this.rollupTypeScriptHash,
-      this.state,
-      this.lastSynced,
-      this.tip,
-      this.generator,
-      this.txPool,
-      this.consensus
-    );
-  }
-}
-
 class Chain {
   construct(configPath) {
     this.config = parseConfig(configPath);
