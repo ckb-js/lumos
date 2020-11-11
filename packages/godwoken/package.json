@@ -46,7 +46,8 @@
     "install": "neon build",
     "build-release": "neon build --release",
     "fmt": "prettier --write \"{lib,scripts,tests}/**/*.js\" index.d.ts && cd native && cargo fmt --all --",
-    "lint": "eslint -c ../../.eslintrc.js \"{lib,scripts}/**/*.js\""
+    "lint": "eslint -c ../../.eslintrc.js \"{lib,scripts}/**/*.js\"",
+    "test": "ava **/*.test.js"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"

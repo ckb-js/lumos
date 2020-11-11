@@ -64,9 +64,9 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "blake2b-ref"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c56ea40392c4cf5b8ea0e4f7aa080c3676f60df8dd12350c94750d33aa5fa74"
+checksum = "95916998c798756098a4eb1b3f2cd510659705a9817bf203d61abd30fbec3e7b"
 
 [[package]]
 name = "blake2b-rs"
@@ -558,7 +558,7 @@ dependencies = [
 [[package]]
 name = "gw-chain"
 version = "0.1.0"
-source = "git+https://github.com/nervosnetwork/godwoken#a59a2d4c8cd5d89931d2e9dfc3e4360b90f7be54"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
 dependencies = [
  "anyhow",
  "ckb-types",
@@ -582,7 +582,7 @@ dependencies = [
 [[package]]
 name = "gw-common"
 version = "0.1.0"
-source = "git+https://github.com/nervosnetwork/godwoken#a59a2d4c8cd5d89931d2e9dfc3e4360b90f7be54"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
 dependencies = [
  "blake2b-ref",
  "cfg-if 0.1.10",
@@ -592,7 +592,7 @@ dependencies = [
 [[package]]
 name = "gw-config"
 version = "0.1.0"
-source = "git+https://github.com/nervosnetwork/godwoken#a59a2d4c8cd5d89931d2e9dfc3e4360b90f7be54"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
 dependencies = [
  "ckb-types",
  "gw-jsonrpc-types",
@@ -602,7 +602,7 @@ dependencies = [
 [[package]]
 name = "gw-generator"
 version = "0.1.0"
-source = "git+https://github.com/nervosnetwork/godwoken#a59a2d4c8cd5d89931d2e9dfc3e4360b90f7be54"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
 dependencies = [
  "anyhow",
  "blake2b-rs 0.2.0",
@@ -616,7 +616,7 @@ dependencies = [
 [[package]]
 name = "gw-jsonrpc-types"
 version = "0.1.0"
-source = "git+https://github.com/nervosnetwork/godwoken#a59a2d4c8cd5d89931d2e9dfc3e4360b90f7be54"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
 dependencies = [
  "ckb-jsonrpc-types",
  "ckb-types",
@@ -628,7 +628,7 @@ dependencies = [
 [[package]]
 name = "gw-types"
 version = "0.1.0"
-source = "git+https://github.com/nervosnetwork/godwoken#a59a2d4c8cd5d89931d2e9dfc3e4360b90f7be54"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
 dependencies = [
  "cfg-if 0.1.10",
  "molecule",
@@ -878,9 +878,18 @@ dependencies = [
 name = "lumos-godwoken"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "gw-chain",
+ "gw-common",
+ "gw-config",
+ "gw-generator",
+ "gw-jsonrpc-types",
+ "gw-types",
  "neon",
  "neon-build",
+ "parking_lot 0.11.0",
+ "serde_json",
+ "toml",
 ]
 
 [[package]]
@@ -1105,9 +1114,9 @@ checksum = "8d3b63360ec3cb337817c2dbd47ab4a0f170d285d8e5a2064600f3def1402397"
 
 [[package]]
 name = "once_cell"
-version = "1.4.1"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "260e51e7efe62b592207e9e13a68e43692a7a279171d6ba57abd208bf23645ad"
+checksum = "f53cef67919d7d247eb9a2f128ca9e522789967ef1eb4ccd8c71a95a8aedf596"
 
 [[package]]
 name = "parking_lot"

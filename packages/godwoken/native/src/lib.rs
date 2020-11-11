@@ -1,7 +1,12 @@
 use neon::prelude::*;
 
-fn hello(mut cx: FunctionContext) -> JsResult<JsString> {
-    Ok(cx.string("hello node"))
+mod chain {
+    pub mod chain;
 }
 
-register_module!(mut cx, { cx.export_function("hello", hello) });
+use chain::chain::*;
+
+register_module!(mut cx, {
+    cx.export_class::<JsNativeChain>("NativeChain")?;
+    Ok(())
+});
