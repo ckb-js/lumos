@@ -9,12 +9,6 @@ class Chain {
     this.nativeChain = new addon.NativeChain(configPath);
   }
 
-  build_genesis() {
-    const l2BlockSlice = this.nativeChain.build_genesis();
-    const  l2Block = l2BlockSlice;
-    return l2Block;
-  }
-
   // sync chain from layer1
   sync() {}
 
@@ -23,7 +17,7 @@ class Chain {
   processBlock() {}
 
   start() {
-        return this.nativeChain.start();
+    return this.nativeChain.start();
   }
 
   stop() {}

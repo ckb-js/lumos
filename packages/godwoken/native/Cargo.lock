@@ -558,7 +558,7 @@ dependencies = [
 [[package]]
 name = "gw-chain"
 version = "0.1.0"
-source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#6a1a06de6a00a70e8a5aac623d9125592df3da72"
 dependencies = [
  "anyhow",
  "ckb-types",
@@ -582,7 +582,7 @@ dependencies = [
 [[package]]
 name = "gw-common"
 version = "0.1.0"
-source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#6a1a06de6a00a70e8a5aac623d9125592df3da72"
 dependencies = [
  "blake2b-ref",
  "cfg-if 0.1.10",
@@ -592,7 +592,7 @@ dependencies = [
 [[package]]
 name = "gw-config"
 version = "0.1.0"
-source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#6a1a06de6a00a70e8a5aac623d9125592df3da72"
 dependencies = [
  "ckb-types",
  "gw-jsonrpc-types",
@@ -602,7 +602,7 @@ dependencies = [
 [[package]]
 name = "gw-generator"
 version = "0.1.0"
-source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#6a1a06de6a00a70e8a5aac623d9125592df3da72"
 dependencies = [
  "anyhow",
  "blake2b-rs 0.2.0",
@@ -616,7 +616,7 @@ dependencies = [
 [[package]]
 name = "gw-jsonrpc-types"
 version = "0.1.0"
-source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#6a1a06de6a00a70e8a5aac623d9125592df3da72"
 dependencies = [
  "ckb-jsonrpc-types",
  "ckb-types",
@@ -628,7 +628,7 @@ dependencies = [
 [[package]]
 name = "gw-types"
 version = "0.1.0"
-source = "git+https://github.com/bitrocks/godwoken?branch=develop#8d18aebc9c3ef908c1cee9aae97d6367c27f553b"
+source = "git+https://github.com/bitrocks/godwoken?branch=develop#6a1a06de6a00a70e8a5aac623d9125592df3da72"
 dependencies = [
  "cfg-if 0.1.10",
  "molecule",

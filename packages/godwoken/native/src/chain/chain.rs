@@ -3,6 +3,7 @@ use gw_chain::{
     chain::{Chain, HeaderInfo},
     consensus::{single_aggregator::SingleAggregator, traits::Consensus},
     genesis,
+    rpc::Server,
     state_impl::{StateImpl, SyncCodeStore},
     tx_pool::TxPool,
 };
@@ -59,6 +60,16 @@ declare_types! {
             };
 
             Ok(NativeChain{ config: config, chain: chain})
+        }
+
+        method start(mut cx) {
+            let this = cx.this();
+            let config = cx.borrow(&this, |data| { data.config.clone() });
+            let tx_pool = cx.borrow(&this, |data| { data.chain.tx_pool().clone() });
+            Server::new()
+                .enable_tx_pool(tx_pool)
+                .start(&config.rpc.listen).expect("Starting server");
+            Ok(cx.undefined().upcast())
         }
     }
 }
