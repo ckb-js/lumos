@@ -254,39 +254,40 @@ export async function setupOutputCell(
   const toAddressInput: Cell | void = (
     await toAddressCellCollector.collect().next()
   ).value;
-  if (!toAddressInput) {
-    throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
+
+  let outputCapacity: bigint = capacity;
+  if (toAddressInput) {
+    outputCapacity = capacity + BigInt(toAddressInput.cell_output.capacity);
+
+    txSkeleton = txSkeleton.update("inputs", (inputs) => {
+      return inputs.push(toAddressInput);
+    });
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+      return witnesses.push("0x");
+    });
   }
 
-  const outputCapacity: bigint =
-    capacity + BigInt(toAddressInput.cell_output.capacity);
   outputCell.cell_output.capacity = "0x" + outputCapacity.toString(16);
-
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push(outputCell);
   });
-  txSkeleton = txSkeleton.update("inputs", (inputs) => {
-    return inputs.push(toAddressInput);
-  });
-  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-    return witnesses.push("0x");
-  });
 
-  const template = config.SCRIPTS.ANYONE_CAN_PAY;
-  if (!template) {
-    throw new Error(`ANYONE_CAN_PAY script not defined in config!`);
+  if (toAddressInput) {
+    const template = config.SCRIPTS.ANYONE_CAN_PAY;
+    if (!template) {
+      throw new Error(`ANYONE_CAN_PAY script not defined in config!`);
+    }
+    const scriptOutPoint: OutPoint = {
+      tx_hash: template.TX_HASH,
+      index: template.INDEX,
+    };
+
+    // add cell_dep
+    txSkeleton = addCellDep(txSkeleton, {
+      out_point: scriptOutPoint,
+      dep_type: template.DEP_TYPE,
+    });
   }
-
-  const scriptOutPoint: OutPoint = {
-    tx_hash: template.TX_HASH,
-    index: template.INDEX,
-  };
-
-  // add cell_dep
-  txSkeleton = addCellDep(txSkeleton, {
-    out_point: scriptOutPoint,
-    dep_type: template.DEP_TYPE,
-  });
 
   return txSkeleton;
 }

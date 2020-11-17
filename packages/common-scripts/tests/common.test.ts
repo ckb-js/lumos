@@ -418,6 +418,62 @@ test("transfer secp => acp", async (t) => {
   );
 });
 
+test("transfer secp => acp, no acp previous input", async (t) => {
+  const cellProvider = new CellProvider([...bobSecpInputs]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(600 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [bob.testnetAddress],
+    alice.acpTestnetAddress,
+    amount,
+    undefined,
+    undefined,
+    { config: AGGRON4 }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputCapcity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+
+  t.is(txSkeleton.get("cellDeps").size, 1);
+  t.is(txSkeleton.get("headerDeps").size, 0);
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+
+  const expectedWitnesses = [
+    "0x55000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  ];
+  t.deepEqual(txSkeleton.get("witnesses").toJS(), expectedWitnesses);
+
+  const expectedMessages = [
+    "0xd22b831b7733ca8a70f7cd3a44b98518f12ad8c9e7a4442c6dc7a47ef3c6fb39",
+  ];
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.deepEqual(
+    txSkeleton
+      .get("signingEntries")
+      .sort((a, b) => a.index - b.index)
+      .map((s) => s.message)
+      .toArray(),
+    expectedMessages
+  );
+});
+
 test("transfer acp => secp, destroy", async (t) => {
   const cellProvider = new CellProvider([...bobAcpCells]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
