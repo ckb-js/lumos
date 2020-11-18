@@ -51,4 +51,15 @@ const address = generateAddress({
 
 // Use `parseAddress` to get lock script from an address.
 const script = parseAddress("ckb1qyqrdsefa43s6m882pcj53m4gdnj4k440axqdt9rtd")
+
+// TransactionSkeleton <=> Object
+
+// Convert TransactionSkeleton to js object
+const obj = transactionSkeletonToObject(txSkeleton)
+// then your can write to json file
+fs.writeFileSync("your file", JSON.stringify(obj))
+
+// Or convert js object to TransactionSkeleton
+// If your object is from json file, make sure `cellProvider` is working properly.
+const txSkeleton = objectToTransactionSkeleton(obj)
 ```
