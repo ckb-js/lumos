@@ -20,6 +20,7 @@ use gw_types::{
 };
 use neon::prelude::*;
 use parking_lot::Mutex;
+use std::convert::TryInto;
 use std::fs::File;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -95,36 +96,122 @@ declare_types! {
         }
 
         method sync(mut cx) {
-            let this = cx.this();
-            let transaction: Transaction = unimplemented!();
-            let transaction_info = TransactionInfo {
-                transaction: transaction,
-                block_hash: [0u8;32]
-            };
-            let header_info = HeaderInfo {
-                number: 100u64,
-                block_hash: [0u8;32]
-            };
-            let deposition_request = DepositionRequest {
-                pubkey_hash: [0u8;20],
-                account_id: 0u32,
-                token_id: [0u8;32],
-                value: 100u128
-            };
-            let deposition_requests = vec![deposition_request];
-            let sync_info = SyncInfo {
-                transaction_info: transaction_info,
-                header_info: header_info,
-                deposition_requests: deposition_requests
-            };
-            let sync_infos: Vec<SyncInfo> = vec![sync_info];
-            let forked = false;
+            let mut this = cx.this();
+            //let js_sync_param = cx.argument::<JsObject>(0)?;
+            //let js_forked = js_sync_param.get(&mut cx, "forked")?
+            //    .downcast::<JsBoolean>()
+            //    .or_throw(&mut cx)?;
+            //let js_sync_infos = js_sync_param.get(&mut cx, "sync_infos")
+            //    .downcast::<JsArray>()
+            //    .or_throw(&mut cx)?;
+            let forked = cx.argument::<JsBoolean>(0)?.value();
+            let js_sync_infos_vec = cx.argument::<JsArray>(1)?.to_vec(&mut cx)?;
+            let mut sync_infos: Vec<SyncInfo> = vec![];
+            for i in 0..js_sync_infos_vec.len() {
+                let js_sync_info = js_sync_infos_vec[i as usize]
+                    .downcast::<JsObject>()
+                    .or_throw(&mut cx)?;
+                // extract transaction_info
+                let js_transaction_info = js_sync_info.get(&mut cx, "transaction_info")?
+                    .downcast::<JsObject>()
+                    .or_throw(&mut cx)?;
+                let js_transaction = js_transaction_info.get(&mut cx, "transaction")?
+                    .downcast::<JsArrayBuffer>()
+                    .or_throw(&mut cx)?;
+                let transaction = cx.borrow(&js_transaction, |data| {
+                    let transaction_slice = data.as_slice::<u8>();
+                    Transaction::from_slice(transaction_slice).expect("Building transaction from slice")
+                });
+                let js_block_hash = js_transaction_info.get(&mut cx, "block_hash")?
+                    .downcast::<JsArrayBuffer>()
+                    .or_throw(&mut cx)?;
+                let block_hash = cx.borrow(&js_block_hash, |data| {
+                    let mut block_hash = [0u8;32];
+                    block_hash[..].copy_from_slice(data.as_slice::<u8>());
+                    block_hash
+                });
+                let transaction_info = TransactionInfo {
+                    transaction: transaction,
+                    block_hash: block_hash
+                };
+                // extract header_info
+                let js_header_info = js_sync_info.get(&mut cx, "header_info")?
+                    .downcast::<JsObject>()
+                    .or_throw(&mut cx)?;
+                let number = js_header_info.get(&mut cx, "number")?
+                    .downcast::<JsNumber>()
+                    .or_throw(&mut cx)?
+                    .value() as u64;
+                let js_block_hash2 = js_header_info.get(&mut cx, "block_hash")?
+                    .downcast::<JsArrayBuffer>()
+                    .or_throw(&mut cx)?;
+                let block_hash2 = cx.borrow(&js_block_hash2, |data| {
+                    let mut block_hash = [0u8;32];
+                    block_hash[..].copy_from_slice(data.as_slice::<u8>());
+                    block_hash
+                });
+                let header_info = HeaderInfo {
+                    number: number,
+                    block_hash: block_hash2
+                };
+                // extract deposition_requests
+                let js_deposition_requests = js_sync_info.get(&mut cx, "deposition_requests")?
+                    .downcast::<JsArray>()
+                    .or_throw(&mut cx)?
+                    .to_vec(&mut cx)?;
+                let mut deposition_requests: Vec<DepositionRequest> = vec![];
+                for j in 0..js_deposition_requests.len() {
+                    let js_deposition_request = js_deposition_requests[j as usize]
+                        .downcast::<JsObject>()
+                        .or_throw(&mut cx)?;
+                    let js_pubkey_hash = js_deposition_request.get(&mut cx, "pubkey_hash")?
+                        .downcast::<JsArrayBuffer>()
+                        .or_throw(&mut cx)?;
+                    let pubkey_hash = cx.borrow(&js_pubkey_hash, |data| {
+                        let mut pubkey_hash = [0u8;20];
+                        pubkey_hash[..].copy_from_slice(data.as_slice::<u8>());
+                        pubkey_hash
+                    });
+                    let account_id = js_deposition_request.get(&mut cx, "account_id")?
+                        .downcast::<JsNumber>()
+                        .or_throw(&mut cx)?
+                        .value() as u32;
+                    let js_token_id = js_deposition_request.get(&mut cx, "token_id")?
+                        .downcast::<JsArrayBuffer>()
+                        .or_throw(&mut cx)?;
+                    let token_id = cx.borrow(&js_token_id, |data| {
+                        let mut token_id = [0u8;32];
+                        token_id[..].copy_from_slice(data.as_slice::<u8>());
+                        token_id
+                    });
+                    let value = js_deposition_request.get(&mut cx, "value")?
+                        .downcast::<JsNumber>()
+                        .or_throw(&mut cx)?
+                        //TODO: update the value field type
+                        .value() as u128;
+                    let deposition_request = DepositionRequest {
+                        pubkey_hash: pubkey_hash,
+                        account_id: account_id,
+                        token_id: token_id,
+                        value: value
+                    };
+                    deposition_requests.push(deposition_request)
+                }
+                let sync_info = SyncInfo {
+                    transaction_info: transaction_info,
+                    header_info: header_info,
+                    deposition_requests: deposition_requests
+                };
+                sync_infos.push(sync_info);
+            }
             let sync_param = SyncParam {
                 sync_infos: sync_infos,
                 forked: forked
             };
-            let chain = cx.borrow(&this, |data| { data.chain.clone() });
-            chain.sync(sync_param).expect("Syncing chain");
+            cx.borrow_mut(&mut this, |data| {
+                let mut chain = &data.chain;
+                chain.sync(sync_param).expect("Syncing chain");
+            });
             Ok(cx.undefined().upcast())
         }
     }
