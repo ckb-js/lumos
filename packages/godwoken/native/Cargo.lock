@@ -879,6 +879,7 @@ name = "lumos-godwoken"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "ckb-types",
  "gw-chain",
  "gw-common",
  "gw-config",

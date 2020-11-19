@@ -1,6 +1,11 @@
 use anyhow::{anyhow, Result};
+use ckb_types::{
+    bytes::Bytes,
+    packed::{RawTransaction, Script, Transaction, WitnessArgs, WitnessArgsReader},
+    prelude::Unpack,
+};
 use gw_chain::{
-    chain::{Chain, HeaderInfo},
+    chain::{Chain, HeaderInfo, ProduceBlockParam, SyncInfo, SyncParam, TransactionInfo},
     consensus::{single_aggregator::SingleAggregator, traits::Consensus},
     genesis,
     rpc::Server,
@@ -8,7 +13,7 @@ use gw_chain::{
     tx_pool::TxPool,
 };
 use gw_config::{Config, GenesisConfig};
-use gw_generator::{Generator, HashMapCodeStore};
+use gw_generator::{generator::DepositionRequest, Generator, HashMapCodeStore};
 use gw_types::{
     packed::{AccountMerkleState, L2Block, RawL2Block},
     prelude::*,
@@ -16,11 +21,23 @@ use gw_types::{
 use neon::prelude::*;
 use parking_lot::Mutex;
 use std::fs::File;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 pub struct NativeChain {
-    config: Config,
-    chain: Chain<SyncCodeStore, SingleAggregator>,
+    pub config: Config,
+    pub running: Arc<AtomicBool>,
+    pub chain: Arc<Chain<SyncCodeStore, SingleAggregator>>,
+}
+
+impl NativeChain {
+    pub fn running(&self) -> bool {
+        self.running.load(Ordering::Acquire)
+    }
+
+    pub fn stop(&self) {
+        self.running.store(false, Ordering::Release);
+    }
 }
 
 declare_types! {
@@ -59,16 +76,55 @@ declare_types! {
                 )
             };
 
-            Ok(NativeChain{ config: config, chain: chain})
+            Ok(NativeChain {
+                config: config,
+                running: Arc::new(AtomicBool::new(false)),
+                chain: Arc::new(chain)
+            })
         }
 
-        method start(mut cx) {
+        method start_rpc_server(mut cx) {
             let this = cx.this();
             let config = cx.borrow(&this, |data| { data.config.clone() });
             let tx_pool = cx.borrow(&this, |data| { data.chain.tx_pool().clone() });
             Server::new()
                 .enable_tx_pool(tx_pool)
                 .start(&config.rpc.listen).expect("Starting server");
+
+            Ok(cx.undefined().upcast())
+        }
+
+        method sync(mut cx) {
+            let this = cx.this();
+            let transaction: Transaction = unimplemented!();
+            let transaction_info = TransactionInfo {
+                transaction: transaction,
+                block_hash: [0u8;32]
+            };
+            let header_info = HeaderInfo {
+                number: 100u64,
+                block_hash: [0u8;32]
+            };
+            let deposition_request = DepositionRequest {
+                pubkey_hash: [0u8;20],
+                account_id: 0u32,
+                token_id: [0u8;32],
+                value: 100u128
+            };
+            let deposition_requests = vec![deposition_request];
+            let sync_info = SyncInfo {
+                transaction_info: transaction_info,
+                header_info: header_info,
+                deposition_requests: deposition_requests
+            };
+            let sync_infos: Vec<SyncInfo> = vec![sync_info];
+            let forked = false;
+            let sync_param = SyncParam {
+                sync_infos: sync_infos,
+                forked: forked
+            };
+            let chain = cx.borrow(&this, |data| { data.chain.clone() });
+            chain.sync(sync_param).expect("Syncing chain");
             Ok(cx.undefined().upcast())
         }
     }
