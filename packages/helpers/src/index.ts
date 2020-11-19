@@ -13,7 +13,7 @@ import {
 } from "@ckb-lumos/base";
 import * as bech32 from "bech32";
 import { normalizers, validators, Reader } from "ckb-js-toolkit";
-import { List, Record, Map } from "immutable";
+import { List, Record, Map as ImmutableMap } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 
 export interface Options {
@@ -171,7 +171,7 @@ export interface TransactionSkeletonInterface {
   witnesses: List<HexString>;
   fixedEntries: List<{ field: string; index: number }>;
   signingEntries: List<{ type: string; index: number; message: string }>;
-  inputSinces: Map<number, PackedSince>;
+  inputSinces: ImmutableMap<number, PackedSince>;
 }
 
 export type TransactionSkeletonType = Record<TransactionSkeletonInterface> &
@@ -186,7 +186,7 @@ export const TransactionSkeleton = Record<TransactionSkeletonInterface>({
   witnesses: List(),
   fixedEntries: List(),
   signingEntries: List(),
-  inputSinces: Map(),
+  inputSinces: ImmutableMap(),
 });
 
 export function createTransactionFromSkeleton(
@@ -266,4 +266,53 @@ export function sealTransaction(
     }
   });
   return tx;
+}
+
+export interface TransactionSkeletonObject {
+  cellProvider: CellProvider | null;
+  cellDeps: CellDep[];
+  headerDeps: Hash[];
+  inputs: Cell[];
+  outputs: Cell[];
+  witnesses: HexString[];
+  fixedEntries: Array<{ field: string; index: number }>;
+  signingEntries: Array<{ type: string; index: number; message: string }>;
+  inputSinces: Map<number, PackedSince>;
+}
+
+/**
+ * Convert TransactionSkeleton to js object
+ *
+ * @param txSkelton
+ */
+export function transactionSkeletonToObject(
+  txSkelton: TransactionSkeletonType
+): TransactionSkeletonObject {
+  return txSkelton.toJS();
+}
+
+/**
+ * Convert js object to TransactionSkeleton
+ *
+ * @param obj
+ */
+export function objectToTransactionSkeleton(
+  obj: TransactionSkeletonObject
+): TransactionSkeletonType {
+  let inputSinces = ImmutableMap<number, PackedSince>();
+  for (const [key, value] of Object.entries(obj.inputSinces)) {
+    inputSinces = inputSinces.set(+key, value);
+  }
+  const txSkeleton = TransactionSkeleton({
+    cellProvider: obj.cellProvider,
+    cellDeps: List(obj.cellDeps),
+    headerDeps: List(obj.headerDeps),
+    inputs: List(obj.inputs),
+    outputs: List(obj.outputs),
+    witnesses: List(obj.witnesses),
+    fixedEntries: List(obj.fixedEntries),
+    signingEntries: List(obj.signingEntries),
+    inputSinces,
+  });
+  return txSkeleton;
 }
