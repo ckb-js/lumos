@@ -8,7 +8,7 @@ import {
   CellCollector,
   CellCollectorWithQueryOptions,
   publicKeyToMultisigArgs,
-} from "../src/cache";
+} from "../src/index";
 import {
   Cell,
   QueryOptions,

@@ -16,14 +16,6 @@ import {
 } from "./extended_key";
 import mnemonic from "./mnemonic";
 import key from "./key";
-import {
-  CacheManager,
-  PublicKeyInfo as PublicKeyCacheInfo,
-  getDefaultInfos,
-  CellCollector,
-  CellCollectorWithQueryOptions,
-  getBalance,
-} from "./cache";
 
 export {
   mnemonic,
@@ -40,13 +32,7 @@ export {
   PrivateKeyInfo,
   PublicKeyInfo,
   key,
-  CacheManager,
-  PublicKeyCacheInfo,
-  getDefaultInfos,
   XPubStore,
-  CellCollector,
-  CellCollectorWithQueryOptions,
-  getBalance,
 };
 
 export default {
@@ -61,10 +47,5 @@ export default {
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
   key,
-  CacheManager,
-  getDefaultInfos,
   XPubStore,
-  CellCollector,
-  CellCollectorWithQueryOptions,
-  getBalance,
 };
