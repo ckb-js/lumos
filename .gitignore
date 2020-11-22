@@ -110,6 +110,7 @@ packages/sql-indexer/knexfile.dev.js
 packages/helpers/lib
 packages/common-scripts/lib
 packages/hd/lib
+packages/hd-cache/lib
 
 # knex config
 packages/sql-indexer/knexfile.ts

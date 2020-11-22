@@ -14,19 +14,21 @@ import {
   TransactionCollector as TxCollector,
   Indexer,
 } from "@ckb-lumos/indexer";
+import { Map, Set } from "immutable";
+import { Config, getConfig } from "@ckb-lumos/config-manager";
+import { RPC } from "ckb-js-toolkit";
 import {
   AccountExtendedPublicKey,
   AddressType,
   ExtendedPrivateKey,
-} from "./extended_key";
-import { Map, Set } from "immutable";
-import { Config, getConfig } from "@ckb-lumos/config-manager";
-import { publicKeyToBlake160 } from "./key";
-import Keystore from "./keystore";
-import { mnemonicToSeedSync } from "./mnemonic";
-import { RPC } from "ckb-js-toolkit";
-import { assertPublicKey, assertChainCode } from "./helper";
+  key,
+  Keystore,
+  mnemonic,
+} from "@ckb-lumos/hd";
+import { assertPublicKey, assertChainCode } from "@ckb-lumos/hd/lib/helper";
 const { isCellMatchQueryOptions } = helpers;
+const { publicKeyToBlake160 } = key;
+const { mnemonicToSeedSync } = mnemonic;
 
 export function serializeOutPoint(outPoint: OutPoint): string {
   return `${outPoint.tx_hash}_${outPoint.index}`;
