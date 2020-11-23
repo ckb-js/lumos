@@ -5,7 +5,7 @@ export const bob = {
   multisigTestnetAddress: "ckt1qyq4du5pk02tkh788363w990p0mcaw9t5rvq8ywwns",
   multisigArgs: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8",
   acpTestnetAddress:
-    "ckt1qjr2r35c0f9vhcdgslx2fjwa9tylevr5qka7mfgmscd33wlhfykykdkr98kkxrtvuag8z2j8w4pkw2k6k4l5cgxhkrr",
+    "ckt1qs6pngwqn6e9vlm92th84rk0l4jp2h8lurchjmnwv8kq3rt5psf4vdkr98kkxrtvuag8z2j8w4pkw2k6k4l5ca50gs9",
   secpLockHash:
     "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
   get fromInfo() {
@@ -23,7 +23,7 @@ export const alice = {
   blake160: "0xe2193df51d78411601796b35b17b4f8f2cd85bd0",
   multisigTestnetAddress: "ckt1qyq4zqqvh8alx39hhunc930tmhaqlrtnvkcqnp5xln",
   acpTestnetAddress:
-    "ckt1qjr2r35c0f9vhcdgslx2fjwa9tylevr5qka7mfgmscd33wlhfykyhcse8h6367zpzcqhj6e4k9a5lrevmpdaq9kve7y",
+    "ckt1qs6pngwqn6e9vlm92th84rk0l4jp2h8lurchjmnwv8kq3rt5psf4dcse8h6367zpzcqhj6e4k9a5lrevmpdaqsy58dz",
   get fromInfo() {
     return {
       R: 0,
