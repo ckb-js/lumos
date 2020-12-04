@@ -39,7 +39,7 @@
     "ckb-js-toolkit": "^0.9.2",
     "immutable": "^4.0.0-rc.12",
     "neon-cli": "^0.4.0",
-    "node-pre-gyp": "^0.14.1-rc1",
+    "node-pre-gyp": "^0.14.0",
     "request": "^2.88.2",
     "xxhash": "^0.3.0"
   },
