@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate log;
+extern crate lazysort;
 
 use ckb_indexer::{
     indexer::{Error as IndexerError, Indexer, Key, KeyPrefix, Value},
@@ -15,6 +16,7 @@ use futures::Future;
 use hyper::rt;
 use jsonrpc_core_client::{transports::http, RpcError};
 use jsonrpc_derive::rpc;
+use lazysort::SortedBy;
 use neon::prelude::*;
 use std::convert::TryInto;
 use std::fmt;
@@ -26,7 +28,6 @@ use std::sync::{
 };
 use std::thread;
 use std::time::Duration;
-
 #[derive(Debug)]
 pub enum Error {
     Indexer(IndexerError),
@@ -808,6 +809,17 @@ declare_types! {
                                     false
                                 }
                             })
+                            // For the same script prefix(key_prefix + script's code_hash, hash_type and args),
+                            // keys are ordered by block_number in rocksdb by default. when args_len = 'any',
+                            // there's no guarantee for block_number monotonicity, where extra sort
+                            // work is required.
+                            .sorted_by(|a ,b | {
+                                let a_key = a.clone().0;
+                                let a_block_number_slice: Vec<u8> = a_key[a_key.len() - 16..a_key.len() - 8].try_into().unwrap();
+                                let b_key = b.clone().0;
+                                let b_block_number_slice: Vec<u8> = b_key[b_key.len() - 16..b_key.len() - 8].try_into().unwrap();
+                                a_block_number_slice.cmp(&b_block_number_slice)
+                            })
                             .skip(skip_number);
                        Ok(LiveCellIterator(Box::new(iter)))
                     }
@@ -862,6 +874,17 @@ declare_types! {
                                 } else {
                                     false
                                 }
+                            })
+                            // For the same script prefix(key_prefix + script's code_hash, hash_type and args),
+                            // keys are ordered by block_number in rocksdb by default. when args_len = 'any',
+                            // there's no guarantee for block_number monotonicity, where extra sort
+                            // work is required.
+                            .sorted_by(|a ,b | {
+                                let a_key = a.clone().0;
+                                let a_block_number_slice: Vec<u8> = a_key[a_key.len() - 16..a_key.len() - 8].try_into().unwrap();
+                                let b_key = b.clone().0;
+                                let b_block_number_slice: Vec<u8> = b_key[b_key.len() - 16..b_key.len() - 8].try_into().unwrap();
+                                b_block_number_slice.cmp(&a_block_number_slice)
                             })
                             .skip(skip_number);
                         Ok(LiveCellIterator(Box::new(iter)))
@@ -1078,6 +1101,17 @@ declare_types! {
                                     false
                                 }
                             })
+                            // For the same script prefix(key_prefix + script's code_hash, hash_type and args),
+                            // keys are ordered by block_number in rocksdb by default. when args_len = 'any',
+                            // there's no guarantee for block_number monotonicity, where extra sort
+                            // work is required.
+                            .sorted_by(|a ,b | {
+                                let a_key = a.clone().0;
+                                let a_block_number_slice: Vec<u8> = a_key[a_key.len() - 16..a_key.len() - 8].try_into().unwrap();
+                                let b_key = b.clone().0;
+                                let b_block_number_slice: Vec<u8> = b_key[b_key.len() - 16..b_key.len() - 8].try_into().unwrap();
+                                a_block_number_slice.cmp(&b_block_number_slice)
+                            })
                             .skip(skip_number);
                         Ok(TransactionIterator(Box::new(iter)))
                     }
@@ -1135,6 +1169,17 @@ declare_types! {
                                 } else {
                                     false
                                 }
+                            })
+                            // For the same script prefix(key_prefix + script's code_hash, hash_type and args),
+                            // keys are ordered by block_number in rocksdb by default. when args_len = 'any',
+                            // there's no guarantee for block_number monotonicity, where extra sort
+                            // work is required.
+                            .sorted_by(|a ,b | {
+                                let a_key = a.clone().0;
+                                let a_block_number_slice: Vec<u8> = a_key[a_key.len() - 16..a_key.len() - 8].try_into().unwrap();
+                                let b_key = b.clone().0;
+                                let b_block_number_slice: Vec<u8> = b_key[b_key.len() - 16..b_key.len() - 8].try_into().unwrap();
+                                b_block_number_slice.cmp(&a_block_number_slice)
                             })
                             .skip(skip_number);
                         Ok(TransactionIterator(Box::new(iter)))
