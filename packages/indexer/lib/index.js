@@ -142,6 +142,7 @@ class Indexer {
     this.livenessCheckIntervalSeconds = livenessCheckIntervalSeconds;
     this.logger = logger;
     this.nativeIndexer = new NativeIndexer(uri, path, pollIntervalSeconds);
+    this.rpc = new RPC(this.uri);
   }
 
   running() {
@@ -289,16 +290,9 @@ class Indexer {
     return this._getEmitter(script, scriptType, argsLen, data, fromBlock);
   }
 
-  _getRpc() {
-    if (this.rpc === undefined || this.rpc === null) {
-      this.rpc = new RPC(this.uri);
-    }
-    return this.rpc;
-  }
-
   subscribeMedianTime() {
     const blockEmitter = this._getBlockEmitter();
-    return new MedianTimeEmitter(blockEmitter, this._getRpc());
+    return new MedianTimeEmitter(blockEmitter, this.rpc);
   }
 }
 
