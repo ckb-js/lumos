@@ -62,4 +62,5 @@ export declare class Indexer {
 
   collector(queries: QueryOptions): CellCollector;
   subscribe(queries: QueryOptions): NodeJS.EventEmitter;
+  subscribeMedianTime(): NodeJS.EventEmitter;
 }

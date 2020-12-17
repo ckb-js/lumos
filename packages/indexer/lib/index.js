@@ -1,15 +1,131 @@
 const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
-const { OrderedSet } = require("immutable");
+const { OrderedSet, Map } = require("immutable");
 const XXHash = require("xxhash");
-const { Indexer: NativeIndexer, Emitter } = require("../native");
+const { Indexer: NativeIndexer, Emitter, BlockEmitter } = require("../native");
 const { EventEmitter } = require("events");
 const util = require("util");
 const { utils } = require("@ckb-lumos/base");
 
 util.inherits(Emitter, EventEmitter);
+util.inherits(BlockEmitter, EventEmitter);
 
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
+}
+
+class EventMap {
+  constructor() {
+    this.map = Map();
+  }
+
+  add(key, value) {
+    const v = this.map.get(key);
+    if (v === undefined) {
+      this.map = this.map.set(key, {
+        value: value,
+        size: 1,
+      });
+    } else {
+      this.map = this.map.set(key, {
+        value: value,
+        size: v.size + 1,
+      });
+    }
+  }
+
+  get(key) {
+    const v = this.map.get(key);
+    if (v === undefined) {
+      return undefined;
+    }
+    return v.value;
+  }
+
+  reduce(key) {
+    const v = this.map.get(key);
+    if (v === undefined) {
+      return;
+    }
+
+    if (v.size === 1) {
+      this.map = this.map.delete(key);
+      return;
+    }
+    this.map = this.map.set(key, {
+      value: v.value,
+      size: v.size - 1,
+    });
+  }
+
+  isEmpty() {
+    return this.map.size === 0;
+  }
+}
+
+class MedianTimeEmitter extends EventEmitter {
+  static EVENT_NAME = "changed";
+  constructor(blockEmitter, rpc) {
+    super();
+    this.blockEmitter = blockEmitter;
+    this.rpc = rpc;
+
+    this.superListener = (listener) => {
+      return async () => {
+        const info = await this.rpc.get_blockchain_info();
+        const medianTime = BigInt(info.median_time).toString();
+        return await listener(medianTime);
+      };
+    };
+
+    this.blockListened = false;
+    this.superListeners = new EventMap();
+
+    this.blockEmitterListener = () => {
+      this.emit(MedianTimeEmitter.EVENT_NAME);
+    };
+  }
+
+  addListener(eventName, listener) {
+    if (!this.blockListened) {
+      this.blockEmitter.on(
+        MedianTimeEmitter.EVENT_NAME,
+        this.blockEmitterListener
+      );
+      this.blockListened = true;
+    }
+
+    if (eventName !== MedianTimeEmitter.EVENT_NAME) {
+      return this;
+    }
+
+    const lis = this.superListener(listener);
+    this.superListeners.add(listener, lis);
+    return super.on(eventName, lis);
+  }
+
+  on = this.addListener;
+
+  removeListener(eventName, listener) {
+    if (eventName !== MedianTimeEmitter.EVENT_NAME) {
+      return this;
+    }
+
+    const superListener = this.superListeners.get(listener);
+    if (superListener === undefined) {
+      return super.removeListener(eventName, this.superListener(listener));
+    }
+    this.superListeners.reduce(listener);
+    if (this.superListeners.isEmpty()) {
+      this.blockEmitter.removeListener(
+        MedianTimeEmitter.EVENT_NAME,
+        this.blockEmitterListener
+      );
+      this.blockListened = false;
+    }
+    return super.removeListener(eventName, superListener);
+  }
+
+  off = this.removeListener;
 }
 
 class Indexer {
@@ -96,6 +212,11 @@ class Indexer {
       fromBlock
     );
   }
+
+  _getBlockEmitter() {
+    return this.nativeIndexer.getBlockEmitter();
+  }
+
   startForever() {
     this.nativeIndexer.start();
     setInterval(() => {
@@ -166,6 +287,18 @@ class Indexer {
       throw new Error("Either lock or type script must be provided!");
     }
     return this._getEmitter(script, scriptType, argsLen, data, fromBlock);
+  }
+
+  _getRpc() {
+    if (this.rpc === undefined || this.rpc === null) {
+      this.rpc = new RPC(this.uri);
+    }
+    return this.rpc;
+  }
+
+  subscribeMedianTime() {
+    const blockEmitter = this._getBlockEmitter();
+    return new MedianTimeEmitter(blockEmitter, this._getRpc());
   }
 }
 
