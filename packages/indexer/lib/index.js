@@ -19,42 +19,28 @@ class EventMap {
   }
 
   add(key, value) {
-    const v = this.map.get(key);
-    if (v === undefined) {
-      this.map = this.map.set(key, {
-        value: value,
-        size: 1,
-      });
-    } else {
-      this.map = this.map.set(key, {
-        value: value,
-        size: v.size + 1,
-      });
+    this.map[key] = this.map[key] || 0;
+    if (this.map[key] === 0) {
+      this.map = this.map.set(key, value);
     }
+    this.map[key] = this.map[key] + 1;
   }
 
   get(key) {
-    const v = this.map.get(key);
-    if (v === undefined) {
-      return undefined;
-    }
-    return v.value;
+    return this.map.get(key);
   }
 
   reduce(key) {
-    const v = this.map.get(key);
-    if (v === undefined) {
+    const size = this.map[key];
+    if (size === undefined) {
       return;
     }
-
-    if (v.size === 1) {
+    if (size === 1) {
       this.map = this.map.delete(key);
+      this.map[key] = undefined;
       return;
     }
-    this.map = this.map.set(key, {
-      value: v.value,
-      size: v.size - 1,
-    });
+    this.map[key] = this.map[key] - 1;
   }
 
   isEmpty() {
