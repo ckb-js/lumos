@@ -201,7 +201,10 @@ class Indexer {
   }
 
   _getBlockEmitter() {
-    return this.nativeIndexer.getBlockEmitter();
+    if (this.blockEmitter === undefined || this.blockEmitter === null) {
+      this.blockEmitter = this.nativeIndexer.getBlockEmitter();
+    }
+    return this.blockEmitter;
   }
 
   startForever() {
