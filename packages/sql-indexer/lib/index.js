@@ -148,6 +148,23 @@ class Indexer {
       });
   }
 
+  async waitForSync(blockDifference = 3) {
+    const rpc = new RPC(this.uri);
+    while (true) {
+      const tip = await this.tip();
+      const ckbTip = await rpc.get_tip_block_number();
+
+      if (
+        BigInt(ckbTip) - BigInt(tip.block_number) <=
+        BigInt(blockDifference)
+      ) {
+        break;
+      }
+
+      await asyncSleep(1000 * this.pollIntervalSeconds);
+    }
+  }
+
   async poll() {
     let timeout = 1;
     const tip = await this.tip();
