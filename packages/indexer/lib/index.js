@@ -26,6 +26,7 @@ class Indexer {
     this.livenessCheckIntervalSeconds = livenessCheckIntervalSeconds;
     this.logger = logger;
     this.nativeIndexer = new NativeIndexer(uri, path, pollIntervalSeconds);
+    this.pollIntervalSeconds = pollIntervalSeconds;
   }
 
   running() {
@@ -42,6 +43,23 @@ class Indexer {
 
   async tip() {
     return this.nativeIndexer.tip();
+  }
+
+  async waitForSync(blockDifference = 3) {
+    const rpc = new RPC(this.uri);
+    while (true) {
+      const tip = await this.tip();
+      const ckbTip = await rpc.get_tip_block_number();
+
+      if (
+        BigInt(ckbTip) - BigInt(tip.block_number) <=
+        BigInt(blockDifference)
+      ) {
+        break;
+      }
+
+      await asyncSleep(1000 * this.pollIntervalSeconds);
+    }
   }
 
   _getLiveCellsByScriptIterator(
