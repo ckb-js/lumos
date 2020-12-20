@@ -148,7 +148,7 @@ test("transfer, acp => acp", async (t) => {
   t.is(txSkeleton.get("witnesses").get(0)!, "0x");
 
   const expectedMessage =
-    "0xeb8b009b831ec0db5afb8a2b975e112099a8f2061e2a653c4b659ecb970277e4";
+    "0x5acf7d234fc5c9adbc9b01f4938a5efdf6efde2b0a836f4740e6a79f81b64d65";
 
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
@@ -403,7 +403,7 @@ test("transfer secp => acp", async (t) => {
   t.deepEqual(txSkeleton.get("witnesses").toJS(), expectedWitnesses);
 
   const expectedMessages = [
-    "0x8bcb37f6a098de84cb2349f76e09af71e786ccac68a1f9b594468d3507d2449a",
+    "0x7449d526fa5fbaf942cbf29f833d89026b6f28322d0bd4725eb8c0b921b3b275",
   ];
 
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
@@ -459,7 +459,7 @@ test("transfer secp => acp, no acp previous input", async (t) => {
   t.deepEqual(txSkeleton.get("witnesses").toJS(), expectedWitnesses);
 
   const expectedMessages = [
-    "0xd22b831b7733ca8a70f7cd3a44b98518f12ad8c9e7a4442c6dc7a47ef3c6fb39",
+    "0x68a543a1ef68667281609d9331f3587f4bfac16002f0fbac72e3774de80f45fb",
   ];
 
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
@@ -515,7 +515,7 @@ test("transfer acp => secp, destroy", async (t) => {
   t.is(txSkeleton.get("witnesses").size, 1);
 
   const expectedMessages = [
-    "0x023d971a9519417e2f3f49985f23bc641ab1adee4cafa063368a96242d0fba1a",
+    "0x3196d29d3365c1d3d599be55e80e4addd631acb6605646329eb39a1b9264ab89",
   ];
 
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });

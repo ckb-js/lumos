@@ -196,11 +196,6 @@ test("ownerForSudt, by MultisigScript", (t) => {
   t.is(sudtToken, expectedToken);
 });
 
-const bobAcpAddress =
-  "ckt1qjr2r35c0f9vhcdgslx2fjwa9tylevr5qka7mfgmscd33wlhfykykdkr98kkxrtvuag8z2j8w4pkw2k6k4l5cgxhkrr";
-const aliceAcpAddress =
-  "ckt1qjr2r35c0f9vhcdgslx2fjwa9tylevr5qka7mfgmscd33wlhfykyhcse8h6367zpzcqhj6e4k9a5lrevmpdaq9kve7y";
-
 test("transfer acp", async (t) => {
   const cellProvider = new CellProvider([
     ...bobAcpSudtInputs,
@@ -213,11 +208,11 @@ test("transfer acp", async (t) => {
   const amount = BigInt(10000);
   txSkeleton = await sudt.transfer(
     txSkeleton,
-    [bobAcpAddress],
+    [bob.acpTestnetAddress],
     bob.secpLockHash,
-    aliceAcpAddress,
+    alice.acpTestnetAddress,
     amount,
-    bobAcpAddress,
+    bob.acpTestnetAddress,
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -262,7 +257,7 @@ test("transfer acp", async (t) => {
   );
 
   const expectedMessage =
-    "0x12b4972ea24878f962e90c7cd0ab6019f7bd7629c85a8dfa33f66a272ea1bf0f";
+    "0xaadf6f492ba070805dcba94b10b1f2b8323044babd3be02c5933e5738187d522";
   t.is(txSkeleton.get("signingEntries").size, 1);
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -281,14 +276,14 @@ test("transfer acp => secp, destroyable", async (t) => {
     txSkeleton,
     [
       {
-        address: bobAcpAddress,
+        address: bob.acpTestnetAddress,
         destroyable: true,
       },
     ],
     bob.secpLockHash,
     alice.testnetAddress,
     amount,
-    bobAcpAddress,
+    bob.acpTestnetAddress,
     BigInt(1000 * 10 ** 8),
     undefined,
     { config: AGGRON4 }
@@ -330,7 +325,7 @@ test("transfer acp => secp, destroyable", async (t) => {
   );
 
   const expectedMessage =
-    "0x69cba6e4676c52546a4cc04b01575da0d2f627badf797064ee3d815dc5387a36";
+    "0xc5f2edfcda349cd281f52e7338be22b96a30fccddb2670794f9a9268292ff742";
   t.is(txSkeleton.get("signingEntries").size, 1);
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });

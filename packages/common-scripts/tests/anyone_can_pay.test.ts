@@ -74,7 +74,7 @@ test("withdraw, acp to acp, all", async (t) => {
 
   t.is(txSkeleton.get("signingEntries").size, 1);
   const expectedMessage =
-    "0xfaf94f53f9f559ff69627a278949e0d9bcf7d5690bad04aa7de38d2bf962a033";
+    "0xf862243671a339a33e5843877e88e640f848b6f2394a3995bc00b44bf9d19d4e";
 
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -147,7 +147,7 @@ test("withdraw, acp to acp, half", async (t) => {
 
   t.is(txSkeleton.get("signingEntries").size, 1);
   const expectedMessage =
-    "0xeb8b009b831ec0db5afb8a2b975e112099a8f2061e2a653c4b659ecb970277e4";
+    "0x5acf7d234fc5c9adbc9b01f4938a5efdf6efde2b0a836f4740e6a79f81b64d65";
 
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -223,7 +223,7 @@ test("withdraw, acp to secp, half", async (t) => {
 
   t.is(txSkeleton.get("signingEntries").size, 1);
   const expectedMessage =
-    "0xf03dfdd7457be6cd89784478334ae5f1ff3a404e6e3788b1f5457e41f418071b";
+    "0x554307c4b5858beed7c655b3b7a5537492f532a99ef419df59c94ac7f9347e8e";
 
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -299,7 +299,7 @@ test("withdraw, acp to secp, all", async (t) => {
 
   t.is(txSkeleton.get("signingEntries").size, 1);
   const expectedMessage =
-    "0xef6bfd0d4b4514ae204aad0578db08de90a5ea66b390f802bd8d78b9aee1aa8e";
+    "0x1cb8e323da40058080ddd386ab0f6e62b793abacf68fd3da835273dd0e278c25";
 
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
