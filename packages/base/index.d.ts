@@ -391,3 +391,25 @@ export declare class BaseCellCollector implements CellCollector {
 
   collect(): CellCollectorResults;
 }
+
+// TransactionCollector
+export interface TransactionCollectorOptions {
+  skipMissing?: boolean;
+  includeStatus?: boolean;
+}
+
+export interface TransactionCollectorResults {
+  [Symbol.asyncIterator](): AsyncIterator<Transaction | TransactionWithStatus>;
+}
+
+export declare class TransactionCollector {
+  constructor(
+    indexer: Indexer,
+    queries: QueryOptions,
+    options?: TransactionCollectorOptions
+  );
+
+  count(): Promise<number>;
+
+  collect(): TransactionCollectorResults;
+}
