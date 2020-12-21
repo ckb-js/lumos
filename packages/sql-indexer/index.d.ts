@@ -1,10 +1,10 @@
-import {
-  Indexer as BaseIndexer,
-  IndexerOptions,
-  CellCollector as BaseCellCollector,
-} from "@ckb-lumos/indexer";
 import Knex from "knex";
-import { QueryOptions } from "@ckb-lumos/base";
+import {
+  QueryOptions,
+  IndexerOptions,
+  BaseCellCollector,
+  Indexer as BaseIndexer,
+} from "@ckb-lumos/base";
 
 export class Indexer extends BaseIndexer {
   constructor(uri: string, knex: Knex, options?: IndexerOptions);

@@ -353,3 +353,40 @@ export declare const values: {
   TransactionValue: typeof TransactionValue;
   RawTransactionValue: typeof RawTransactionValue;
 };
+
+// Indexer
+export type Logger = (level: string, message: string) => void;
+
+export interface IndexerOptions {
+  pollIntervalSeconds?: number;
+  livenessCheckIntervalSeconds?: number;
+  logger?: Logger;
+  keepNum?: number;
+  pruneInterval?: number;
+}
+
+export interface Tip {
+  block_number: string;
+  block_hash: string;
+}
+
+export declare class Indexer {
+  uri: string;
+
+  running(): boolean;
+  startForever(): void;
+  start(): void;
+  stop(): void;
+  tip(): Promise<Tip>;
+
+  collector(queries: QueryOptions): CellCollector;
+  subscribe(queries: QueryOptions): NodeJS.EventEmitter;
+  subscribeMedianTime(): NodeJS.EventEmitter;
+}
+
+// CellCollector
+export declare class BaseCellCollector implements CellCollector {
+  count(): Promise<number>;
+
+  collect(): CellCollectorResults;
+}

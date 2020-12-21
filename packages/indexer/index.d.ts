@@ -2,36 +2,14 @@ import {
   QueryOptions,
   Transaction,
   TransactionWithStatus,
-  CellCollector as CellCollectorInterface,
-  CellCollectorResults,
+  Indexer as BaseIndexer,
+  IndexerOptions,
+  BaseCellCollector,
 } from "@ckb-lumos/base";
-
-export type Logger = (level: string, message: string) => void;
-
-export interface IndexerOptions {
-  pollIntervalSeconds?: number;
-  livenessCheckIntervalSeconds?: number;
-  logger?: Logger;
-  keepNum?: number;
-  pruneInterval?: number;
-}
-
-export interface Tip {
-  block_number: string;
-  block_hash: string;
-}
 
 export interface TransactionCollectorOptions {
   skipMissing?: boolean;
   includeStatus?: boolean;
-}
-
-export declare class CellCollector implements CellCollectorInterface {
-  constructor(indexer: Indexer, queries: QueryOptions);
-
-  count(): Promise<number>;
-
-  collect(): CellCollectorResults;
 }
 
 export interface TransactionCollectorResults {
@@ -50,18 +28,10 @@ export declare class TransactionCollector {
   collect(): TransactionCollectorResults;
 }
 
-export declare class Indexer {
-  uri: string;
-
+export declare class Indexer extends BaseIndexer {
   constructor(uri: string, path: string, options?: IndexerOptions);
+}
 
-  running(): boolean;
-  startForever(): void;
-  start(): void;
-  stop(): void;
-  tip(): Promise<Tip>;
-
-  collector(queries: QueryOptions): CellCollector;
-  subscribe(queries: QueryOptions): NodeJS.EventEmitter;
-  subscribeMedianTime(): NodeJS.EventEmitter;
+export declare class CellCollector extends BaseCellCollector {
+  constructor(indexer: Indexer, queries: QueryOptions);
 }
