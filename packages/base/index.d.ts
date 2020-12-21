@@ -42,7 +42,7 @@ export interface Script {
 
 export interface OutPoint {
   tx_hash: Hash;
-  index: HexString;
+  index: HexNumber;
 }
 
 export type DepType = "dep_group" | "code";
@@ -83,7 +83,7 @@ export interface Transaction {
   inputs: Input[];
   outputs: Output[];
   outputs_data: HexString[];
-  version: HexString;
+  version: HexNumber;
   witnesses: HexString[];
 }
 
@@ -99,14 +99,14 @@ export interface TransactionWithStatus {
 
 export interface Cell {
   cell_output: {
-    capacity: HexString;
+    capacity: HexNumber;
     lock: Script;
     type?: Script;
   };
   data: HexString;
   out_point?: OutPoint;
   block_hash?: Hash;
-  block_number?: HexString;
+  block_number?: HexNumber;
 }
 
 /**
