@@ -1,6 +1,7 @@
 import {
   QueryOptions,
   Transaction,
+  TransactionWithStatus,
   CellCollector as CellCollectorInterface,
   CellCollectorResults,
 } from "@ckb-lumos/base";
@@ -34,7 +35,7 @@ export declare class CellCollector implements CellCollectorInterface {
 }
 
 export interface TransactionCollectorResults {
-  [Symbol.asyncIterator](): AsyncIterator<Transaction>;
+  [Symbol.asyncIterator](): AsyncIterator<Transaction | TransactionWithStatus>;
 }
 
 export declare class TransactionCollector {
