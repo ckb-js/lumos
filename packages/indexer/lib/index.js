@@ -1,15 +1,117 @@
 const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
-const { OrderedSet } = require("immutable");
+const { OrderedSet, Map } = require("immutable");
 const XXHash = require("xxhash");
-const { Indexer: NativeIndexer, Emitter } = require("../native");
+const { Indexer: NativeIndexer, Emitter, BlockEmitter } = require("../native");
 const { EventEmitter } = require("events");
 const util = require("util");
 const { utils } = require("@ckb-lumos/base");
 
 util.inherits(Emitter, EventEmitter);
+util.inherits(BlockEmitter, EventEmitter);
 
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
+}
+
+class EventMap {
+  constructor() {
+    this.map = Map();
+  }
+
+  add(key, value) {
+    this.map[key] = this.map[key] || 0;
+    if (this.map[key] === 0) {
+      this.map = this.map.set(key, value);
+    }
+    this.map[key] = this.map[key] + 1;
+  }
+
+  get(key) {
+    return this.map.get(key);
+  }
+
+  reduce(key) {
+    const size = this.map[key];
+    if (size === undefined) {
+      return;
+    }
+    if (size === 1) {
+      this.map = this.map.delete(key);
+      this.map[key] = undefined;
+      return;
+    }
+    this.map[key] = this.map[key] - 1;
+  }
+
+  isEmpty() {
+    return this.map.size === 0;
+  }
+}
+
+class MedianTimeEmitter extends EventEmitter {
+  static EVENT_NAME = "changed";
+  constructor(blockEmitter, rpc) {
+    super();
+    this.blockEmitter = blockEmitter;
+    this.rpc = rpc;
+
+    this.superListener = (listener) => {
+      return async () => {
+        const info = await this.rpc.get_blockchain_info();
+        const medianTime = BigInt(info.median_time).toString();
+        return await listener(medianTime);
+      };
+    };
+
+    this.blockListened = false;
+    this.superListeners = new EventMap();
+
+    this.blockEmitterListener = () => {
+      this.emit(MedianTimeEmitter.EVENT_NAME);
+    };
+  }
+
+  addListener(eventName, listener) {
+    if (!this.blockListened) {
+      this.blockEmitter.on(
+        MedianTimeEmitter.EVENT_NAME,
+        this.blockEmitterListener
+      );
+      this.blockListened = true;
+    }
+
+    if (eventName !== MedianTimeEmitter.EVENT_NAME) {
+      return this;
+    }
+
+    const lis = this.superListener(listener);
+    this.superListeners.add(listener, lis);
+    return super.on(eventName, lis);
+  }
+
+  on = this.addListener;
+
+  removeListener(eventName, listener) {
+    if (eventName !== MedianTimeEmitter.EVENT_NAME) {
+      return this;
+    }
+
+    const superListener = this.superListeners.get(listener);
+    if (superListener === undefined) {
+      return super.removeListener(eventName, this.superListener(listener));
+    }
+    this.superListeners.reduce(listener);
+    if (this.superListeners.isEmpty()) {
+      this.blockEmitter.removeListener(
+        MedianTimeEmitter.EVENT_NAME,
+        this.blockEmitterListener
+      );
+      this.blockListened = false;
+    }
+    return super.removeListener(eventName, superListener);
+  }
+
+  off = this.removeListener;
 }
 
 class Indexer {
@@ -27,6 +129,7 @@ class Indexer {
     this.logger = logger;
     this.nativeIndexer = new NativeIndexer(uri, path, pollIntervalSeconds);
     this.pollIntervalSeconds = pollIntervalSeconds;
+    this.rpc = new RPC(this.uri);
   }
 
   running() {
@@ -114,6 +217,14 @@ class Indexer {
       fromBlock
     );
   }
+
+  _getBlockEmitter() {
+    if (this.blockEmitter === undefined || this.blockEmitter === null) {
+      this.blockEmitter = this.nativeIndexer.getBlockEmitter();
+    }
+    return this.blockEmitter;
+  }
+
   startForever() {
     this.nativeIndexer.start();
     setInterval(() => {
@@ -184,6 +295,11 @@ class Indexer {
       throw new Error("Either lock or type script must be provided!");
     }
     return this._getEmitter(script, scriptType, argsLen, data, fromBlock);
+  }
+
+  subscribeMedianTime() {
+    const blockEmitter = this._getBlockEmitter();
+    return new MedianTimeEmitter(blockEmitter, this.rpc);
   }
 }
 

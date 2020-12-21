@@ -398,6 +398,15 @@ eventEmitter = indexer.subscribe({
 });
 ```
 
+Listen to median time change when blocks changed.
+
+```javascript
+const medianTimeEmitter = indexer.subscribeMedianTime();
+medianTimeEmitter.on("changed", (medianTime) => {
+  console.log(medianTime);
+});
+```
+
 ## Electron note
 
 One design goal of lumos, is that even though we might leverage native Rust code to speed things up, you don't need to have Rust installed in your machine to use the framework. However, this goal hits a slight roadblock since electron have its own module versions.

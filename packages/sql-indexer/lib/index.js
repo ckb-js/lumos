@@ -79,6 +79,7 @@ class Indexer {
       keepNum = 10000,
       pruneInterval = 2000,
       emitters = [],
+      medianTimeEmitters = [],
     } = {}
   ) {
     this.uri = uri;
@@ -91,6 +92,7 @@ class Indexer {
     this.keepNum = keepNum;
     this.pruneInterval = pruneInterval;
     this.emitters = emitters;
+    this.medianTimeEmitters = medianTimeEmitters;
   }
 
   _hasReturning() {
@@ -408,6 +410,7 @@ class Indexer {
         this.filterEvents(output, blockNumber, outputData);
       }
     }
+    await this.emitMedianTimeEvents();
   }
 
   async publishRollbackEvents() {
@@ -459,6 +462,8 @@ class Indexer {
         }
       }
     }
+
+    await this.emitMedianTimeEvents();
   }
 
   async buildOutput(lock_script_id, type_script_id) {
@@ -518,6 +523,14 @@ class Indexer {
           emitter.emit("changed");
         }
       }
+    }
+  }
+
+  async emitMedianTimeEvents() {
+    const info = await this.rpc.get_blockchain_info();
+    const medianTime = BigInt(info.median_time).toString();
+    for (const medianTimeEmitter of this.medianTimeEmitters) {
+      medianTimeEmitter.emit("changed", medianTime);
     }
   }
 
@@ -586,6 +599,12 @@ class Indexer {
     }
     this.emitters.push(emitter);
     return emitter;
+  }
+
+  subscribeMedianTime() {
+    const medianTimeEmitter = new EventEmitter();
+    this.medianTimeEmitters.push(medianTimeEmitter);
+    return medianTimeEmitter;
   }
 }
 

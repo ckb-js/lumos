@@ -79,12 +79,18 @@ pub struct Emitter {
 }
 
 #[derive(Clone)]
+pub struct BlockEmitter {
+    cb: Option<EventHandler>,
+}
+
+#[derive(Clone)]
 pub struct NativeIndexer {
     uri: String,
     poll_interval: Duration,
     running: Arc<AtomicBool>,
     indexer: Arc<Indexer<RocksdbStore>>,
     emitters: Arc<RwLock<Vec<Emitter>>>,
+    block_emitters: Arc<RwLock<Vec<BlockEmitter>>>,
 }
 
 impl NativeIndexer {
@@ -157,6 +163,7 @@ impl NativeIndexer {
 
     fn publish_append_block_events(&self, block: &CoreBlockView) -> Result<(), IndexerError> {
         let transactions = block.transactions();
+        self.emit_block_events();
         for (tx_index, tx) in transactions.iter().enumerate() {
             // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
             if tx_index > 0 {
@@ -185,6 +192,7 @@ impl NativeIndexer {
     }
 
     fn publish_rollback_events(&self) -> Result<(), IndexerError> {
+        self.emit_block_events();
         if let Some((block_number, block_hash)) = self.indexer.tip()? {
             let txs = Value::parse_transactions_value(
                 &self
@@ -324,6 +332,19 @@ impl NativeIndexer {
             cb.schedule(move |cx| vec![cx.string("changed").upcast()] as Vec<Handle<JsValue>>)
         }
     }
+
+    fn emit_block_events(&self) {
+        let block_emitters = self.block_emitters.read().unwrap();
+        for block_emitter in block_emitters.iter().clone() {
+            self.emit_block_event(block_emitter);
+        }
+    }
+
+    fn emit_block_event(&self, emitter: &BlockEmitter) {
+        if let Some(cb) = &emitter.cb {
+            cb.schedule(move |cx| vec![cx.string("changed").upcast()] as Vec<Handle<JsValue>>)
+        }
+    }
 }
 
 declare_types! {
@@ -345,7 +366,8 @@ declare_types! {
                 poll_interval: Duration::from_secs(interval_secs as u64),
                 running: Arc::new(AtomicBool::new(false)),
                 indexer: indexer,
-                emitters: Arc::new(RwLock::new(vec![]))
+                emitters: Arc::new(RwLock::new(vec![])),
+                block_emitters: Arc::new(RwLock::new(vec![]))
             })
         }
 
@@ -586,6 +608,19 @@ declare_types! {
             }
             Ok(emitter.upcast())
         }
+
+        method getBlockEmitter(mut cx) {
+            let mut this = cx.this();
+            let block_emitter = JsBlockEmitter::new::<_, JsBlockEmitter, _>(&mut cx, vec![])?;
+            {
+                let guard = cx.lock();
+                let block_emitter = block_emitter.borrow(&guard);
+                let native_indexer = this.borrow_mut(&guard);
+                let mut block_emitters = native_indexer.block_emitters.write().unwrap();
+                block_emitters.push(block_emitter.clone());
+            }
+            Ok(block_emitter.upcast())
+        }
     }
 
     pub class JsEmitter for Emitter {
@@ -683,6 +718,28 @@ declare_types! {
               let guard = cx.lock();
               let mut emitter = this.borrow_mut(&guard);
               emitter.cb = Some(cb);
+            }
+            Ok(None)
+        }
+    }
+
+    pub class JsBlockEmitter for BlockEmitter {
+        init(mut _cx) {
+            Ok(BlockEmitter{
+                cb: None,
+            })
+        }
+
+        constructor(mut cx) {
+            let mut this = cx.this();
+            let f = this.get(&mut cx, "emit")?
+                .downcast::<JsFunction>()
+                .or_throw(&mut cx)?;
+            let cb = EventHandler::new(&cx, this, f);
+            {
+                let guard = cx.lock();
+                let mut block_emitter = this.borrow_mut(&guard);
+                block_emitter.cb = Some(cb);
             }
             Ok(None)
         }
@@ -1338,5 +1395,6 @@ register_module!(mut cx, {
     debug!("Native indexer module initialized!");
     cx.export_class::<JsNativeIndexer>("Indexer")?;
     cx.export_class::<JsEmitter>("Emitter")?;
+    cx.export_class::<JsBlockEmitter>("BlockEmitter")?;
     Ok(())
 });
