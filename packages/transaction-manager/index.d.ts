@@ -1,5 +1,5 @@
-import { Indexer, Logger, CellCollector } from "@ckb-lumos/indexer";
-import { Transaction, Hash, QueryOptions } from "@ckb-lumos/base";
+import { Indexer, CellCollector } from "@ckb-lumos/indexer";
+import { Transaction, Hash, QueryOptions, Logger } from "@ckb-lumos/base";
 
 declare class TransactionManager {
   constructor(

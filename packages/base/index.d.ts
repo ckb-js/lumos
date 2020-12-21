@@ -19,18 +19,18 @@ export type PackedDao = string;
 export type Address = string;
 
 export interface Header {
-  timestamp: HexString;
-  number: HexString;
-  epoch: HexString;
-  compact_target: HexString;
+  timestamp: HexNumber;
+  number: HexNumber;
+  epoch: HexNumber;
+  compact_target: HexNumber;
   dao: Hash;
   hash: Hash;
-  nonce: HexString;
+  nonce: HexNumber;
   parent_hash: Hash;
   proposals_hash: Hash;
   transactions_root: Hash;
   uncles_hash: Hash;
-  version: HexString;
+  version: HexNumber;
 }
 
 export type HashType = "type" | "data";
@@ -42,7 +42,7 @@ export interface Script {
 
 export interface OutPoint {
   tx_hash: Hash;
-  index: HexString;
+  index: HexNumber;
 }
 
 export type DepType = "dep_group" | "code";
@@ -83,7 +83,7 @@ export interface Transaction {
   inputs: Input[];
   outputs: Output[];
   outputs_data: HexString[];
-  version: HexString;
+  version: HexNumber;
   witnesses: HexString[];
 }
 
@@ -99,14 +99,14 @@ export interface TransactionWithStatus {
 
 export interface Cell {
   cell_output: {
-    capacity: HexString;
+    capacity: HexNumber;
     lock: Script;
     type?: Script;
   };
   data: HexString;
   out_point?: OutPoint;
   block_hash?: Hash;
-  block_number?: HexString;
+  block_number?: HexNumber;
 }
 
 /**
@@ -353,3 +353,63 @@ export declare const values: {
   TransactionValue: typeof TransactionValue;
   RawTransactionValue: typeof RawTransactionValue;
 };
+
+// Indexer
+export type Logger = (level: string, message: string) => void;
+
+export interface IndexerOptions {
+  pollIntervalSeconds?: number;
+  livenessCheckIntervalSeconds?: number;
+  logger?: Logger;
+  keepNum?: number;
+  pruneInterval?: number;
+}
+
+export interface Tip {
+  block_number: string;
+  block_hash: string;
+}
+
+export declare class Indexer {
+  uri: string;
+
+  running(): boolean;
+  startForever(): void;
+  start(): void;
+  stop(): void;
+  tip(): Promise<Tip>;
+
+  collector(queries: QueryOptions): CellCollector;
+  subscribe(queries: QueryOptions): NodeJS.EventEmitter;
+  subscribeMedianTime(): NodeJS.EventEmitter;
+  waitForSync(blockDifference?: number): Promise<void>;
+}
+
+// CellCollector
+export declare class BaseCellCollector implements CellCollector {
+  count(): Promise<number>;
+
+  collect(): CellCollectorResults;
+}
+
+// TransactionCollector
+export interface TransactionCollectorOptions {
+  skipMissing?: boolean;
+  includeStatus?: boolean;
+}
+
+export interface TransactionCollectorResults {
+  [Symbol.asyncIterator](): AsyncIterator<Transaction | TransactionWithStatus>;
+}
+
+export declare class TransactionCollector {
+  constructor(
+    indexer: Indexer,
+    queries: QueryOptions,
+    options?: TransactionCollectorOptions
+  );
+
+  count(): Promise<number>;
+
+  collect(): TransactionCollectorResults;
+}

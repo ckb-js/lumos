@@ -58,8 +58,7 @@ class MedianTimeEmitter extends EventEmitter {
     this.superListener = (listener) => {
       return async () => {
         const info = await this.rpc.get_blockchain_info();
-        const medianTime = BigInt(info.median_time).toString();
-        return await listener(medianTime);
+        return await listener(info.median_time);
       };
     };
 
