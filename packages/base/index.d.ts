@@ -19,18 +19,18 @@ export type PackedDao = string;
 export type Address = string;
 
 export interface Header {
-  timestamp: HexString;
-  number: HexString;
-  epoch: HexString;
-  compact_target: HexString;
+  timestamp: HexNumber;
+  number: HexNumber;
+  epoch: HexNumber;
+  compact_target: HexNumber;
   dao: Hash;
   hash: Hash;
-  nonce: HexString;
+  nonce: HexNumber;
   parent_hash: Hash;
   proposals_hash: Hash;
   transactions_root: Hash;
   uncles_hash: Hash;
-  version: HexString;
+  version: HexNumber;
 }
 
 export type HashType = "type" | "data";

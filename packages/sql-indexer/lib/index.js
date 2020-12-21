@@ -528,7 +528,7 @@ class Indexer {
 
   async emitMedianTimeEvents() {
     const info = await this.rpc.get_blockchain_info();
-    const medianTime = BigInt(info.median_time).toString();
+    const medianTime = info.median_time;
     for (const medianTimeEmitter of this.medianTimeEmitters) {
       medianTimeEmitter.emit("changed", medianTime);
     }
