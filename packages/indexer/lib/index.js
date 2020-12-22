@@ -13,6 +13,10 @@ function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
 }
 
+function asyncSleep(ms = 0) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 class EventMap {
   constructor() {
     this.map = Map();
@@ -151,12 +155,10 @@ class Indexer {
     const rpc = new RPC(this.uri);
     while (true) {
       const tip = await this.tip();
+      const indexedNumber = tip ? BigInt(tip.block_number) : 0n;
       const ckbTip = await rpc.get_tip_block_number();
 
-      if (
-        BigInt(ckbTip) - BigInt(tip.block_number) <=
-        BigInt(blockDifference)
-      ) {
+      if (BigInt(ckbTip) - indexedNumber <= BigInt(blockDifference)) {
         break;
       }
 
