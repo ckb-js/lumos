@@ -1,7 +1,7 @@
 const blake2b = require("blake2b");
 const { validators, normalizers, Reader } = require("ckb-js-toolkit");
 const { SerializeScript } = require("./core");
-const XXHash = require("xxhash");
+const { xxHash32 } = require("js-xxhash");
 
 class CKBHasher {
   constructor() {
@@ -81,7 +81,7 @@ function computeScriptHash(script, { validate = true } = {}) {
 }
 
 function hashCode(buffer) {
-  return XXHash.hash(buffer, 0);
+  return xxHash32(buffer, 0);
 }
 
 function assertHexString(debugPath, str) {
