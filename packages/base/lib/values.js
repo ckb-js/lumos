@@ -1,7 +1,7 @@
 // This module provides a ValueObject implementation for CKB related data
 // structures to allow seamless immutable.js integration.
 const { validators, normalizers, Reader } = require("ckb-js-toolkit");
-const XXHash = require("xxhash");
+const { xxHash32 } = require("js-xxhash");
 const core = require("./core");
 const { ckbHash } = require("./utils");
 
@@ -19,7 +19,7 @@ class Value {
   }
 
   hashCode() {
-    return XXHash.hash(Buffer.from(this.buffer), 0);
+    return xxHash32(Buffer.from(this.buffer), 0);
   }
 
   hash() {
