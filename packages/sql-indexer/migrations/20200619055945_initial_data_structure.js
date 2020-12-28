@@ -75,7 +75,7 @@ exports.up = function (knex) {
 
       table.bigInteger("capacity").notNullable();
       table.binary("tx_hash", 32).notNullable();
-      table.integer("index").notNullable();
+      table.bigInteger("index").notNullable();
       table.unique(["tx_hash", "index"]);
 
       table.bigInteger("block_number").notNullable();
