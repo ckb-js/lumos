@@ -257,7 +257,7 @@ test("transfer acp", async (t) => {
   );
 
   const expectedMessage =
-    "0xaadf6f492ba070805dcba94b10b1f2b8323044babd3be02c5933e5738187d522";
+    "0xd35ffba0a67f0637dab904f9940b3080d2ba9d65bf68a028756438c767251eb4";
   t.is(txSkeleton.get("signingEntries").size, 1);
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -325,7 +325,7 @@ test("transfer acp => secp, destroyable", async (t) => {
   );
 
   const expectedMessage =
-    "0xc5f2edfcda349cd281f52e7338be22b96a30fccddb2670794f9a9268292ff742";
+    "0xf8000f721af269f64f46c41ba0666a20957e9a70fad54e8badeeb6027dc351ad";
   t.is(txSkeleton.get("signingEntries").size, 1);
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
