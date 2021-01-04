@@ -629,7 +629,7 @@ async function collectInput(
   const fromScript: Script = inputCell.cell_output.lock;
 
   let availableCapacity: bigint = 0n;
-  if (isAcpScript(fromScript, config)) {
+  if (config.SCRIPTS.ANYONE_CAN_PAY && isAcpScript(fromScript, config)) {
     const destroyable: boolean = !!(
       fromInfo &&
       typeof fromInfo === "object" &&

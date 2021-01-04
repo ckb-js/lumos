@@ -9,7 +9,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { Cell, Transaction, values } from "@ckb-lumos/base";
 import { FromInfo, anyoneCanPay } from "../src";
-import { predefined } from "@ckb-lumos/config-manager";
+import { Config, predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4, LINA } = predefined;
 
 import {
@@ -927,4 +927,34 @@ test("payFeeByFeeRate, capacity 1000", async (t) => {
   const expectedFee: bigint = BigInt(516);
 
   t.is(getFee(txSkeleton), expectedFee);
+});
+
+test("Should not throw if anyone-can-pay config not provided", async (t) => {
+  // config without anyone-can-pay
+  const config: Config = {
+    PREFIX: AGGRON4.PREFIX,
+    SCRIPTS: {
+      SECP256K1_BLAKE160: AGGRON4.SCRIPTS.SECP256K1_BLAKE160,
+      SECP256K1_BLAKE160_MULTISIG: AGGRON4.SCRIPTS.SECP256K1_BLAKE160_MULTISIG,
+      DAO: AGGRON4.SCRIPTS.DAO,
+    },
+  };
+
+  const cellProvider = new CellProvider([...bobSecpInputs]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(600 * 10 ** 8);
+  await t.notThrowsAsync(async () => {
+    await common.transfer(
+      txSkeleton,
+      [bob.testnetAddress],
+      aliceAddress,
+      amount,
+      undefined,
+      undefined,
+      { config }
+    );
+  });
 });
