@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/hd-cache",
-  "version": "0.14.2-rc5",
+  "version": "0.14.2-rc6",
   "description": "HD wallet cache in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -30,10 +30,10 @@
     "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.14.2-rc5",
-    "@ckb-lumos/config-manager": "^0.14.2-rc5",
-    "@ckb-lumos/hd": "^0.14.2-rc5",
-    "@ckb-lumos/indexer": "^0.14.2-rc5",
+    "@ckb-lumos/base": "^0.14.2-rc6",
+    "@ckb-lumos/config-manager": "^0.14.2-rc6",
+    "@ckb-lumos/hd": "^0.14.2-rc6",
+    "@ckb-lumos/indexer": "^0.14.2-rc6",
     "ckb-js-toolkit": "^0.9.2",
     "immutable": "^4.0.0-rc.12"
   },
