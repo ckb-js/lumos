@@ -191,6 +191,7 @@ class Indexer {
       const block = await this.rpc.get_block_by_number(dbBigIntToHex(0));
       await this.append(block);
       await this.publishAppendBlockEvents(block);
+      await this.checkAndPrune(block);
     }
     return timeout;
   }
@@ -317,6 +318,9 @@ class Indexer {
         }
       }
     });
+  }
+
+  async checkAndPrune(block) {
     // prune old blocks
     if (
       BigInt(block.header.number) % BigInt(this.pruneInterval) ===
