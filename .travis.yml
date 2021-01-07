@@ -38,7 +38,7 @@ before_install:
   - npm -g install yarn
   - yarn -v
   # Create database
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then mysql -e 'CREATE DATABASE sql_indexer_test;' && mysql -e 'CREATE DATABASE sql_indexer_test2 && mysql -e 'CREATE DATABASE sql_indexer_test3;';fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then mysql -e 'CREATE DATABASE sql_indexer_test;' && mysql -e 'CREATE DATABASE sql_indexer_test2 && mysql -e 'CREATE DATABASE sql_indexer_test3;';fi
 
 install:
   - travis_wait 30 yarn
@@ -56,7 +56,7 @@ script:
   - yarn workspace @ckb-lumos/helpers test
   - yarn workspace @ckb-lumos/indexer test
   - yarn workspace @ckb-lumos/transaction-manager test
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then yarn workspaces @ckb-lumos/sql-indexer test; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then yarn workspaces @ckb-lumos/sql-indexer test; fi
   - yarn workspaces run fmt
   - yarn workspaces run lint
   - if [ "$TRAVIS_OS_NAME" != "windows" ]; then yarn run docs; fi
