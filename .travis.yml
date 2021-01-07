@@ -56,7 +56,7 @@ script:
   - yarn workspace @ckb-lumos/helpers test
   - yarn workspace @ckb-lumos/indexer test
   - yarn workspace @ckb-lumos/transaction-manager test
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then yarn workspaces @ckb-lumos/sql-indexer test; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then yarn workspace @ckb-lumos/sql-indexer test; fi
   - yarn workspaces run fmt
   - yarn workspaces run lint
   - if [ "$TRAVIS_OS_NAME" != "windows" ]; then yarn run docs; fi
