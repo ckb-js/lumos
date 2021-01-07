@@ -853,6 +853,14 @@ class TransactionCollector extends BaseIndexerModule.TransactionCollector {
             "transactions_scripts.script_id",
             "scripts.id"
           )
+          .select(
+            "scripts.code_hash",
+            "scripts.hash_type",
+            "scripts.args",
+            "transactions_scripts.script_type",
+            "transactions_scripts.io_type",
+            "transactions_scripts.transaction_digest_id"
+          )
           .as("lock_scripts"),
         "lock_scripts.transaction_digest_id",
         "txs.id"
@@ -864,6 +872,14 @@ class TransactionCollector extends BaseIndexerModule.TransactionCollector {
             this.knex.ref("scripts"),
             "transactions_scripts.script_id",
             "scripts.id"
+          )
+          .select(
+            "scripts.code_hash",
+            "scripts.hash_type",
+            "scripts.args",
+            "transactions_scripts.script_type",
+            "transactions_scripts.io_type",
+            "transactions_scripts.transaction_digest_id"
           )
           .as("type_scripts"),
         "type_scripts.transaction_digest_id",
