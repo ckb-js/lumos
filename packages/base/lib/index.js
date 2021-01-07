@@ -5,4 +5,5 @@ module.exports = {
   utils: require("./utils"),
   since: require("./since"),
   helpers: require("./helpers"),
+  indexer: require("./indexer"),
 };
