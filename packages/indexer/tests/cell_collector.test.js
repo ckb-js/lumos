@@ -8,12 +8,12 @@ const tmpIndexedDataPath = "/tmp/indexed_data";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(nodeUri, tmpIndexedDataPath);
 
-test.before(async (t) => {
+test.before(async () => {
   // setup rocksdb test data
   await indexer.initDbFromJsonFile(blocksDataFilePath);
 });
 
-test.after(async (t) => {
+test.after(async () => {
   await indexer.clearDb(blocksDataFilePath);
 });
 

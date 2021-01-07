@@ -47,7 +47,7 @@
     "build": "neon build",
     "build-release": "neon build --release",
     "fmt": "prettier --write \"{lib,scripts,tests}/**/*.js\" index.d.ts && cd native && cargo fmt --all --",
-    "lint": "eslint -c ../../.eslintrc.js \"{lib,scripts}/**/*.js\"",
+    "lint": "eslint -c ../../.eslintrc.js \"{lib,scripts,tests}/**/*.js\"",
     "preinstall": "node scripts/patch_if_in_workspace.js",
     "install": "node scripts/install_binary.js || npm run build-release",
     "package": "npm run build-release && rm -rf native/target && node-pre-gyp package",
