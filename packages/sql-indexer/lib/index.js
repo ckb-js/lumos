@@ -243,7 +243,9 @@ class Indexer {
               })
               .select("id", "lock_script_id", "type_script_id");
             for (const { id, lock_script_id, type_script_id } of data) {
-              await trx("cells").where("id", id).update({ consumed: true });
+              await trx("cells").where("id", id).update({
+                consumed_block_number: blockNumber,
+              });
               await trx("transactions_scripts").insert({
                 script_type: SCRIPT_TYPE_LOCK,
                 io_type: IO_TYPE_INPUT,
@@ -288,7 +290,7 @@ class Indexer {
             );
           }
           await trx("cells").insert({
-            consumed: false,
+            consumed_block_number: null,
             capacity: hexToDbBigInt(output.capacity),
             tx_hash: hexToNodeBuffer(tx.hash),
             index: outputIndex,
@@ -347,7 +349,7 @@ class Indexer {
               tx_hash: previous_tx_hash,
               index: previous_index,
             })
-            .update({ consumed: false });
+            .update({ consumed_block_number: null });
         }
         await trx("transaction_inputs")
           .where({ transaction_digest_id: id })
@@ -374,8 +376,8 @@ class Indexer {
       const pruneToBlock = (tipNumber - BigInt(this.keepNum)).toString();
       await this.knex.transaction(async (trx) => {
         await trx("cells")
-          .where("consumed", true)
-          .andWhere("block_number", "<", pruneToBlock)
+          .whereNotNull("consumed_block_number")
+          .andWhere("consumed_block_number", "<", pruneToBlock)
           .del();
         await trx("transaction_inputs")
           .whereIn("transaction_digest_id", function () {
@@ -671,7 +673,7 @@ class CellCollector {
   }
 
   _assembleQuery(order = true) {
-    let query = this.knex("cells").where("consumed", false);
+    let query = this.knex("cells").where("consumed_block_number", null);
     if (order) {
       query = query.orderBy([
         { column: "cells.block_number", order: this.order },
