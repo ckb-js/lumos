@@ -1,5 +1,4 @@
 const test = require("ava");
-const fs = require("fs");
 const { CellCollector } = require("../lib");
 const { lock, type, cellCollectorTestCases } = require("./test_cases.js");
 const { knex2, Indexer } = require("./helper.js");
@@ -9,12 +8,12 @@ const blocksDataFilePath = __dirname + "/blocks_data.json";
 
 const indexer = new Indexer(nodeUri, knex2);
 
-test.before(async (t) => {
+test.before(async () => {
   await knex2.migrate.up();
   await indexer.initDbFromJsonFile(blocksDataFilePath);
 });
 
-test.after(async (t) => {
+test.after(async () => {
   await knex2.migrate.down();
 });
 

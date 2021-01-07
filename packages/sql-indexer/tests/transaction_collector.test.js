@@ -12,12 +12,12 @@ const nodeUri = "http://127.0.0.1:8115";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(nodeUri, knex);
 
-test.before(async (t) => {
+test.before(async () => {
   await knex.migrate.up();
   await indexer.initDbFromJsonFile(blocksDataFilePath);
 });
 
-test.after(async (t) => {
+test.after(async () => {
   await knex.migrate.down();
 });
 
