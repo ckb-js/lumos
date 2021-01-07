@@ -38,7 +38,7 @@ before_install:
   - npm -g install yarn
   - yarn -v
   # Create database
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then mysql -e 'CREATE DATABASE sql_indexer_test;' && mysql -e 'CREATE DATABASE sql_indexer_test2 && mysql -e 'CREATE DATABASE sql_indexer_test3;';fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then mysql -e 'CREATE DATABASE sql_indexer_test;' && mysql -e 'CREATE DATABASE sql_indexer_test2;' && mysql -e 'CREATE DATABASE sql_indexer_test3;'; fi
 
 install:
   - travis_wait 30 yarn
