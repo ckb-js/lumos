@@ -71,7 +71,11 @@ exports.up = function (knex) {
     })
     .createTable("cells", function (table) {
       table.increments("id");
-      table.boolean("consumed").notNullable().defaultTo(false);
+
+      table.bigInteger("consumed_block_number").nullable().index();
+      table
+        .foreign("consumed_block_number")
+        .references("block_digests.block_number");
 
       table.bigInteger("capacity").notNullable();
       table.binary("tx_hash", 32).notNullable();
