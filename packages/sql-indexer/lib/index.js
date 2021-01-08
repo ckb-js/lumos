@@ -814,77 +814,42 @@ class TransactionCollector extends BaseIndexerModule.TransactionCollector {
     this.knex = indexer.knex;
   }
 
-  _queryScript(query, name, scriptWrapper) {
+  _scriptQuery(scriptType, scriptWrapper) {
     const binaryArgs = hexToNodeBuffer(scriptWrapper.script.args);
     const binaryCodeHash = hexToNodeBuffer(scriptWrapper.script.code_hash);
     const hashType = scriptWrapper.script.hash_type === "data" ? 0 : 1;
 
-    query = query
-      .where(`${name}.code_hash`, "=", binaryCodeHash)
-      .andWhere(`${name}.hash_type`, "=", hashType)
-      .whereRaw(`substring(${name}.args, 1, ?) = ?`, [
+    let scriptQuery = this.knex("transactions_scripts as tx_scripts")
+      .where("tx_scripts.script_type", "=", scriptType)
+      .leftJoin(this.knex.ref("scripts"), "tx_scripts.script_id", "scripts.id")
+      .select("tx_scripts.transaction_digest_id")
+      .where("scripts.code_hash", "=", binaryCodeHash)
+      .andWhere("scripts.hash_type", "=", hashType)
+      .whereRaw(`substring(scripts.args, 1, ?) = ?`, [
         binaryArgs.byteLength,
         binaryArgs,
       ]);
 
     if (scriptWrapper.argsLen !== "any" && scriptWrapper.argsLen > 0) {
-      query = query.whereRaw(`length(${name}.args) = ?`, [
+      scriptQuery = scriptQuery.whereRaw(`length(scripts.args) = ?`, [
         scriptWrapper.argsLen,
       ]);
     }
 
     if (scriptWrapper.ioType === "input") {
-      query = query.where(`${name}.io_type`, "=", IO_TYPE_INPUT);
+      scriptQuery = scriptQuery.where(`tx_scripts.io_type`, "=", IO_TYPE_INPUT);
     } else if (scriptWrapper.ioType === "output") {
-      query = query.where(`${name}.io_type`, "=", IO_TYPE_OUTPUT);
+      scriptQuery = scriptQuery.where(
+        `tx_scripts.io_type`,
+        "=",
+        IO_TYPE_OUTPUT
+      );
     }
-
-    return query;
+    return scriptQuery;
   }
 
   _assembleQuery(order = true) {
-    let query = this.knex
-      .from("transaction_digests as txs")
-      .leftJoin(
-        this.knex("transactions_scripts")
-          .where("transactions_scripts.script_type", "=", SCRIPT_TYPE_LOCK)
-          .leftJoin(
-            this.knex.ref("scripts"),
-            "transactions_scripts.script_id",
-            "scripts.id"
-          )
-          .select(
-            "scripts.code_hash",
-            "scripts.hash_type",
-            "scripts.args",
-            "transactions_scripts.script_type",
-            "transactions_scripts.io_type",
-            "transactions_scripts.transaction_digest_id"
-          )
-          .as("lock_scripts"),
-        "lock_scripts.transaction_digest_id",
-        "txs.id"
-      )
-      .leftJoin(
-        this.knex("transactions_scripts")
-          .where("transactions_scripts.script_type", "=", SCRIPT_TYPE_TYPE)
-          .leftJoin(
-            this.knex.ref("scripts"),
-            "transactions_scripts.script_id",
-            "scripts.id"
-          )
-          .select(
-            "scripts.code_hash",
-            "scripts.hash_type",
-            "scripts.args",
-            "transactions_scripts.script_type",
-            "transactions_scripts.io_type",
-            "transactions_scripts.transaction_digest_id"
-          )
-          .as("type_scripts"),
-        "type_scripts.transaction_digest_id",
-        "txs.id"
-      );
+    let query = this.knex.from("transaction_digests as txs");
 
     if (this.fromBlock) {
       query = query.where(
@@ -902,11 +867,13 @@ class TransactionCollector extends BaseIndexerModule.TransactionCollector {
     }
 
     if (this.lock) {
-      query = this._queryScript(query, "lock_scripts", this.lock);
+      const lockQuery = this._scriptQuery(SCRIPT_TYPE_LOCK, this.lock);
+      query = query.whereIn("txs.id", lockQuery);
     }
 
     if (this.type && this.type !== "empty") {
-      query = this._queryScript(query, "type_scripts", this.type);
+      const typeQuery = this._scriptQuery(SCRIPT_TYPE_TYPE, this.type);
+      query = query.whereIn("txs.id", typeQuery);
     }
 
     if (order) {
