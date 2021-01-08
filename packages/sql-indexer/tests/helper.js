@@ -19,6 +19,15 @@ const knex2 = require("knex")({
   },
 });
 
+const knexForTransactionCollector = require("knex")({
+  client: "mysql2",
+  connection: {
+    host: "127.0.0.1",
+    database: "sql_indexer_test3",
+    user: "travis",
+  },
+});
+
 Indexer.prototype.initDbFromJsonFile = async function initDbFromJsonFile(
   filePath
 ) {
@@ -37,4 +46,4 @@ Indexer.prototype.clearDb = async function clearDb(filePath) {
   }
 };
 
-module.exports = { knex, knex2, Indexer };
+module.exports = { knex, knex2, knexForTransactionCollector, Indexer };

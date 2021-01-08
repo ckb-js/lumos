@@ -4,7 +4,7 @@ const XXHash = require("xxhash");
 const { Indexer: NativeIndexer, Emitter, BlockEmitter } = require("../native");
 const { EventEmitter } = require("events");
 const util = require("util");
-const { utils } = require("@ckb-lumos/base");
+const { utils, indexer: BaseIndexerModule } = require("@ckb-lumos/base");
 
 util.inherits(Emitter, EventEmitter);
 util.inherits(BlockEmitter, EventEmitter);
@@ -476,71 +476,9 @@ class CellCollector {
 // we will have to run CKB RPC queries on each tx hash to fetch transaction
 // data. In some cases this might slow your app down. An ideal solution would
 // be combining this with some cacher to accelerate this process.
-class TransactionCollector {
-  constructor(
-    indexer,
-    {
-      lock = null,
-      type = null,
-      argsLen = -1,
-      fromBlock = null,
-      toBlock = null,
-      order = "asc",
-      skip = null,
-    } = {},
-    { skipMissing = false, includeStatus = true } = {}
-  ) {
-    if (!lock && (!type || type === "empty")) {
-      throw new Error("Either lock or type script must be provided!");
-    }
-    // Wrap the plain `Script` into `ScriptWrapper`.
-    if (lock && !lock.script) {
-      validators.ValidateScript(lock);
-      this.lock = { script: lock, ioType: "both", argsLen: argsLen };
-    } else if (lock && lock.script) {
-      validators.ValidateScript(lock.script);
-      this.lock = lock;
-      // check ioType, argsLen
-      if (!lock.argsLen) {
-        this.lock.argsLen = argsLen;
-      }
-      if (!lock.ioType) {
-        this.lock.ioType = "both";
-      }
-    }
-    if (type === "empty") {
-      this.type = type;
-    } else if (type && !type.script) {
-      validators.ValidateScript(type);
-      this.type = { script: type, ioType: "both", argsLen: argsLen };
-    } else if (type && type.script) {
-      validators.ValidateScript(type.script);
-      this.type = type;
-      // check ioType, argsLen
-      if (!type.argsLen) {
-        this.type.argsLen = argsLen;
-      }
-      if (!type.ioType) {
-        this.type.ioType = "both";
-      }
-    }
-    if (fromBlock) {
-      utils.assertHexadecimal("fromBlock", fromBlock);
-    }
-    if (toBlock) {
-      utils.assertHexadecimal("toBlock", toBlock);
-    }
-    if (order !== "asc" && order !== "desc") {
-      throw new Error("Order must be either asc or desc!");
-    }
-    this.indexer = indexer;
-    this.skipMissing = skipMissing;
-    this.includeStatus = includeStatus;
-    this.fromBlock = fromBlock;
-    this.toBlock = toBlock;
-    this.order = order;
-    this.skip = skip;
-    this.rpc = new RPC(indexer.uri);
+class TransactionCollector extends BaseIndexerModule.TransactionCollector {
+  constructor(indexer, queryOptions, options) {
+    super(indexer, queryOptions, options);
   }
 
   getTransactionHashes() {
@@ -592,26 +530,6 @@ class TransactionCollector {
       hashes = typeHashes;
     }
     return hashes;
-  }
-
-  async count() {
-    let hashes = this.getTransactionHashes();
-    return hashes.size;
-  }
-
-  async *collect() {
-    let hashes = this.getTransactionHashes();
-    for (const hash of hashes) {
-      const tx = await this.rpc.get_transaction(hash);
-      if (!this.skipMissing && !tx) {
-        throw new Error(`Transaction ${h} is missing!`);
-      }
-      if (this.includeStatus) {
-        yield tx;
-      } else {
-        yield tx.transaction;
-      }
-    }
   }
 }
 

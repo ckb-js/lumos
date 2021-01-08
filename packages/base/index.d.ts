@@ -413,3 +413,7 @@ export declare class TransactionCollector {
 
   collect(): TransactionCollectorResults;
 }
+
+export declare const indexer: {
+  TransactionCollector: typeof TransactionCollector;
+};

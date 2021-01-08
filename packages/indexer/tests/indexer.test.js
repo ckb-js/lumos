@@ -1,6 +1,5 @@
 const test = require("ava");
 const sinon = require("sinon");
-const fs = require("fs");
 const { Indexer } = require("./helper.js");
 const { lock, type, indexerSubscribeTestCases } = require("./test_cases.js");
 // the nodeUri will not be connected during the test process, only serves as a placeholder when create an indexer instance.

@@ -37,8 +37,8 @@
     "knex": "^0.21.1"
   },
   "scripts": {
-    "fmt": "prettier --write \"{lib,migrations, tests}/**/*.js\" index.d.ts package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{lib,migrations, tests}/**/*.js\"",
+    "fmt": "prettier --write \"{lib,migrations,tests}/**/*.js\" index.d.ts package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{lib,migrations,tests}/**/*.js\"",
     "test": "ava **/*.test.js --timeout=2m"
   },
   "bugs": {

@@ -1,6 +1,6 @@
 const { RPC, Reader, validators } = require("ckb-js-toolkit");
 const { EventEmitter } = require("events");
-const { utils } = require("@ckb-lumos/base");
+const { utils, indexer: BaseIndexerModule } = require("@ckb-lumos/base");
 const SCRIPT_TYPE_LOCK = 0;
 const SCRIPT_TYPE_TYPE = 1;
 
@@ -535,6 +535,9 @@ class Indexer {
   }
 
   async emitMedianTimeEvents() {
+    if (this.medianTimeEmitters.length === 0) {
+      return;
+    }
     const info = await this.rpc.get_blockchain_info();
     const medianTime = info.median_time;
     for (const medianTimeEmitter of this.medianTimeEmitters) {
@@ -805,7 +808,139 @@ class CellCollector {
   }
 }
 
+class TransactionCollector extends BaseIndexerModule.TransactionCollector {
+  constructor(indexer, queryOptions, options) {
+    super(indexer, queryOptions, options);
+    this.knex = indexer.knex;
+  }
+
+  _queryScript(query, name, scriptWrapper) {
+    const binaryArgs = hexToNodeBuffer(scriptWrapper.script.args);
+    const binaryCodeHash = hexToNodeBuffer(scriptWrapper.script.code_hash);
+    const hashType = scriptWrapper.script.hash_type === "data" ? 0 : 1;
+
+    query = query
+      .where(`${name}.code_hash`, "=", binaryCodeHash)
+      .andWhere(`${name}.hash_type`, "=", hashType)
+      .whereRaw(`substring(${name}.args, 1, ?) = ?`, [
+        binaryArgs.byteLength,
+        binaryArgs,
+      ]);
+
+    if (scriptWrapper.argsLen !== "any" && scriptWrapper.argsLen > 0) {
+      query = query.whereRaw(`length(${name}.args) = ?`, [
+        scriptWrapper.argsLen,
+      ]);
+    }
+
+    if (scriptWrapper.ioType === "input") {
+      query = query.where(`${name}.io_type`, "=", IO_TYPE_INPUT);
+    } else if (scriptWrapper.ioType === "output") {
+      query = query.where(`${name}.io_type`, "=", IO_TYPE_OUTPUT);
+    }
+
+    return query;
+  }
+
+  _assembleQuery(order = true) {
+    let query = this.knex
+      .from("transaction_digests as txs")
+      .leftJoin(
+        this.knex("transactions_scripts")
+          .where("transactions_scripts.script_type", "=", SCRIPT_TYPE_LOCK)
+          .leftJoin(
+            this.knex.ref("scripts"),
+            "transactions_scripts.script_id",
+            "scripts.id"
+          )
+          .select(
+            "scripts.code_hash",
+            "scripts.hash_type",
+            "scripts.args",
+            "transactions_scripts.script_type",
+            "transactions_scripts.io_type",
+            "transactions_scripts.transaction_digest_id"
+          )
+          .as("lock_scripts"),
+        "lock_scripts.transaction_digest_id",
+        "txs.id"
+      )
+      .leftJoin(
+        this.knex("transactions_scripts")
+          .where("transactions_scripts.script_type", "=", SCRIPT_TYPE_TYPE)
+          .leftJoin(
+            this.knex.ref("scripts"),
+            "transactions_scripts.script_id",
+            "scripts.id"
+          )
+          .select(
+            "scripts.code_hash",
+            "scripts.hash_type",
+            "scripts.args",
+            "transactions_scripts.script_type",
+            "transactions_scripts.io_type",
+            "transactions_scripts.transaction_digest_id"
+          )
+          .as("type_scripts"),
+        "type_scripts.transaction_digest_id",
+        "txs.id"
+      );
+
+    if (this.fromBlock) {
+      query = query.where(
+        "txs.block_number",
+        ">=",
+        hexToDbBigInt(this.fromBlock)
+      );
+    }
+    if (this.toBlock) {
+      query = query.where(
+        "txs.block_number",
+        "<=",
+        hexToDbBigInt(this.toBlock)
+      );
+    }
+
+    if (this.lock) {
+      query = this._queryScript(query, "lock_scripts", this.lock);
+    }
+
+    if (this.type && this.type !== "empty") {
+      query = this._queryScript(query, "type_scripts", this.type);
+    }
+
+    if (order) {
+      query = query.orderBy([
+        {
+          column: "txs.block_number",
+          order: this.order,
+        },
+      ]);
+    }
+
+    query = query.offset(this.skip);
+
+    return query;
+  }
+
+  async getTransactionHashes() {
+    const items = await this._assembleQuery()
+      .distinct("txs.tx_hash")
+      .select("txs.block_number");
+
+    return items.map((i) => nodeBufferToHex(i.tx_hash));
+  }
+
+  async count() {
+    const result = await this._assembleQuery(false).countDistinct(
+      "txs.tx_hash"
+    );
+    return result[0].count;
+  }
+}
+
 module.exports = {
   CellCollector,
   Indexer,
+  TransactionCollector,
 };

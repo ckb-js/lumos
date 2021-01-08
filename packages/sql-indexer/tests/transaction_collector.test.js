@@ -1,6 +1,6 @@
 const test = require("ava");
 const { TransactionCollector } = require("../lib");
-const { Indexer } = require("./helper.js");
+const { Indexer, knexForTransactionCollector: knex } = require("./helper.js");
 const {
   lock,
   type,
@@ -9,17 +9,16 @@ const {
 
 // the nodeUri will not be connected during the test process, only serves as a placeholder when create an indexer instance.
 const nodeUri = "http://127.0.0.1:8115";
-const tmpIndexedDataPath = "/tmp/indexed_data2";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
-const indexer = new Indexer(nodeUri, tmpIndexedDataPath);
+const indexer = new Indexer(nodeUri, knex);
 
 test.before(async () => {
-  // setup rocksdb test data
+  await knex.migrate.up();
   await indexer.initDbFromJsonFile(blocksDataFilePath);
 });
 
 test.after(async () => {
-  await indexer.clearDb(blocksDataFilePath);
+  await knex.migrate.down();
 });
 
 test("query transactions with different queryOptions", async (t) => {
@@ -29,7 +28,8 @@ test("query transactions with different queryOptions", async (t) => {
       queryCase.queryOption
     );
     let transactionHashes = [];
-    for (const hash of transactionCollector.getTransactionHashes()) {
+    const hashes = await transactionCollector.getTransactionHashes();
+    for (const hash of hashes) {
       transactionHashes.push(hash);
     }
     t.deepEqual(transactionHashes, queryCase.expectedResult, queryCase.desc);
