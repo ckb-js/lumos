@@ -68,6 +68,27 @@ export const bobMultisigInputs: Cell[] = [
       "0x1111111111111111111111111111111111111111111111111111111111111111",
     block_number: "0x1",
   },
+  {
+    cell_output: {
+      capacity: "0x174876e800",
+      lock: {
+        code_hash:
+          "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+        hash_type: "type",
+        args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8",
+      },
+      type: undefined,
+    },
+    data: "0x",
+    out_point: {
+      tx_hash:
+        "0x74c3264f67663ba244c35453c3b3c790e6ae6dbf24eba5809494d6bf4d9cd89d",
+      index: "0x1",
+    },
+    block_hash:
+      "0x1111111111111111111111111111111111111111111111111111111111111111",
+    block_number: "0x1",
+  },
 ];
 
 export const bobMultisigLockInputs: Cell[] = [

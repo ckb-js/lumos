@@ -259,10 +259,12 @@ export async function injectCapacity(
     config = undefined,
     useLocktimeCellsFirst = true,
     LocktimePoolCellCollector = locktimePool.CellCollector,
+    enableDeductCapacity = true,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
     LocktimePoolCellCollector?: any;
+    enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -299,6 +301,7 @@ export async function injectCapacity(
         {
           config,
           LocktimeCellCollector: LocktimePoolCellCollector,
+          enableDeductCapacity,
         }
       );
       txSkeleton = result.txSkeleton;
@@ -313,7 +316,7 @@ export async function injectCapacity(
         fromInfos,
         deductAmount,
         minimalChangeCapacity,
-        { config }
+        { config, enableDeductCapacity }
       );
       txSkeleton = result.txSkeleton;
       deductAmount = result.capacity;
@@ -328,7 +331,7 @@ export async function injectCapacity(
         fromInfos,
         minimalChangeCapacity - changeCapacity,
         0n,
-        { config }
+        { config, enableDeductCapacity }
       );
       txSkeleton = result.txSkeleton;
       deductAmount = result.capacity;
@@ -340,7 +343,7 @@ export async function injectCapacity(
       fromInfos,
       deductAmount,
       minimalChangeCapacity,
-      { config }
+      { config, enableDeductCapacity }
     );
     txSkeleton = result.txSkeleton;
     deductAmount = result.capacity;
@@ -357,6 +360,7 @@ export async function injectCapacity(
           {
             config,
             LocktimeCellCollector: LocktimePoolCellCollector,
+            enableDeductCapacity,
           }
         );
         txSkeleton = result.txSkeleton;
@@ -376,6 +380,7 @@ export async function injectCapacity(
           {
             config,
             LocktimeCellCollector: LocktimePoolCellCollector,
+            enableDeductCapacity,
           }
         );
         txSkeleton = result.txSkeleton;
@@ -412,14 +417,17 @@ export async function payFee(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
+    enableDeductCapacity = true,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
+    enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
   return injectCapacity(txSkeleton, fromInfos, amount, undefined, tipHeader, {
     config,
     useLocktimeCellsFirst,
+    enableDeductCapacity,
   });
 }
 
@@ -446,7 +454,10 @@ async function _commonTransfer(
   fromInfos: FromInfo[],
   amount: bigint,
   minimalChangeCapacity: bigint,
-  { config = undefined }: Options = {}
+  {
+    config = undefined,
+    enableDeductCapacity = true,
+  }: Options & { enableDeductCapacity?: boolean } = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
   capacity: bigint;
@@ -472,7 +483,7 @@ async function _commonTransfer(
   });
 
   for (const fromScript of fromScripts) {
-    if (amount > 0n) {
+    if (enableDeductCapacity && amount > 0n) {
       [txSkeleton, amount] = _deductCapacity(txSkeleton, fromScript, amount);
     }
   }
@@ -746,9 +757,11 @@ export async function payFeeByFeeRate(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
+    enableDeductCapacity = true,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
+    enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
   feeRate = BigInt(feeRate);
@@ -768,6 +781,7 @@ export async function payFeeByFeeRate(
     newTxSkeleton = await payFee(txSkeleton, fromInfos, fee, tipHeader, {
       config,
       useLocktimeCellsFirst,
+      enableDeductCapacity,
     });
     currentTransactionSize = getTransactionSize(newTxSkeleton);
   }
