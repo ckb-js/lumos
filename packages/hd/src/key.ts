@@ -78,9 +78,15 @@ export function publicKeyToBlake160(publicKey: HexString): HexString {
   return blake160;
 }
 
+export function privateKeyToBlake160(privateKey: HexString): HexString {
+  const publicKey: HexString = privateToPublic(privateKey);
+  return publicKeyToBlake160(publicKey);
+}
+
 export default {
   signRecoverable,
   recoverFromSignature,
   privateToPublic,
   publicKeyToBlake160,
+  privateKeyToBlake160,
 };
