@@ -115,32 +115,28 @@ function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
   );
 }
 
-function validateSince(
-  since,
-  tipHeader,
-  sinceHeader,
-  tipMedianTimestamp,
-  cellMedianTimestamp
-) {
+function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
   const { relative, type, value } = parseSince(since);
   if (!relative) {
     if (type === "epochNumber") {
-      return validateAbsoluteEpochSince(since, tipHeader.epoch);
+      return validateAbsoluteEpochSince(since, tipSinceValidationInfo.epoch);
     }
     if (type === "blockNumber") {
-      return value <= BigInt(tipHeader.number);
+      return value <= BigInt(tipSinceValidationInfo.block_number);
     }
     if (type === "blockTimestamp") {
-      if (!tipMedianTimestamp) {
-        throw new Error(`Must provide tipMedianTimestamp!`);
+      if (!tipSinceValidationInfo.median_timestamp) {
+        throw new Error(`Must provide tip median_timestamp!`);
       }
 
-      return value * 1000n <= BigInt(tipMedianTimestamp);
+      return value * 1000n <= BigInt(tipSinceValidationInfo.median_timestamp);
     }
   } else {
     if (type === "epochNumber") {
-      const tipHeaderEpoch = parseEpoch(BigInt(tipHeader.epoch));
-      const sinceHeaderEpoch = parseEpoch(BigInt(sinceHeader.epoch));
+      const tipHeaderEpoch = parseEpoch(BigInt(tipSinceValidationInfo.epoch));
+      const sinceHeaderEpoch = parseEpoch(
+        BigInt(cellSinceValidationInfo.epoch)
+      );
       const added = {
         number: BigInt(value.number + sinceHeaderEpoch.number),
         index:
@@ -168,18 +164,22 @@ function validateSince(
       );
     }
     if (type === "blockNumber") {
-      return value + BigInt(sinceHeader.number) <= BigInt(tipHeader.number);
+      return (
+        value + BigInt(cellSinceValidationInfo.block_number) <=
+        BigInt(tipSinceValidationInfo.block_number)
+      );
     }
     if (type === "blockTimestamp") {
-      if (!tipMedianTimestamp || !cellMedianTimestamp) {
-        throw new Error(
-          `Must provide tipMediamTimestamp and cellMedianTimestamp!`
-        );
+      if (
+        !tipSinceValidationInfo.median_timestamp ||
+        !cellSinceValidationInfo.median_timestamp
+      ) {
+        throw new Error(`Must provide median_timestamp!`);
       }
 
       return (
-        value * 1000n + BigInt(cellMedianTimestamp) <=
-        BigInt(tipMedianTimestamp)
+        value * 1000n + BigInt(cellSinceValidationInfo.median_timestamp) <=
+        BigInt(tipSinceValidationInfo.median_timestamp)
       );
     }
   }
