@@ -189,23 +189,15 @@ test("validateSince, absolute blockTimestamp", (t) => {
   });
 
   const sinceHeader = {
-    timestamp: "0x" + BigInt(+new Date("2020-01-01")).toString(16),
+    // timestamp: "0x" + BigInt(+new Date("2020-01-01")).toString(16),
   };
 
-  t.true(
-    validateSince(
-      since,
-      { timestamp: "0x" + (timestamp * 1000n).toString(16) },
-      sinceHeader
-    )
-  );
-  t.false(
-    validateSince(
-      since,
-      { timestamp: "0x" + (timestamp * 1000n - 1n).toString(16) },
-      sinceHeader
-    )
-  );
+  const validTipMedianTimestamp = "0x" + (timestamp * 1000n).toString(16);
+  const invalidTipMedianTimestamp =
+    "0x" + (timestamp * 1000n - 1n).toString(16);
+
+  t.true(validateSince(since, {}, sinceHeader, validTipMedianTimestamp));
+  t.false(validateSince(since, {}, sinceHeader, invalidTipMedianTimestamp));
 });
 
 test("validateSince, relative blockTimestamp", (t) => {
@@ -217,27 +209,32 @@ test("validateSince, relative blockTimestamp", (t) => {
   });
 
   const sinceHeader = {
-    timestamp: BigInt(+new Date("2020-01-01")),
+    // timestamp: BigInt(+new Date("2020-01-01")),
   };
+
+  const cellMedianTimestamp =
+    "0x" + BigInt(+new Date("2020-01-01")).toString(16);
+  const validTipMedianTimestamp =
+    "0x" + (BigInt(cellMedianTimestamp) + timestamp * 1000n).toString(16);
+  const invalidTipMedianTimestamp =
+    "0x" + (BigInt(cellMedianTimestamp) + timestamp * 1000n - 1n).toString(16);
 
   t.true(
     validateSince(
       since,
-      {
-        timestamp:
-          "0x" + (sinceHeader.timestamp + timestamp * 1000n).toString(16),
-      },
-      sinceHeader
+      {},
+      sinceHeader,
+      validTipMedianTimestamp,
+      cellMedianTimestamp
     )
   );
   t.false(
     validateSince(
       since,
-      {
-        timestamp:
-          "0x" + (sinceHeader.timestamp + timestamp * 1000n - 1n).toString(16),
-      },
-      sinceHeader
+      {},
+      sinceHeader,
+      invalidTipMedianTimestamp,
+      cellMedianTimestamp
     )
   );
 });

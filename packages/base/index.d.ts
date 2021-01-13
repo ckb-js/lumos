@@ -289,7 +289,9 @@ export declare const since: {
   validateSince(
     since: PackedSince,
     tipHeader: Header,
-    sinceHeader?: Header
+    sinceHeader?: Header,
+    tipMedianTimestamp?: HexNumber,
+    cellMedianTimestamp?: HexNumber
   ): boolean;
 
   /**

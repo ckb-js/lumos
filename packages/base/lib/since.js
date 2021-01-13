@@ -115,7 +115,13 @@ function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
   );
 }
 
-function validateSince(since, tipHeader, sinceHeader) {
+function validateSince(
+  since,
+  tipHeader,
+  sinceHeader,
+  tipMedianTimestamp,
+  cellMedianTimestamp
+) {
   const { relative, type, value } = parseSince(since);
   if (!relative) {
     if (type === "epochNumber") {
@@ -125,7 +131,11 @@ function validateSince(since, tipHeader, sinceHeader) {
       return value <= BigInt(tipHeader.number);
     }
     if (type === "blockTimestamp") {
-      return value * 1000n <= BigInt(tipHeader.timestamp);
+      if (!tipMedianTimestamp) {
+        throw new Error(`Must provide tipMedianTimestamp!`);
+      }
+
+      return value * 1000n <= BigInt(tipMedianTimestamp);
     }
   } else {
     if (type === "epochNumber") {
@@ -161,9 +171,15 @@ function validateSince(since, tipHeader, sinceHeader) {
       return value + BigInt(sinceHeader.number) <= BigInt(tipHeader.number);
     }
     if (type === "blockTimestamp") {
+      if (!tipMedianTimestamp || !cellMedianTimestamp) {
+        throw new Error(
+          `Must provide tipMediamTimestamp and cellMedianTimestamp!`
+        );
+      }
+
       return (
-        value * 1000n + BigInt(sinceHeader.timestamp) <=
-        BigInt(tipHeader.timestamp)
+        value * 1000n + BigInt(cellMedianTimestamp) <=
+        BigInt(tipMedianTimestamp)
       );
     }
   }
