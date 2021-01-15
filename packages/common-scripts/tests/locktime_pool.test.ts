@@ -54,10 +54,11 @@ const inputInfos: LocktimeCell[] = [
     since: "0x0",
     depositBlockHash: undefined,
     withdrawBlockHash: undefined,
-    sinceBaseValue: {
+    sinceValidationInfo: {
       epoch: "0xa0005002b16",
-      number: "0x1aee1",
-      timestamp: "0x172b7721b70",
+      block_number: "0x1aee1",
+      // timestamp: "0x172b7721b70",
+      median_timestamp: "",
     },
   },
   {
@@ -84,10 +85,11 @@ const inputInfos: LocktimeCell[] = [
     since: "0x2000f000c0002b15",
     depositBlockHash: undefined,
     withdrawBlockHash: undefined,
-    sinceBaseValue: {
+    sinceValidationInfo: {
       epoch: "0xa0001002b16",
-      number: "0x1aedd",
-      timestamp: "0x172b6608868",
+      block_number: "0x1aedd",
+      // timestamp: "0x172b6608868",
+      median_timestamp: "",
     },
   },
   {
@@ -121,7 +123,7 @@ const inputInfos: LocktimeCell[] = [
       "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
     withdrawBlockHash:
       "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
-    sinceBaseValue: undefined,
+    sinceValidationInfo: undefined,
   },
 ];
 
@@ -635,11 +637,45 @@ test("CellCollector, multisig", async (t) => {
   t.is(cell.cell_output.capacity, bobMultisigInputs[0]!.cell_output.capacity);
   t.is(cell.block_hash, withdrawHeader.hash);
   t.is(cell.since, since);
-  t.deepEqual(cell.sinceBaseValue, {
+  t.deepEqual(cell.sinceValidationInfo, {
     epoch: withdrawHeader.epoch,
-    number: withdrawHeader.number,
-    timestamp: withdrawHeader.timestamp,
+    block_number: withdrawHeader.number,
+    // timestamp: withdrawHeader.timestamp,
+    median_timestamp: "",
   });
+});
+
+test("CellCollector, multisig, timestamp should be skipped", async (t) => {
+  const tipHeader = inputTipHeader;
+  const since = SinceUtils.generateSince({
+    relative: false,
+    type: "blockTimestamp",
+    value: BigInt(0),
+  });
+  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
+    bob.fromInfo
+  );
+  const args = secp256k1Blake160Multisig.multisigArgs(multisigScript, since);
+  const input: Cell = cloneObject(bobMultisigInputs[0]);
+  input.cell_output.lock.args = args;
+  // For using RpcMocker
+  input.block_hash = withdrawHeader.hash;
+
+  const cellProvider = new CellProvider([input]);
+
+  const collector = new locktimePool.CellCollector(
+    bob.multisigTestnetAddress,
+    cellProvider,
+    {
+      config: AGGRON4,
+      NodeRPC: RpcMocker,
+      tipHeader,
+    }
+  );
+
+  const cells = await collectAllCells(collector);
+
+  t.is(cells.length, 0);
 });
 
 test("CellCollector, dao & multisig, dao since > multisig since", async (t) => {

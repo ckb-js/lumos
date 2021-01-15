@@ -441,6 +441,12 @@ export interface EpochSinceValue {
 
 export type SinceType = "epochNumber" | "blockNumber" | "blockTimestamp";
 
+export interface SinceValidationInfo {
+  block_number: HexNumber;
+  epoch: HexNumber;
+  median_timestamp: HexNumber;
+}
+
 export declare const since: {
   /**
    * Parse since and get relative or not, type, and value of since
@@ -509,8 +515,8 @@ export declare const since: {
    */
   validateSince(
     since: PackedSince,
-    tipHeader: Header,
-    sinceHeader?: Header
+    tipSinceValidationInfo: SinceValidationInfo,
+    cellSinceValidationInfo?: SinceValidationInfo
   ): boolean;
 
   /**

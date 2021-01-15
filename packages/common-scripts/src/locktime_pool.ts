@@ -22,6 +22,7 @@ import {
   Header,
   QueryOptions,
   CellCollector as CellCollectorType,
+  SinceValidationInfo,
 } from "@ckb-lumos/base";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
@@ -46,17 +47,11 @@ import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { RPC } from "@ckb-lumos/rpc";
 import { secp256k1Blake160Multisig } from ".";
 
-export interface SinceBaseValue {
-  epoch: HexString;
-  number: HexString;
-  timestamp: HexString;
-}
-
 export interface LocktimeCell extends Cell {
   since: PackedSince;
   depositBlockHash?: Hash;
   withdrawBlockHash?: Hash;
-  sinceBaseValue?: SinceBaseValue;
+  sinceValidationInfo?: SinceValidationInfo;
 }
 
 export class CellCollector implements CellCollectorType {
@@ -64,6 +59,7 @@ export class CellCollector implements CellCollectorType {
   private config: Config;
   private rpc: RPC;
   private tipHeader?: Header;
+  private tipSinceValidationInfo?: SinceValidationInfo;
   public readonly fromScript: Script;
   public readonly multisigScript?: HexString;
 
@@ -92,6 +88,15 @@ export class CellCollector implements CellCollectorType {
 
     this.config = config;
     this.tipHeader = tipHeader;
+
+    if (tipHeader) {
+      // TODO: `median_timestamp` is not provided now!
+      this.tipSinceValidationInfo = {
+        block_number: tipHeader.number,
+        epoch: tipHeader.epoch,
+        median_timestamp: "",
+      };
+    }
 
     this.rpc = new NodeRPC(cellProvider.uri!);
 
@@ -166,16 +171,17 @@ export class CellCollector implements CellCollectorType {
         let maximumCapacity: bigint | undefined;
         let depositBlockHash: Hash | undefined;
         let withdrawBlockHash: Hash | undefined;
-        let sinceBaseValue: SinceBaseValue | undefined;
+        let sinceValidationInfo: SinceValidationInfo | undefined;
 
         // multisig
         if (lock.args.length === 58) {
           const header = (await this.rpc.get_header(inputCell.block_hash!))!;
           since = "0x" + _parseMultisigArgsSince(lock.args).toString(16);
-          sinceBaseValue = {
+          // TODO: `median_timestamp` not provided now!
+          sinceValidationInfo = {
             epoch: header.epoch,
-            number: header.number,
-            timestamp: header.timestamp,
+            block_number: header.number,
+            median_timestamp: "",
           };
         }
 
@@ -249,8 +255,13 @@ export class CellCollector implements CellCollectorType {
         }
 
         if (
-          this.tipHeader &&
-          !validateSince(since!, this.tipHeader, sinceBaseValue as Header)
+          parseSince(since!).type === "blockTimestamp" ||
+          (this.tipHeader &&
+            !validateSince(
+              since!,
+              this.tipSinceValidationInfo!,
+              sinceValidationInfo
+            ))
         ) {
           continue;
         }
@@ -260,7 +271,7 @@ export class CellCollector implements CellCollectorType {
           since: since!,
           depositBlockHash: depositBlockHash,
           withdrawBlockHash: withdrawBlockHash,
-          sinceBaseValue,
+          sinceValidationInfo,
         };
         result.cell_output.capacity =
           "0x" +
