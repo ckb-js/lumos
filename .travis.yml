@@ -45,6 +45,7 @@ install:
 
 script:
   - yarn workspace @ckb-lumos/helpers build
+  - yarn workspace @ckb-lumos/rpc build
   - yarn workspace @ckb-lumos/common-scripts build
   - yarn workspace @ckb-lumos/hd build
   - yarn workspace @ckb-lumos/hd-cache build
@@ -56,6 +57,7 @@ script:
   - yarn workspace @ckb-lumos/helpers test
   - yarn workspace @ckb-lumos/indexer test
   - yarn workspace @ckb-lumos/transaction-manager test
+  - yarn workspace @ckb-lumos/rpc test
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then yarn workspace @ckb-lumos/sql-indexer test; fi
   - yarn workspaces run fmt
   - yarn workspaces run lint
