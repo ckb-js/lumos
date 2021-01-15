@@ -203,7 +203,7 @@ export const bobMultisigLockSudtInputs: LocktimeCell[] = [
     since: "0x0",
     depositBlockHash: undefined,
     withdrawBlockHash: undefined,
-    sinceBaseValue: undefined,
+    sinceValidationInfo: undefined,
   },
 ];
 

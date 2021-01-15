@@ -133,22 +133,22 @@ test("validateSince, absolute blockNumber", (t) => {
     value: BigInt("12345"),
   });
 
-  const sinceHeader = {
+  const cellSinceValidationInfo = {
     number: "0x" + BigInt(11).toString(16),
   };
 
   t.true(
     validateSince(
       since,
-      { number: "0x" + BigInt(12345).toString(16) },
-      sinceHeader
+      { block_number: "0x" + BigInt(12345).toString(16) },
+      cellSinceValidationInfo
     )
   );
   t.false(
     validateSince(
       since,
-      { number: "0x" + BigInt(12345 - 1).toString(16) },
-      sinceHeader
+      { block_number: "0x" + BigInt(12345 - 1).toString(16) },
+      cellSinceValidationInfo
     )
   );
 });
@@ -160,22 +160,22 @@ test("validateSince, relative blockNumber", (t) => {
     value: BigInt("12345"),
   });
 
-  const sinceHeader = {
-    number: "0x" + BigInt(11).toString(16),
+  const cellSinceValidationInfo = {
+    block_number: "0x" + BigInt(11).toString(16),
   };
 
   t.true(
     validateSince(
       since,
-      { number: "0x" + BigInt(11 + 12345).toString(16) },
-      sinceHeader
+      { block_number: "0x" + BigInt(11 + 12345).toString(16) },
+      cellSinceValidationInfo
     )
   );
   t.false(
     validateSince(
       since,
-      { number: "0x" + BigInt(11 + 12345 - 1).toString(16) },
-      sinceHeader
+      { block_number: "0x" + BigInt(11 + 12345 - 1).toString(16) },
+      cellSinceValidationInfo
     )
   );
 });
@@ -188,22 +188,26 @@ test("validateSince, absolute blockTimestamp", (t) => {
     value: timestamp,
   });
 
-  const sinceHeader = {
-    timestamp: "0x" + BigInt(+new Date("2020-01-01")).toString(16),
+  const cellSinceValidationInfo = {
+    // timestamp: "0x" + BigInt(+new Date("2020-01-01")).toString(16),
   };
+
+  const validTipMedianTimestamp = "0x" + (timestamp * 1000n).toString(16);
+  const invalidTipMedianTimestamp =
+    "0x" + (timestamp * 1000n - 1n).toString(16);
 
   t.true(
     validateSince(
       since,
-      { timestamp: "0x" + (timestamp * 1000n).toString(16) },
-      sinceHeader
+      { median_timestamp: validTipMedianTimestamp },
+      cellSinceValidationInfo
     )
   );
   t.false(
     validateSince(
       since,
-      { timestamp: "0x" + (timestamp * 1000n - 1n).toString(16) },
-      sinceHeader
+      { median_timestamp: invalidTipMedianTimestamp },
+      cellSinceValidationInfo
     )
   );
 });
@@ -216,28 +220,30 @@ test("validateSince, relative blockTimestamp", (t) => {
     value: timestamp,
   });
 
-  const sinceHeader = {
-    timestamp: BigInt(+new Date("2020-01-01")),
+  const cellMedianTimestamp =
+    "0x" + BigInt(+new Date("2020-01-01")).toString(16);
+
+  const cellSinceValidationInfo = {
+    median_timestamp: cellMedianTimestamp,
   };
+
+  const validTipMedianTimestamp =
+    "0x" + (BigInt(cellMedianTimestamp) + timestamp * 1000n).toString(16);
+  const invalidTipMedianTimestamp =
+    "0x" + (BigInt(cellMedianTimestamp) + timestamp * 1000n - 1n).toString(16);
 
   t.true(
     validateSince(
       since,
-      {
-        timestamp:
-          "0x" + (sinceHeader.timestamp + timestamp * 1000n).toString(16),
-      },
-      sinceHeader
+      { median_timestamp: validTipMedianTimestamp },
+      cellSinceValidationInfo
     )
   );
   t.false(
     validateSince(
       since,
-      {
-        timestamp:
-          "0x" + (sinceHeader.timestamp + timestamp * 1000n - 1n).toString(16),
-      },
-      sinceHeader
+      { median_timestamp: invalidTipMedianTimestamp },
+      cellSinceValidationInfo
     )
   );
 });
@@ -254,7 +260,7 @@ test("validateSince, absolute epochNumber", (t) => {
     value: value,
   });
 
-  const sinceHeader = {
+  const cellSinceValidationInfo = {
     epoch: generateHeaderEpoch({
       number: 1000,
       index: 0,
@@ -263,7 +269,11 @@ test("validateSince, absolute epochNumber", (t) => {
   };
 
   t.true(
-    validateSince(since, { epoch: generateHeaderEpoch(value) }, sinceHeader)
+    validateSince(
+      since,
+      { epoch: generateHeaderEpoch(value) },
+      cellSinceValidationInfo
+    )
   );
   t.false(
     validateSince(
@@ -275,7 +285,7 @@ test("validateSince, absolute epochNumber", (t) => {
           index: 1799,
         }),
       },
-      sinceHeader
+      cellSinceValidationInfo
     )
   );
 });
@@ -292,7 +302,7 @@ test("validateSince, relative epochNumber", (t) => {
     value: value,
   });
 
-  const sinceHeader = {
+  const cellSinceValidationInfo = {
     epoch: generateHeaderEpoch({
       number: 1000,
       index: 0,
@@ -310,7 +320,7 @@ test("validateSince, relative epochNumber", (t) => {
           index: 0,
         }),
       },
-      sinceHeader
+      cellSinceValidationInfo
     )
   );
   t.false(
@@ -323,7 +333,7 @@ test("validateSince, relative epochNumber", (t) => {
           index: 1799,
         }),
       },
-      sinceHeader
+      cellSinceValidationInfo
     )
   );
 });
