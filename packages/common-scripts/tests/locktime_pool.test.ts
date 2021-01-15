@@ -668,7 +668,7 @@ test("CellCollector, multisig, timestamp should be skipped", async (t) => {
     cellProvider,
     {
       config: AGGRON4,
-      NodeRPC: RpcMocker,
+      NodeRPC: RpcMocker as any,
       tipHeader,
     }
   );
