@@ -16,7 +16,7 @@ import {
 } from "@ckb-lumos/indexer";
 import { Map, Set } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
-import { RPC } from "ckb-js-toolkit";
+import { RPC } from "@ckb-lumos/rpc";
 import {
   AccountExtendedPublicKey,
   AddressType,
@@ -426,7 +426,7 @@ export class Cache {
         const tx = txWithStatus.transaction;
         const blockHash: HexString = txWithStatus.tx_status.block_hash!;
         const tipHeader = await this.rpc.get_header(blockHash);
-        const blockNumber: HexString = tipHeader.number;
+        const blockNumber: HexString = tipHeader!.number;
         this.txCache.parseTransaction(
           tx,
           lockScript,
