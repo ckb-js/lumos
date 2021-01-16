@@ -620,9 +620,11 @@ async function injectCapacityWithoutChange(
   {
     config = undefined,
     LocktimeCellCollector = CellCollector,
+    enableDeductCapacity = true,
   }: {
     config?: Config;
     LocktimeCellCollector?: any;
+    enableDeductCapacity?: boolean;
   }
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
@@ -634,54 +636,56 @@ async function injectCapacityWithoutChange(
 
   amount = BigInt(amount || 0);
 
-  for (const fromInfo of fromInfos) {
-    const fromScript: Script = parseFromInfo(fromInfo, { config }).fromScript;
-    // validate fromScript
-    if (
-      !isSecp256k1Blake160MultisigScript(fromScript, config) &&
-      !isSecp256k1Blake160Script(fromScript, config)
-    ) {
-      // Skip if not support.
-      continue;
-    }
-    const lastFreezedOutput = txSkeleton
-      .get("fixedEntries")
-      .filter(({ field }) => field === "outputs")
-      .maxBy(({ index }) => index);
-    let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
-    for (; i < txSkeleton.get("outputs").size && amount > 0; ++i) {
-      const output = txSkeleton.get("outputs").get(i)!;
+  if (enableDeductCapacity) {
+    for (const fromInfo of fromInfos) {
+      const fromScript: Script = parseFromInfo(fromInfo, { config }).fromScript;
+      // validate fromScript
       if (
-        new ScriptValue(output.cell_output.lock, { validate: false }).equals(
-          new ScriptValue(fromScript, { validate: false })
-        )
+        !isSecp256k1Blake160MultisigScript(fromScript, config) &&
+        !isSecp256k1Blake160Script(fromScript, config)
       ) {
-        const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
-        const cellCapacity = BigInt(clonedOutput.cell_output.capacity);
-        let deductCapacity;
-        if (amount >= cellCapacity) {
-          deductCapacity = cellCapacity;
-        } else {
-          deductCapacity = cellCapacity - minimalCellCapacity(clonedOutput);
-          if (deductCapacity > amount) {
-            deductCapacity = amount;
-          }
-        }
-        amount -= deductCapacity;
-        clonedOutput.cell_output.capacity =
-          "0x" + (cellCapacity - deductCapacity).toString(16);
-
-        txSkeleton = txSkeleton.update("outputs", (outputs) => {
-          return outputs.update(i, () => clonedOutput);
-        });
+        // Skip if not support.
+        continue;
       }
+      const lastFreezedOutput = txSkeleton
+        .get("fixedEntries")
+        .filter(({ field }) => field === "outputs")
+        .maxBy(({ index }) => index);
+      let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
+      for (; i < txSkeleton.get("outputs").size && amount > 0; ++i) {
+        const output = txSkeleton.get("outputs").get(i)!;
+        if (
+          new ScriptValue(output.cell_output.lock, { validate: false }).equals(
+            new ScriptValue(fromScript, { validate: false })
+          )
+        ) {
+          const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
+          const cellCapacity = BigInt(clonedOutput.cell_output.capacity);
+          let deductCapacity;
+          if (amount >= cellCapacity) {
+            deductCapacity = cellCapacity;
+          } else {
+            deductCapacity = cellCapacity - minimalCellCapacity(clonedOutput);
+            if (deductCapacity > amount) {
+              deductCapacity = amount;
+            }
+          }
+          amount -= deductCapacity;
+          clonedOutput.cell_output.capacity =
+            "0x" + (cellCapacity - deductCapacity).toString(16);
+
+          txSkeleton = txSkeleton.update("outputs", (outputs) => {
+            return outputs.update(i, () => clonedOutput);
+          });
+        }
+      }
+      // remove all output cells with capacity equal to 0
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.filter(
+          (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
+        );
+      });
     }
-    // remove all output cells with capacity equal to 0
-    txSkeleton = txSkeleton.update("outputs", (outputs) => {
-      return outputs.filter(
-        (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
-      );
-    });
   }
 
   /*

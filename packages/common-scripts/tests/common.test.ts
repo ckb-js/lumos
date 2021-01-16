@@ -4,11 +4,12 @@ const { __tests__ } = common;
 const { _commonTransfer } = __tests__;
 import { CellProvider } from "./cell_provider";
 import {
+  parseAddress,
   TransactionSkeleton,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { Cell, Transaction, values } from "@ckb-lumos/base";
-import { FromInfo, anyoneCanPay } from "../src";
+import { Cell, Transaction, values, Script } from "@ckb-lumos/base";
+import { FromInfo, anyoneCanPay, parseFromInfo } from "../src";
 import { Config, predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4, LINA } = predefined;
 
@@ -957,4 +958,202 @@ test("Should not throw if anyone-can-pay config not provided", async (t) => {
       { config }
     );
   });
+});
+
+// disable deduct capacity
+test("transfer secp => secp, without deduct capacity", async (t) => {
+  const cellProvider = new CellProvider([...bobSecpInputs]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(600 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [bob.testnetAddress],
+    alice.testnetAddress,
+    amount,
+    undefined,
+    undefined,
+    { config: AGGRON4 }
+  );
+
+  t.is(txSkeleton.get("inputs").size, 1);
+
+  t.is(txSkeleton.get("outputs").size, 2);
+
+  const fee: bigint = BigInt(1000);
+  txSkeleton = await common.payFee(
+    txSkeleton,
+    [bob.testnetAddress],
+    fee,
+    undefined,
+    {
+      config: AGGRON4,
+      enableDeductCapacity: false,
+    }
+  );
+
+  t.is(txSkeleton.get("inputs").size, 2);
+  t.is(txSkeleton.get("outputs").size, 3);
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputCapcity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputCapacity - sumOfOutputCapcity, fee);
+
+  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+  t.is(
+    BigInt(txSkeleton.get("outputs").get(1)!.cell_output.capacity),
+    BigInt(bobSecpInputs[0].cell_output.capacity) - amount
+  );
+  t.is(
+    BigInt(txSkeleton.get("outputs").get(2)!.cell_output.capacity),
+    BigInt(bobSecpInputs[1].cell_output.capacity) - fee
+  );
+
+  const changeLockScript: Script = parseAddress(bob.testnetAddress, {
+    config: AGGRON4,
+  });
+
+  t.true(
+    new values.ScriptValue(txSkeleton.get("outputs").get(1)!.cell_output.lock, {
+      validate: false,
+    }).equals(new values.ScriptValue(changeLockScript, { validate: false }))
+  );
+  t.true(
+    new values.ScriptValue(txSkeleton.get("outputs").get(2)!.cell_output.lock, {
+      validate: false,
+    }).equals(new values.ScriptValue(changeLockScript, { validate: false }))
+  );
+  t.is(txSkeleton.get("fixedEntries").size, 0);
+
+  const expectedMessages = [
+    "0x7bf7f9183d54e3a69d80c1d049d0b1cda7005341f428b70b22abc356286dbf70",
+  ];
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.deepEqual(
+    txSkeleton
+      .get("signingEntries")
+      .sort((a, b) => a.index - b.index)
+      .map((s) => s.message)
+      .toArray(),
+    expectedMessages
+  );
+});
+
+test("transfer multisig lock => secp, without deduct capacity", async (t) => {
+  const cellProvider = new CellProvider([...bobMultisigInputs]);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  class LocktimePoolCellCollector {
+    async *collect() {
+      for (const cell of bobMultisigInputs) {
+        yield {
+          ...cell,
+          since: "0x0",
+          depositBlockHash: undefined,
+          withdrawBlockHash: undefined,
+          sinceBaseValue: undefined,
+        };
+      }
+    }
+  }
+
+  const amount = BigInt(600 * 10 ** 8);
+  txSkeleton = await common.transfer(
+    txSkeleton,
+    [bob.fromInfo],
+    alice.testnetAddress,
+    amount,
+    undefined,
+    tipHeader,
+    {
+      config: AGGRON4,
+      LocktimePoolCellCollector,
+    }
+  );
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 2);
+
+  const fee = BigInt(1000);
+  txSkeleton = await common.injectCapacity(
+    txSkeleton,
+    [bob.fromInfo],
+    fee,
+    undefined,
+    tipHeader,
+    {
+      config: AGGRON4,
+      LocktimePoolCellCollector,
+      enableDeductCapacity: false,
+    }
+  );
+
+  t.is(txSkeleton.get("inputs").size, 2);
+  t.is(txSkeleton.get("outputs").size, 3);
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputCapcity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputCapacity - sumOfOutputCapcity, fee);
+
+  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+  t.is(
+    BigInt(txSkeleton.get("outputs").get(1)!.cell_output.capacity),
+    BigInt(bobMultisigInputs[0].cell_output.capacity) - amount
+  );
+  t.is(
+    BigInt(txSkeleton.get("outputs").get(2)!.cell_output.capacity),
+    BigInt(bobMultisigInputs[1].cell_output.capacity) - fee
+  );
+
+  const changeLockScript: Script = parseFromInfo(bob.fromInfo, {
+    config: AGGRON4,
+  }).fromScript;
+  t.true(
+    new values.ScriptValue(txSkeleton.get("outputs").get(1)!.cell_output.lock, {
+      validate: false,
+    }).equals(new values.ScriptValue(changeLockScript, { validate: false }))
+  );
+  t.true(
+    new values.ScriptValue(txSkeleton.get("outputs").get(2)!.cell_output.lock, {
+      validate: false,
+    }).equals(new values.ScriptValue(changeLockScript, { validate: false }))
+  );
+  t.is(txSkeleton.get("fixedEntries").size, 0);
+
+  const expectedMessages = [
+    "0x01fc08c48a5cab51686b808e65d041966a460a17cfa82bb77cbd270fff4634c0",
+  ];
+
+  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.deepEqual(
+    txSkeleton
+      .get("signingEntries")
+      .sort((a, b) => a.index - b.index)
+      .map((s) => s.message)
+      .toArray(),
+    expectedMessages
+  );
 });
