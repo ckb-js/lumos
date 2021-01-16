@@ -5,6 +5,7 @@ const {
   recoverFromSignature,
   privateToPublic,
   publicKeyToBlake160,
+  privateKeyToBlake160,
 } = key;
 
 const signInfo = {
@@ -72,5 +73,10 @@ test("privateToPublic, derive public key from private key wrong length", (t) => 
 
 test("publicKeyToBlake160", (t) => {
   const blake160 = publicKeyToBlake160(signInfo.publicKey);
+  t.is(blake160, signInfo.blake160);
+});
+
+test("privateKeyToBlake160", (t) => {
+  const blake160 = privateKeyToBlake160(signInfo.privateKey);
   t.is(blake160, signInfo.blake160);
 });

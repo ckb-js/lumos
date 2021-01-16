@@ -110,6 +110,38 @@ export function generateAddress(
 
 export const scriptToAddress = generateAddress;
 
+function generatePredefinedAddress(
+  args: HexString,
+  scriptType: string,
+  { config = undefined }: Options = {}
+): Address {
+  config = config || getConfig();
+  const template = config.SCRIPTS[scriptType]!;
+  const script: Script = {
+    code_hash: template.CODE_HASH,
+    hash_type: template.HASH_TYPE,
+    args,
+  };
+
+  return generateAddress(script, { config });
+}
+
+export function generateSecp256k1Blake160Address(
+  args: HexString,
+  { config = undefined }: Options = {}
+): Address {
+  return generatePredefinedAddress(args, "SECP256K1_BLAKE160", { config });
+}
+
+export function generateSecp256k1Blake160MultisigAddress(
+  args: HexString,
+  { config = undefined }: Options = {}
+): Address {
+  return generatePredefinedAddress(args, "SECP256K1_BLAKE160_MULTISIG", {
+    config,
+  });
+}
+
 export function parseAddress(
   address: Address,
   { config = undefined }: Options = {}
