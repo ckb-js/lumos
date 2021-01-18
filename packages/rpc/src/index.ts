@@ -70,6 +70,10 @@ class RpcProxy {
     this.blockDifference = blockDifference;
   }
 
+  resetIndexer(indexer?: Indexer): void {
+    this.indexer = indexer;
+  }
+
   getProxy() {
     return new Proxy(this, handler);
   }
@@ -118,6 +122,14 @@ export class RPC {
       waitForSyncCheckIntervalSeconds,
       blockDifference,
     }).getProxy();
+  }
+
+  /**
+   *
+   * @param indexer If not provided or be undefined, will disable `waitForSync`, and if provided, will enable `waitForSync` with provided indexer.
+   */
+  resetIndexer(indexer?: Indexer): void {
+    this.rpcProxy.resetIndexer(indexer);
   }
 
   // Module Chain
