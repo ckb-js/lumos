@@ -554,7 +554,7 @@ test("CellCollector, dao", async (t) => {
     cellProvider,
     {
       config: AGGRON4,
-      NodeRPC: RpcMocker,
+      NodeRPC: RpcMocker as any,
       tipHeader,
     }
   );
@@ -591,7 +591,7 @@ test("CellCollector, dao, invalid", async (t) => {
     cellProvider,
     {
       config: AGGRON4,
-      NodeRPC: RpcMocker,
+      NodeRPC: RpcMocker as any,
       tipHeader,
     }
   );
@@ -625,7 +625,7 @@ test("CellCollector, multisig", async (t) => {
     cellProvider,
     {
       config: AGGRON4,
-      NodeRPC: RpcMocker,
+      NodeRPC: RpcMocker as any,
       tipHeader,
     }
   );
@@ -668,7 +668,7 @@ test("CellCollector, multisig, timestamp should be skipped", async (t) => {
     cellProvider,
     {
       config: AGGRON4,
-      NodeRPC: RpcMocker,
+      NodeRPC: RpcMocker as any,
       tipHeader,
     }
   );
@@ -725,7 +725,7 @@ test("CellCollector, dao & multisig, dao since > multisig since", async (t) => {
     cellProvider,
     {
       config: AGGRON4,
-      NodeRPC: RpcMocker,
+      NodeRPC: RpcMocker as any,
       tipHeader,
     }
   );
@@ -800,7 +800,7 @@ test("CellCollector, dao & multisig, multisig since > dao since", async (t) => {
     cellProvider,
     {
       config: AGGRON4,
-      NodeRPC: RpcMocker,
+      NodeRPC: RpcMocker as any,
       tipHeader,
     }
   );
@@ -874,7 +874,7 @@ test("CellCollector, dao & multisig, multisig since type = blockNumber", async (
     cellProvider,
     {
       config: AGGRON4,
-      NodeRPC: RpcMocker,
+      NodeRPC: RpcMocker as any,
       tipHeader,
     }
   );

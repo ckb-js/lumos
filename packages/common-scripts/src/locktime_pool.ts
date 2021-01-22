@@ -26,7 +26,7 @@ import {
 } from "@ckb-lumos/base";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
-import { normalizers, Reader, RPC } from "ckb-js-toolkit";
+import { normalizers, Reader } from "ckb-js-toolkit";
 import {
   generateDaoScript,
   isSecp256k1Blake160MultisigScript,
@@ -44,6 +44,7 @@ const {
 } = sinceUtils;
 import { List, Set } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
+import { RPC } from "@ckb-lumos/rpc";
 import { secp256k1Blake160Multisig } from ".";
 
 export interface LocktimeCell extends Cell {
@@ -73,7 +74,7 @@ export class CellCollector implements CellCollectorType {
     }: Options & {
       queryOptions?: QueryOptions;
       tipHeader?: Header;
-      NodeRPC?: any;
+      NodeRPC?: typeof RPC;
     } = {}
   ) {
     if (!cellProvider) {
@@ -174,7 +175,7 @@ export class CellCollector implements CellCollectorType {
 
         // multisig
         if (lock.args.length === 58) {
-          const header = await this.rpc.get_header(inputCell.block_hash);
+          const header = (await this.rpc.get_header(inputCell.block_hash!))!;
           since = "0x" + _parseMultisigArgsSince(lock.args).toString(16);
           // TODO: `median_timestamp` not provided now!
           sinceValidationInfo = {
@@ -189,34 +190,34 @@ export class CellCollector implements CellCollectorType {
           if (inputCell.data === "0x0000000000000000") {
             continue;
           }
-          const transactionWithStatus = await this.rpc.get_transaction(
+          const transactionWithStatus = (await this.rpc.get_transaction(
             inputCell.out_point!.tx_hash
-          );
+          ))!;
           withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
           const transaction = transactionWithStatus.transaction;
           const depositOutPoint =
             transaction.inputs[+inputCell.out_point!.index].previous_output;
-          depositBlockHash = (
-            await this.rpc.get_transaction(depositOutPoint.tx_hash)
-          ).tx_status.block_hash;
+          depositBlockHash = (await this.rpc.get_transaction(
+            depositOutPoint.tx_hash
+          ))!.tx_status.block_hash!;
           const depositBlockHeader = await this.rpc.get_header(
             depositBlockHash
           );
           const withdrawBlockHeader = await this.rpc.get_header(
-            withdrawBlockHash
+            withdrawBlockHash!
           );
           let daoSince: PackedSince =
             "0x" +
             calculateDaoEarliestSince(
-              depositBlockHeader.epoch,
-              withdrawBlockHeader.epoch
+              depositBlockHeader!.epoch,
+              withdrawBlockHeader!.epoch
             ).toString(16);
           maximumCapacity = calculateMaximumWithdraw(
             inputCell,
-            depositBlockHeader.dao,
-            withdrawBlockHeader.dao
+            depositBlockHeader!.dao,
+            withdrawBlockHeader!.dao
           );
-          const withdrawEpochValue = parseEpoch(withdrawBlockHeader.epoch);
+          const withdrawEpochValue = parseEpoch(withdrawBlockHeader!.epoch);
           const fourEpochsLater = {
             number: withdrawEpochValue.number + 4,
             length: withdrawEpochValue.length,

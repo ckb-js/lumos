@@ -21,7 +21,7 @@ import {
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { parseSince } = sinceUtils;
-import { normalizers, Reader, RPC } from "ckb-js-toolkit";
+import { normalizers, Reader } from "ckb-js-toolkit";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
@@ -31,6 +31,7 @@ import {
   isSecp256k1Blake160MultisigScript,
   generateDaoScript,
 } from "./helper";
+import { RPC } from "@ckb-lumos/rpc";
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS: bigint = BigInt(180);
@@ -355,7 +356,10 @@ export async function unlock(
   withdrawInput: Cell,
   toAddress: Address,
   fromInfo: FromInfo,
-  { config = undefined, RpcClient = RPC }: Options & { RpcClient?: any } = {}
+  {
+    config = undefined,
+    RpcClient = RPC,
+  }: Options & { RpcClient?: typeof RPC } = {}
 ) {
   config = config || getConfig();
   _checkDaoScript(config);
@@ -393,12 +397,12 @@ export async function unlock(
   }
 
   // calculate since & capacity (interest)
-  const depositBlockHeader = await rpc.get_header(depositInput.block_hash);
-  const depositEpoch = parseEpoch(BigInt(depositBlockHeader.epoch));
+  const depositBlockHeader = await rpc.get_header(depositInput.block_hash!);
+  const depositEpoch = parseEpoch(BigInt(depositBlockHeader!.epoch));
   // const depositCapacity = BigInt(depositInput.cell_output.capacity)
 
-  const withdrawBlockHeader = await rpc.get_header(withdrawInput.block_hash);
-  const withdrawEpoch = parseEpoch(BigInt(withdrawBlockHeader.epoch));
+  const withdrawBlockHeader = await rpc.get_header(withdrawInput.block_hash!);
+  const withdrawEpoch = parseEpoch(BigInt(withdrawBlockHeader!.epoch));
 
   const withdrawFraction = withdrawEpoch.index * depositEpoch.length;
   const depositFraction = depositEpoch.index * withdrawEpoch.length;
@@ -421,8 +425,8 @@ export async function unlock(
     "0x" +
     calculateMaximumWithdraw(
       withdrawInput,
-      depositBlockHeader.dao,
-      withdrawBlockHeader.dao
+      depositBlockHeader!.dao,
+      withdrawBlockHeader!.dao
     ).toString(16);
 
   const toScript = parseAddress(toAddress, { config });
