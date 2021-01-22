@@ -4,10 +4,11 @@ import { CellProvider } from "./cell_provider";
 import {
   TransactionSkeletonType,
   TransactionSkeleton,
+  parseAddress,
 } from "@ckb-lumos/helpers";
 import { bob, alice } from "./account_info";
 import { predefined } from "@ckb-lumos/config-manager";
-import { utils } from "@ckb-lumos/base";
+import { Script, utils } from "@ckb-lumos/base";
 import { isSudtScript } from "../src/helper";
 import {
   bobSecpInputs,
@@ -328,4 +329,302 @@ test("transfer acp => secp, destroyable", async (t) => {
     "0xf8000f721af269f64f46c41ba0666a20957e9a70fad54e8badeeb6027dc351ad";
   t.is(txSkeleton.get("signingEntries").size, 1);
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
+});
+
+test("transfer secp => secp, change to acp and has previous output, fixed", async (t) => {
+  const cellProvider = new CellProvider(bobSecpSudtInputs);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const firstBobSecpInput = bobSecpInputs[0];
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) => {
+    return inputs.push(firstBobSecpInput);
+  });
+
+  const sudtTypeScript: Script = {
+    code_hash: AGGRON4.SCRIPTS.SUDT!.CODE_HASH,
+    hash_type: AGGRON4.SCRIPTS.SUDT!.HASH_TYPE,
+    args: bob.secpLockHash,
+  };
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push({
+      cell_output: {
+        capacity: firstBobSecpInput.cell_output.capacity,
+        lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
+        type: sudtTypeScript,
+      },
+      data: utils.toBigUInt128LE(BigInt(0)),
+    });
+  });
+
+  txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+    return fixedEntries.push({
+      field: "output",
+      index: 0,
+    });
+  });
+
+  const amount = BigInt(2000);
+  const capacity = BigInt(200 * 10 ** 8);
+  txSkeleton = await sudt.transfer(
+    txSkeleton,
+    [bob.testnetAddress],
+    bob.secpLockHash,
+    alice.testnetAddress,
+    amount,
+    bob.acpTestnetAddress,
+    capacity,
+    undefined,
+    { config: AGGRON4 }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+
+  const sumOfInputAmount = txSkeleton
+    .get("inputs")
+    .filter((i) => i.cell_output.type)
+    .map((i) => readBigUInt128LE(i.data))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputAmount = txSkeleton
+    .get("outputs")
+    .filter((i) => i.cell_output.type)
+    .map((i) => readBigUInt128LE(i.data))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputAmount, sumOfOutputAmount);
+
+  t.is(txSkeleton.get("cellDeps").size, 2);
+  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), BigInt(0));
+  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(1)!.data), amount);
+  t.is(
+    readBigUInt128LE(txSkeleton.get("outputs").get(2)!.data),
+    BigInt(10000) - amount
+  );
+
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(1)!.cell_output.type, AGGRON4)
+  );
+
+  t.is(txSkeleton.get("inputs").size, 2);
+  t.is(txSkeleton.get("outputs").size, 3);
+  t.is(txSkeleton.get("fixedEntries").size, 3);
+
+  const lastOutput = txSkeleton.get("outputs").get(-1)!;
+  t.true(isSudtScript(lastOutput.cell_output.type, AGGRON4));
+});
+
+test("transfer secp, split change cell", async (t) => {
+  const cellProvider = new CellProvider(bobSecpSudtInputs);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(2000);
+  const capacity = BigInt((1000 - 142 - 61) * 10 ** 8);
+  txSkeleton = await sudt.transfer(
+    txSkeleton,
+    [bob.testnetAddress],
+    bob.secpLockHash,
+    alice.testnetAddress,
+    amount,
+    bob.testnetAddress,
+    capacity,
+    undefined,
+    { config: AGGRON4, splitChangeCell: true }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+
+  const sumOfInputAmount = txSkeleton
+    .get("inputs")
+    .filter((i) => i.cell_output.type)
+    .map((i) => readBigUInt128LE(i.data))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputAmount = txSkeleton
+    .get("outputs")
+    .filter((i) => i.cell_output.type)
+    .map((i) => readBigUInt128LE(i.data))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputAmount, sumOfOutputAmount);
+
+  t.is(txSkeleton.get("cellDeps").size, 2);
+  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), amount);
+
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
+  );
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 3);
+  t.is(txSkeleton.get("fixedEntries").size, 2);
+
+  const lastOutput = txSkeleton.get("outputs").get(-1)!;
+  t.is(lastOutput.cell_output.type, undefined);
+});
+
+test("transfer secp, split change cell, not enough for two minimals", async (t) => {
+  const cellProvider = new CellProvider(bobSecpSudtInputs);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const amount = BigInt(2000);
+  const capacity = BigInt((1000 - 142 - 61 + 1) * 10 ** 8);
+  txSkeleton = await sudt.transfer(
+    txSkeleton,
+    [bob.testnetAddress],
+    bob.secpLockHash,
+    alice.testnetAddress,
+    amount,
+    bob.testnetAddress,
+    capacity,
+    undefined,
+    { config: AGGRON4, splitChangeCell: true }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+
+  const sumOfInputAmount = txSkeleton
+    .get("inputs")
+    .filter((i) => i.cell_output.type)
+    .map((i) => readBigUInt128LE(i.data))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputAmount = txSkeleton
+    .get("outputs")
+    .filter((i) => i.cell_output.type)
+    .map((i) => readBigUInt128LE(i.data))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputAmount, sumOfOutputAmount);
+
+  t.is(txSkeleton.get("cellDeps").size, 2);
+  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), amount);
+
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
+  );
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.is(txSkeleton.get("fixedEntries").size, 2);
+
+  const lastOutput = txSkeleton.get("outputs").get(-1)!;
+  t.not(lastOutput.cell_output.type, undefined);
+});
+
+test("transfer secp => secp, change to acp and has previous output, split change cell", async (t) => {
+  const cellProvider = new CellProvider(bobSecpSudtInputs);
+  let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
+    cellProvider,
+  });
+
+  const firstBobSecpInput = bobSecpInputs[0];
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) => {
+    return inputs.push(firstBobSecpInput);
+  });
+
+  const sudtTypeScript: Script = {
+    code_hash: AGGRON4.SCRIPTS.SUDT!.CODE_HASH,
+    hash_type: AGGRON4.SCRIPTS.SUDT!.HASH_TYPE,
+    args: bob.secpLockHash,
+  };
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push({
+      cell_output: {
+        capacity: firstBobSecpInput.cell_output.capacity,
+        lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
+        type: sudtTypeScript,
+      },
+      data: utils.toBigUInt128LE(BigInt(0)),
+    });
+  });
+
+  const amount = BigInt(2000);
+  const capacity = BigInt((1000 - 142 - 61) * 10 ** 8);
+  txSkeleton = await sudt.transfer(
+    txSkeleton,
+    [bob.testnetAddress],
+    bob.secpLockHash,
+    alice.testnetAddress,
+    amount,
+    bob.acpTestnetAddress,
+    capacity,
+    undefined,
+    { config: AGGRON4, splitChangeCell: true }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+
+  const sumOfInputAmount = txSkeleton
+    .get("inputs")
+    .filter((i) => i.cell_output.type)
+    .map((i) => readBigUInt128LE(i.data))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const sumOfOutputAmount = txSkeleton
+    .get("outputs")
+    .filter((i) => i.cell_output.type)
+    .map((i) => readBigUInt128LE(i.data))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  t.is(sumOfInputAmount, sumOfOutputAmount);
+
+  t.is(txSkeleton.get("cellDeps").size, 2);
+  t.is(
+    readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data),
+    BigInt(10000) - amount
+  );
+  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(1)!.data), amount);
+
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(1)!.cell_output.type, AGGRON4)
+  );
+
+  t.is(txSkeleton.get("inputs").size, 2);
+  t.is(txSkeleton.get("outputs").size, 3);
+  t.is(txSkeleton.get("fixedEntries").size, 1);
+
+  const lastOutput = txSkeleton.get("outputs").get(-1)!;
+  t.is(lastOutput.cell_output.type, undefined);
 });

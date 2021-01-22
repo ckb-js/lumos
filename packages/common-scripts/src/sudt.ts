@@ -129,7 +129,7 @@ export async function issueToken(
  * @param changeAddress if not provided, will use first fromInfo
  * @param capacity
  * @param tipHeader
- * @param options
+ * @param options When `splitChangeCell = true` && change amount > 0 && change capacity >= minimalCellCapacity(change cell with sudt) + minimalCellCapacity(change cell without sudt), change cell will split to two change cells, one with sudt and one without.
  */
 export async function transfer(
   txSkeleton: TransactionSkeletonType,
@@ -143,8 +143,10 @@ export async function transfer(
   {
     config = undefined,
     LocktimePoolCellCollector = LocktimeCellCollector,
+    splitChangeCell = false,
   }: Options & {
     LocktimePoolCellCollector?: any;
+    splitChangeCell?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -550,34 +552,102 @@ export async function transfer(
     }
   }
 
-  // if change cell is an anyone-can-pay cell and exists in txSkeleton.get("outputs")
+  // if change cell is an anyone-can-pay cell and exists in txSkeleton.get("outputs") and not in fixedEntries
+  // 1. change lock script is acp
+  // 2. lock and type are equal to output OutputA in outputs
+  // 3. OutputA is not fixed.
   let changeOutputIndex = -1;
   if (
     isAcpScript(changeCell.cell_output.lock, config) &&
     (changeOutputIndex = txSkeleton.get("outputs").findIndex((output) => {
-      return new ScriptValue(changeCell.cell_output.lock, {
-        validate: false,
-      }).equals(new ScriptValue(output.cell_output.lock, { validate: false }));
-    })) !== -1
+      return (
+        new ScriptValue(changeCell.cell_output.lock, {
+          validate: false,
+        }).equals(
+          new ScriptValue(output.cell_output.lock, { validate: false })
+        ) &&
+        ((changeAmount === 0n &&
+          !changeCell.cell_output.type &&
+          !output.cell_output.type) ||
+          (changeAmount >= 0n &&
+            !!changeCell.cell_output.type &&
+            !!output.cell_output.type &&
+            new ScriptValue(changeCell.cell_output.type, {
+              validate: false,
+            }).equals(
+              new ScriptValue(output.cell_output.type, { validate: false })
+            )))
+      );
+    })) !== -1 &&
+    txSkeleton.get("fixedEntries").findIndex((fixedEntry) => {
+      return (
+        fixedEntry.field === "output" && fixedEntry.index === changeOutputIndex
+      );
+    }) === -1
   ) {
-    txSkeleton.update("outputs", (outputs) => {
-      return outputs.update(changeOutputIndex, (output) => {
-        const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
-        clonedOutput.cell_output.capacity =
-          "0x" +
-          (BigInt(output.cell_output.capacity) + changeCapacity).toString(16);
-        clonedOutput.data = toBigUInt128LE(
-          readBigUInt128LE(output.data) + changeAmount
-        );
+    const originOutput: Cell = txSkeleton
+      .get("outputs")
+      .get(changeOutputIndex)!;
+    const clonedOutput: Cell = JSON.parse(JSON.stringify(originOutput));
+    clonedOutput.cell_output.capacity =
+      "0x" +
+      (BigInt(originOutput.cell_output.capacity) + changeCapacity).toString(16);
+    if (changeAmount > 0) {
+      clonedOutput.data = toBigUInt128LE(
+        readBigUInt128LE(originOutput.data) + changeAmount
+      );
+    }
 
-        return clonedOutput;
-      });
+    const minimalChangeCellCapcaity = minimalCellCapacity(changeCell);
+    const minimalChangeCellWithoutSudtCapacity = minimalCellCapacity(
+      changeCellWithoutSudt
+    );
+    let splitFlag: boolean = false;
+    if (
+      changeAmount > 0n &&
+      splitChangeCell &&
+      changeCapacity >=
+        minimalChangeCellCapcaity + minimalChangeCellWithoutSudtCapacity
+    ) {
+      clonedOutput.cell_output.capacity = originOutput.cell_output.capacity;
+      changeCellWithoutSudt.cell_output.capacity =
+        "0x" + changeCapacity.toString(16);
+      splitFlag = true;
+    }
+
+    txSkeleton = txSkeleton.update("outputs", (outputs) => {
+      return outputs.set(changeOutputIndex, clonedOutput);
     });
+
+    if (splitFlag) {
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.push(changeCellWithoutSudt);
+      });
+    }
   } else if (changeCapacity >= minimalCellCapacity(changeCell)) {
     changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
     if (changeAmount > 0n) {
       changeCell.data = toBigUInt128LE(changeAmount);
     }
+
+    const minimalChangeCellCapcaity = minimalCellCapacity(changeCell);
+    const minimalChangeCellWithoutSudtCapacity = minimalCellCapacity(
+      changeCellWithoutSudt
+    );
+    let splitFlag = false;
+    if (changeAmount > 0n && splitChangeCell) {
+      if (
+        changeCapacity >=
+        minimalChangeCellCapcaity + minimalChangeCellWithoutSudtCapacity
+      ) {
+        changeCell.cell_output.capacity =
+          "0x" + minimalChangeCellCapcaity.toString(16);
+        changeCellWithoutSudt.cell_output.capacity =
+          "0x" + (changeCapacity - minimalChangeCellCapcaity).toString(16);
+        splitFlag = true;
+      }
+    }
+
     txSkeleton = txSkeleton.update("outputs", (outputs) =>
       outputs.push(changeCell)
     );
@@ -587,6 +657,11 @@ export async function transfer(
           field: "outputs",
           index: txSkeleton.get("outputs").size - 1,
         });
+      });
+    }
+    if (splitFlag) {
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.push(changeCellWithoutSudt);
       });
     }
   } else if (
