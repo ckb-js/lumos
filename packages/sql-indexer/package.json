@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.15.0",
-    "ckb-js-toolkit": "^0.9.2",
+    "ckb-js-toolkit": "^0.10.2",
     "knex": "^0.21.1"
   },
   "scripts": {

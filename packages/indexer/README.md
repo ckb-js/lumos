@@ -24,6 +24,11 @@ const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data");
 indexer.startForever();
 ```
 
+To enable HTTP persistent connection to CKB node:
+
+```javascript
+const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data", { rpcOptions: { headers: { Connection: "Keep-Alive"}}});
+```
 
 ### CellCollector
 
@@ -356,6 +361,36 @@ for await (const tx of txCollector.collect()) {
 ```
 
 The `ioType` field is among `input | output | both`.
+
+### TransactionCollector batch request
+
+The TransactionCollector's `collect()` method follows an iterator pattern, yielding transaction one by one, which enables pagination combined with `skip` queryOption together. However, there might be some scenarios you want to send a batch request:
+
+```javascript
+txCollector = new TransactionCollector(indexer, {
+  lock: {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+  },
+});
+
+txHashes = await txCollector.getTransactionHashes().toArray();
+
+// use indexer's rpc instance or create a new one
+// const { RPC } = require("ckb-js-toolkit");
+// rpc = new RPC("http://127.0.0.1:8114", { headers: { Connection: "Keep-Alive" }});
+batchRpc = indexer.rpc.batch();
+
+// query 20 txs at most each request
+for (let i = 0; i < 20 && i < txHashes.length; i++) {
+  batchRpc = batchRpc.get_transaction(txHashes[i]);
+}
+
+await batchRpc.send();
+
+```
 
 ### EventEmitter
 

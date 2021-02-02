@@ -70,7 +70,7 @@ class TransactionCollector {
     this.toBlock = toBlock;
     this.order = order;
     this.skip = skip;
-    this.rpc = new RPC(indexer.uri);
+    this.rpc = indexer.rpc;
   }
 
   async getTransactionHashes() {

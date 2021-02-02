@@ -590,6 +590,7 @@ export interface IndexerOptions {
   logger?: Logger;
   keepNum?: number;
   pruneInterval?: number;
+  rpcOptions?: object;
 }
 
 export interface Tip {
@@ -637,6 +638,8 @@ export declare class TransactionCollector {
   );
 
   count(): Promise<number>;
+
+  getTransactionHashes(): Promise<HexString[]>;
 
   collect(): TransactionCollectorResults;
 }
