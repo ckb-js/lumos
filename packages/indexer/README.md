@@ -27,7 +27,14 @@ indexer.startForever();
 To enable HTTP persistent connection to CKB node:
 
 ```javascript
-const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data", { rpcOptions: { headers: { Connection: "Keep-Alive"}}});
+// const http = require("http");
+
+const rpcOptions = {
+  agent: new http.Agent({
+    keepAlive: true
+  })
+}
+const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data", { rpcOptions: rpcOptions});
 ```
 
 ### CellCollector
@@ -380,7 +387,7 @@ txHashes = await txCollector.getTransactionHashes().toArray();
 
 // use indexer's rpc instance or create a new one
 // const { RPC } = require("ckb-js-toolkit");
-// rpc = new RPC("http://127.0.0.1:8114", { headers: { Connection: "Keep-Alive" }});
+// rpc = new RPC("http://127.0.0.1:8114", { agent: new http.Agent({ keepAlive: true })});
 batchRpc = indexer.rpc.batch();
 
 // query 20 txs at most each request
