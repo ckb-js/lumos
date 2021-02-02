@@ -125,6 +125,7 @@ class Indexer {
       pollIntervalSeconds = 2,
       livenessCheckIntervalSeconds = 5,
       logger = defaultLogger,
+      rpcOptions = {},
     } = {}
   ) {
     this.uri = uri;
@@ -132,7 +133,7 @@ class Indexer {
     this.logger = logger;
     this.nativeIndexer = new NativeIndexer(uri, path, pollIntervalSeconds);
     this.pollIntervalSeconds = pollIntervalSeconds;
-    this.rpc = new RPC(this.uri);
+    this.rpc = new RPC(this.uri, rpcOptions);
   }
 
   running() {
@@ -152,11 +153,10 @@ class Indexer {
   }
 
   async waitForSync(blockDifference = 3) {
-    const rpc = new RPC(this.uri);
     while (true) {
       const tip = await this.tip();
       const indexedNumber = tip ? BigInt(tip.block_number) : 0n;
-      const ckbTip = await rpc.get_tip_block_number();
+      const ckbTip = await this.rpc.get_tip_block_number();
 
       if (BigInt(ckbTip) - indexedNumber <= BigInt(blockDifference)) {
         break;

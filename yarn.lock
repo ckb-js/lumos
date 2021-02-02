@@ -834,6 +834,14 @@ ci-parallel-vars@^1.0.0:
   resolved "https://registry.yarnpkg.com/ci-parallel-vars/-/ci-parallel-vars-1.0.0.tgz#af97729ed1c7381911ca37bcea263d62638701b3"
   integrity sha512-u6dx20FBXm+apMi+5x7UVm6EH7BL1gc4XrcnQewjcB7HWRcor/V5qWc3RG2HwpgDJ26gIi2DSEu3B7sXynAw/g==
 
+ckb-js-toolkit@^0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/ckb-js-toolkit/-/ckb-js-toolkit-0.10.2.tgz#d616eaef315babe797ea9ee7a271c51f82fe5a80"
+  integrity sha512-hVfIH5OBYibAssTag68zVhuUdqB4Iu3EqbCJrOsePpW+TryvqdmvGca2RQyGm0h6fhVK6RuNuKQ8rSdq/cjgUg==
+  dependencies:
+    cross-fetch "^3.0.6"
+    jsbi "^3.1.2"
+
 ckb-js-toolkit@^0.9.2:
   version "0.9.2"
   resolved "https://registry.yarnpkg.com/ckb-js-toolkit/-/ckb-js-toolkit-0.9.2.tgz#c80eb98dc25099241e97bb025ac1566b896bbd49"

@@ -35,7 +35,7 @@
     "@ckb-lumos/hd": "^0.15.0",
     "@ckb-lumos/indexer": "^0.15.0",
     "@ckb-lumos/rpc": "^0.15.0",
-    "ckb-js-toolkit": "^0.9.2",
+    "ckb-js-toolkit": "^0.10.2",
     "immutable": "^4.0.0-rc.12"
   },
   "repository": {
