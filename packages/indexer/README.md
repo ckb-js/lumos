@@ -27,14 +27,23 @@ indexer.startForever();
 To enable HTTP persistent connection to CKB node:
 
 ```javascript
-// const http = require("http");
+const httpAgent = new http.Agent({
+	keepAlive: true
+});
+const httpsAgent = new https.Agent({
+	keepAlive: true
+});
 
-const rpcOptions = {
-  agent: new http.Agent({
-    keepAlive: true
-  })
+const agent = function(_parsedURL) {
+  if (_parsedURL.protocol == 'http:') {
+    return httpAgent;
+  } else {
+    return httpsAgent;
+  }
 }
-const indexer = new Indexer("http://127.0.0.1:8114", "/tmp/indexed-data", { rpcOptions: rpcOptions});
+
+const uri = "http://127.0.0.1:8114";
+const indexer = new Indexer(uri, "/tmp/indexed-data", { rpcOptions: { agent: agent(new URL(uri))}});
 ```
 
 ### CellCollector
@@ -386,9 +395,26 @@ txCollector = new TransactionCollector(indexer, {
 txHashes = await txCollector.getTransactionHashes().toArray();
 
 // use indexer's rpc instance or create a new one
-// const { RPC } = require("ckb-js-toolkit");
-// rpc = new RPC("http://127.0.0.1:8114", { agent: new http.Agent({ keepAlive: true })});
 batchRpc = indexer.rpc.batch();
+
+// const { RPC } = require("ckb-js-toolkit");
+// const httpAgent = new http.Agent({
+// 	keepAlive: true
+// });
+// const httpsAgent = new https.Agent({
+// 	keepAlive: true
+// });
+//
+// const agent = function(_parsedURL) {
+//   if (_parsedURL.protocol == 'http:') {
+//   	return httpAgent;
+//   } else {
+//   	return httpsAgent;
+//   }
+// }
+//
+// const uri = "http://127.0.0.1:8114";
+// const rpc = new RPC(uri, { agent: agent(new URL(uri))});
 
 // query 20 txs at most each request
 for (let i = 0; i < 20 && i < txHashes.length; i++) {
