@@ -115,14 +115,17 @@ export class RPC {
     {
       waitForSyncCheckIntervalSeconds = 1,
       blockDifference = 3,
+      rpcOptions = {},
     }: {
       waitForSyncCheckIntervalSeconds?: number;
       blockDifference?: number;
+      rpcOptions?: object;
     } = {}
   ) {
     this.rpcProxy = new RpcProxy(uri, indexer, {
       waitForSyncCheckIntervalSeconds,
       blockDifference,
+      rpcOptions,
     }).getProxy();
   }
 
