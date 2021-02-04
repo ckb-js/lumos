@@ -84,10 +84,11 @@ class Indexer {
       pruneInterval = 2000,
       emitters = [],
       medianTimeEmitters = [],
+      rpcOptions = {},
     } = {}
   ) {
     this.uri = uri;
-    this.rpc = new RPC(uri);
+    this.rpc = new RPC(uri, rpcOptions);
     this.knex = knex;
     this.pollIntervalSeconds = pollIntervalSeconds;
     this.livenessCheckIntervalSeconds = livenessCheckIntervalSeconds;
@@ -153,11 +154,10 @@ class Indexer {
   }
 
   async waitForSync(blockDifference = 3) {
-    const rpc = new RPC(this.uri);
     while (true) {
       const tip = await this.tip();
       const indexedNumber = tip ? BigInt(tip.block_number) : 0n;
-      const ckbTip = await rpc.get_tip_block_number();
+      const ckbTip = await this.rpc.get_tip_block_number();
 
       if (BigInt(ckbTip) - indexedNumber <= BigInt(blockDifference)) {
         break;
