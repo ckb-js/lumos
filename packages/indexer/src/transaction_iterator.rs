@@ -30,7 +30,7 @@ use std::time::Duration;
 use std::{cell::RefCell, ops::Deref};
 
 type BoxedTransactionIterator = JsBox<TransactionIterator>;
-pub struct TransactionIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)>>);
+pub struct TransactionIterator(Box<dyn Send + Sync + Iterator<Item = (Box<[u8]>, Box<[u8]>)>>);
 impl Finalize for TransactionIterator {}
 impl TransactionIterator {}
 pub fn get_transactions_by_script_iterator(
@@ -226,8 +226,8 @@ pub fn get_transactions_by_script_iterator(
                         from_block_number_slice <= block_number_slice.unwrap()
                             && key.ends_with(&io_type_mark)
                     })
-                    .skip(skip_number);
-                let boxed_transaction_iterator = cx.boxed(TransactionIterator(Box::new(iter)));
+                    .skip(skip_number).collect::<Vec<_>>();
+                let boxed_transaction_iterator = cx.boxed(TransactionIterator(Box::new(iter.into_iter())));
                 Ok(boxed_transaction_iterator)
             }
         }
@@ -308,8 +308,8 @@ pub fn get_transactions_by_script_iterator(
                         to_block_number_slice >= block_number_slice.unwrap()
                             && key.ends_with(&io_type_mark)
                     })
-                    .skip(skip_number);
-                let boxed_transaction_iterator = cx.boxed(TransactionIterator(Box::new(iter)));
+                    .skip(skip_number).collect::<Vec<_>>();
+                let boxed_transaction_iterator = cx.boxed(TransactionIterator(Box::new(iter.into_iter())));
                 Ok(boxed_transaction_iterator)
             }
         }
