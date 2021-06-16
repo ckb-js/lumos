@@ -2,44 +2,28 @@ extern crate lazysort;
 use crate::helper::*;
 use crate::indexer::*;
 use ckb_indexer::{
-    indexer::{Error as IndexerError, Indexer, Key, KeyPrefix, Value},
-    store::{IteratorDirection, RocksdbStore, Store},
+    indexer::KeyPrefix,
+    store::{IteratorDirection, Store},
 };
-use ckb_jsonrpc_types::{BlockNumber, BlockView};
 use ckb_types::{
-    core::{BlockView as CoreBlockView, ScriptHashType},
-    packed::{Byte32, Bytes, CellOutput, OutPoint, Script, ScriptBuilder},
+    packed::{Byte32, OutPoint},
     prelude::*,
 };
-use futures::Future;
-use hyper::rt;
-use jsonrpc_core_client::{transports::http, RpcError};
-use jsonrpc_derive::rpc;
 use lazysort::SortedBy;
 use neon::prelude::*;
-use std::fmt;
-use std::fs::File;
-use std::path::PathBuf;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc, RwLock,
-};
-use std::thread;
-use std::time::Duration;
-use std::{
-    borrow::{Borrow, BorrowMut},
-    convert::TryInto,
-};
-use std::{cell::RefCell, ops::Deref};
+use std::convert::TryInto;
+use std::sync::{Arc, RwLock};
 
-type BoxedLiveCellIterator = JsBox<LiveCellIterator>;
-pub struct LiveCellIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)> + Send>);
+type BoxedLiveCellIterator = JsBox<Arc<RwLock<LiveCellIterator>>>;
+pub struct LiveCellIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)> + Send + Sync>);
 impl Finalize for LiveCellIterator {}
 impl LiveCellIterator {}
 
-pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCellIterator> {
-    let native_indexer = cx.argument::<JsBox<RefCell<NativeIndexer>>>(0)?;
-    let native_indexer = native_indexer.borrow();
+pub fn get_live_cells_by_script_iterator(
+    mut cx: FunctionContext,
+) -> JsResult<BoxedLiveCellIterator> {
+    let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
+    let native_indexer = native_indexer.read().unwrap();
     let store = native_indexer.indexer.store();
     let js_script: Handle<JsObject> = cx.argument::<JsObject>(1)?;
     let js_code_hash = js_script
@@ -66,14 +50,17 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
     }
     let script = script.unwrap();
 
-    let prefix = if cx.argument::<JsNumber>(2)?.value() as u32 == 1 {
+    let prefix = if cx.argument::<JsNumber>(2)?.value(&mut cx) as u32 == 1 {
         KeyPrefix::CellTypeScript
     } else {
         KeyPrefix::CellLockScript
     };
     let args_len = cx.argument::<JsValue>(3)?;
-    let args_len = if args_len.is_a::<JsString>() {
-        let args_len = args_len.downcast::<JsString>().or_throw(&mut cx)?.value();
+    let args_len = if args_len.is_a::<JsString, _>(&mut cx) {
+        let args_len = args_len
+            .downcast::<JsString, _>(&mut cx)
+            .or_throw(&mut cx)?
+            .value(&mut cx);
         if args_len != "any" {
             return cx.throw_error(format!(
                 "The field argsLen must be string \'any\' when it's String type, it's \'{}\' now.",
@@ -81,8 +68,11 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
             ));
         }
         ArgsLen::StringAny
-    } else if args_len.is_a::<JsNumber>() {
-        let args_len = args_len.downcast::<JsNumber>().or_throw(&mut cx)?.value();
+    } else if args_len.is_a::<JsNumber, _>(&mut cx) {
+        let args_len = args_len
+            .downcast::<JsNumber, _>(&mut cx)
+            .or_throw(&mut cx)?
+            .value(&mut cx);
         if args_len > u32::max_value() as f64 {
             return cx.throw_error("args length must fit in u32 value!");
         }
@@ -98,8 +88,11 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
     };
 
     let from_block = cx.argument::<JsValue>(4)?;
-    let from_block_number_slice = if from_block.is_a::<JsString>() {
-        let from_block_hex = from_block.downcast::<JsString>().or_throw(&mut cx)?.value();
+    let from_block_number_slice = if from_block.is_a::<JsString, _>(&mut cx) {
+        let from_block_hex = from_block
+            .downcast::<JsString, _>(&mut cx)
+            .or_throw(&mut cx)?
+            .value(&mut cx);
         let from_block_result = u64::from_str_radix(&from_block_hex[2..], 16);
         if from_block_result.is_err() {
             return cx.throw_error(format!(
@@ -112,8 +105,11 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
         0_u64.to_be_bytes()
     };
     let to_block = cx.argument::<JsValue>(5)?;
-    let to_block_number_slice = if to_block.is_a::<JsString>() {
-        let to_block_hex = to_block.downcast::<JsString>().or_throw(&mut cx)?.value();
+    let to_block_number_slice = if to_block.is_a::<JsString, _>(&mut cx) {
+        let to_block_hex = to_block
+            .downcast::<JsString, _>(&mut cx)
+            .or_throw(&mut cx)?
+            .value(&mut cx);
         let to_block_result = u64::from_str_radix(&to_block_hex[2..], 16);
         if to_block_result.is_err() {
             return cx.throw_error(format!(
@@ -126,10 +122,12 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
         u64::MAX.to_be_bytes()
     };
 
-    let order = cx.argument::<JsString>(6)?.value();
+    let order = cx.argument::<JsString>(6)?.value(&mut cx);
     let skip = cx.argument::<JsValue>(7)?;
-    let skip_number = if skip.is_a::<JsNumber>() {
-        skip.downcast::<JsNumber>().or_throw(&mut cx)?.value() as usize
+    let skip_number = if skip.is_a::<JsNumber, _>(&mut cx) {
+        skip.downcast::<JsNumber, _>(&mut cx)
+            .or_throw(&mut cx)?
+            .value(&mut cx) as usize
     } else {
         0_usize
     };
@@ -176,8 +174,11 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
                             b_key[b_key.len() - 16..b_key.len() - 8].try_into().unwrap();
                         a_block_number_slice.cmp(&b_block_number_slice)
                     })
-                    .skip(skip_number);
-                Ok(LiveCellIterator(Box::new(iter)))
+                    .skip(skip_number)
+                    .collect::<Vec<_>>();
+                Ok(cx.boxed(Arc::new(RwLock::new(LiveCellIterator(Box::new(
+                    iter.into_iter(),
+                ))))))
             }
             ArgsLen::UintValue(args_len) => {
                 // The `start_key` includes key_prefix, script's code_hash, hash_type and args(total or partial)
@@ -203,8 +204,11 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
                         // filter out all keys start with `start_key` but the block number smaller than `from_block_number_slice`
                         from_block_number_slice <= block_number_slice.unwrap()
                     })
-                    .skip(skip_number);
-                Ok(LiveCellIterator(Box::new(iter)))
+                    .skip(skip_number)
+                    .collect::<Vec<_>>();
+                Ok(cx.boxed(Arc::new(RwLock::new(LiveCellIterator(Box::new(
+                    iter.into_iter(),
+                ))))))
             }
         }
     } else if order == "desc" {
@@ -248,8 +252,11 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
                             b_key[b_key.len() - 16..b_key.len() - 8].try_into().unwrap();
                         b_block_number_slice.cmp(&a_block_number_slice)
                     })
-                    .skip(skip_number);
-                Ok(LiveCellIterator(Box::new(iter)))
+                    .skip(skip_number)
+                    .collect::<Vec<_>>();
+                Ok(cx.boxed(Arc::new(RwLock::new(LiveCellIterator(Box::new(
+                    iter.into_iter(),
+                ))))))
             }
             ArgsLen::UintValue(args_len) => {
                 // The `start_key` includes key_prefix, script's code_hash, hash_type and args(total or partial)
@@ -281,8 +288,11 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
                         let block_number_slice = key[key.len() - 16..key.len() - 8].try_into();
                         to_block_number_slice >= block_number_slice.unwrap()
                     })
-                    .skip(skip_number);
-                Ok(LiveCellIterator(Box::new(iter)))
+                    .skip(skip_number)
+                    .collect::<Vec<_>>();
+                Ok(cx.boxed(Arc::new(RwLock::new(LiveCellIterator(Box::new(
+                    iter.into_iter(),
+                ))))))
             }
         }
     } else {
@@ -290,4 +300,43 @@ pub fn get_live_cell_iterator(mut cx: FunctionContext) -> JsResult<BoxedLiveCell
     }
 }
 
-pub fn live_cell_iterator_collect(mut cx: FunctionContext) -> JsResult<JsObject> {}
+pub fn live_cell_iterator_collect(mut cx: FunctionContext) -> JsResult<JsArray> {
+    let live_cell_iterator = cx.argument::<JsBox<Arc<RwLock<LiveCellIterator>>>>(0)?;
+
+    let live_cell_key_values = {
+        let mut iterator = live_cell_iterator.write().unwrap();
+        let mut key_values = vec![];
+        while let Some((key, value)) = iterator.0.next() {
+            key_values.push((key, value));
+        }
+        key_values
+    };
+    let js_out_points = JsArray::new(&mut cx, live_cell_key_values.len() as u32);
+    for (i, (key, value)) in live_cell_key_values.iter().enumerate() {
+        let tx_hash = Byte32::from_slice(&value);
+        let index = key[key.len() - 4..].try_into();
+        if tx_hash.is_err() || index.is_err() {
+            return cx.throw_error("Malformed data!");
+        }
+        let index = u32::from_be_bytes(index.unwrap());
+        let out_point = OutPoint::new(tx_hash.unwrap(), index);
+        if cx.argument::<JsBoolean>(0)?.value(&mut cx) {
+            let mut js_buffer = JsArrayBuffer::new(&mut cx, out_point.as_slice().len() as u32)?;
+            {
+                let guard = cx.lock();
+                let buffer = js_buffer.borrow_mut(&guard);
+                buffer.as_mut_slice().copy_from_slice(out_point.as_slice());
+            }
+            js_out_points.set(&mut cx, i as u32, js_buffer)?;
+        } else {
+            let js_out_point = JsObject::new(&mut cx);
+            let js_tx_hash = cx.string(format!("{:#x}", out_point.tx_hash()));
+            js_out_point.set(&mut cx, "tx_hash", js_tx_hash)?;
+            let index: u32 = out_point.index().unpack();
+            let js_index = cx.string(format!("{:#x}", index));
+            js_out_point.set(&mut cx, "index", js_index)?;
+            js_out_points.set(&mut cx, i as u32, js_out_point)?;
+        }
+    }
+    Ok(js_out_points)
+}

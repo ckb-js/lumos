@@ -1,26 +1,22 @@
 extern crate lazysort;
 use crate::helper::*;
 use ckb_indexer::{
-    indexer::{Error as IndexerError, Indexer, Key, KeyPrefix, Value},
-    store::{IteratorDirection, RocksdbStore, Store},
+    indexer::{Error as IndexerError, Indexer, Key, Value},
+    store::{RocksdbStore, Store},
 };
 use ckb_jsonrpc_types::{BlockNumber, BlockView};
 use ckb_types::{
-    core::{BlockView as CoreBlockView, ScriptHashType},
-    packed::{Byte32, Bytes, CellOutput, OutPoint, Script, ScriptBuilder},
+    core::BlockView as CoreBlockView,
+    packed::{Bytes, CellOutput, OutPoint, Script},
     prelude::*,
 };
 use futures::Future;
 use hyper::rt;
 use jsonrpc_core_client::{transports::http, RpcError};
 use jsonrpc_derive::rpc;
-use lazysort::SortedBy;
 use neon::prelude::*;
 use std::cell::RefCell;
-use std::convert::TryInto;
 use std::fmt;
-use std::fs::File;
-use std::path::PathBuf;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, RwLock,
@@ -497,8 +493,8 @@ pub fn new_indexer(mut cx: FunctionContext) -> JsResult<BoxedNativeIndexer> {
 }
 
 pub fn get_emitter(mut cx: FunctionContext) -> JsResult<BoxedEmitter> {
-    let native_indexer = cx.argument::<JsBox<RefCell<NativeIndexer>>>(0)?;
-    let native_indexer = native_indexer.borrow();
+    let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
+    let native_indexer = native_indexer.read().unwrap();
     let emitter = Emitter::new(cx)?;
     let mut emitters = native_indexer.emitters.write().unwrap();
     emitters.push(emitter.borrow().clone());
@@ -561,14 +557,14 @@ pub fn start(mut cx: FunctionContext) -> JsResult<JsUndefined> {
 //
 
 pub fn stop(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-    let native_indexer = cx.argument::<JsBox<RefCell<NativeIndexer>>>(0)?;
-    native_indexer.borrow().stop();
+    let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
+    native_indexer.read().unwrap().stop();
     Ok(cx.undefined())
 }
 
 pub fn tip(mut cx: FunctionContext) -> JsResult<JsObject> {
-    let native_indexer = cx.argument::<JsBox<RefCell<NativeIndexer>>>(0)?;
-    let tip = native_indexer.borrow().indexer.tip();
+    let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
+    let tip = native_indexer.read().unwrap().indexer.tip();
     if tip.is_err() {
         return cx.throw_error(format!("Error fetching tip: {:?}", tip.unwrap_err()));
     }
@@ -588,7 +584,7 @@ pub fn tip(mut cx: FunctionContext) -> JsResult<JsObject> {
 }
 
 pub fn get_detailed_live_cell(mut cx: FunctionContext) -> JsResult<JsObject> {
-    let native_indexer = cx.argument::<JsBox<RefCell<NativeIndexer>>>(0)?;
+    let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
     let js_buffer = cx.argument::<JsArrayBuffer>(0)?;
     let out_point = {
         let guard = cx.lock();
@@ -601,7 +597,7 @@ pub fn get_detailed_live_cell(mut cx: FunctionContext) -> JsResult<JsObject> {
         ));
     }
     let out_point = out_point.unwrap();
-    let indexer = native_indexer.borrow().indexer.clone();
+    let indexer = native_indexer.read().unwrap().indexer.clone();
     let detailed_cell = indexer.get_detailed_live_cell(&out_point);
     if detailed_cell.is_err() {
         return cx.throw_error(format!(

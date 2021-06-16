@@ -2,35 +2,17 @@ extern crate lazysort;
 use crate::helper::*;
 use crate::indexer::*;
 use ckb_indexer::{
-    indexer::{Error as IndexerError, Indexer, Key, KeyPrefix, Value},
-    store::{IteratorDirection, RocksdbStore, Store},
+    indexer::KeyPrefix,
+    store::{IteratorDirection, Store},
 };
-use ckb_jsonrpc_types::{BlockNumber, BlockView};
-use ckb_types::{
-    core::{BlockView as CoreBlockView, ScriptHashType},
-    packed::{Byte32, Bytes, CellOutput, OutPoint, Script, ScriptBuilder},
-    prelude::*,
-};
-use futures::Future;
-use hyper::rt;
-use jsonrpc_core_client::{transports::http, RpcError};
-use jsonrpc_derive::rpc;
+use ckb_types::{packed::Byte32, prelude::*};
 use lazysort::SortedBy;
 use neon::prelude::*;
 use std::convert::TryInto;
-use std::fmt;
-use std::fs::File;
-use std::path::PathBuf;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc, RwLock,
-};
-use std::thread;
-use std::time::Duration;
-use std::{cell::RefCell, ops::Deref};
+use std::sync::{Arc, RwLock};
 
-type BoxedTransactionIterator = JsBox<TransactionIterator>;
-pub struct TransactionIterator(Box<dyn Send + Sync + Iterator<Item = (Box<[u8]>, Box<[u8]>)>>);
+type BoxedTransactionIterator = JsBox<Arc<RwLock<TransactionIterator>>>;
+pub struct TransactionIterator(Box<dyn Iterator<Item = (Box<[u8]>, Box<[u8]>)> + Send + Sync>);
 impl Finalize for TransactionIterator {}
 impl TransactionIterator {}
 pub fn get_transactions_by_script_iterator(
@@ -198,7 +180,8 @@ pub fn get_transactions_by_script_iterator(
                         a_block_number_slice.cmp(&b_block_number_slice)
                     })
                     .skip(skip_number);
-                let boxed_transaction_iterator = cx.boxed(TransactionIterator(Box::new(iter)));
+                let boxed_transaction_iterator =
+                    cx.boxed(Arc::new(RwLock::new(TransactionIterator(Box::new(iter)))));
                 Ok(boxed_transaction_iterator)
             }
             ArgsLen::UintValue(args_len) => {
@@ -226,8 +209,11 @@ pub fn get_transactions_by_script_iterator(
                         from_block_number_slice <= block_number_slice.unwrap()
                             && key.ends_with(&io_type_mark)
                     })
-                    .skip(skip_number).collect::<Vec<_>>();
-                let boxed_transaction_iterator = cx.boxed(TransactionIterator(Box::new(iter.into_iter())));
+                    .skip(skip_number)
+                    .collect::<Vec<_>>();
+                let boxed_transaction_iterator = cx.boxed(Arc::new(RwLock::new(
+                    TransactionIterator(Box::new(iter.into_iter())),
+                )));
                 Ok(boxed_transaction_iterator)
             }
         }
@@ -274,7 +260,8 @@ pub fn get_transactions_by_script_iterator(
                         b_block_number_slice.cmp(&a_block_number_slice)
                     })
                     .skip(skip_number);
-                let boxed_transaction_iterator = cx.boxed(TransactionIterator(Box::new(iter)));
+                let boxed_transaction_iterator =
+                    cx.boxed(Arc::new(RwLock::new(TransactionIterator(Box::new(iter)))));
                 Ok(boxed_transaction_iterator)
             }
             ArgsLen::UintValue(args_len) => {
@@ -308,8 +295,11 @@ pub fn get_transactions_by_script_iterator(
                         to_block_number_slice >= block_number_slice.unwrap()
                             && key.ends_with(&io_type_mark)
                     })
-                    .skip(skip_number).collect::<Vec<_>>();
-                let boxed_transaction_iterator = cx.boxed(TransactionIterator(Box::new(iter.into_iter())));
+                    .skip(skip_number)
+                    .collect::<Vec<_>>();
+                let boxed_transaction_iterator = cx.boxed(Arc::new(RwLock::new(
+                    TransactionIterator(Box::new(iter.into_iter())),
+                )));
                 Ok(boxed_transaction_iterator)
             }
         }
@@ -319,8 +309,8 @@ pub fn get_transactions_by_script_iterator(
 }
 
 pub fn transaction_iterator_collect(mut cx: FunctionContext) -> JsResult<JsArray> {
-    let transaction_iterator = cx.argument::<JsBox<TransactionIterator>>(0)?;
-    let mut iterator = transaction_iterator.borrow_mut();
+    let transaction_iterator = cx.argument::<JsBox<Arc<RwLock<TransactionIterator>>>>(0)?;
+    let mut iterator = transaction_iterator.write().unwrap();
     let mut hashes = vec![];
     while let Some((_key, value)) = iterator.0.next() {
         hashes.push(value.to_vec());
