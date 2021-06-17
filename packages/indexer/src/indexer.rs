@@ -76,7 +76,7 @@ impl Finalize for Emitter {}
 
 impl Emitter {
     pub fn new(mut cx: FunctionContext) -> JsResult<BoxedEmitter> {
-        let mut this = cx.this();
+        let this = cx.this();
         let callback = this
             .get(&mut cx, "emit")?
             .downcast::<JsFunction, _>(&mut cx)
@@ -508,7 +508,7 @@ pub fn get_block_emitter(mut cx: FunctionContext) -> JsResult<BoxedBlockEmitter>
         let block_emitter = block_emitter.read().unwrap().clone();
         Ok(cx.boxed(RefCell::new(block_emitter)))
     } else {
-        let mut this = cx.this();
+        let this = cx.this();
         let callback = this
             .get(&mut cx, "emit")?
             .downcast::<JsFunction, _>(&mut cx)
@@ -546,15 +546,26 @@ pub fn start(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     });
     Ok(cx.undefined())
 }
-//
-// fn indexer_init_db_from_json_file(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-//
-// }
-//
-// fn indexer_clear_db(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-//
-// }
-//
+
+pub fn indexer_init_db_from_json_file(mut cx: FunctionContext) -> JsResult<JsUndefined> {
+    let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
+    let native_indexer = native_indexer.read().unwrap();
+    let file_path = cx.argument::<JsString>(1)?.value(&mut cx);
+    match native_indexer.init_db_from_json_file(&file_path) {
+        Ok(()) => Ok(cx.undefined()),
+        Err(e) => cx.throw_error(format!("init_db_from_json_file failed: {:?}", e)),
+    }
+}
+
+pub fn indexer_clear_db(mut cx: FunctionContext) -> JsResult<JsUndefined> {
+    let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
+    let native_indexer = native_indexer.read().unwrap();
+    let file_path = cx.argument::<JsString>(1)?.value(&mut cx);
+    match native_indexer.clear_db(&file_path) {
+        Ok(()) => Ok(cx.undefined()),
+        Err(e) => cx.throw_error(format!("clear_db failed: {:?}", e)),
+    }
+}
 
 pub fn stop(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;

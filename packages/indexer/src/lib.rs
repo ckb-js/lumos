@@ -27,5 +27,7 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("getDetailedLiveCell", get_detailed_live_cell)?;
     cx.export_function("getEmitter", get_emitter)?;
     cx.export_function("getBlockEmitter", get_block_emitter)?;
+    cx.export_function("initDbFromJsonFile", indexer_init_db_from_json_file)?;
+    cx.export_function("clearDb", indexer_clear_db)?;
     Ok(())
 }

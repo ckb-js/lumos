@@ -1,32 +1,13 @@
 extern crate lazysort;
 use crate::indexer::Error;
-use ckb_indexer::{
-    indexer::{Error as IndexerError, Indexer, Key, KeyPrefix, Value},
-    store::{IteratorDirection, RocksdbStore, Store},
-};
-use ckb_jsonrpc_types::{BlockNumber, BlockView};
+use ckb_jsonrpc_types::BlockView;
 use ckb_types::{
-    core::{BlockView as CoreBlockView, ScriptHashType},
-    packed::{Byte32, Bytes, CellOutput, OutPoint, Script, ScriptBuilder},
+    core::ScriptHashType,
+    packed::{Script, ScriptBuilder},
     prelude::*,
 };
-use futures::Future;
-use hyper::rt;
-use jsonrpc_core_client::{transports::http, RpcError};
-use jsonrpc_derive::rpc;
-use lazysort::SortedBy;
-use neon::prelude::*;
-use std::convert::TryInto;
-use std::fmt;
 use std::fs::File;
 use std::path::PathBuf;
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc, RwLock,
-};
-use std::thread;
-use std::time::Duration;
-use std::{cell::RefCell, ops::Deref};
 
 pub fn assemble_packed_script(
     code_hash: &[u8],
