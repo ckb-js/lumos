@@ -15,7 +15,6 @@ use hyper::rt;
 use jsonrpc_core_client::{transports::http, RpcError};
 use jsonrpc_derive::rpc;
 use neon::prelude::*;
-use std::cell::RefCell;
 use std::fmt;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -23,6 +22,7 @@ use std::sync::{
 };
 use std::thread;
 use std::time::Duration;
+use std::{cell::RefCell, ops::Deref};
 
 #[derive(Debug)]
 pub enum Error {
@@ -215,7 +215,11 @@ impl NativeIndexer {
         self.running.store(false, Ordering::Release);
     }
 
-    pub fn poll(&self, rpc_client: gen_client::Client) -> Result<(), Error> {
+    pub fn poll<'a, C: Context<'a>>(
+        &self,
+        rpc_client: gen_client::Client,
+        cx: &mut C,
+    ) -> Result<(), Error> {
         if self.running.compare_and_swap(false, true, Ordering::AcqRel) {
             return Ok(());
         }
@@ -232,12 +236,12 @@ impl NativeIndexer {
                     if block.parent_hash() == tip_hash {
                         // debug!("append {}, {}", block.number(), block.hash());
                         self.indexer.append(&block)?;
-                        self.publish_append_block_events(&block)?;
+                        self.publish_append_block_events(&block, cx)?;
                     } else {
                         // info!("rollback {}, {}", tip_number, tip_hash);
                         // Publish changed events before rollback. It's possible the event published while the rollback operation failed.
                         // Make sure to pull data from db after get notified, as the notification mechanism's design principle is unreliable queue.
-                        self.publish_rollback_events()?;
+                        self.publish_rollback_events(cx)?;
                         self.indexer.rollback()?;
                     }
                 } else {
@@ -248,33 +252,41 @@ impl NativeIndexer {
                     let block: CoreBlockView = block.into();
                     // debug!("append genesis block hash: {}", block.hash());
                     self.indexer.append(&block)?;
-                    self.publish_append_block_events(&block)?;
+                    self.publish_append_block_events(&block, cx)?;
                 }
             }
         }
         Ok(())
     }
 
-    fn init_db_from_json_file(&self, file_path: &str) -> Result<(), Error> {
+    fn init_db_from_json_file<'a, C: Context<'a>>(
+        &self,
+        file_path: &str,
+        cx: &mut C,
+    ) -> Result<(), Error> {
         let blocks: Vec<BlockView> = load_blocks_from_json_file(file_path);
         for block_item in blocks.iter() {
             let block: CoreBlockView = block_item.to_owned().into();
             self.indexer.append(&block)?;
-            self.publish_append_block_events(&block)?;
+            self.publish_append_block_events(&block, cx)?;
         }
         Ok(())
     }
 
-    fn clear_db(&self, file_path: &str) -> Result<(), Error> {
+    fn clear_db<'a, C: Context<'a>>(&self, file_path: &str, cx: &mut C) -> Result<(), Error> {
         let blocks: Vec<BlockView> = load_blocks_from_json_file(file_path);
         for _block_item in blocks.iter() {
-            self.publish_rollback_events()?;
+            self.publish_rollback_events(cx)?;
             self.indexer.rollback()?;
         }
         Ok(())
     }
 
-    fn publish_append_block_events(&self, block: &CoreBlockView) -> Result<(), IndexerError> {
+    fn publish_append_block_events<'a, C: Context<'a>>(
+        &self,
+        block: &CoreBlockView,
+        cx: &mut C,
+    ) -> Result<(), IndexerError> {
         let transactions = block.transactions();
         // self.emit_block_events();
         for (tx_index, tx) in transactions.iter().enumerate() {
@@ -289,7 +301,7 @@ impl NativeIndexer {
                         .expect("Transaction inputs' previous_output should be consumed already");
                     let (_generated_by_block_number, _generated_by_tx_index, output, output_data) =
                         Value::parse_cell_value(&consumed_cell);
-                    self.filter_events(output, block.number(), output_data);
+                    self.filter_events(output, block.number(), output_data, cx);
                 }
             }
             // publish changed events if subscribed script exists in output cells.
@@ -298,13 +310,13 @@ impl NativeIndexer {
                     .outputs_data()
                     .get(output_index)
                     .expect("outputs_data len should equals outputs len");
-                self.filter_events(output, block.number(), output_data);
+                self.filter_events(output, block.number(), output_data, cx);
             }
         }
         Ok(())
     }
 
-    fn publish_rollback_events(&self) -> Result<(), IndexerError> {
+    fn publish_rollback_events<'a, C: Context<'a>>(&self, cx: &mut C) -> Result<(), IndexerError> {
         // self.emit_block_events();
         if let Some((block_number, block_hash)) = self.indexer.tip()? {
             let txs = Value::parse_transactions_value(
@@ -333,7 +345,7 @@ impl NativeIndexer {
                                 .expect("stored live cell or consume output in same block");
                             Value::parse_cell_value(&consumed_cell)
                         };
-                    self.filter_events(output, block_number, output_data);
+                    self.filter_events(output, block_number, output_data, cx);
                 }
                 let transaction_key = Key::TxHash(&tx_hash).into_vec();
                 // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
@@ -364,7 +376,7 @@ impl NativeIndexer {
                             output,
                             output_data,
                         ) = Value::parse_cell_value(&stored_consumed_cell);
-                        self.filter_events(output, block_number, output_data);
+                        self.filter_events(output, block_number, output_data, cx);
                     }
                 }
             }
@@ -372,7 +384,13 @@ impl NativeIndexer {
         Ok(())
     }
 
-    fn filter_events(&self, output: CellOutput, block_number: u64, output_data: Bytes) {
+    fn filter_events<'a, C: Context<'a>>(
+        &self,
+        output: CellOutput,
+        block_number: u64,
+        output_data: Bytes,
+        cx: &mut C,
+    ) {
         let emitters = self.emitters.read().unwrap();
         let lock_script_emitters = emitters.iter().filter(|x| x.lock.is_some());
         let type_script_emitters = emitters.iter().filter(|x| x.type_.is_some());
@@ -386,7 +404,7 @@ impl NativeIndexer {
                 emitter.lock.clone().unwrap(),
                 lock_script.clone(),
             ) {
-                self.emit_changed_event(emitter);
+                self.emit_changed_event(emitter, cx);
             }
         }
         if let Some(type_script) = output.type_().to_opt() {
@@ -398,7 +416,7 @@ impl NativeIndexer {
                     emitter.type_.clone().unwrap(),
                     type_script.clone(),
                 ) {
-                    self.emit_changed_event(emitter);
+                    self.emit_changed_event(emitter, cx);
                 }
             }
         }
@@ -440,18 +458,19 @@ impl NativeIndexer {
         check_block_number && check_output_data && check_script
     }
 
-    fn emit_changed_event(&self, emitter: &Emitter) {
+    fn emit_changed_event<'a, C: Context<'a>>(&self, emitter: &Emitter, cx: &mut C) {
+        let queue = Arc::clone(&self.queue);
         if let Some(cb) = &emitter.cb {
-            let queue = Arc::clone(&self.queue);
-            // std::thread::spawn(move || {
-            //     queue.send(|mut cx| {
-            //         let callback = cb.into_inner(&mut cx);
-            //         let this = cx.undefined();
-            //         let args: Vec<Handle<JsValue>> = vec![cx.string("changed").upcast()];
-            //         callback.call(&mut cx, this, args).unwrap();
-            //         Ok(())
-            //     })
-            // });
+            let cb = cb.deref().clone(cx);
+            std::thread::spawn(move || {
+                queue.send(|mut cx| {
+                    let callback = cb.into_inner(&mut cx);
+                    let this = cx.undefined();
+                    let args: Vec<Handle<JsValue>> = vec![cx.string("changed").upcast()];
+                    callback.call(&mut cx, this, args).unwrap();
+                    Ok(())
+                })
+            });
         }
     }
 
@@ -529,29 +548,30 @@ pub fn running(mut cx: FunctionContext) -> JsResult<JsBoolean> {
     Ok(running)
 }
 
-pub fn start(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-    let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
-    let indexer = native_indexer.read().unwrap().clone();
-    let indexer2 = indexer.clone();
-    thread::spawn(move || {
-        rt::run(rt::lazy(move || {
-            http::connect(&indexer.uri)
-                .map_err(|e| e.into())
-                .and_then(move |client| indexer.poll(client))
-                .map_err(move |e| {
-                    indexer2.stop();
-                    // error!("Indexer stopped with error: {:?}", e);
-                })
-        }))
-    });
-    Ok(cx.undefined())
-}
+// pub fn start(mut cx: FunctionContext) -> JsResult<JsUndefined> {
+//     let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
+//     let queue = cx.queue();
+//     let indexer = native_indexer.read().unwrap().clone();
+//     let indexer2 = indexer.clone();
+//     thread::spawn(move || {
+//         rt::run(rt::lazy(move || {
+//             http::connect(&indexer.uri)
+//                 .map_err(|e| e.into())
+//                 .and_then(move |client| indexer.poll(client, &mut cx))
+//                 .map_err(move |e| {
+//                     indexer2.stop();
+//                     // error!("Indexer stopped with error: {:?}", e);
+//                 })
+//         }))
+//     });
+//     Ok(cx.undefined())
+// }
 
 pub fn indexer_init_db_from_json_file(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
     let native_indexer = native_indexer.read().unwrap();
     let file_path = cx.argument::<JsString>(1)?.value(&mut cx);
-    match native_indexer.init_db_from_json_file(&file_path) {
+    match native_indexer.init_db_from_json_file(&file_path, &mut cx) {
         Ok(()) => Ok(cx.undefined()),
         Err(e) => cx.throw_error(format!("init_db_from_json_file failed: {:?}", e)),
     }
@@ -561,7 +581,7 @@ pub fn indexer_clear_db(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
     let native_indexer = native_indexer.read().unwrap();
     let file_path = cx.argument::<JsString>(1)?.value(&mut cx);
-    match native_indexer.clear_db(&file_path) {
+    match native_indexer.clear_db(&file_path, &mut cx) {
         Ok(()) => Ok(cx.undefined()),
         Err(e) => cx.throw_error(format!("clear_db failed: {:?}", e)),
     }
