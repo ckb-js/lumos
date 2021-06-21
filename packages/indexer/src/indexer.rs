@@ -10,11 +10,10 @@ use ckb_types::{
     packed::{Bytes, CellOutput, OutPoint, Script},
     prelude::*,
 };
-use futures::Future;
-use hyper::rt;
 use jsonrpc_core_client::{transports::http, RpcError};
 use jsonrpc_derive::rpc;
 use neon::prelude::*;
+use tokio::runtime::Handle as TokioHandle;
 use std::fmt;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -215,7 +214,7 @@ impl NativeIndexer {
         self.running.store(false, Ordering::Release);
     }
 
-    pub fn poll<'a, C: Context<'a>>(
+    pub async fn poll<'a, C: Context<'a>>(
         &self,
         rpc_client: gen_client::Client,
         cx: &mut C,
@@ -230,7 +229,7 @@ impl NativeIndexer {
             if let Some((tip_number, tip_hash)) = self.indexer.tip()? {
                 if let Some(block) = rpc_client
                     .get_block_by_number((tip_number + 1).into())
-                    .wait()?
+                    .await?
                 {
                     let block: CoreBlockView = block.into();
                     if block.parent_hash() == tip_hash {
@@ -248,7 +247,7 @@ impl NativeIndexer {
                     thread::sleep(self.poll_interval);
                 }
             } else {
-                if let Some(block) = rpc_client.get_block_by_number(0u64.into()).wait()? {
+                if let Some(block) = rpc_client.get_block_by_number(0u64.into()).await? {
                     let block: CoreBlockView = block.into();
                     // debug!("append genesis block hash: {}", block.hash());
                     self.indexer.append(&block)?;
@@ -548,24 +547,25 @@ pub fn running(mut cx: FunctionContext) -> JsResult<JsBoolean> {
     Ok(running)
 }
 
-// pub fn start(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-//     let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
-//     let queue = cx.queue();
-//     let indexer = native_indexer.read().unwrap().clone();
-//     let indexer2 = indexer.clone();
-//     thread::spawn(move || {
-//         rt::run(rt::lazy(move || {
-//             http::connect(&indexer.uri)
-//                 .map_err(|e| e.into())
-//                 .and_then(move |client| indexer.poll(client, &mut cx))
-//                 .map_err(move |e| {
-//                     indexer2.stop();
-//                     // error!("Indexer stopped with error: {:?}", e);
-//                 })
-//         }))
-//     });
-//     Ok(cx.undefined())
-// }
+pub fn start(mut cx: FunctionContext)  {
+    let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0).unwrap();
+    let indexer = native_indexer.read().unwrap().clone();
+    let indexer_clone = indexer.clone();
+
+    let runtime = TokioHandle::current();
+    runtime.block_on(async {
+        match http::connect(&indexer_clone.uri).await {
+            Ok(client) => {
+                let _ = indexer.poll(client, &mut cx).await;
+            }
+            Err(_e) => {
+                indexer_clone.stop();
+                // error!("Indexer stopped with error: {:?}", e);
+                ()
+            }
+        }
+    });
+}
 
 pub fn indexer_init_db_from_json_file(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0)?;
