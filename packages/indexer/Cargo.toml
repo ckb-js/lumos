@@ -1,5 +1,5 @@
 [package]
-name = "lumos-indexer"
+name = "indexer"
 version = "0.1.0"
 authors = ["Xuejie Xiao <xxuejie@gmail.com>"]
 license = "MIT"
@@ -7,7 +7,6 @@ edition = "2018"
 exclude = ["artifacts.json", "index.node"]
 
 [lib]
-name = "lumos_indexer"
 crate-type = ["cdylib"]
 
 [dependencies]

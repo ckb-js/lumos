@@ -11,7 +11,7 @@ use transaction_iterator::*;
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("newIndexer", new_indexer)?;
     cx.export_function("running", running)?;
-    // cx.export_function("start", start)?;
+    cx.export_function("start", start)?;
     cx.export_function("stop", stop)?;
     cx.export_function("tip", tip)?;
     cx.export_function(

@@ -1,13 +1,13 @@
 const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
 const { OrderedSet, Map } = require("immutable");
 const XXHash = require("xxhash");
-const { Indexer: NativeIndexer, Emitter, BlockEmitter } = require("../native");
+const addon = require("../index.node");
 const { EventEmitter } = require("events");
 const util = require("util");
 const { utils, indexer: BaseIndexerModule } = require("@ckb-lumos/base");
 
-util.inherits(Emitter, EventEmitter);
-util.inherits(BlockEmitter, EventEmitter);
+// util.inherits(Emitter, EventEmitter);
+// util.inherits(BlockEmitter, EventEmitter);
 
 function defaultLogger(level, message) {
   console.log(`[${level}] ${message}`);
@@ -131,25 +131,25 @@ class Indexer {
     this.uri = uri;
     this.livenessCheckIntervalSeconds = livenessCheckIntervalSeconds;
     this.logger = logger;
-    this.nativeIndexer = new NativeIndexer(uri, path, pollIntervalSeconds);
+    this.nativeIndexer = addon.newIndexer(uri, path, pollIntervalSeconds);
     this.pollIntervalSeconds = pollIntervalSeconds;
     this.rpc = new RPC(this.uri, rpcOptions);
   }
 
   running() {
-    return this.nativeIndexer.running();
+    return addon.running(this.nativeIndexer);
   }
 
   start() {
-    return this.nativeIndexer.start();
+    return addon.start(this.nativeIndexer);
   }
 
   stop() {
-    return this.nativeIndexer.stop();
+    return addon.stop(this.nativeIndexer);
   }
 
   async tip() {
-    return this.nativeIndexer.tip();
+    return addon.tip(this.nativeIndexer);
   }
 
   async waitForSync(blockDifference = 3) {
@@ -175,7 +175,8 @@ class Indexer {
     order,
     skip
   ) {
-    return this.nativeIndexer.getLiveCellsByScriptIterator(
+    return addon.getLiveCellsByScriptIterator(
+      this.nativeIndexer,
       normalizers.NormalizeScript(script),
       scriptType,
       argsLen,
@@ -196,7 +197,8 @@ class Indexer {
     order,
     skip
   ) {
-    return this.nativeIndexer.getTransactionsByScriptIterator(
+    return addon.getTransactionsByScriptIterator(
+      this.nativeIndexer,
       normalizers.NormalizeScript(script),
       scriptType,
       argsLen,
@@ -210,7 +212,8 @@ class Indexer {
 
   _getEmitter(script, scriptType, argsLen, data, fromBlock) {
     const outputData = data === "any" ? null : new Reader(data).toArrayBuffer();
-    return this.nativeIndexer.getEmitter(
+    return addon.getEmitter(
+      this.nativeIndexer,
       normalizers.NormalizeScript(script),
       scriptType,
       argsLen,
@@ -221,20 +224,20 @@ class Indexer {
 
   _getBlockEmitter() {
     if (this.blockEmitter === undefined || this.blockEmitter === null) {
-      this.blockEmitter = this.nativeIndexer.getBlockEmitter();
+      this.blockEmitter = addon.getBlockEmitter(this.nativeIndexer);
     }
     return this.blockEmitter;
   }
 
   startForever() {
-    this.nativeIndexer.start();
+    addon.start(this.nativeIndexer);
     setInterval(() => {
-      if (!this.nativeIndexer.running()) {
+      if (!addon.running(this.nativeIndexer)) {
         this.logger(
           "error",
           "Native indexer has stopped, maybe check the log?"
         );
-        this.nativeIndexer.start();
+        addon.start(this.nativeIndexer);
       }
     }, this.livenessCheckIntervalSeconds * 1000);
   }
@@ -387,36 +390,34 @@ class CellCollector {
     const returnRawBuffer = true;
     if (this.lock) {
       const scriptType = 0;
+      const liveCellIterator = this.indexer._getLiveCellsByScriptIterator(
+        this.lock.script,
+        scriptType,
+        this.lock.argsLen,
+        this.fromBlock,
+        this.toBlock,
+        this.order,
+        this.skip
+      );
       lockOutPoints = new OrderedSet(
-        this.indexer
-          ._getLiveCellsByScriptIterator(
-            this.lock.script,
-            scriptType,
-            this.lock.argsLen,
-            this.fromBlock,
-            this.toBlock,
-            this.order,
-            this.skip
-          )
-          .collect(returnRawBuffer)
+        addon.collectLiveCells(liveCellIterator, returnRawBuffer)
       );
       lockOutPoints = this.wrapOutPoints(lockOutPoints);
     }
 
     if (this.type && this.type !== "empty") {
       const scriptType = 1;
+      const liveCellIterator = this.indexer._getLiveCellsByScriptIterator(
+        this.type.script,
+        scriptType,
+        this.type.argsLen,
+        this.fromBlock,
+        this.toBlock,
+        this.order,
+        this.skip
+      );
       typeOutPoints = new OrderedSet(
-        this.indexer
-          ._getLiveCellsByScriptIterator(
-            this.type.script,
-            scriptType,
-            this.type.argsLen,
-            this.fromBlock,
-            this.toBlock,
-            this.order,
-            this.skip
-          )
-          .collect(returnRawBuffer)
+        addon.collectLiveCells(liveCellIterator, returnRawBuffer)
       );
       typeOutPoints = this.wrapOutPoints(typeOutPoints);
     }
@@ -443,7 +444,10 @@ class CellCollector {
     let outPoints = this.getLiveCellOutPoints();
     let counter = 0;
     for (const o of outPoints) {
-      const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+      const cell = addon.getDetailedLiveCell(
+        this.indexer.nativeIndexer,
+        o.buffer
+      );
       if (cell && this.type === "empty" && cell.cell_output.type) {
         continue;
       }
@@ -459,7 +463,10 @@ class CellCollector {
   async *collect() {
     let outPoints = this.getLiveCellOutPoints();
     for (const o of outPoints) {
-      const cell = this.indexer.nativeIndexer.getDetailedLiveCell(o.buffer);
+      const cell = addon.getDetailedLiveCell(
+        this.indexer.nativeIndexer,
+        o.buffer
+      );
       if (cell && this.type === "empty" && cell.cell_output.type) {
         continue;
       }
@@ -506,19 +513,18 @@ class TransactionCollector extends BaseIndexerModule.TransactionCollector {
 
     if (this.type && this.type !== "empty") {
       const scriptType = 1;
+      const transactionCollector = this.indexer._getTransactionsByScriptIterator(
+        this.type.script,
+        scriptType,
+        this.type.argsLen,
+        this.type.ioType,
+        this.fromBlock,
+        this.toBlock,
+        this.order,
+        this.skip
+      );
       typeHashes = new OrderedSet(
-        this.indexer
-          ._getTransactionsByScriptIterator(
-            this.type.script,
-            scriptType,
-            this.type.argsLen,
-            this.type.ioType,
-            this.fromBlock,
-            this.toBlock,
-            this.order,
-            this.skip
-          )
-          .collect()
+        addon.transactionIteratorCollect(transactionCollector)
       );
     }
 

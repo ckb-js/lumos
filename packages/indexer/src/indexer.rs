@@ -547,7 +547,7 @@ pub fn running(mut cx: FunctionContext) -> JsResult<JsBoolean> {
     Ok(running)
 }
 
-pub fn start(mut cx: FunctionContext)  {
+pub fn start(mut cx: FunctionContext)  -> JsResult<JsUndefined>{
     let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0).unwrap();
     let indexer = native_indexer.read().unwrap().clone();
     let indexer_clone = indexer.clone();
@@ -565,6 +565,7 @@ pub fn start(mut cx: FunctionContext)  {
             }
         }
     });
+    Ok(cx.undefined())
 }
 
 pub fn indexer_init_db_from_json_file(mut cx: FunctionContext) -> JsResult<JsUndefined> {
