@@ -14,7 +14,7 @@ ckb-indexer = { git = "https://github.com/nervosnetwork/ckb-indexer", rev = "d24
 ckb-jsonrpc-types = "0.40.0"
 ckb-types = "0.40.0"
 env_logger = "0.7.1"
-futures = "0.1"
+futures = "0.3"
 jsonrpc-core = "17.0"
 jsonrpc-core-client = { version = "17.0", features = ["http", "tls"] }
 jsonrpc-derive = "17.0"
@@ -22,7 +22,7 @@ log = "0.4.8"
 num_cpus = "1.13.0"
 serde_json = "1.0.59"
 lazysort = "0.2.1"
-tokio = { version = "1.7", features = ["full"] }
+tokio = { version = "0.2", features = ["full"] }
 tokio-compat-02 = "0.2.0"
 
 [dependencies.neon]

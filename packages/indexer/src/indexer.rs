@@ -13,7 +13,6 @@ use ckb_types::{
 use jsonrpc_core_client::{transports::http, RpcError};
 use jsonrpc_derive::rpc;
 use neon::prelude::*;
-use tokio::runtime::Handle as TokioHandle;
 use std::fmt;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -22,6 +21,7 @@ use std::sync::{
 use std::thread;
 use std::time::Duration;
 use std::{cell::RefCell, ops::Deref};
+use tokio_compat_02::FutureExt;
 
 #[derive(Debug)]
 pub enum Error {
@@ -547,14 +547,17 @@ pub fn running(mut cx: FunctionContext) -> JsResult<JsBoolean> {
     Ok(running)
 }
 
-pub fn start(mut cx: FunctionContext)  -> JsResult<JsUndefined>{
+pub fn start(mut cx: FunctionContext) -> JsResult<JsUndefined> {
     let native_indexer = cx.argument::<JsBox<Arc<RwLock<NativeIndexer>>>>(0).unwrap();
     let indexer = native_indexer.read().unwrap().clone();
     let indexer_clone = indexer.clone();
 
-    let runtime = TokioHandle::current();
+    let mut runtime = tokio::runtime::Builder::new()
+        .basic_scheduler()
+        .build()
+        .unwrap();
     runtime.block_on(async {
-        match http::connect(&indexer_clone.uri).await {
+        match http::connect(&indexer_clone.uri).compat().await {
             Ok(client) => {
                 let _ = indexer.poll(client, &mut cx).await;
             }
