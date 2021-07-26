@@ -21,6 +21,7 @@ use neon::prelude::*;
 use std::convert::TryInto;
 use std::fmt;
 use std::fs::File;
+use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -90,7 +91,7 @@ pub struct NativeIndexer {
     running: Arc<AtomicBool>,
     indexer: Arc<Indexer<RocksdbStore>>,
     emitters: Arc<RwLock<Vec<Emitter>>>,
-    block_emitters: Arc<RwLock<Vec<BlockEmitter>>>,
+    block_emitter: Option<Arc<RwLock<BlockEmitter>>>,
 }
 
 impl NativeIndexer {
@@ -334,9 +335,9 @@ impl NativeIndexer {
     }
 
     fn emit_block_events(&self) {
-        let block_emitters = self.block_emitters.read().unwrap();
-        for block_emitter in block_emitters.iter().clone() {
-            self.emit_block_event(block_emitter);
+        if let Some(block_emitter) = &self.block_emitter {
+            let block_emitter = block_emitter.read().unwrap();
+            self.emit_block_event(&block_emitter);
         }
     }
 
@@ -367,7 +368,7 @@ declare_types! {
                 running: Arc::new(AtomicBool::new(false)),
                 indexer: indexer,
                 emitters: Arc::new(RwLock::new(vec![])),
-                block_emitters: Arc::new(RwLock::new(vec![]))
+                block_emitter: None,
             })
         }
 
@@ -611,14 +612,23 @@ declare_types! {
 
         method getBlockEmitter(mut cx) {
             let mut this = cx.this();
-            let block_emitter = JsBlockEmitter::new::<_, JsBlockEmitter, _>(&mut cx, vec![])?;
+            let block_emitter =
             {
                 let guard = cx.lock();
-                let block_emitter = block_emitter.borrow(&guard);
-                let native_indexer = this.borrow_mut(&guard);
-                let mut block_emitters = native_indexer.block_emitters.write().unwrap();
-                block_emitters.push(block_emitter.clone());
-            }
+                let mut native_indexer = this.borrow_mut(&guard);
+                if let Some(block_emitter) = native_indexer.block_emitter {
+                    let block_emitter: BlockEmitter = block_emitter.read().unwrap().deref().to_owned();
+                    // TODO convert block_emitter to JsValue
+                    // js_block_emitter
+                } else {
+                    let js_block_emitter = JsBlockEmitter::new::<_, JsBlockEmitter, _>(&mut cx, vec![])?;
+                    let block_emitter = js_block_emitter.borrow(&guard);
+                    let block_emitter = Arc::new(RwLock::new(block_emitter.clone()));
+                    native_indexer.block_emitter = Some(block_emitter);
+                    js_block_emitter
+                }
+            };
+
             Ok(block_emitter.upcast())
         }
     }
