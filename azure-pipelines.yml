@@ -4,7 +4,12 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
-- develop
+  branches:
+    include:
+    - '*'
+  tags:
+    include:
+    - '*'
 
 jobs:
   - job: LinuxBuild
@@ -48,6 +53,58 @@ jobs:
       vmImage: 'ubuntu-20.04'
     steps:
       - template: devtools/azure/linux-dependencies.yml
+        parameters:
+          rustup_toolchain: 'stable'
+          node_version: '14.x'
+      - script: |
+          npm -g install neon-cli
+        displayName: 'Install neon-cli'
+      - script: |
+          rm -rf packages/indexer/build
+          yarn
+          yarn workspace @ckb-lumos/indexer run package
+        displayName: 'Build release packages'
+      - task: GithubRelease@1
+        displayName: 'Upload release file'
+        inputs:
+          action: edit
+          gitHubConnection: lumos_release
+          repositoryName: nervosnetwork/lumos
+          tag: $(Build.SourceBranchName)
+          assets: 'packages/indexer/build/stage/${TRAVIS_TAG}/*'
+  - job: OSXRelease
+    dependsOn: OSXBuild
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+    pool:
+      vmImage: 'macOS-10.15'
+    steps:
+      - template: devtools/azure/osx-dependencies.yml
+        parameters:
+          rustup_toolchain: 'stable'
+          node_version: '14.x'
+      - script: |
+          npm -g install neon-cli
+        displayName: 'Install neon-cli'
+      - script: |
+          rm -rf packages/indexer/build
+          yarn
+          yarn workspace @ckb-lumos/indexer run package
+        displayName: 'Build release packages'
+      - task: GithubRelease@1
+        displayName: 'Upload release file'
+        inputs:
+          action: edit
+          gitHubConnection: lumos_release
+          repositoryName: nervosnetwork/lumos
+          tag: $(Build.SourceBranchName)
+          assets: 'packages/indexer/build/stage/${TRAVIS_TAG}/*'
+  - job: WindowsRelease
+    dependsOn: WindowsBuild
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+    pool:
+      vmImage: 'vs2017-win2016'
+    steps:
+      - template: devtools/azure/windows-dependencies.yml
         parameters:
           rustup_toolchain: 'stable'
           node_version: '14.x'
