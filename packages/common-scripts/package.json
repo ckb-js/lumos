@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/common-scripts",
-  "version": "0.17.0-rc5",
+  "version": "0.18.0-rc1",
   "description": "Common script support in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -27,10 +27,10 @@
     "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc5",
-    "@ckb-lumos/config-manager": "^0.17.0-rc5",
-    "@ckb-lumos/helpers": "^0.17.0-rc5",
-    "@ckb-lumos/rpc": "^0.17.0-rc5",
+    "@ckb-lumos/base": "^0.18.0-rc1",
+    "@ckb-lumos/config-manager": "^0.18.0-rc1",
+    "@ckb-lumos/helpers": "^0.18.0-rc1",
+    "@ckb-lumos/rpc": "^0.18.0-rc1",
     "ckb-js-toolkit": "^0.10.2",
     "immutable": "^4.0.0-rc.12"
   },
