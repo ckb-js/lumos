@@ -75,7 +75,7 @@ jobs:
           gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
-          assets: 'packages/indexer/build/stage/$(Build.SourceBranchName)/*'
+          assets: 'packages/indexer/build/stage/v$(Build.SourceBranchName)/*'
   - job: OSXRelease
     dependsOn: OSXBuild
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
@@ -102,7 +102,7 @@ jobs:
           gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
-          assets: 'packages/indexer/build/stage/$(Build.SourceBranchName)/*'
+          assets: 'packages/indexer/build/stage/v$(Build.SourceBranchName)/*'
   - job: WindowsRelease
     dependsOn: WindowsBuild
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
@@ -129,4 +129,4 @@ jobs:
           gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
-          assets: 'packages/indexer/build/stage/$(Build.SourceBranchName)/*'
+          assets: 'packages/indexer/build/stage/v$(Build.SourceBranchName)/*'
