@@ -41,3 +41,21 @@ jobs:
           node_version: '14.x'
       - template: devtools/azure/ci.yml
       - template: devtools/azure/ci-completion.yml
+  - job: LinuxRelease
+    dependsOn: LinuxBuild
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
+    pool:
+      vmImage: 'ubuntu-20.04'
+    steps:
+      - template: devtools/azure/linux-dependencies.yml
+        parameters:
+          rustup_toolchain: 'stable'
+          node_version: '14.x'
+      - script: |
+          npm -g install neon-cli
+        displayName: "Install neon-cli"
+      - script: |
+          rm -rf packages/indexer/build
+          yarn
+          yarn workspace @ckb-lumos/indexer run package
+        displayName: "Build release packages"
