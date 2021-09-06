@@ -75,6 +75,7 @@ jobs:
           gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
+          assetUploadMode: 'replace'
           assets: 'packages/indexer/build/stage/v$(Build.SourceBranchName)/*'
   - job: OSXRelease
     dependsOn: OSXBuild
@@ -102,6 +103,7 @@ jobs:
           gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
+          assetUploadMode: 'replace'
           assets: 'packages/indexer/build/stage/v$(Build.SourceBranchName)/*'
   - job: WindowsRelease
     dependsOn: WindowsBuild
@@ -118,10 +120,16 @@ jobs:
         displayName: 'Install neon-cli'
       - script: |
           rm -rf packages/indexer/build
+        displayName: 'Remove previous built files'
+      - script: |
           yarn
+        displayName: 'Install dependencies'
+      - script: |
           yarn workspace @ckb-lumos/indexer run package
+        displayName: 'Build node package'
+      - script: |
           yarn workspace @ckb-lumos/indexer run package-for-electron
-        displayName: 'Build release packages'
+        displayName: 'Build electron package'
       - task: GithubRelease@1
         displayName: 'Upload release file'
         inputs:
@@ -129,4 +137,5 @@ jobs:
           gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
+          assetUploadMode: 'replace'
           assets: 'packages/indexer/build/stage/v$(Build.SourceBranchName)/*'
