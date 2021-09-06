@@ -1,0 +1,43 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- develop
+
+jobs:
+  - job: LinuxBuild
+    pool:
+      vmImage: 'ubuntu-20.04'
+    steps:
+      - template: devtools/azure/linux-dependencies.yml
+        parameters:
+          rustup_toolchain: 'stable'
+          node_version: '14.x'
+      - template: devtools/azure/ci.yml
+      - script: |
+          yarn workspace @ckb-lumos/sql-indexer test
+          yarn run docs
+        displayName: 'Linux specific tests'
+      - template: devtools/azure/ci-completion.yml
+  - job: OSXBuild
+    pool:
+      vmImage: 'macOS-10.15'
+    steps:
+      - template: devtools/azure/osx-dependencies.yml
+        parameters:
+          rustup_toolchain: 'stable'
+          node_version: '14.x'
+      - template: devtools/azure/ci.yml
+      - template: devtools/azure/ci-completion.yml
+  - job: WindowsBuild
+    pool:
+      vmImage: 'vs2017-win2016'
+    steps:
+      - template: devtools/azure/windows-dependencies.yml
+        parameters:
+          rustup_toolchain: 'stable'
+          node_version: '14.x'
+      - template: devtools/azure/ci.yml
+      - template: devtools/azure/ci-completion.yml

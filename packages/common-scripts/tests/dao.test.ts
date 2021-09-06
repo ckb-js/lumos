@@ -162,7 +162,7 @@ const calculateMaximumWithdrawInfo = {
     timestamp: "0x17293289266",
     transactions_root:
       "0x9294a800ec389d1b0d9e7c570c249da260a44cc2790bd4aa250f3d5c83eb8cde",
-    uncles_hash:
+    extra_hash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
   },
@@ -180,7 +180,7 @@ const calculateMaximumWithdrawInfo = {
     timestamp: "0x1729cdd69c9",
     transactions_root:
       "0x467d72af12af6cb122985f9838bfc47073bba30cc37a4075aef54b0f0768f384",
-    uncles_hash:
+    extra_hash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
   },
