@@ -43,7 +43,7 @@ jobs:
       - template: devtools/azure/ci-completion.yml
   - job: LinuxRelease
     dependsOn: LinuxBuild
-    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags')
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
     pool:
       vmImage: 'ubuntu-20.04'
     steps:
@@ -53,9 +53,17 @@ jobs:
           node_version: '14.x'
       - script: |
           npm -g install neon-cli
-        displayName: "Install neon-cli"
+        displayName: 'Install neon-cli'
       - script: |
           rm -rf packages/indexer/build
           yarn
           yarn workspace @ckb-lumos/indexer run package
-        displayName: "Build release packages"
+        displayName: 'Build release packages'
+      - task: GithubRelease@1
+        displayName: 'Upload release file'
+        inputs:
+          action: edit
+          gitHubConnection: nervosnetwork
+          repositoryName: nervosnetwork/lumos
+          tag: $(Build.SourceBranchName)
+          assets: 'packages/indexer/build/stage/${TRAVIS_TAG}/*'
