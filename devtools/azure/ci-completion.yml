@@ -1,5 +1,6 @@
+steps:
 - script: |
-  yarn workspaces run fmt
-  yarn workspaces run lint
-  git diff --exit-code
+    yarn workspaces run fmt
+    yarn workspaces run lint
+    git diff --exit-code
   displayName: 'Completion tests'
