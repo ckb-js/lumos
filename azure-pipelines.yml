@@ -11,6 +11,9 @@ trigger:
     include:
     - '*'
 
+variables:
+  LUMOS_NODE_RUNTIME_VERSION: 9.0.2
+
 jobs:
   - job: LinuxBuild
     pool:
@@ -63,6 +66,7 @@ jobs:
           rm -rf packages/indexer/build
           yarn
           yarn workspace @ckb-lumos/indexer run package
+          yarn workspace @ckb-lumos/indexer run package-for-electron
         displayName: 'Build release packages'
       - task: GithubRelease@1
         displayName: 'Upload release file'
@@ -71,7 +75,7 @@ jobs:
           gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
-          assets: 'packages/indexer/build/stage/${TRAVIS_TAG}/*'
+          assets: 'packages/indexer/build/stage/$(Build.SourceBranchName)/*'
   - job: OSXRelease
     dependsOn: OSXBuild
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
@@ -89,6 +93,7 @@ jobs:
           rm -rf packages/indexer/build
           yarn
           yarn workspace @ckb-lumos/indexer run package
+          yarn workspace @ckb-lumos/indexer run package-for-electron
         displayName: 'Build release packages'
       - task: GithubRelease@1
         displayName: 'Upload release file'
@@ -97,7 +102,7 @@ jobs:
           gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
-          assets: 'packages/indexer/build/stage/${TRAVIS_TAG}/*'
+          assets: 'packages/indexer/build/stage/$(Build.SourceBranchName)/*'
   - job: WindowsRelease
     dependsOn: WindowsBuild
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
@@ -115,6 +120,7 @@ jobs:
           rm -rf packages/indexer/build
           yarn
           yarn workspace @ckb-lumos/indexer run package
+          yarn workspace @ckb-lumos/indexer run package-for-electron
         displayName: 'Build release packages'
       - task: GithubRelease@1
         displayName: 'Upload release file'
@@ -123,4 +129,4 @@ jobs:
           gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
-          assets: 'packages/indexer/build/stage/${TRAVIS_TAG}/*'
+          assets: 'packages/indexer/build/stage/$(Build.SourceBranchName)/*'
