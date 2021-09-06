@@ -63,7 +63,7 @@ jobs:
         displayName: 'Upload release file'
         inputs:
           action: edit
-          gitHubConnection: nervosnetwork
+          gitHubConnection: lumos_release
           repositoryName: nervosnetwork/lumos
           tag: $(Build.SourceBranchName)
           assets: 'packages/indexer/build/stage/${TRAVIS_TAG}/*'
