@@ -10,10 +10,10 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '12.x'
-  displayName: 'Install Node.js'
+- template: devtools/azure/linux-dependencies.yml
+  parameters:
+    rustup_toolchain: 'stable'
+    node_version: '14.x'
 
 - script: |
     yarn
