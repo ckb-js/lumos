@@ -1,0 +1,38 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+  branches:
+   exclude:
+     - '*'
+  tags:
+    include:
+      - '*'
+
+strategy:
+  matrix:
+    linux-node14:
+      node_version: '14.x'
+      image_name: 'ubuntu-20.04'
+    linux-node12:
+      node_version: '12.x'
+      image_name: 'ubuntu-20.04'
+
+pool:
+  vmImage: $(image_name)
+
+steps:
+  - template: devtools/azure/linux-dependencies.yml
+    parameters:
+      rustup_toolchain: 'stable'
+      node_version: $(node_version)
+  - script: |
+      npm -g install neon-cli
+    displayName: "Install neon-cli"
+  - script: |
+      rm -rf packages/indexer/build
+      yarn
+      yarn workspace @ckb-lumos/indexer run package
+    displayName: "Build release packages"

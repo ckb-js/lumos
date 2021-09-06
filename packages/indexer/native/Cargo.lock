@@ -996,7 +996,7 @@ dependencies = [
  "lazysort",
  "log",
  "neon",
- "neon-build",
+ "neon-build 0.4.0",
  "num_cpus",
  "serde_json",
 ]
@@ -1120,14 +1120,14 @@ dependencies = [
 
 [[package]]
 name = "neon"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6cac4691701b686e6c07b2eb5b51a9f26f5c11179c5d7924b78100dd387fc99d"
+version = "0.9.1"
+source = "git+https://github.com/xxuejie/neon?rev=cab49df#cab49df7dfe9de39e1586e695f3354c2b42a1833"
 dependencies = [
  "cslice",
- "neon-build",
+ "neon-build 0.9.1",
  "neon-runtime",
  "semver",
+ "smallvec 1.6.1",
 ]
 
 [[package]]
@@ -1137,23 +1137,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9ed332afd4711b84f4f83d334428a1fd9ce53620b62b87595934297c5ede2ed"
 dependencies = [
  "cfg-if 0.1.10",
+]
+
+[[package]]
+name = "neon-build"
+version = "0.9.1"
+source = "git+https://github.com/xxuejie/neon?rev=cab49df#cab49df7dfe9de39e1586e695f3354c2b42a1833"
+dependencies = [
  "neon-sys",
 ]
 
 [[package]]
 name = "neon-runtime"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2beea093a60c08463f65e1da4cda68149986f60d8d2177489b44589463c782a6"
+version = "0.9.1"
+source = "git+https://github.com/xxuejie/neon?rev=cab49df#cab49df7dfe9de39e1586e695f3354c2b42a1833"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "neon-sys",
+ "smallvec 1.6.1",
 ]
 
 [[package]]
 name = "neon-sys"
-version = "0.4.0"
-source = "git+https://github.com/xxuejie/neon?rev=6e246f2#6e246f2edc37dbde9477743acd15ebefd3de99c2"
+version = "0.9.1"
+source = "git+https://github.com/xxuejie/neon?rev=cab49df#cab49df7dfe9de39e1586e695f3354c2b42a1833"
 dependencies = [
  "cc",
  "regex",
