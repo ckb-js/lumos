@@ -9,12 +9,18 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- template: devtools/azure/linux-dependencies.yml
-  parameters:
-    rustup_toolchain: 'stable'
-    node_version: '14.x'
-
-- script: |
-    yarn
-  displayName: 'yarn install and build'
+jobs:
+  - job: LinuxBuild
+    pool:
+      vmImage: 'ubuntu-20.04'
+    steps:
+      - template: devtools/azure/linux-dependencies.yml
+        parameters:
+          rustup_toolchain: 'stable'
+          node_version: '14.x'
+      - template: devtools/azure/ci.yml
+      - script: |
+          yarn workspace @ckb-lumos/sql-indexer test
+          yarn run docs
+        displayName: 'Linux specific tests'
+      - template: devtools/azure/ci-completion.yml
