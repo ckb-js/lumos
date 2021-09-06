@@ -302,7 +302,7 @@ export const tipHeader: Header = {
   timestamp: "0x1734b70be18",
   transactions_root:
     "0x3aa8da1d229a6fb5d85ae5d71c6db4f6de9eefab288f2d635a79d0f2a610bc67",
-  extra_hash:
+  uncles_hash:
     "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };
