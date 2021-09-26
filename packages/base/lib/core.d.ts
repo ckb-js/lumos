@@ -30,8 +30,8 @@ export class Uint64 {
   validate(compatible?: boolean): void;
   indexAt(i: number): number;
   raw(): ArrayBuffer;
-  toBigEndianUint64(): BigInt;
-  toLittleEndianUint64(): BigInt;
+  toBigEndianBigUint64(): bigint;
+  toLittleEndianBigUint64(): bigint;
   static size(): Number;
 }
 
@@ -238,7 +238,7 @@ export class RawHeader {
   getParentHash(): Byte32;
   getTransactionsRoot(): Byte32;
   getProposalsHash(): Byte32;
-  getUnclesHash(): Byte32;
+  getExtraHash(): Byte32;
   getDao(): Byte32;
 }
 
@@ -267,6 +267,17 @@ export class Block {
   getUncles(): UncleBlockVec;
   getTransactions(): TransactionVec;
   getProposals(): ProposalShortIdVec;
+}
+
+export function SerializeBlockV1(value: object): ArrayBuffer;
+export class BlockV1 {
+  constructor(reader: CanCastToArrayBuffer, options?: CreateOptions);
+  validate(compatible?: boolean): void;
+  getHeader(): Header;
+  getUncles(): UncleBlockVec;
+  getTransactions(): TransactionVec;
+  getProposals(): ProposalShortIdVec;
+  getExtension(): Bytes;
 }
 
 export function SerializeCellbaseWitness(value: object): ArrayBuffer;
