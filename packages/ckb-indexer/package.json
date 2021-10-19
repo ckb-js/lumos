@@ -1,0 +1,59 @@
+{
+  "name": "@ckb-lumos/ckb-indexer",
+  "version": "0.17.0-rc5",
+  "description": "CKB Indexer",
+  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "index.d.ts",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "os": [
+    "win32",
+    "darwin",
+    "linux"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
+  },
+  "files": [
+    "lib",
+    "index.d.ts"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "http://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@ckb-lumos/base": "^0.17.0-rc5",
+    "@ckb-lumos/common-scripts": "^0.17.0-rc5",
+    "@ckb-lumos/config-manager": "^0.17.0-rc5",
+    "@ckb-lumos/hd": "^0.17.0-rc5",
+    "@ckb-lumos/helpers": "^0.17.0-rc5",
+    "@ckb-lumos/rpc": "^0.17.0-rc5",
+    "@ckb-lumos/transaction-manager": "^0.17.0-rc5",
+    "axios": "^0.23.0",
+    "ckb-js-toolkit": "^0.10.2",
+    "knex": "^0.21.1",
+    "log4js": "^6.3.0"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "test": "ava **/*.test.ts",
+    "build": "tsc",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
+  },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "peerDependencies": {
+    "mysql2": "^2.1.0",
+    "pg": "^8.2.1"
+  }
+}
