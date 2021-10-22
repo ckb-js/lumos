@@ -13,21 +13,20 @@ export abstract class Collector {
   ): Promise<Cell[]>;
 }
 
-export class IndexerCollector extends BaseCellCollector {
-  lock;
-  type;
-  data;
-  fromBlock;
-  toBlock;
+export class IndexerCollector implements BaseCellCollector{
+  lock!: Script;
+  type!: Script | string;
+  data: string | null;
+  fromBlock: string | null;
+  toBlock: string | null;
   order: Order;
-  skip;
-  argsLen;
+  skip: number | null;
+  argsLen: number | null;
 
   constructor(
     public indexer: CkbIndexer,
     public queries: QueryOptions
   ) {
-    super();
     const {
       lock = null,
       type = null,
@@ -85,7 +84,7 @@ export class IndexerCollector extends BaseCellCollector {
     this.toBlock = toBlock;
     this.order = order as Order;
     this.skip = skip;
-    this.argsLen = argsLen;
+    this.argsLen = argsLen as number;
   }
 
   async getLiveCell () {
@@ -170,22 +169,23 @@ export class IndexerCollector extends BaseCellCollector {
     return counter;
   }
 
-  // async *collect() {
-  //   let cells = await this.getLiveCell();
-  //   if(!cells) {
-  //     yield 
-  //     return
-  //   }
-  //   for (const cell of cells) {
-  //     if (cell && this.type === "empty" && cell.cell_output.type) {
-  //       continue;
-  //     }
-  //     if (this.data !== "any" && cell.data !== this.data) {
-  //       continue;
-  //     }
-  //     yield cell;
-  //   }
-  // }
+  async *collect() {
+    throw new Error("unimplemented");
+    // let cells = await this.getLiveCell();
+    // if(!cells) {
+    //   yield 
+    //   return
+    // }
+    // for (const cell of cells) {
+    //   if (cell && this.type === "empty" && cell.cell_output.type) {
+    //     continue;
+    //   }
+    //   if (this.data !== "any" && cell.data !== this.data) {
+    //     continue;
+    //   }
+    //   yield cell;
+    // }
+  }
 
   async getCellsByLockscriptAndCapacity(
     lockscript: Script,

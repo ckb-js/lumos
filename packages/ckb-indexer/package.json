@@ -35,16 +35,19 @@
     "@ckb-lumos/helpers": "^0.17.0-rc5",
     "@ckb-lumos/rpc": "^0.17.0-rc5",
     "@ckb-lumos/transaction-manager": "^0.17.0-rc5",
+    "ava": "^3.15.0",
     "axios": "^0.23.0",
     "ckb-js-toolkit": "^0.10.2",
     "immutable": "^4.0.0",
     "knex": "^0.21.1",
-    "log4js": "^6.3.0"
+    "log4js": "^6.3.0",
+    "sinon": "^11.1.2"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "test": "ava **/*.test.ts",
+    "test": "ava **/*.test.js --timeout=2m",
+    "test:ts": "ava **/*.test.ts --timeout=2m",
     "build": "tsc",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
@@ -56,5 +59,13 @@
   "peerDependencies": {
     "mysql2": "^2.1.0",
     "pg": "^8.2.1"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   }
 }
