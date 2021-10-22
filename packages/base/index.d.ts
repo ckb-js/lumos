@@ -614,7 +614,7 @@ export declare class Indexer {
 }
 
 // CellCollector
-export declare class BaseCellCollector implements CellCollector {
+export declare interface BaseCellCollector extends CellCollector {
   count(): Promise<number>;
 
   collect(): CellCollectorResults;
