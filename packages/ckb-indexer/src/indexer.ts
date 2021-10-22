@@ -27,16 +27,16 @@ export enum Order {
 }
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
-
+export interface SearchFilter {
+  script?: Script;
+  output_data_len_range?: HexadecimalRange; //empty
+  output_capacity_range?: HexadecimalRange; //empty
+  block_range?: HexadecimalRange; //fromBlock-toBlock
+}
 export interface SearchKey {
-  script: Script; //QO.lock ||  QO.type
+  script: Script;
   script_type: ScriptType;
-  filter?: {
-    script?: Script;
-    output_data_len_range?: HexadecimalRange; //empty
-    output_capacity_range?: HexadecimalRange; //empty
-    block_range?: HexadecimalRange; //fromBlock-toBlock
-  };
+  filter?: SearchFilter
 }
 
 export interface GetLiveCellsResult {

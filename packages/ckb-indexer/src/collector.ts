@@ -1,7 +1,7 @@
-import { Script, utils, Cell, BaseCellCollector, QueryOptions, ScriptWrapper } from "@ckb-lumos/base";
+import { Script, utils, Cell, BaseCellCollector, QueryOptions, ScriptWrapper, Hexadecimal } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit"
 import {OrderedSet} from "immutable";
-import {HexadecimalRange, Order} from './indexer';
+import {HexadecimalRange, Order, SearchFilter} from './indexer';
 
 // import { logger } from "./logger";
 import { CkbIndexer, ScriptType, SearchKey, Terminator } from "./indexer";
@@ -22,6 +22,9 @@ export class IndexerCollector extends BaseCellCollector {
   order: Order;
   skip;
   argsLen;
+  outputDataLenRange: HexadecimalRange | null;
+  outputCapacityRange: HexadecimalRange | null;
+  sizeLimit: number | undefined;
 
   constructor(
     public indexer: CkbIndexer,
@@ -37,6 +40,9 @@ export class IndexerCollector extends BaseCellCollector {
       toBlock = null,
       order = Order.asc,
       skip = null,
+      outputDataLenRange = null,
+      outputCapacityRange = null,
+      sizeLimit = undefined
     } = queries
     if (!lock && (!type || type === "empty")) {
       throw new Error("Either lock or type script must be provided!");
@@ -86,59 +92,75 @@ export class IndexerCollector extends BaseCellCollector {
     this.order = order as Order;
     this.skip = skip;
     this.argsLen = argsLen;
+    this.outputCapacityRange = outputCapacityRange;
+    this.outputDataLenRange = outputDataLenRange;
+    this.sizeLimit = sizeLimit;
   }
 
-  async getLiveCell () {
+  //TODO check block number 64 or 128
+  hexStringPlus(hexString: Hexadecimal, addend: number): Hexadecimal {
+    const result = utils.readBigUInt128LE(hexString) + BigInt(addend)
+    return utils.toBigUInt128LE(result);
+  }
+  generatorSearchKey(type: ScriptType): SearchKey {
+    let script: Script| undefined = undefined;
+    let script_type: ScriptType = type;
+    const filter: SearchFilter = {};
+
+    if(type === ScriptType.lock && this.lock) {
+      filter.script = this.lock
+      script = this.lock
+      
+    }
+    if(type === ScriptType.type && typeof this.type !== 'string' && this.type) {
+      filter.script = this.type;
+      script = this.type;
+    }
     let block_range : HexadecimalRange | null = null;
+    if(this.fromBlock && this.toBlock){
+      //this.toBlock+1 cause toBlock need to be included
+      block_range =  [this.fromBlock,  this.hexStringPlus(this.toBlock, 1)]
+    }
+    if(block_range) {
+      filter.block_range = block_range
+    }
+    if(this.outputDataLenRange) {
+      filter.output_data_len_range = this.outputDataLenRange
+    }
+    if(this.outputCapacityRange) {
+      filter.output_capacity_range = this.outputCapacityRange
+    }
+    if (!script) {
+      throw new Error("Either lock or type script must be provided!");
+    }
+    return {
+      script,
+      script_type,
+      filter
+    };
+  }
+  async getLiveCell () {
     let lockOutPoints: OrderedSet<Cell> | null = null;
     let typeOutPoints:  OrderedSet<Cell> | null = null;
-    if(this.fromBlock && this.toBlock){
-      //TODO this.toBlock+1
-      block_range =  [this.fromBlock,  this.toBlock]
-    }
-    // TODO add output_data_len_range and output_capacity_range limit
-    // output_data_len_range: [u64; 2], filter cells by output data len range, [inclusive, exclusive]
-    // output_capacity_range: [u64; 2], filter cells by output capacity range, [inclusive, exclusive]
     
     const additionalOptions = {
-      // sizeLimit: this.sizeLimit,
+      sizeLimit: this.sizeLimit,
       order: this.order
     }
     if(this.lock) {
-      const searchKey: SearchKey = {
-        script: this.lock,
-        script_type: ScriptType.lock,
-        filter: {
-          script: this.lock,
-        }
-      }
-      if(block_range) {
-        searchKey.filter = {...searchKey.filter, block_range}
-      }
-      const outPoints  = await this.indexer.getCells(searchKey, undefined, additionalOptions);
+      const outPoints  = await this.indexer.getCells(this.generatorSearchKey(ScriptType.lock), undefined, additionalOptions);
       lockOutPoints = this.wrapOutPoints(outPoints);
     } else if(this.type && this.type !== 'empty'){
-      const searchKey: SearchKey = {
-        script: this.type as Script,
-        script_type: ScriptType.type,
-        filter: {
-          script: this.type as Script,
-        }
-      }
-      if(block_range) {
-        searchKey.filter = {...searchKey.filter, block_range}
-      }
-      const outPoints = await this.indexer.getCells(searchKey, undefined, additionalOptions);
+      const outPoints = await this.indexer.getCells(this.generatorSearchKey(ScriptType.type), undefined, additionalOptions);
       typeOutPoints = this.wrapOutPoints(outPoints);
     }
 
-
-    let outPoints = null;
+    let outPoints: OrderedSet<Cell> = OrderedSet();
     if (lockOutPoints && typeOutPoints) {
       outPoints = lockOutPoints.intersect(typeOutPoints);
     } else if (lockOutPoints) {
       outPoints = lockOutPoints;
-    } else {
+    } else if(typeOutPoints){
       outPoints = typeOutPoints;
     }
     return outPoints;
@@ -170,22 +192,18 @@ export class IndexerCollector extends BaseCellCollector {
     return counter;
   }
 
-  // async *collect() {
-  //   let cells = await this.getLiveCell();
-  //   if(!cells) {
-  //     yield 
-  //     return
-  //   }
-  //   for (const cell of cells) {
-  //     if (cell && this.type === "empty" && cell.cell_output.type) {
-  //       continue;
-  //     }
-  //     if (this.data !== "any" && cell.data !== this.data) {
-  //       continue;
-  //     }
-  //     yield cell;
-  //   }
-  // }
+  async *collect() {
+    let cells = await this.getLiveCell();
+    for (const cell of cells) {
+      if (cell && this.type === "empty" && cell.cell_output.type) {
+        continue;
+      }
+      if (this.data !== "any" && cell.data !== this.data) {
+        continue;
+      }
+      yield cell;
+    }
+  }
 
   async getCellsByLockscriptAndCapacity(
     lockscript: Script,
