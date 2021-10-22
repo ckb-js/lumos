@@ -37,6 +37,7 @@
     "@ckb-lumos/transaction-manager": "^0.17.0-rc5",
     "axios": "^0.23.0",
     "ckb-js-toolkit": "^0.10.2",
+    "immutable": "^4.0.0",
     "knex": "^0.21.1",
     "log4js": "^6.3.0"
   },

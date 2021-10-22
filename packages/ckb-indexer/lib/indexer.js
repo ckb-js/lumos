@@ -239,6 +239,15 @@ class CkbIndexer {
         }
         return infos;
     }
+    // return this.nativeIndexer.getLiveCellsByScriptIterator(
+    //   normalizers.NormalizeScript(script),
+    //   scriptType,
+    //   argsLen,
+    //   fromBlock,
+    //   toBlock,
+    //   order,
+    //   skip
+    // );
     async getTransactions(searchKey, { sizeLimit = 0x100, order = Order.asc, } = {}) {
         let infos = [];
         let cursor;
