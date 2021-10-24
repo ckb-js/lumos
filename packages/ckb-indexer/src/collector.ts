@@ -22,14 +22,14 @@ export abstract class Collector {
 }
 
 export class IndexerCollector extends BaseCellCollector {
-  lock;
-  type;
-  data;
-  fromBlock;
-  toBlock;
+  lock!: Script;
+  type!: Script | string;
+  data: string | null;
+  fromBlock: string | null;
+  toBlock: string | null;
   order: Order;
-  skip;
-  argsLen;
+  skip: number | null;
+  argsLen: number | null;
   outputDataLenRange: HexadecimalRange | null;
   outputCapacityRange: HexadecimalRange | null;
   sizeLimit: number | undefined;
@@ -96,7 +96,7 @@ export class IndexerCollector extends BaseCellCollector {
     this.toBlock = toBlock;
     this.order = order as Order;
     this.skip = skip;
-    this.argsLen = argsLen;
+    this.argsLen = argsLen as number;
     this.outputCapacityRange = outputCapacityRange;
     this.outputDataLenRange = outputDataLenRange;
     this.sizeLimit = sizeLimit;
