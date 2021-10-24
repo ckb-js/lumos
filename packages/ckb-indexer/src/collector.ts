@@ -201,7 +201,11 @@ export class IndexerCollector extends BaseCellCollector {
       if (this.data !== "any" && cell.data !== this.data) {
         continue;
       }
-      counter += 1;
+      //TODO check argsLen
+      if(this.argsLen !== -1 && cell.cell_output.lock.args.length !== this.argsLen) {
+        continue;
+      }
+      counter += 1; 
     }
 
     return counter;
@@ -214,6 +218,9 @@ export class IndexerCollector extends BaseCellCollector {
         continue;
       }
       if (this.data !== "any" && cell.data !== this.data) {
+        continue;
+      }
+      if(this.argsLen !== -1 && cell.cell_output.lock.args.length !== this.argsLen) {
         continue;
       }
       yield cell;
