@@ -76,7 +76,7 @@ export declare type Terminator = (
   cell: Cell
 ) => TerminatorResult;
 
-const DefaultTerminator: Terminator = (_index, _cell) => {
+const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
 };
 
