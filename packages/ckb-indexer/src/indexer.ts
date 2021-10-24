@@ -310,13 +310,20 @@ export class CkbIndexer implements Indexer {
     {
       sizeLimit = 0x100,
       order = Order.asc,
-    }: { sizeLimit?: number; order?: Order } = {}
+      skip = null,
+    }: { sizeLimit?: number; order?: Order, skip?: number | null } = {}
   ): Promise<Cell[]> {
     const infos: Cell[] = [];
     let cursor: string | undefined;
     const index = 0;
     while (true) {
-      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
+      // disable cursor if user use skip
+      let params = [];
+      if(skip) {
+        params = [searchKey, order, `0x${sizeLimit.toString(16)}`];
+      } else {
+        params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
+      }
       const res: GetLiveCellsResult = await this.request("get_cells", params);
       const liveCells = res.objects;
       cursor = res.last_cursor;

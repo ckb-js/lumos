@@ -154,6 +154,7 @@ export class IndexerCollector extends BaseCellCollector {
     const additionalOptions = {
       sizeLimit: this.sizeLimit,
       order: this.order,
+      skip: this.skip
     };
     if (this.lock) {
       const outPoints = await this.indexer.getCells(
@@ -178,6 +179,9 @@ export class IndexerCollector extends BaseCellCollector {
       outPoints = lockOutPoints;
     } else if (typeOutPoints) {
       outPoints = typeOutPoints;
+    }
+    if(this.skip) {
+      outPoints = outPoints.slice(this.skip)
     }
     return outPoints;
   }
