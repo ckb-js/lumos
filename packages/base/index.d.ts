@@ -348,9 +348,9 @@ export interface QueryOptions {
   toBlock?: Hexadecimal;
   skip?: number;
   order?: "asc" | "desc";
-  outputDataLenRange?: HexadecimalRange
-  outputCapacityRange?: HexadecimalRange
-  sizeLimit?: number
+  outputDataLenRange?: HexadecimalRange;
+  outputCapacityRange?: HexadecimalRange;
+  sizeLimit?: number;
 }
 
 export interface ScriptWrapper {
