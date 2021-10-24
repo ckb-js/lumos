@@ -311,7 +311,7 @@ export class CkbIndexer implements Indexer {
       sizeLimit = 0x100,
       order = Order.asc,
       skip = null,
-    }: { sizeLimit?: number; order?: Order, skip?: number | null } = {}
+    }: { sizeLimit?: number; order?: Order; skip?: number | null } = {}
   ): Promise<Cell[]> {
     const infos: Cell[] = [];
     let cursor: string | undefined;
@@ -319,7 +319,7 @@ export class CkbIndexer implements Indexer {
     while (true) {
       // disable cursor if user use skip
       let params = [];
-      if(skip) {
+      if (skip) {
         params = [searchKey, order, `0x${sizeLimit.toString(16)}`];
       } else {
         params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];

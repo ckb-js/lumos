@@ -154,7 +154,7 @@ export class IndexerCollector extends BaseCellCollector {
     const additionalOptions = {
       sizeLimit: this.sizeLimit,
       order: this.order,
-      skip: this.skip
+      skip: this.skip,
     };
     if (this.lock) {
       const outPoints = await this.indexer.getCells(
@@ -180,8 +180,8 @@ export class IndexerCollector extends BaseCellCollector {
     } else if (typeOutPoints) {
       outPoints = typeOutPoints;
     }
-    if(this.skip) {
-      outPoints = outPoints.slice(this.skip)
+    if (this.skip) {
+      outPoints = outPoints.slice(this.skip);
     }
     return outPoints;
   }
@@ -206,10 +206,13 @@ export class IndexerCollector extends BaseCellCollector {
         continue;
       }
       //TODO check argsLen
-      if(this.argsLen !== -1 && cell.cell_output.lock.args.length !== this.argsLen) {
+      if (
+        this.argsLen !== -1 &&
+        cell.cell_output.lock.args.length !== this.argsLen
+      ) {
         continue;
       }
-      counter += 1; 
+      counter += 1;
     }
 
     return counter;
@@ -224,7 +227,10 @@ export class IndexerCollector extends BaseCellCollector {
       if (this.data !== "any" && cell.data !== this.data) {
         continue;
       }
-      if(this.argsLen !== -1 && cell.cell_output.lock.args.length !== this.argsLen) {
+      if (
+        this.argsLen !== -1 &&
+        cell.cell_output.lock.args.length !== this.argsLen
+      ) {
         continue;
       }
       yield cell;
