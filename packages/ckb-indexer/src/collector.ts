@@ -1,7 +1,15 @@
-import { Script, utils, Cell, BaseCellCollector, QueryOptions, ScriptWrapper, Hexadecimal } from "@ckb-lumos/base";
-import { validators } from "ckb-js-toolkit"
-import {OrderedSet} from "immutable";
-import {HexadecimalRange, Order, SearchFilter} from './indexer';
+import {
+  Script,
+  utils,
+  Cell,
+  BaseCellCollector,
+  QueryOptions,
+  ScriptWrapper,
+  Hexadecimal,
+} from "@ckb-lumos/base";
+import { validators } from "ckb-js-toolkit";
+import { OrderedSet } from "immutable";
+import { HexadecimalRange, Order, SearchFilter } from "./indexer";
 
 // import { logger } from "./logger";
 import { CkbIndexer, ScriptType, SearchKey, Terminator } from "./indexer";
@@ -26,10 +34,7 @@ export class IndexerCollector extends BaseCellCollector {
   outputCapacityRange: HexadecimalRange | null;
   sizeLimit: number | undefined;
 
-  constructor(
-    public indexer: CkbIndexer,
-    public queries: QueryOptions
-  ) {
+  constructor(public indexer: CkbIndexer, public queries: QueryOptions) {
     super();
     const {
       lock = null,
@@ -42,21 +47,21 @@ export class IndexerCollector extends BaseCellCollector {
       skip = null,
       outputDataLenRange = null,
       outputCapacityRange = null,
-      sizeLimit = undefined
-    } = queries
+      sizeLimit = undefined,
+    } = queries;
     if (!lock && (!type || type === "empty")) {
       throw new Error("Either lock or type script must be provided!");
     }
 
-    function instanceOfScriptWrapper(object: any): object is ScriptWrapper{
-      return 'script' in object;
+    function instanceOfScriptWrapper(object: any): object is ScriptWrapper {
+      return "script" in object;
     }
     // unWrap `ScriptWrapper` into `Script`.
-    if(lock) {
-      if(!instanceOfScriptWrapper(lock)) {
+    if (lock) {
+      if (!instanceOfScriptWrapper(lock)) {
         validators.ValidateScript(lock);
         this.lock = lock;
-      } else if(instanceOfScriptWrapper(lock)) {
+      } else if (instanceOfScriptWrapper(lock)) {
         validators.ValidateScript(lock.script);
         this.lock = lock.script;
       }
@@ -64,8 +69,8 @@ export class IndexerCollector extends BaseCellCollector {
 
     // unWrap `ScriptWrapper` into `Script`.
     if (type) {
-      if(type === 'empty') {
-        this.type = 'empty'
+      if (type === "empty") {
+        this.type = "empty";
       }
       if (typeof type === "object" && !instanceOfScriptWrapper(type)) {
         validators.ValidateScript(type);
@@ -74,7 +79,7 @@ export class IndexerCollector extends BaseCellCollector {
         validators.ValidateScript(type.script);
         this.type = type.script;
       }
-    } 
+    }
 
     if (fromBlock) {
       utils.assertHexadecimal("fromBlock", fromBlock);
@@ -99,36 +104,39 @@ export class IndexerCollector extends BaseCellCollector {
 
   //TODO check block number 64 or 128
   hexStringPlus(hexString: Hexadecimal, addend: number): Hexadecimal {
-    const result = utils.readBigUInt128LE(hexString) + BigInt(addend)
+    const result = utils.readBigUInt128LE(hexString) + BigInt(addend);
     return utils.toBigUInt128LE(result);
   }
   generatorSearchKey(type: ScriptType): SearchKey {
-    let script: Script| undefined = undefined;
+    let script: Script | undefined = undefined;
     let script_type: ScriptType = type;
     const filter: SearchFilter = {};
 
-    if(type === ScriptType.lock && this.lock) {
-      filter.script = this.lock
-      script = this.lock
-      
+    if (type === ScriptType.lock && this.lock) {
+      filter.script = this.lock;
+      script = this.lock;
     }
-    if(type === ScriptType.type && typeof this.type !== 'string' && this.type) {
+    if (
+      type === ScriptType.type &&
+      typeof this.type !== "string" &&
+      this.type
+    ) {
       filter.script = this.type;
       script = this.type;
     }
-    let block_range : HexadecimalRange | null = null;
-    if(this.fromBlock && this.toBlock){
+    let block_range: HexadecimalRange | null = null;
+    if (this.fromBlock && this.toBlock) {
       //this.toBlock+1 cause toBlock need to be included
-      block_range =  [this.fromBlock,  this.hexStringPlus(this.toBlock, 1)]
+      block_range = [this.fromBlock, this.hexStringPlus(this.toBlock, 1)];
     }
-    if(block_range) {
-      filter.block_range = block_range
+    if (block_range) {
+      filter.block_range = block_range;
     }
-    if(this.outputDataLenRange) {
-      filter.output_data_len_range = this.outputDataLenRange
+    if (this.outputDataLenRange) {
+      filter.output_data_len_range = this.outputDataLenRange;
     }
-    if(this.outputCapacityRange) {
-      filter.output_capacity_range = this.outputCapacityRange
+    if (this.outputCapacityRange) {
+      filter.output_capacity_range = this.outputCapacityRange;
     }
     if (!script) {
       throw new Error("Either lock or type script must be provided!");
@@ -136,22 +144,30 @@ export class IndexerCollector extends BaseCellCollector {
     return {
       script,
       script_type,
-      filter
+      filter,
     };
   }
-  async getLiveCell () {
+  async getLiveCell() {
     let lockOutPoints: OrderedSet<Cell> | null = null;
-    let typeOutPoints:  OrderedSet<Cell> | null = null;
-    
+    let typeOutPoints: OrderedSet<Cell> | null = null;
+
     const additionalOptions = {
       sizeLimit: this.sizeLimit,
-      order: this.order
-    }
-    if(this.lock) {
-      const outPoints  = await this.indexer.getCells(this.generatorSearchKey(ScriptType.lock), undefined, additionalOptions);
+      order: this.order,
+    };
+    if (this.lock) {
+      const outPoints = await this.indexer.getCells(
+        this.generatorSearchKey(ScriptType.lock),
+        undefined,
+        additionalOptions
+      );
       lockOutPoints = this.wrapOutPoints(outPoints);
-    } else if(this.type && this.type !== 'empty'){
-      const outPoints = await this.indexer.getCells(this.generatorSearchKey(ScriptType.type), undefined, additionalOptions);
+    } else if (this.type && this.type !== "empty") {
+      const outPoints = await this.indexer.getCells(
+        this.generatorSearchKey(ScriptType.type),
+        undefined,
+        additionalOptions
+      );
       typeOutPoints = this.wrapOutPoints(outPoints);
     }
 
@@ -160,7 +176,7 @@ export class IndexerCollector extends BaseCellCollector {
       outPoints = lockOutPoints.intersect(typeOutPoints);
     } else if (lockOutPoints) {
       outPoints = lockOutPoints;
-    } else if(typeOutPoints){
+    } else if (typeOutPoints) {
       outPoints = typeOutPoints;
     }
     return outPoints;
@@ -174,11 +190,10 @@ export class IndexerCollector extends BaseCellCollector {
     return outPointsBufferValue;
   }
 
-
   async count(): Promise<number> {
     let cells = await this.getLiveCell();
     let counter = 0;
-    if(!cells) return counter;
+    if (!cells) return counter;
     for (const cell of cells) {
       if (cell && this.type === "empty" && cell.cell_output.type) {
         continue;
@@ -226,7 +241,7 @@ export class IndexerCollector extends BaseCellCollector {
       script: lockscript,
       script_type: ScriptType.lock,
     };
-    const cells = await this.indexer.getCells(searchKey ,terminator);
+    const cells = await this.indexer.getCells(searchKey, terminator);
     return cells;
   }
 

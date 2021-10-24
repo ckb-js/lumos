@@ -35,7 +35,7 @@ export interface SearchFilter {
 export interface SearchKey {
   script: Script;
   script_type: ScriptType;
-  filter?: SearchFilter
+  filter?: SearchFilter;
 }
 
 export interface GetLiveCellsResult {
@@ -44,13 +44,13 @@ export interface GetLiveCellsResult {
 }
 
 export interface rpcResponse {
-  status: number,
-  data: rpcResponseData
+  status: number;
+  data: rpcResponseData;
 }
 
 export interface rpcResponseData {
-  result: string,
-  error: string
+  result: string;
+  error: string;
 }
 
 export interface IndexerCell {
@@ -176,7 +176,7 @@ export class CkbIndexer implements Indexer {
             const sizeLimit = 100;
             let cursor = null;
             for (;;) {
-              const params:any = [
+              const params: any = [
                 searchKey,
                 order,
                 `0x${sizeLimit.toString(16)}`,
@@ -310,7 +310,7 @@ export class CkbIndexer implements Indexer {
     {
       sizeLimit = 0x100,
       order = Order.asc,
-    }: { sizeLimit?: number; order?: Order } = {},
+    }: { sizeLimit?: number; order?: Order } = {}
   ): Promise<Cell[]> {
     const infos: Cell[] = [];
     let cursor: string | undefined;
