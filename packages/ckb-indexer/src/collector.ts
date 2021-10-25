@@ -181,6 +181,7 @@ export class IndexerCollector extends BaseCellCollector {
       outPoints = typeOutPoints;
     }
     if (this.skip) {
+      //TODO 判断outpoints的长度
       outPoints = outPoints.slice(this.skip);
     }
     return outPoints;
@@ -194,6 +195,10 @@ export class IndexerCollector extends BaseCellCollector {
     return outPointsBufferValue;
   }
 
+  getHexStringBytes(hexString: string) {
+    return Math.ceil((hexString.substr(2).length)/2)
+  }
+
   async count(): Promise<number> {
     let cells = await this.getLiveCell();
     let counter = 0;
@@ -205,10 +210,9 @@ export class IndexerCollector extends BaseCellCollector {
       if (this.data !== "any" && cell.data !== this.data) {
         continue;
       }
-      //TODO check argsLen
       if (
         this.argsLen !== -1 &&
-        cell.cell_output.lock.args.length !== this.argsLen
+        this.getHexStringBytes(cell.cell_output.lock.args) === this.argsLen
       ) {
         continue;
       }
@@ -229,7 +233,7 @@ export class IndexerCollector extends BaseCellCollector {
       }
       if (
         this.argsLen !== -1 &&
-        cell.cell_output.lock.args.length !== this.argsLen
+        this.getHexStringBytes(cell.cell_output.lock.args) === this.argsLen
       ) {
         continue;
       }
