@@ -9,7 +9,13 @@ import {
 } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit";
 import { OrderedSet } from "immutable";
-import { HexadecimalRange, Order, SearchFilter } from "./indexer";
+import {
+  AdditionalOptions,
+  GetCellsResults,
+  HexadecimalRange,
+  Order,
+  SearchFilter,
+} from "./indexer";
 
 // import { logger } from "./logger";
 import { CkbIndexer, ScriptType, SearchKey, Terminator } from "./indexer";
@@ -90,6 +96,24 @@ export class IndexerCollector extends BaseCellCollector {
     if (order !== Order.asc && order !== Order.desc) {
       throw new Error("Order must be either asc or desc!");
     }
+    if (outputCapacityRange) {
+      utils.assertHexadecimal("outputCapacityRange[0]", outputCapacityRange[0]);
+      utils.assertHexadecimal("outputCapacityRange[1]", outputCapacityRange[1]);
+    }
+
+    if (outputDataLenRange) {
+      utils.assertHexadecimal("outputDataLenRange[0]", outputDataLenRange[0]);
+      utils.assertHexadecimal("outputDataLenRange[1]", outputDataLenRange[1]);
+    }
+
+    if (skip && typeof skip !== "number") {
+      throw new Error("Skip must be a number!");
+    }
+
+    if (sizeLimit && typeof sizeLimit !== "number") {
+      throw new Error("sizeLimit must be a number!");
+    }
+
     this.indexer = indexer;
     this.data = data;
     this.fromBlock = fromBlock;
@@ -147,29 +171,54 @@ export class IndexerCollector extends BaseCellCollector {
       filter,
     };
   }
+
+  async getCellsToEnd(
+    searchKey: SearchKey,
+    additionalOptions: AdditionalOptions
+  ): Promise<GetCellsResults> {
+    let result = await this.indexer.getCells(
+      searchKey,
+      undefined,
+      additionalOptions
+    );
+    while (true) {
+      if (result.lastCursor !== additionalOptions.lastCursor) {
+        const tempResult = await this.indexer.getCells(
+          searchKey,
+          undefined,
+          additionalOptions
+        );
+        result.objects = result.objects.concat(tempResult.objects);
+        result.lastCursor = tempResult.lastCursor;
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
+
   async getLiveCell() {
     let lockOutPoints: OrderedSet<Cell> | null = null;
     let typeOutPoints: OrderedSet<Cell> | null = null;
 
-    const additionalOptions = {
+    const additionalOptions: AdditionalOptions = {
       sizeLimit: this.sizeLimit,
       order: this.order,
-      skip: this.skip,
+      lastCursor: undefined,
     };
+
     if (this.lock) {
-      const outPoints = await this.indexer.getCells(
+      const result = await this.getCellsToEnd(
         this.generatorSearchKey(ScriptType.lock),
-        undefined,
         additionalOptions
       );
-      lockOutPoints = this.wrapOutPoints(outPoints);
+      lockOutPoints = this.wrapOutPoints(result.objects);
     } else if (this.type && this.type !== "empty") {
-      const outPoints = await this.indexer.getCells(
+      const result = await this.getCellsToEnd(
         this.generatorSearchKey(ScriptType.type),
-        undefined,
         additionalOptions
       );
-      typeOutPoints = this.wrapOutPoints(outPoints);
+      typeOutPoints = this.wrapOutPoints(result.objects);
     }
 
     let outPoints: OrderedSet<Cell> = OrderedSet();
@@ -196,7 +245,7 @@ export class IndexerCollector extends BaseCellCollector {
   }
 
   getHexStringBytes(hexString: string) {
-    return Math.ceil((hexString.substr(2).length)/2)
+    return Math.ceil(hexString.substr(2).length / 2);
   }
 
   async count(): Promise<number> {
@@ -262,8 +311,8 @@ export class IndexerCollector extends BaseCellCollector {
       script: lockscript,
       script_type: ScriptType.lock,
     };
-    const cells = await this.indexer.getCells(searchKey, terminator);
-    return cells;
+    const result = await this.indexer.getCells(searchKey, terminator);
+    return result.objects;
   }
 
   async collectSudtByAmount(
@@ -281,8 +330,8 @@ export class IndexerCollector extends BaseCellCollector {
         return { stop: false, push: true };
       }
     };
-    const cells = await this.indexer.getCells(searchKey, terminator);
-    return cells;
+    const result = await this.indexer.getCells(searchKey, terminator);
+    return result.objects;
   }
 
   async getBalance(lock: Script): Promise<bigint> {
@@ -290,9 +339,9 @@ export class IndexerCollector extends BaseCellCollector {
       script: lock,
       script_type: ScriptType.lock,
     };
-    const cells = await this.indexer.getCells(searchKey);
+    const result = await this.indexer.getCells(searchKey);
     let balance = 0n;
-    cells.forEach((cell) => {
+    result.objects.forEach((cell) => {
       balance += BigInt(cell.cell_output.capacity);
     });
     return balance;
@@ -306,9 +355,9 @@ export class IndexerCollector extends BaseCellCollector {
         script: sudtType,
       },
     };
-    const cells = await this.indexer.getCells(searchKey);
+    const result = await this.indexer.getCells(searchKey);
     let balance = 0n;
-    cells.forEach((cell) => {
+    result.objects.forEach((cell) => {
       // logger.debug("cell.data:", cell.data);
       const amount = utils.readBigUInt128LE(cell.data);
       balance += amount;
@@ -345,7 +394,7 @@ export class IndexerCollector extends BaseCellCollector {
       script: lockscript,
       script_type: ScriptType.lock,
     };
-    const cells = await this.indexer.getCells(searchKey, terminator);
-    return cells;
+    const result = await this.indexer.getCells(searchKey, terminator);
+    return result.objects;
   }
 }

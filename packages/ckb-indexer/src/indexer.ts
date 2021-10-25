@@ -94,6 +94,17 @@ export interface GetTransactionsResults {
   objects: GetTransactionsResult[];
 }
 
+export interface GetCellsResults {
+  lastCursor: string;
+  objects: Cell[];
+}
+
+export interface AdditionalOptions {
+  sizeLimit?: number;
+  order?: Order;
+  lastCursor?: string | undefined;
+}
+
 export class CkbIndexer implements Indexer {
   uri: string;
 
@@ -310,20 +321,14 @@ export class CkbIndexer implements Indexer {
     {
       sizeLimit = 0x100,
       order = Order.asc,
-      skip = null,
-    }: { sizeLimit?: number; order?: Order; skip?: number | null } = {}
-  ): Promise<Cell[]> {
+      lastCursor = undefined,
+    }: AdditionalOptions = {}
+  ): Promise<GetCellsResults> {
     const infos: Cell[] = [];
-    let cursor: string | undefined;
+    let cursor: string | undefined = lastCursor;
     const index = 0;
     while (true) {
-      // disable cursor if user use skip
-      let params = [];
-      if (skip) {
-        params = [searchKey, order, `0x${sizeLimit.toString(16)}`];
-      } else {
-        params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
-      }
+      let params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res: GetLiveCellsResult = await this.request("get_cells", params);
       const liveCells = res.objects;
       cursor = res.last_cursor;
@@ -340,14 +345,20 @@ export class CkbIndexer implements Indexer {
           infos.push(cell);
         }
         if (stop) {
-          return infos;
+          return {
+            objects: infos,
+            last_cursor: cursor,
+          };
         }
       }
       if (liveCells.length < sizeLimit) {
         break;
       }
     }
-    return infos;
+    return {
+      objects: infos,
+      last_cursor: cursor,
+    };
   }
 
   public async getTransactions(
