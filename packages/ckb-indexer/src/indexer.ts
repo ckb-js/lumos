@@ -347,7 +347,7 @@ export class CkbIndexer implements Indexer {
         if (stop) {
           return {
             objects: infos,
-            last_cursor: cursor,
+            lastCursor: cursor,
           };
         }
       }
@@ -357,7 +357,7 @@ export class CkbIndexer implements Indexer {
     }
     return {
       objects: infos,
-      last_cursor: cursor,
+      lastCursor: cursor,
     };
   }
 
