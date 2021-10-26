@@ -1,0 +1,62 @@
+{
+  "name": "@ckb-lumos/test-utils",
+  "version": "0.17.0-rc5",
+  "description": "Test toolkit for CKB",
+  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "os": [
+    "win32",
+    "darwin",
+    "linux"
+  ],
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "http://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@ckb-lumos/base": "^0.17.0-rc5",
+    "@types/body-parser": "^1.19.1",
+    "@types/express": "^4.17.13",
+    "body-parser": "^1.19.0",
+    "ckb-js-toolkit": "^0.10.2",
+    "express": "^4.17.1",
+    "json-rpc-2.0": "^0.2.19"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "test": "ava **/*.test.ts",
+    "build": "tsc",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
+  },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  }
+}
