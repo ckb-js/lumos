@@ -13,8 +13,7 @@ import {
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
 import axios from "axios";
-// import { asyncSleep } from "./utils";
-// import { logger } from "./logger";
+import { logger } from "./logger";
 
 export enum ScriptType {
   type = "type",
@@ -27,16 +26,16 @@ export enum Order {
 }
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
-
+export interface SearchFilter {
+  script?: Script;
+  output_data_len_range?: HexadecimalRange; //empty
+  output_capacity_range?: HexadecimalRange; //empty
+  block_range?: HexadecimalRange; //fromBlock-toBlock
+}
 export interface SearchKey {
   script: Script;
   script_type: ScriptType;
-  filter?: {
-    script?: Script;
-    output_data_len_range?: HexadecimalRange;
-    output_capacity_range?: HexadecimalRange;
-    block_range?: HexadecimalRange;
-  };
+  filter?: SearchFilter;
 }
 
 export interface GetLiveCellsResult {
@@ -45,13 +44,13 @@ export interface GetLiveCellsResult {
 }
 
 export interface rpcResponse {
-  status: number,
-  data: rpcResponseData
+  status: number;
+  data: rpcResponseData;
 }
 
 export interface rpcResponseData {
-  result: string,
-  error: string
+  result: string;
+  error: string;
 }
 
 export interface IndexerCell {
@@ -76,7 +75,7 @@ export declare type Terminator = (
   cell: Cell
 ) => TerminatorResult;
 
-const DefaultTerminator: Terminator = (_index, _cell) => {
+const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
 };
 
@@ -93,6 +92,17 @@ export type GetTransactionsResult = {
 export interface GetTransactionsResults {
   last_cursor: string;
   objects: GetTransactionsResult[];
+}
+
+export interface GetCellsResults {
+  lastCursor: string;
+  objects: Cell[];
+}
+
+export interface AdditionalOptions {
+  sizeLimit?: number;
+  order?: Order;
+  lastCursor?: string | undefined;
 }
 
 export class CkbIndexer implements Indexer {
@@ -120,15 +130,15 @@ export class CkbIndexer implements Indexer {
       (await this.getCkbRpc().get_tip_header()).number,
       16
     );
-    // logger.debug("rpcTipNumber", rpcTipNumber);
+    logger.debug("rpcTipNumber", rpcTipNumber);
     let index = 0;
     while (true) {
       const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
-      // logger.debug("indexerTipNumber", indexerTipNumber);
+      logger.debug("indexerTipNumber", indexerTipNumber);
       if (indexerTipNumber + blockDifference >= rpcTipNumber) {
         return;
       }
-      // logger.debug(`wait until indexer sync. index: ${index++}`);
+      logger.debug(`wait until indexer sync. index: ${index++}`);
       await this.asyncSleep(1000);
     }
   }
@@ -177,13 +187,13 @@ export class CkbIndexer implements Indexer {
             const sizeLimit = 100;
             let cursor = null;
             for (;;) {
-              const params:any = [
+              const params: any = [
                 searchKey,
                 order,
                 `0x${sizeLimit.toString(16)}`,
                 cursor,
               ];
-              // logger.debug("get_cells params", params);
+              logger.debug("get_cells params", params);
               const res = await request("get_cells", params, ckbIndexerUrl);
               const liveCells = res.objects;
               cursor = res.last_cursor;
@@ -311,17 +321,18 @@ export class CkbIndexer implements Indexer {
     {
       sizeLimit = 0x100,
       order = Order.asc,
-    }: { sizeLimit?: number; order?: Order } = {},
-  ): Promise<Cell[]> {
+      lastCursor = undefined,
+    }: AdditionalOptions = {}
+  ): Promise<GetCellsResults> {
     const infos: Cell[] = [];
-    let cursor: string | undefined;
+    let cursor: string | undefined = lastCursor;
     const index = 0;
     while (true) {
-      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
+      let params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res: GetLiveCellsResult = await this.request("get_cells", params);
       const liveCells = res.objects;
       cursor = res.last_cursor;
-      // logger.debug("liveCells", liveCells[liveCells.length - 1]);
+      logger.debug("liveCells", liveCells[liveCells.length - 1]);
       for (const liveCell of liveCells) {
         const cell: Cell = {
           cell_output: liveCell.output,
@@ -334,14 +345,20 @@ export class CkbIndexer implements Indexer {
           infos.push(cell);
         }
         if (stop) {
-          return infos;
+          return {
+            objects: infos,
+            lastCursor: cursor,
+          };
         }
       }
       if (liveCells.length < sizeLimit) {
         break;
       }
     }
-    return infos;
+    return {
+      objects: infos,
+      lastCursor: cursor,
+    };
   }
 
   public async getTransactions(
@@ -375,15 +392,15 @@ export class CkbIndexer implements Indexer {
   }
 
   start(): void {
-    // logger.debug("ckb indexer start");
+    logger.debug("ckb indexer start");
   }
 
   startForever(): void {
-    // logger.debug("ckb indexer startForever");
+    logger.debug("ckb indexer startForever");
   }
 
   stop(): void {
-    // logger.debug("ckb indexer stop");
+    logger.debug("ckb indexer stop");
   }
 
   //  eslint-disable-next-line @typescript-eslint/no-unused-vars

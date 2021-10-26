@@ -18,6 +18,8 @@ export type PackedDao = string;
 
 export type Address = string;
 
+export type HexadecimalRange = [Hexadecimal, Hexadecimal];
+
 export interface Header {
   timestamp: HexNumber;
   number: HexNumber;
@@ -346,6 +348,9 @@ export interface QueryOptions {
   toBlock?: Hexadecimal;
   skip?: number;
   order?: "asc" | "desc";
+  outputDataLenRange?: HexadecimalRange;
+  outputCapacityRange?: HexadecimalRange;
+  sizeLimit?: number;
 }
 
 export interface ScriptWrapper {
