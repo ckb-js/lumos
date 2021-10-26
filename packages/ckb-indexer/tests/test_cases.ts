@@ -455,62 +455,6 @@ const cellsByLock = [
   },
 ];
 
-
-const cellsByType = [
-  {
-    cell_output: {
-      capacity: "0x47e5e9f0c",
-      lock: {
-        code_hash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-        hash_type: "type" as HashType,
-        args: "0xb5a27e6b01d309135b06089ce192a267ceada8ea",
-      },
-      type: {
-        code_hash:
-          "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-        hash_type: "type" as HashType,
-        args: "0x",
-      },
-    },
-    out_point: {
-      tx_hash:
-        "0x1fdfec93d515009759b6c0a029775143bdeaa9b9883216fc82589cc53e17c195",
-      index: "0x0",
-    },
-    block_hash:
-      "0x4cc7b42c12e0ed1c87c3ced726e419ba19f755be1739097d6758b6bf60c654ad",
-    block_number: "0x40",
-    data: "0x0000000000000000",
-  },
-  {
-    cell_output: {
-      capacity: "0x174876e800",
-      lock: {
-        code_hash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-        hash_type: "type" as HashType,
-        args: "0x6a506c138d0efd50b119d22b7b2404a53fe7ac98",
-      },
-      type: {
-        code_hash:
-          "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-        hash_type: "type" as HashType,
-        args: "0x",
-      },
-    },
-    out_point: {
-      tx_hash:
-        "0x8bc43f5819bfcc32a840c0f60d9eafe6bde3a67f9f018eb258783afc60798a07",
-      index: "0x0",
-    },
-    block_hash:
-      "0xd4b10e5af3dac133888f47baeda057f7760fb4f81b2f4dc03a29c228c7dba7a0",
-    block_number: "0x46",
-    data: "0x0000000000000000",
-  },
-];
-
 const cellCollectorTestCases = [
   {
     desc: "Test query cells by lock script",
