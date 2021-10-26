@@ -26,7 +26,7 @@ export abstract class Collector {
   ): Promise<Cell[]>;
 }
 
-export class IndexerCollector implements BaseCellCollector{
+export class IndexerCollector implements BaseCellCollector {
   lock!: Script;
   type!: Script | string;
   data: string | null;
@@ -136,13 +136,13 @@ export class IndexerCollector implements BaseCellCollector{
 
     if (this.lock) {
       script = this.lock;
-      script_type = ScriptType.lock
+      script_type = ScriptType.lock;
       if (this.type && typeof this.type !== "string") {
         filter.script = this.type;
       }
-    } else if (this.type &&  typeof this.type !== "string") {
+    } else if (this.type && typeof this.type !== "string") {
       script = this.type;
-      script_type = ScriptType.type
+      script_type = ScriptType.type;
     }
     let block_range: HexadecimalRange | null = null;
     if (this.fromBlock && this.toBlock) {
@@ -171,20 +171,20 @@ export class IndexerCollector implements BaseCellCollector{
     };
   }
 
-  async getLiveCell(lastCursor?: string) : Promise<GetCellsResults>{
+  async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
     const additionalOptions: AdditionalOptions = {
       sizeLimit: this.sizeLimit,
       order: this.order,
     };
-    if(lastCursor) {
-      additionalOptions.lastCursor = lastCursor
+    if (lastCursor) {
+      additionalOptions.lastCursor = lastCursor;
     }
     const result: GetCellsResults = await this.indexer.getCells(
       this.generatorSearchKey(),
       undefined,
       additionalOptions
     );
-    
+
     if (this.skip) {
       result.objects = result.objects.slice(this.skip);
     }
@@ -197,18 +197,18 @@ export class IndexerCollector implements BaseCellCollector{
 
   async count(): Promise<number> {
     let result: GetCellsResults = await this.getLiveCell();
-    let lastCursor = result.lastCursor
-    let objects = result.objects
+    let lastCursor = result.lastCursor;
+    let objects = result.objects;
     let resultLength = objects.length;
     let counter = 0;
-    for(let i=0; i < resultLength; i++) {
-      if(i === resultLength - 1) {
-          result = await this.getLiveCell(lastCursor);
-          lastCursor = result.lastCursor
-          objects = objects.concat(result.objects)
-          resultLength = objects.length;
+    for (let i = 0; i < resultLength; i++) {
+      if (i === resultLength - 1) {
+        result = await this.getLiveCell(lastCursor);
+        lastCursor = result.lastCursor;
+        objects = objects.concat(result.objects);
+        resultLength = objects.length;
       }
-      const cell = objects[i]
+      const cell = objects[i];
       if (cell && this.type === "empty" && cell.cell_output.type) {
         continue;
       }
@@ -229,17 +229,17 @@ export class IndexerCollector implements BaseCellCollector{
 
   async *collect() {
     let result: GetCellsResults = await this.getLiveCell();
-    let lastCursor = result.lastCursor
-    let objects = result.objects
+    let lastCursor = result.lastCursor;
+    let objects = result.objects;
     let resultLength = objects.length;
-    for(let i=0; i < resultLength; i++) {
-      if(i === resultLength - 1) {
-          result = await this.getLiveCell(lastCursor);
-          lastCursor = result.lastCursor
-          objects = objects.concat(result.objects)
-          resultLength = objects.length;
+    for (let i = 0; i < resultLength; i++) {
+      if (i === resultLength - 1) {
+        result = await this.getLiveCell(lastCursor);
+        lastCursor = result.lastCursor;
+        objects = objects.concat(result.objects);
+        resultLength = objects.length;
       }
-      const cell = objects[i]
+      const cell = objects[i];
       if (cell && this.type === "empty" && cell.cell_output.type) {
         continue;
       }

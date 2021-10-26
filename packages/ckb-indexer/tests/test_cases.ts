@@ -1,6 +1,9 @@
 // The mocked database has indexed the first 100 blocks of Lina mainnet.
 
-import { Script, HashType, Cell, BaseCellCollector, QueryOptions, ScriptWrapper } from "@ckb-lumos/base";
+import {
+  Script,
+  HashType,
+} from "@ckb-lumos/base";
 import { Order } from "../src/indexer";
 
 // scriptHash: 0x92c9f7cd9d88a98e01af65f964eaf2177d74a4597e32ddd1b27f83d78ea746a6,
@@ -8,14 +11,14 @@ import { Order } from "../src/indexer";
 const lock: Script = {
   code_hash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-  hash_type: 'type' as HashType,
+  hash_type: "type" as HashType,
   args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
 };
 
 const lockWithArgsPrefix = {
   code_hash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-  hash_type: 'type' as HashType,
+  hash_type: "type" as HashType,
   args: "0xa528f2b9a51118b193178db4cf2f3db92e7d",
 };
 
@@ -23,7 +26,7 @@ const lockWithArgsPrefix = {
 const nonexistLock = {
   code_hash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-  hash_type: 'type' as HashType,
+  hash_type: "type" as HashType,
   args: "0x0e5e3ee1d580d3b5aaff5d430b2ca6c93684d575",
 };
 
@@ -31,22 +34,22 @@ const nonexistLock = {
 const lockInNervosDAO = {
   code_hash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-  hash_type: 'type' as HashType,
+  hash_type: "type" as HashType,
   args: "0x6a506c138d0efd50b119d22b7b2404a53fe7ac98",
 };
 
 const lockInTxWithOutputsData = {
   code_hash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: 'type' as HashType,
-    args: "0x19c5d58c535273452ac60f9d37831601adcf12b8",
+  hash_type: "type" as HashType,
+  args: "0x19c5d58c535273452ac60f9d37831601adcf12b8",
 };
 
-const type : Script= {
+const type: Script = {
   code_hash:
     "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-    hash_type: 'type' as HashType,
-    args: "0x",
+  hash_type: "type" as HashType,
+  args: "0x",
 };
 
 const indexerSubscribeTestCases = [
@@ -231,7 +234,7 @@ const transactionCollectorTestCases = [
       "Test query transactions by lock script and return the transactions in desc order",
     queryOption: {
       lock: lock,
-      order: Order.desc
+      order: Order.desc,
     },
     expectedResult: transactionHashesByLockDesc,
   },
@@ -241,7 +244,7 @@ const transactionCollectorTestCases = [
     queryOption: {
       lock: lock,
       skip: 5,
-      order: Order.desc
+      order: Order.desc,
     },
     expectedResult: transactionHashesByLockDescThenSkip5,
   },
@@ -257,7 +260,7 @@ const transactionCollectorTestCases = [
     desc: "Test query transactions by lock script with argsLen as any",
     queryOption: {
       lock: lockWithArgsPrefix,
-      argsLen: "any" as 'any',
+      argsLen: "any" as "any",
     },
     expectedResult: transactionHashesByLock,
   },
@@ -296,7 +299,7 @@ const transactionCollectorTestCases = [
     desc: "Test query transactions by both lock and empty type script",
     queryOption: {
       lock: lock,
-      type: "empty" as 'empty',
+      type: "empty" as "empty",
     },
     expectedResult: transactionHashesByLock,
   },
@@ -309,8 +312,8 @@ const cellsByLock = [
       lock: {
         code_hash:
           "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: 'type' as HashType,
-          args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+        hash_type: "type" as HashType,
+        args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
       type: undefined,
     },
@@ -330,7 +333,7 @@ const cellsByLock = [
       lock: {
         code_hash:
           "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: 'type' as HashType,
+        hash_type: "type" as HashType,
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
       type: undefined,
@@ -351,7 +354,7 @@ const cellsByLock = [
       lock: {
         code_hash:
           "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-        hash_type: 'type' as HashType,
+        hash_type: "type" as HashType,
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
       type: undefined,
@@ -372,7 +375,7 @@ const cellsByLock = [
       lock: {
         code_hash:
           "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-        hash_type: 'type' as HashType,
+        hash_type: "type" as HashType,
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
       type: undefined,
@@ -393,7 +396,7 @@ const cellsByLock = [
       lock: {
         code_hash:
           "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-        hash_type: 'type' as HashType,
+        hash_type: "type" as HashType,
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
       type: undefined,
@@ -414,7 +417,7 @@ const cellsByLock = [
       lock: {
         code_hash:
           "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: 'type' as HashType,
+        hash_type: "type" as HashType,
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
       type: undefined,
@@ -435,8 +438,8 @@ const cellsByLock = [
       lock: {
         code_hash:
           "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: 'type' as HashType,
-          args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+        hash_type: "type" as HashType,
+        args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
       type: undefined,
     },
@@ -452,27 +455,6 @@ const cellsByLock = [
   },
 ];
 
-const cellsByLockBetween10And90 = [
-  cellsByLock[1],
-  cellsByLock[2],
-  cellsByLock[3],
-  cellsByLock[4],
-  cellsByLock[5],
-];
-
-const cellsByLockSkip5 = [cellsByLock[5], cellsByLock[6]];
-
-const cellsByLockDesc = [
-  cellsByLock[0],
-  cellsByLock[1],
-  cellsByLock[2],
-  cellsByLock[3],
-  cellsByLock[4],
-  cellsByLock[5],
-  cellsByLock[6],
-].reverse();
-
-const cellsByLockDescThenSkip5 = [cellsByLock[1], cellsByLock[0]];
 
 const cellsByType = [
   {
@@ -481,14 +463,14 @@ const cellsByType = [
       lock: {
         code_hash:
           "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: 'type' as HashType,
+        hash_type: "type" as HashType,
         args: "0xb5a27e6b01d309135b06089ce192a267ceada8ea",
       },
       type: {
         code_hash:
           "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-          hash_type: 'type' as HashType,
-          args: "0x",
+        hash_type: "type" as HashType,
+        args: "0x",
       },
     },
     out_point: {
@@ -507,14 +489,14 @@ const cellsByType = [
       lock: {
         code_hash:
           "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: 'type' as HashType,
-          args: "0x6a506c138d0efd50b119d22b7b2404a53fe7ac98",
+        hash_type: "type" as HashType,
+        args: "0x6a506c138d0efd50b119d22b7b2404a53fe7ac98",
       },
       type: {
         code_hash:
           "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-          hash_type: 'type' as HashType,
-          args: "0x",
+        hash_type: "type" as HashType,
+        args: "0x",
       },
     },
     out_point: {
@@ -528,8 +510,6 @@ const cellsByType = [
     data: "0x0000000000000000",
   },
 ];
-
-const cellsByLockAndType = [cellsByType[1]];
 
 const cellCollectorTestCases = [
   {
