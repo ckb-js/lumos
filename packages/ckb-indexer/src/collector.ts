@@ -34,7 +34,7 @@ export class IndexerCollector implements BaseCellCollector {
   toBlock: string | null;
   order: Order;
   skip: number | null;
-  argsLen: number | null;
+  argsLen: number | 'any';
   outputDataLenRange: HexadecimalRange | null;
   outputCapacityRange: HexadecimalRange | null;
   sizeLimit: number | undefined;
@@ -126,8 +126,8 @@ export class IndexerCollector implements BaseCellCollector {
 
   //TODO check block number 64 or 128
   hexStringPlus(hexString: Hexadecimal, addend: number): Hexadecimal {
-    const result = utils.readBigUInt128LE(hexString) + BigInt(addend);
-    return utils.toBigUInt128LE(result);
+    const result = BigInt(hexString) + BigInt(addend);
+    return `0x${result.toString(16)}`;
   }
   generatorSearchKey(): SearchKey {
     let script: Script | undefined = undefined;
@@ -217,7 +217,7 @@ export class IndexerCollector implements BaseCellCollector {
       }
       if (
         this.argsLen !== -1 &&
-        this.getHexStringBytes(cell.cell_output.lock.args) === this.argsLen
+        this.getHexStringBytes(cell.cell_output.lock.args) !== this.argsLen
       ) {
         continue;
       }
@@ -247,8 +247,8 @@ export class IndexerCollector implements BaseCellCollector {
         continue;
       }
       if (
-        this.argsLen !== -1 &&
-        this.getHexStringBytes(cell.cell_output.lock.args) === this.argsLen
+        this.argsLen !== -1 && this.argsLen !== 'any' &&
+        this.getHexStringBytes(cell.cell_output.lock.args) !== this.argsLen
       ) {
         continue;
       }
