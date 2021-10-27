@@ -25,6 +25,12 @@ export enum Order {
   desc = "desc",
 }
 
+export interface CkbQueryOptions extends QueryOptions {
+  outputDataLenRange?: HexadecimalRange;
+  outputCapacityRange?: HexadecimalRange;
+  sizeLimit?: number;
+}
+
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
 export interface SearchFilter {
   script?: Script;
@@ -147,7 +153,7 @@ export class CkbIndexer implements Indexer {
    * Addtional note:
    * Only accept lock and type parameters as `Script` type, along with `data` field in QueryOptions. Use it carefully!
    * */
-  collector(queries: QueryOptions): CellCollector {
+  collector(queries: CkbQueryOptions): CellCollector {
     const { lock, type } = queries;
     let searchKey: SearchKey;
     if (lock !== undefined) {
@@ -404,7 +410,7 @@ export class CkbIndexer implements Indexer {
   }
 
   //  eslint-disable-next-line @typescript-eslint/no-unused-vars
-  subscribe(queries: QueryOptions): NodeJS.EventEmitter {
+  subscribe(queries: CkbQueryOptions): NodeJS.EventEmitter {
     throw new Error("unimplemented");
   }
 

@@ -3,13 +3,13 @@ import {
   utils,
   Cell,
   BaseCellCollector,
-  QueryOptions,
   ScriptWrapper,
   Hexadecimal,
 } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit";
 import {
   AdditionalOptions,
+  CkbQueryOptions,
   GetCellsResults,
   HexadecimalRange,
   Order,
@@ -33,7 +33,7 @@ export class IndexerCollector implements BaseCellCollector {
   outputCapacityRange: HexadecimalRange | null;
   sizeLimit: number | undefined;
 
-  constructor(public indexer: CkbIndexer, public queries: QueryOptions) {
+  constructor(public indexer: CkbIndexer, public queries: CkbQueryOptions) {
     const {
       lock = null,
       type = null,
@@ -198,7 +198,7 @@ export class IndexerCollector implements BaseCellCollector {
       return true;
     }
     if (
-      this.argsLen !== -1 &&
+      this.argsLen !== -1 && this.argsLen !== 'any' &&
       this.getHexStringBytes(cell.cell_output.lock.args) !== this.argsLen
     ) {
       return true;
