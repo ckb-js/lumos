@@ -18,33 +18,22 @@ import {
 import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
 
 export class IndexerCollector implements BaseCellCollector {
-  lock!: Script;
-  type!: Script | string;
-  data: string | null;
-  fromBlock: string | null;
-  toBlock: string | null;
-  order: Order;
-  skip: number | null;
-  argsLen: number | "any";
-  outputDataLenRange: HexadecimalRange | null;
-  outputCapacityRange: HexadecimalRange | null;
-  sizeLimit: number | undefined;
-
   constructor(public indexer: CkbIndexer, public queries: CkbQueryOptions) {
-    const {
-      lock = null,
-      type = null,
-      argsLen = -1,
-      data = "any",
-      fromBlock = null,
-      toBlock = null,
-      order = Order.asc,
-      skip = null,
-      outputDataLenRange = null,
-      outputCapacityRange = null,
-      sizeLimit = undefined,
-    } = queries;
-    if (!lock && (!type || type === "empty")) {
+    const defaultQuery: CkbQueryOptions = {
+      lock: undefined,
+      type: undefined,
+      argsLen: -1,
+      data: "any",
+      fromBlock: undefined,
+      toBlock: undefined,
+      order: Order.asc,
+      skip: undefined,
+      outputDataLenRange: undefined,
+      outputCapacityRange: undefined,
+      sizeLimit: undefined,
+    }
+    this.queries = {...defaultQuery, ...this.queries}
+    if (!this.queries.lock && (!this.queries.type || this.queries.type === "empty")) {
       throw new Error("Either lock or type script must be provided!");
     }
 
@@ -52,67 +41,52 @@ export class IndexerCollector implements BaseCellCollector {
       return "script" in object;
     }
     // unWrap `ScriptWrapper` into `Script`.
-    if (lock) {
-      if (!instanceOfScriptWrapper(lock)) {
-        validators.ValidateScript(lock);
-        this.lock = lock;
-      } else if (instanceOfScriptWrapper(lock)) {
-        validators.ValidateScript(lock.script);
-        this.lock = lock.script;
+    if (this.queries.lock) {
+      if (!instanceOfScriptWrapper(this.queries.lock)) {
+        validators.ValidateScript(this.queries.lock);
+      } else if (instanceOfScriptWrapper(this.queries.lock)) {
+        validators.ValidateScript(this.queries.lock.script);
+        this.queries.lock = this.queries.lock.script
       }
     }
 
     // unWrap `ScriptWrapper` into `Script`.
-    if (type) {
-      if (type === "empty") {
-        this.type = "empty";
-      }
-      if (typeof type === "object" && !instanceOfScriptWrapper(type)) {
-        validators.ValidateScript(type);
-        this.type = type;
-      } else if (typeof type === "object" && instanceOfScriptWrapper(type)) {
-        validators.ValidateScript(type.script);
-        this.type = type.script;
+    if (this.queries.type && this.queries.type !== 'empty') {
+      if (typeof this.queries.type === "object" && !instanceOfScriptWrapper(this.queries.type)) {
+        validators.ValidateScript(this.queries.type);
+      } else if (typeof this.queries.type === "object" && instanceOfScriptWrapper(this.queries.type)) {
+        validators.ValidateScript(this.queries.type.script);
+        this.queries.type = this.queries.type.script
       }
     }
 
-    if (fromBlock) {
-      utils.assertHexadecimal("fromBlock", fromBlock);
+    if (this.queries.fromBlock) {
+      utils.assertHexadecimal("fromBlock", this.queries.fromBlock);
     }
-    if (toBlock) {
-      utils.assertHexadecimal("toBlock", toBlock);
+    if (this.queries.toBlock) {
+      utils.assertHexadecimal("toBlock", this.queries.toBlock);
     }
-    if (order !== Order.asc && order !== Order.desc) {
+    if (this.queries.order !== Order.asc && this.queries.order !== Order.desc) {
       throw new Error("Order must be either asc or desc!");
     }
-    if (outputCapacityRange) {
-      utils.assertHexadecimal("outputCapacityRange[0]", outputCapacityRange[0]);
-      utils.assertHexadecimal("outputCapacityRange[1]", outputCapacityRange[1]);
+    if (this.queries.outputCapacityRange) {
+      utils.assertHexadecimal("outputCapacityRange[0]", this.queries.outputCapacityRange[0]);
+      utils.assertHexadecimal("outputCapacityRange[1]", this.queries.outputCapacityRange[1]);
     }
 
-    if (outputDataLenRange) {
-      utils.assertHexadecimal("outputDataLenRange[0]", outputDataLenRange[0]);
-      utils.assertHexadecimal("outputDataLenRange[1]", outputDataLenRange[1]);
+    if (this.queries.outputDataLenRange) {
+      utils.assertHexadecimal("outputDataLenRange[0]", this.queries.outputDataLenRange[0]);
+      utils.assertHexadecimal("outputDataLenRange[1]", this.queries.outputDataLenRange[1]);
     }
 
-    if (skip && typeof skip !== "number") {
+    if (this.queries.skip && typeof this.queries.skip !== "number") {
       throw new Error("skip must be a number!");
     }
 
-    if (sizeLimit && typeof sizeLimit !== "number") {
+    if (this.queries.sizeLimit && typeof this.queries.sizeLimit !== "number") {
       throw new Error("sizeLimit must be a number!");
     }
-
     this.indexer = indexer;
-    this.data = data;
-    this.fromBlock = fromBlock;
-    this.toBlock = toBlock;
-    this.order = order as Order;
-    this.skip = skip;
-    this.argsLen = argsLen as number;
-    this.outputCapacityRange = outputCapacityRange;
-    this.outputDataLenRange = outputDataLenRange;
-    this.sizeLimit = sizeLimit;
   }
 
 
@@ -122,29 +96,29 @@ export class IndexerCollector implements BaseCellCollector {
     const filter: SearchFilter = {};
     let script_type: ScriptType | undefined = undefined;
 
-    if (this.lock) {
-      script = this.lock;
+    if (this.queries.lock) {
+      script = this.queries.lock as Script;
       script_type = ScriptType.lock;
-      if (this.type && typeof this.type !== "string") {
-        filter.script = this.type;
+      if (this.queries.type && typeof this.queries.type !== "string") {
+        filter.script = this.queries.type as Script;
       }
-    } else if (this.type && typeof this.type !== "string") {
-      script = this.type;
+    } else if (this.queries.type && typeof this.queries.type !== "string") {
+      script = this.queries.type as Script;
       script_type = ScriptType.type;
     }
     let block_range: HexadecimalRange | null = null;
-    if (this.fromBlock && this.toBlock) {
+    if (this.queries.fromBlock && this.queries.toBlock) {
       //this.toBlock+1 cause toBlock need to be included
-      block_range = [this.fromBlock, `0x${(BigInt(this.toBlock) + 1n).toString(16)}`];
+      block_range = [this.queries.fromBlock, `0x${(BigInt(this.queries.toBlock) + 1n).toString(16)}`];
     }
     if (block_range) {
       filter.block_range = block_range;
     }
-    if (this.outputDataLenRange) {
-      filter.output_data_len_range = this.outputDataLenRange;
+    if (this.queries.outputDataLenRange) {
+      filter.output_data_len_range = this.queries.outputDataLenRange;
     }
-    if (this.outputCapacityRange) {
-      filter.output_capacity_range = this.outputCapacityRange;
+    if (this.queries.outputCapacityRange) {
+      filter.output_capacity_range = this.queries.outputCapacityRange;
     }
     if (!script) {
       throw new Error("Either lock or type script must be provided!");
@@ -161,8 +135,8 @@ export class IndexerCollector implements BaseCellCollector {
 
   private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
     const additionalOptions: AdditionalOptions = {
-      sizeLimit: this.sizeLimit,
-      order: this.order,
+      sizeLimit: this.queries.sizeLimit,
+      order: this.queries.order as Order,
     };
     if (lastCursor) {
       additionalOptions.lastCursor = lastCursor;
@@ -173,8 +147,8 @@ export class IndexerCollector implements BaseCellCollector {
       additionalOptions
     );
 
-    if (this.skip) {
-      result.objects = result.objects.slice(this.skip);
+    if (this.queries.skip) {
+      result.objects = result.objects.slice(this.queries.skip);
     }
     return result;
   }
@@ -184,16 +158,16 @@ export class IndexerCollector implements BaseCellCollector {
   }
 
   private shouldSkipped(cell: Cell) {
-    if (cell && this.type === "empty" && cell.cell_output.type) {
+    if (cell && this.queries.type === "empty" && cell.cell_output.type) {
       return true;
     }
-    if (this.data !== "any" && cell.data !== this.data) {
+    if (this.queries.data !== "any" && cell.data !== this.queries.data) {
       return true;
     }
     if (
-      this.argsLen !== -1 &&
-      this.argsLen !== "any" &&
-      this.getHexStringBytes(cell.cell_output.lock.args) !== this.argsLen
+      this.queries.argsLen !== -1 &&
+      this.queries.argsLen !== "any" &&
+      this.getHexStringBytes(cell.cell_output.lock.args) !== this.queries.argsLen
     ) {
       return true;
     }
