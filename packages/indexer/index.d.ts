@@ -9,14 +9,14 @@ import {
 } from "@ckb-lumos/base";
 
 /**
- * @deprecated since version 0.17.0-rc5
+ * @deprecated since version 0.17.0-rc5, please migrate to `@ckb-lumos/ckb-indexer`
  */
 export declare class Indexer extends BaseIndexer {
   constructor(uri: string, path: string, options?: IndexerOptions);
 }
 
 /**
- * @deprecated since version 0.17.0-rc5
+ * @deprecated since version 0.17.0-rc5, please migrate to `@ckb-lumos/ckb-indexer`
  */
 export declare class CellCollector implements BaseCellCollector {
   constructor(indexer: Indexer, queries: QueryOptions);
@@ -25,7 +25,7 @@ export declare class CellCollector implements BaseCellCollector {
 }
 
 /**
- * @deprecated since version 0.17.0-rc5
+ * @deprecated since version 0.17.0-rc5, please migrate to `@ckb-lumos/ckb-indexer`
  */
 export declare class TransactionCollector extends BaseTransactionCollector {
   constructor(
