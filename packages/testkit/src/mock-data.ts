@@ -62,6 +62,6 @@ export function localNode(info?: Partial<LocalNode>): LocalNode {
       ],
       version: "0.42.0 (bb888fe 2021-05-26)",
     },
-    info,
+    info
   );
 }
