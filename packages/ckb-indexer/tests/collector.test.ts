@@ -1,6 +1,6 @@
 import test from "ava";
 import { Indexer, CellCollector } from "../src";
-const { cellCollectorTestCases } = require("./test_cases.js");
+const { lock, type, cellCollectorTestCases } = require("./test_cases.js");
 import { HashType } from "@ckb-lumos/base";
 
 const nodeUri = "http://127.0.0.1:8114";
@@ -19,6 +19,40 @@ test("get count correct", async (t) => {
   t.is(1, count);
 });
 
+test("query cells with different queryOptions", async (t) => {
+  for (const queryCase of cellCollectorTestCases) {
+    const cellCollector = new CellCollector(indexer, queryCase.queryOption);
+    let cells = [];
+    for await (const cell of cellCollector.collect()) {
+      cells.push(cell);
+    }
+    t.deepEqual(cells, queryCase.expectedResult, queryCase.desc);
+  }
+});
+
+test("wrap plain Script into ScriptWrapper ", (t) => {
+  const argsLen = 20;
+  const wrappedLock = { script: lock, argsLen: argsLen };
+  const wrappedType = { script: type, argsLen: argsLen };
+  const queryOptions = { lock: wrappedLock, type: wrappedType, argsLen: argsLen };
+  const cellCollector = new CellCollector(indexer, queryOptions);
+  t.deepEqual(cellCollector.lock, lock);
+  t.deepEqual(cellCollector.type, type);
+});
+
+test("pass Scrip to CellCollector", (t) => {
+  const argsLen = 20;
+  const wrappedLock = { script: lock, argsLen: argsLen };
+  const wrappedType = { script: type, argsLen: argsLen };
+  const queryOptions = {
+    lock: wrappedLock,
+    type: wrappedType,
+    argsLen: argsLen,
+  };
+  const cellCollector = new CellCollector(indexer, queryOptions);
+  t.deepEqual(cellCollector.lock, lock);
+  t.deepEqual(cellCollector.type, type);
+});
 test("throw error when pass null lock and null type to CellCollector", (t) => {
   const error = t.throws(
     () => {
@@ -30,13 +64,57 @@ test("throw error when pass null lock and null type to CellCollector", (t) => {
   t.is(error.message, "Either lock or type script must be provided!");
 });
 
-test("query cells with different queryOptions", async (t) => {
-  for (const queryCase of cellCollectorTestCases) {
-    const cellCollector = new CellCollector(indexer, queryCase.queryOption);
-    let cells = [];
-    for await (const cell of cellCollector.collect()) {
-      cells.push(cell);
-    }
-    t.deepEqual(cells, queryCase.expectedResult, queryCase.desc);
-  }
+test("throw error when pass null lock and empty type to CellCollector", (t) => {
+  const error = t.throws(
+    () => {
+      const queryOptions = {
+        type: "empty" as "empty",
+      };
+      new CellCollector(indexer, queryOptions);
+    },
+    { instanceOf: Error }
+  );
+  t.is(error.message, "Either lock or type script must be provided!");
+});
+
+test("throw error when pass wrong order to CellCollector", (t) => {
+  const error = t.throws(
+    () => {
+      const queryOptions = {
+        lock: lock,
+        order: "some" as "asc",
+      };
+      new CellCollector(indexer, queryOptions);
+    },
+    { instanceOf: Error }
+  );
+  t.is(error.message, "Order must be either asc or desc!");
+});
+
+test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
+  let error = t.throws(
+    () => {
+      const queryOptions = {
+        lock: lock,
+        order: "asc" as "asc",
+        fromBlock: '1000',
+      };
+      new CellCollector(indexer, queryOptions);
+    },
+    { instanceOf: Error }
+  );
+  t.is(error.message, "fromBlock must be a hexadecimal!");
+
+  error = t.throws(
+    () => {
+      const queryOptions = {
+        lock: lock,
+        order: "asc" as "asc",
+        toBlock: "0x",
+      };
+      new CellCollector(indexer, queryOptions);
+    },
+    { instanceOf: Error }
+  );
+  t.is(error.message, "toBlock must be a hexadecimal!");
 });
