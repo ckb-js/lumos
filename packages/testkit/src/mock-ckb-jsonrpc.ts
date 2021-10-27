@@ -27,7 +27,7 @@ export function createCKBMockRPC(options: Options): Express {
     const blockNumber = params[0];
     const verbosity = params[1] || "0x2";
     assertsParams(
-      typeof blockNumber === "string" || !isNaN(Number(blockNumber))
+      typeof blockNumber === "string" && !isNaN(Number(blockNumber))
     );
 
     const block = blocks.find(

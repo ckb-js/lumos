@@ -49,7 +49,7 @@ export class IndexerCollector implements BaseCellCollector {
       throw new Error("Either lock or type script must be provided!");
     }
 
-    function instanceOfScriptWrapper(object: any): object is ScriptWrapper {
+    function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
       return "script" in object;
     }
     // unWrap `ScriptWrapper` into `Script`.
@@ -97,7 +97,7 @@ export class IndexerCollector implements BaseCellCollector {
     }
 
     if (skip && typeof skip !== "number") {
-      throw new Error("Skip must be a number!");
+      throw new Error("skip must be a number!");
     }
 
     if (sizeLimit && typeof sizeLimit !== "number") {
@@ -116,10 +116,6 @@ export class IndexerCollector implements BaseCellCollector {
     this.sizeLimit = sizeLimit;
   }
 
-  private hexStringPlus(hexString: Hexadecimal, addend: number): Hexadecimal {
-    const result = BigInt(hexString) + BigInt(addend);
-    return `0x${result.toString(16)}`;
-  }
 
   //TODO change to input QueryOption type and return SearchKey Type
   private generatorSearchKey(): SearchKey {
@@ -140,7 +136,7 @@ export class IndexerCollector implements BaseCellCollector {
     let block_range: HexadecimalRange | null = null;
     if (this.fromBlock && this.toBlock) {
       //this.toBlock+1 cause toBlock need to be included
-      block_range = [this.fromBlock, this.hexStringPlus(this.toBlock, 1)];
+      block_range = [this.fromBlock, BigInt(this.toBlock) + 1n];
     }
     if (block_range) {
       filter.block_range = block_range;
@@ -155,7 +151,7 @@ export class IndexerCollector implements BaseCellCollector {
       throw new Error("Either lock or type script must be provided!");
     }
     if (!script_type) {
-      throw new Error("search type must be provided");
+      throw new Error("script_type must be provided");
     }
     return {
       script,
