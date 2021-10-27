@@ -19,7 +19,6 @@ import {
 // import { logger } from "./logger";
 import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
 
-
 export class IndexerCollector implements BaseCellCollector {
   lock!: Script;
   type!: Script | string;
@@ -28,7 +27,7 @@ export class IndexerCollector implements BaseCellCollector {
   toBlock: string | null;
   order: Order;
   skip: number | null;
-  argsLen: number | 'any';
+  argsLen: number | "any";
   outputDataLenRange: HexadecimalRange | null;
   outputCapacityRange: HexadecimalRange | null;
   sizeLimit: number | undefined;
@@ -198,7 +197,8 @@ export class IndexerCollector implements BaseCellCollector {
       return true;
     }
     if (
-      this.argsLen !== -1 && this.argsLen !== 'any' &&
+      this.argsLen !== -1 &&
+      this.argsLen !== "any" &&
       this.getHexStringBytes(cell.cell_output.lock.args) !== this.argsLen
     ) {
       return true;
@@ -219,7 +219,7 @@ export class IndexerCollector implements BaseCellCollector {
         resultLength = objects.length;
       }
       const cell = objects[i];
-      if(this.shouldSkipped(cell)) {
+      if (this.shouldSkipped(cell)) {
         continue;
       }
       counter += 1;
@@ -241,7 +241,7 @@ export class IndexerCollector implements BaseCellCollector {
         resultLength = objects.length;
       }
       const cell = objects[i];
-      if(this.shouldSkipped(objects[i])) {
+      if (this.shouldSkipped(objects[i])) {
         continue;
       }
       yield cell;

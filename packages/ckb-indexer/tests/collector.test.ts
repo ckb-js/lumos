@@ -34,7 +34,11 @@ test("wrap plain Script into ScriptWrapper ", (t) => {
   const argsLen = 20;
   const wrappedLock = { script: lock, argsLen: argsLen };
   const wrappedType = { script: type, argsLen: argsLen };
-  const queryOptions = { lock: wrappedLock, type: wrappedType, argsLen: argsLen };
+  const queryOptions = {
+    lock: wrappedLock,
+    type: wrappedType,
+    argsLen: argsLen,
+  };
   const cellCollector = new CellCollector(indexer, queryOptions);
   t.deepEqual(cellCollector.lock, lock);
   t.deepEqual(cellCollector.type, type);
@@ -97,7 +101,7 @@ test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
       const queryOptions = {
         lock: lock,
         order: "asc" as "asc",
-        fromBlock: '1000',
+        fromBlock: "1000",
       };
       new CellCollector(indexer, queryOptions);
     },
