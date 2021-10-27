@@ -4,7 +4,6 @@ import {
   Cell,
   BaseCellCollector,
   ScriptWrapper,
-  Hexadecimal,
 } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit";
 import {
@@ -49,7 +48,7 @@ export class IndexerCollector implements BaseCellCollector {
       throw new Error("Either lock or type script must be provided!");
     }
 
-    function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
+    function instanceOfScriptWrapper(object: any): object is ScriptWrapper {
       return "script" in object;
     }
     // unWrap `ScriptWrapper` into `Script`.
@@ -136,7 +135,7 @@ export class IndexerCollector implements BaseCellCollector {
     let block_range: HexadecimalRange | null = null;
     if (this.fromBlock && this.toBlock) {
       //this.toBlock+1 cause toBlock need to be included
-      block_range = [this.fromBlock, BigInt(this.toBlock) + 1n];
+      block_range = [this.fromBlock, `0x${(BigInt(this.toBlock) + 1n).toString(16)}`];
     }
     if (block_range) {
       filter.block_range = block_range;
