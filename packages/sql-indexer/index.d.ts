@@ -6,6 +6,7 @@ import {
   Indexer as BaseIndexer,
   TransactionCollector as BaseTransactionCollector,
   TransactionCollectorOptions,
+  CellCollectorResults,
 } from "@ckb-lumos/base";
 
 /**
@@ -18,8 +19,10 @@ export class Indexer extends BaseIndexer {
 /**
  * @deprecated since version 0.17.0-rc5
  */
-export declare class CellCollector extends BaseCellCollector {
+export declare class CellCollector implements BaseCellCollector {
   constructor(knex: Knex, queries: QueryOptions);
+  count(): Promise<number>;
+  collect(): CellCollectorResults;
 }
 
 /**
