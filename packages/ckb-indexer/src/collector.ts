@@ -17,14 +17,8 @@ import {
 } from "./indexer";
 
 // import { logger } from "./logger";
-import { CkbIndexer, ScriptType, SearchKey, Terminator } from "./indexer";
+import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
 
-export abstract class Collector {
-  abstract getCellsByLockscriptAndCapacity(
-    lockscript: Script,
-    capacity: bigint
-  ): Promise<Cell[]>;
-}
 
 export class IndexerCollector implements BaseCellCollector {
   lock!: Script;
@@ -124,12 +118,13 @@ export class IndexerCollector implements BaseCellCollector {
     this.sizeLimit = sizeLimit;
   }
 
-  //TODO check block number 64 or 128
-  hexStringPlus(hexString: Hexadecimal, addend: number): Hexadecimal {
+  private hexStringPlus(hexString: Hexadecimal, addend: number): Hexadecimal {
     const result = BigInt(hexString) + BigInt(addend);
     return `0x${result.toString(16)}`;
   }
-  generatorSearchKey(): SearchKey {
+
+  //TODO change to input QueryOption type and return SearchKey Type
+  private generatorSearchKey(): SearchKey {
     let script: Script | undefined = undefined;
     const filter: SearchFilter = {};
     let script_type: ScriptType | undefined = undefined;
@@ -171,7 +166,7 @@ export class IndexerCollector implements BaseCellCollector {
     };
   }
 
-  async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
+  private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
     const additionalOptions: AdditionalOptions = {
       sizeLimit: this.sizeLimit,
       order: this.order,
@@ -191,8 +186,23 @@ export class IndexerCollector implements BaseCellCollector {
     return result;
   }
 
-  getHexStringBytes(hexString: string) {
+  private getHexStringBytes(hexString: string) {
     return Math.ceil(hexString.substr(2).length / 2);
+  }
+
+  private shouldSkipped(cell: Cell) {
+    if (cell && this.type === "empty" && cell.cell_output.type) {
+      return true;
+    }
+    if (this.data !== "any" && cell.data !== this.data) {
+      return true;
+    }
+    if (
+      this.argsLen !== -1 &&
+      this.getHexStringBytes(cell.cell_output.lock.args) !== this.argsLen
+    ) {
+      return true;
+    }
   }
 
   async count(): Promise<number> {
@@ -209,16 +219,7 @@ export class IndexerCollector implements BaseCellCollector {
         resultLength = objects.length;
       }
       const cell = objects[i];
-      if (cell && this.type === "empty" && cell.cell_output.type) {
-        continue;
-      }
-      if (this.data !== "any" && cell.data !== this.data) {
-        continue;
-      }
-      if (
-        this.argsLen !== -1 &&
-        this.getHexStringBytes(cell.cell_output.lock.args) !== this.argsLen
-      ) {
+      if(this.shouldSkipped(cell)) {
         continue;
       }
       counter += 1;
@@ -240,127 +241,10 @@ export class IndexerCollector implements BaseCellCollector {
         resultLength = objects.length;
       }
       const cell = objects[i];
-      if (cell && this.type === "empty" && cell.cell_output.type) {
-        continue;
-      }
-      if (this.data !== "any" && cell.data !== this.data) {
-        continue;
-      }
-      if (
-        this.argsLen !== -1 && this.argsLen !== 'any' &&
-        this.getHexStringBytes(cell.cell_output.lock.args) !== this.argsLen
-      ) {
+      if(this.shouldSkipped(objects[i])) {
         continue;
       }
       yield cell;
     }
-  }
-
-  async getCellsByLockscriptAndCapacity(
-    lockscript: Script,
-    needCapacity: bigint
-  ): Promise<Cell[]> {
-    let accCapacity = 0n;
-    const terminator: Terminator = (index, c) => {
-      const cell = c;
-      if (accCapacity >= needCapacity) {
-        return { stop: true, push: false };
-      }
-      if (cell.data.length / 2 - 1 > 0 || cell.cell_output.type) {
-        return { stop: false, push: false };
-      } else {
-        accCapacity += BigInt(cell.cell_output.capacity);
-        return { stop: false, push: true };
-      }
-    };
-    const searchKey = {
-      script: lockscript,
-      script_type: ScriptType.lock,
-    };
-    const result = await this.indexer.getCells(searchKey, terminator);
-    return result.objects;
-  }
-
-  async collectSudtByAmount(
-    searchKey: SearchKey,
-    amount: bigint
-  ): Promise<Cell[]> {
-    let balance = 0n;
-    const terminator: Terminator = (index, c) => {
-      const cell = c;
-      if (balance >= amount) {
-        return { stop: true, push: false };
-      } else {
-        const cellAmount = utils.readBigUInt128LE(cell.data);
-        balance += cellAmount;
-        return { stop: false, push: true };
-      }
-    };
-    const result = await this.indexer.getCells(searchKey, terminator);
-    return result.objects;
-  }
-
-  async getBalance(lock: Script): Promise<bigint> {
-    const searchKey = {
-      script: lock,
-      script_type: ScriptType.lock,
-    };
-    const result = await this.indexer.getCells(searchKey);
-    let balance = 0n;
-    result.objects.forEach((cell) => {
-      balance += BigInt(cell.cell_output.capacity);
-    });
-    return balance;
-  }
-
-  async getSUDTBalance(sudtType: Script, userLock: Script): Promise<bigint> {
-    const searchKey = {
-      script: userLock,
-      script_type: ScriptType.lock,
-      filter: {
-        script: sudtType,
-      },
-    };
-    const result = await this.indexer.getCells(searchKey);
-    let balance = 0n;
-    result.objects.forEach((cell) => {
-      // logger.debug("cell.data:", cell.data);
-      const amount = utils.readBigUInt128LE(cell.data);
-      balance += amount;
-    });
-    return balance;
-  }
-
-  async getCellsByLockscriptAndCapacityWhenBurn(
-    lockscript: Script,
-    recipientTypeCodeHash: string,
-    needCapacity: bigint
-  ): Promise<Cell[]> {
-    let accCapacity = 0n;
-    const terminator: Terminator = (index, c) => {
-      const cell = c;
-      if (accCapacity >= needCapacity) {
-        return { stop: true, push: false };
-      }
-      if (
-        cell.cell_output.type &&
-        cell.cell_output.type.code_hash === recipientTypeCodeHash
-      ) {
-        accCapacity += BigInt(cell.cell_output.capacity);
-        return { stop: false, push: true };
-      }
-      if (cell.data.length / 2 - 1 > 0 || cell.cell_output.type !== undefined) {
-        return { stop: false, push: false };
-      } else {
-        accCapacity += BigInt(cell.cell_output.capacity);
-        return { stop: false, push: true };
-      }
-    };
-    const searchKey = {
-      script: lockscript,
-      script_type: ScriptType.lock,
-    };
-    const result = await this.indexer.getCells(searchKey, terminator);
-    return result.objects;
   }
 }
