@@ -29,19 +29,10 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc5",
-    "@ckb-lumos/common-scripts": "^0.17.0-rc5",
-    "@ckb-lumos/config-manager": "^0.17.0-rc5",
-    "@ckb-lumos/hd": "^0.17.0-rc5",
-    "@ckb-lumos/helpers": "^0.17.0-rc5",
     "@ckb-lumos/rpc": "^0.17.0-rc5",
-    "@ckb-lumos/transaction-manager": "^0.17.0-rc5",
     "ava": "^3.15.0",
     "axios": "^0.23.0",
-    "ckb-js-toolkit": "^0.10.2",
-    "immutable": "^4.0.0",
-    "knex": "^0.21.1",
-    "log4js": "^6.3.0",
-    "sinon": "^11.1.2"
+    "ckb-js-toolkit": "^0.10.2"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",

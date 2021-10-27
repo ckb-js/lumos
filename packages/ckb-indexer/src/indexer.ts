@@ -13,7 +13,6 @@ import {
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
 import axios from "axios";
-import { logger } from "./logger";
 
 export enum ScriptType {
   type = "type",
@@ -136,15 +135,11 @@ export class CkbIndexer implements Indexer {
       (await this.getCkbRpc().get_tip_header()).number,
       16
     );
-    logger.debug("rpcTipNumber", rpcTipNumber);
-    let index = 0;
     while (true) {
       const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
-      logger.debug("indexerTipNumber", indexerTipNumber);
       if (indexerTipNumber + blockDifference >= rpcTipNumber) {
         return;
       }
-      logger.debug(`wait until indexer sync. index: ${index++}`);
       await this.asyncSleep(1000);
     }
   }
@@ -199,7 +194,6 @@ export class CkbIndexer implements Indexer {
                 `0x${sizeLimit.toString(16)}`,
                 cursor,
               ];
-              logger.debug("get_cells params", params);
               const res = await request("get_cells", params, ckbIndexerUrl);
               const liveCells = res.objects;
               cursor = res.last_cursor;
@@ -338,7 +332,6 @@ export class CkbIndexer implements Indexer {
       const res: GetLiveCellsResult = await this.request("get_cells", params);
       const liveCells = res.objects;
       cursor = res.last_cursor;
-      logger.debug("liveCells", liveCells[liveCells.length - 1]);
       for (const liveCell of liveCells) {
         const cell: Cell = {
           cell_output: liveCell.output,
@@ -398,15 +391,15 @@ export class CkbIndexer implements Indexer {
   }
 
   start(): void {
-    logger.debug("ckb indexer start");
+    console.log("ckb indexer start");
   }
 
   startForever(): void {
-    logger.debug("ckb indexer startForever");
+    console.log("ckb indexer startForever");
   }
 
   stop(): void {
-    logger.debug("ckb indexer stop");
+    console.log("ckb indexer stop");
   }
 
   //  eslint-disable-next-line @typescript-eslint/no-unused-vars

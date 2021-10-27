@@ -16,7 +16,6 @@ import {
   SearchFilter,
 } from "./indexer";
 
-// import { logger } from "./logger";
 import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
 
 export class IndexerCollector implements BaseCellCollector {
