@@ -6,7 +6,7 @@
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "index.d.ts",
+  "types": "lib/index.d.ts",
   "engines": {
     "node": ">=12.0.0"
   },
