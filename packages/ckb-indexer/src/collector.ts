@@ -31,9 +31,12 @@ export class IndexerCollector implements BaseCellCollector {
       outputDataLenRange: undefined,
       outputCapacityRange: undefined,
       sizeLimit: undefined,
-    }
-    this.queries = {...defaultQuery, ...this.queries}
-    if (!this.queries.lock && (!this.queries.type || this.queries.type === "empty")) {
+    };
+    this.queries = { ...defaultQuery, ...this.queries };
+    if (
+      !this.queries.lock &&
+      (!this.queries.type || this.queries.type === "empty")
+    ) {
       throw new Error("Either lock or type script must be provided!");
     }
 
@@ -46,17 +49,23 @@ export class IndexerCollector implements BaseCellCollector {
         validators.ValidateScript(this.queries.lock);
       } else if (instanceOfScriptWrapper(this.queries.lock)) {
         validators.ValidateScript(this.queries.lock.script);
-        this.queries.lock = this.queries.lock.script
+        this.queries.lock = this.queries.lock.script;
       }
     }
 
     // unWrap `ScriptWrapper` into `Script`.
-    if (this.queries.type && this.queries.type !== 'empty') {
-      if (typeof this.queries.type === "object" && !instanceOfScriptWrapper(this.queries.type)) {
+    if (this.queries.type && this.queries.type !== "empty") {
+      if (
+        typeof this.queries.type === "object" &&
+        !instanceOfScriptWrapper(this.queries.type)
+      ) {
         validators.ValidateScript(this.queries.type);
-      } else if (typeof this.queries.type === "object" && instanceOfScriptWrapper(this.queries.type)) {
+      } else if (
+        typeof this.queries.type === "object" &&
+        instanceOfScriptWrapper(this.queries.type)
+      ) {
         validators.ValidateScript(this.queries.type.script);
-        this.queries.type = this.queries.type.script
+        this.queries.type = this.queries.type.script;
       }
     }
 
@@ -70,13 +79,25 @@ export class IndexerCollector implements BaseCellCollector {
       throw new Error("Order must be either asc or desc!");
     }
     if (this.queries.outputCapacityRange) {
-      utils.assertHexadecimal("outputCapacityRange[0]", this.queries.outputCapacityRange[0]);
-      utils.assertHexadecimal("outputCapacityRange[1]", this.queries.outputCapacityRange[1]);
+      utils.assertHexadecimal(
+        "outputCapacityRange[0]",
+        this.queries.outputCapacityRange[0]
+      );
+      utils.assertHexadecimal(
+        "outputCapacityRange[1]",
+        this.queries.outputCapacityRange[1]
+      );
     }
 
     if (this.queries.outputDataLenRange) {
-      utils.assertHexadecimal("outputDataLenRange[0]", this.queries.outputDataLenRange[0]);
-      utils.assertHexadecimal("outputDataLenRange[1]", this.queries.outputDataLenRange[1]);
+      utils.assertHexadecimal(
+        "outputDataLenRange[0]",
+        this.queries.outputDataLenRange[0]
+      );
+      utils.assertHexadecimal(
+        "outputDataLenRange[1]",
+        this.queries.outputDataLenRange[1]
+      );
     }
 
     if (this.queries.skip && typeof this.queries.skip !== "number") {
@@ -88,7 +109,6 @@ export class IndexerCollector implements BaseCellCollector {
     }
     this.indexer = indexer;
   }
-
 
   //TODO change to input QueryOption type and return SearchKey Type
   private generatorSearchKey(): SearchKey {
@@ -109,7 +129,10 @@ export class IndexerCollector implements BaseCellCollector {
     let block_range: HexadecimalRange | null = null;
     if (this.queries.fromBlock && this.queries.toBlock) {
       //this.toBlock+1 cause toBlock need to be included
-      block_range = [this.queries.fromBlock, `0x${(BigInt(this.queries.toBlock) + 1n).toString(16)}`];
+      block_range = [
+        this.queries.fromBlock,
+        `0x${(BigInt(this.queries.toBlock) + 1n).toString(16)}`,
+      ];
     }
     if (block_range) {
       filter.block_range = block_range;
@@ -167,7 +190,8 @@ export class IndexerCollector implements BaseCellCollector {
     if (
       this.queries.argsLen !== -1 &&
       this.queries.argsLen !== "any" &&
-      this.getHexStringBytes(cell.cell_output.lock.args) !== this.queries.argsLen
+      this.getHexStringBytes(cell.cell_output.lock.args) !==
+        this.queries.argsLen
     ) {
       return true;
     }
