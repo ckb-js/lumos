@@ -41,7 +41,7 @@ export class IndexerCollector implements BaseCellCollector {
     }
 
     function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
-      return typeof object === 'object' && object != null && 'script' in object;
+      return typeof object === "object" && object != null && "script" in object;
     }
 
     // unWrap `ScriptWrapper` into `Script`.
