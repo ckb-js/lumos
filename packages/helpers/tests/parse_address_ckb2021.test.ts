@@ -1,8 +1,8 @@
 import test from "ava";
 import { parseAddress } from "../src";
-import { predefined } from "@ckb-lumos/config-manager";
+import { predefined, CKB2021 } from "@ckb-lumos/config-manager";
 
-const LINA = predefined.CKB2021(predefined.LINA);
+const LINA = CKB2021(predefined.LINA);
 
 test("CKB2021 short address 00", (t) => {
   const script = parseAddress(

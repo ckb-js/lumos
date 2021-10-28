@@ -1,9 +1,9 @@
 import test from "ava";
 import { generateAddress } from "../src";
-import { predefined, ScriptConfig } from "@ckb-lumos/config-manager";
+import { predefined, ScriptConfig, CKB2019 } from "@ckb-lumos/config-manager";
 import { Script } from "@ckb-lumos/base";
 
-const LINA = predefined.CKB2019(predefined.LINA);
+const LINA = CKB2019(predefined.LINA);
 
 function ScriptFrom(config: ScriptConfig, args: string): Script {
   return {

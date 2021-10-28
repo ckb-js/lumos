@@ -50,9 +50,7 @@ export function initializeConfig(): void;
 export const predefined: {
   LINA: Config;
   AGGRON4: Config;
-  CKB2019: typeof CKB2019;
-  CKB2021: typeof CKB2021;
 };
 
-declare function CKB2019(config: Config): Config;
-declare function CKB2021(config: Config): Config;
+export function CKB2019(config: Config): Config;
+export function CKB2021(config: Config): Config;

@@ -5,10 +5,10 @@ import {
   generateSecp256k1Blake160MultisigAddress,
   scriptToAddress,
 } from "../src";
-import { predefined } from "@ckb-lumos/config-manager";
+import { predefined, CKB2019 } from "@ckb-lumos/config-manager";
 
-const LINA = predefined.CKB2019(predefined.LINA);
-const AGGRON4 = predefined.CKB2019(predefined.AGGRON4);
+const LINA = CKB2019(predefined.LINA);
+const AGGRON4 = CKB2019(predefined.AGGRON4);
 
 import {
   shortAddressInfo,
