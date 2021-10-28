@@ -40,9 +40,10 @@ export class IndexerCollector implements BaseCellCollector {
       throw new Error("Either lock or type script must be provided!");
     }
 
-    function instanceOfScriptWrapper(object: any): object is ScriptWrapper {
-      return "script" in object;
+    function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
+      return typeof object === 'object' && object != null && 'script' in object;
     }
+
     // unWrap `ScriptWrapper` into `Script`.
     if (this.queries.lock) {
       if (!instanceOfScriptWrapper(this.queries.lock)) {
