@@ -1,7 +1,7 @@
 /** Deployed script on chain */
 export interface ScriptConfig {
   CODE_HASH: string;
-  HASH_TYPE: "type" | "data";
+  HASH_TYPE: "type" | "data" | "data1";
   TX_HASH: string;
   INDEX: string;
   DEP_TYPE: "dep_group" | "code";
@@ -11,6 +11,11 @@ export interface ScriptConfig {
 
 export interface ScriptConfigs {
   [field: string]: ScriptConfig | undefined;
+  ANYONE_CAN_PAY?: ScriptConfig;
+  SUDT?: ScriptConfig;
+  DAO?: ScriptConfig;
+  SECP256K1_BLAKE160_MULTISIG?: ScriptConfig;
+  SECP256K1_BLAKE160?: ScriptConfig;
 }
 
 /**
@@ -18,6 +23,7 @@ export interface ScriptConfigs {
  * own address prefix, and its own set of deployed scripts.
  */
 export interface Config {
+  CKB2021?: boolean;
   PREFIX: string;
   SCRIPTS: ScriptConfigs;
 }
@@ -44,4 +50,9 @@ export function initializeConfig(): void;
 export const predefined: {
   LINA: Config;
   AGGRON4: Config;
+  CKB2019: typeof CKB2019;
+  CKB2021: typeof CKB2021;
 };
+
+declare function CKB2019(config: Config): Config;
+declare function CKB2021(config: Config): Config;

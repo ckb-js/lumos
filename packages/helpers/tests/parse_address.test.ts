@@ -6,7 +6,9 @@ import {
   fullAddressInfo,
 } from "./addresses";
 import { predefined } from "@ckb-lumos/config-manager";
-const { LINA, AGGRON4 } = predefined;
+
+const LINA = predefined.CKB2019(predefined.LINA);
+const AGGRON4 = predefined.CKB2019(predefined.AGGRON4);
 
 test("short address, mainnet", (t) => {
   const script = parseAddress(shortAddressInfo.mainnetAddress, {

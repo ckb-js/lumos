@@ -1,6 +1,7 @@
 const deepFreeze = require("deep-freeze-strict");
 
 const LINA = deepFreeze({
+  CKB2021: true,
   PREFIX: "ckb",
   SCRIPTS: {
     SECP256K1_BLAKE160: {
@@ -54,6 +55,7 @@ const LINA = deepFreeze({
 });
 
 const AGGRON4 = deepFreeze({
+  CKB2021: true,
   PREFIX: "ckt",
   SCRIPTS: {
     SECP256K1_BLAKE160: {
@@ -106,7 +108,23 @@ const AGGRON4 = deepFreeze({
   },
 });
 
+function CKB2019(config) {
+  return {
+    ...config,
+    CKB2021: false,
+  };
+}
+
+function CKB2021(config) {
+  return {
+    ...config,
+    CKB2021: true,
+  };
+}
+
 module.exports = {
   LINA,
   AGGRON4,
+  CKB2019,
+  CKB2021,
 };
