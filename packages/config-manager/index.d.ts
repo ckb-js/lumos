@@ -9,13 +9,16 @@ export interface ScriptConfig {
   SHORT_ID?: number;
 }
 
-export interface ScriptConfigs {
-  [field: string]: ScriptConfig | undefined;
+export interface PredefinedScriptConfigs {
   ANYONE_CAN_PAY?: ScriptConfig;
   SUDT?: ScriptConfig;
   DAO?: ScriptConfig;
   SECP256K1_BLAKE160_MULTISIG?: ScriptConfig;
   SECP256K1_BLAKE160?: ScriptConfig;
+}
+
+export interface ScriptConfigs extends PredefinedScriptConfigs {
+  [field: string]: ScriptConfig | undefined;
 }
 
 /**
