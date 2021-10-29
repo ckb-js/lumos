@@ -20,7 +20,7 @@ steps:
       chmod +x ./ckb-indexer
       set PATH=$PATH:~/.cbk-indexer
       rm -rf ckb-indexer-linux-x86_64.tar.gz
-      rm ckbIndexer-0.2.2-linux.zip
+      rm ckb-indexer-0.2.2-linux.zip
     displayName: install indexer
   - script: |
       ./ckb-indexer --version
