@@ -164,4 +164,3 @@ test("full address test (hash_type = 0x02)", (t) => {
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqkkxdwn"
   );
 });
-
