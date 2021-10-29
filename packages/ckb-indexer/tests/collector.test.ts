@@ -3,8 +3,8 @@ import { Indexer, CellCollector } from "../src";
 const { lock, type, cellCollectorTestCases } = require("./test_cases.js");
 import { HashType } from "@ckb-lumos/base";
 
-const nodeUri = "http://127.0.0.1:8114";
-const indexUri = "http://127.0.0.1:8116";
+const nodeUri = "http://127.0.0.1:8118";
+const indexUri = "http://127.0.0.1:8119";
 const indexer = new Indexer(nodeUri, indexUri);
 
 test("get count correct", async (t) => {
