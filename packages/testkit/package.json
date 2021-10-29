@@ -1,5 +1,5 @@
 {
-  "name": "@ckb-lumos/test-utils",
+  "name": "@ckb-lumos/testkit",
   "version": "0.17.0-rc5",
   "description": "Test toolkit for CKB",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
