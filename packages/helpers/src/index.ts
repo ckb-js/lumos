@@ -99,10 +99,6 @@ export function generateAddress(
   if (scriptTemplate && scriptTemplate.SHORT_ID !== undefined) {
     data.push(1, scriptTemplate.SHORT_ID);
     data.push(...hexToByteArray(script.args));
-
-    if (config.CKB2021) {
-      return bech32m.encode(config.PREFIX, bech32m.toWords(data), BECH32_LIMIT);
-    }
   } else if (config.CKB2021) {
     const hash_type = (() => {
       if (script.hash_type === "data") return 0;
@@ -116,7 +112,7 @@ export function generateAddress(
     data.push(...hexToByteArray(script.code_hash));
     data.push(hash_type);
     data.push(...hexToByteArray(script.args));
-    console.log("CKB2021!!!!!");
+
     return bech32m.encode(config.PREFIX, bech32m.toWords(data), BECH32_LIMIT);
   } else {
     data.push(script.hash_type === "type" ? 4 : 2);
