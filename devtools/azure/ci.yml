@@ -18,6 +18,8 @@ steps:
     yarn workspace @ckb-lumos/indexer test
     yarn workspace @ckb-lumos/transaction-manager test
     yarn workspace @ckb-lumos/rpc test
+    yarn workspace @ckb-lumos/testkit start
+    yarn workspace @ckb-lumos/ckb-indexer test
     yarn workspaces run fmt
     yarn workspaces run lint
     git diff --exit-code
