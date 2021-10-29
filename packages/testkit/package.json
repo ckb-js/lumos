@@ -33,13 +33,15 @@
     "body-parser": "^1.19.0",
     "ckb-js-toolkit": "^0.10.2",
     "express": "^4.17.1",
-    "json-rpc-2.0": "^0.2.19"
+    "json-rpc-2.0": "^0.2.19",
+    "ts-node": "^10.4.0"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
+    "start": "ts-node example/mock-ckb-node.ts",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "ava **/*.test.ts",
