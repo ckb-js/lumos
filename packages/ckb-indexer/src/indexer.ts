@@ -113,7 +113,7 @@ export interface AdditionalOptions {
 export class CkbIndexer implements Indexer {
   uri: string;
 
-  constructor(public ckbRpcUrl: string, public ckbIndexerUrl: string) {
+  constructor(public ckbIndexerUrl: string, public ckbRpcUrl: string) {
     this.uri = ckbRpcUrl;
   }
 
