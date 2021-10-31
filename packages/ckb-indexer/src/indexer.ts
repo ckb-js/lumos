@@ -145,7 +145,7 @@ export class CkbIndexer implements Indexer {
   }
 
   /*
-   * Addtional note:
+   * Additional note:
    * Only accept lock and type parameters as `Script` type, along with `data` field in QueryOptions. Use it carefully!
    * */
   collector(queries: CkbQueryOptions): CellCollector {
@@ -218,7 +218,7 @@ export class CkbIndexer implements Indexer {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-  public async request(
+  private async request(
     method: string,
     params?: any,
     ckbIndexerUrl: string = this.ckbIndexerUrl
