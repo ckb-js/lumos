@@ -16,8 +16,14 @@ test("get count correct", async (t) => {
   };
   const cellCollector = new CellCollector(indexer, { lock: type });
   const count = await cellCollector.count();
-  t.is(1, count);
+  t.is(count, 1);
 });
+
+test("test local mock ckb node server is right", async(t) => {
+  const rpc = indexer.getCkbRpc();
+  const tipBlockNumber = await rpc.get_tip_block_number();
+  t.is(tipBlockNumber, `0x63-0x63`)
+})
 
 test("query cells with different queryOptions", async (t) => {
   for (const queryCase of cellCollectorTestCases) {
