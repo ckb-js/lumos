@@ -185,7 +185,7 @@ export class CkbIndexer implements Indexer {
         return {
           async *[Symbol.asyncIterator]() {
             const order = "asc";
-            const sizeLimit = 100;
+            const sizeLimit = queries.sizeLimit || 100;
             let cursor = null;
             for (;;) {
               const params: any = [
