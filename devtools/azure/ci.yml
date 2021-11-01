@@ -3,7 +3,7 @@ steps:
       yarn
     displayName: "Install npm dependencies"
   - script: |
-      nohup sh -c '.ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp;yarn workspace @ckb-lumos/testkit start' &
+      nohup sh -c './ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp;yarn workspace @ckb-lumos/testkit start' &
       echo '{
           "id": 2,
           "jsonrpc": "2.0",
