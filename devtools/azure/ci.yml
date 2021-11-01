@@ -4,8 +4,6 @@ steps:
     displayName: "Install npm dependencies"
   - script: |
       nohup ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8119 -s indexer-store-tmp &
-    displayName: run ckb indexer
-  - script: |
       echo '{
           "id": 2,
           "jsonrpc": "2.0",
@@ -14,7 +12,7 @@ steps:
       | tr -d '\n' \
       | curl -H 'content-type: application/json' -d @- \
       http://localhost:8119
-    displayName: test ckb indexer
+    displayName: run and test ckb indexer
   - script: |
       yarn workspace @ckb-lumos/helpers build
       yarn workspace @ckb-lumos/rpc build
