@@ -3,6 +3,9 @@ steps:
       yarn
     displayName: "Install npm dependencies"
   - script: |
+      nohup ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8119 -s indexer-store-tmp &
+    displayName: run ckb indexer
+  - script: |
       yarn workspace @ckb-lumos/helpers build
       yarn workspace @ckb-lumos/rpc build
       yarn workspace @ckb-lumos/testkit build
