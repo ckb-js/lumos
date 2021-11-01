@@ -22,7 +22,7 @@ test("get count correct", async (t) => {
 test("test local mock ckb node server is right", async (t) => {
   const rpc = indexer.getCkbRpc();
   const tipBlockNumber = await rpc.get_tip_block_number();
-  t.is(tipBlockNumber, `0x63-0x63`);
+  t.is(tipBlockNumber, `0x63`);
 });
 
 test("test local mock ckb indexer server is right", async (t) => {
