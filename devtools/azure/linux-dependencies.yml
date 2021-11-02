@@ -13,13 +13,10 @@ steps:
       cargo --version
     displayName: Test/query binaries
   - script: |
-      pwd
       curl -O -L "https://github.com/nervosnetwork/ckb-indexer/releases/download/v0.2.2/ckb-indexer-0.2.2-linux.zip"
       unzip -o ckb-indexer-0.2.2-linux.zip
       tar xvzf ckb-indexer-linux-x86_64.tar.gz ckb-indexer
       chmod +x ./ckb-indexer
-      pwd
-      ./ckb-indexer --version
       rm -rf ckb-indexer-linux-x86_64.tar.gz
       rm ckb-indexer-0.2.2-linux.zip
     displayName: install indexer

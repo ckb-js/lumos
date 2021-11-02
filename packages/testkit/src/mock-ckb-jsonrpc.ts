@@ -43,11 +43,11 @@ export function createCKBMockRPC(options: Options): Express {
   });
 
   server.addMethod("get_tip_block_number", () => {
-    if(blocks.length < 1) {
-      return 'null'
+    if (blocks.length < 1) {
+      return "null";
     }
-    return blocks[blocks.length -1].header.number;
-  })
+    return blocks[blocks.length - 1].header.number;
+  });
 
   const app = express();
   app.use(bodyParser.json());
