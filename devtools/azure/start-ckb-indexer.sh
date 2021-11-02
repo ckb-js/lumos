@@ -1,8 +1,8 @@
 #!/bin/bash
 
-nohup ts-node packages/testkit/example/mock-ckb-node.ts &
+nohup yarn workspace @ckb-lumos/testkit start &
 sleep 5
-nohup ../../download/ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp &
+nohup ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp &
 sleep 5
 echo '{
     "id": 2,
