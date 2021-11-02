@@ -3,8 +3,8 @@ steps:
       yarn
     displayName: "Install npm dependencies"
   - script: |
-      chmod +x ./start-ckb-indexer.sh
-      ./start-ckb-indexer.sh
+      chmod +x ./devtools/azure/start-ckb-indexer.sh
+      ./devtools/azure/start-ckb-indexer.sh
     displayName: run and test ckb indexer
   - script: |
       yarn workspace @ckb-lumos/helpers build
