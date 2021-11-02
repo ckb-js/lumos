@@ -6,10 +6,10 @@
 trigger:
   branches:
     include:
-    - '*'
+      - "*"
   tags:
     include:
-    - '*'
+      - "*"
 
 variables:
   LUMOS_NODE_RUNTIME_VERSION: 9.0.2
@@ -17,7 +17,7 @@ variables:
 jobs:
   - job: LinuxBuild
     pool:
-      vmImage: 'ubuntu-20.04'
+      vmImage: "ubuntu-20.04"
     steps:
       - template: devtools/azure/linux-dependencies.yml
         parameters:
@@ -52,7 +52,7 @@ jobs:
           rustup_toolchain: "stable"
           node_version: "14.x"
       - template: devtools/azure/install-npm-dependencies.yml
-      - template: devtools/azure/start-indexer/start-windows-test-evn.yml
+      - template: devtools/azure/start-indexer/start-windows-test-env.yml
       - template: devtools/azure/ci.yml
       - template: devtools/azure/ci-completion.yml
   - job: LinuxRelease
