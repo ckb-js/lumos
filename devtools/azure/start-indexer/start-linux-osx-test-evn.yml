@@ -1,5 +1,5 @@
 steps:
   - script: |
-      chmod +x ./devtools/azure//start-indexer/start-ckb-indexer.sh
+      chmod +x ./devtools/azure/start-indexer/start-ckb-indexer.sh
       ./devtools/azure/start-indexer/start-ckb-indexer.sh
     displayName: run and test ckb indexer
