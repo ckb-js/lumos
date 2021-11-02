@@ -13,7 +13,7 @@ import {
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
 import axios from "axios";
-import debug from 'debug';
+import debug from "debug";
 export enum ScriptType {
   type = "type",
   lock = "lock",
