@@ -1,6 +1,6 @@
 const blake2b = require("blake2b");
 const { validators, normalizers, Reader } = require("ckb-js-toolkit");
-const { SerializeScript } = require("./core");
+const { SerializeScript, SerializeCellInput } = require("./core");
 const { xxHash32 } = require("js-xxhash");
 
 class CKBHasher {
@@ -99,6 +99,28 @@ function assertHexadecimal(debugPath, str) {
   }
 }
 
+// Buffer.from('TYPE_ID')
+const TYPE_ID_CODE_HASH =
+  "0x00000000000000000000000000000000000000000000000000545950455f4944";
+
+function generateTypeIdArgs(input, outputIndex) {
+  const outPointBuf = SerializeCellInput(normalizers.NormalizeCellInput(input));
+  const outputIndexBuf = toBigUInt64LE(outputIndex);
+  const ckbHasher = new CKBHasher();
+  ckbHasher.update(outPointBuf);
+  ckbHasher.update(outputIndexBuf);
+  return ckbHasher.digestHex();
+}
+
+function generateTypeIdScript(input, outputIndex) {
+  const args = generateTypeIdArgs(input, outputIndex);
+  return {
+    code_hash: TYPE_ID_CODE_HASH,
+    hash_type: "type",
+    args,
+  };
+}
+
 module.exports = {
   CKBHasher,
   ckbHash,
@@ -110,4 +132,5 @@ module.exports = {
   hashCode,
   assertHexString,
   assertHexadecimal,
+  generateTypeIdScript,
 };

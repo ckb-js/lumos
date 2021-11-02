@@ -99,3 +99,8 @@ test("assertHexadecimal", (t) => {
   t.throws(() => assertHexadecimal("", "12"));
   t.throws(() => assertHexadecimal("", "1r"));
 });
+
+test("test type id", (t) => {
+  // TODO
+  t.pass();
+});
