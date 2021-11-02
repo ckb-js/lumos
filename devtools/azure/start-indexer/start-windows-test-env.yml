@@ -1,7 +1,7 @@
 steps:
   - script: |
-      Start-Job {& yarn workspace @ckb-lumos/testkit start}
-      Start-Sleep -s 5
-      Start-Job {& RUST_BACKTRACE=full ckb-indexer.exe  -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp}
-      Start-Sleep -s 5
+      Start "start rpc" yarn workspace @ckb-lumos/testkit start
+      timeout 5
+      Start "start indexer" ckb-indexer.exe  -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp
+      timeout 5
     displayName: run and test ckb indexer
