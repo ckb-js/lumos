@@ -3,7 +3,8 @@
 nohup yarn workspace @ckb-lumos/testkit start &
 sleep 5
 pwd
-nohup ../../ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp &
+ls
+nohup ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp &
 sleep 5
 echo '{
     "id": 2,
