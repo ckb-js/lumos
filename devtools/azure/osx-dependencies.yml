@@ -14,6 +14,14 @@ steps:
     rustc --version
     cargo --version
   displayName: Test/query binaries
+- script: |
+    curl -O -L "https://github.com/nervosnetwork/ckb-indexer/releases/download/v0.2.2/ckb-indexer-0.2.2-macos.zip"
+    unzip -o ckb-indexer-0.2.2-macos.zip
+    unzip -o ckb-indexer-mac-x86_64.zip ckb-indexer
+    chmod +x ./ckb-indexer
+    rm -rf ckb-indexer-mac-x86_64.zip
+    rm ckb-indexer-0.2.2-macos.zip
+  displayName: install indexer
 - task: NodeTool@0
   inputs:
     versionSpec: ${{ parameters.node_version }}

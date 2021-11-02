@@ -25,6 +25,13 @@ steps:
     clang --version
     yasm --version
   displayName: Test/query binaries
+- script: |
+    curl -O -L "https://github.com/nervosnetwork/ckb-indexer/releases/download/v0.2.2/ckb-indexer-0.2.2-windows.zip"
+    unzip -o ckb-indexer-0.2.2-windows.zip
+    unzip -o ckb-indexer-windows-x86_64.zip ckb-indexer.exe
+    rm -rf ckb-indexer-windows-x86_64.zip
+    rm ckb-indexer-0.2.2-windows.zip
+  displayName: install indexer
 - task: NodeTool@0
   inputs:
     versionSpec: ${{ parameters.node_version }}
