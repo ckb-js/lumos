@@ -30,3 +30,9 @@ test("throw error when pass both null lock and null type to subscribe", (t) => {
   console.log(error);
   t.is(error.message, "unimplemented");
 });
+
+test("log start", (t) => {
+  indexer.start();
+  indexer.startForever()
+  t.is('unimplemented', "unimplemented");
+});

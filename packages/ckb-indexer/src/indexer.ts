@@ -13,7 +13,7 @@ import {
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
 import axios from "axios";
-
+import debug from 'debug';
 export enum ScriptType {
   type = "type",
   lock = "lock",
@@ -391,15 +391,15 @@ export class CkbIndexer implements Indexer {
   }
 
   start(): void {
-    console.log("ckb indexer start");
+    debug.log("ckb indexer start");
   }
 
   startForever(): void {
-    console.log("ckb indexer startForever");
+    debug.log("ckb indexer startForever");
   }
 
   stop(): void {
-    console.log("ckb indexer stop");
+    debug.log("ckb indexer stop");
   }
 
   //  eslint-disable-next-line @typescript-eslint/no-unused-vars

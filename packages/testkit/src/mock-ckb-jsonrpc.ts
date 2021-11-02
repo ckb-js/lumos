@@ -44,7 +44,7 @@ export function createCKBMockRPC(options: Options): Express {
 
   server.addMethod("get_tip_block_number", () => {
     if (blocks.length < 1) {
-      return "null";
+      return null;
     }
     return blocks[blocks.length - 1].header.number;
   });
