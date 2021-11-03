@@ -104,7 +104,7 @@ export interface GetCellsResults {
 }
 
 export interface AdditionalOptions {
-  sizeLimit?: number;
+  bufferSize?: number;
   order?: Order;
   lastCursor?: string | undefined;
 }
@@ -155,7 +155,6 @@ export class CkbIndexer implements Indexer {
     return new IndexerCollector(this, queries);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
   private async request(
     method: string,
     params?: any,
@@ -184,17 +183,15 @@ export class CkbIndexer implements Indexer {
   public async getCells(
     searchKey: SearchKey,
     terminator: Terminator = DefaultTerminator,
-    {
-      sizeLimit = 0x100,
-      order = Order.asc,
-      lastCursor = undefined,
-    }: AdditionalOptions = {}
+    additionalOptions: AdditionalOptions = {}
   ): Promise<GetCellsResults> {
     const infos: Cell[] = [];
-    let cursor: string | undefined = lastCursor;
+    let cursor: string | undefined = additionalOptions.lastCursor;
+    let bufferSize = additionalOptions.bufferSize || 100;
+    let order = additionalOptions.order || Order.asc;
     const index = 0;
     while (true) {
-      let params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
+      let params = [searchKey, order, `0x${bufferSize.toString(16)}`, cursor];
       const res: GetLiveCellsResult = await this.request("get_cells", params);
       const liveCells = res.objects;
       cursor = res.last_cursor;
@@ -216,7 +213,7 @@ export class CkbIndexer implements Indexer {
           };
         }
       }
-      if (liveCells.length < sizeLimit) {
+      if (liveCells.length < bufferSize) {
         break;
       }
     }
