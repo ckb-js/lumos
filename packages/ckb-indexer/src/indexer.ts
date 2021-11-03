@@ -241,10 +241,12 @@ export class CkbIndexer implements Indexer {
 
   //  eslint-disable-next-line @typescript-eslint/no-unused-vars
   subscribe(queries: CkbQueryOptions): NodeJS.EventEmitter {
+    // TODO
     throw new Error("unimplemented");
   }
 
   subscribeMedianTime(): NodeJS.EventEmitter {
+    // TODO
     throw new Error("unimplemented");
   }
 }
