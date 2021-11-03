@@ -243,78 +243,6 @@ export class CkbIndexer implements Indexer {
     return res.data.result;
   }
 
-  /* get_cells example
-
-  search_key:
-      script - Script
-      scrip_type - enum, lock | type
-      filter - filter cells by following conditions, all conditions are optional
-          script: if search script type is lock, filter cells by type script prefix, and vice versa
-          output_data_len_range: [u64; 2], filter cells by output data len range, [inclusive, exclusive]
-          output_capacity_range: [u64; 2], filter cells by output capacity range, [inclusive, exclusive]
-          block_range: [u64; 2], filter cells by block number range, [inclusive, exclusive]
-  order: enum, asc | desc
-  limit: result size limit
-  after_cursor: pagination parameter, optional
-
-  $ echo '{
-    "id": 2,
-    "jsonrpc": "2.0",
-    "method": "get_cells",
-    "params": [
-        {
-            "filter": {
-              "script": {
-                "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-                "hash_type": "type",
-                "args": "0x838e79dcef9cbf819a32778c8cfcc81bb2555561"
-              }
-            },
-            "script": {
-              "code_hash": "0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4",
-              "hash_type": "type",
-              "args": "0x4580e3fd3a6623eb26f229239286cee63e18bcafb38bc6c5d0de5a8c587647c2"
-            },
-            "script_type": "type"
-        },
-        "asc",
-        "0x1"
-    ]
-  }' | tr -d '\n' | curl -H 'content-type: application/json' -d @- https://testnet.ckbapp.dev/indexer | jq .
-
-   {
-    "jsonrpc": "2.0",
-    "result": {
-      "last_cursor": "0x60c5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4014580e3fd3a6623eb26f229239286cee63e18bcafb38bc6c5d0de5a8c587647c200000000001ad3100000000200000004",
-      "objects": [
-        {
-          "block_number": "0x1ad310",
-          "out_point": {
-            "index": "0x4",
-            "tx_hash": "0x6d24e50d5b46fca3f48283664453bc061744b34e03159571de4893b9640b14d5"
-          },
-          "output": {
-            "capacity": "0x6fc23ac00",
-            "lock": {
-              "args": "0x838e79dcef9cbf819a32778c8cfcc81bb2555561",
-              "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-              "hash_type": "type"
-            },
-            "type": {
-              "args": "0x4580e3fd3a6623eb26f229239286cee63e18bcafb38bc6c5d0de5a8c587647c2",
-              "code_hash": "0xc5e5dcf215925f7ef4dfaf5f4b4f105bc321c02776d6e7d52a1db3fcd9d011a4",
-              "hash_type": "type"
-            }
-          },
-          "output_data": "0x01000000000000000000000000000000",
-          "tx_index": "0x2"
-        }
-      ]
-    },
-    "id": 2
-  }
-  */
-
   public async getCells(
     searchKey: SearchKey,
     terminator: Terminator = DefaultTerminator,
@@ -358,32 +286,6 @@ export class CkbIndexer implements Indexer {
       objects: infos,
       lastCursor: cursor,
     };
-  }
-
-  public async getTransactions(
-    searchKey: SearchKey,
-
-    {
-      sizeLimit = 0x100,
-      order = Order.asc,
-    }: { sizeLimit?: number; order?: Order } = {}
-  ): Promise<GetTransactionsResult[]> {
-    let infos: GetTransactionsResult[] = [];
-    let cursor: string | undefined;
-    for (;;) {
-      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
-      const res: GetTransactionsResults = await this.request(
-        "get_transactions",
-        params
-      );
-      const txs = res.objects;
-      cursor = res.last_cursor;
-      infos = infos.concat(txs);
-      if (txs.length < sizeLimit) {
-        break;
-      }
-    }
-    return infos;
   }
 
   running(): boolean {
