@@ -12,7 +12,6 @@ import {
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
 import axios from "axios";
-import debug from "debug";
 import { IndexerCollector } from "./collector";
 export enum ScriptType {
   type = "type",
@@ -108,6 +107,10 @@ export interface AdditionalOptions {
   sizeLimit?: number;
   order?: Order;
   lastCursor?: string | undefined;
+}
+
+function defaultLogger(level: string, message: string) {
+  console.log(`[${level}] ${message}`);
 }
 
 export class CkbIndexer implements Indexer {
@@ -228,15 +231,24 @@ export class CkbIndexer implements Indexer {
   }
 
   start(): void {
-    debug.log("ckb indexer start");
+    defaultLogger(
+      "warn",
+      "deprecated: no need to start the ckb-indexer manually"
+    );
   }
 
   startForever(): void {
-    debug.log("ckb indexer startForever");
+    defaultLogger(
+      "warn",
+      "deprecated: no need to startForever the ckb-indexer manually"
+    );
   }
 
   stop(): void {
-    debug.log("ckb indexer stop");
+    defaultLogger(
+      "warn",
+      "deprecated: no need to stop the ckb-indexer manually"
+    );
   }
 
   //  eslint-disable-next-line @typescript-eslint/no-unused-vars
