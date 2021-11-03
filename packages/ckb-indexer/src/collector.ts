@@ -202,47 +202,67 @@ export class IndexerCollector implements BaseCellCollector {
     }
   }
 
-  async count(): Promise<number> {
-    let result: GetCellsResults = await this.getLiveCell();
-    let lastCursor = result.lastCursor;
-    let objects = result.objects;
-    let resultLength = objects.length;
+  async count() {
+    let lastCursor: undefined | string = undefined;
+    const getCellWithCursor = async (): Promise<Cell[]> => {
+      const result: GetCellsResults = await this.getLiveCell(lastCursor);
+      lastCursor = result.lastCursor;
+      return result.objects;
+    };
     let counter = 0;
-    for (let i = 0; i < resultLength; i++) {
-      if (i === resultLength - 1) {
-        result = await this.getLiveCell(lastCursor);
-        lastCursor = result.lastCursor;
-        objects = objects.concat(result.objects);
-        resultLength = objects.length;
-      }
-      const cell = objects[i];
-      if (this.shouldSkipped(cell)) {
-        continue;
-      }
-      counter += 1;
+    let cells: Cell[] = await getCellWithCursor();
+    if (cells.length === 0) {
+      return 0;
     }
-
+    let buffer: Promise<Cell[]> = getCellWithCursor();
+    let index: number = 0;
+    while (true) {
+      if (!this.shouldSkipped(cells[index])) {
+        counter += 1;
+      }
+      index++;
+      //reset index and exchange `cells` and `buffer` after count last cell
+      if (index === cells.length) {
+        index = 0;
+        cells = await buffer;
+        // break if can not get more cells
+        if (cells.length === 0) {
+          break;
+        }
+        buffer = getCellWithCursor();
+      }
+    }
     return counter;
   }
 
-  //TODO change not to concat array cause GC
   async *collect() {
-    let result: GetCellsResults = await this.getLiveCell();
-    let lastCursor = result.lastCursor;
-    let objects = result.objects;
-    let resultLength = objects.length;
-    for (let i = 0; i < resultLength; i++) {
-      if (i === resultLength - 1) {
-        result = await this.getLiveCell(lastCursor);
-        lastCursor = result.lastCursor;
-        objects = objects.concat(result.objects);
-        resultLength = objects.length;
+    let lastCursor: undefined | string = undefined;
+    const getCellWithCursor = async (): Promise<Cell[]> => {
+      const result: GetCellsResults = await this.getLiveCell(lastCursor);
+      lastCursor = result.lastCursor;
+      return result.objects;
+    };
+    let cells: Cell[] = await getCellWithCursor();
+    if (cells.length === 0) {
+      return;
+    }
+    let buffer: Promise<Cell[]> = getCellWithCursor();
+    let index: number = 0;
+    while (true) {
+      if (!this.shouldSkipped(cells[index])) {
+        yield cells[index];
       }
-      const cell = objects[i];
-      if (this.shouldSkipped(objects[i])) {
-        continue;
+      index++;
+      //reset index and exchange `cells` and `buffer` after yield last cell
+      if (index === cells.length) {
+        index = 0;
+        cells = await buffer;
+        // break if can not get more cells
+        if (cells.length === 0) {
+          break;
+        }
+        buffer = getCellWithCursor();
       }
-      yield cell;
     }
   }
 }
