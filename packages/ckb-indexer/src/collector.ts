@@ -105,7 +105,10 @@ export class IndexerCollector implements BaseCellCollector {
       throw new Error("skip must be a number!");
     }
 
-    if (this.queries.bufferSize && typeof this.queries.bufferSize !== "number") {
+    if (
+      this.queries.bufferSize &&
+      typeof this.queries.bufferSize !== "number"
+    ) {
       throw new Error("bufferSize must be a number!");
     }
     this.indexer = indexer;
