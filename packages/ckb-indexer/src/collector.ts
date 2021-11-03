@@ -157,6 +157,7 @@ export class IndexerCollector implements BaseCellCollector {
     };
   }
 
+  //TODO get block_hash
   private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
     const additionalOptions: AdditionalOptions = {
       sizeLimit: this.queries.bufferSize,
@@ -221,6 +222,7 @@ export class IndexerCollector implements BaseCellCollector {
     return counter;
   }
 
+  //TODO change not to concat array cause GC
   async *collect() {
     let result: GetCellsResults = await this.getLiveCell();
     let lastCursor = result.lastCursor;
