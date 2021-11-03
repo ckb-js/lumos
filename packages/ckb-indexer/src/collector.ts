@@ -30,7 +30,7 @@ export class IndexerCollector implements BaseCellCollector {
       skip: undefined,
       outputDataLenRange: undefined,
       outputCapacityRange: undefined,
-      sizeLimit: undefined,
+      bufferSize: undefined,
     };
     this.queries = { ...defaultQuery, ...this.queries };
     if (
@@ -105,8 +105,8 @@ export class IndexerCollector implements BaseCellCollector {
       throw new Error("skip must be a number!");
     }
 
-    if (this.queries.sizeLimit && typeof this.queries.sizeLimit !== "number") {
-      throw new Error("sizeLimit must be a number!");
+    if (this.queries.bufferSize && typeof this.queries.bufferSize !== "number") {
+      throw new Error("bufferSize must be a number!");
     }
     this.indexer = indexer;
   }
@@ -159,7 +159,7 @@ export class IndexerCollector implements BaseCellCollector {
 
   private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
     const additionalOptions: AdditionalOptions = {
-      sizeLimit: this.queries.sizeLimit,
+      sizeLimit: this.queries.bufferSize,
       order: this.queries.order as Order,
     };
     if (lastCursor) {

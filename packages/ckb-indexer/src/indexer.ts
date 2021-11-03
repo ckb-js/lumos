@@ -27,7 +27,7 @@ export enum Order {
 export interface CkbQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;
   outputCapacityRange?: HexadecimalRange;
-  sizeLimit?: number;
+  bufferSize?: number;
 }
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
@@ -185,7 +185,7 @@ export class CkbIndexer implements Indexer {
         return {
           async *[Symbol.asyncIterator]() {
             const order = "asc";
-            const sizeLimit = queries.sizeLimit || 100;
+            const sizeLimit = queries.bufferSize || 100;
             let cursor = null;
             for (;;) {
               const params: any = [
