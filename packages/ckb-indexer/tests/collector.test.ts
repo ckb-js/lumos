@@ -19,21 +19,6 @@ test("get count correct", async (t) => {
   t.is(count, 1);
 });
 
-test("test local mock ckb node server is right", async (t) => {
-  const rpc = indexer.getCkbRpc();
-  const tipBlockNumber = await rpc.get_tip_block_number();
-  t.is(tipBlockNumber, `0x63`);
-});
-
-test("test local mock ckb indexer server is right", async (t) => {
-  const tip = await indexer.tip();
-  t.deepEqual(tip, {
-    block_number: "0x63",
-    block_hash:
-      "0x4d0913d3d9330b1f2acf70d1b38baffa1d0588a92b006be3c5a0ca031e9841c7",
-  });
-});
-
 test("query cells with different queryOptions", async (t) => {
   for (const queryCase of cellCollectorTestCases) {
     const cellCollector = new CellCollector(indexer, queryCase.queryOption);

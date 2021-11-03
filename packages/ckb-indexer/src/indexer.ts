@@ -1,7 +1,6 @@
 import {
   Cell,
   CellCollector,
-  CellCollectorResults,
   Hexadecimal,
   HexString,
   Indexer,
@@ -14,6 +13,7 @@ import {
 import { RPC } from "@ckb-lumos/rpc";
 import axios from "axios";
 import debug from "debug";
+import { IndexerCollector } from "./collector";
 export enum ScriptType {
   type = "type",
   lock = "lock",
@@ -117,7 +117,7 @@ export class CkbIndexer implements Indexer {
     this.uri = ckbRpcUrl;
   }
 
-  getCkbRpc(): RPC {
+  private getCkbRpc(): RPC {
     return new RPC(this.ckbRpcUrl);
   }
 
@@ -149,72 +149,7 @@ export class CkbIndexer implements Indexer {
    * Only accept lock and type parameters as `Script` type, along with `data` field in QueryOptions. Use it carefully!
    * */
   collector(queries: CkbQueryOptions): CellCollector {
-    const { lock, type } = queries;
-    let searchKey: SearchKey;
-    if (lock !== undefined) {
-      searchKey = {
-        script: lock as Script,
-        script_type: ScriptType.lock,
-      };
-      if (type != undefined && type !== "empty") {
-        searchKey.filter = {
-          script: type as Script,
-        };
-      }
-    } else {
-      if (type != undefined && type != "empty") {
-        searchKey = {
-          script: type as Script,
-          script_type: ScriptType.type,
-        };
-      } else {
-        throw new Error(
-          `should specify either type or lock in queries, queries now: ${JSON.stringify(
-            queries,
-            null,
-            2
-          )}`
-        );
-      }
-    }
-    const queryData = queries.data || "0x";
-    const request = this.request;
-    const ckbIndexerUrl = this.ckbIndexerUrl;
-    return {
-      collect(): CellCollectorResults {
-        return {
-          async *[Symbol.asyncIterator]() {
-            const order = "asc";
-            const sizeLimit = queries.bufferSize || 100;
-            let cursor = null;
-            for (;;) {
-              const params: any = [
-                searchKey,
-                order,
-                `0x${sizeLimit.toString(16)}`,
-                cursor,
-              ];
-              const res = await request("get_cells", params, ckbIndexerUrl);
-              const liveCells = res.objects;
-              cursor = res.last_cursor;
-              for (const cell of liveCells) {
-                if (queryData === "any" || queryData === cell.output_data) {
-                  yield {
-                    cell_output: cell.output,
-                    data: cell.output_data,
-                    out_point: cell.out_point,
-                    block_number: cell.block_number,
-                  };
-                }
-              }
-              if (liveCells.length < sizeLimit) {
-                break;
-              }
-            }
-          },
-        };
-      },
-    };
+    return new IndexerCollector(this, queries);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
