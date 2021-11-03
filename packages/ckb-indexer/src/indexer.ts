@@ -104,7 +104,7 @@ export interface GetCellsResults {
 }
 
 export interface AdditionalOptions {
-  bufferSize?: number;
+  sizeLimit?: number;
   order?: Order;
   lastCursor?: string | undefined;
 }
@@ -187,11 +187,11 @@ export class CkbIndexer implements Indexer {
   ): Promise<GetCellsResults> {
     const infos: Cell[] = [];
     let cursor: string | undefined = additionalOptions.lastCursor;
-    let bufferSize = additionalOptions.bufferSize || 100;
+    let sizeLimit = additionalOptions.sizeLimit || 100;
     let order = additionalOptions.order || Order.asc;
     const index = 0;
     while (true) {
-      let params = [searchKey, order, `0x${bufferSize.toString(16)}`, cursor];
+      let params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res: GetLiveCellsResult = await this.request("get_cells", params);
       const liveCells = res.objects;
       cursor = res.last_cursor;
@@ -213,7 +213,7 @@ export class CkbIndexer implements Indexer {
           };
         }
       }
-      if (liveCells.length < bufferSize) {
+      if (liveCells.length < sizeLimit) {
         break;
       }
     }

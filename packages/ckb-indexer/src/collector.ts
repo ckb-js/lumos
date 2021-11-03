@@ -163,7 +163,7 @@ export class IndexerCollector implements BaseCellCollector {
   //TODO get block_hash
   private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
     const additionalOptions: AdditionalOptions = {
-      bufferSize: this.queries.bufferSize,
+      sizeLimit: this.queries.bufferSize,
       order: this.queries.order as Order,
     };
     if (lastCursor) {
