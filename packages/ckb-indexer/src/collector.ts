@@ -5,6 +5,7 @@ import {
   BaseCellCollector,
   ScriptWrapper,
 } from "@ckb-lumos/base";
+import { RPC } from "@ckb-lumos/rpc";
 import { validators } from "ckb-js-toolkit";
 import {
   AdditionalOptions,
@@ -14,11 +15,19 @@ import {
   Order,
   SearchFilter,
 } from "./indexer";
+import pLimit from "./pLimit";
 
 import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
-
+export interface OtherQueryOptions {
+  withBlockHash: true;
+  rpc: RPC;
+}
 export class IndexerCollector implements BaseCellCollector {
-  constructor(public indexer: CkbIndexer, public queries: CkbQueryOptions) {
+  constructor(
+    public indexer: CkbIndexer,
+    public queries: CkbQueryOptions,
+    public otherQueryOptions?: OtherQueryOptions
+  ) {
     const defaultQuery: CkbQueryOptions = {
       lock: undefined,
       type: undefined,
@@ -111,7 +120,6 @@ export class IndexerCollector implements BaseCellCollector {
     ) {
       throw new Error("bufferSize must be a number!");
     }
-    this.indexer = indexer;
   }
 
   private generatorSearchKey(queries: CkbQueryOptions): SearchKey {
@@ -159,7 +167,6 @@ export class IndexerCollector implements BaseCellCollector {
     };
   }
 
-  //TODO get block_hash
   private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
     const additionalOptions: AdditionalOptions = {
       sizeLimit: this.queries.bufferSize,
@@ -234,10 +241,33 @@ export class IndexerCollector implements BaseCellCollector {
     return counter;
   }
 
+  private async getLiveCellWithBlockHash(lastCursor?: string) {
+    let result: GetCellsResults = await this.getLiveCell(lastCursor);
+    const limit = pLimit(10);
+    //TODO refine this functions type
+    const inputs = result.objects.map((cell) => {
+      return limit(() =>
+        this.otherQueryOptions?.rpc.get_block_hash(cell.block_number as string)
+      ) as Promise<string>;
+    });
+    const blockHashList: string[] = await Promise.all(inputs);
+    result.objects = result.objects.map((item, index) => {
+      const block_hash = blockHashList[index];
+      return { ...item, block_hash };
+    });
+    return result;
+  }
+
   async *collect() {
+    const withBlockHash =
+      this.otherQueryOptions &&
+      "withBlockHash" in this.otherQueryOptions &&
+      this.otherQueryOptions.withBlockHash;
     let lastCursor: undefined | string = undefined;
     const getCellWithCursor = async (): Promise<Cell[]> => {
-      const result: GetCellsResults = await this.getLiveCell(lastCursor);
+      const result: GetCellsResults = await (withBlockHash
+        ? this.getLiveCellWithBlockHash(lastCursor)
+        : this.getLiveCell(lastCursor));
       lastCursor = result.lastCursor;
       return result.objects;
     };

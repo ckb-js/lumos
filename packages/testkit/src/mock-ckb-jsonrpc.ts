@@ -42,6 +42,21 @@ export function createCKBMockRPC(options: Options): Express {
     return block;
   });
 
+  server.addMethod("get_block_hash", (blockNumbers) => {
+    assertsParams(Array.isArray(blockNumbers));
+    const blockNumber = blockNumbers[0];
+    assertsParams(
+      typeof blockNumber === "string" && !isNaN(Number(blockNumber))
+    );
+
+    const block = blocks.find(
+      (block) => Number(block.header.number) === Number(blockNumber)
+    );
+    if (!block) return null;
+    
+    return block.header.hash;
+  });
+
   server.addMethod("get_tip_block_number", () => {
     if (blocks.length < 1) {
       return null;
