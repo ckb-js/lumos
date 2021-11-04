@@ -114,38 +114,37 @@ export class IndexerCollector implements BaseCellCollector {
     this.indexer = indexer;
   }
 
-  //TODO change to input QueryOption type and return SearchKey Type
-  private generatorSearchKey(): SearchKey {
+  private generatorSearchKey(queries: CkbQueryOptions): SearchKey {
     let script: Script | undefined = undefined;
     const filter: SearchFilter = {};
     let script_type: ScriptType | undefined = undefined;
 
-    if (this.queries.lock) {
-      script = this.queries.lock as Script;
+    if (queries.lock) {
+      script = queries.lock as Script;
       script_type = ScriptType.lock;
-      if (this.queries.type && typeof this.queries.type !== "string") {
-        filter.script = this.queries.type as Script;
+      if (queries.type && typeof queries.type !== "string") {
+        filter.script = queries.type as Script;
       }
-    } else if (this.queries.type && typeof this.queries.type !== "string") {
-      script = this.queries.type as Script;
+    } else if (queries.type && typeof queries.type !== "string") {
+      script = queries.type as Script;
       script_type = ScriptType.type;
     }
     let block_range: HexadecimalRange | null = null;
-    if (this.queries.fromBlock && this.queries.toBlock) {
-      //this.toBlock+1 cause toBlock need to be included
+    if (queries.fromBlock && queries.toBlock) {
+      //toBlock+1 cause toBlock need to be included
       block_range = [
-        this.queries.fromBlock,
-        `0x${(BigInt(this.queries.toBlock) + 1n).toString(16)}`,
+        queries.fromBlock,
+        `0x${(BigInt(queries.toBlock) + 1n).toString(16)}`,
       ];
     }
     if (block_range) {
       filter.block_range = block_range;
     }
-    if (this.queries.outputDataLenRange) {
-      filter.output_data_len_range = this.queries.outputDataLenRange;
+    if (queries.outputDataLenRange) {
+      filter.output_data_len_range = queries.outputDataLenRange;
     }
-    if (this.queries.outputCapacityRange) {
-      filter.output_capacity_range = this.queries.outputCapacityRange;
+    if (queries.outputCapacityRange) {
+      filter.output_capacity_range = queries.outputCapacityRange;
     }
     if (!script) {
       throw new Error("Either lock or type script must be provided!");
@@ -170,7 +169,7 @@ export class IndexerCollector implements BaseCellCollector {
       additionalOptions.lastCursor = lastCursor;
     }
     const result: GetCellsResults = await this.indexer.getCells(
-      this.generatorSearchKey(),
+      this.generatorSearchKey(this.queries),
       undefined,
       additionalOptions
     );
