@@ -1,5 +1,5 @@
 import { Script, OutPoint, CellProvider, Cell, utils } from "@ckb-lumos/base";
-import { common } from '@ckb-lumos/common-scripts';
+import * as common from './common';
 import { getConfig } from '@ckb-lumos/config-manager';
 import { Config } from "@ckb-lumos/config-manager";
 import { TransactionSkeletonType, TransactionSkeleton, generateAddress, minimalCellCapacity } from "@ckb-lumos/helpers";
