@@ -29,7 +29,7 @@ import {
 
 export type SerializedBlock = HexString;
 export type SerializedHeader = HexString;
-export type OutputsValidator = "default" | "passthrough";
+export type OutputsValidator = "well_known_scripts_only" | "passthrough";
 
 function asyncSleep(ms = 0) {
   return new Promise((r) => setTimeout(r, ms));
