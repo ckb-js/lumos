@@ -18,6 +18,8 @@ export type PackedDao = string;
 
 export type Address = string;
 
+export type HexadecimalRange = [Hexadecimal, Hexadecimal];
+
 export interface Header {
   timestamp: HexNumber;
   number: HexNumber;
@@ -616,7 +618,7 @@ export declare class Indexer {
 }
 
 // CellCollector
-export declare class BaseCellCollector implements CellCollector {
+export declare interface BaseCellCollector extends CellCollector {
   count(): Promise<number>;
 
   collect(): CellCollectorResults;
