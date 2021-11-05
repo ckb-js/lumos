@@ -4,7 +4,6 @@ import {
   CKB2021,
   Config,
   predefined,
-  PredefinedScriptConfigs,
 } from "@ckb-lumos/config-manager";
 import { Script, HashType } from "@ckb-lumos/base";
 
@@ -12,10 +11,9 @@ const LINA = CKB2021(predefined.LINA);
 const AGGRON4 = CKB2021(predefined.AGGRON4);
 
 type NetworkType = keyof typeof predefined;
-type ScriptName = keyof PredefinedScriptConfigs;
 
 function ScriptFrom(
-  scriptName: ScriptName,
+  scriptName: keyof typeof predefined.LINA.SCRIPTS,
   args: string,
   hash_type?: HashType
 ): { LINA: Script; AGGRON4: Script } {

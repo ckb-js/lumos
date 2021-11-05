@@ -18,6 +18,7 @@ export interface ScriptConfigs {
  * own address prefix, and its own set of deployed scripts.
  */
 export interface Config {
+  CKB2021?: boolean;
   PREFIX: string;
   SCRIPTS: ScriptConfigs;
 }
