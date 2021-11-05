@@ -635,6 +635,15 @@ const cellCollectorTestCases = [
     },
     expectedResult: [],
   },
+  {
+    desc:
+      "Test query cells by bufferSize 3 and can get all",
+      queryOption: {
+        lock: lock,
+        bufferSize: 3
+      },
+    expectedResult: cellsByLock,
+  },
 ];
 
 module.exports = {
