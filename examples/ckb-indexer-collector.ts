@@ -1,7 +1,7 @@
 // This example shows how to use the CkbIndexer to collect cells
 
 import { Script } from "@ckb-lumos/base";
-import { CkbIndexer } from "@ckb-lumos/ckb-indexer";
+import { Indexer as CkbIndexer } from "@ckb-lumos/ckb-indexer";
 import { parseAddress } from "@ckb-lumos/helpers";
 import { initializeConfig, predefined } from "@ckb-lumos/config-manager";
 
