@@ -53,7 +53,7 @@ export function createCKBMockRPC(options: Options): Express {
       (block) => Number(block.header.number) === Number(blockNumber)
     );
     if (!block) return null;
-    
+
     return block.header.hash;
   });
 
