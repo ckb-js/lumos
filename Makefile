@@ -20,3 +20,4 @@ test:
 lint:
 	yarn workspaces run fmt
 	yarn workspaces run lint
+	git diff --exit-code
