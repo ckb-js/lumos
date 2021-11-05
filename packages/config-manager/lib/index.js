@@ -78,9 +78,25 @@ function initializeConfig() {
   }
 }
 
+function CKB2019(config) {
+  return {
+    ...config,
+    CKB2021: false,
+  };
+}
+
+function CKB2021(config) {
+  return {
+    ...config,
+    CKB2021: true,
+  };
+}
+
 module.exports = {
   getConfig,
   initializeConfig,
   predefined,
   validateConfig,
+  CKB2019,
+  CKB2021,
 };

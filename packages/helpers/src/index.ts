@@ -11,7 +11,7 @@ import {
   Transaction,
   WitnessArgs,
 } from "@ckb-lumos/base";
-import * as bech32 from "bech32";
+import { bech32, bech32m } from "bech32";
 import { normalizers, validators, Reader } from "ckb-js-toolkit";
 import { List, Record, Map as ImmutableMap } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
@@ -95,10 +95,25 @@ export function generateAddress(
     (s) =>
       s!.CODE_HASH === script.code_hash && s!.HASH_TYPE === script.hash_type
   );
-  const data = [];
+  const data: number[] = [];
   if (scriptTemplate && scriptTemplate.SHORT_ID !== undefined) {
     data.push(1, scriptTemplate.SHORT_ID);
     data.push(...hexToByteArray(script.args));
+  } else if (config.CKB2021) {
+    const hash_type = (() => {
+      if (script.hash_type === "data") return 0;
+      if (script.hash_type === "type") return 1;
+      if (script.hash_type === "data1") return 2;
+
+      throw new Error(`unknown hash_type ${script.hash_type}`);
+    })();
+
+    data.push(0x00);
+    data.push(...hexToByteArray(script.code_hash));
+    data.push(hash_type);
+    data.push(...hexToByteArray(script.args));
+
+    return bech32m.encode(config.PREFIX, bech32m.toWords(data), BECH32_LIMIT);
   } else {
     data.push(script.hash_type === "type" ? 4 : 2);
     data.push(...hexToByteArray(script.code_hash));
@@ -142,19 +157,57 @@ export function generateSecp256k1Blake160MultisigAddress(
   });
 }
 
+function trySeries<T extends (...args: unknown[]) => unknown>(
+  ...fns: T[]
+): ReturnType<T> {
+  let latestCatch: unknown;
+  for (let fn of fns) {
+    try {
+      return fn() as ReturnType<T>;
+    } catch (e) {
+      latestCatch = e;
+    }
+  }
+  throw latestCatch;
+}
+
 export function parseAddress(
   address: Address,
   { config = undefined }: Options = {}
 ): Script {
   config = config || getConfig();
-  const { prefix, words } = bech32.decode(address, BECH32_LIMIT);
+  const { prefix, words } = trySeries(
+    () => bech32.decode(address, BECH32_LIMIT),
+    () => bech32m.decode(address, BECH32_LIMIT)
+  );
   if (prefix !== config.PREFIX) {
     throw Error(
       `Invalid prefix! Expected: ${config.PREFIX}, actual: ${prefix}`
     );
   }
-  const data = bech32.fromWords(words);
+  const data = trySeries(
+    () => bech32.fromWords(words),
+    () => bech32m.fromWords(words)
+  );
   switch (data[0]) {
+    case 0:
+      //  1 +   32     +    1
+      // 00  code_hash  hash_type
+      if (data.length < 34) {
+        throw new Error(`Invalid payload length!`);
+      }
+      const serializedHashType = data.slice(33, 34)[0];
+      return {
+        code_hash: byteArrayToHex(data.slice(1, 33)),
+        hash_type: (() => {
+          if (serializedHashType === 0) return "data" as const;
+          if (serializedHashType === 1) return "type" as const;
+          if (serializedHashType === 2) return "data1" as const;
+
+          throw new Error(`unknown hash_type ${serializedHashType}`);
+        })(),
+        args: byteArrayToHex(data.slice(34)),
+      };
     case 1:
       if (data.length < 2) {
         throw Error(`Invalid payload length!`);

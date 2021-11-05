@@ -48,7 +48,10 @@ function readBigUInt64LE(hex) {
 }
 
 const U128_MIN = BigInt(0);
-const U128_MAX = BigInt(2) ** BigInt(128) - BigInt(1);
+// create-react-app@4.0.3 default config will transform `**` to `Math.pow`.
+// However, Math.pow(BigInt(), BigInt()) will cause an error
+// const U128_MAX = BigInt(2) ** BigInt(128) - BigInt(1);
+const U128_MAX = 340282366920938463463374607431768211455n;
 function toBigUInt128LE(u128) {
   if (u128 < U128_MIN) {
     throw new Error(`u128 ${u128} too small`);

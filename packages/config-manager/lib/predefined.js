@@ -1,6 +1,7 @@
 const deepFreeze = require("deep-freeze-strict");
 
 const LINA = deepFreeze({
+  CKB2021: true,
   PREFIX: "ckb",
   SCRIPTS: {
     SECP256K1_BLAKE160: {
@@ -49,11 +50,13 @@ const LINA = deepFreeze({
         "0x4153a2014952d7cac45f285ce9a7c5c0c0e1b21f2d378b82ac1433cb11c25c4d",
       INDEX: "0x0",
       DEP_TYPE: "dep_group",
+      SHORT_ID: 2,
     },
   },
 });
 
 const AGGRON4 = deepFreeze({
+  CKB2021: true,
   PREFIX: "ckt",
   SCRIPTS: {
     SECP256K1_BLAKE160: {
@@ -102,6 +105,7 @@ const AGGRON4 = deepFreeze({
         "0xec26b0f85ed839ece5f11c4c4e837ec359f5adc4420410f6453b1f6b60fb96a6",
       INDEX: "0x0",
       DEP_TYPE: "dep_group",
+      SHORT_ID: 2,
     },
   },
 });
