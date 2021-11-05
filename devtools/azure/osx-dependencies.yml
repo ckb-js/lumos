@@ -1,6 +1,7 @@
 parameters:
   rustup_toolchain: ''
   node_version: ''
+  ckb_indexer_version: ''
 steps:
 - script: |
     curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain ${{ parameters.rustup_toolchain }}
@@ -14,6 +15,14 @@ steps:
     rustc --version
     cargo --version
   displayName: Test/query binaries
+- script: |
+    curl -O -L "https://github.com/nervosnetwork/ckb-indexer/releases/download/v${{ parameters.ckb_indexer_version }}/ckb-indexer-${{ parameters.ckb_indexer_version }}-macos.zip"
+    unzip -o ckb-indexer-${{ parameters.ckb_indexer_version }}-macos.zip
+    unzip -o ckb-indexer-mac-x86_64.zip ckb-indexer
+    chmod +x ./ckb-indexer
+    rm -rf ckb-indexer-mac-x86_64.zip
+    rm ckb-indexer-${{ parameters.ckb_indexer_version }}-macos.zip
+  displayName: install indexer
 - task: NodeTool@0
   inputs:
     versionSpec: ${{ parameters.node_version }}
