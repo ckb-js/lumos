@@ -583,8 +583,10 @@ export declare const values: {
   RawTransactionValue: typeof RawTransactionValue;
 };
 
+export type LogLevel = "warn" | "error" | string;
 // Indexer
-export type Logger = (level: string, message: string) => void;
+export type Logger = (level: LogLevel, message: string) => void;
+export type Log = (message: string) => void;
 
 export interface IndexerOptions {
   pollIntervalSeconds?: number;
@@ -648,4 +650,9 @@ export declare class TransactionCollector {
 
 export declare const indexer: {
   TransactionCollector: typeof TransactionCollector;
+};
+
+export declare const logger: {
+  defaultLogger: Logger;
+  deprecated: Log;
 };
