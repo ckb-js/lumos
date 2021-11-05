@@ -6,4 +6,5 @@ module.exports = {
   since: require("./since"),
   helpers: require("./helpers"),
   indexer: require("./indexer"),
+  logger: require("./logger"),
 };
