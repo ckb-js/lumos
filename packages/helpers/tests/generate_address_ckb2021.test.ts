@@ -1,10 +1,6 @@
 import test from "ava";
 import { generateAddress } from "../src";
-import {
-  CKB2021,
-  Config,
-  predefined,
-} from "@ckb-lumos/config-manager";
+import { CKB2021, Config, predefined } from "@ckb-lumos/config-manager";
 import { Script, HashType } from "@ckb-lumos/base";
 
 const LINA = CKB2021(predefined.LINA);

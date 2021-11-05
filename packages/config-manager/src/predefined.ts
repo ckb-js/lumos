@@ -120,7 +120,7 @@ const AGGRON4 = createConfig({
         "0xec26b0f85ed839ece5f11c4c4e837ec359f5adc4420410f6453b1f6b60fb96a6",
       INDEX: "0x0",
       DEP_TYPE: "dep_group",
-      SHORT_ID: 2
+      SHORT_ID: 2,
     },
   },
 });

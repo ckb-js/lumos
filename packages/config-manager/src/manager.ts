@@ -118,7 +118,6 @@ export function initializeConfig(inputConfig?: Config): void {
   }
 }
 
-
 export function CKB2019<Cfg extends Config>(config: Cfg): Cfg {
   return {
     ...config,
