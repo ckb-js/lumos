@@ -5,7 +5,6 @@ import {
   BaseCellCollector,
   ScriptWrapper,
 } from "@ckb-lumos/base";
-import { RPC } from "@ckb-lumos/rpc";
 import { validators } from "ckb-js-toolkit";
 import {
   AdditionalOptions,
@@ -13,14 +12,15 @@ import {
   GetCellsResults,
   HexadecimalRange,
   Order,
+  rpcResponse,
   SearchFilter,
 } from "./indexer";
-import pLimit from "./third-party/pLimit";
 
 import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
+import axios from "axios";
 export interface OtherQueryOptions {
   withBlockHash: true;
-  rpc: RPC;
+  ckbRpcUrl: string;
 }
 export class IndexerCollector implements BaseCellCollector {
   constructor(
@@ -241,18 +241,46 @@ export class IndexerCollector implements BaseCellCollector {
     return counter;
   }
 
+  private async request(ckbIndexerUrl: string, data: unknown): Promise<any> {
+    const res: rpcResponse = await axios.post(ckbIndexerUrl, data);
+    if (res.status !== 200) {
+      throw new Error(`indexer request failed with HTTP code ${res.status}`);
+    }
+    if (res.data.error !== undefined) {
+      throw new Error(
+        `indexer request rpc failed with error: ${JSON.stringify(
+          res.data.error
+        )}`
+      );
+    }
+    return res.data;
+  }
+
   private async getLiveCellWithBlockHash(lastCursor?: string) {
+    if (!this.otherQueryOptions) {
+      throw new Error("CKB Rpc URL must provide");
+    }
     let result: GetCellsResults = await this.getLiveCell(lastCursor);
-    const limit = pLimit(10);
-    //TODO refine this functions type
-    const inputs = result.objects.map((cell) => {
-      return limit(() =>
-        this.otherQueryOptions?.rpc.get_block_hash(cell.block_number as string)
-      ) as Promise<string>;
+    if (result.objects.length === 0) {
+      return result;
+    }
+    const requestData = result.objects.map((cell, index) => {
+      return {
+        id: index,
+        jsonrpc: "2.0",
+        method: "get_block_hash",
+        params: [cell.block_number],
+      };
     });
-    const blockHashList: string[] = await Promise.all(inputs);
+    const blockHashList: any[] = await this.request(
+      this.otherQueryOptions.ckbRpcUrl,
+      requestData
+    );
     result.objects = result.objects.map((item, index) => {
-      const block_hash = blockHashList[index];
+      const rpcResponse = blockHashList.find(
+        (responseItem) => responseItem.id === index
+      );
+      const block_hash = rpcResponse && rpcResponse.result;
       return { ...item, block_hash };
     });
     return result;

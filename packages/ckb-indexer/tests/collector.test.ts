@@ -8,9 +8,9 @@ const {
 } = require("./test_cases.js");
 import { HashType } from "@ckb-lumos/base";
 import { OtherQueryOptions } from "../src/collector";
-import { RPC } from "@ckb-lumos/rpc";
 
-const nodeUri = "http://127.0.0.1:8118/rpc";
+//TODO enhance testkit jsonrpc to support rpc batch and change to use testkit
+const nodeUri = "https://testnet.ckbapp.dev/rpc";
 const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);
 
@@ -29,7 +29,7 @@ test("get count correct", async (t) => {
 test("query cells with block hash", async (t) => {
   const otherQueryOptions: OtherQueryOptions = {
     withBlockHash: true,
-    rpc: new RPC(nodeUri),
+    ckbRpcUrl: nodeUri,
   };
   const cellCollector = new CellCollector(
     indexer,
