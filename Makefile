@@ -20,6 +20,7 @@ test:
 lint:
 	yarn workspaces run fmt
 	yarn workspaces run lint
+	git diff --exit-code
 
 clean:
 	yarn workspace @ckb-lumos/helpers clean
