@@ -18,11 +18,15 @@ import {
 
 import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
 import axios from "axios";
+
+/** CellCollector will not get cell with block_hash by default, please use withBlockHash and CKBRpcUrl to get block_hash if you need. */
 export interface OtherQueryOptions {
   withBlockHash: true;
   ckbRpcUrl: string;
 }
-export class IndexerCollector implements BaseCellCollector {
+
+/** CellCollector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
+export class CKBCellCollector implements BaseCellCollector {
   constructor(
     public indexer: CkbIndexer,
     public queries: CkbQueryOptions,
@@ -286,6 +290,9 @@ export class IndexerCollector implements BaseCellCollector {
     return result;
   }
 
+/** collect cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
+* don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
+*/
   async *collect() {
     const withBlockHash =
       this.otherQueryOptions &&
