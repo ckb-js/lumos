@@ -20,3 +20,11 @@ test:
 lint:
 	yarn workspaces run fmt
 	yarn workspaces run lint
+
+clean:
+	yarn workspace @ckb-lumos/helpers clean
+	yarn workspace @ckb-lumos/rpc clean
+	yarn workspace @ckb-lumos/common-scripts clean
+	yarn workspace @ckb-lumos/hd clean
+	yarn workspace @ckb-lumos/hd-cache clean
+	yarn workspace @ckb-lumos/ckb-indexer clean
