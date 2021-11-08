@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.18.0-rc1",
-    "ckb-js-toolkit": "^0.10.2",
+    "ckb-js-toolkit": "^0.100.0-rc1",
     "knex": "^0.21.1"
   },
   "scripts": {

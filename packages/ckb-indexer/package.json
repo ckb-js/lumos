@@ -32,7 +32,7 @@
     "@ckb-lumos/rpc": "^0.18.0-rc1",
     "ava": "^3.15.0",
     "axios": "^0.23.0",
-    "ckb-js-toolkit": "^0.10.2"
+    "ckb-js-toolkit": "^0.100.0-rc1"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
