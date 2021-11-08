@@ -17,7 +17,7 @@ test("deploy with data", async (t) => {
   const inputs: Cell[] = [
     {
       cell_output: {
-        capacity: '0x2ecbd7b9da',
+        capacity: '0x2ecbd7b794',
         lock: {
           args: '0x159890a7cacb44a95bef0743064433d763de229c',
           code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
@@ -28,9 +28,9 @@ test("deploy with data", async (t) => {
       data: '0x',
       out_point: {
         index: '0x0',
-        tx_hash: '0x73273f03153138071332b16f1f9e41142eea96c2dd14bc8170e73ff2cdbc4a67'
+        tx_hash: '0x485f6462df3e37b9c62bd465d25f3fb1ffa0cfd90609b268dc7f7ac91f0555cd'
       },
-      block_number: '0x23'
+      block_number: '0x24'
     }
   ];
   const cellProvider = new CellProvider(inputs);
@@ -46,7 +46,7 @@ test("deploy with data", async (t) => {
   const signingEntries = {
     type: 'witness_args_lock',
     index: 0,
-    message: '0x9d14c5ba00d1261945d92afd199be8bc3e618e525ae8e551607c9bf588d0e740'
+    message: '0x104d32b03be1b0b24b6736296f2bb6604f576c85e6c666bad09c0b91f062de60'
   }
 
   t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);
@@ -85,7 +85,7 @@ test("deploy with typeID", async (t) => {
   const signingEntries = {
     type: 'witness_args_lock',
     index: 0,
-    message: '0x450d540f726d6de30017c00f1c4691666120ae3461299c2ce09986eab4dc517f'
+    message: '0xab551759413b1e6536580500939503bb8f2b49757f7fff5ec23f6ef5caa32d4b'
   }
 
   t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);
@@ -151,7 +151,7 @@ test("upgrade with typeID", async (t) => {
   const signingEntries = {
     type: 'witness_args_lock',
     index: 0,
-    message: '0x7e87638f80d54787e616054fb5a852a2708992f3f77f5b500faaf8fbf3ddaa6b'
+    message: '0xe7582f02e85d259a523aa75348c7c275d8a389412cf5c09c6d511b20304eac7e'
   }
 
   t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);

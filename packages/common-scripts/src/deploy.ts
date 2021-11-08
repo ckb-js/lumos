@@ -70,7 +70,7 @@ async function completeTx(
     config: config,
     enableDeductCapacity: false,
   });
-  feeRate = feeRate || BigInt(10000);
+  feeRate = feeRate || BigInt(1000);
   txSkeleton = await common.payFeeByFeeRate(txSkeleton, [fromAddress], feeRate, undefined, {
     config: config,
   });
