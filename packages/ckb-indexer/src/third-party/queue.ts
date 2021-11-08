@@ -1,4 +1,9 @@
 /*
+copy from:
+https://github.com/sindresorhus/yocto-queue
+*/
+
+/*
 How it works:
 `this.#head` is an instance of `Node` which keeps track of its current value and nests another instance of `Node` that keeps the value that comes after it. When a value is provided to `.enqueue()`, the code needs to iterate through `this.#head`, going deeper and deeper to find the last value. However, iterating through every single item is slow. This problem is solved by saving a reference to the last value as `this.#tail` so that it can reference it to add a new value.
 */

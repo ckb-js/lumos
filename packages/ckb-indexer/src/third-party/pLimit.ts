@@ -1,3 +1,7 @@
+/*
+copy from:
+https://github.com/sindresorhus/p-limit
+*/
 import Queue from "./queue";
 
 export type resolveType = (result: unknown) => void;

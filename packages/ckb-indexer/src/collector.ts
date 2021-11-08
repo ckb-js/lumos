@@ -15,7 +15,7 @@ import {
   Order,
   SearchFilter,
 } from "./indexer";
-import pLimit from "./pLimit";
+import pLimit from "./third-party/pLimit";
 
 import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
 export interface OtherQueryOptions {
