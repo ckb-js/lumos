@@ -29,16 +29,20 @@ function updateOutputs(txSkeleton: TransactionSkeletonType, output: Cell): Trans
   return txSkeleton;
 }
 
-function updateCellDeps(txSkeleton: TransactionSkeletonType): TransactionSkeletonType {
+function updateCellDeps(txSkeleton: TransactionSkeletonType, config?: Config): TransactionSkeletonType {
   txSkeleton = txSkeleton.update('cellDeps', (cellDeps) => {
     return cellDeps.clear();
   });
-  const config = getConfig();
+  config = config || getConfig();
   const secp256k1Config = config.SCRIPTS.SECP256K1_BLAKE160!;
+  const secp256k1MultiSigConfig = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
   txSkeleton = txSkeleton.update('cellDeps', (cellDeps) => {
     return cellDeps.push({
       out_point: { tx_hash: secp256k1Config.TX_HASH, index: secp256k1Config.INDEX },
       dep_type: secp256k1Config.DEP_TYPE,
+    }, {
+      out_point: { tx_hash: secp256k1MultiSigConfig.TX_HASH, index: secp256k1MultiSigConfig.INDEX },
+      dep_type: secp256k1MultiSigConfig.DEP_TYPE,
     });
   });
 
@@ -48,6 +52,7 @@ function updateCellDeps(txSkeleton: TransactionSkeletonType): TransactionSkeleto
 async function completeTx(
   txSkeleton: TransactionSkeletonType,
   fromAddress: string,
+  config?: Config,
   feeRate = BigInt(10000),
 ): Promise<TransactionSkeletonType> {
   const inputCapacity = txSkeleton
@@ -60,9 +65,12 @@ async function completeTx(
     .reduce((a, b) => a + b, BigInt(0));
   const needCapacity = outputCapacity - inputCapacity + BigInt(10) ** BigInt(8);
   txSkeleton = await common.injectCapacity(txSkeleton, [fromAddress], needCapacity, undefined, undefined, {
+    config: config,
     enableDeductCapacity: false,
   });
-  txSkeleton = await common.payFeeByFeeRate(txSkeleton, [fromAddress], feeRate);
+  txSkeleton = await common.payFeeByFeeRate(txSkeleton, [fromAddress], feeRate, undefined, {
+    config: config,
+  });
   return txSkeleton;
 }
 
@@ -107,9 +115,9 @@ export async function generateDeployWithDataTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
-  txSkeleton = await completeTx(txSkeleton, fromAddress);
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
 
-  return updateCellDeps(txSkeleton);
+  return updateCellDeps(txSkeleton, options.config);
 }
 
 export async function generateDeployWithTypeIdTx(
@@ -133,9 +141,9 @@ export async function generateDeployWithTypeIdTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
-  txSkeleton = await completeTx(txSkeleton, fromAddress);
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
 
-  return updateCellDeps(txSkeleton);
+  return updateCellDeps(txSkeleton, options.config);
 }
 
 interface UpgradeOptions extends DeployOptions {
@@ -171,9 +179,9 @@ export async function generateUpgradeTypeIdDataTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
-  txSkeleton = await completeTx(txSkeleton, fromAddress);
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
 
-  return updateCellDeps(txSkeleton);
+  return updateCellDeps(txSkeleton, options.config);
 }
 
 export async function compareScriptBinaryWithOnChainData(
