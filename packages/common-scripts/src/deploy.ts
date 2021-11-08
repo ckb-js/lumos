@@ -40,7 +40,9 @@ function updateCellDeps(txSkeleton: TransactionSkeletonType, config?: Config): T
     return cellDeps.push({
       out_point: { tx_hash: secp256k1Config.TX_HASH, index: secp256k1Config.INDEX },
       dep_type: secp256k1Config.DEP_TYPE,
-    }, {
+    }, 
+    // TODO: optimize me, push dep directly without checking actual locks used would cause bigger tx
+    {
       out_point: { tx_hash: secp256k1MultiSigConfig.TX_HASH, index: secp256k1MultiSigConfig.INDEX },
       dep_type: secp256k1MultiSigConfig.DEP_TYPE,
     });
@@ -52,8 +54,8 @@ function updateCellDeps(txSkeleton: TransactionSkeletonType, config?: Config): T
 async function completeTx(
   txSkeleton: TransactionSkeletonType,
   fromAddress: string,
+  feeRate?: bigint,
   config?: Config,
-  feeRate = BigInt(10000),
 ): Promise<TransactionSkeletonType> {
   const inputCapacity = txSkeleton
     .get('inputs')
@@ -68,6 +70,7 @@ async function completeTx(
     config: config,
     enableDeductCapacity: false,
   });
+  feeRate = feeRate || BigInt(10000);
   txSkeleton = await common.payFeeByFeeRate(txSkeleton, [fromAddress], feeRate, undefined, {
     config: config,
   });
@@ -96,6 +99,7 @@ interface DeployOptions {
   cellProvider: CellProvider;
   scriptBinary: Uint8Array;
   outputScriptLock: Script;
+  feeRate?: bigint;
   config?: Config;
 }
 
@@ -115,7 +119,7 @@ export async function generateDeployWithDataTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
-  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.feeRate, options.config);
 
   return updateCellDeps(txSkeleton, options.config);
 }
@@ -141,7 +145,7 @@ export async function generateDeployWithTypeIdTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
-  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.feeRate, options.config);
 
   return updateCellDeps(txSkeleton, options.config);
 }
@@ -179,7 +183,7 @@ export async function generateUpgradeTypeIdDataTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
-  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.feeRate, options.config);
 
   return updateCellDeps(txSkeleton, options.config);
 }
