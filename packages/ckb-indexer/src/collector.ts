@@ -290,9 +290,9 @@ export class CKBCellCollector implements BaseCellCollector {
     return result;
   }
 
-/** collect cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
-* don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
-*/
+  /** collect cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
+   * don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
+   */
   async *collect() {
     const withBlockHash =
       this.otherQueryOptions &&

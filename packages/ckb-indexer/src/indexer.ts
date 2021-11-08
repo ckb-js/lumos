@@ -147,10 +147,13 @@ export class CkbIndexer implements Indexer {
     }
   }
 
-/** collector cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
-* don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
-*/
-  collector(queries: CkbQueryOptions, otherQueryOptions?: OtherQueryOptions): CellCollector {
+  /** collector cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
+   * don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
+   */
+  collector(
+    queries: CkbQueryOptions,
+    otherQueryOptions?: OtherQueryOptions
+  ): CellCollector {
     return new CKBCellCollector(this, queries, otherQueryOptions);
   }
 
