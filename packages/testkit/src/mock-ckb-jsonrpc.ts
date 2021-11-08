@@ -1,4 +1,4 @@
-import { JSONRPCServer } from "json-rpc-2.0";
+import { JSONRPCResponse, JSONRPCServer } from "json-rpc-2.0";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
 import { LocalNode, Block, core } from "@ckb-lumos/base";
@@ -69,13 +69,25 @@ export function createCKBMockRPC(options: Options): Express {
 
   app.post(routePath, (req, res) => {
     const jsonRPCRequest = req.body;
-    server.receive(jsonRPCRequest).then((jsonRPCResponse) => {
-      if (jsonRPCResponse) {
-        res.json(jsonRPCResponse);
-      } else {
-        res.sendStatus(204);
-      }
-    });
+    if (Array.isArray(jsonRPCRequest)) {
+      const responseList: (JSONRPCResponse | null)[] = [];
+      jsonRPCRequest.forEach((request) => {
+        server.receive(request).then((response) => {
+          responseList.push(response);
+          if (responseList.length === jsonRPCRequest.length) {
+            res.json(responseList);
+          }
+        });
+      });
+    } else {
+      server.receive(jsonRPCRequest).then((jsonRPCResponse) => {
+        if (jsonRPCResponse) {
+          res.json(jsonRPCResponse);
+        } else {
+          res.sendStatus(204);
+        }
+      });
+    }
   });
 
   return app;
