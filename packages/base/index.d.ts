@@ -423,6 +423,8 @@ export declare const utils: {
   assertHexString(debugPath: string, str: string): void;
 
   assertHexadecimal(debugPath: string, str: string): void;
+
+  generateTypeIdScript(input: Input, outputIndex: HexNumber): Script;
 };
 
 export declare const helpers: {
