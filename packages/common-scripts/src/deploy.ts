@@ -103,6 +103,12 @@ interface DeployOptions {
   config?: Config;
 }
 
+/**
+ * Generate txSkeleton for writing binary data to CKB, usually for deploying contracts.
+ * This generator only supports `SECP256K1_BLAKE160` and `SECP256K1_BLAKE160_MULTISIG` currently.
+ * 
+ * @param options 
+ */
 export async function generateDeployWithDataTx(
   options: DeployOptions
 ): Promise<TransactionSkeletonType> {
@@ -124,6 +130,13 @@ export async function generateDeployWithDataTx(
   return updateCellDeps(txSkeleton, options.config);
 }
 
+/**
+ * Generate txSkeleton for writing binary data to CKB via Type ID, usually for deploying contracts.
+ * Deploying via Type ID makes it possible to upgrade contract, for more information about Type ID, please check: https://xuejie.space/2020_02_03_introduction_to_ckb_script_programming_type_id/
+ * This generator only supports `SECP256K1_BLAKE160` and `SECP256K1_BLAKE160_MULTISIG` currently.
+ * 
+ * @param options 
+ */
 export async function generateDeployWithTypeIdTx(
   options: DeployOptions
 ): Promise<TransactionSkeletonType> {
