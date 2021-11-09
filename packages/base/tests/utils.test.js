@@ -104,15 +104,17 @@ test("assertHexadecimal", (t) => {
 test("test type id", (t) => {
   const input = {
     previous_output: {
-      index: '0x0',
-      tx_hash: '0x128b201cd1995efba3126d4431f837c34f7d2f6a29ed8968d2ebc39059add56a'
+      index: "0x0",
+      tx_hash:
+        "0x128b201cd1995efba3126d4431f837c34f7d2f6a29ed8968d2ebc39059add56a",
     },
-    since: '0x0'
-  }
+    since: "0x0",
+  };
   const typeIdScript = {
-    args: '0xa803c9ed6c190fd780e64d885794933ab23da641e94ad1b9270ebac893a7cdcc',
-    code_hash: '0x00000000000000000000000000000000000000000000000000545950455f4944',
-    hash_type: 'type',
+    args: "0xa803c9ed6c190fd780e64d885794933ab23da641e94ad1b9270ebac893a7cdcc",
+    code_hash:
+      "0x00000000000000000000000000000000000000000000000000545950455f4944",
+    hash_type: "type",
   };
   t.deepEqual(generateTypeIdScript(input, "0x0"), typeIdScript);
 });
