@@ -1,7 +1,7 @@
 {
-  "name": "@ckb-lumos/hd",
-  "version": "0.18.0-rc1",
-  "description": "HD wallet manager in lumos",
+  "name": "@ckb-lumos/ckb-indexer",
+  "version": "0.17.0-rc5",
+  "description": "CKB Indexer",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
@@ -15,31 +15,28 @@
     "darwin",
     "linux"
   ],
-  "directories": {
-    "lib": "lib",
-    "test": "tests"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "files": [
-    "lib"
+    "lib",
+    "index.d.ts"
   ],
   "publishConfig": {
     "access": "public",
     "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.18.0-rc1",
-    "bn.js": "^5.1.3",
-    "elliptic": "^6.5.4",
-    "sha3": "^2.1.3",
-    "uuid": "^8.3.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nervosnetwork/lumos.git"
+    "@ckb-lumos/base": "^0.17.0-rc5",
+    "@ckb-lumos/rpc": "^0.17.0-rc5",
+    "ava": "^3.15.0",
+    "axios": "^0.23.0",
+    "ckb-js-toolkit": "^0.10.2"
   },
   "scripts": {
-    "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "ava **/*.test.ts --timeout=2m",
     "build": "tsc",
     "clean": "rm -rf lib",
@@ -49,6 +46,10 @@
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
+  "peerDependencies": {
+    "mysql2": "^2.1.0",
+    "pg": "^8.2.1"
+  },
   "ava": {
     "extensions": [
       "ts"
@@ -56,10 +57,5 @@
     "require": [
       "ts-node/register"
     ]
-  },
-  "devDependencies": {
-    "@types/bn.js": "^4.11.6",
-    "@types/elliptic": "^6.4.12",
-    "@types/uuid": "^8.3.0"
   }
 }

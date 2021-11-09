@@ -4,6 +4,7 @@ build:
 	yarn workspace @ckb-lumos/common-scripts build
 	yarn workspace @ckb-lumos/hd build
 	yarn workspace @ckb-lumos/hd-cache build
+	yarn workspace @ckb-lumos/ckb-indexer build
 
 test:
 	yarn workspace @ckb-lumos/base test
@@ -19,3 +20,4 @@ test:
 lint:
 	yarn workspaces run fmt
 	yarn workspaces run lint
+	git diff --exit-code

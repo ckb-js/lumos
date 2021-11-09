@@ -1,18 +1,27 @@
 parameters:
-  rustup_toolchain: ''
-  node_version: ''
+  rustup_toolchain: ""
+  node_version: ""
+  ckb_indexer_version: ""
 steps:
-- script: |
-    sudo apt install -y build-essential
-- script: |
-    curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain ${{ parameters.rustup_toolchain }}
-    set PATH=$PATH:~/.cargo/bin
-  displayName: Install rust
-- script: |
-    rustc --version
-    cargo --version
-  displayName: Test/query binaries
-- task: NodeTool@0
-  inputs:
-    versionSpec: ${{ parameters.node_version }}
-  displayName: 'Install Node.js'
+  - script: |
+      sudo apt install -y build-essential
+  - script: |
+      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain ${{ parameters.rustup_toolchain }}
+      set PATH=$PATH:~/.cargo/bin
+    displayName: Install rust
+  - script: |
+      rustc --version
+      cargo --version
+    displayName: Test/query binaries
+  - script: |
+      curl -O -L "https://github.com/nervosnetwork/ckb-indexer/releases/download/v${{ parameters.ckb_indexer_version }}/ckb-indexer-${{ parameters.ckb_indexer_version }}-linux.zip"
+      unzip -o ckb-indexer-${{ parameters.ckb_indexer_version }}-linux.zip
+      tar xvzf ckb-indexer-linux-x86_64.tar.gz ckb-indexer
+      chmod +x ./ckb-indexer
+      rm -rf ckb-indexer-linux-x86_64.tar.gz
+      rm ckb-indexer-${{ parameters.ckb_indexer_version }}-linux.zip
+    displayName: install indexer
+  - task: NodeTool@0
+    inputs:
+      versionSpec: ${{ parameters.node_version }}
+    displayName: "Install Node.js"

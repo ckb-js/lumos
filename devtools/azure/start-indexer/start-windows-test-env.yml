@@ -1,0 +1,5 @@
+steps:
+  - script: |
+      Start "start rpc" yarn workspace @ckb-lumos/testkit start
+      Start "start indexer" ckb-indexer.exe  -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp
+    displayName: run and test ckb indexer

@@ -1,7 +1,20 @@
-const deepFreeze = require("deep-freeze-strict");
+import deepFreeze from "deep-freeze-strict";
+import { ScriptConfig } from "./types";
 
-const LINA = deepFreeze({
-  CKB2021: true,
+export type ScriptRecord = Record<string, ScriptConfig>;
+
+/**
+ * create a frozen {@link ScriptConfig}, also this is a TypeScript helper to create an autocomplete-friendly {@link ScriptConfigs}
+ * @param configShape
+ */
+export function createConfig<S extends ScriptRecord>(configShape: {
+  PREFIX: string;
+  SCRIPTS: S;
+}): typeof configShape {
+  return deepFreeze(configShape);
+}
+
+const LINA = createConfig({
   PREFIX: "ckb",
   SCRIPTS: {
     SECP256K1_BLAKE160: {
@@ -55,8 +68,7 @@ const LINA = deepFreeze({
   },
 });
 
-const AGGRON4 = deepFreeze({
-  CKB2021: true,
+const AGGRON4 = createConfig({
   PREFIX: "ckt",
   SCRIPTS: {
     SECP256K1_BLAKE160: {
@@ -110,7 +122,4 @@ const AGGRON4 = deepFreeze({
   },
 });
 
-module.exports = {
-  LINA,
-  AGGRON4,
-};
+export const predefined = { LINA, AGGRON4 };

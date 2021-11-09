@@ -1,7 +1,7 @@
 {
-  "name": "@ckb-lumos/hd",
-  "version": "0.18.0-rc1",
-  "description": "HD wallet manager in lumos",
+  "name": "@ckb-lumos/testkit",
+  "version": "0.17.0-rc5",
+  "description": "Test toolkit for CKB",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
@@ -27,20 +27,24 @@
     "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.18.0-rc1",
-    "bn.js": "^5.1.3",
-    "elliptic": "^6.5.4",
-    "sha3": "^2.1.3",
-    "uuid": "^8.3.0"
+    "@ckb-lumos/base": "^0.17.0-rc5",
+    "@types/body-parser": "^1.19.1",
+    "@types/express": "^4.17.13",
+    "body-parser": "^1.19.0",
+    "ckb-js-toolkit": "^0.10.2",
+    "express": "^4.17.1",
+    "json-rpc-2.0": "^0.2.19",
+    "ts-node": "^10.4.0"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
-    "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
-    "test": "ava **/*.test.ts --timeout=2m",
+    "start": "ts-node example/mock-ckb-node.ts",
+    "fmt": "prettier --write \"{src,tests,example}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,example}/**/*.ts\"",
+    "test": "ava **/*.test.ts",
     "build": "tsc",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
@@ -56,10 +60,5 @@
     "require": [
       "ts-node/register"
     ]
-  },
-  "devDependencies": {
-    "@types/bn.js": "^4.11.6",
-    "@types/elliptic": "^6.4.12",
-    "@types/uuid": "^8.3.0"
   }
 }
