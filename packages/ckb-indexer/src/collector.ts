@@ -12,12 +12,11 @@ import {
   GetCellsResults,
   HexadecimalRange,
   Order,
-  rpcResponse,
   SearchFilter,
 } from "./indexer";
 
 import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
-import axios from "axios";
+import fetch from "cross-fetch";
 
 /** CellCollector will not get cell with block_hash by default, please use withBlockHash and CKBRpcUrl to get block_hash if you need. */
 export interface OtherQueryOptions {
@@ -245,19 +244,24 @@ export class CKBCellCollector implements BaseCellCollector {
     return counter;
   }
 
-  private async request(ckbIndexerUrl: string, data: unknown): Promise<any> {
-    const res: rpcResponse = await axios.post(ckbIndexerUrl, data);
+  private async request(rpcUrl: string, data: unknown): Promise<any> {
+    const res: Response = await fetch(rpcUrl, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     if (res.status !== 200) {
       throw new Error(`indexer request failed with HTTP code ${res.status}`);
     }
-    if (res.data.error !== undefined) {
+    const result = await res.json();
+    if (result.error !== undefined) {
       throw new Error(
-        `indexer request rpc failed with error: ${JSON.stringify(
-          res.data.error
-        )}`
+        `indexer request rpc failed with error: ${JSON.stringify(result.error)}`
       );
     }
-    return res.data;
+    return result;
   }
 
   private async getLiveCellWithBlockHash(lastCursor?: string) {

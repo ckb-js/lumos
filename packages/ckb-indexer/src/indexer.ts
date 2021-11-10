@@ -11,7 +11,7 @@ import {
   HexNumber,
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
-import axios from "axios";
+import fetch from "cross-fetch";
 import { CKBCellCollector, OtherQueryOptions } from "./collector";
 export enum ScriptType {
   type = "type",
@@ -162,24 +162,28 @@ export class CkbIndexer implements Indexer {
     params?: any,
     ckbIndexerUrl: string = this.ckbIndexerUrl
   ): Promise<any> {
-    const data = {
-      id: 0,
-      jsonrpc: "2.0",
-      method,
-      params,
-    };
-    const res: rpcResponse = await axios.post(ckbIndexerUrl, data);
+    const res = await fetch(ckbIndexerUrl, {
+      method: "POST",
+      body: JSON.stringify({
+        id: 0,
+        jsonrpc: "2.0",
+        method,
+        params,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     if (res.status !== 200) {
       throw new Error(`indexer request failed with HTTP code ${res.status}`);
     }
-    if (res.data.error !== undefined) {
+    const data = await res.json();
+    if (data.error !== undefined) {
       throw new Error(
-        `indexer request rpc failed with error: ${JSON.stringify(
-          res.data.error
-        )}`
+        `indexer request rpc failed with error: ${JSON.stringify(data.error)}`
       );
     }
-    return res.data.result;
+    return data.result;
   }
 
   public async getCells(
