@@ -1,6 +1,7 @@
 import { Script, ScriptWrapper } from "@ckb-lumos/base";
 import { CkbQueryOptions, HexadecimalRange, SearchFilter } from "./indexer";
 import { ScriptType, SearchKey } from "./indexer";
+import fetch from "cross-fetch";
 
 function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
   return typeof object === "object" && object != null && "script" in object;
@@ -61,4 +62,24 @@ const generatorSearchKey = (queries: CkbQueryOptions): SearchKey => {
 const getHexStringBytes = (hexString: string) => {
     return Math.ceil(hexString.substr(2).length / 2);
 }
-export { generatorSearchKey, getHexStringBytes, instanceOfScriptWrapper };
+
+const requestBatch = async (rpcUrl: string, data: unknown): Promise<any>  =>{
+  const res: Response = await fetch(rpcUrl, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (res.status !== 200) {
+    throw new Error(`indexer request failed with HTTP code ${res.status}`);
+  }
+  const result = await res.json();
+  if (result.error !== undefined) {
+    throw new Error(
+      `indexer request rpc failed with error: ${JSON.stringify(result.error)}`
+    );
+  }
+  return result;
+}
+export { generatorSearchKey, getHexStringBytes, instanceOfScriptWrapper, requestBatch };
