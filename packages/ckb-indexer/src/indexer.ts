@@ -84,7 +84,7 @@ const DefaultTerminator: Terminator = () => {
 };
 
 export type HexNum = string;
-export type IOType = "input" | "output";
+export type IOType = "input" | "output" | "both";
 export type Bytes32 = string;
 export type GetTransactionsResult = {
   block_number: HexNum;
@@ -94,7 +94,7 @@ export type GetTransactionsResult = {
   tx_index: HexNum;
 };
 export interface GetTransactionsResults {
-  last_cursor: string;
+  lastCursor: string;
   objects: GetTransactionsResult[];
 }
 
@@ -227,6 +227,34 @@ export class CkbIndexer implements Indexer {
       objects: infos,
       lastCursor: cursor,
     };
+  }
+
+  public async getTransactions(
+    searchKey: SearchKey,
+    {
+      sizeLimit = 0x100,
+      order = Order.asc,
+    }: { sizeLimit?: number; order?: Order } = {}
+  ): Promise<GetTransactionsResults> {
+    let infos: GetTransactionsResult[] = [];
+    let cursor: string | undefined;
+    for (;;) {
+      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
+      const res: GetTransactionsResults = await this.request(
+        "get_transactions",
+        params
+      );
+      const txs = res.objects;
+      cursor = res.lastCursor;
+      infos = infos.concat(txs);
+      if (txs.length < sizeLimit) {
+        break;
+      }
+    }
+    return {
+      objects: infos,
+      lastCursor: cursor,
+    };;
   }
 
   running(): boolean {
