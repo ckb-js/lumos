@@ -24,6 +24,12 @@ export interface OtherQueryOptions {
   ckbRpcUrl: string;
 }
 
+export interface RPCResult {
+  jsonrpc: string;
+  id: number;
+  result: string;
+}
+
 /** CellCollector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
 export class CKBCellCollector implements BaseCellCollector {
   constructor(
@@ -280,13 +286,13 @@ export class CKBCellCollector implements BaseCellCollector {
         params: [cell.block_number],
       };
     });
-    const blockHashList: any[] = await this.request(
+    const blockHashList: RPCResult[] = await this.request(
       this.otherQueryOptions.ckbRpcUrl,
       requestData
     );
     result.objects = result.objects.map((item, index) => {
       const rpcResponse = blockHashList.find(
-        (responseItem) => responseItem.id === index
+        (responseItem: RPCResult) => responseItem.id === index
       );
       const block_hash = rpcResponse && rpcResponse.result;
       return { ...item, block_hash };
