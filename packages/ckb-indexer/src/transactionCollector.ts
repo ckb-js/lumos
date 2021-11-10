@@ -1,23 +1,36 @@
 import {
   TransactionCollectorResults,
   TransactionCollectorOptions,
-  indexer as BaseIndexerModule
+  indexer as BaseIndexerModule,
+  Transaction,
 } from "@ckb-lumos/base";
 
 import { AdditionalOptions, CkbQueryOptions, GetTransactionsResult, GetTransactionsResults, IOType, Order } from "./indexer";
 
 import { CkbIndexer } from "./indexer";
-import { generatorSearchKey, instanceOfScriptWrapper} from "./services";
- 
+import { generatorSearchKey, instanceOfScriptWrapper, requestBatch} from "./services";
+
+interface getTransactionDetailResult {
+  objects: Transaction[],
+  lastCursor: string
+}
+
+interface GetTransactionRPCResult {
+  jsonrpc: string;
+  id: number;
+  result: Transaction;
+}
+
 export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollector{
   constructor(
     public indexer: CkbIndexer,
     public queries: CkbQueryOptions,
-    public options?: TransactionCollectorOptions
+    public CKBRpcUrl: string,
+    public options?: TransactionCollectorOptions,
   ) {
       super(indexer, queries, options);
   }
-  private async getTransactions(lastCursor?: string): Promise<GetTransactionsResults> {
+  private async getTransactions(lastCursor?: string): Promise<getTransactionDetailResult> {
     const additionalOptions: AdditionalOptions = {
       sizeLimit: this.queries.bufferSize,
       order: this.queries.order as Order,
@@ -31,8 +44,32 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       additionalOptions
     );
 
+    lastCursor = result.lastCursor
+
     result.objects = this.filterResult(result.objects, this.queries);
-    return result;
+    if(result.objects.length === 0) {
+      return {
+        objects: [],
+        lastCursor: lastCursor
+      }
+    }
+    const getDetailRequestData = result.objects.map((hashItem: GetTransactionsResult, index: number) => {
+      return {
+        "id": index,
+        "jsonrpc": "2.0",
+        "method": "get_transaction",
+        "params": [
+          hashItem.tx_hash
+        ]
+      }
+    })
+    const transactionList:Transaction[] = await requestBatch(this.CKBRpcUrl, getDetailRequestData).then((response: GetTransactionRPCResult[]) => {
+      return response.map((item: GetTransactionRPCResult) => item.result);
+    })
+    return {
+      objects: transactionList,
+      lastCursor: lastCursor
+    };
   }
 
   private filterIoType = (inputResult: GetTransactionsResult[], ioType: IOType) => {
@@ -54,30 +91,25 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     }
     return result;
   }
-  private shouldSkipped() {
-    return false;
-  }
 
   async count(): Promise<number> {
     let lastCursor: undefined | string = undefined;
-    const getTxWithCursor = async (): Promise<GetTransactionsResult[]> => {
-      const result: GetTransactionsResults = await this.getTransactions(lastCursor);
+    const getTxWithCursor = async (): Promise<Transaction[]> => {
+      const result: getTransactionDetailResult = await this.getTransactions(lastCursor);
       lastCursor = result.lastCursor;
       return result.objects;
     };
     let counter = 0;
-    let txs: GetTransactionsResult[] = await getTxWithCursor();
+    let txs: Transaction[] = await getTxWithCursor();
     if (txs.length === 0) {
       return 0;
     }
-    let buffer: Promise<GetTransactionsResult[]> = getTxWithCursor();
+    let buffer: Promise<Transaction[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
-      if (!this.shouldSkipped()) {
-        counter += 1;
-      }
+      counter += 1;
       index++;
-      //reset index and exchange `txs` and `buffer` after count last cell
+      //reset index and exchange `txs` and `buffer` after count last tx
       if (index === txs.length) {
         index = 0;
         txs = await buffer;
@@ -90,10 +122,16 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     }
     return counter;
   }
-  async getTransactionHashes(): Promise<string[]> {
+  async getTransactionHashes(): Promise<(string)[]> {
     const transactions = await this.getTransactions();
-    const transactionHashes = transactions.objects.map(tx => {
-      return tx.tx_hash
+    if(transactions.objects.length === 0) {
+      return []
+    }
+    let transactionHashes: string[] = [];
+     transactions.objects.forEach(tx => {
+       if(tx.hash) {
+         transactionHashes.push(tx.hash)
+       }
     })
     return transactionHashes;
   }
