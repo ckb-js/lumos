@@ -24,7 +24,7 @@ export interface OtherQueryOptions {
   ckbRpcUrl: string;
 }
 
-export interface RPCResult {
+interface GetBlockHashRPCResult {
   jsonrpc: string;
   id: number;
   result: string;
@@ -286,13 +286,13 @@ export class CKBCellCollector implements BaseCellCollector {
         params: [cell.block_number],
       };
     });
-    const blockHashList: RPCResult[] = await this.request(
+    const blockHashList: GetBlockHashRPCResult[] = await this.request(
       this.otherQueryOptions.ckbRpcUrl,
       requestData
     );
     result.objects = result.objects.map((item, index) => {
       const rpcResponse = blockHashList.find(
-        (responseItem: RPCResult) => responseItem.id === index
+        (responseItem: GetBlockHashRPCResult) => responseItem.id === index
       );
       const block_hash = rpcResponse && rpcResponse.result;
       return { ...item, block_hash };
