@@ -75,7 +75,6 @@ function updateCellDeps(
 async function completeTx(
   txSkeleton: TransactionSkeletonType,
   fromAddress: string,
-  feeRate?: bigint,
   config?: Config
 ): Promise<TransactionSkeletonType> {
   const inputCapacity = txSkeleton
@@ -96,16 +95,6 @@ async function completeTx(
     {
       config: config,
       enableDeductCapacity: false,
-    }
-  );
-  feeRate = feeRate || BigInt(1000);
-  txSkeleton = await common.payFeeByFeeRate(
-    txSkeleton,
-    [fromAddress],
-    feeRate,
-    undefined,
-    {
-      config: config,
     }
   );
   return txSkeleton;
@@ -132,7 +121,7 @@ async function getDataHash(outPoint: OutPoint, rpc: RPC): Promise<string> {
 }
 
 interface DeployOptions {
-  cellProvider: CellProvider;
+  cellProvider: CellProvider; // TODO: OPTIONAL
   scriptBinary: Uint8Array;
   outputScriptLock: Script;
   feeRate?: bigint;
@@ -163,14 +152,14 @@ export async function generateDeployWithDataTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
+  txSkeleton = updateCellDeps(txSkeleton, options.config);
   txSkeleton = await completeTx(
     txSkeleton,
     fromAddress,
-    options.feeRate,
     options.config
   );
 
-  return updateCellDeps(txSkeleton, options.config);
+  return txSkeleton;
 }
 
 /**
@@ -209,14 +198,14 @@ export async function generateDeployWithTypeIdTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
+  txSkeleton = updateCellDeps(txSkeleton, options.config);
   txSkeleton = await completeTx(
     txSkeleton,
     fromAddress,
-    options.feeRate,
     options.config
   );
 
-  return updateCellDeps(txSkeleton, options.config);
+  return txSkeleton;
 }
 
 interface UpgradeOptions extends DeployOptions {
@@ -254,14 +243,14 @@ export async function generateUpgradeTypeIdDataTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
+  txSkeleton = updateCellDeps(txSkeleton, options.config);
   txSkeleton = await completeTx(
     txSkeleton,
     fromAddress,
-    options.feeRate,
     options.config
   );
 
-  return updateCellDeps(txSkeleton, options.config);
+  return txSkeleton;
 }
 
 export async function compareScriptBinaryWithOnChainData(

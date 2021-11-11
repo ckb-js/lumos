@@ -110,6 +110,11 @@ function generateTypeIdArgs(input, outputIndex) {
 }
 
 function generateTypeIdScript(input, outputIndex) {
+  validators.ValidateCellInput(input);
+  outputIndex = outputIndex === null ? "0x0" : outputIndex;
+  const re = /^0x[0-9a-fA-F]/;
+  if (!re.test(outputIndex)) throw new Error("invalid outputIndex");
+
   const args = generateTypeIdArgs(input, outputIndex);
   return {
     code_hash: TYPE_ID_CODE_HASH,
