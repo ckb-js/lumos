@@ -1,10 +1,7 @@
 import test from "ava";
 import { Indexer, TransactionCollector } from "../src";
 import { Order } from "../src/indexer";
-const {
-    lock,
-    transactionCollectorTestCases,
-  } = require("./test_cases.js");
+const { lock, transactionCollectorTestCases } = require("./test_cases.js");
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
@@ -48,7 +45,6 @@ test("throw error when pass null lock and empty type to TransactionCollector", (
   );
   t.is(error.message, "Either lock or type script must be provided!");
 });
-
 
 test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (t) => {
   let error = t.throws(

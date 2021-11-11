@@ -6,12 +6,12 @@ import fetch from "cross-fetch";
 function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
   return typeof object === "object" && object != null && "script" in object;
 }
-const unWrapScript = (inputScript: ScriptWrapper| Script): Script =>{
-  if(instanceOfScriptWrapper(inputScript)) {
+const unWrapScript = (inputScript: ScriptWrapper | Script): Script => {
+  if (instanceOfScriptWrapper(inputScript)) {
     return inputScript.script;
   }
   return inputScript;
-}
+};
 const generatorSearchKey = (queries: CkbQueryOptions): SearchKey => {
   let script: Script | undefined = undefined;
   const filter: SearchFilter = {};
@@ -60,10 +60,10 @@ const generatorSearchKey = (queries: CkbQueryOptions): SearchKey => {
 };
 
 const getHexStringBytes = (hexString: string) => {
-    return Math.ceil(hexString.substr(2).length / 2);
-}
+  return Math.ceil(hexString.substr(2).length / 2);
+};
 
-const requestBatch = async (rpcUrl: string, data: unknown): Promise<any>  =>{
+const requestBatch = async (rpcUrl: string, data: unknown): Promise<any> => {
   const res: Response = await fetch(rpcUrl, {
     method: "POST",
     body: JSON.stringify(data),
@@ -81,5 +81,10 @@ const requestBatch = async (rpcUrl: string, data: unknown): Promise<any>  =>{
     );
   }
   return result;
-}
-export { generatorSearchKey, getHexStringBytes, instanceOfScriptWrapper, requestBatch };
+};
+export {
+  generatorSearchKey,
+  getHexStringBytes,
+  instanceOfScriptWrapper,
+  requestBatch,
+};

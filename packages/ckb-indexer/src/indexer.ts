@@ -254,7 +254,7 @@ export class CkbIndexer implements Indexer {
     return {
       objects: infos,
       lastCursor: cursor,
-    };;
+    };
   }
 
   running(): boolean {

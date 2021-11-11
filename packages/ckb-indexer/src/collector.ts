@@ -1,8 +1,4 @@
-import {
-  utils,
-  Cell,
-  BaseCellCollector,
-} from "@ckb-lumos/base";
+import { utils, Cell, BaseCellCollector } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit";
 import {
   AdditionalOptions,
@@ -12,7 +8,11 @@ import {
 } from "./indexer";
 
 import { CkbIndexer } from "./indexer";
-import { generatorSearchKey, getHexStringBytes, instanceOfScriptWrapper } from "./services";
+import {
+  generatorSearchKey,
+  getHexStringBytes,
+  instanceOfScriptWrapper,
+} from "./services";
 import fetch from "cross-fetch";
 
 /** CellCollector will not get cell with block_hash by default, please use withBlockHash and CKBRpcUrl to get block_hash if you need. */
@@ -154,8 +154,7 @@ export class CKBCellCollector implements BaseCellCollector {
     if (
       this.queries.argsLen !== -1 &&
       this.queries.argsLen !== "any" &&
-      getHexStringBytes(cell.cell_output.lock.args) !==
-        this.queries.argsLen
+      getHexStringBytes(cell.cell_output.lock.args) !== this.queries.argsLen
     ) {
       return true;
     }
