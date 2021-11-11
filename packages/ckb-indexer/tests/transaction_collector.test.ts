@@ -7,6 +7,8 @@ const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);
 
+//TODO test cursor,test skip, test input argLen
+
 test("query transactions with different queryOptions", async (t) => {
   for (const queryCase of transactionCollectorTestCases) {
     const transactionCollector = new TransactionCollector(

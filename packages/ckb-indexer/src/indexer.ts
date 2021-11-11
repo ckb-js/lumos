@@ -231,21 +231,17 @@ export class CkbIndexer implements Indexer {
 
   public async getTransactions(
     searchKey: SearchKey,
-    {
-      sizeLimit = 0x100,
-      order = Order.asc,
-    }: { sizeLimit?: number; order?: Order } = {}
+    additionalOptions: AdditionalOptions = {}
   ): Promise<GetTransactionsResults> {
     let infos: GetTransactionsResult[] = [];
-    let cursor: string | undefined;
+    let cursor: string | undefined = additionalOptions.lastCursor;
+    let sizeLimit = additionalOptions.sizeLimit || 100;
+    let order = additionalOptions.order || Order.asc;
     for (;;) {
       const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
-      const res: GetTransactionsResults = await this.request(
-        "get_transactions",
-        params
-      );
+      const res = await this.request("get_transactions", params);
       const txs = res.objects;
-      cursor = res.lastCursor;
+      cursor = res.last_cursor as string;
       infos = infos.concat(txs);
       if (txs.length < sizeLimit) {
         break;

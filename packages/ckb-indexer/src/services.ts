@@ -82,9 +82,40 @@ const requestBatch = async (rpcUrl: string, data: unknown): Promise<any> => {
   }
   return result;
 };
+
+const request = async (
+  ckbIndexerUrl: string,
+  method: string,
+  params?: any
+): Promise<any> => {
+  const res = await fetch(ckbIndexerUrl, {
+    method: "POST",
+    body: JSON.stringify({
+      id: 0,
+      jsonrpc: "2.0",
+      method,
+      params,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (res.status !== 200) {
+    throw new Error(`indexer request failed with HTTP code ${res.status}`);
+  }
+  const data = await res.json();
+  if (data.error !== undefined) {
+    throw new Error(
+      `indexer request rpc failed with error: ${JSON.stringify(data.error)}`
+    );
+  }
+  return data.result;
+};
+
 export {
   generatorSearchKey,
   getHexStringBytes,
   instanceOfScriptWrapper,
   requestBatch,
+  request,
 };
