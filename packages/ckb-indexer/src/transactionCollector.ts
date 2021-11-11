@@ -46,6 +46,7 @@ interface cellFilterResult {
   isTypeScriptEmpty?: boolean;
 }
 
+//TODO work with TransactionCollectorOptions.skipMissing and TransactionCollectorOptions.includeStatus
 export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollector {
   constructor(
     public indexer: CkbIndexer,
@@ -66,7 +67,6 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
    *skip?: filter after get transaction from ckb-indexer;;
    *order?: query by ckb-indexer;
    */
-  //TODO 判断如果query里没有argsLen参数，则不需要向rpc请求，提高了效率。
   private async getTransactions(
     lastCursor?: string,
     skip?: number
