@@ -11,8 +11,6 @@ const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);
 
-//TODO test cursor,test skip, test input argLen
-
 test("get count correct", async (t) => {
   const queryCase = transactionCollectorTestCases[0];
   const cellCollector = new TransactionCollector(
