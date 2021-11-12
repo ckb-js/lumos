@@ -1,7 +1,11 @@
 import test from "ava";
 import { Indexer, TransactionCollector } from "../src";
 import { Order } from "../src/indexer";
-const { lock, transactionCollectorTestCases } = require("./test_cases.js");
+const {
+  lock,
+  transactionCollectorTestCases,
+  transactionCollectorCollectTestCases,
+} = require("./test_cases.js");
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
@@ -9,7 +13,33 @@ const indexer = new Indexer(indexUri, nodeUri);
 
 //TODO test cursor,test skip, test input argLen
 
-test("query transactions with different queryOptions", async (t) => {
+test("get count correct", async (t) => {
+  const queryCase = transactionCollectorTestCases[0];
+  const cellCollector = new TransactionCollector(
+    indexer,
+    queryCase.queryOption,
+    nodeUri
+  );
+  const count = await cellCollector.count();
+  t.is(count, 7);
+});
+
+test("get count correct with buffer 3 and skip 1", async (t) => {
+  const queryCase = transactionCollectorTestCases[0];
+  const newQueryOption = {
+    ...queryCase.queryOption,
+    ...{ skip: 1, bufferSize: 3 },
+  };
+  const cellCollector = new TransactionCollector(
+    indexer,
+    newQueryOption,
+    nodeUri
+  );
+  const count = await cellCollector.count();
+  t.is(count, 6);
+});
+
+test("query transaction hash with different queryOptions", async (t) => {
   for (const queryCase of transactionCollectorTestCases) {
     const transactionCollector = new TransactionCollector(
       indexer,
@@ -21,6 +51,21 @@ test("query transactions with different queryOptions", async (t) => {
       transactionHashes.push(hash);
     }
     t.deepEqual(transactionHashes, queryCase.expectedResult, queryCase.desc);
+  }
+});
+
+test("query transactions with different queryOptions", async (t) => {
+  for (const queryCase of transactionCollectorCollectTestCases) {
+    const transactionCollector = new TransactionCollector(
+      indexer,
+      queryCase.queryOption,
+      nodeUri
+    );
+    let transactionList = [];
+    for await (const hash of transactionCollector.collect()) {
+      transactionList.push(hash);
+    }
+    t.deepEqual(transactionList, queryCase.expectedResult, queryCase.desc);
   }
 });
 

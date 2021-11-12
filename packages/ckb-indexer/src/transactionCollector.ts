@@ -157,8 +157,12 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
         }
       }
     );
+    const objects = transactionList.map((tx) => ({
+      transaction: tx.transaction,
+      tx_status: tx.tx_status,
+    }));
     return {
-      objects: transactionList,
+      objects: objects,
       lastCursor: lastCursor,
     };
   }
