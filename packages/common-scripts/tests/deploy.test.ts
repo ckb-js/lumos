@@ -91,7 +91,7 @@ test("deploy with typeID", async (t) => {
     config: AGGRON4,
   };
 
-  let [typeId, txSkeleton] = await generateDeployWithTypeIdTx(deployOptions);
+  let txSkeleton = (await generateDeployWithTypeIdTx(deployOptions))[1];
   txSkeleton = common.prepareSigningEntries(txSkeleton);
 
   const signingEntries = {
