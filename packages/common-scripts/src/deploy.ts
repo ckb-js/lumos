@@ -153,11 +153,7 @@ export async function generateDeployWithDataTx(
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(
-    txSkeleton,
-    fromAddress,
-    options.config
-  );
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
 
   return txSkeleton;
 }
@@ -171,7 +167,7 @@ export async function generateDeployWithDataTx(
  */
 export async function generateDeployWithTypeIdTx(
   options: DeployOptions
-): Promise<TransactionSkeletonType> {
+): Promise<[Script /* type_id script */, TransactionSkeletonType]> {
   let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
 
   const fromAddress = generateAddress(options.outputScriptLock, {
@@ -199,13 +195,9 @@ export async function generateDeployWithTypeIdTx(
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(
-    txSkeleton,
-    fromAddress,
-    options.config
-  );
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
 
-  return txSkeleton;
+  return [typeId, txSkeleton];
 }
 
 interface UpgradeOptions extends DeployOptions {
@@ -244,11 +236,7 @@ export async function generateUpgradeTypeIdDataTx(
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(
-    txSkeleton,
-    fromAddress,
-    options.config
-  );
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
 
   return txSkeleton;
 }
