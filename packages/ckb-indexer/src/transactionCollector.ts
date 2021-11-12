@@ -71,6 +71,11 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     lastCursor?: string,
     skip?: number
   ): Promise<getTransactionDetailResult> {
+    const defaultOptions:TransactionCollectorOptions = {
+      skipMissing: false,
+      includeStatus: true
+    }
+    const options = {...defaultOptions, ...this.options}
     const additionalOptions: AdditionalOptions = {
       sizeLimit: this.queries.bufferSize,
       order: this.queries.order as Order,
@@ -119,6 +124,9 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     ).then((response: GetTransactionRPCResult[]) => {
       return response.map(
         (item: GetTransactionRPCResult): TransactionWithIO => {
+          if(!options.skipMissing && !item.result) {
+            throw new Error(`Transaction ${transactionHashList.objects[item.id].tx_hash} is missing!`);
+          }
           const ioType = transactionHashList.objects[item.id].io_type;
           const ioIndex = transactionHashList.objects[item.id].io_index;
           return { ioType, ioIndex, ...item.result };
