@@ -6,7 +6,7 @@ import {
   OutPoint,
   TransactionWithStatus,
 } from "@ckb-lumos/base";
-
+import intersectionBy from "lodash.intersectionby";
 import {
   AdditionalOptions,
   CkbQueryOptions,
@@ -27,7 +27,7 @@ import {
 
 interface getTransactionDetailResult {
   objects: TransactionWithStatus[];
-  lastCursor: string;
+  lastCursor: string | undefined;
 }
 
 interface GetTransactionRPCResult {
@@ -84,20 +84,66 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     if (lastCursor) {
       additionalOptions.lastCursor = lastCursor;
     }
-
-    //query by ScriptWrapper.script,block_range,order
-    const transactionHashList: GetTransactionsResults = await this.indexer.getTransactions(
-      generatorSearchKey(this.queries),
-      additionalOptions
-    );
-    lastCursor = transactionHashList.lastCursor;
+    /*
+     * if both lock and type exist,we need search them in independent and then get intersection
+     * cause ckb-indexer use searchKey lock on each cell but native indexer use lock and type on transaction,
+     * and one transaction may have many cells both in input and output, more detail in test 'Test query transaction by both input lock and output type script'
+     */
+    let transactionHashList: GetTransactionsResults = {
+      objects: [],
+      lastCursor: "",
+    };
+    if (
+      instanceOfScriptWrapper(this.queries.lock) &&
+      instanceOfScriptWrapper(this.queries.type)
+    ) {
+      const queryWithTypeAdditionOptions = { ...additionalOptions };
+      const queryWithLockAdditionOptions = { ...additionalOptions };
+      if (additionalOptions.lastCursor) {
+        queryWithLockAdditionOptions.lastCursor = additionalOptions.lastCursor.split(
+          "-"
+        )[0];
+        queryWithTypeAdditionOptions.lastCursor = additionalOptions.lastCursor.split(
+          "-"
+        )[1];
+      }
+      const queriesWithoutType = { ...this.queries, type: undefined };
+      const transactionByLock = await this.indexer.getTransactions(
+        generatorSearchKey(queriesWithoutType),
+        queryWithTypeAdditionOptions
+      );
+      const queriesWithoutLock = { ...this.queries, lock: undefined };
+      const transactionByType = await this.indexer.getTransactions(
+        generatorSearchKey(queriesWithoutLock),
+        queryWithLockAdditionOptions
+      );
+      let hashList = intersectionBy(
+        transactionByLock.objects,
+        transactionByType.objects,
+        "tx_hash"
+      );
+      if (this.queries.lock.ioType !== this.queries.type.ioType) {
+        hashList = hashList.map((hashItem) => {
+          return { ...hashItem, io_type: "both" as IOType };
+        });
+      }
+      lastCursor =
+        transactionByLock.lastCursor + "-" + transactionByType.lastCursor;
+      transactionHashList.objects = hashList;
+    } else {
+      //query by ScriptWrapper.script,block_range,order
+      transactionHashList = await this.indexer.getTransactions(
+        generatorSearchKey(this.queries),
+        additionalOptions
+      );
+      lastCursor = transactionHashList.lastCursor;
+    }
 
     //filter by queryOptions.skip
     if (skip) {
       transactionHashList.objects = transactionHashList.objects.slice(skip);
     }
-
-    //filter by ScriptWrapper.io_type
+    // filter by ScriptWrapper.io_type
     transactionHashList.objects = this.filterByTypeIoTypeAndLockIoType(
       transactionHashList.objects,
       this.queries
@@ -171,7 +217,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     const transaction: Transaction = await request(
       this.CKBRpcUrl,
       "get_transaction",
-      output.tx_hash
+      [output.tx_hash]
     );
     return transaction.outputs[parseInt(output.index)];
   };
@@ -222,7 +268,6 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     );
   };
 
-  //TODO 确认ScriptWrapper.ioType和transaction.io_type的关系
   private filterByIoType = (
     inputResult: GetTransactionsResult[],
     ioType: IOType
@@ -232,7 +277,8 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     }
     if (ioType === "input" || ioType === "output") {
       return inputResult.filter(
-        (item: GetTransactionsResult) => item.io_type === ioType
+        (item: GetTransactionsResult) =>
+          item.io_type === ioType || item.io_type === "both"
       );
     }
     return inputResult;
@@ -251,7 +297,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     }
     return result;
   };
-  //TODO 在count和getTxHash中判断如果query里没有argsLen参数，则不需要向rpc请求，提高了效率。
+
   async count(): Promise<number> {
     let lastCursor: undefined | string = undefined;
     const getTxWithCursor = async (

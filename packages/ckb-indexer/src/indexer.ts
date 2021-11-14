@@ -94,7 +94,7 @@ export type GetTransactionsResult = {
   tx_index: HexNum;
 };
 export interface GetTransactionsResults {
-  lastCursor: string;
+  lastCursor: string | undefined;
   objects: GetTransactionsResult[];
 }
 
