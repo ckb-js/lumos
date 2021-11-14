@@ -84,52 +84,25 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     if (lastCursor) {
       additionalOptions.lastCursor = lastCursor;
     }
-    /*
-     * if both lock and type exist,we need search them in independent and then get intersection
-     * cause ckb-indexer use searchKey lock on each cell but native indexer use lock and type on transaction,
-     * and one transaction may have many cells both in input and output, more detail in test 'Test query transaction by both input lock and output type script'
-     */
     let transactionHashList: GetTransactionsResults = {
       objects: [],
       lastCursor: "",
     };
+    /*
+     * if both lock and type exist,we need search them in independent and then get intersection
+     * cause ckb-indexer use searchKey script on each cell but native indexer use lock and type on transaction,
+     * and one transaction may have many cells both in input and output, more detail in test 'Test query transaction by both input lock and output type script'
+     */
+
+    //if both lock and type, search search them in independent and then get intersection, GetTransactionsResults.lastCursor change to `${lockLastCursor}-${typeLastCursor}`
     if (
       instanceOfScriptWrapper(this.queries.lock) &&
       instanceOfScriptWrapper(this.queries.type)
     ) {
-      const queryWithTypeAdditionOptions = { ...additionalOptions };
-      const queryWithLockAdditionOptions = { ...additionalOptions };
-      if (additionalOptions.lastCursor) {
-        queryWithLockAdditionOptions.lastCursor = additionalOptions.lastCursor.split(
-          "-"
-        )[0];
-        queryWithTypeAdditionOptions.lastCursor = additionalOptions.lastCursor.split(
-          "-"
-        )[1];
-      }
-      const queriesWithoutType = { ...this.queries, type: undefined };
-      const transactionByLock = await this.indexer.getTransactions(
-        generatorSearchKey(queriesWithoutType),
-        queryWithTypeAdditionOptions
+      transactionHashList = await this.getTransactionByLockAndTypeIndependent(
+        additionalOptions
       );
-      const queriesWithoutLock = { ...this.queries, lock: undefined };
-      const transactionByType = await this.indexer.getTransactions(
-        generatorSearchKey(queriesWithoutLock),
-        queryWithLockAdditionOptions
-      );
-      let hashList = intersectionBy(
-        transactionByLock.objects,
-        transactionByType.objects,
-        "tx_hash"
-      );
-      if (this.queries.lock.ioType !== this.queries.type.ioType) {
-        hashList = hashList.map((hashItem) => {
-          return { ...hashItem, io_type: "both" as IOType };
-        });
-      }
-      lastCursor =
-        transactionByLock.lastCursor + "-" + transactionByType.lastCursor;
-      transactionHashList.objects = hashList;
+      lastCursor = transactionHashList.lastCursor;
     } else {
       //query by ScriptWrapper.script,block_range,order
       transactionHashList = await this.indexer.getTransactions(
@@ -148,6 +121,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       transactionHashList.objects,
       this.queries
     );
+    // return if transaction hash list if empty
     if (transactionHashList.objects.length === 0) {
       return {
         objects: [],
@@ -155,35 +129,10 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       };
     }
 
-    const getDetailRequestData = transactionHashList.objects.map(
-      (hashItem: GetTransactionsResult, index: number) => {
-        return {
-          id: index,
-          jsonrpc: "2.0",
-          method: "get_transaction",
-          params: [hashItem.tx_hash],
-        };
-      }
+    let transactionList: TransactionWithIO[] = await this.getTransactionListFromRpc(
+      transactionHashList
     );
-    let transactionList: TransactionWithIO[] = await requestBatch(
-      this.CKBRpcUrl,
-      getDetailRequestData
-    ).then((response: GetTransactionRPCResult[]) => {
-      return response.map(
-        (item: GetTransactionRPCResult): TransactionWithIO => {
-          if (!this.filterOptions.skipMissing && !item.result) {
-            throw new Error(
-              `Transaction ${
-                transactionHashList.objects[item.id].tx_hash
-              } is missing!`
-            );
-          }
-          const ioType = transactionHashList.objects[item.id].io_type;
-          const ioIndex = transactionHashList.objects[item.id].io_index;
-          return { ioType, ioIndex, ...item.result };
-        }
-      );
-    });
+
     //filter by ScriptWrapper.argsLen
     transactionList = transactionList.filter(
       async (transactionWrapper: TransactionWithIO) => {
@@ -212,6 +161,85 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       lastCursor: lastCursor,
     };
   }
+
+  private async getTransactionByLockAndTypeIndependent(
+    additionalOptions: AdditionalOptions
+  ): Promise<GetTransactionsResults> {
+    const queryWithTypeAdditionOptions = { ...additionalOptions };
+    const queryWithLockAdditionOptions = { ...additionalOptions };
+    if (additionalOptions.lastCursor) {
+      queryWithLockAdditionOptions.lastCursor = additionalOptions.lastCursor.split(
+        "-"
+      )[0];
+      queryWithTypeAdditionOptions.lastCursor = additionalOptions.lastCursor.split(
+        "-"
+      )[1];
+    }
+    const queriesWithoutType = { ...this.queries, type: undefined };
+    const transactionByLock = await this.indexer.getTransactions(
+      generatorSearchKey(queriesWithoutType),
+      queryWithTypeAdditionOptions
+    );
+    const queriesWithoutLock = { ...this.queries, lock: undefined };
+    const transactionByType = await this.indexer.getTransactions(
+      generatorSearchKey(queriesWithoutLock),
+      queryWithLockAdditionOptions
+    );
+    let hashList = intersectionBy(
+      transactionByLock.objects,
+      transactionByType.objects,
+      "tx_hash"
+    );
+    // io_type change to both if lock.ioType !== type.ioType
+    if (
+      instanceOfScriptWrapper(this.queries.lock) &&
+      instanceOfScriptWrapper(this.queries.type) &&
+      this.queries.lock.ioType !== this.queries.type.ioType
+    ) {
+      hashList = hashList.map((hashItem) => {
+        return { ...hashItem, io_type: "both" as IOType };
+      });
+    }
+    const lastCursor =
+      transactionByLock.lastCursor + "-" + transactionByType.lastCursor;
+    const objects = hashList;
+    return { objects, lastCursor };
+  }
+
+  private getTransactionListFromRpc = async (
+    transactionHashList: GetTransactionsResults
+  ) => {
+    const getDetailRequestData = transactionHashList.objects.map(
+      (hashItem: GetTransactionsResult, index: number) => {
+        return {
+          id: index,
+          jsonrpc: "2.0",
+          method: "get_transaction",
+          params: [hashItem.tx_hash],
+        };
+      }
+    );
+    const transactionList: TransactionWithIO[] = await requestBatch(
+      this.CKBRpcUrl,
+      getDetailRequestData
+    ).then((response: GetTransactionRPCResult[]) => {
+      return response.map(
+        (item: GetTransactionRPCResult): TransactionWithIO => {
+          if (!this.filterOptions.skipMissing && !item.result) {
+            throw new Error(
+              `Transaction ${
+                transactionHashList.objects[item.id].tx_hash
+              } is missing!`
+            );
+          }
+          const ioType = transactionHashList.objects[item.id].io_type;
+          const ioIndex = transactionHashList.objects[item.id].io_index;
+          return { ioType, ioIndex, ...item.result };
+        }
+      );
+    });
+    return transactionList;
+  };
 
   private getCellByOutpoint = async (output: OutPoint) => {
     const transaction: Transaction = await request(
