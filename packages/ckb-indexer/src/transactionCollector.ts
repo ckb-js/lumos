@@ -14,7 +14,7 @@ import {
   GetTransactionsResults,
   IOType,
   Order,
-  CkbIndexer
+  CkbIndexer,
 } from "./indexer";
 import {
   generateSearchKey,
@@ -36,7 +36,7 @@ interface GetTransactionRPCResult {
 }
 
 interface TransactionWithIOType extends TransactionWithStatus {
-  inputCell?: Output,
+  inputCell?: Output;
   ioType: IOType;
   ioIndex: string;
 }
@@ -126,29 +126,32 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     let transactionList: TransactionWithIOType[] = await this.getTransactionListFromRpc(
       transactionHashList
     );
-    
+
     transactionList.forEach(async (transactionWrapper) => {
-      if(transactionWrapper.ioType === 'input') {
+      if (transactionWrapper.ioType === "input") {
         const targetOutPoint: OutPoint =
           transactionWrapper.transaction.inputs[
             parseInt(transactionWrapper.ioIndex)
           ].previous_output;
         const targetCell = await this.getCellByOutPoint(targetOutPoint);
-        transactionWrapper.inputCell = targetCell
+        transactionWrapper.inputCell = targetCell;
       }
-    })
-    
+    });
+
     //filter by ScriptWrapper.argsLen
     transactionList = transactionList.filter(
       (transactionWrapper: TransactionWithIOType) => {
-        if (transactionWrapper.ioType === "input" && transactionWrapper.inputCell) {
-        return this.isCellScriptArgsValidate(transactionWrapper.inputCell);
+        if (
+          transactionWrapper.ioType === "input" &&
+          transactionWrapper.inputCell
+        ) {
+          return this.isCellScriptArgsValidate(transactionWrapper.inputCell);
         } else {
           const targetCell: Output =
-          transactionWrapper.transaction.outputs[
-            parseInt(transactionWrapper.ioIndex)
-          ];
-        return this.isCellScriptArgsValidate(targetCell);
+            transactionWrapper.transaction.outputs[
+              parseInt(transactionWrapper.ioIndex)
+            ];
+          return this.isCellScriptArgsValidate(targetCell);
         }
       }
     );
@@ -168,7 +171,9 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     const queryWithTypeAdditionOptions = { ...searchKeyFilter };
     const queryWithLockAdditionOptions = { ...searchKeyFilter };
     if (searchKeyFilter.lastCursor) {
-      const [lockLastCursor, typeLastCursor] = searchKeyFilter.lastCursor.split("-")
+      const [lockLastCursor, typeLastCursor] = searchKeyFilter.lastCursor.split(
+        "-"
+      );
       queryWithLockAdditionOptions.lastCursor = lockLastCursor;
       queryWithTypeAdditionOptions.lastCursor = typeLastCursor;
     }
@@ -252,8 +257,13 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       let lockArgsLen = instanceOfScriptWrapper(this.queries.lock)
         ? this.queries.lock.argsLen
         : this.queries.argsLen;
-      if (lockArgsLen && lockArgsLen !== -1 && lockArgsLen !== 'any' && getHexStringBytes(targetCell.lock.args) !== lockArgsLen) {
-        return false
+      if (
+        lockArgsLen &&
+        lockArgsLen !== -1 &&
+        lockArgsLen !== "any" &&
+        getHexStringBytes(targetCell.lock.args) !== lockArgsLen
+      ) {
+        return false;
       }
     }
 
@@ -264,20 +274,20 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       if (
         typeArgsLen &&
         typeArgsLen !== -1 &&
-        typeArgsLen !== 'any' &&
+        typeArgsLen !== "any" &&
         targetCell.type &&
         getHexStringBytes(targetCell.type.args) !== typeArgsLen
       ) {
-        return false
+        return false;
       }
     }
 
     if (this.queries.type && this.queries.type === "empty") {
       if (targetCell.type) {
-        return false
+        return false;
       }
     }
-    
+
     return true;
   };
 

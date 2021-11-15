@@ -6,26 +6,26 @@ import fetch from "cross-fetch";
 function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
   return typeof object === "object" && object != null && "script" in object;
 }
-const UnwrapScriptWrapper  = (inputScript: ScriptWrapper | Script): Script => {
+const UnwrapScriptWrapper = (inputScript: ScriptWrapper | Script): Script => {
   if (instanceOfScriptWrapper(inputScript)) {
     return inputScript.script;
   }
   return inputScript;
 };
-const generateSearchKey  = (queries: CkbQueryOptions): SearchKey => {
+const generateSearchKey = (queries: CkbQueryOptions): SearchKey => {
   let script: Script | undefined = undefined;
   const filter: SearchFilter = {};
   let script_type: ScriptType | undefined = undefined;
   if (queries.lock) {
-    const lock = UnwrapScriptWrapper (queries.lock);
+    const lock = UnwrapScriptWrapper(queries.lock);
     script = lock as Script;
     script_type = ScriptType.lock;
     if (queries.type && typeof queries.type !== "string") {
-      const type = UnwrapScriptWrapper (queries.type);
+      const type = UnwrapScriptWrapper(queries.type);
       filter.script = type as Script;
     }
   } else if (queries.type && typeof queries.type !== "string") {
-    const type = UnwrapScriptWrapper (queries.type);
+    const type = UnwrapScriptWrapper(queries.type);
     script = type as Script;
     script_type = ScriptType.type;
   }
@@ -60,7 +60,7 @@ const generateSearchKey  = (queries: CkbQueryOptions): SearchKey => {
 };
 
 const getHexStringBytes = (hexString: HexString) => {
-  utils.assertHexString('', hexString);
+  utils.assertHexString("", hexString);
   return Math.ceil(hexString.substr(2).length / 2);
 };
 
@@ -114,7 +114,7 @@ const request = async (
 };
 
 export {
-  generateSearchKey ,
+  generateSearchKey,
   getHexStringBytes,
   instanceOfScriptWrapper,
   requestBatch,
