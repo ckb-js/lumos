@@ -167,12 +167,9 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     const queryWithTypeAdditionOptions = { ...searchKeyFilter };
     const queryWithLockAdditionOptions = { ...searchKeyFilter };
     if (searchKeyFilter.lastCursor) {
-      queryWithLockAdditionOptions.lastCursor = searchKeyFilter.lastCursor.split(
-        "-"
-      )[0];
-      queryWithTypeAdditionOptions.lastCursor = searchKeyFilter.lastCursor.split(
-        "-"
-      )[1];
+      const [lockLastCursor, typeLastCursor] = searchKeyFilter.lastCursor.split("-")
+      queryWithLockAdditionOptions.lastCursor = lockLastCursor;
+      queryWithTypeAdditionOptions.lastCursor = typeLastCursor;
     }
     const queriesWithoutType = { ...this.queries, type: undefined };
     const transactionByLock = await this.indexer.getTransactions(
