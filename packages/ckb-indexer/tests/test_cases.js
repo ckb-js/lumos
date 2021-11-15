@@ -268,6 +268,14 @@ const transactionCollectorHashTestCases = [
     expectedResult: transactionHashesByLock,
   },
   {
+    desc: "Test query transactions by lock script with argsLen a wrong number",
+    queryOption: {
+      lock: lockWithArgsPrefix,
+      argsLen: 2009,
+    },
+    expectedResult: [],
+  },
+  {
     desc: "Test query transactions by lock script with argsLen as any",
     queryOption: {
       lock: lockWithArgsPrefix,
