@@ -1,14 +1,26 @@
-import { Script, OutPoint, CellProvider, Cell, utils } from "@ckb-lumos/base";
-import * as common from "./common";
+import {
+  Script,
+  OutPoint,
+  CellProvider,
+  Cell,
+  utils,
+  values,
+  core,
+  WitnessArgs,
+} from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
   TransactionSkeleton,
   generateAddress,
   minimalCellCapacity,
+  Options,
+  parseAddress,
 } from "@ckb-lumos/helpers";
-import { Reader } from "ckb-js-toolkit";
+import { Reader, normalizers } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
+import { Set } from "immutable";
+const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
   return `0x${[...bytes].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
@@ -86,17 +98,144 @@ async function completeTx(
     .map((c) => BigInt(c.cell_output.capacity))
     .reduce((a, b) => a + b, BigInt(0));
   const needCapacity = outputCapacity - inputCapacity + BigInt(10) ** BigInt(8);
-  txSkeleton = await common.injectCapacity(
-    txSkeleton,
-    [fromAddress],
-    needCapacity,
-    undefined,
-    undefined,
-    {
-      config: config,
-      enableDeductCapacity: false,
+  txSkeleton = await injectCapacity(txSkeleton, fromAddress, needCapacity, {
+    config: config,
+  });
+  return txSkeleton;
+}
+
+async function injectCapacity(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: string,
+  amount: bigint,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+  const fromScript = parseAddress(fromAddress, { config });
+  amount = BigInt(amount);
+
+  if (amount > 0n) {
+    const cellProvider = txSkeleton.get("cellProvider");
+    if (!cellProvider) throw new Error("Cell provider is missing!");
+    const cellCollector = cellProvider.collector({
+      lock: fromScript,
+      type: "empty",
+    });
+
+    const changeCell: Cell = {
+      cell_output: {
+        capacity: "0x0",
+        lock: fromScript,
+        type: undefined,
+      },
+      data: "0x",
+    };
+    const minimalChangeCapacity: bigint = minimalCellCapacity(changeCell);
+
+    let changeCapacity: bigint = 0n;
+
+    let previousInputs = Set<string>();
+    for (const input of txSkeleton.get("inputs")) {
+      previousInputs = previousInputs.add(
+        `${input.out_point!.tx_hash}_${input.out_point!.index}`
+      );
     }
-  );
+
+    for await (const inputCell of cellCollector.collect()) {
+      if (
+        previousInputs.has(
+          `${inputCell.out_point!.tx_hash}_${inputCell.out_point!.index}`
+        )
+      )
+        continue;
+      txSkeleton = txSkeleton.update("inputs", (inputs) =>
+        inputs.push(inputCell)
+      );
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.push("0x")
+      );
+      const inputCapacity = BigInt(inputCell.cell_output.capacity);
+      let deductCapacity = inputCapacity;
+      if (deductCapacity > amount) {
+        deductCapacity = amount;
+      }
+      amount -= deductCapacity;
+      changeCapacity += inputCapacity - deductCapacity;
+      if (
+        amount === BigInt(0) &&
+        (changeCapacity === BigInt(0) || changeCapacity > minimalChangeCapacity)
+      )
+        break;
+    }
+
+    if (changeCapacity > BigInt(0)) {
+      changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+      txSkeleton = txSkeleton.update("outputs", (outputs) =>
+        outputs.push(changeCell)
+      );
+    }
+  }
+
+  if (amount > 0n) throw new Error("Not enough capacity in from address!");
+
+  /*
+   * Modify the skeleton, so the first witness of the fromAddress script group
+   * has a WitnessArgs construct with 65-byte zero filled values. While this
+   * is not required, it helps in transaction fee estimation.
+   */
+  const firstIndex = txSkeleton
+    .get("inputs")
+    .findIndex((input) =>
+      new ScriptValue(input.cell_output.lock, { validate: false }).equals(
+        new ScriptValue(fromScript, { validate: false })
+      )
+    );
+  if (firstIndex !== -1) {
+    while (firstIndex >= txSkeleton.get("witnesses").size) {
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.push("0x")
+      );
+    }
+    let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
+    const newWitnessArgs: WitnessArgs = {
+      /* 65-byte zeros in hex */
+      lock:
+        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    };
+    if (witness !== "0x") {
+      const witnessArgs = new core.WitnessArgs(new Reader(witness));
+      const lock = witnessArgs.getLock();
+      if (
+        lock.hasValue() &&
+        new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
+      ) {
+        throw new Error(
+          "Lock field in first witness is set aside for signature!"
+        );
+      }
+      const inputType = witnessArgs.getInputType();
+      if (inputType.hasValue()) {
+        newWitnessArgs.input_type = new Reader(
+          inputType.value().raw()
+        ).serializeJson();
+      }
+      const outputType = witnessArgs.getOutputType();
+      if (outputType.hasValue()) {
+        newWitnessArgs.output_type = new Reader(
+          outputType.value().raw()
+        ).serializeJson();
+      }
+    }
+    witness = new Reader(
+      core.SerializeWitnessArgs(
+        normalizers.NormalizeWitnessArgs(newWitnessArgs)
+      )
+    ).serializeJson();
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+      witnesses.set(firstIndex, witness)
+    );
+  }
+
   return txSkeleton;
 }
 
@@ -121,10 +260,9 @@ async function getDataHash(outPoint: OutPoint, rpc: RPC): Promise<string> {
 }
 
 interface DeployOptions {
-  cellProvider: CellProvider; // TODO: OPTIONAL
+  cellProvider: CellProvider;
   scriptBinary: Uint8Array;
   outputScriptLock: Script;
-  feeRate?: bigint;
   config?: Config;
 }
 
