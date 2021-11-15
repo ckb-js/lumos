@@ -1,4 +1,4 @@
-import { Script, ScriptWrapper } from "@ckb-lumos/base";
+import { utils, Script, ScriptWrapper, HexString } from "@ckb-lumos/base";
 import { CkbQueryOptions, HexadecimalRange, SearchFilter } from "./indexer";
 import { ScriptType, SearchKey } from "./indexer";
 import fetch from "cross-fetch";
@@ -59,7 +59,8 @@ const generateSearchKey  = (queries: CkbQueryOptions): SearchKey => {
   };
 };
 
-const getHexStringBytes = (hexString: string) => {
+const getHexStringBytes = (hexString: HexString) => {
+  utils.assertHexString('', hexString);
   return Math.ceil(hexString.substr(2).length / 2);
 };
 
