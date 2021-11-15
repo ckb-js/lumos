@@ -14,9 +14,8 @@ import {
   GetTransactionsResults,
   IOType,
   Order,
+  CkbIndexer
 } from "./indexer";
-
-import { CkbIndexer } from "./indexer";
 import {
   generateSearchKey,
   getHexStringBytes,
