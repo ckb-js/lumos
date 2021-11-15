@@ -103,7 +103,7 @@ export interface GetCellsResults {
   objects: Cell[];
 }
 
-export interface AdditionalOptions {
+export interface SearchKeyFilter {
   sizeLimit?: number;
   order?: Order;
   lastCursor?: string | undefined;
@@ -189,12 +189,12 @@ export class CkbIndexer implements Indexer {
   public async getCells(
     searchKey: SearchKey,
     terminator: Terminator = DefaultTerminator,
-    additionalOptions: AdditionalOptions = {}
+    searchKeyFilter: SearchKeyFilter = {}
   ): Promise<GetCellsResults> {
     const infos: Cell[] = [];
-    let cursor: string | undefined = additionalOptions.lastCursor;
-    let sizeLimit = additionalOptions.sizeLimit || 100;
-    let order = additionalOptions.order || Order.asc;
+    let cursor: string | undefined = searchKeyFilter.lastCursor;
+    let sizeLimit = searchKeyFilter.sizeLimit || 100;
+    let order = searchKeyFilter.order || Order.asc;
     const index = 0;
     while (true) {
       let params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
@@ -231,12 +231,12 @@ export class CkbIndexer implements Indexer {
 
   public async getTransactions(
     searchKey: SearchKey,
-    additionalOptions: AdditionalOptions = {}
+    searchKeyFilter: SearchKeyFilter = {}
   ): Promise<GetTransactionsResults> {
     let infos: GetTransactionsResult[] = [];
-    let cursor: string | undefined = additionalOptions.lastCursor;
-    let sizeLimit = additionalOptions.sizeLimit || 100;
-    let order = additionalOptions.order || Order.asc;
+    let cursor: string | undefined = searchKeyFilter.lastCursor;
+    let sizeLimit = searchKeyFilter.sizeLimit || 100;
+    let order = searchKeyFilter.order || Order.asc;
     for (;;) {
       const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res = await this.request("get_transactions", params);

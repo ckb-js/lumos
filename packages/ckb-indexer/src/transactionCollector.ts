@@ -8,7 +8,7 @@ import {
 } from "@ckb-lumos/base";
 import intersectionBy from "lodash.intersectionby";
 import {
-  AdditionalOptions,
+  SearchKeyFilter,
   CkbQueryOptions,
   GetTransactionsResult,
   GetTransactionsResults,
@@ -18,14 +18,14 @@ import {
 
 import { CkbIndexer } from "./indexer";
 import {
-  generatorSearchKey,
+  generateSearchKey,
   getHexStringBytes,
   instanceOfScriptWrapper,
   requestBatch,
   request,
 } from "./services";
 
-interface getTransactionDetailResult {
+interface GetTransactionDetailResult {
   objects: TransactionWithStatus[];
   lastCursor: string | undefined;
 }
@@ -36,12 +36,12 @@ interface GetTransactionRPCResult {
   result: TransactionWithStatus;
 }
 
-interface TransactionWithIO extends TransactionWithStatus {
+interface TransactionWithIOType extends TransactionWithStatus {
   ioType: IOType;
   ioIndex: string;
 }
 
-interface cellFilterResult {
+interface CellFilterResult {
   typeArgsLen?: boolean;
   lockArgsLen?: boolean;
   isTypeScriptEmpty?: boolean;
@@ -76,13 +76,13 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
   private async getTransactions(
     lastCursor?: string,
     skip?: number
-  ): Promise<getTransactionDetailResult> {
-    const additionalOptions: AdditionalOptions = {
+  ): Promise<GetTransactionDetailResult> {
+    const searchKeyFilter: SearchKeyFilter = {
       sizeLimit: this.queries.bufferSize,
       order: this.queries.order as Order,
     };
     if (lastCursor) {
-      additionalOptions.lastCursor = lastCursor;
+      searchKeyFilter.lastCursor = lastCursor;
     }
     let transactionHashList: GetTransactionsResults = {
       objects: [],
@@ -100,14 +100,14 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       instanceOfScriptWrapper(this.queries.type)
     ) {
       transactionHashList = await this.getTransactionByLockAndTypeIndependent(
-        additionalOptions
+        searchKeyFilter
       );
       lastCursor = transactionHashList.lastCursor;
     } else {
       //query by ScriptWrapper.script,block_range,order
       transactionHashList = await this.indexer.getTransactions(
-        generatorSearchKey(this.queries),
-        additionalOptions
+        generateSearchKey(this.queries),
+        searchKeyFilter
       );
       lastCursor = transactionHashList.lastCursor;
     }
@@ -129,13 +129,13 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       };
     }
 
-    let transactionList: TransactionWithIO[] = await this.getTransactionListFromRpc(
+    let transactionList: TransactionWithIOType[] = await this.getTransactionListFromRpc(
       transactionHashList
     );
 
     //filter by ScriptWrapper.argsLen
     transactionList = transactionList.filter(
-      async (transactionWrapper: TransactionWithIO) => {
+      async (transactionWrapper: TransactionWithIOType) => {
         if (transactionWrapper.ioType === "output") {
           const targetCell: Output =
             transactionWrapper.transaction.outputs[
@@ -147,7 +147,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
             transactionWrapper.transaction.inputs[
               parseInt(transactionWrapper.ioIndex)
             ].previous_output;
-          const targetCell = await this.getCellByOutpoint(targetOutPoint);
+          const targetCell = await this.getCellByOutPoint(targetOutPoint);
           return this.isCellScriptArgsValidate(targetCell);
         }
       }
@@ -163,26 +163,26 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
   }
 
   private async getTransactionByLockAndTypeIndependent(
-    additionalOptions: AdditionalOptions
+    searchKeyFilter: SearchKeyFilter
   ): Promise<GetTransactionsResults> {
-    const queryWithTypeAdditionOptions = { ...additionalOptions };
-    const queryWithLockAdditionOptions = { ...additionalOptions };
-    if (additionalOptions.lastCursor) {
-      queryWithLockAdditionOptions.lastCursor = additionalOptions.lastCursor.split(
+    const queryWithTypeAdditionOptions = { ...searchKeyFilter };
+    const queryWithLockAdditionOptions = { ...searchKeyFilter };
+    if (searchKeyFilter.lastCursor) {
+      queryWithLockAdditionOptions.lastCursor = searchKeyFilter.lastCursor.split(
         "-"
       )[0];
-      queryWithTypeAdditionOptions.lastCursor = additionalOptions.lastCursor.split(
+      queryWithTypeAdditionOptions.lastCursor = searchKeyFilter.lastCursor.split(
         "-"
       )[1];
     }
     const queriesWithoutType = { ...this.queries, type: undefined };
     const transactionByLock = await this.indexer.getTransactions(
-      generatorSearchKey(queriesWithoutType),
+      generateSearchKey(queriesWithoutType),
       queryWithTypeAdditionOptions
     );
     const queriesWithoutLock = { ...this.queries, lock: undefined };
     const transactionByType = await this.indexer.getTransactions(
-      generatorSearchKey(queriesWithoutLock),
+      generateSearchKey(queriesWithoutLock),
       queryWithLockAdditionOptions
     );
     let hashList = intersectionBy(
@@ -219,12 +219,12 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
         };
       }
     );
-    const transactionList: TransactionWithIO[] = await requestBatch(
+    const transactionList: TransactionWithIOType[] = await requestBatch(
       this.CKBRpcUrl,
       getDetailRequestData
     ).then((response: GetTransactionRPCResult[]) => {
       return response.map(
-        (item: GetTransactionRPCResult): TransactionWithIO => {
+        (item: GetTransactionRPCResult): TransactionWithIOType => {
           if (!this.filterOptions.skipMissing && !item.result) {
             throw new Error(
               `Transaction ${
@@ -241,7 +241,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     return transactionList;
   };
 
-  private getCellByOutpoint = async (output: OutPoint) => {
+  private getCellByOutPoint = async (output: OutPoint) => {
     const transaction: Transaction = await request(
       this.CKBRpcUrl,
       "get_transaction",
@@ -263,7 +263,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
         ? this.queries.type.argsLen
         : this.queries.argsLen;
     }
-    const resultMap: cellFilterResult = {
+    const resultMap: CellFilterResult = {
       lockArgsLen: true,
       typeArgsLen: true,
       isTypeScriptEmpty: true,
@@ -331,7 +331,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     const getTxWithCursor = async (
       skip: number = 0
     ): Promise<TransactionWithStatus[]> => {
-      const result: getTransactionDetailResult = await this.getTransactions(
+      const result: GetTransactionDetailResult = await this.getTransactions(
         lastCursor,
         skip
       );
@@ -367,7 +367,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     const getTxWithCursor = async (
       skip: number = 0
     ): Promise<TransactionWithStatus[]> => {
-      const result: getTransactionDetailResult = await this.getTransactions(
+      const result: GetTransactionDetailResult = await this.getTransactions(
         lastCursor,
         skip
       );
@@ -406,7 +406,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     const getTxWithCursor = async (
       skip: number = 0
     ): Promise<TransactionWithStatus[]> => {
-      const result: getTransactionDetailResult = await this.getTransactions(
+      const result: GetTransactionDetailResult = await this.getTransactions(
         lastCursor,
         skip
       );

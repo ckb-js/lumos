@@ -1,7 +1,7 @@
 import { utils, Cell, BaseCellCollector } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit";
 import {
-  AdditionalOptions,
+  SearchKeyFilter,
   CkbQueryOptions,
   GetCellsResults,
   Order,
@@ -9,7 +9,7 @@ import {
 
 import { CkbIndexer } from "./indexer";
 import {
-  generatorSearchKey,
+  generateSearchKey,
   getHexStringBytes,
   instanceOfScriptWrapper,
 } from "./services";
@@ -125,17 +125,17 @@ export class CKBCellCollector implements BaseCellCollector {
   }
 
   private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
-    const additionalOptions: AdditionalOptions = {
+    const searchKeyFilter: SearchKeyFilter = {
       sizeLimit: this.queries.bufferSize,
       order: this.queries.order as Order,
     };
     if (lastCursor) {
-      additionalOptions.lastCursor = lastCursor;
+      searchKeyFilter.lastCursor = lastCursor;
     }
     const result: GetCellsResults = await this.indexer.getCells(
-      generatorSearchKey(this.queries),
+      generateSearchKey(this.queries),
       undefined,
-      additionalOptions
+      searchKeyFilter
     );
 
     if (this.queries.skip) {
