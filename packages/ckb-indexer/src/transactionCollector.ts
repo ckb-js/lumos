@@ -36,14 +36,9 @@ interface GetTransactionRPCResult {
 }
 
 interface TransactionWithIOType extends TransactionWithStatus {
+  inputCell?: Output,
   ioType: IOType;
   ioIndex: string;
-}
-
-interface CellFilterResult {
-  typeArgsLen?: boolean;
-  lockArgsLen?: boolean;
-  isTypeScriptEmpty?: boolean;
 }
 
 export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollector {
@@ -131,23 +126,29 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     let transactionList: TransactionWithIOType[] = await this.getTransactionListFromRpc(
       transactionHashList
     );
-
+    
+    transactionList.forEach(async (transactionWrapper) => {
+      if(transactionWrapper.ioType === 'input') {
+        const targetOutPoint: OutPoint =
+          transactionWrapper.transaction.inputs[
+            parseInt(transactionWrapper.ioIndex)
+          ].previous_output;
+        const targetCell = await this.getCellByOutPoint(targetOutPoint);
+        transactionWrapper.inputCell = targetCell
+      }
+    })
+    
     //filter by ScriptWrapper.argsLen
     transactionList = transactionList.filter(
-      async (transactionWrapper: TransactionWithIOType) => {
-        if (transactionWrapper.ioType === "output") {
-          const targetCell: Output =
-            transactionWrapper.transaction.outputs[
-              parseInt(transactionWrapper.ioIndex)
-            ];
-          return this.isCellScriptArgsValidate(targetCell);
+      (transactionWrapper: TransactionWithIOType) => {
+        if (transactionWrapper.ioType === "input" && transactionWrapper.inputCell) {
+        return this.isCellScriptArgsValidate(transactionWrapper.inputCell);
         } else {
-          const targetOutPoint: OutPoint =
-            transactionWrapper.transaction.inputs[
-              parseInt(transactionWrapper.ioIndex)
-            ].previous_output;
-          const targetCell = await this.getCellByOutPoint(targetOutPoint);
-          return this.isCellScriptArgsValidate(targetCell);
+          const targetCell: Output =
+          transactionWrapper.transaction.outputs[
+            parseInt(transactionWrapper.ioIndex)
+          ];
+        return this.isCellScriptArgsValidate(targetCell);
         }
       }
     );
@@ -247,49 +248,37 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
   };
 
   private isCellScriptArgsValidate = (targetCell: Output) => {
-    let lockArgsLen: number | "any" | undefined;
-    let typeArgsLen: number | "any" | undefined;
     if (this.queries.lock) {
-      lockArgsLen = instanceOfScriptWrapper(this.queries.lock)
+      let lockArgsLen = instanceOfScriptWrapper(this.queries.lock)
         ? this.queries.lock.argsLen
         : this.queries.argsLen;
-    }
-    if (this.queries.type && this.queries.type !== "empty") {
-      typeArgsLen = instanceOfScriptWrapper(this.queries.type)
-        ? this.queries.type.argsLen
-        : this.queries.argsLen;
-    }
-    const resultMap: CellFilterResult = {
-      lockArgsLen: true,
-      typeArgsLen: true,
-      isTypeScriptEmpty: true,
-    };
-    if (this.queries.lock && instanceOfScriptWrapper(this.queries.lock)) {
-      resultMap.lockArgsLen = false;
-      if (getHexStringBytes(targetCell.lock.args) !== lockArgsLen) {
-        resultMap.lockArgsLen = true;
+      if (lockArgsLen && lockArgsLen !== -1 && lockArgsLen !== 'any' && getHexStringBytes(targetCell.lock.args) !== lockArgsLen) {
+        return false
       }
     }
+
     if (this.queries.type && this.queries.type !== "empty") {
-      resultMap.typeArgsLen = false;
+      let typeArgsLen = instanceOfScriptWrapper(this.queries.type)
+        ? this.queries.type.argsLen
+        : this.queries.argsLen;
       if (
+        typeArgsLen &&
+        typeArgsLen !== -1 &&
+        typeArgsLen !== 'any' &&
         targetCell.type &&
         getHexStringBytes(targetCell.type.args) !== typeArgsLen
       ) {
-        resultMap.typeArgsLen = true;
+        return false
       }
     }
+
     if (this.queries.type && this.queries.type === "empty") {
-      resultMap.isTypeScriptEmpty = false;
-      if (!targetCell.type) {
-        resultMap.isTypeScriptEmpty = true;
+      if (targetCell.type) {
+        return false
       }
     }
-    return (
-      resultMap.lockArgsLen &&
-      resultMap.typeArgsLen &&
-      resultMap.isTypeScriptEmpty
-    );
+    
+    return true;
   };
 
   private filterByIoType = (

@@ -183,7 +183,7 @@ const transactionHashesByLockAndType = [
   "0x8bc43f5819bfcc32a840c0f60d9eafe6bde3a67f9f018eb258783afc60798a07",
 ];
 
-const transactionCollectorTestCases = [
+const transactionCollectorHashTestCases = [
   {
     desc: "Test query transactions by lock script",
     queryOption: {
@@ -8150,7 +8150,7 @@ module.exports = {
   lock,
   type,
   indexerSubscribeTestCases,
-  transactionCollectorTestCases,
+  transactionCollectorHashTestCases,
   cellCollectorTestCases,
   queryWithBlockHash,
   transactionCollectorCollectTestCases,

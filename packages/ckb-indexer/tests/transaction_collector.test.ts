@@ -3,7 +3,7 @@ import { Indexer, TransactionCollector } from "../src";
 import { Order } from "../src/indexer";
 const {
   lock,
-  transactionCollectorTestCases,
+  transactionCollectorHashTestCases,
   transactionCollectorCollectTestCases,
 } = require("./test_cases.js");
 
@@ -12,7 +12,7 @@ const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);
 
 test("get count correct", async (t) => {
-  const queryCase = transactionCollectorTestCases[0];
+  const queryCase = transactionCollectorHashTestCases[0];
   const cellCollector = new TransactionCollector(
     indexer,
     queryCase.queryOption,
@@ -23,7 +23,7 @@ test("get count correct", async (t) => {
 });
 
 test("get count correct with buffer 3 and skip 1", async (t) => {
-  const queryCase = transactionCollectorTestCases[0];
+  const queryCase = transactionCollectorHashTestCases[0];
   const newQueryOption = {
     ...queryCase.queryOption,
     ...{ skip: 1, bufferSize: 3 },
@@ -38,7 +38,7 @@ test("get count correct with buffer 3 and skip 1", async (t) => {
 });
 
 test("query transaction hash with different queryOptions", async (t) => {
-  for (const queryCase of transactionCollectorTestCases) {
+  for (const queryCase of transactionCollectorHashTestCases) {
     const transactionCollector = new TransactionCollector(
       indexer,
       queryCase.queryOption,
