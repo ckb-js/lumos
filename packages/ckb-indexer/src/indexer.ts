@@ -13,6 +13,8 @@ import {
 import { RPC } from "@ckb-lumos/rpc";
 import fetch from "cross-fetch";
 import { CKBCellCollector, OtherQueryOptions } from "./collector";
+import {EventEmitter} from 'events';
+
 export enum ScriptType {
   type = "type",
   lock = "lock",
@@ -285,7 +287,7 @@ export class CkbIndexer implements Indexer {
   }
 
   subscribeMedianTime(): NodeJS.EventEmitter {
-    // TODO
-    throw new Error("unimplemented");
+    const medianTimeEmitter = new EventEmitter();
+    return medianTimeEmitter;
   }
 }
