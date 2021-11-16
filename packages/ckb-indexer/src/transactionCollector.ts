@@ -144,13 +144,13 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
           transactionWrapper.ioType === "input" &&
           transactionWrapper.inputCell
         ) {
-          return this.isCellScriptArgsValidate(transactionWrapper.inputCell);
+          return this.isCellScriptArgsValid(transactionWrapper.inputCell);
         } else {
           const targetCell: Output =
             transactionWrapper.transaction.outputs[
               parseInt(transactionWrapper.ioIndex)
             ];
-          return this.isCellScriptArgsValidate(targetCell);
+          return this.isCellScriptArgsValid(targetCell);
         }
       }
     );
@@ -187,20 +187,28 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       queryWithLockAdditionOptions
     );
 
-    const intersection = (transactionList1: GetTransactionsResult[], transactionList2: GetTransactionsResult[]) => {
+    const intersection = (
+      transactionList1: GetTransactionsResult[],
+      transactionList2: GetTransactionsResult[]
+    ) => {
       const result: GetTransactionsResult[] = [];
-      transactionList1.forEach(tx1 => {
-        const tx2 = transactionList2.find(item => item.tx_hash === tx1.tx_hash)
-        if(tx2) {
-          // put the output io_type to intersection result, cause output have cells 
-          const targetTx = tx1.io_type === 'output' ? tx1 : tx2;
+      transactionList1.forEach((tx1) => {
+        const tx2 = transactionList2.find(
+          (item) => item.tx_hash === tx1.tx_hash
+        );
+        if (tx2) {
+          // put the output io_type to intersection result, cause output have cells
+          const targetTx = tx1.io_type === "output" ? tx1 : tx2;
           // change io_type to both cause targetTx exist both input and output
-          result.push({...targetTx, io_type: 'both'})
+          result.push({ ...targetTx, io_type: "both" });
         }
-      })
+      });
       return result;
-    }
-    let hashList = intersection(transactionByType.objects, transactionByLock.objects);
+    };
+    let hashList = intersection(
+      transactionByType.objects,
+      transactionByLock.objects
+    );
     const lastCursor =
       transactionByLock.lastCursor + "-" + transactionByType.lastCursor;
     const objects = hashList;
@@ -251,17 +259,23 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
     return transaction.outputs[parseInt(output.index)];
   };
 
-  private isCellScriptArgsValidate = (targetCell: Output) => {
+  private isLockArgsLenMatched = (
+    args: string | undefined,
+    argsLen?: number | "any"
+  ) => {
+    if (!argsLen) return true;
+    if (argsLen === "any") return true;
+    if (argsLen === -1) return true;
+    return getHexStringBytes(args as string) === argsLen;
+  };
+
+  // only valid after pass flow three validate
+  private isCellScriptArgsValid = (targetCell: Output) => {
     if (this.queries.lock) {
       let lockArgsLen = instanceOfScriptWrapper(this.queries.lock)
         ? this.queries.lock.argsLen
         : this.queries.argsLen;
-      if (
-        lockArgsLen &&
-        lockArgsLen !== -1 &&
-        lockArgsLen !== "any" &&
-        getHexStringBytes(targetCell.lock.args) !== lockArgsLen
-      ) {
+      if (!this.isLockArgsLenMatched(targetCell.lock.args, lockArgsLen)) {
         return false;
       }
     }
@@ -270,13 +284,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       let typeArgsLen = instanceOfScriptWrapper(this.queries.type)
         ? this.queries.type.argsLen
         : this.queries.argsLen;
-      if (
-        typeArgsLen &&
-        typeArgsLen !== -1 &&
-        typeArgsLen !== "any" &&
-        targetCell.type &&
-        getHexStringBytes(targetCell.type.args) !== typeArgsLen
-      ) {
+      if (!this.isLockArgsLenMatched(targetCell.type?.args, typeArgsLen)) {
         return false;
       }
     }
