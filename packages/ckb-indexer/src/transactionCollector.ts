@@ -6,7 +6,6 @@ import {
   OutPoint,
   TransactionWithStatus,
 } from "@ckb-lumos/base";
-import intersectionBy from "lodash.intersectionby";
 import {
   SearchKeyFilter,
   CkbQueryOptions,
@@ -187,21 +186,21 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       generateSearchKey(queriesWithoutLock),
       queryWithLockAdditionOptions
     );
-    let hashList = intersectionBy(
-      transactionByLock.objects,
-      transactionByType.objects,
-      "tx_hash"
-    );
-    // io_type change to both if lock.ioType !== type.ioType
-    if (
-      instanceOfScriptWrapper(this.queries.lock) &&
-      instanceOfScriptWrapper(this.queries.type) &&
-      this.queries.lock.ioType !== this.queries.type.ioType
-    ) {
-      hashList = hashList.map((hashItem) => {
-        return { ...hashItem, io_type: "both" as IOType };
-      });
+
+    const intersection = (transactionList1: GetTransactionsResult[], transactionList2: GetTransactionsResult[]) => {
+      const result: GetTransactionsResult[] = [];
+      transactionList1.forEach(tx1 => {
+        const tx2 = transactionList2.find(item => item.tx_hash === tx1.tx_hash)
+        if(tx2) {
+          // put the output io_type to intersection result, cause output have cells 
+          const targetTx = tx1.io_type === 'output' ? tx1 : tx2;
+          // change io_type to both cause targetTx exist both input and output
+          result.push({...targetTx, io_type: 'both'})
+        }
+      })
+      return result;
     }
+    let hashList = intersection(transactionByType.objects, transactionByLock.objects);
     const lastCursor =
       transactionByLock.lastCursor + "-" + transactionByType.lastCursor;
     const objects = hashList;

@@ -30,11 +30,9 @@
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc5",
     "@ckb-lumos/rpc": "^0.17.0-rc5",
-    "@types/lodash.intersectionby": "^4.7.6",
     "ava": "^3.15.0",
     "ckb-js-toolkit": "^0.10.2",
-    "cross-fetch": "^3.1.4",
-    "lodash.intersectionby": "^4.7.0"
+    "cross-fetch": "^3.1.4"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
