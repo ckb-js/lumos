@@ -148,7 +148,6 @@ export async function transfer(options: Options): Promise<string> {
           )
       ),
     });
-    debugger;
 
     hasher.update(rawTxHash);
     hashWitness(hasher, serializedWitness);
