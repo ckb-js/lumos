@@ -160,7 +160,7 @@ txSkeleton = await sudt.transfer(
 
 Following script will show how to use `deploy` script.
 ```javascript
-const { generateDeployWithDataTx, generateDeployWithTypeIdTx, generateUpgradeTypeIdDataTx } = require("@ckb-lumos/common-scripts");
+const { generateDeployWithDataTx, generateDeployWithTypeIdTx, generateUpgradeTypeIdDataTx, payFee } = require("@ckb-lumos/common-scripts");
 const { Indexer } = require("@ckb-lumos/ckb-indexer");
 const { initializeConfig, predefined } = require("@ckb-lumos/config-manager");
 const { parseAddress } = require("@ckb-lumos/helpers");
@@ -187,6 +187,9 @@ let deployOptions = {
 let txSkeleton = await generateDeployWithDataTx(deployOptions);
 // Or if you want to delpoy with Type ID so that you can upgarde the contract in the future.
 let txSkeleton = await generateDeployWithTypeIdTx(deployOptions);
+
+// Pay transaction fee.
+txSkeleton = await payFee(txSkeleton, address, txFee);
 // Then you can sign and seal the transaction for sending.
 
 

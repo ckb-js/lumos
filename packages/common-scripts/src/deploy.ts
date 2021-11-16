@@ -30,7 +30,7 @@ async function findCellsByLock(
   lockScript: Script,
   cellProvider: CellProvider
 ): Promise<Cell[]> {
-  const collector = cellProvider.collector({ lock: lockScript });
+  const collector = cellProvider.collector({ lock: lockScript, type: "empty" });
   const cells: Cell[] = [];
   for await (const cell of collector.collect()) {
     cells.push(cell);
@@ -59,8 +59,13 @@ function updateCellDeps(
     return cellDeps.clear();
   });
   config = config || getConfig();
-  const secp256k1Config = config.SCRIPTS.SECP256K1_BLAKE160!;
-  const secp256k1MultiSigConfig = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
+  const secp256k1Config = config.SCRIPTS.SECP256K1_BLAKE160;
+  const secp256k1MultiSigConfig = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+  if (!secp256k1Config || !secp256k1MultiSigConfig) {
+    throw new Error(
+      "Provided config does not have SECP256K1_BLAKE160 or SECP256K1_BLAKE160_MULTISIG script setup!"
+    );
+  }
   txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
     return cellDeps.push(
       {
@@ -97,7 +102,7 @@ async function completeTx(
     .get("outputs")
     .map((c) => BigInt(c.cell_output.capacity))
     .reduce((a, b) => a + b, BigInt(0));
-  const needCapacity = outputCapacity - inputCapacity + BigInt(10) ** BigInt(8);
+  const needCapacity = outputCapacity - inputCapacity;
   txSkeleton = await injectCapacity(txSkeleton, fromAddress, needCapacity, {
     config: config,
   });
@@ -388,3 +393,23 @@ export async function compareScriptBinaryWithOnChainData(
   const onChainHash = await getDataHash(outPoint, rpc);
   return localHash === onChainHash;
 }
+
+export async function payFee(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: string,
+  amount: bigint,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+  return await injectCapacity(txSkeleton, fromAddress, amount, {
+    config,
+  });
+}
+
+export default {
+  generateDeployWithDataTx,
+  generateDeployWithTypeIdTx,
+  generateUpgradeTypeIdDataTx,
+  payFee,
+  compareScriptBinaryWithOnChainData,
+};
