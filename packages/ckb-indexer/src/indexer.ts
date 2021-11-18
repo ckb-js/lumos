@@ -9,9 +9,14 @@ import {
   Tip,
   OutPoint,
   HexNumber,
+  Output,
+  utils,
+  Block,
+  Transaction
 } from "@ckb-lumos/base";
+import { validators } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
-import fetch from "cross-fetch";
+import { request } from "./services";
 import { CKBCellCollector, OtherQueryOptions } from "./collector";
 import {EventEmitter} from 'events';
 
@@ -114,10 +119,21 @@ export interface SearchKeyFilter {
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
 }
+
+class IndexerEmitter extends EventEmitter {
+  lock?:Script;
+  type?: Script;
+  outputData?: HexString | 'any';
+  argsLen?: number | 'any';
+  fromBlock?: bigint
+}
+
 /** CkbIndexer.collector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
 export class CkbIndexer implements Indexer {
   uri: string;
-
+  medianTimeEmitters: EventEmitter[] = []
+  emitters: IndexerEmitter[] = []
+  isSubscribeRunning: boolean = false;
   constructor(public ckbIndexerUrl: string, public ckbRpcUrl: string) {
     this.uri = ckbRpcUrl;
   }
@@ -164,28 +180,7 @@ export class CkbIndexer implements Indexer {
     params?: any,
     ckbIndexerUrl: string = this.ckbIndexerUrl
   ): Promise<any> {
-    const res = await fetch(ckbIndexerUrl, {
-      method: "POST",
-      body: JSON.stringify({
-        id: 0,
-        jsonrpc: "2.0",
-        method,
-        params,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    if (res.status !== 200) {
-      throw new Error(`indexer request failed with HTTP code ${res.status}`);
-    }
-    const data = await res.json();
-    if (data.error !== undefined) {
-      throw new Error(
-        `indexer request rpc failed with error: ${JSON.stringify(data.error)}`
-      );
-    }
-    return data.result;
+    return await request(ckbIndexerUrl, method, params);
   }
 
   public async getCells(
@@ -280,14 +275,179 @@ export class CkbIndexer implements Indexer {
     );
   }
 
-  //  eslint-disable-next-line @typescript-eslint/no-unused-vars
-  subscribe(queries: CkbQueryOptions): NodeJS.EventEmitter {
-    // TODO
-    throw new Error("unimplemented");
+  subscribe(queries: CkbQueryOptions): EventEmitter{
+    if (queries.lock && queries.type) {
+      throw new Error(
+        "The notification machanism only supports you subscribing for one script once so far!"
+      );
+    }
+    if (queries.toBlock !== null || queries.skip !== null) {
+      defaultLogger(
+        "warn",
+        "The passing fields such as toBlock and skip are ignored in subscribe() method."
+      );
+    }
+    let emitter = new IndexerEmitter();
+    emitter.argsLen = queries.argsLen;
+    emitter.outputData = queries.data;
+    if (queries.fromBlock) {
+      utils.assertHexadecimal("fromBlock", queries.fromBlock);
+    }
+    emitter.fromBlock = !queries.fromBlock ? 0n : BigInt(queries.fromBlock);
+    if (queries.lock) {
+      validators.ValidateScript(queries.lock);
+      emitter.lock = queries.lock as Script;
+    } else if (queries.type && queries.type !== 'empty') {
+      validators.ValidateScript(queries.type);
+      emitter.type = queries.type as Script;
+    } else {
+      throw new Error("Either lock or type script must be provided!");
+    }
+    this.emitters.push(emitter);
+    return emitter;
   }
 
-  subscribeMedianTime(): NodeJS.EventEmitter {
+  loop() {
+    if (!this.isSubscribeRunning) {
+      return;
+    }
+    this.poll()
+      .then((timeout) => {
+        this.scheduleLoop(timeout);
+      })
+      .catch((e) => {
+        defaultLogger(
+          "error",
+          `Error occurs: ${e} ${e.stack}, stopping indexer!`
+        );
+        this.isSubscribeRunning = false;
+      });
+  }
+
+  scheduleLoop(timeout = 1) {
+    setTimeout(() => {
+      this.loop();
+    }, timeout);
+  }
+
+  private async poll() {
+    let timeout = 1;
+    const tip = await this.tip();
+    const { block_number, block_hash } = tip;
+    const nextBlockNumber = BigInt(block_number) + BigInt(1);
+    const block = await this.request('get_block_by_number', nextBlockNumber);
+    if (block) {
+      if (block.header.parent_hash === block_hash) {
+        await this.publishAppendBlockEvents(block);
+      } else {
+        const block = await this.request('get_block_by_number', block_number);
+        await this.publishAppendBlockEvents(block);
+      }
+    } else {
+      timeout = 1 * 1000;
+    }
+    return timeout;
+  }
+  
+  private getCellByOutPoint = async (output: OutPoint) => {
+    const transaction: Transaction = await this.request(
+      "get_transaction",
+      [output.tx_hash]
+    );
+    const outputCell =  transaction.outputs[parseInt(output.index)]
+    const outputData = transaction.outputs_data[parseInt(output.index)];
+    return {output: outputCell, outputData}
+  };
+
+  private async publishAppendBlockEvents(block: Block) {
+    for (const [txIndex, tx] of block.transactions.entries()) {
+      const blockNumber = block.header.number;
+      // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
+      if (txIndex > 0) {
+        for (const input of tx.inputs) {
+          const {output, outputData} = await this.getCellByOutPoint(input.previous_output);
+          this.filterEvents(output, blockNumber, outputData);
+        }
+      }
+      // publish changed events if subscribed script exists in output cells.
+      for (const [outputIndex, output] of tx.outputs.entries()) {
+        const outputData = tx.outputs_data[outputIndex];
+        this.filterEvents(output, blockNumber, outputData);
+      }
+    }
+    await this.emitMedianTimeEvents();
+  }
+
+  filterEvents(output: Output, blockNumber: string, outputData: HexString) {
+    for (const emitter of this.emitters) {
+      if (
+        emitter.lock !== undefined &&
+        this.checkFilterOptions(
+          emitter,
+          blockNumber,
+          outputData,
+          emitter.lock,
+          output.lock
+        )
+      ) {
+        emitter.emit("changed");
+      }
+    }
+    if (output.type !== null) {
+      for (const emitter of this.emitters) {
+        if (
+          emitter.type !== undefined &&
+          this.checkFilterOptions(
+            emitter,
+            blockNumber,
+            outputData,
+            emitter.type,
+            output.type
+          )
+        ) {
+          emitter.emit("changed");
+        }
+      }
+    }
+  }
+
+  checkFilterOptions(emitter: IndexerEmitter, blockNumber: string, outputData: string, emitterScript: Script, script: Script| undefined) {
+    const checkBlockNumber = emitter.fromBlock ? emitter.fromBlock <= BigInt(blockNumber) : true;
+    const checkOutputData =
+      emitter.outputData === "any" ? true : emitter.outputData === outputData;
+    const checkScript = !script ? true : 
+      emitterScript.code_hash === script.code_hash &&
+      emitterScript.hash_type === script.hash_type &&
+      this.checkArgs(emitter.argsLen, emitterScript.args, script.args);
+    return checkBlockNumber && checkOutputData && checkScript;
+  }
+
+  checkArgs(argsLen: number | 'any' | undefined, emitterArgs: HexString, args:HexString) {
+    if (argsLen === -1) {
+      return emitterArgs === args;
+    } else if (typeof argsLen === "number" && args.length === argsLen * 2 + 2) {
+      return args.substring(0, emitterArgs.length) === emitterArgs;
+    } else if (argsLen === "any") {
+      return args.substring(0, emitterArgs.length) === emitterArgs;
+    } else {
+      return false;
+    }
+  }
+
+  async emitMedianTimeEvents() {
+    if (this.medianTimeEmitters.length === 0) {
+      return;
+    }
+    const info = await this.request('get_blockchain_info');
+    const medianTime = info.median_time;
+    for (const medianTimeEmitter of this.medianTimeEmitters) {
+      medianTimeEmitter.emit("changed", medianTime);
+    }
+  }
+
+  subscribeMedianTime(): EventEmitter {
     const medianTimeEmitter = new EventEmitter();
+    this.medianTimeEmitters.push(medianTimeEmitter);
     return medianTimeEmitter;
   }
 }
