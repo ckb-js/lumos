@@ -143,7 +143,7 @@ export class CkbIndexer implements Indexer {
   }
 
   async tip(): Promise<Tip> {
-    const res = await this.request("get_tip");
+    const res = await request(this.ckbIndexerUrl, "get_tip");
     return res as Tip;
   }
 
@@ -180,7 +180,10 @@ export class CkbIndexer implements Indexer {
     params?: any,
     ckbIndexerUrl: string = this.ckbIndexerUrl
   ): Promise<any> {
-    return await request(ckbIndexerUrl, method, params);
+    if(method === 'get_tip') {
+      request(ckbIndexerUrl, method, params).then(console.log).catch(console.error)
+    }
+    return request(ckbIndexerUrl, method, params);
   }
 
   public async getCells(
@@ -276,6 +279,8 @@ export class CkbIndexer implements Indexer {
   }
 
   subscribe(queries: CkbQueryOptions): EventEmitter{
+    this.isSubscribeRunning = true
+    this.scheduleLoop()
     if (queries.lock && queries.type) {
       throw new Error(
         "The notification machanism only supports you subscribing for one script once so far!"
@@ -340,10 +345,12 @@ export class CkbIndexer implements Indexer {
       if (block.header.parent_hash === block_hash) {
         await this.publishAppendBlockEvents(block);
       } else {
-        const block = await this.request('get_block_by_number', block_number);
+        const block: Block = await this.request('get_block_by_number', block_number);
         await this.publishAppendBlockEvents(block);
       }
     } else {
+      const block = await this.request('get_block_by_number', block_number);
+      await this.publishAppendBlockEvents(block);
       timeout = 1 * 1000;
     }
     return timeout;
@@ -446,6 +453,8 @@ export class CkbIndexer implements Indexer {
   }
 
   subscribeMedianTime(): EventEmitter {
+    this.isSubscribeRunning = true
+    this.scheduleLoop()
     const medianTimeEmitter = new EventEmitter();
     this.medianTimeEmitters.push(medianTimeEmitter);
     return medianTimeEmitter;
