@@ -1,11 +1,12 @@
 {
   "name": "@ckb-lumos/lumos",
   "version": "0.17.0-rc5",
-  "description": "Config manager for lumos",
+  "description": "A root package for Lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
-  "main": "lib",
+  "main": "lib/index.js",
+  "browser": "lib/lumos.umd.js",
   "engines": {
     "node": ">=12.0.0"
   },
@@ -19,7 +20,8 @@
     "test": "tests"
   },
   "files": [
-    "lib"
+    "lib",
+    "src"
   ],
   "publishConfig": {
     "access": "public",
@@ -34,8 +36,9 @@
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
     "test": "ava",
     "build": "tsc",
+    "build:umd": "webpack",
     "clean": "rm -rf lib",
-    "prepublishOnly": "yarn run clean && yarn run build",
+    "prepublishOnly": "yarn run clean && yarn run build && yarn run build:umd",
     "release": "npm publish"
   },
   "bugs": {
@@ -50,5 +53,13 @@
     "@ckb-lumos/helpers": "^0.17.0-rc5",
     "@ckb-lumos/rpc": "^0.17.0-rc5",
     "ckb-js-toolkit": "^0.10.2"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
+    "fork-ts-checker-webpack-plugin": "^6.4.0",
+    "ts-loader": "^9.2.6",
+    "webpack": "^5.64.1",
+    "webpack-cli": "^4.9.1"
   }
 }
