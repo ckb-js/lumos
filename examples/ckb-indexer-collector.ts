@@ -1,11 +1,13 @@
 // This example shows how to use the CkbIndexer to collect cells
 
-import { Script } from "@ckb-lumos/base";
-import { Indexer as CkbIndexer } from "@ckb-lumos/ckb-indexer";
-import { parseAddress } from "@ckb-lumos/helpers";
-import { initializeConfig, predefined } from "@ckb-lumos/config-manager";
+import {
+  Script,
+  Indexer as CkbIndexer,
+  helpers,
+  config,
+} from "@ckb-lumos/lumos";
 
-initializeConfig(predefined.AGGRON4);
+config.initializeConfig(config.predefined.AGGRON4);
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
@@ -24,7 +26,7 @@ async function capacityOf(lock: Script): Promise<bigint> {
 
 async function main() {
   const address = "ckt1qyqxgftlqzmtv05cwcyl4xlz6ryx6dgsyrasjrp27t";
-  const lock: Script = parseAddress(address);
+  const lock: Script = helpers.parseAddress(address);
 
   const balance = await capacityOf(lock);
 

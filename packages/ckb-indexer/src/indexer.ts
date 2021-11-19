@@ -11,8 +11,8 @@ import {
   HexNumber,
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
-import axios from "axios";
-import { IndexerCollector } from "./collector";
+import fetch from "cross-fetch";
+import { CKBCellCollector, OtherQueryOptions } from "./collector";
 export enum ScriptType {
   type = "type",
   lock = "lock",
@@ -112,7 +112,7 @@ export interface AdditionalOptions {
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
 }
-
+/** CkbIndexer.collector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
 export class CkbIndexer implements Indexer {
   uri: string;
 
@@ -147,12 +147,14 @@ export class CkbIndexer implements Indexer {
     }
   }
 
-  /*
-   * Additional note:
-   * Only accept lock and type parameters as `Script` type, along with `data` field in QueryOptions. Use it carefully!
-   * */
-  collector(queries: CkbQueryOptions): CellCollector {
-    return new IndexerCollector(this, queries);
+  /** collector cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
+   * don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
+   */
+  collector(
+    queries: CkbQueryOptions,
+    otherQueryOptions?: OtherQueryOptions
+  ): CellCollector {
+    return new CKBCellCollector(this, queries, otherQueryOptions);
   }
 
   private async request(
@@ -160,24 +162,28 @@ export class CkbIndexer implements Indexer {
     params?: any,
     ckbIndexerUrl: string = this.ckbIndexerUrl
   ): Promise<any> {
-    const data = {
-      id: 0,
-      jsonrpc: "2.0",
-      method,
-      params,
-    };
-    const res: rpcResponse = await axios.post(ckbIndexerUrl, data);
+    const res = await fetch(ckbIndexerUrl, {
+      method: "POST",
+      body: JSON.stringify({
+        id: 0,
+        jsonrpc: "2.0",
+        method,
+        params,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     if (res.status !== 200) {
       throw new Error(`indexer request failed with HTTP code ${res.status}`);
     }
-    if (res.data.error !== undefined) {
+    const data = await res.json();
+    if (data.error !== undefined) {
       throw new Error(
-        `indexer request rpc failed with error: ${JSON.stringify(
-          res.data.error
-        )}`
+        `indexer request rpc failed with error: ${JSON.stringify(data.error)}`
       );
     }
-    return res.data.result;
+    return data.result;
   }
 
   public async getCells(
