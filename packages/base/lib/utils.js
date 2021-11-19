@@ -111,6 +111,7 @@ function generateTypeIdArgs(input, outputIndex) {
 
 function generateTypeIdScript(input, outputIndex = "0x0") {
   validators.ValidateCellInput(input);
+  assertHexadecimal("outputIndex", outputIndex);
 
   const args = generateTypeIdArgs(input, outputIndex);
   return {

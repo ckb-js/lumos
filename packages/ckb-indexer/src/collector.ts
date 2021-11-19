@@ -16,9 +16,27 @@ import {
 } from "./indexer";
 
 import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
+import fetch from "cross-fetch";
 
-export class IndexerCollector implements BaseCellCollector {
-  constructor(public indexer: CkbIndexer, public queries: CkbQueryOptions) {
+/** CellCollector will not get cell with block_hash by default, please use withBlockHash and CKBRpcUrl to get block_hash if you need. */
+export interface OtherQueryOptions {
+  withBlockHash: true;
+  ckbRpcUrl: string;
+}
+
+interface GetBlockHashRPCResult {
+  jsonrpc: string;
+  id: number;
+  result: string;
+}
+
+/** CellCollector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
+export class CKBCellCollector implements BaseCellCollector {
+  constructor(
+    public indexer: CkbIndexer,
+    public queries: CkbQueryOptions,
+    public otherQueryOptions?: OtherQueryOptions
+  ) {
     const defaultQuery: CkbQueryOptions = {
       lock: undefined,
       type: undefined,
@@ -111,7 +129,6 @@ export class IndexerCollector implements BaseCellCollector {
     ) {
       throw new Error("bufferSize must be a number!");
     }
-    this.indexer = indexer;
   }
 
   private generatorSearchKey(queries: CkbQueryOptions): SearchKey {
@@ -159,7 +176,6 @@ export class IndexerCollector implements BaseCellCollector {
     };
   }
 
-  //TODO get block_hash
   private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
     const additionalOptions: AdditionalOptions = {
       sizeLimit: this.queries.bufferSize,
@@ -234,10 +250,69 @@ export class IndexerCollector implements BaseCellCollector {
     return counter;
   }
 
+  private async request(rpcUrl: string, data: unknown): Promise<any> {
+    const res: Response = await fetch(rpcUrl, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (res.status !== 200) {
+      throw new Error(`indexer request failed with HTTP code ${res.status}`);
+    }
+    const result = await res.json();
+    if (result.error !== undefined) {
+      throw new Error(
+        `indexer request rpc failed with error: ${JSON.stringify(result.error)}`
+      );
+    }
+    return result;
+  }
+
+  private async getLiveCellWithBlockHash(lastCursor?: string) {
+    if (!this.otherQueryOptions) {
+      throw new Error("CKB Rpc URL must provide");
+    }
+    let result: GetCellsResults = await this.getLiveCell(lastCursor);
+    if (result.objects.length === 0) {
+      return result;
+    }
+    const requestData = result.objects.map((cell, index) => {
+      return {
+        id: index,
+        jsonrpc: "2.0",
+        method: "get_block_hash",
+        params: [cell.block_number],
+      };
+    });
+    const blockHashList: GetBlockHashRPCResult[] = await this.request(
+      this.otherQueryOptions.ckbRpcUrl,
+      requestData
+    );
+    result.objects = result.objects.map((item, index) => {
+      const rpcResponse = blockHashList.find(
+        (responseItem: GetBlockHashRPCResult) => responseItem.id === index
+      );
+      const block_hash = rpcResponse && rpcResponse.result;
+      return { ...item, block_hash };
+    });
+    return result;
+  }
+
+  /** collect cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
+   * don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
+   */
   async *collect() {
+    const withBlockHash =
+      this.otherQueryOptions &&
+      "withBlockHash" in this.otherQueryOptions &&
+      this.otherQueryOptions.withBlockHash;
     let lastCursor: undefined | string = undefined;
     const getCellWithCursor = async (): Promise<Cell[]> => {
-      const result: GetCellsResults = await this.getLiveCell(lastCursor);
+      const result: GetCellsResults = await (withBlockHash
+        ? this.getLiveCellWithBlockHash(lastCursor)
+        : this.getLiveCell(lastCursor));
       lastCursor = result.lastCursor;
       return result.objects;
     };
