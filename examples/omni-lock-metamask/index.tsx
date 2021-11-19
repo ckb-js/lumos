@@ -1,26 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { helpers, Script } from "@ckb-lumos/lumos";
 import ReactDOM from "react-dom";
-import { asyncSleep, ethereum, CONFIG, capacityOf, transfer } from "./lib";
+import { asyncSleep, capacityOf, CONFIG, ethereum, transfer } from "./lib";
 
 const app = document.getElementById("root");
-ReactDOM.render(<App />, app);
+ReactDOM.render(<App/>, app);
 
 export function App() {
   const [ethAddr, setEthAddr] = useState("");
   const [omniAddr, setOmniAddr] = useState("");
   const [omniLock, setOmniLock] = useState<Script>();
-  const [balance, setBalance] = useState("0");
+  const [balance, setBalance] = useState("-");
 
   const [transferAddr, setTransferAddress] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
 
-  useEffect(function setupAddress() {
-    if (!ethereum || ethAddr) return;
+  const [isSendingTx, setIsSendingTx] = useState(false);
+  const [txHash, setTxHash] = useState("");
 
-    // sleep 100ms to wait for metamask to be ready
-    asyncSleep(100)
-      .then(() => ethereum.enable())
+  useEffect(() => {
+    asyncSleep(100).then(() => {
+      if (ethereum.selectedAddress) connectToMetaMask();
+      ethereum.addListener("accountsChanged", connectToMetaMask);
+    });
+  }, []);
+
+  function connectToMetaMask() {
+    ethereum
+      .enable()
       .then(([ethAddr]: string[]) => {
         const omniLock: Script = {
           code_hash: CONFIG.SCRIPTS.OMNI_LOCK.CODE_HASH,
@@ -33,19 +40,30 @@ export function App() {
           args: `0x01${ethAddr.substring(2)}00`,
         };
 
-        setOmniAddr(helpers.generateAddress(omniLock));
-        setOmniLock(omniLock);
+        const omniAddr = helpers.generateAddress(omniLock);
+
         setEthAddr(ethAddr);
-      });
-  }, []);
+        setOmniAddr(omniAddr);
+        setOmniLock(omniLock);
 
-  useEffect(() => {
-    if (!omniAddr) return;
+        return omniAddr;
+      })
+      .then((omniAddr) => capacityOf(omniAddr))
+      .then((balance) => setBalance(balance.toString()));
+  }
 
-    capacityOf(omniAddr).then((balance) => setBalance(balance.toString()));
-  }, [omniAddr]);
+  function onTransfer() {
+    if (isSendingTx) return;
+    setIsSendingTx(true);
+
+    transfer({amount: transferAmount, from: omniAddr, to: transferAddr})
+      .then(setTxHash)
+      .catch((e) => alert(e.message || JSON.stringify(e)))
+      .finally(() => setIsSendingTx(false));
+  }
 
   if (!ethereum) return <div>MetaMask is not installed</div>;
+  if (!ethAddr) return <button onClick={connectToMetaMask}>Connect to MetaMask</button>;
 
   return (
     <div>
@@ -57,24 +75,22 @@ export function App() {
           <pre>{JSON.stringify(omniLock, null, 2)}</pre>
         </li>
 
-        <li>Total capacity: {balance}</li>
+        <li>Balance: {balance}</li>
       </ul>
 
       <div>
-        <h2>Transfer</h2>
+        <h2>Transfer to</h2>
         <label htmlFor="address">Address</label>&nbsp;
-        {/* prettier-ignore */}
-        <input id="address" type="text" onChange={(e) => setTransferAddress(e.target.value)} />
-        <br />
-        <label htmlFor="amount">Amount(at least 63_00000000 shannon)</label>
+        <input id="address" type="text" onChange={(e) => setTransferAddress(e.target.value)} placeholder="ckt1..."/>
+        <br/>
+        <label htmlFor="amount">Amount</label>
         &nbsp;
-        {/* prettier-ignore */}
-        <input id="amount" type="text" onChange={(e) => setTransferAmount(e.target.value)} />
-        <br />
-        {/* prettier-ignore */}
-        <button onClick={() => transfer({ amount: transferAmount, from: omniAddr, to: transferAddr }) } >
+        <input id="amount" type="text" onChange={(e) => setTransferAmount(e.target.value)} placeholder="shannon"/>
+        <br/>
+        <button onClick={onTransfer} disabled={isSendingTx}>
           Transfer
         </button>
+        <p>Tx Hash: {txHash}</p>
       </div>
     </div>
   );

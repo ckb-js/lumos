@@ -1,15 +1,4 @@
-import { SerializeWitnessArgs } from "@ckb-lumos/base/lib/core";
-import {
-  Cell,
-  config,
-  core,
-  helpers,
-  Indexer,
-  RPC,
-  toolkit,
-  Transaction,
-  utils,
-} from "@ckb-lumos/lumos";
+import { Cell, config, core, helpers, Indexer, RPC, toolkit, utils } from "@ckb-lumos/lumos";
 import { SerializeRcLockWitnessLock } from "./generated/omni";
 
 export const CONFIG = config.createConfig({
@@ -18,11 +7,9 @@ export const CONFIG = config.createConfig({
     ...config.predefined.AGGRON4.SCRIPTS,
     // for more about Omni lock, please check https://github.com/XuJiandong/docs-bank/blob/master/omni_lock.md
     OMNI_LOCK: {
-      CODE_HASH:
-        "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
+      CODE_HASH: "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
       HASH_TYPE: "type",
-      TX_HASH:
-        "0x9154df4f7336402114d04495175b37390ce86a4906d2d4001cf02c3e6d97f39c",
+      TX_HASH: "0x9154df4f7336402114d04495175b37390ce86a4906d2d4001cf02c3e6d97f39c",
       INDEX: "0x0",
       DEP_TYPE: "code",
     },
@@ -71,18 +58,18 @@ export async function transfer(options: Options): Promise<string> {
   // additional 0.001 ckb for tx fee
   // the tx fee could calculated by tx size
   // this is just a simple example
-  const neededCapacity = BigInt(options.amount) + 0_00100000n;
+  const neededCapacity = BigInt(options.amount) + /*0.00*/ 100000n;
   let collectedSum = 0n;
-  const collected: Cell[] = [];
+  const collectedCells: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });
   for await (const cell of collector.collect()) {
     collectedSum += BigInt(cell.cell_output.capacity);
-    collected.push(cell);
+    collectedCells.push(cell);
     if (collectedSum >= neededCapacity) break;
   }
 
   if (collectedSum < neededCapacity) {
-    throw new Error("Not enough CKB");
+    throw new Error(`Not enough CKB, expected: ${neededCapacity}, actual: ${collectedSum} `);
   }
 
   const transferOutput: Cell = {
@@ -101,10 +88,8 @@ export async function transfer(options: Options): Promise<string> {
     data: "0x",
   };
 
-  tx = tx.update("inputs", (inputs) => inputs.push(...collected));
-  tx = tx.update("outputs", (outputs) =>
-    outputs.push(transferOutput, changeOutput)
-  );
+  tx = tx.update("inputs", (inputs) => inputs.push(...collectedCells));
+  tx = tx.update("outputs", (outputs) => outputs.push(transferOutput, changeOutput));
   tx = tx.update("cellDeps", (cellDeps) =>
     cellDeps.push(
       // omni lock dep
@@ -131,9 +116,7 @@ export async function transfer(options: Options): Promise<string> {
 
     const rawTxHash = utils.ckbHash(
       core.SerializeRawTransaction(
-        toolkit.normalizers.NormalizeRawTransaction(
-          helpers.createTransactionFromSkeleton(tx)
-        )
+        toolkit.normalizers.NormalizeRawTransaction(helpers.createTransactionFromSkeleton(tx))
       )
     );
 
@@ -162,11 +145,10 @@ export async function transfer(options: Options): Promise<string> {
 
   let v = Number.parseInt(signedMessage.slice(-2), 16);
   if (v >= 27) v -= 27;
-  signedMessage =
-    "0x" + signedMessage.slice(2, -2) + v.toString(16).padStart(2, "0");
+  signedMessage = "0x" + signedMessage.slice(2, -2) + v.toString(16).padStart(2, "0");
 
   const signedWitness = new toolkit.Reader(
-    SerializeWitnessArgs({
+    core.SerializeWitnessArgs({
       lock: SerializeRcLockWitnessLock({
         signature: new toolkit.Reader(signedMessage),
       }),
