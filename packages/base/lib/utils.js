@@ -109,11 +109,8 @@ function generateTypeIdArgs(input, outputIndex) {
   return ckbHasher.digestHex();
 }
 
-function generateTypeIdScript(input, outputIndex) {
+function generateTypeIdScript(input, outputIndex = "0x0") {
   validators.ValidateCellInput(input);
-  outputIndex = outputIndex === null ? "0x0" : outputIndex;
-  const re = /^0x[0-9a-fA-F]/;
-  if (!re.test(outputIndex)) throw new Error("invalid outputIndex");
 
   const args = generateTypeIdArgs(input, outputIndex);
   return {

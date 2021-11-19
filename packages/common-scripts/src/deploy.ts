@@ -60,8 +60,10 @@ function updateCellDeps(
   });
   config = config || getConfig();
   const secp256k1Config = config.SCRIPTS.SECP256K1_BLAKE160;
-  const secp256k1MultiSigConfig = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
-  if (!secp256k1Config || !secp256k1MultiSigConfig) {
+  // TODO: support secp256k1MultiSig
+  // const secp256k1MultiSigConfig = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+  if (!secp256k1Config) {
+    // if (!secp256k1Config || !secp256k1MultiSigConfig) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE160 or SECP256K1_BLAKE160_MULTISIG script setup!"
     );
@@ -74,15 +76,15 @@ function updateCellDeps(
           index: secp256k1Config.INDEX,
         },
         dep_type: secp256k1Config.DEP_TYPE,
-      },
-      // TODO: optimize me, push dep directly without checking actual locks used would cause bigger tx
-      {
-        out_point: {
-          tx_hash: secp256k1MultiSigConfig.TX_HASH,
-          index: secp256k1MultiSigConfig.INDEX,
-        },
-        dep_type: secp256k1MultiSigConfig.DEP_TYPE,
       }
+      // TODO: optimize me, push dep directly without checking actual locks used would cause bigger tx
+      // {
+      //   out_point: {
+      //     tx_hash: secp256k1MultiSigConfig.TX_HASH,
+      //     index: secp256k1MultiSigConfig.INDEX,
+      //   },
+      //   dep_type: secp256k1MultiSigConfig.DEP_TYPE,
+      // }
     );
   });
 

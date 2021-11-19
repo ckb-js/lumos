@@ -167,8 +167,8 @@ const { parseAddress } = require("@ckb-lumos/helpers");
 
 initializeConfig(predefined.AGGRON4);
 
-const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
-const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
+const CKB_RPC_URL = "http://localhost:8114";
+const CKB_INDEXER_URL = "http://localhost:8116";
 const indexer = new CkbIndexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
 const address = "ckt1qyqptxys5l9vk39ft0hswscxgseawc77y2wqlr558h";
