@@ -8,7 +8,7 @@ import {
 } from "@ckb-lumos/base";
 import {
   SearchKeyFilter,
-  CkbQueryOptions,
+  CKBIndexerQueryOptions,
   GetTransactionsResult,
   GetTransactionsResults,
   IOType,
@@ -40,11 +40,11 @@ interface TransactionWithIOType extends TransactionWithStatus {
   ioIndex: string;
 }
 
-export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollector {
+export class CKBIndexerTransactionCollector  extends BaseIndexerModule.TransactionCollector {
   filterOptions: TransactionCollectorOptions;
   constructor(
     public indexer: CkbIndexer,
-    public queries: CkbQueryOptions,
+    public queries: CKBIndexerQueryOptions,
     public CKBRpcUrl: string,
     public options?: TransactionCollectorOptions
   ) {
@@ -316,7 +316,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
 
   private filterByTypeIoTypeAndLockIoType = (
     inputResult: GetTransactionsResult[],
-    queries: CkbQueryOptions
+    queries: CKBIndexerQueryOptions
   ) => {
     let result = inputResult;
     if (instanceOfScriptWrapper(queries.lock) && queries.lock.ioType) {

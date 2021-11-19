@@ -2,7 +2,7 @@ import { utils, Cell, BaseCellCollector } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit";
 import {
   SearchKeyFilter,
-  CkbQueryOptions,
+  CKBIndexerQueryOptions,
   GetCellsResults,
   Order,
 } from "./indexer";
@@ -31,10 +31,10 @@ interface GetBlockHashRPCResult {
 export class CKBCellCollector implements BaseCellCollector {
   constructor(
     public indexer: CkbIndexer,
-    public queries: CkbQueryOptions,
+    public queries: CKBIndexerQueryOptions,
     public otherQueryOptions?: OtherQueryOptions
   ) {
-    const defaultQuery: CkbQueryOptions = {
+    const defaultQuery: CKBIndexerQueryOptions = {
       lock: undefined,
       type: undefined,
       argsLen: -1,
