@@ -37,6 +37,21 @@ test("get count correct with buffer 3 and skip 1", async (t) => {
   t.is(count, 6);
 });
 
+test("get count correct if skip bigger than buffer size", async (t) => {
+  const queryCase = transactionCollectorHashTestCases[0];
+  const newQueryOption = {
+    ...queryCase.queryOption,
+    ...{ skip: 4, bufferSize: 3 },
+  };
+  const cellCollector = new TransactionCollector(
+    indexer,
+    newQueryOption,
+    nodeUri
+  );
+  const count = await cellCollector.count();
+  t.is(count, 3);
+});
+
 test("query transaction hash with different queryOptions", async (t) => {
   for (const queryCase of transactionCollectorHashTestCases) {
     const transactionCollector = new TransactionCollector(

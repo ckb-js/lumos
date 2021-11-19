@@ -68,7 +68,6 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
    */
   private async getTransactions(
     lastCursor?: string,
-    skip?: number
   ): Promise<GetTransactionDetailResult> {
     const searchKeyFilter: SearchKeyFilter = {
       sizeLimit: this.queries.bufferSize,
@@ -105,10 +104,6 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
       lastCursor = transactionHashList.lastCursor;
     }
 
-    //filter by queryOptions.skip
-    if (skip) {
-      transactionHashList.objects = transactionHashList.objects.slice(skip);
-    }
     // filter by ScriptWrapper.io_type
     transactionHashList.objects = this.filterByTypeIoTypeAndLockIoType(
       transactionHashList.objects,
@@ -331,24 +326,26 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
   async count(): Promise<number> {
     let lastCursor: undefined | string = undefined;
     const getTxWithCursor = async (
-      skip: number = 0
     ): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
         lastCursor,
-        skip
       );
       lastCursor = result.lastCursor;
       return result.objects;
     };
     let counter = 0;
     //skip query result in first query
-    let txs: TransactionWithStatus[] = await getTxWithCursor(this.queries.skip);
+    let txs: TransactionWithStatus[] = await getTxWithCursor();
     if (txs.length === 0) {
       return 0;
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
+      if(this.queries.skip && index < this.queries.skip) {
+        index++
+        continue
+      }
       counter += 1;
       index++;
       //reset index and exchange `txs` and `buffer` after count last tx
@@ -367,11 +364,9 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
   async getTransactionHashes(): Promise<string[]> {
     let lastCursor: undefined | string = undefined;
     const getTxWithCursor = async (
-      skip: number = 0
     ): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
         lastCursor,
-        skip
       );
       lastCursor = result.lastCursor;
       return result.objects;
@@ -379,13 +374,17 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
 
     let transactionHashes: string[] = [];
     //skip query result in first query
-    let txs: TransactionWithStatus[] = await getTxWithCursor(this.queries.skip);
+    let txs: TransactionWithStatus[] = await getTxWithCursor();
     if (txs.length === 0) {
       return [];
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
+      if(this.queries.skip && index < this.queries.skip) {
+        index++
+        continue
+      }
       if (txs[index].transaction.hash) {
         transactionHashes.push(txs[index].transaction.hash as string);
       }
@@ -406,23 +405,25 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
   async *collect() {
     let lastCursor: undefined | string = undefined;
     const getTxWithCursor = async (
-      skip: number = 0
     ): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
         lastCursor,
-        skip
       );
       lastCursor = result.lastCursor;
       return result.objects;
     };
     //skip query result in first query
-    let txs: TransactionWithStatus[] = await getTxWithCursor(this.queries.skip);
+    let txs: TransactionWithStatus[] = await getTxWithCursor();
     if (txs.length === 0) {
       return 0;
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
+      if(this.queries.skip && index < this.queries.skip) {
+        index++
+        continue
+      }
       if (this.filterOptions.includeStatus) {
         yield txs[index];
       } else {
