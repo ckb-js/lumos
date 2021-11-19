@@ -40,7 +40,7 @@ interface TransactionWithIOType extends TransactionWithStatus {
   ioIndex: string;
 }
 
-export class CKBIndexerTransactionCollector  extends BaseIndexerModule.TransactionCollector {
+export class CKBIndexerTransactionCollector extends BaseIndexerModule.TransactionCollector {
   filterOptions: TransactionCollectorOptions;
   constructor(
     public indexer: CkbIndexer,
@@ -67,7 +67,7 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
    *order?: query by ckb-indexer;
    */
   private async getTransactions(
-    lastCursor?: string,
+    lastCursor?: string
   ): Promise<GetTransactionDetailResult> {
     const searchKeyFilter: SearchKeyFilter = {
       sizeLimit: this.queries.bufferSize,
@@ -325,10 +325,9 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
 
   async count(): Promise<number> {
     let lastCursor: undefined | string = undefined;
-    const getTxWithCursor = async (
-    ): Promise<TransactionWithStatus[]> => {
+    const getTxWithCursor = async (): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
-        lastCursor,
+        lastCursor
       );
       lastCursor = result.lastCursor;
       return result.objects;
@@ -342,9 +341,9 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
-      if(this.queries.skip && index < this.queries.skip) {
-        index++
-        continue
+      if (this.queries.skip && index < this.queries.skip) {
+        index++;
+        continue;
       }
       counter += 1;
       index++;
@@ -363,10 +362,9 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
   }
   async getTransactionHashes(): Promise<string[]> {
     let lastCursor: undefined | string = undefined;
-    const getTxWithCursor = async (
-    ): Promise<TransactionWithStatus[]> => {
+    const getTxWithCursor = async (): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
-        lastCursor,
+        lastCursor
       );
       lastCursor = result.lastCursor;
       return result.objects;
@@ -381,9 +379,9 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
-      if(this.queries.skip && index < this.queries.skip) {
-        index++
-        continue
+      if (this.queries.skip && index < this.queries.skip) {
+        index++;
+        continue;
       }
       if (txs[index].transaction.hash) {
         transactionHashes.push(txs[index].transaction.hash as string);
@@ -404,10 +402,9 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
   }
   async *collect() {
     let lastCursor: undefined | string = undefined;
-    const getTxWithCursor = async (
-    ): Promise<TransactionWithStatus[]> => {
+    const getTxWithCursor = async (): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
-        lastCursor,
+        lastCursor
       );
       lastCursor = result.lastCursor;
       return result.objects;
@@ -420,9 +417,9 @@ export class CKBIndexerTransactionCollector  extends BaseIndexerModule.Transacti
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
-      if(this.queries.skip && index < this.queries.skip) {
-        index++
-        continue
+      if (this.queries.skip && index < this.queries.skip) {
+        index++;
+        continue;
       }
       if (this.filterOptions.includeStatus) {
         yield txs[index];
