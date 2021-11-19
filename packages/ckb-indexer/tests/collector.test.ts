@@ -1,8 +1,15 @@
 import test from "ava";
 import { Indexer, CellCollector } from "../src";
-const { lock, type, cellCollectorTestCases } = require("./test_cases.js");
+const {
+  lock,
+  type,
+  cellCollectorTestCases,
+  queryWithBlockHash,
+} = require("./test_cases.js");
 import { HashType } from "@ckb-lumos/base";
+import { OtherQueryOptions } from "../src/collector";
 
+//TODO enhance testkit jsonrpc to support rpc batch and change to use testkit
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);
@@ -17,6 +24,27 @@ test("get count correct", async (t) => {
   const cellCollector = new CellCollector(indexer, { lock: type });
   const count = await cellCollector.count();
   t.is(count, 1);
+});
+
+test("query cells with block hash", async (t) => {
+  const otherQueryOptions: OtherQueryOptions = {
+    withBlockHash: true,
+    ckbRpcUrl: nodeUri,
+  };
+  const cellCollector = new CellCollector(
+    indexer,
+    queryWithBlockHash.queryOption,
+    otherQueryOptions
+  );
+  let cells = [];
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+  t.deepEqual(
+    cells,
+    queryWithBlockHash.expectedResult,
+    queryWithBlockHash.desc
+  );
 });
 
 test("query cells with different queryOptions", async (t) => {
