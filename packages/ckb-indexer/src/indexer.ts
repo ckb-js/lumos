@@ -12,13 +12,13 @@ import {
   Output,
   utils,
   Block,
-  Transaction
+  TransactionWithStatus,
 } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { request } from "./services";
 import { CKBCellCollector, OtherQueryOptions } from "./collector";
-import {EventEmitter} from 'events';
+import { EventEmitter } from "events";
 
 export enum ScriptType {
   type = "type",
@@ -121,18 +121,18 @@ function defaultLogger(level: string, message: string) {
 }
 
 class IndexerEmitter extends EventEmitter {
-  lock?:Script;
+  lock?: Script;
   type?: Script;
-  outputData?: HexString | 'any';
-  argsLen?: number | 'any';
-  fromBlock?: bigint
+  outputData?: HexString | "any";
+  argsLen?: number | "any";
+  fromBlock?: bigint;
 }
 
 /** CkbIndexer.collector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
 export class CkbIndexer implements Indexer {
   uri: string;
-  medianTimeEmitters: EventEmitter[] = []
-  emitters: IndexerEmitter[] = []
+  medianTimeEmitters: EventEmitter[] = [];
+  emitters: IndexerEmitter[] = [];
   isSubscribeRunning: boolean = false;
   constructor(public ckbIndexerUrl: string, public ckbRpcUrl: string) {
     this.uri = ckbRpcUrl;
@@ -180,9 +180,6 @@ export class CkbIndexer implements Indexer {
     params?: any,
     ckbIndexerUrl: string = this.ckbIndexerUrl
   ): Promise<any> {
-    if(method === 'get_tip') {
-      request(ckbIndexerUrl, method, params).then(console.log).catch(console.error)
-    }
     return request(ckbIndexerUrl, method, params);
   }
 
@@ -278,9 +275,9 @@ export class CkbIndexer implements Indexer {
     );
   }
 
-  subscribe(queries: CkbQueryOptions): EventEmitter{
-    this.isSubscribeRunning = true
-    this.scheduleLoop()
+  subscribe(queries: CkbQueryOptions): EventEmitter {
+    this.isSubscribeRunning = true;
+    this.scheduleLoop();
     if (queries.lock && queries.type) {
       throw new Error(
         "The notification machanism only supports you subscribing for one script once so far!"
@@ -302,7 +299,7 @@ export class CkbIndexer implements Indexer {
     if (queries.lock) {
       validators.ValidateScript(queries.lock);
       emitter.lock = queries.lock as Script;
-    } else if (queries.type && queries.type !== 'empty') {
+    } else if (queries.type && queries.type !== "empty") {
       validators.ValidateScript(queries.type);
       emitter.type = queries.type as Script;
     } else {
@@ -339,31 +336,52 @@ export class CkbIndexer implements Indexer {
     let timeout = 1;
     const tip = await this.tip();
     const { block_number, block_hash } = tip;
+    if (block_number === "0x0") {
+      const block: Block = await this.request(
+        "get_block_by_number",
+        [block_number],
+        this.ckbRpcUrl
+      );
+      await this.publishAppendBlockEvents(block);
+    }
     const nextBlockNumber = BigInt(block_number) + BigInt(1);
-    const block = await this.request('get_block_by_number', nextBlockNumber);
+    const block = await this.request(
+      "get_block_by_number",
+      [`0x${nextBlockNumber.toString(16)}`],
+      this.ckbRpcUrl
+    );
     if (block) {
       if (block.header.parent_hash === block_hash) {
         await this.publishAppendBlockEvents(block);
       } else {
-        const block: Block = await this.request('get_block_by_number', block_number);
+        const block: Block = await this.request(
+          "get_block_by_number",
+          [block_number],
+          this.ckbRpcUrl
+        );
         await this.publishAppendBlockEvents(block);
       }
     } else {
-      const block = await this.request('get_block_by_number', block_number);
+      const block = await this.request(
+        "get_block_by_number",
+        [block_number],
+        this.ckbRpcUrl
+      );
       await this.publishAppendBlockEvents(block);
-      timeout = 1 * 1000;
+      timeout = 3 * 1000;
     }
     return timeout;
   }
-  
+
   private getCellByOutPoint = async (output: OutPoint) => {
-    const transaction: Transaction = await this.request(
+    const tx: TransactionWithStatus = await this.request(
       "get_transaction",
-      [output.tx_hash]
+      [output.tx_hash],
+      this.ckbRpcUrl
     );
-    const outputCell =  transaction.outputs[parseInt(output.index)]
-    const outputData = transaction.outputs_data[parseInt(output.index)];
-    return {output: outputCell, outputData}
+    const outputCell = tx.transaction.outputs[parseInt(output.index)];
+    const outputData = tx.transaction.outputs_data[parseInt(output.index)];
+    return { output: outputCell, outputData };
   };
 
   private async publishAppendBlockEvents(block: Block) {
@@ -372,7 +390,9 @@ export class CkbIndexer implements Indexer {
       // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
       if (txIndex > 0) {
         for (const input of tx.inputs) {
-          const {output, outputData} = await this.getCellByOutPoint(input.previous_output);
+          const { output, outputData } = await this.getCellByOutPoint(
+            input.previous_output
+          );
           this.filterEvents(output, blockNumber, outputData);
         }
       }
@@ -418,19 +438,34 @@ export class CkbIndexer implements Indexer {
     }
   }
 
-  checkFilterOptions(emitter: IndexerEmitter, blockNumber: string, outputData: string, emitterScript: Script, script: Script| undefined) {
-    const checkBlockNumber = emitter.fromBlock ? emitter.fromBlock <= BigInt(blockNumber) : true;
+  checkFilterOptions(
+    emitter: IndexerEmitter,
+    blockNumber: string,
+    outputData: string,
+    emitterScript: Script,
+    script: Script | undefined
+  ) {
+    const checkBlockNumber = emitter.fromBlock
+      ? emitter.fromBlock <= BigInt(blockNumber)
+      : true;
     const checkOutputData =
-      emitter.outputData === "any" ? true : emitter.outputData === outputData;
-    const checkScript = !script ? true : 
-      emitterScript.code_hash === script.code_hash &&
-      emitterScript.hash_type === script.hash_type &&
-      this.checkArgs(emitter.argsLen, emitterScript.args, script.args);
+      emitter.outputData === "any" || !emitter.outputData
+        ? true
+        : emitter.outputData === outputData;
+    const checkScript = !script
+      ? true
+      : emitterScript.code_hash === script.code_hash &&
+        emitterScript.hash_type === script.hash_type &&
+        this.checkArgs(emitter.argsLen, emitterScript.args, script.args);
     return checkBlockNumber && checkOutputData && checkScript;
   }
 
-  checkArgs(argsLen: number | 'any' | undefined, emitterArgs: HexString, args:HexString) {
-    if (argsLen === -1) {
+  checkArgs(
+    argsLen: number | "any" | undefined,
+    emitterArgs: HexString,
+    args: HexString
+  ) {
+    if (argsLen === -1 || !argsLen) {
       return emitterArgs === args;
     } else if (typeof argsLen === "number" && args.length === argsLen * 2 + 2) {
       return args.substring(0, emitterArgs.length) === emitterArgs;
@@ -445,7 +480,7 @@ export class CkbIndexer implements Indexer {
     if (this.medianTimeEmitters.length === 0) {
       return;
     }
-    const info = await this.request('get_blockchain_info');
+    const info = await request(this.ckbRpcUrl, "get_blockchain_info");
     const medianTime = info.median_time;
     for (const medianTimeEmitter of this.medianTimeEmitters) {
       medianTimeEmitter.emit("changed", medianTime);
@@ -453,8 +488,8 @@ export class CkbIndexer implements Indexer {
   }
 
   subscribeMedianTime(): EventEmitter {
-    this.isSubscribeRunning = true
-    this.scheduleLoop()
+    this.isSubscribeRunning = true;
+    this.scheduleLoop();
     const medianTimeEmitter = new EventEmitter();
     this.medianTimeEmitters.push(medianTimeEmitter);
     return medianTimeEmitter;

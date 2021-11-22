@@ -83,6 +83,17 @@ export function createCKBMockRPC(options: Options): Express {
     };
   });
 
+  server.addMethod("get_blockchain_info", () => {
+    return {
+      alerts: [],
+      chain: "ckb_testnet",
+      difficulty: "0x1b6f506b",
+      epoch: "0x708069a000cc5",
+      is_initial_block_download: false,
+      median_time: "0x17d3723d27d",
+    };
+  });
+
   const app = express();
   app.use(bodyParser.json());
 
