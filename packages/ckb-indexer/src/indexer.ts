@@ -309,7 +309,7 @@ export class CkbIndexer implements Indexer {
     return emitter;
   }
 
-  loop() {
+  private loop() {
     if (!this.isSubscribeRunning) {
       return;
     }
@@ -326,7 +326,7 @@ export class CkbIndexer implements Indexer {
       });
   }
 
-  scheduleLoop(timeout = 1) {
+  private scheduleLoop(timeout = 1) {
     setTimeout(() => {
       this.loop();
     }, timeout);
@@ -405,7 +405,11 @@ export class CkbIndexer implements Indexer {
     await this.emitMedianTimeEvents();
   }
 
-  filterEvents(output: Output, blockNumber: string, outputData: HexString) {
+  private filterEvents(
+    output: Output,
+    blockNumber: string,
+    outputData: HexString
+  ) {
     for (const emitter of this.emitters) {
       if (
         emitter.lock !== undefined &&
@@ -438,7 +442,7 @@ export class CkbIndexer implements Indexer {
     }
   }
 
-  checkFilterOptions(
+  private checkFilterOptions(
     emitter: IndexerEmitter,
     blockNumber: string,
     outputData: string,
@@ -460,7 +464,7 @@ export class CkbIndexer implements Indexer {
     return checkBlockNumber && checkOutputData && checkScript;
   }
 
-  checkArgs(
+  private checkArgs(
     argsLen: number | "any" | undefined,
     emitterArgs: HexString,
     args: HexString
@@ -476,7 +480,7 @@ export class CkbIndexer implements Indexer {
     }
   }
 
-  async emitMedianTimeEvents() {
+  private async emitMedianTimeEvents() {
     if (this.medianTimeEmitters.length === 0) {
       return;
     }
