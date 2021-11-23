@@ -92,37 +92,41 @@ test("deploy with data", async (t) => {
     },
     {
       cell_output: {
-        capacity: '0x1c73aae094',
+        capacity: "0x1c73aae094",
         lock: {
-          args: '0x159890a7cacb44a95bef0743064433d763de229c',
-          code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-          hash_type: 'type'
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
         },
-        type: undefined
+        type: undefined,
       },
-      data: '0x',
+      data: "0x",
       out_point: {
-        index: '0x1',
-        tx_hash: '0xf87fbaa684aa3e8afcc97bf4a03ccfbf55e810e4c72da33a3dc6f21be25b2bdc'
+        index: "0x1",
+        tx_hash:
+          "0xf87fbaa684aa3e8afcc97bf4a03ccfbf55e810e4c72da33a3dc6f21be25b2bdc",
       },
-      block_number: '0x3525a6'
+      block_number: "0x3525a6",
     },
     {
       cell_output: {
-        capacity: '0xe367d9bace',
+        capacity: "0xe367d9bace",
         lock: {
-          args: '0x159890a7cacb44a95bef0743064433d763de229c',
-          code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-          hash_type: 'type'
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
         },
-        type: undefined
+        type: undefined,
       },
-      data: '0x',
+      data: "0x",
       out_point: {
-        index: '0x2',
-        tx_hash: '0xf87fbaa684aa3e8afcc97bf4a03ccfbf55e810e4c72da33a3dc6f21be25b2bdc'
+        index: "0x2",
+        tx_hash:
+          "0xf87fbaa684aa3e8afcc97bf4a03ccfbf55e810e4c72da33a3dc6f21be25b2bdc",
       },
-      block_number: '0x3525a6'
+      block_number: "0x3525a6",
     },
   ];
   const cellProvider = new CellProvider(inputs);
@@ -201,37 +205,41 @@ test("deploy with typeID", async (t) => {
     },
     {
       cell_output: {
-        capacity: '0xe668c01bc5',
+        capacity: "0xe668c01bc5",
         lock: {
-          args: '0x159890a7cacb44a95bef0743064433d763de229c',
-          code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-          hash_type: 'type'
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
         },
-        type: undefined
+        type: undefined,
       },
-      data: '0x',
+      data: "0x",
       out_point: {
-        index: '0x1',
-        tx_hash: '0x46176211dd8ea0bfaa652a08de97992fec25d243411fec63826c7ee989491d97'
+        index: "0x1",
+        tx_hash:
+          "0x46176211dd8ea0bfaa652a08de97992fec25d243411fec63826c7ee989491d97",
       },
-      block_number: '0x3525b6'
+      block_number: "0x3525b6",
     },
     {
       cell_output: {
-        capacity: '0x1718c7b39',
+        capacity: "0x1718c7b39",
         lock: {
-          args: '0x159890a7cacb44a95bef0743064433d763de229c',
-          code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
-          hash_type: 'type'
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
         },
-        type: undefined
+        type: undefined,
       },
-      data: '0x',
+      data: "0x",
       out_point: {
-        index: '0x2',
-        tx_hash: '0x46176211dd8ea0bfaa652a08de97992fec25d243411fec63826c7ee989491d97'
+        index: "0x2",
+        tx_hash:
+          "0x46176211dd8ea0bfaa652a08de97992fec25d243411fec63826c7ee989491d97",
       },
-      block_number: '0x3525b6'
+      block_number: "0x3525b6",
     },
   ];
   const cellProvider = new CellProvider(inputs);
