@@ -48,7 +48,7 @@ test("deploy with data", async (t) => {
   const inputs: Cell[] = [
     {
       cell_output: {
-        capacity: "0x1de5375e94",
+        capacity: "0x1718c7e00",
         lock: {
           args: "0x159890a7cacb44a95bef0743064433d763de229c",
           code_hash:
@@ -57,51 +57,72 @@ test("deploy with data", async (t) => {
         },
         type: undefined,
       },
-      data: "0x",
+      data: "0x01",
       out_point: {
-        index: "0x1",
+        index: "0x0",
         tx_hash:
-          "0x0a903e8c8356d73742c701b97eab42a801d18d5f97d8e3eaf7f9740549c3b42e",
+          "0xa11728dd5b27224179c19e831f8e8dc0c67835bcd2d5d3bb87c7cc27d0b66cfc",
       },
-      block_number: "0x351850",
+      block_number: "0x352583",
     },
     {
       cell_output: {
-        capacity: "0xe367d9bd40",
+        capacity: "0x2f4fa9f00",
         lock: {
           args: "0x159890a7cacb44a95bef0743064433d763de229c",
           code_hash:
             "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
           hash_type: "type",
         },
-        type: undefined,
+        type: {
+          args:
+            "0xe9451f3528af55247ff7d3851a00b54a5fe7de38d40dc29580ce2c069332633a",
+          code_hash:
+            "0x00000000000000000000000000000000000000000000000000545950455f4944",
+          hash_type: "type",
+        },
       },
-      data: "0x",
+      data: "0x01",
       out_point: {
-        index: "0x1",
+        index: "0x0",
         tx_hash:
-          "0xb370a2c840f4896bb592d6bab87062373169429b32dfd6d58ac344956e2d414a",
+          "0x46176211dd8ea0bfaa652a08de97992fec25d243411fec63826c7ee989491d97",
       },
-      block_number: "0x35187d",
+      block_number: "0x3525b6",
     },
     {
       cell_output: {
-        capacity: "0xe367d9bd40",
+        capacity: '0x1c73aae094',
         lock: {
-          args: "0x159890a7cacb44a95bef0743064433d763de229c",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
+          args: '0x159890a7cacb44a95bef0743064433d763de229c',
+          code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
+          hash_type: 'type'
         },
-        type: undefined,
+        type: undefined
       },
-      data: "0x",
+      data: '0x',
       out_point: {
-        index: "0x1",
-        tx_hash:
-          "0xb370a2c840f4896bb592d6bab87062373169429b32dfd6d58ac344956e2d414a",
+        index: '0x1',
+        tx_hash: '0xf87fbaa684aa3e8afcc97bf4a03ccfbf55e810e4c72da33a3dc6f21be25b2bdc'
       },
-      block_number: "0x35187d",
+      block_number: '0x3525a6'
+    },
+    {
+      cell_output: {
+        capacity: '0xe367d9bace',
+        lock: {
+          args: '0x159890a7cacb44a95bef0743064433d763de229c',
+          code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
+          hash_type: 'type'
+        },
+        type: undefined
+      },
+      data: '0x',
+      out_point: {
+        index: '0x2',
+        tx_hash: '0xf87fbaa684aa3e8afcc97bf4a03ccfbf55e810e4c72da33a3dc6f21be25b2bdc'
+      },
+      block_number: '0x3525a6'
     },
   ];
   const cellProvider = new CellProvider(inputs);
@@ -116,7 +137,9 @@ test("deploy with data", async (t) => {
   txSkeleton = await payTxFee(txSkeleton);
   for (const input of txSkeleton.get("inputs")) {
     const type = input.cell_output.type;
+    const data = input.data;
     t.is(type, undefined);
+    t.is(data, "0x");
   }
   txSkeleton = common.prepareSigningEntries(txSkeleton);
 
@@ -124,7 +147,7 @@ test("deploy with data", async (t) => {
     type: "witness_args_lock",
     index: 0,
     message:
-      "0xda602594d62d21bdc5f4a0209ae4e3c1619e7191032dfb554ac941bd5ccb797f",
+      "0x255ec269ca02c08c8ce07b7e4e064ff15f99eeccb7a12f9241e4222d5a7b71cf",
   };
 
   t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);
@@ -134,25 +157,6 @@ test("deploy with typeID", async (t) => {
   const inputs: Cell[] = [
     {
       cell_output: {
-        capacity: "0xe95dbabac5",
-        lock: {
-          args: "0x159890a7cacb44a95bef0743064433d763de229c",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type",
-        },
-        type: undefined,
-      },
-      data: "0x",
-      out_point: {
-        index: "0x1",
-        tx_hash:
-          "0x9508b6d19403897c67ac6e6bc491c2d74b884a3a1c267955c9c03d6c8320890b",
-      },
-      block_number: "0x351a14",
-    },
-    {
-      cell_output: {
         capacity: "0x1718c7e00",
         lock: {
           args: "0x159890a7cacb44a95bef0743064433d763de229c",
@@ -172,22 +176,62 @@ test("deploy with typeID", async (t) => {
     },
     {
       cell_output: {
-        capacity: "0x1718c7e00",
+        capacity: "0x2f4fa9f00",
         lock: {
           args: "0x159890a7cacb44a95bef0743064433d763de229c",
           code_hash:
             "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
           hash_type: "type",
         },
-        type: undefined,
+        type: {
+          args:
+            "0xe9451f3528af55247ff7d3851a00b54a5fe7de38d40dc29580ce2c069332633a",
+          code_hash:
+            "0x00000000000000000000000000000000000000000000000000545950455f4944",
+          hash_type: "type",
+        },
       },
       data: "0x01",
       out_point: {
         index: "0x0",
         tx_hash:
-          "0xa11728dd5b27224179c19e831f8e8dc0c67835bcd2d5d3bb87c7cc27d0b66cfc",
+          "0x46176211dd8ea0bfaa652a08de97992fec25d243411fec63826c7ee989491d97",
       },
-      block_number: "0x352583",
+      block_number: "0x3525b6",
+    },
+    {
+      cell_output: {
+        capacity: '0xe668c01bc5',
+        lock: {
+          args: '0x159890a7cacb44a95bef0743064433d763de229c',
+          code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
+          hash_type: 'type'
+        },
+        type: undefined
+      },
+      data: '0x',
+      out_point: {
+        index: '0x1',
+        tx_hash: '0x46176211dd8ea0bfaa652a08de97992fec25d243411fec63826c7ee989491d97'
+      },
+      block_number: '0x3525b6'
+    },
+    {
+      cell_output: {
+        capacity: '0x1718c7b39',
+        lock: {
+          args: '0x159890a7cacb44a95bef0743064433d763de229c',
+          code_hash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
+          hash_type: 'type'
+        },
+        type: undefined
+      },
+      data: '0x',
+      out_point: {
+        index: '0x2',
+        tx_hash: '0x46176211dd8ea0bfaa652a08de97992fec25d243411fec63826c7ee989491d97'
+      },
+      block_number: '0x3525b6'
     },
   ];
   const cellProvider = new CellProvider(inputs);
@@ -202,7 +246,9 @@ test("deploy with typeID", async (t) => {
   txSkeleton = await payTxFee(txSkeleton);
   for (const input of txSkeleton.get("inputs")) {
     const type = input.cell_output.type;
+    const data = input.data;
     t.is(type, undefined);
+    t.is(data, "0x");
   }
   txSkeleton = common.prepareSigningEntries(txSkeleton);
 
@@ -210,7 +256,7 @@ test("deploy with typeID", async (t) => {
     type: "witness_args_lock",
     index: 0,
     message:
-      "0xd2b09428c4b0276fd624972cc944f308b591595fb1cef19f961c652763f19b78",
+      "0x2159d2bd73e2b0961895e68d3d8890bc718ad4250ed3b4ed4eed51cb4daf15e3",
   };
 
   t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);

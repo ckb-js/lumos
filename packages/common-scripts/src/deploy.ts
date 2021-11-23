@@ -30,7 +30,7 @@ async function findCellsByLock(
   lockScript: Script,
   cellProvider: CellProvider
 ): Promise<Cell[]> {
-  const collector = cellProvider.collector({ lock: lockScript, type: "empty" });
+  const collector = cellProvider.collector({ lock: lockScript, type: "empty", data: "0x" });
   const cells: Cell[] = [];
   for await (const cell of collector.collect()) {
     cells.push(cell);
@@ -127,6 +127,7 @@ async function injectCapacity(
     const cellCollector = cellProvider.collector({
       lock: fromScript,
       type: "empty",
+      data: "0x",
     });
 
     const changeCell: Cell = {
