@@ -137,7 +137,7 @@ test("deploy with data", async (t) => {
     config: AGGRON4,
   };
 
-  let txSkeleton = await generateDeployWithDataTx(deployOptions);
+  let { txSkeleton } = await generateDeployWithDataTx(deployOptions);
   txSkeleton = await payTxFee(txSkeleton);
   for (const input of txSkeleton.get("inputs")) {
     const type = input.cell_output.type;
@@ -250,7 +250,7 @@ test("deploy with typeID", async (t) => {
     config: AGGRON4,
   };
 
-  let txSkeleton = (await generateDeployWithTypeIdTx(deployOptions))[1];
+  let { txSkeleton } = await generateDeployWithTypeIdTx(deployOptions);
   txSkeleton = await payTxFee(txSkeleton);
   for (const input of txSkeleton.get("inputs")) {
     const type = input.cell_output.type;
@@ -371,7 +371,7 @@ test("upgrade with typeID", async (t) => {
     config: AGGRON4,
   };
 
-  let txSkeleton = await generateUpgradeTypeIdDataTx(upgradeOptions);
+  let { txSkeleton } = await generateUpgradeTypeIdDataTx(upgradeOptions);
   txSkeleton = await payTxFee(txSkeleton);
   txSkeleton = common.prepareSigningEntries(txSkeleton);
 

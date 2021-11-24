@@ -272,148 +272,6 @@ async function getDataHash(outPoint: OutPoint, rpc: RPC): Promise<string> {
   return new utils.CKBHasher().update(new Reader(outputData)).digestHex();
 }
 
-interface DeployOptions {
-  cellProvider: CellProvider;
-  scriptBinary: Uint8Array;
-  outputScriptLock: Script;
-  config?: Config;
-}
-
-/**
- * Generate txSkeleton for writing binary data to CKB, usually for deploying contracts.
- * This generator only supports `SECP256K1_BLAKE160` and `SECP256K1_BLAKE160_MULTISIG` currently.
- *
- * @param options
- */
-export async function generateDeployWithDataTx(
-  options: DeployOptions
-): Promise<TransactionSkeletonType> {
-  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
-
-  const fromAddress = generateAddress(options.outputScriptLock, {
-    config: options.config,
-  });
-
-  const output: Cell = {
-    cell_output: {
-      capacity: "0x0",
-      lock: options.outputScriptLock,
-    },
-    data: bytesToHex(options.scriptBinary),
-  };
-
-  txSkeleton = updateOutputs(txSkeleton, output);
-  txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
-
-  return txSkeleton;
-}
-
-/**
- * Generate txSkeleton for writing binary data to CKB via Type ID, usually for deploying contracts.
- * Deploying via Type ID makes it possible to upgrade contract, for more information about Type ID, please check: https://xuejie.space/2020_02_03_introduction_to_ckb_script_programming_type_id/
- * This generator only supports `SECP256K1_BLAKE160` and `SECP256K1_BLAKE160_MULTISIG` currently.
- *
- * @param options
- */
-export async function generateDeployWithTypeIdTx(
-  options: DeployOptions
-): Promise<[Script /* type_id script */, TransactionSkeletonType]> {
-  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
-
-  const fromAddress = generateAddress(options.outputScriptLock, {
-    config: options.config,
-  });
-
-  const [resolved] = await findCellsByLock(
-    options.outputScriptLock,
-    options.cellProvider
-  );
-  if (!resolved) throw new Error(`${fromAddress} has no live ckb`);
-
-  const typeId = utils.generateTypeIdScript(
-    { previous_output: resolved.out_point!, since: "0x0" },
-    "0x0"
-  );
-  const output: Cell = {
-    cell_output: {
-      capacity: "0x0",
-      lock: options.outputScriptLock,
-      type: typeId,
-    },
-    data: bytesToHex(options.scriptBinary),
-  };
-
-  txSkeleton = updateOutputs(txSkeleton, output);
-  txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
-
-  return [typeId, txSkeleton];
-}
-
-interface UpgradeOptions extends DeployOptions {
-  typeId: Script;
-}
-
-export async function generateUpgradeTypeIdDataTx(
-  options: UpgradeOptions
-): Promise<TransactionSkeletonType> {
-  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
-
-  const fromAddress = generateAddress(options.outputScriptLock, {
-    config: options.config,
-  });
-
-  const collector = options.cellProvider.collector({ type: options.typeId });
-  const cells: Cell[] = [];
-  for await (const cell of collector.collect()) {
-    cells.push(cell);
-  }
-  if (cells.length !== 1) throw new Error("the typeid maybe wrong");
-
-  const deployedCell = cells[0];
-  txSkeleton = txSkeleton.update("inputs", (inputs) => {
-    return inputs.push(deployedCell);
-  });
-
-  const output: Cell = {
-    cell_output: {
-      capacity: "0x0",
-      lock: options.outputScriptLock,
-      type: options.typeId,
-    },
-    data: bytesToHex(options.scriptBinary),
-  };
-
-  txSkeleton = updateOutputs(txSkeleton, output);
-  txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
-
-  return txSkeleton;
-}
-
-export async function compareScriptBinaryWithOnChainData(
-  scriptBinary: Uint8Array,
-  outPoint: OutPoint,
-  rpc: RPC
-): Promise<boolean> {
-  const localHash = calculateCodeHashByBin(scriptBinary);
-  const onChainHash = await getDataHash(outPoint, rpc);
-  return localHash === onChainHash;
-}
-
-export async function payFee(
-  txSkeleton: TransactionSkeletonType,
-  fromAddress: string,
-  amount: bigint,
-  { config = undefined }: Options = {}
-): Promise<TransactionSkeletonType> {
-  config = config || getConfig();
-  return await injectCapacity(txSkeleton, fromAddress, amount, {
-    config,
-  });
-}
-
 interface ScriptConfig {
   // if hash_type is type, code_hash is ckbHash(type_script)
   // if hash_type is data, code_hash is ckbHash(data)
@@ -478,7 +336,7 @@ function getScriptConfigByTypeHash(
   return scriptConfig;
 }
 
-export function getScriptConfig(
+function getScriptConfig(
   txSkeleton: TransactionSkeletonType,
   outputIndex: number
 ): ScriptConfig {
@@ -491,11 +349,177 @@ export function getScriptConfig(
   return getScriptConfigByDataHash(txSkeleton, outputIndex);
 }
 
+interface DeployOptions {
+  cellProvider: CellProvider;
+  scriptBinary: Uint8Array;
+  outputScriptLock: Script;
+  config?: Config;
+}
+
+interface UpgradeOptions extends DeployOptions {
+  typeId: Script;
+}
+
+interface DeployResult {
+  txSkeleton: TransactionSkeletonType;
+  scriptConfig: ScriptConfig;
+}
+
+interface TypeIDDeployResult extends DeployResult {
+  typeId: Script;
+}
+
+/**
+ * Generate txSkeleton for writing binary data to CKB, usually for deploying contracts.
+ * This generator only supports `SECP256K1_BLAKE160` and `SECP256K1_BLAKE160_MULTISIG` currently.
+ *
+ * @param options
+ */
+export async function generateDeployWithDataTx(
+  options: DeployOptions
+): Promise<DeployResult> {
+  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
+
+  const fromAddress = generateAddress(options.outputScriptLock, {
+    config: options.config,
+  });
+
+  const output: Cell = {
+    cell_output: {
+      capacity: "0x0",
+      lock: options.outputScriptLock,
+    },
+    data: bytesToHex(options.scriptBinary),
+  };
+
+  txSkeleton = updateOutputs(txSkeleton, output);
+  txSkeleton = updateCellDeps(txSkeleton, options.config);
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
+
+  const scriptConfig = getScriptConfig(txSkeleton, 0);
+
+  return {
+    txSkeleton,
+    scriptConfig,
+  };
+}
+
+/**
+ * Generate txSkeleton for writing binary data to CKB via Type ID, usually for deploying contracts.
+ * Deploying via Type ID makes it possible to upgrade contract, for more information about Type ID, please check: https://xuejie.space/2020_02_03_introduction_to_ckb_script_programming_type_id/
+ * This generator only supports `SECP256K1_BLAKE160` and `SECP256K1_BLAKE160_MULTISIG` currently.
+ *
+ * @param options
+ */
+export async function generateDeployWithTypeIdTx(
+  options: DeployOptions
+): Promise<TypeIDDeployResult> {
+  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
+
+  const fromAddress = generateAddress(options.outputScriptLock, {
+    config: options.config,
+  });
+
+  const [resolved] = await findCellsByLock(
+    options.outputScriptLock,
+    options.cellProvider
+  );
+  if (!resolved) throw new Error(`${fromAddress} has no live ckb`);
+
+  const typeId = utils.generateTypeIdScript(
+    { previous_output: resolved.out_point!, since: "0x0" },
+    "0x0"
+  );
+  const output: Cell = {
+    cell_output: {
+      capacity: "0x0",
+      lock: options.outputScriptLock,
+      type: typeId,
+    },
+    data: bytesToHex(options.scriptBinary),
+  };
+
+  txSkeleton = updateOutputs(txSkeleton, output);
+  txSkeleton = updateCellDeps(txSkeleton, options.config);
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
+
+  const scriptConfig = getScriptConfig(txSkeleton, 0);
+
+  return {
+    txSkeleton,
+    scriptConfig,
+    typeId,
+  };
+}
+
+export async function generateUpgradeTypeIdDataTx(
+  options: UpgradeOptions
+): Promise<DeployResult> {
+  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
+
+  const fromAddress = generateAddress(options.outputScriptLock, {
+    config: options.config,
+  });
+
+  const collector = options.cellProvider.collector({ type: options.typeId });
+  const cells: Cell[] = [];
+  for await (const cell of collector.collect()) {
+    cells.push(cell);
+  }
+  if (cells.length !== 1) throw new Error("the typeid maybe wrong");
+
+  const deployedCell = cells[0];
+  txSkeleton = txSkeleton.update("inputs", (inputs) => {
+    return inputs.push(deployedCell);
+  });
+
+  const output: Cell = {
+    cell_output: {
+      capacity: "0x0",
+      lock: options.outputScriptLock,
+      type: options.typeId,
+    },
+    data: bytesToHex(options.scriptBinary),
+  };
+
+  txSkeleton = updateOutputs(txSkeleton, output);
+  txSkeleton = updateCellDeps(txSkeleton, options.config);
+  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
+
+  const scriptConfig = getScriptConfig(txSkeleton, 0);
+
+  return {
+    txSkeleton,
+    scriptConfig,
+  };
+}
+
+export async function compareScriptBinaryWithOnChainData(
+  scriptBinary: Uint8Array,
+  outPoint: OutPoint,
+  rpc: RPC
+): Promise<boolean> {
+  const localHash = calculateCodeHashByBin(scriptBinary);
+  const onChainHash = await getDataHash(outPoint, rpc);
+  return localHash === onChainHash;
+}
+
+export async function payFee(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: string,
+  amount: bigint,
+  { config = undefined }: Options = {}
+): Promise<TransactionSkeletonType> {
+  config = config || getConfig();
+  return await injectCapacity(txSkeleton, fromAddress, amount, {
+    config,
+  });
+}
+
 export default {
   generateDeployWithDataTx,
   generateDeployWithTypeIdTx,
   generateUpgradeTypeIdDataTx,
   payFee,
   compareScriptBinaryWithOnChainData,
-  getScriptConfig,
 };
