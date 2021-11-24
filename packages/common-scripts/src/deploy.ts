@@ -16,6 +16,7 @@ import {
   minimalCellCapacity,
   Options,
   parseAddress,
+  createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
 import { Reader, normalizers } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
@@ -413,10 +414,88 @@ export async function payFee(
   });
 }
 
+interface ScriptConfig {
+  // if hash_type is type, code_hash is ckbHash(type_script)
+  // if hash_type is data, code_hash is ckbHash(data)
+  CODE_HASH: string;
+
+  HASH_TYPE: "type" | "data";
+
+  TX_HASH: string;
+  // the deploy cell can be found at index of tx's outputs
+  INDEX: string;
+
+  // now deployWithX only supportted `code `
+  DEP_TYPE: "dep_group" | "code";
+
+  // empty
+  SHORT_ID?: number;
+}
+
+function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
+  const tx = createTransactionFromSkeleton(txSkeleton);
+  const txHash = utils
+    .ckbHash(
+      core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))
+    )
+    .serializeJson();
+  return txHash;
+}
+
+function getScriptConfigByDataHash(
+  txSkeleton: TransactionSkeletonType,
+  outputIndex: number
+): ScriptConfig {
+  const data = txSkeleton.outputs.get(outputIndex)!.data;
+  const codeHash = utils
+    .ckbHash(new Reader(data).toArrayBuffer())
+    .serializeJson();
+  const txHash = calculateTxHash(txSkeleton);
+  const scriptConfig: ScriptConfig = {
+    CODE_HASH: codeHash,
+    HASH_TYPE: "data",
+    TX_HASH: txHash,
+    INDEX: "0x0",
+    DEP_TYPE: "code",
+  };
+  return scriptConfig;
+}
+
+function getScriptConfigByTypeHash(
+  txSkeleton: TransactionSkeletonType,
+  outputIndex: number
+): ScriptConfig {
+  const typeScript = txSkeleton.outputs.get(outputIndex)!.cell_output.type!;
+  const codeHash = utils.computeScriptHash(typeScript);
+  const txHash = calculateTxHash(txSkeleton);
+  const scriptConfig: ScriptConfig = {
+    CODE_HASH: codeHash,
+    HASH_TYPE: "type",
+    TX_HASH: txHash,
+    INDEX: "0x0",
+    DEP_TYPE: "code",
+  };
+  return scriptConfig;
+}
+
+export function getScriptConfig(
+  txSkeleton: TransactionSkeletonType,
+  outputIndex: number
+): ScriptConfig {
+  const outputCell = txSkeleton.outputs.get(outputIndex);
+  if (outputCell == undefined)
+    throw new Error("Invalid txSkeleton or outputIndex");
+  const type = outputCell.cell_output.type;
+  if (type !== undefined)
+    return getScriptConfigByTypeHash(txSkeleton, outputIndex);
+  return getScriptConfigByDataHash(txSkeleton, outputIndex);
+}
+
 export default {
   generateDeployWithDataTx,
   generateDeployWithTypeIdTx,
   generateUpgradeTypeIdDataTx,
   payFee,
   compareScriptBinaryWithOnChainData,
+  getScriptConfig,
 };
