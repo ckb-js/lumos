@@ -9,6 +9,26 @@ const lock = {
   args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
 };
 
+const lockScriptWrapper = {
+  script: {
+    args: "0x7f2b32878434041acd17e396936de4f6ba377cce",
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+  },
+  ioType: "input",
+};
+
+const typeScriptWrapper = {
+  script: {
+    args: "0x",
+    code_hash:
+      "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+    hash_type: "type",
+  },
+  ioType: "output",
+};
+
 const lockWithArgsPrefix = {
   code_hash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
@@ -296,6 +316,14 @@ const transactionCollectorTestCases = [
       type: "empty",
     },
     expectedResult: transactionHashesByLock,
+  },
+  {
+    desc: "Test query transaction by both input lock and output type script",
+    queryOption: {
+      lock: lockScriptWrapper,
+      type: typeScriptWrapper,
+    },
+    expectedResult: transactionHashesByLockAndType,
   },
 ];
 

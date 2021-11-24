@@ -64,6 +64,25 @@ export function createCKBMockRPC(options: Options): Express {
     return blocks[blocks.length - 1].header.number;
   });
 
+  server.addMethod("get_transaction", (hashes) => {
+    assertsParams(Array.isArray(hashes));
+    const hash = hashes[0];
+    let result;
+    let blockHash;
+    for (let block of blocks) {
+      const tx = block.transactions.find((tx) => tx.hash === hash);
+      if (tx) {
+        result = tx;
+        blockHash = block.header.hash;
+        break;
+      }
+    }
+    return {
+      transaction: result,
+      tx_status: { status: "padding", block_hash: blockHash },
+    };
+  });
+
   const app = express();
   app.use(bodyParser.json());
 

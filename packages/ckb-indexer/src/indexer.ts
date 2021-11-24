@@ -23,7 +23,7 @@ export enum Order {
   desc = "desc",
 }
 
-export interface CkbQueryOptions extends QueryOptions {
+export interface CKBIndexerQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;
   outputCapacityRange?: HexadecimalRange;
   bufferSize?: number;
@@ -84,7 +84,7 @@ const DefaultTerminator: Terminator = () => {
 };
 
 export type HexNum = string;
-export type IOType = "input" | "output";
+export type IOType = "input" | "output" | "both";
 export type Bytes32 = string;
 export type GetTransactionsResult = {
   block_number: HexNum;
@@ -94,7 +94,7 @@ export type GetTransactionsResult = {
   tx_index: HexNum;
 };
 export interface GetTransactionsResults {
-  last_cursor: string;
+  lastCursor: string | undefined;
   objects: GetTransactionsResult[];
 }
 
@@ -103,7 +103,7 @@ export interface GetCellsResults {
   objects: Cell[];
 }
 
-export interface AdditionalOptions {
+export interface SearchKeyFilter {
   sizeLimit?: number;
   order?: Order;
   lastCursor?: string | undefined;
@@ -151,7 +151,7 @@ export class CkbIndexer implements Indexer {
    * don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
    */
   collector(
-    queries: CkbQueryOptions,
+    queries: CKBIndexerQueryOptions,
     otherQueryOptions?: OtherQueryOptions
   ): CellCollector {
     return new CKBCellCollector(this, queries, otherQueryOptions);
@@ -189,12 +189,12 @@ export class CkbIndexer implements Indexer {
   public async getCells(
     searchKey: SearchKey,
     terminator: Terminator = DefaultTerminator,
-    additionalOptions: AdditionalOptions = {}
+    searchKeyFilter: SearchKeyFilter = {}
   ): Promise<GetCellsResults> {
     const infos: Cell[] = [];
-    let cursor: string | undefined = additionalOptions.lastCursor;
-    let sizeLimit = additionalOptions.sizeLimit || 100;
-    let order = additionalOptions.order || Order.asc;
+    let cursor: string | undefined = searchKeyFilter.lastCursor;
+    let sizeLimit = searchKeyFilter.sizeLimit || 100;
+    let order = searchKeyFilter.order || Order.asc;
     const index = 0;
     while (true) {
       let params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
@@ -220,6 +220,30 @@ export class CkbIndexer implements Indexer {
         }
       }
       if (liveCells.length < sizeLimit) {
+        break;
+      }
+    }
+    return {
+      objects: infos,
+      lastCursor: cursor,
+    };
+  }
+
+  public async getTransactions(
+    searchKey: SearchKey,
+    searchKeyFilter: SearchKeyFilter = {}
+  ): Promise<GetTransactionsResults> {
+    let infos: GetTransactionsResult[] = [];
+    let cursor: string | undefined = searchKeyFilter.lastCursor;
+    let sizeLimit = searchKeyFilter.sizeLimit || 100;
+    let order = searchKeyFilter.order || Order.asc;
+    for (;;) {
+      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
+      const res = await this.request("get_transactions", params);
+      const txs = res.objects;
+      cursor = res.last_cursor as string;
+      infos = infos.concat(txs);
+      if (txs.length < sizeLimit) {
         break;
       }
     }
@@ -255,7 +279,7 @@ export class CkbIndexer implements Indexer {
   }
 
   //  eslint-disable-next-line @typescript-eslint/no-unused-vars
-  subscribe(queries: CkbQueryOptions): NodeJS.EventEmitter {
+  subscribe(queries: CKBIndexerQueryOptions): NodeJS.EventEmitter {
     // TODO
     throw new Error("unimplemented");
   }
