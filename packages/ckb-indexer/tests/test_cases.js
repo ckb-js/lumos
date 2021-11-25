@@ -8062,6 +8062,15 @@ const cellCollectorTestCases = [
     expectedResult: cellsByLockSkip5,
   },
   {
+    desc: "Test query cells by lock script and skip the first 5 cells and bufferSize 3",
+    queryOption: {
+      lock: lock,
+      skip: 5,
+      bufferSize: 3
+    },
+    expectedResult: cellsByLockSkip5,
+  },
+  {
     desc: "Test query cells by lock script and return the cells in desc order",
     queryOption: {
       lock: lock,

@@ -137,14 +137,13 @@ export class CKBCellCollector implements BaseCellCollector {
       undefined,
       searchKeyFilter
     );
-
-    if (this.queries.skip) {
-      result.objects = result.objects.slice(this.queries.skip);
-    }
     return result;
   }
 
-  private shouldSkipped(cell: Cell) {
+  private shouldSkipped(cell: Cell, index: number) {
+    if (this.queries.skip && index < this.queries.skip) {
+      return true;
+    }
     if (cell && this.queries.type === "empty" && cell.cell_output.type) {
       return true;
     }
@@ -175,7 +174,7 @@ export class CKBCellCollector implements BaseCellCollector {
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
     while (true) {
-      if (!this.shouldSkipped(cells[index])) {
+      if (!this.shouldSkipped(cells[index], index)) {
         counter += 1;
       }
       index++;
@@ -266,7 +265,7 @@ export class CKBCellCollector implements BaseCellCollector {
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
     while (true) {
-      if (!this.shouldSkipped(cells[index])) {
+      if (!this.shouldSkipped(cells[index], index)) {
         yield cells[index];
       }
       index++;
