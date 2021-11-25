@@ -1,11 +1,11 @@
 import { Indexer, CellCollector } from "@ckb-lumos/indexer";
-import { Transaction, Hash, QueryOptions, Logger } from "@ckb-lumos/base";
+import { Transaction, Hash, QueryOptions, logger } from "@ckb-lumos/base";
 
 declare class TransactionManager {
   constructor(
     indexer: Indexer,
     options?: {
-      logger?: Logger;
+      logger?: logger.Logger;
       pollIntervalSeconds?: number;
     }
   );

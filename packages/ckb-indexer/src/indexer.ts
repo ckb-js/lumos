@@ -30,7 +30,7 @@ export enum Order {
   desc = "desc",
 }
 
-export interface CkbQueryOptions extends QueryOptions {
+export interface CKBIndexerQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;
   outputCapacityRange?: HexadecimalRange;
   bufferSize?: number;
@@ -169,7 +169,7 @@ export class CkbIndexer implements Indexer {
    * don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
    */
   collector(
-    queries: CkbQueryOptions,
+    queries: CKBIndexerQueryOptions,
     otherQueryOptions?: OtherQueryOptions
   ): CellCollector {
     return new CKBCellCollector(this, queries, otherQueryOptions);
@@ -275,7 +275,7 @@ export class CkbIndexer implements Indexer {
     );
   }
 
-  subscribe(queries: CkbQueryOptions): EventEmitter {
+  subscribe(queries: CKBIndexerQueryOptions): EventEmitter {
     this.isSubscribeRunning = true;
     this.scheduleLoop();
     if (queries.lock && queries.type) {

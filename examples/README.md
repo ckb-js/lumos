@@ -14,6 +14,7 @@ $ yarn workspace @ckb-lumos/config-manager build
 $ yarn workspace @ckb-lumos/common-scripts build
 $ yarn workspace @ckb-lumos/hd build
 $ yarn workspace @ckb-lumos/hd-cache build
+$ yarn workspace @ckb-lumos/lumos build
 
 $ yarn ts-node examples/config-manager.ts
 ```

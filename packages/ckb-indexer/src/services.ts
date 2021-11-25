@@ -1,5 +1,9 @@
 import { utils, Script, ScriptWrapper, HexString } from "@ckb-lumos/base";
-import { CkbQueryOptions, HexadecimalRange, SearchFilter } from "./indexer";
+import {
+  CKBIndexerQueryOptions,
+  HexadecimalRange,
+  SearchFilter,
+} from "./indexer";
 import { ScriptType, SearchKey } from "./indexer";
 import fetch from "cross-fetch";
 
@@ -12,7 +16,7 @@ const UnwrapScriptWrapper = (inputScript: ScriptWrapper | Script): Script => {
   }
   return inputScript;
 };
-const generateSearchKey = (queries: CkbQueryOptions): SearchKey => {
+const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   let script: Script | undefined = undefined;
   const filter: SearchFilter = {};
   let script_type: ScriptType | undefined = undefined;

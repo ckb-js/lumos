@@ -8,7 +8,7 @@ import {
 } from "@ckb-lumos/base";
 import {
   SearchKeyFilter,
-  CkbQueryOptions,
+  CKBIndexerQueryOptions,
   GetTransactionsResult,
   GetTransactionsResults,
   IOType,
@@ -40,11 +40,11 @@ interface TransactionWithIOType extends TransactionWithStatus {
   ioIndex: string;
 }
 
-export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollector {
+export class CKBIndexerTransactionCollector extends BaseIndexerModule.TransactionCollector {
   filterOptions: TransactionCollectorOptions;
   constructor(
     public indexer: CkbIndexer,
-    public queries: CkbQueryOptions,
+    public queries: CKBIndexerQueryOptions,
     public CKBRpcUrl: string,
     public options?: TransactionCollectorOptions
   ) {
@@ -67,8 +67,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
    *order?: query by ckb-indexer;
    */
   private async getTransactions(
-    lastCursor?: string,
-    skip?: number
+    lastCursor?: string
   ): Promise<GetTransactionDetailResult> {
     const searchKeyFilter: SearchKeyFilter = {
       sizeLimit: this.queries.bufferSize,
@@ -105,10 +104,6 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
       lastCursor = transactionHashList.lastCursor;
     }
 
-    //filter by queryOptions.skip
-    if (skip) {
-      transactionHashList.objects = transactionHashList.objects.slice(skip);
-    }
     // filter by ScriptWrapper.io_type
     transactionHashList.objects = this.filterByTypeIoTypeAndLockIoType(
       transactionHashList.objects,
@@ -316,7 +311,7 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
 
   private filterByTypeIoTypeAndLockIoType = (
     inputResult: GetTransactionsResult[],
-    queries: CkbQueryOptions
+    queries: CKBIndexerQueryOptions
   ) => {
     let result = inputResult;
     if (instanceOfScriptWrapper(queries.lock) && queries.lock.ioType) {
@@ -330,25 +325,26 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
 
   async count(): Promise<number> {
     let lastCursor: undefined | string = undefined;
-    const getTxWithCursor = async (
-      skip: number = 0
-    ): Promise<TransactionWithStatus[]> => {
+    const getTxWithCursor = async (): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
-        lastCursor,
-        skip
+        lastCursor
       );
       lastCursor = result.lastCursor;
       return result.objects;
     };
     let counter = 0;
     //skip query result in first query
-    let txs: TransactionWithStatus[] = await getTxWithCursor(this.queries.skip);
+    let txs: TransactionWithStatus[] = await getTxWithCursor();
     if (txs.length === 0) {
       return 0;
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
+      if (this.queries.skip && index < this.queries.skip) {
+        index++;
+        continue;
+      }
       counter += 1;
       index++;
       //reset index and exchange `txs` and `buffer` after count last tx
@@ -366,12 +362,9 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
   }
   async getTransactionHashes(): Promise<string[]> {
     let lastCursor: undefined | string = undefined;
-    const getTxWithCursor = async (
-      skip: number = 0
-    ): Promise<TransactionWithStatus[]> => {
+    const getTxWithCursor = async (): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
-        lastCursor,
-        skip
+        lastCursor
       );
       lastCursor = result.lastCursor;
       return result.objects;
@@ -379,13 +372,17 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
 
     let transactionHashes: string[] = [];
     //skip query result in first query
-    let txs: TransactionWithStatus[] = await getTxWithCursor(this.queries.skip);
+    let txs: TransactionWithStatus[] = await getTxWithCursor();
     if (txs.length === 0) {
       return [];
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
+      if (this.queries.skip && index < this.queries.skip) {
+        index++;
+        continue;
+      }
       if (txs[index].transaction.hash) {
         transactionHashes.push(txs[index].transaction.hash as string);
       }
@@ -405,24 +402,25 @@ export class CKBTransactionCollector extends BaseIndexerModule.TransactionCollec
   }
   async *collect() {
     let lastCursor: undefined | string = undefined;
-    const getTxWithCursor = async (
-      skip: number = 0
-    ): Promise<TransactionWithStatus[]> => {
+    const getTxWithCursor = async (): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
-        lastCursor,
-        skip
+        lastCursor
       );
       lastCursor = result.lastCursor;
       return result.objects;
     };
     //skip query result in first query
-    let txs: TransactionWithStatus[] = await getTxWithCursor(this.queries.skip);
+    let txs: TransactionWithStatus[] = await getTxWithCursor();
     if (txs.length === 0) {
       return 0;
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
     while (true) {
+      if (this.queries.skip && index < this.queries.skip) {
+        index++;
+        continue;
+      }
       if (this.filterOptions.includeStatus) {
         yield txs[index];
       } else {
