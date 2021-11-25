@@ -1,7 +1,5 @@
 import { Cell, Script } from "@ckb-lumos/base";
 import { common } from "@ckb-lumos/common-scripts";
-const { __tests__ } = common;
-const { getTransactionSize, calculateFee } = __tests__;
 import test from "ava";
 import { CellProvider } from "./cell_provider";
 import {
@@ -10,10 +8,8 @@ import {
   generateUpgradeTypeIdDataTx,
 } from "../src/deploy";
 import { predefined } from "@ckb-lumos/config-manager";
-import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 const { AGGRON4 } = predefined;
 
-const fromAddress = "ckt1qyqptxys5l9vk39ft0hswscxgseawc77y2wqlr558h";
 const outputScriptLock: Script = {
   code_hash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
