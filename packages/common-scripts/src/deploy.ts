@@ -7,7 +7,9 @@ import {
   values,
   core,
   WitnessArgs,
+  Transaction,
 } from "@ckb-lumos/base";
+import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
@@ -125,6 +127,15 @@ async function injectCapacity(
   config = config || getConfig();
   const fromScript = parseAddress(fromAddress, { config });
   amount = BigInt(amount);
+  let changeCapacity: bigint = BigInt(10) ** BigInt(8);
+  const changeCell: Cell = {
+    cell_output: {
+      capacity: "0x0",
+      lock: fromScript,
+      type: undefined,
+    },
+    data: "0x",
+  };
 
   if (amount > 0n) {
     const cellProvider = txSkeleton.get("cellProvider");
@@ -135,17 +146,8 @@ async function injectCapacity(
       data: "0x",
     });
 
-    const changeCell: Cell = {
-      cell_output: {
-        capacity: "0x0",
-        lock: fromScript,
-        type: undefined,
-      },
-      data: "0x",
-    };
     const minimalChangeCapacity: bigint = minimalCellCapacity(changeCell);
-
-    let changeCapacity: bigint = 0n;
+    amount = amount + BigInt(10) ** BigInt(8);
 
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
@@ -215,6 +217,29 @@ async function injectCapacity(
       lock:
         "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
     };
+
+    let tempWitness = new Reader(
+      core.SerializeWitnessArgs(
+        normalizers.NormalizeWitnessArgs(newWitnessArgs)
+      )
+    ).serializeJson();
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+      witnesses.set(firstIndex, tempWitness)
+    );
+
+    const txFee = calculateTxFee(txSkeleton);
+    changeCapacity = changeCapacity - txFee;
+
+    txSkeleton = txSkeleton.update("outputs", (outputs) => {
+      return outputs.pop();
+    });
+    if (changeCapacity > BigInt(0)) {
+      changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+      txSkeleton = txSkeleton.update("outputs", (outputs) =>
+        outputs.push(changeCell)
+      );
+    }
+
     if (witness !== "0x") {
       const witnessArgs = new core.WitnessArgs(new Reader(witness));
       const lock = witnessArgs.getLock();
@@ -250,6 +275,36 @@ async function injectCapacity(
   }
 
   return txSkeleton;
+}
+
+function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
+  const tx = createTransactionFromSkeleton(txSkeleton);
+  return getTransactionSizeByTx(tx);
+}
+
+function getTransactionSizeByTx(tx: Transaction): number {
+  const serializedTx = SerializeTransaction(
+    normalizers.NormalizeTransaction(tx)
+  );
+  // 4 is serialized offset bytesize
+  const size = serializedTx.byteLength + 4;
+  return size;
+}
+
+function calculateFee(size: number, feeRate: bigint): bigint {
+  const ratio = 1000n;
+  const base = BigInt(size) * feeRate;
+  const fee = base / ratio;
+  if (fee * ratio < base) {
+    return fee + 1n;
+  }
+  return fee;
+}
+
+function calculateTxFee(txSkeleton: TransactionSkeletonType): bigint {
+  const feeRate = BigInt(1000);
+  const txSize = getTransactionSize(txSkeleton);
+  return calculateFee(txSize, feeRate);
 }
 
 function calculateCodeHashByBin(scriptBin: Uint8Array): string {
@@ -504,22 +559,9 @@ export async function compareScriptBinaryWithOnChainData(
   return localHash === onChainHash;
 }
 
-export async function payFee(
-  txSkeleton: TransactionSkeletonType,
-  fromAddress: string,
-  amount: bigint,
-  { config = undefined }: Options = {}
-): Promise<TransactionSkeletonType> {
-  config = config || getConfig();
-  return await injectCapacity(txSkeleton, fromAddress, amount, {
-    config,
-  });
-}
-
 export default {
   generateDeployWithDataTx,
   generateDeployWithTypeIdTx,
   generateUpgradeTypeIdDataTx,
-  payFee,
   compareScriptBinaryWithOnChainData,
 };
