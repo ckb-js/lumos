@@ -218,28 +218,6 @@ async function injectCapacity(
         "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
     };
 
-    let tempWitness = new Reader(
-      core.SerializeWitnessArgs(
-        normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
-    ).serializeJson();
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-      witnesses.set(firstIndex, tempWitness)
-    );
-
-    const txFee = calculateTxFee(txSkeleton);
-    changeCapacity = changeCapacity - txFee;
-
-    txSkeleton = txSkeleton.update("outputs", (outputs) => {
-      return outputs.pop();
-    });
-    if (changeCapacity > BigInt(0)) {
-      changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
-      txSkeleton = txSkeleton.update("outputs", (outputs) =>
-        outputs.push(changeCell)
-      );
-    }
-
     if (witness !== "0x") {
       const witnessArgs = new core.WitnessArgs(new Reader(witness));
       const lock = witnessArgs.getLock();
@@ -271,6 +249,19 @@ async function injectCapacity(
     ).serializeJson();
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.set(firstIndex, witness)
+    );
+  }
+
+  const txFee = calculateTxFee(txSkeleton);
+  changeCapacity = changeCapacity - txFee;
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.pop();
+  });
+  if (changeCapacity > BigInt(0)) {
+    changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+    txSkeleton = txSkeleton.update("outputs", (outputs) =>
+      outputs.push(changeCell)
     );
   }
 
