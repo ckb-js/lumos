@@ -3,8 +3,9 @@ import {
   CKBIndexerQueryOptions,
   HexadecimalRange,
   SearchFilter,
-} from "./indexer";
-import { ScriptType, SearchKey } from "./indexer";
+  ScriptType,
+  SearchKey,
+} from "./type";
 import fetch from "cross-fetch";
 
 function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {

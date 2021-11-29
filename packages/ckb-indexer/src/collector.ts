@@ -5,7 +5,8 @@ import {
   CKBIndexerQueryOptions,
   GetCellsResults,
   Order,
-} from "./indexer";
+  OtherQueryOptions,
+} from "./type";
 
 import { CkbIndexer } from "./indexer";
 import {
@@ -14,12 +15,6 @@ import {
   instanceOfScriptWrapper,
 } from "./services";
 import fetch from "cross-fetch";
-
-/** CellCollector will not get cell with block_hash by default, please use withBlockHash and CKBRpcUrl to get block_hash if you need. */
-export interface OtherQueryOptions {
-  withBlockHash: true;
-  ckbRpcUrl: string;
-}
 
 interface GetBlockHashRPCResult {
   jsonrpc: string;

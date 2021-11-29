@@ -7,7 +7,7 @@ const {
   queryWithBlockHash,
 } = require("./test_cases.js");
 import { HashType } from "@ckb-lumos/base";
-import { OtherQueryOptions } from "../src/collector";
+import { OtherQueryOptions } from "../src/type";
 
 //TODO enhance testkit jsonrpc to support rpc batch and change to use testkit
 const nodeUri = "http://127.0.0.1:8118/rpc";
