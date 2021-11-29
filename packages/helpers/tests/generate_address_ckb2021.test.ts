@@ -27,16 +27,8 @@ function ScriptFrom(
   };
 }
 
-function ConfigFrom(
-  networkType: NetworkType,
-  options: { excludeShortId?: boolean } = {}
-): Config {
-  const { excludeShortId = false } = options;
-  const config = predefined[networkType];
-  return {
-    ...config,
-    SCRIPTS: excludeShortId ? {} : config.SCRIPTS,
-  };
+function ConfigFrom(networkType: NetworkType): Config {
+  return predefined[networkType];
 }
 
 test("default short address (code_hash_index = 0x00)", (t) => {
@@ -117,16 +109,12 @@ test("full address test (hash_type = 0x00)", (t) => {
   };
 
   t.is(
-    generateAddress(script, {
-      config: ConfigFrom("LINA", { excludeShortId: true }),
-    }),
+    generateAddress(script, { config: ConfigFrom("LINA") }),
     "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq9nnw7qkdnnclfkg59uzn8umtfd2kwxceqvguktl"
   );
 
   t.is(
-    generateAddress(script, {
-      config: ConfigFrom("AGGRON4", { excludeShortId: true }),
-    }),
+    generateAddress(script, { config: ConfigFrom("AGGRON4") }),
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq9nnw7qkdnnclfkg59uzn8umtfd2kwxceqz6hep8"
   );
 });
@@ -140,16 +128,12 @@ test("full address test (hash_type = 0x01)", (t) => {
   };
 
   t.is(
-    generateAddress(script, {
-      config: ConfigFrom("LINA", { excludeShortId: true }),
-    }),
+    generateAddress(script, { config: ConfigFrom("LINA") }),
     "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqxwquc4"
   );
 
   t.is(
-    generateAddress(script, {
-      config: ConfigFrom("AGGRON4", { excludeShortId: true }),
-    }),
+    generateAddress(script, { config: ConfigFrom("AGGRON4") }),
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqgutnjd"
   );
 });
@@ -163,16 +147,12 @@ test("full address test (hash_type = 0x02)", (t) => {
   };
 
   t.is(
-    generateAddress(script, {
-      config: ConfigFrom("LINA", { excludeShortId: true }),
-    }),
+    generateAddress(script, { config: ConfigFrom("LINA") }),
     "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqcydzyt"
   );
 
   t.is(
-    generateAddress(script, {
-      config: ConfigFrom("AGGRON4", { excludeShortId: true }),
-    }),
+    generateAddress(script, { config: ConfigFrom("AGGRON4") }),
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqkkxdwn"
   );
 });
