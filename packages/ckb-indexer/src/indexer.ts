@@ -390,7 +390,7 @@ export class CkbIndexer implements Indexer {
     emitterArgs: HexString,
     args: HexString
   ) {
-    if (argsLen === -1 || !argsLen) {
+    if (argsLen === -1 || (!argsLen && argsLen !== 0)) {
       return emitterArgs === args;
     } else if (typeof argsLen === "number" && args.length === argsLen * 2 + 2) {
       return args.substring(0, emitterArgs.length) === emitterArgs;
