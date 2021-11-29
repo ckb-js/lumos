@@ -46,12 +46,18 @@ test("default short address (code_hash_index = 0x00)", (t) => {
   );
 
   t.is(
-    generateAddress(script.LINA, { config: ConfigFrom("LINA") }),
+    generateAddress(script.LINA, {
+      config: ConfigFrom("LINA"),
+      __generateShortAddressWhenShortIDInConfig: true,
+    }),
     "ckb1qyqt8xaupvm8837nv3gtc9x0ekkj64vud3jqfwyw5v"
   );
 
   t.is(
-    generateAddress(script.AGGRON4, { config: ConfigFrom("AGGRON4") }),
+    generateAddress(script.AGGRON4, {
+      config: ConfigFrom("AGGRON4"),
+      __generateShortAddressWhenShortIDInConfig: true,
+    }),
     "ckt1qyqt8xaupvm8837nv3gtc9x0ekkj64vud3jq5t63cs"
   );
 });
@@ -63,12 +69,18 @@ test("multisign short address (code_hash_index = 0x01)", (t) => {
   );
 
   t.is(
-    generateAddress(script.LINA, { config: ConfigFrom("LINA") }),
+    generateAddress(script.LINA, {
+      config: ConfigFrom("LINA"),
+      __generateShortAddressWhenShortIDInConfig: true,
+    }),
     "ckb1qyq5lv479ewscx3ms620sv34pgeuz6zagaaqklhtgg"
   );
 
   t.is(
-    generateAddress(script.AGGRON4, { config: ConfigFrom("AGGRON4") }),
+    generateAddress(script.AGGRON4, {
+      config: ConfigFrom("AGGRON4"),
+      __generateShortAddressWhenShortIDInConfig: true,
+    }),
     "ckt1qyq5lv479ewscx3ms620sv34pgeuz6zagaaqt6f5y5"
   );
 });
@@ -80,12 +92,18 @@ test("acp short address (code_hash_index = 0x02)", (t) => {
   );
 
   t.is(
-    generateAddress(script.LINA, { config: ConfigFrom("LINA") }),
+    generateAddress(script.LINA, {
+      config: ConfigFrom("LINA"),
+      __generateShortAddressWhenShortIDInConfig: true,
+    }),
     "ckb1qypt6p7e7v4uudxjw9f2dgper5ey77d2hp2qxz4u4u"
   );
 
   t.is(
-    generateAddress(script.AGGRON4, { config: ConfigFrom("AGGRON4") }),
+    generateAddress(script.AGGRON4, {
+      config: ConfigFrom("AGGRON4"),
+      __generateShortAddressWhenShortIDInConfig: true,
+    }),
     "ckt1qypt6p7e7v4uudxjw9f2dgper5ey77d2hp2qm8treq"
   );
 });
