@@ -1,6 +1,6 @@
 import test from "ava";
 import { Indexer, TransactionCollector } from "../src";
-import { Order } from "../src/indexer";
+import { Order } from "../src/type";
 const {
   lock,
   transactionCollectorHashTestCases,

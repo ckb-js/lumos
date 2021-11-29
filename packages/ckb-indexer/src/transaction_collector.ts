@@ -13,8 +13,10 @@ import {
   GetTransactionsResults,
   IOType,
   Order,
-  CkbIndexer,
-} from "./indexer";
+  TransactionWithIOType,
+  GetTransactionRPCResult,
+} from "./type";
+import { CkbIndexer } from "./indexer";
 import {
   generateSearchKey,
   getHexStringBytes,
@@ -26,18 +28,6 @@ import {
 interface GetTransactionDetailResult {
   objects: TransactionWithStatus[];
   lastCursor: string | undefined;
-}
-
-export interface GetTransactionRPCResult {
-  jsonrpc: string;
-  id: number;
-  result: TransactionWithStatus;
-}
-
-export interface TransactionWithIOType extends TransactionWithStatus {
-  inputCell?: Output;
-  ioType: IOType;
-  ioIndex: string;
 }
 
 export class CKBIndexerTransactionCollector extends BaseIndexerModule.TransactionCollector {

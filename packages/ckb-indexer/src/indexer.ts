@@ -1,14 +1,10 @@
 import {
   Cell,
   CellCollector,
-  Hexadecimal,
   HexString,
   Indexer,
-  QueryOptions,
   Script,
   Tip,
-  OutPoint,
-  HexNumber,
   Output,
   utils,
   Block,
@@ -16,121 +12,16 @@ import {
 import { validators } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { request, requestBatch } from "./services";
-import { CKBCellCollector, OtherQueryOptions } from "./collector";
+import { CKBCellCollector,  } from "./collector";
 import { EventEmitter } from "events";
-import { GetTransactionRPCResult } from "./transaction_collector";
-
-export enum ScriptType {
-  type = "type",
-  lock = "lock",
-}
-
-export enum Order {
-  asc = "asc",
-  desc = "desc",
-}
-
-export interface CKBIndexerQueryOptions extends QueryOptions {
-  outputDataLenRange?: HexadecimalRange;
-  outputCapacityRange?: HexadecimalRange;
-  bufferSize?: number;
-}
-
-export type HexadecimalRange = [Hexadecimal, Hexadecimal];
-export interface SearchFilter {
-  script?: Script;
-  output_data_len_range?: HexadecimalRange; //empty
-  output_capacity_range?: HexadecimalRange; //empty
-  block_range?: HexadecimalRange; //fromBlock-toBlock
-}
-export interface SearchKey {
-  script: Script;
-  script_type: ScriptType;
-  filter?: SearchFilter;
-}
-
-export interface GetLiveCellsResult {
-  last_cursor: string;
-  objects: IndexerCell[];
-}
-
-export interface rpcResponse {
-  status: number;
-  data: rpcResponseData;
-}
-
-export interface rpcResponseData {
-  result: string;
-  error: string;
-}
-
-export interface IndexerCell {
-  block_number: Hexadecimal;
-  out_point: OutPoint;
-  output: {
-    capacity: HexNumber;
-    lock: Script;
-    type?: Script;
-  };
-  output_data: HexString;
-  tx_index: Hexadecimal;
-}
-
-export interface TerminatorResult {
-  stop: boolean;
-  push: boolean;
-}
-
-export declare type Terminator = (
-  index: number,
-  cell: Cell
-) => TerminatorResult;
+import {GetTransactionRPCResult, CKBIndexerQueryOptions, GetCellsResults, GetLiveCellsResult, GetTransactionsResult, GetTransactionsResults, IndexerEmitter, Order, OutputToVerify, SearchKey, SearchKeyFilter, Terminator,OtherQueryOptions } from "./type";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
 };
 
-export type HexNum = string;
-export type IOType = "input" | "output" | "both";
-export type Bytes32 = string;
-export type GetTransactionsResult = {
-  block_number: HexNum;
-  io_index: HexNum;
-  io_type: IOType;
-  tx_hash: Bytes32;
-  tx_index: HexNum;
-};
-export interface GetTransactionsResults {
-  lastCursor: string | undefined;
-  objects: GetTransactionsResult[];
-}
-
-export interface GetCellsResults {
-  lastCursor: string;
-  objects: Cell[];
-}
-
-export interface SearchKeyFilter {
-  sizeLimit?: number;
-  order?: Order;
-  lastCursor?: string | undefined;
-}
-
-export interface OutputToVerify {
-  output: Output,
-  outputData: string
-}
-
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
-}
-
-class IndexerEmitter extends EventEmitter {
-  lock?: Script;
-  type?: Script;
-  outputData?: HexString | "any";
-  argsLen?: number | "any";
-  fromBlock?: bigint;
 }
 
 /** CkbIndexer.collector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
