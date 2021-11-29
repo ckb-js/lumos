@@ -17,13 +17,19 @@ import {
 } from "./addresses";
 
 test("short address, mainnet", (t) => {
-  const address = generateAddress(shortAddressInfo.script, { config: LINA });
+  const address = generateAddress(shortAddressInfo.script, {
+    config: LINA,
+    __generateShortAddressWhenShortIDInConfig: true,
+  });
 
   t.is(address, shortAddressInfo.mainnetAddress);
 });
 
 test("short address, testnet", (t) => {
-  const address = generateAddress(shortAddressInfo.script, { config: AGGRON4 });
+  const address = generateAddress(shortAddressInfo.script, {
+    config: AGGRON4,
+    __generateShortAddressWhenShortIDInConfig: true,
+  });
 
   t.is(address, shortAddressInfo.testnetAddress);
 });
@@ -31,6 +37,7 @@ test("short address, testnet", (t) => {
 test("multisig short address, mainnet", (t) => {
   const address = generateAddress(multisigAddressInfo.script, {
     config: LINA,
+    __generateShortAddressWhenShortIDInConfig: true,
   });
 
   t.is(address, multisigAddressInfo.mainnetAddress);
@@ -39,6 +46,7 @@ test("multisig short address, mainnet", (t) => {
 test("multisig short address, testnet", (t) => {
   const address = generateAddress(multisigAddressInfo.script, {
     config: AGGRON4,
+    __generateShortAddressWhenShortIDInConfig: true,
   });
 
   t.is(address, multisigAddressInfo.testnetAddress);
@@ -61,7 +69,10 @@ test("full address, testnet", (t) => {
 });
 
 test("short address, mainnet, scriptToAddress", (t) => {
-  const address = scriptToAddress(shortAddressInfo.script, { config: LINA });
+  const address = scriptToAddress(shortAddressInfo.script, {
+    config: LINA,
+    __generateShortAddressWhenShortIDInConfig: true,
+  });
 
   t.is(address, shortAddressInfo.mainnetAddress);
 });
@@ -69,7 +80,7 @@ test("short address, mainnet, scriptToAddress", (t) => {
 test("generateSecp256k1Blake160Address, testnet", (t) => {
   const address = generateSecp256k1Blake160Address(
     shortAddressInfo.script.args,
-    { config: AGGRON4 }
+    { config: AGGRON4, __generateShortAddressWhenShortIDInConfig: true }
   );
 
   t.is(address, shortAddressInfo.testnetAddress);
@@ -78,7 +89,7 @@ test("generateSecp256k1Blake160Address, testnet", (t) => {
 test("generateSecp256k1Blake160Address, mainnet", (t) => {
   const address = generateSecp256k1Blake160Address(
     shortAddressInfo.script.args,
-    { config: LINA }
+    { config: LINA, __generateShortAddressWhenShortIDInConfig: true }
   );
 
   t.is(address, shortAddressInfo.mainnetAddress);
@@ -87,7 +98,7 @@ test("generateSecp256k1Blake160Address, mainnet", (t) => {
 test("generateSecp256k1Blake160MultisigAddress, testnet", (t) => {
   const address = generateSecp256k1Blake160MultisigAddress(
     multisigAddressInfo.script.args,
-    { config: AGGRON4 }
+    { config: AGGRON4, __generateShortAddressWhenShortIDInConfig: true }
   );
 
   t.is(address, multisigAddressInfo.testnetAddress);
@@ -96,7 +107,7 @@ test("generateSecp256k1Blake160MultisigAddress, testnet", (t) => {
 test("generateSecp256k1Blake160MultisigAddress, mainnet", (t) => {
   const address = generateSecp256k1Blake160MultisigAddress(
     multisigAddressInfo.script.args,
-    { config: LINA }
+    { config: LINA, __generateShortAddressWhenShortIDInConfig: true }
   );
 
   t.is(address, multisigAddressInfo.mainnetAddress);

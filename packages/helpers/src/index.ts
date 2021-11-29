@@ -20,6 +20,10 @@ export interface Options {
   config?: Config;
 }
 
+export interface GenerateOptions extends Options {
+  __generateShortAddressWhenShortIDInConfig?: boolean;
+}
+
 const BECH32_LIMIT = 1023;
 
 function byteArrayToHex(a: number[]): HexString {
@@ -88,13 +92,18 @@ export function locateCellDep(
 
 export function generateAddress(
   script: Script,
-  { config = undefined }: Options = {}
+  {
+    config = undefined,
+    __generateShortAddressWhenShortIDInConfig = false,
+  }: GenerateOptions = {}
 ): Address {
   config = config || getConfig();
-  const scriptTemplate = Object.values(config.SCRIPTS).find(
-    (s) =>
-      s!.CODE_HASH === script.code_hash && s!.HASH_TYPE === script.hash_type
-  );
+  const scriptTemplate =
+    __generateShortAddressWhenShortIDInConfig &&
+    Object.values(config.SCRIPTS).find(
+      (s) =>
+        s!.CODE_HASH === script.code_hash && s!.HASH_TYPE === script.hash_type
+    );
   const data: number[] = [];
   if (scriptTemplate && scriptTemplate.SHORT_ID !== undefined) {
     data.push(1, scriptTemplate.SHORT_ID);
@@ -128,9 +137,9 @@ export const scriptToAddress = generateAddress;
 function generatePredefinedAddress(
   args: HexString,
   scriptType: string,
-  { config = undefined }: Options = {}
+  options: GenerateOptions = {}
 ): Address {
-  config = config || getConfig();
+  const config = options.config || getConfig();
   const template = config.SCRIPTS[scriptType]!;
   const script: Script = {
     code_hash: template.CODE_HASH,
@@ -138,23 +147,25 @@ function generatePredefinedAddress(
     args,
   };
 
-  return generateAddress(script, { config });
+  return generateAddress(script, options);
 }
 
 export function generateSecp256k1Blake160Address(
   args: HexString,
-  { config = undefined }: Options = {}
+  options: GenerateOptions = {}
 ): Address {
-  return generatePredefinedAddress(args, "SECP256K1_BLAKE160", { config });
+  return generatePredefinedAddress(args, "SECP256K1_BLAKE160", options);
 }
 
 export function generateSecp256k1Blake160MultisigAddress(
   args: HexString,
-  { config = undefined }: Options = {}
+  options: GenerateOptions = {}
 ): Address {
-  return generatePredefinedAddress(args, "SECP256K1_BLAKE160_MULTISIG", {
-    config,
-  });
+  return generatePredefinedAddress(
+    args,
+    "SECP256K1_BLAKE160_MULTISIG",
+    options
+  );
 }
 
 function trySeries<T extends (...args: unknown[]) => unknown>(
