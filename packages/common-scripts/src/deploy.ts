@@ -136,6 +136,8 @@ async function injectCapacity(
     },
     data: "0x",
   };
+  const minimalChangeCapacity: bigint =
+    minimalCellCapacity(changeCell) + BigInt(10) ** BigInt(8);
 
   if (amount < 0n) {
     changeCapacity += amount;
@@ -149,8 +151,6 @@ async function injectCapacity(
       type: "empty",
       data: "0x",
     });
-
-    const minimalChangeCapacity: bigint = minimalCellCapacity(changeCell);
 
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
@@ -181,7 +181,8 @@ async function injectCapacity(
       changeCapacity += inputCapacity - deductCapacity;
       if (
         amount === BigInt(0) &&
-        (changeCapacity === BigInt(0) || changeCapacity > minimalChangeCapacity)
+        (changeCapacity === BigInt(0) ||
+          changeCapacity >= minimalChangeCapacity)
       )
         break;
     }
@@ -194,7 +195,8 @@ async function injectCapacity(
     );
   }
 
-  if (amount > 0n) throw new Error("Not enough capacity in from address!");
+  if (amount > 0n || changeCapacity < minimalChangeCapacity)
+    throw new Error("Not enough capacity in from address!");
 
   /*
    * Modify the skeleton, so the first witness of the fromAddress script group

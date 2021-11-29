@@ -298,3 +298,107 @@ test("upgrade with typeID", async (t) => {
 
   t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);
 });
+
+test("collected capacity is enough for change cell and deploy cell", async (t) => {
+  const inputs: Cell[] = [
+    {
+      cell_output: {
+        capacity: "0x2e318fc00",
+        lock: {
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
+        },
+        type: undefined,
+      },
+      data: "0x",
+      out_point: {
+        index: "0x1",
+        tx_hash:
+          "0x4c9457e28e7dd2c87be8b814e33b94d114b83d10bb3cad37de6c60f408f2773e",
+      },
+      block_number: "0x36145f",
+    },
+  ];
+  const cellProvider = new CellProvider(inputs);
+  const deployOptions = {
+    cellProvider: cellProvider,
+    scriptBinary: scriptBinary,
+    outputScriptLock: outputScriptLock,
+    config: AGGRON4,
+  };
+  const { txSkeleton } = await generateDeployWithDataTx(deployOptions);
+  const changeCapacity = txSkeleton.outputs.get(1)!.cell_output.capacity!;
+  t.is(changeCapacity, "0x1718c7c2f");
+});
+
+test("collected capacity is NOT enough for change cell and deploy cell", async (t) => {
+  const inputs: Cell[] = [
+    {
+      cell_output: {
+        capacity: "0x165a0bc00",
+        lock: {
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
+        },
+        type: undefined,
+      },
+      data: "0x",
+      out_point: {
+        index: "0x1",
+        tx_hash:
+          "0x4c9457e28e7dd2c87be8b814e33b94d114b83d10bb3cad37de6c60f408f2773e",
+      },
+      block_number: "0x36145f",
+    },
+  ];
+  const cellProvider = new CellProvider(inputs);
+  const deployOptions = {
+    cellProvider: cellProvider,
+    scriptBinary: scriptBinary,
+    outputScriptLock: outputScriptLock,
+    config: AGGRON4,
+  };
+  const error = await t.throwsAsync(() =>
+    generateDeployWithDataTx(deployOptions)
+  );
+  t.is(error.message, "Not enough capacity in from address!");
+});
+
+test("collected capacity is enough for deploy cell but NOT enough for change cell", async (t) => {
+  const inputs: Cell[] = [
+    {
+      cell_output: {
+        capacity: "0x2cb417800",
+        lock: {
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
+        },
+        type: undefined,
+      },
+      data: "0x",
+      out_point: {
+        index: "0x1",
+        tx_hash:
+          "0x4c9457e28e7dd2c87be8b814e33b94d114b83d10bb3cad37de6c60f408f2773e",
+      },
+      block_number: "0x36145f",
+    },
+  ];
+  const cellProvider = new CellProvider(inputs);
+  const deployOptions = {
+    cellProvider: cellProvider,
+    scriptBinary: scriptBinary,
+    outputScriptLock: outputScriptLock,
+    config: AGGRON4,
+  };
+  const error = await t.throwsAsync(() =>
+    generateDeployWithDataTx(deployOptions)
+  );
+  t.is(error.message, "Not enough capacity in from address!");
+});
