@@ -126,7 +126,7 @@ async function injectCapacity(
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   const fromScript = parseAddress(fromAddress, { config });
-  amount = BigInt(amount);
+  amount = BigInt(amount) + BigInt(10) ** BigInt(8);
   let changeCapacity: bigint = BigInt(10) ** BigInt(8);
   const changeCell: Cell = {
     cell_output: {
@@ -136,6 +136,10 @@ async function injectCapacity(
     },
     data: "0x",
   };
+
+  if (amount < 0n) {
+    changeCapacity += amount;
+  }
 
   if (amount > 0n) {
     const cellProvider = txSkeleton.get("cellProvider");
@@ -147,7 +151,6 @@ async function injectCapacity(
     });
 
     const minimalChangeCapacity: bigint = minimalCellCapacity(changeCell);
-    amount = amount + BigInt(10) ** BigInt(8);
 
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
@@ -182,13 +185,13 @@ async function injectCapacity(
       )
         break;
     }
+  }
 
-    if (changeCapacity > BigInt(0)) {
-      changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
-      txSkeleton = txSkeleton.update("outputs", (outputs) =>
-        outputs.push(changeCell)
-      );
-    }
+  if (changeCapacity > BigInt(0)) {
+    changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+    txSkeleton = txSkeleton.update("outputs", (outputs) =>
+      outputs.push(changeCell)
+    );
   }
 
   if (amount > 0n) throw new Error("Not enough capacity in from address!");
