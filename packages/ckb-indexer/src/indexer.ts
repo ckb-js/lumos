@@ -12,9 +12,23 @@ import {
 import { validators } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { request, requestBatch } from "./services";
-import { CKBCellCollector,  } from "./collector";
+import { CKBCellCollector } from "./collector";
 import { EventEmitter } from "events";
-import {GetTransactionRPCResult, CKBIndexerQueryOptions, GetCellsResults, GetLiveCellsResult, GetTransactionsResult, GetTransactionsResults, IndexerEmitter, Order, OutputToVerify, SearchKey, SearchKeyFilter, Terminator,OtherQueryOptions } from "./type";
+import {
+  GetTransactionRPCResult,
+  CKBIndexerQueryOptions,
+  GetCellsResults,
+  GetLiveCellsResult,
+  GetTransactionsResult,
+  GetTransactionsResults,
+  IndexerEmitter,
+  Order,
+  OutputToVerify,
+  SearchKey,
+  SearchKeyFilter,
+  Terminator,
+  OtherQueryOptions,
+} from "./type";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -280,8 +294,8 @@ export class CkbIndexer implements Indexer {
             jsonrpc: "2.0",
             method: "get_transaction",
             params: [input.previous_output.tx_hash],
-          }
-        })
+          };
+        });
 
         // batch request by block
         const transactionResponse: OutputToVerify[] = await requestBatch(
@@ -290,16 +304,18 @@ export class CkbIndexer implements Indexer {
         ).then((response: GetTransactionRPCResult[]) => {
           return response.map(
             (item: GetTransactionRPCResult, index: number) => {
-              const cellIndex = tx.inputs[index].previous_output.index
-              const outputCell = item.result.transaction.outputs[parseInt(cellIndex)];
-              const outputData = item.result.transaction.outputs_data[parseInt(cellIndex)];
-              return {output: outputCell, outputData} as OutputToVerify
+              const cellIndex = tx.inputs[index].previous_output.index;
+              const outputCell =
+                item.result.transaction.outputs[parseInt(cellIndex)];
+              const outputData =
+                item.result.transaction.outputs_data[parseInt(cellIndex)];
+              return { output: outputCell, outputData } as OutputToVerify;
             }
           );
         });
-        transactionResponse.forEach(({output, outputData}) => {
-          this.filterEvents(output, blockNumber, outputData)
-        })
+        transactionResponse.forEach(({ output, outputData }) => {
+          this.filterEvents(output, blockNumber, outputData);
+        });
       }
       // publish changed events if subscribed script exists in output cells.
       for (const [outputIndex, output] of tx.outputs.entries()) {

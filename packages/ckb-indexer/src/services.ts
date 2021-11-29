@@ -3,7 +3,8 @@ import {
   CKBIndexerQueryOptions,
   HexadecimalRange,
   SearchFilter,
-  ScriptType, SearchKey
+  ScriptType,
+  SearchKey,
 } from "./type";
 import fetch from "cross-fetch";
 
