@@ -12,13 +12,13 @@ import {
   Output,
   utils,
   Block,
-  TransactionWithStatus,
 } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
-import { request } from "./services";
+import { request, requestBatch } from "./services";
 import { CKBCellCollector, OtherQueryOptions } from "./collector";
 import { EventEmitter } from "events";
+import { GetTransactionRPCResult } from "./transaction_collector";
 
 export enum ScriptType {
   type = "type",
@@ -114,6 +114,11 @@ export interface SearchKeyFilter {
   sizeLimit?: number;
   order?: Order;
   lastCursor?: string | undefined;
+}
+
+export interface OutputToVerify {
+  output: Output,
+  outputData: string
 }
 
 function defaultLogger(level: string, message: string) {
@@ -373,28 +378,37 @@ export class CkbIndexer implements Indexer {
     return timeout;
   }
 
-  private getCellByOutPoint = async (output: OutPoint) => {
-    const tx: TransactionWithStatus = await this.request(
-      "get_transaction",
-      [output.tx_hash],
-      this.ckbRpcUrl
-    );
-    const outputCell = tx.transaction.outputs[parseInt(output.index)];
-    const outputData = tx.transaction.outputs_data[parseInt(output.index)];
-    return { output: outputCell, outputData };
-  };
-
   private async publishAppendBlockEvents(block: Block) {
     for (const [txIndex, tx] of block.transactions.entries()) {
       const blockNumber = block.header.number;
       // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
       if (txIndex > 0) {
-        for (const input of tx.inputs) {
-          const { output, outputData } = await this.getCellByOutPoint(
-            input.previous_output
+        const requestData = tx.inputs.map((input, index) => {
+          return {
+            id: index,
+            jsonrpc: "2.0",
+            method: "get_transaction",
+            params: [input.previous_output.tx_hash],
+          }
+        })
+
+        // batch request by block
+        const transactionResponse: OutputToVerify[] = await requestBatch(
+          this.ckbRpcUrl,
+          requestData
+        ).then((response: GetTransactionRPCResult[]) => {
+          return response.map(
+            (item: GetTransactionRPCResult, index: number) => {
+              const cellIndex = tx.inputs[index].previous_output.index
+              const outputCell = item.result.transaction.outputs[parseInt(cellIndex)];
+              const outputData = item.result.transaction.outputs_data[parseInt(cellIndex)];
+              return {output: outputCell, outputData} as OutputToVerify
+            }
           );
-          this.filterEvents(output, blockNumber, outputData);
-        }
+        });
+        transactionResponse.forEach(({output, outputData}) => {
+          this.filterEvents(output, blockNumber, outputData)
+        })
       }
       // publish changed events if subscribed script exists in output cells.
       for (const [outputIndex, output] of tx.outputs.entries()) {

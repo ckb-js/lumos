@@ -28,13 +28,13 @@ interface GetTransactionDetailResult {
   lastCursor: string | undefined;
 }
 
-interface GetTransactionRPCResult {
+export interface GetTransactionRPCResult {
   jsonrpc: string;
   id: number;
   result: TransactionWithStatus;
 }
 
-interface TransactionWithIOType extends TransactionWithStatus {
+export interface TransactionWithIOType extends TransactionWithStatus {
   inputCell?: Output;
   ioType: IOType;
   ioIndex: string;
