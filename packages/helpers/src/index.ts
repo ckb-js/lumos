@@ -86,6 +86,12 @@ export function locateCellDep(
   return null;
 }
 
+/**
+ * @deprecated please migrate to {@link encodeToAddress}, the short format address will be removed in the future
+ * @param script
+ * @param param1
+ * @returns
+ */
 export function generateAddress(
   script: Script,
   { config = undefined }: Options = {}
@@ -123,8 +129,42 @@ export function generateAddress(
   return bech32.encode(config.PREFIX, words, BECH32_LIMIT);
 }
 
+export function encodeToAddress(
+  script: Script,
+  { config = undefined }: Options = {}
+): Address {
+  config = config || getConfig();
+
+  const data: number[] = [];
+
+  const hash_type = (() => {
+    if (script.hash_type === "data") return 0;
+    if (script.hash_type === "type") return 1;
+    if (script.hash_type === "data1") return 2;
+
+    throw new Error(`unknown hash_type ${script.hash_type}`);
+  })();
+
+  data.push(0x00);
+  data.push(...hexToByteArray(script.code_hash));
+  data.push(hash_type);
+  data.push(...hexToByteArray(script.args));
+
+  return bech32m.encode(config.PREFIX, bech32m.toWords(data), BECH32_LIMIT);
+}
+
+/**
+ * @deprecated please migrate to {@link encodeToAddress}, the short format address will be removed in the future
+ */
 export const scriptToAddress = generateAddress;
 
+/**
+ * @deprecated please migrate to {@link encodeToPredefinedAddress}, the short format address will be removed in the future
+ * @param args
+ * @param scriptType
+ * @param options
+ * @returns
+ */
 function generatePredefinedAddress(
   args: HexString,
   scriptType: string,
@@ -141,6 +181,28 @@ function generatePredefinedAddress(
   return generateAddress(script, { config });
 }
 
+export function encodeToPredefinedAddress(
+  args: HexString,
+  scriptType: string,
+  { config = undefined }: Options = {}
+) {
+  config = config || getConfig();
+  const template = config.SCRIPTS[scriptType]!;
+  const script: Script = {
+    code_hash: template.CODE_HASH,
+    hash_type: template.HASH_TYPE,
+    args,
+  };
+
+  return encodeToAddress(script, { config });
+}
+
+/**
+ * @deprecated please migrate to {@link encodeToSecp256k1Blake160Address}, the short format address will be removed in the future
+ * @param args
+ * @param param1
+ * @returns
+ */
 export function generateSecp256k1Blake160Address(
   args: HexString,
   { config = undefined }: Options = {}
@@ -148,11 +210,33 @@ export function generateSecp256k1Blake160Address(
   return generatePredefinedAddress(args, "SECP256K1_BLAKE160", { config });
 }
 
+export function encodeToSecp256k1Blake160Address(
+  args: HexString,
+  { config = undefined }: Options = {}
+): Address {
+  return encodeToPredefinedAddress(args, "SECP256K1_BLAKE160", { config });
+}
+
+/**
+ * @deprecated
+ * @param args
+ * @param param1
+ * @returns
+ */
 export function generateSecp256k1Blake160MultisigAddress(
   args: HexString,
   { config = undefined }: Options = {}
 ): Address {
   return generatePredefinedAddress(args, "SECP256K1_BLAKE160_MULTISIG", {
+    config,
+  });
+}
+
+export function encodeToSecp256k1Blake160MultisigAddress(
+  args: HexString,
+  { config = undefined }: Options = {}
+) {
+  return encodeToPredefinedAddress(args, "SECP256K1_BLAKE160_MULTISIG", {
     config,
   });
 }
@@ -177,8 +261,8 @@ export function parseAddress(
 ): Script {
   config = config || getConfig();
   const { prefix, words } = trySeries(
-    () => bech32.decode(address, BECH32_LIMIT),
-    () => bech32m.decode(address, BECH32_LIMIT)
+    () => bech32m.decode(address, BECH32_LIMIT),
+    () => bech32.decode(address, BECH32_LIMIT)
   );
   if (prefix !== config.PREFIX) {
     throw Error(
@@ -186,8 +270,8 @@ export function parseAddress(
     );
   }
   const data = trySeries(
-    () => bech32.fromWords(words),
-    () => bech32m.fromWords(words)
+    () => bech32m.fromWords(words),
+    () => bech32.fromWords(words)
   );
   switch (data[0]) {
     case 0:

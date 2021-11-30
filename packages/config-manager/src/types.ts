@@ -5,7 +5,10 @@ export interface ScriptConfig {
   TX_HASH: string;
   INDEX: string;
   DEP_TYPE: "dep_group" | "code";
-  /** Short ID for creating CKB address, not all scripts have short IDs. */
+  /**
+   * @deprecated the short address will be removed in the future
+   * Short ID for creating CKB address, not all scripts have short IDs.
+   */
   SHORT_ID?: number;
 }
 

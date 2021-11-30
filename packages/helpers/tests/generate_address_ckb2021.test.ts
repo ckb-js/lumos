@@ -1,5 +1,10 @@
 import test from "ava";
-import { generateAddress } from "../src";
+import {
+  encodeToAddress,
+  encodeToSecp256k1Blake160Address,
+  encodeToSecp256k1Blake160MultisigAddress,
+  generateAddress,
+} from "../src";
 import { CKB2021, Config, predefined } from "@ckb-lumos/config-manager";
 import { Script, HashType } from "@ckb-lumos/base";
 
@@ -156,5 +161,81 @@ test("full address test (hash_type = 0x02)", (t) => {
       config: ConfigFrom("AGGRON4", { excludeShortId: true }),
     }),
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqkkxdwn"
+  );
+});
+
+test("[encodeToAddress] full address test (hash_type = 0x02)", (t) => {
+  const script: Script = {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "data1",
+    args: "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
+  };
+
+  t.is(
+    encodeToAddress(script, {
+      config: ConfigFrom("LINA"),
+    }),
+    "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqcydzyt"
+  );
+
+  t.is(
+    encodeToAddress(script, {
+      config: ConfigFrom("AGGRON4"),
+    }),
+    "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqkkxdwn"
+  );
+});
+
+test("[encodeToAddress] default short address (code_hash_index = 0x00)", (t) => {
+  const script = ScriptFrom(
+    "SECP256K1_BLAKE160",
+    "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64"
+  );
+
+  t.is(
+    encodeToAddress(script.LINA, { config: ConfigFrom("LINA") }),
+    "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqxwquc4"
+  );
+
+  t.is(
+    encodeToAddress(script.AGGRON4, { config: ConfigFrom("AGGRON4") }),
+    "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqgutnjd"
+  );
+});
+
+test("encode predefined secp256k1 script to address", (t) => {
+  t.is(
+    encodeToSecp256k1Blake160Address(
+      "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
+      { config: ConfigFrom("LINA") }
+    ),
+    "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqxwquc4"
+  );
+
+  t.is(
+    encodeToSecp256k1Blake160Address(
+      "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
+      { config: ConfigFrom("AGGRON4") }
+    ),
+    "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqgutnjd"
+  );
+});
+
+test("encode predefined multi_sig secp256k1 script to address", (t) => {
+  t.is(
+    encodeToSecp256k1Blake160MultisigAddress(
+      "0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a",
+      { config: ConfigFrom("LINA") }
+    ),
+    "ckb1qpw9q60tppt7l3j7r09qcp7lxnp3vcanvgha8pmvsa3jplykxn32sq20k2lzuhgvrgacd98cxg6s5v7pdpw5w7s0mu7z2"
+  );
+
+  t.is(
+    encodeToSecp256k1Blake160MultisigAddress(
+      "0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a",
+      { config: ConfigFrom("AGGRON4") }
+    ),
+    "ckt1qpw9q60tppt7l3j7r09qcp7lxnp3vcanvgha8pmvsa3jplykxn32sq20k2lzuhgvrgacd98cxg6s5v7pdpw5w7spfh3gj"
   );
 });
