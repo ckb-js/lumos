@@ -64,6 +64,36 @@ export function createCKBMockRPC(options: Options): Express {
     return blocks[blocks.length - 1].header.number;
   });
 
+  server.addMethod("get_transaction", (hashes) => {
+    assertsParams(Array.isArray(hashes));
+    const hash = hashes[0];
+    let result;
+    let blockHash;
+    for (let block of blocks) {
+      const tx = block.transactions.find((tx) => tx.hash === hash);
+      if (tx) {
+        result = tx;
+        blockHash = block.header.hash;
+        break;
+      }
+    }
+    return {
+      transaction: result,
+      tx_status: { status: "padding", block_hash: blockHash },
+    };
+  });
+
+  server.addMethod("get_blockchain_info", () => {
+    return {
+      alerts: [],
+      chain: "ckb_testnet",
+      difficulty: "0x1b6f506b",
+      epoch: "0x708069a000cc5",
+      is_initial_block_download: false,
+      median_time: "0x17d3723d27d",
+    };
+  });
+
   const app = express();
   app.use(bodyParser.json());
 

@@ -1,28 +1,20 @@
-import {
-  Script,
-  utils,
-  Cell,
-  BaseCellCollector,
-  ScriptWrapper,
-} from "@ckb-lumos/base";
+import { utils, Cell, BaseCellCollector } from "@ckb-lumos/base";
 import { validators } from "ckb-js-toolkit";
 import {
-  AdditionalOptions,
-  CkbQueryOptions,
+  SearchKeyFilter,
+  CKBIndexerQueryOptions,
   GetCellsResults,
-  HexadecimalRange,
   Order,
-  SearchFilter,
-} from "./indexer";
+  OtherQueryOptions,
+} from "./type";
 
-import { CkbIndexer, ScriptType, SearchKey } from "./indexer";
+import { CkbIndexer } from "./indexer";
+import {
+  generateSearchKey,
+  getHexStringBytes,
+  instanceOfScriptWrapper,
+} from "./services";
 import fetch from "cross-fetch";
-
-/** CellCollector will not get cell with block_hash by default, please use withBlockHash and CKBRpcUrl to get block_hash if you need. */
-export interface OtherQueryOptions {
-  withBlockHash: true;
-  ckbRpcUrl: string;
-}
 
 interface GetBlockHashRPCResult {
   jsonrpc: string;
@@ -34,10 +26,10 @@ interface GetBlockHashRPCResult {
 export class CKBCellCollector implements BaseCellCollector {
   constructor(
     public indexer: CkbIndexer,
-    public queries: CkbQueryOptions,
+    public queries: CKBIndexerQueryOptions,
     public otherQueryOptions?: OtherQueryOptions
   ) {
-    const defaultQuery: CkbQueryOptions = {
+    const defaultQuery: CKBIndexerQueryOptions = {
       lock: undefined,
       type: undefined,
       argsLen: -1,
@@ -56,10 +48,6 @@ export class CKBCellCollector implements BaseCellCollector {
       (!this.queries.type || this.queries.type === "empty")
     ) {
       throw new Error("Either lock or type script must be provided!");
-    }
-
-    function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
-      return typeof object === "object" && object != null && "script" in object;
     }
 
     // unWrap `ScriptWrapper` into `Script`.
@@ -131,76 +119,26 @@ export class CKBCellCollector implements BaseCellCollector {
     }
   }
 
-  private generatorSearchKey(queries: CkbQueryOptions): SearchKey {
-    let script: Script | undefined = undefined;
-    const filter: SearchFilter = {};
-    let script_type: ScriptType | undefined = undefined;
-
-    if (queries.lock) {
-      script = queries.lock as Script;
-      script_type = ScriptType.lock;
-      if (queries.type && typeof queries.type !== "string") {
-        filter.script = queries.type as Script;
-      }
-    } else if (queries.type && typeof queries.type !== "string") {
-      script = queries.type as Script;
-      script_type = ScriptType.type;
-    }
-    let block_range: HexadecimalRange | null = null;
-    if (queries.fromBlock && queries.toBlock) {
-      //toBlock+1 cause toBlock need to be included
-      block_range = [
-        queries.fromBlock,
-        `0x${(BigInt(queries.toBlock) + 1n).toString(16)}`,
-      ];
-    }
-    if (block_range) {
-      filter.block_range = block_range;
-    }
-    if (queries.outputDataLenRange) {
-      filter.output_data_len_range = queries.outputDataLenRange;
-    }
-    if (queries.outputCapacityRange) {
-      filter.output_capacity_range = queries.outputCapacityRange;
-    }
-    if (!script) {
-      throw new Error("Either lock or type script must be provided!");
-    }
-    if (!script_type) {
-      throw new Error("script_type must be provided");
-    }
-    return {
-      script,
-      script_type,
-      filter,
-    };
-  }
-
   private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
-    const additionalOptions: AdditionalOptions = {
+    const searchKeyFilter: SearchKeyFilter = {
       sizeLimit: this.queries.bufferSize,
       order: this.queries.order as Order,
     };
     if (lastCursor) {
-      additionalOptions.lastCursor = lastCursor;
+      searchKeyFilter.lastCursor = lastCursor;
     }
     const result: GetCellsResults = await this.indexer.getCells(
-      this.generatorSearchKey(this.queries),
+      generateSearchKey(this.queries),
       undefined,
-      additionalOptions
+      searchKeyFilter
     );
-
-    if (this.queries.skip) {
-      result.objects = result.objects.slice(this.queries.skip);
-    }
     return result;
   }
 
-  private getHexStringBytes(hexString: string) {
-    return Math.ceil(hexString.substr(2).length / 2);
-  }
-
-  private shouldSkipped(cell: Cell) {
+  private shouldSkipped(cell: Cell, index: number) {
+    if (this.queries.skip && index < this.queries.skip) {
+      return true;
+    }
     if (cell && this.queries.type === "empty" && cell.cell_output.type) {
       return true;
     }
@@ -210,8 +148,7 @@ export class CKBCellCollector implements BaseCellCollector {
     if (
       this.queries.argsLen !== -1 &&
       this.queries.argsLen !== "any" &&
-      this.getHexStringBytes(cell.cell_output.lock.args) !==
-        this.queries.argsLen
+      getHexStringBytes(cell.cell_output.lock.args) !== this.queries.argsLen
     ) {
       return true;
     }
@@ -232,7 +169,7 @@ export class CKBCellCollector implements BaseCellCollector {
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
     while (true) {
-      if (!this.shouldSkipped(cells[index])) {
+      if (!this.shouldSkipped(cells[index], index)) {
         counter += 1;
       }
       index++;
@@ -323,7 +260,7 @@ export class CKBCellCollector implements BaseCellCollector {
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
     while (true) {
-      if (!this.shouldSkipped(cells[index])) {
+      if (!this.shouldSkipped(cells[index], index)) {
         yield cells[index];
       }
       index++;
