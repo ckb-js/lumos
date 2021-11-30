@@ -7,6 +7,12 @@ import {
   SearchKey,
 } from "./indexer";
 
+interface GetCellsCapacityResult {
+  capacity: HexString;
+  block_hash: HexString;
+  block_number: HexString;
+}
+
 const handler = {
   get: (target: any, method: string) => {
     return async (...params: any) => {
@@ -61,7 +67,9 @@ export class RPC {
       after_cursor
     );
   }
-  async get_cells_capacity(searchKey: SearchKey) {
+  async get_cells_capacity(
+    searchKey: SearchKey
+  ): Promise<GetCellsCapacityResult> {
     return this.rpcProxy.get_cells_capacity(searchKey);
   }
   async get_indexer_info(): Promise<string> {
