@@ -13,10 +13,19 @@ import {
   toolkit,
 } from "@ckb-lumos/lumos";
 import { values } from "@ckb-lumos/base";
-import { serializeMultisigScript, multisigArgs, FromInfo, parseFromInfo, MultisigScript } from "@ckb-lumos/common-scripts/lib/from_info";
+import {
+  serializeMultisigScript,
+  multisigArgs,
+  FromInfo,
+  MultisigScript,
+} from "@ckb-lumos/common-scripts/lib/from_info";
 const { ScriptValue } = values;
 
-export const { AGGRON4 } = config.predefined;
+const LOCKARG1 = "0x3d35d87fac0008ba5b12ee1c599b102fc8f5fdf8";
+const LOCKARG2 = "0x99dbe610c43186696e1f88cb7b59252d4c92afda";
+const LOCKARG3 = "0xc055df68fdd47c6a5965b9ab21cd6825d8696a76";
+
+const { AGGRON4 } = config.predefined;
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
@@ -45,11 +54,7 @@ const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
 const fromInfo: FromInfo = {
   R: 2,
   M: 2,
-  publicKeyHashes: [
-    "0x3d35d87fac0008ba5b12ee1c599b102fc8f5fdf8", //Lock Arg of Alice
-    "0x99dbe610c43186696e1f88cb7b59252d4c92afda", // Lock Arg of Bob
-    "0xc055df68fdd47c6a5965b9ab21cd6825d8696a76",
-  ],
+  publicKeyHashes: [LOCKARG1, LOCKARG2, LOCKARG3],
 };
 let fromScript: Script;
 let multisigScript: string;
@@ -152,7 +157,8 @@ export async function transfer(options: Options): Promise<string> {
     }
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
     let newWitnessArgs: WitnessArgs;
-    const SECP_SIGNATURE_PLACEHOLDER = "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+    const SECP_SIGNATURE_PLACEHOLDER =
+      "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
     if (typeof fromInfo !== "string") {
       newWitnessArgs = {
@@ -162,7 +168,7 @@ export async function transfer(options: Options): Promise<string> {
           SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat(
             (fromInfo as MultisigScript).M
           ),
-      }
+      };
     } else {
       newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
     }
@@ -207,12 +213,17 @@ export async function transfer(options: Options): Promise<string> {
   options.privKeys.forEach((privKey) => {
     if (privKey !== "") {
       let sig = hd.key.signRecoverable(message!, privKey);
-      sig = sig.slice(2)
+      sig = sig.slice(2);
       Sigs += sig;
     }
-  })
-  Sigs = "0x000202033d35d87fac0008ba5b12ee1c599b102fc8f5fdf899dbe610c43186696e1f88cb7b59252d4c92afdac055df68fdd47c6a5965b9ab21cd6825d8696a76" + Sigs;
-  
+  });
+  Sigs =
+    "0x00020203" +
+    LOCKARG1.slice(2) +
+    LOCKARG2.slice(2) +
+    LOCKARG3.slice(2) +
+    Sigs;
+
   const tx = helpers.sealTransaction(txSkeleton, [Sigs]);
   const hash = await rpc.send_transaction(tx, "passthrough");
   console.log("The transaction hash is", hash);

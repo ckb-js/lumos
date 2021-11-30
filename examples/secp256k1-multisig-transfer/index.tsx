@@ -3,18 +3,24 @@ import ReactDOM from "react-dom";
 import { Script } from "@ckb-lumos/lumos";
 import { generateAccountFromPrivateKey, transfer } from "./lib";
 
+const PRIVKEY1 =
+  "0x2c56a92a03d767542222432e4f2a0584f01e516311f705041d86b1af7573751f";
+const PRIVKEY2 =
+  "0x3bc65932a75f76c5b6a04660e4d0b85c2d9b5114efa78e6e5cf7ad0588ca09c8";
+// const PRIVKEY3 = "0xbe06025fbd8c74f65a513a28e62ac56f3227fcb307307a0f2a0ef34d4a66e81f";
+
 const app = document.getElementById("root");
 ReactDOM.render(<App />, app);
 
 export function App() {
-  const [privKey1, setPrivKey1] = useState("0x2c56a92a03d767542222432e4f2a0584f01e516311f705041d86b1af7573751f");
-  const [privKey2, setPrivKey2] = useState("0x3bc65932a75f76c5b6a04660e4d0b85c2d9b5114efa78e6e5cf7ad0588ca09c8");
-  const [privKey3, setPrivKey3] = useState("0xbe06025fbd8c74f65a513a28e62ac56f3227fcb307307a0f2a0ef34d4a66e81f");
+  const [privKey1, setPrivKey1] = useState(PRIVKEY1);
+  const [privKey2, setPrivKey2] = useState(PRIVKEY2);
+  const [privKey3, setPrivKey3] = useState("");
   const [fromAddr, setFromAddr] = useState("");
   const [fromLock, setFromLock] = useState<Script>();
 
-  const [toAddr, setToAddr] = useState("ckt1qyqr6dwc07kqqz96tvfwu8zenvgzlj84lhuqsm0peh");
-  const [amount, setAmount] = useState("11100000000");
+  const [toAddr, setToAddr] = useState("");
+  const [amount, setAmount] = useState("");
   const [privKeys, setPrivKeys] = useState<string[]>([]);
 
   useEffect(() => {
@@ -25,11 +31,10 @@ export function App() {
     };
 
     updateFromInfo();
-
   }, []);
 
   useEffect(() => {
-    setPrivKeys([privKey1, privKey2]);
+    setPrivKeys([privKey1, privKey2, privKey3]);
   }, [privKey1, privKey2, privKey3]);
 
   return (
@@ -41,7 +46,6 @@ export function App() {
           <pre>{JSON.stringify(fromLock, null, 2)}</pre>
         </li>
       </ul>
-
       <label htmlFor="private-key1">Private Key1: </label>&nbsp;
       <input
         id="private-key1"
@@ -61,7 +65,6 @@ export function App() {
         onChange={(e) => setPrivKey3(e.target.value)}
       />
       <br />
-
       <label htmlFor="to-address">Transfer to Address: </label>&nbsp;
       <input
         id="to-address"
@@ -77,11 +80,7 @@ export function App() {
         onChange={(e) => setAmount(e.target.value)}
       />
       <br />
-      <button
-        onClick={() =>
-          transfer({ amount, to: toAddr, privKeys })
-        }
-      >
+      <button onClick={() => transfer({ amount, to: toAddr, privKeys })}>
         Transfer
       </button>
     </div>
