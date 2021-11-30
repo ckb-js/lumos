@@ -21,6 +21,10 @@ export interface ScriptConfigs {
  * own address prefix, and its own set of deployed scripts.
  */
 export interface Config {
+  /**
+   * @deprecated
+   * defaults to true, used to generate CKB address, but this will be removed in the future, please migrate to {@link encodeToAddress}
+   */
   CKB2021?: boolean;
   PREFIX: string;
   SCRIPTS: ScriptConfigs;
