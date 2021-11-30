@@ -5,7 +5,7 @@ import {
   GetTransactionsResults,
   Order,
   SearchKey,
-} from "./indexer";
+} from "./type";
 
 interface GetCellsCapacityResult {
   capacity: HexString;
