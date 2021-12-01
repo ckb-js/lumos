@@ -218,7 +218,10 @@ export async function transfer(options: Options): Promise<string> {
     }
   });
   Sigs =
-    "0x00020203" +
+    "0x00" +
+    ("00" + (fromInfo as MultisigScript).R.toString(16)).slice(-2) +
+    ("00" + (fromInfo as MultisigScript).M.toString(16)).slice(-2) +
+    ("00" + (fromInfo as MultisigScript).publicKeyHashes.length.toString(16)).slice(-2) +
     LOCKARG1.slice(2) +
     LOCKARG2.slice(2) +
     LOCKARG3.slice(2) +
