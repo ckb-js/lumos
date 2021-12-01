@@ -17,12 +17,12 @@ import {
   generateAddress,
   minimalCellCapacity,
   Options,
-  parseAddress,
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
 import { Reader, normalizers } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
+import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -67,10 +67,8 @@ function updateCellDeps(
   });
   config = config || getConfig();
   const secp256k1Config = config.SCRIPTS.SECP256K1_BLAKE160;
-  // TODO: support secp256k1MultiSig
-  // const secp256k1MultiSigConfig = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
-  if (!secp256k1Config) {
-    // if (!secp256k1Config || !secp256k1MultiSigConfig) {
+  const secp256k1MultiSigConfig = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+  if (!secp256k1Config || !secp256k1MultiSigConfig) {
     throw new Error(
       "Provided config does not have SECP256K1_BLAKE160 or SECP256K1_BLAKE160_MULTISIG script setup!"
     );
@@ -83,15 +81,15 @@ function updateCellDeps(
           index: secp256k1Config.INDEX,
         },
         dep_type: secp256k1Config.DEP_TYPE,
-      }
+      },
       // TODO: optimize me, push dep directly without checking actual locks used would cause bigger tx
-      // {
-      //   out_point: {
-      //     tx_hash: secp256k1MultiSigConfig.TX_HASH,
-      //     index: secp256k1MultiSigConfig.INDEX,
-      //   },
-      //   dep_type: secp256k1MultiSigConfig.DEP_TYPE,
-      // }
+      {
+        out_point: {
+          tx_hash: secp256k1MultiSigConfig.TX_HASH,
+          index: secp256k1MultiSigConfig.INDEX,
+        },
+        dep_type: secp256k1MultiSigConfig.DEP_TYPE,
+      }
     );
   });
 
@@ -100,7 +98,7 @@ function updateCellDeps(
 
 async function completeTx(
   txSkeleton: TransactionSkeletonType,
-  fromAddress: string,
+  fromInfo: FromInfo,
   config?: Config
 ): Promise<TransactionSkeletonType> {
   const inputCapacity = txSkeleton
@@ -112,7 +110,7 @@ async function completeTx(
     .map((c) => BigInt(c.cell_output.capacity))
     .reduce((a, b) => a + b, BigInt(0));
   const needCapacity = outputCapacity - inputCapacity;
-  txSkeleton = await injectCapacity(txSkeleton, fromAddress, needCapacity, {
+  txSkeleton = await injectCapacity(txSkeleton, fromInfo, needCapacity, {
     config: config,
   });
   return txSkeleton;
@@ -120,13 +118,14 @@ async function completeTx(
 
 async function injectCapacity(
   txSkeleton: TransactionSkeletonType,
-  fromAddress: string,
+  fromInfo: FromInfo,
   amount: bigint,
   { config = undefined }: Options = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  const fromScript = parseAddress(fromAddress, { config });
+  const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
   amount = BigInt(amount) + BigInt(10) ** BigInt(8);
+
   let changeCapacity: bigint = BigInt(10) ** BigInt(8);
   const changeCell: Cell = {
     cell_output: {
@@ -217,11 +216,22 @@ async function injectCapacity(
       );
     }
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
-    const newWitnessArgs: WitnessArgs = {
-      /* 65-byte zeros in hex */
-      lock:
-        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-    };
+    let newWitnessArgs: WitnessArgs;
+    const SECP_SIGNATURE_PLACEHOLDER =
+      "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+
+    if (typeof fromInfo !== "string") {
+      newWitnessArgs = {
+        lock:
+          "0x" +
+          multisigScript!.slice(2) +
+          SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat(
+            (fromInfo as MultisigScript).M
+          ),
+      };
+    } else {
+      newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
+    }
 
     if (witness !== "0x") {
       const witnessArgs = new core.WitnessArgs(new Reader(witness));
@@ -403,7 +413,7 @@ function getScriptConfig(
 interface DeployOptions {
   cellProvider: CellProvider;
   scriptBinary: Uint8Array;
-  outputScriptLock: Script;
+  fromInfo: FromInfo;
   config?: Config;
 }
 
@@ -431,21 +441,21 @@ export async function generateDeployWithDataTx(
 ): Promise<DeployResult> {
   let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
 
-  const fromAddress = generateAddress(options.outputScriptLock, {
+  const { fromScript } = parseFromInfo(options.fromInfo, {
     config: options.config,
   });
 
   const output: Cell = {
     cell_output: {
       capacity: "0x0",
-      lock: options.outputScriptLock,
+      lock: fromScript,
     },
     data: bytesToHex(options.scriptBinary),
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
+  txSkeleton = await completeTx(txSkeleton, options.fromInfo, options.config);
 
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 
@@ -467,15 +477,12 @@ export async function generateDeployWithTypeIdTx(
 ): Promise<TypeIDDeployResult> {
   let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
 
-  const fromAddress = generateAddress(options.outputScriptLock, {
+  const { fromScript } = parseFromInfo(options.fromInfo, {
     config: options.config,
   });
 
-  const [resolved] = await findCellsByLock(
-    options.outputScriptLock,
-    options.cellProvider
-  );
-  if (!resolved) throw new Error(`${fromAddress} has no live ckb`);
+  const [resolved] = await findCellsByLock(fromScript, options.cellProvider);
+  if (!resolved) throw new Error(`fromAddress has no live ckb`);
 
   const typeId = utils.generateTypeIdScript(
     { previous_output: resolved.out_point!, since: "0x0" },
@@ -484,7 +491,7 @@ export async function generateDeployWithTypeIdTx(
   const output: Cell = {
     cell_output: {
       capacity: "0x0",
-      lock: options.outputScriptLock,
+      lock: fromScript,
       type: typeId,
     },
     data: bytesToHex(options.scriptBinary),
@@ -492,7 +499,7 @@ export async function generateDeployWithTypeIdTx(
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
+  txSkeleton = await completeTx(txSkeleton, options.fromInfo, options.config);
 
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 
@@ -508,7 +515,7 @@ export async function generateUpgradeTypeIdDataTx(
 ): Promise<DeployResult> {
   let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
 
-  const fromAddress = generateAddress(options.outputScriptLock, {
+  const { fromScript } = parseFromInfo(options.fromInfo, {
     config: options.config,
   });
 
@@ -527,7 +534,7 @@ export async function generateUpgradeTypeIdDataTx(
   const output: Cell = {
     cell_output: {
       capacity: "0x0",
-      lock: options.outputScriptLock,
+      lock: fromScript,
       type: options.typeId,
     },
     data: bytesToHex(options.scriptBinary),
@@ -535,7 +542,7 @@ export async function generateUpgradeTypeIdDataTx(
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, fromAddress, options.config);
+  txSkeleton = await completeTx(txSkeleton, options.fromInfo, options.config);
 
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 
@@ -560,4 +567,7 @@ export default {
   generateDeployWithTypeIdTx,
   generateUpgradeTypeIdDataTx,
   compareScriptBinaryWithOnChainData,
+  __tests__: {
+    calculateTxFee,
+  },
 };
