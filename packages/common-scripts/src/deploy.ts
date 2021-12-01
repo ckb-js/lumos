@@ -140,7 +140,7 @@ async function injectCapacity(
     minimalCellCapacity(changeCell) + BigInt(10) ** BigInt(8);
 
   if (amount < 0n) {
-    changeCapacity += amount;
+    changeCapacity -= amount;
   }
 
   if (amount > 0n) {

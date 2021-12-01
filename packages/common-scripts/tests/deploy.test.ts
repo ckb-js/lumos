@@ -8,6 +8,7 @@ import {
   generateUpgradeTypeIdDataTx,
 } from "../src/deploy";
 import { predefined } from "@ckb-lumos/config-manager";
+import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 const { AGGRON4 } = predefined;
 
 const outputScriptLock: Script = {
@@ -17,6 +18,19 @@ const outputScriptLock: Script = {
   args: "0x159890a7cacb44a95bef0743064433d763de229c",
 };
 const scriptBinary = Uint8Array.of(1);
+
+function getTxFee(txSkeleton: TransactionSkeletonType): bigint {
+  const inputCapacity = txSkeleton
+    .get("inputs")
+    .map((c) => BigInt(c.cell_output.capacity))
+    .reduce((a, b) => a + b, BigInt(0));
+  const outputCapacity = txSkeleton
+    .get("outputs")
+    .map((c) => BigInt(c.cell_output.capacity))
+    .reduce((a, b) => a + b, BigInt(0));
+  const txFee = inputCapacity - outputCapacity;
+  return txFee;
+}
 
 test("deploy with data", async (t) => {
   const inputs: Cell[] = [
@@ -93,22 +107,24 @@ test("deploy with data", async (t) => {
   };
 
   let { txSkeleton } = await generateDeployWithDataTx(deployOptions);
+
   for (const input of txSkeleton.get("inputs")) {
     const type = input.cell_output.type;
     const data = input.data;
     t.is(type, undefined);
     t.is(data, "0x");
   }
-  txSkeleton = common.prepareSigningEntries(txSkeleton);
 
-  const signingEntries = {
-    type: "witness_args_lock",
-    index: 0,
-    message:
-      "0x94d9f0ece8261dae3cd1b3efcca08ea0b7fd9c5824a96d7680557b0f92204f52",
-  };
+  const txFee = getTxFee(txSkeleton);
+  t.true(txFee < BigInt(1000000));
 
-  t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);
+  const deployLock = txSkeleton.outputs.get(0)!.cell_output.lock!;
+  const changeLock = txSkeleton.outputs.get(1)!.cell_output.lock!;
+  t.deepEqual(deployLock, outputScriptLock);
+  t.deepEqual(changeLock, outputScriptLock);
+
+  const deployData = txSkeleton.outputs.get(0)!.data;
+  t.is(deployData, "0x01");
 });
 
 test("deploy with typeID", async (t) => {
@@ -186,22 +202,24 @@ test("deploy with typeID", async (t) => {
   };
 
   let { txSkeleton } = await generateDeployWithTypeIdTx(deployOptions);
+
   for (const input of txSkeleton.get("inputs")) {
     const type = input.cell_output.type;
     const data = input.data;
     t.is(type, undefined);
     t.is(data, "0x");
   }
-  txSkeleton = common.prepareSigningEntries(txSkeleton);
 
-  const signingEntries = {
-    type: "witness_args_lock",
-    index: 0,
-    message:
-      "0x0b8bcfaa5d351f9c279f49247c7b306bedac63284542658002d7fdac56caf884",
-  };
+  const txFee = getTxFee(txSkeleton);
+  t.true(txFee < BigInt(1000000));
 
-  t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);
+  const deployLock = txSkeleton.outputs.get(0)!.cell_output.lock!;
+  const changeLock = txSkeleton.outputs.get(1)!.cell_output.lock!;
+  t.deepEqual(deployLock, outputScriptLock);
+  t.deepEqual(changeLock, outputScriptLock);
+
+  const deployData = txSkeleton.outputs.get(0)!.data;
+  t.is(deployData, "0x01");
 });
 
 test("upgrade with typeID", async (t) => {
@@ -287,16 +305,113 @@ test("upgrade with typeID", async (t) => {
   };
 
   let { txSkeleton } = await generateUpgradeTypeIdDataTx(upgradeOptions);
-  txSkeleton = common.prepareSigningEntries(txSkeleton);
 
-  const signingEntries = {
-    type: "witness_args_lock",
-    index: 0,
-    message:
-      "0xba156565d15e8728e78bb47abbfa71b9b586a0abb17cc7a62994c0cdcffcfa27",
+  const txFee = getTxFee(txSkeleton);
+  t.true(txFee < BigInt(1000000));
+
+  const deployLock = txSkeleton.outputs.get(0)!.cell_output.lock!;
+  const changeLock = txSkeleton.outputs.get(1)!.cell_output.lock!;
+  t.deepEqual(deployLock, outputScriptLock);
+  t.deepEqual(changeLock, outputScriptLock);
+
+  const deployData = txSkeleton.outputs.get(0)!.data;
+  t.is(deployData, "0x010203");
+});
+
+test("upgrade contract with size reduced", async (t) => {
+  const inputs: Cell[] = [
+    {
+      cell_output: {
+        capacity: "0x5f5e10000",
+        lock: {
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
+        },
+        type: {
+          args:
+            "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
+          code_hash:
+            "0x00000000000000000000000000000000000000000000000000545950455f4944",
+          hash_type: "type",
+        },
+      },
+      data: "0x01010101010101",
+      out_point: {
+        index: "0x0",
+        tx_hash:
+          "0x7afcb80f91d0a52bc376e5113494546e825a3de2b7378b3bed91fed35e2839e8",
+      },
+      block_number: "0x3614af",
+    },
+    {
+      cell_output: {
+        capacity: "0x1718adf5a",
+        lock: {
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
+        },
+        type: undefined,
+      },
+      data: "0x",
+      out_point: {
+        index: "0x1",
+        tx_hash:
+          "0xc68f8f08958c60ad83a81e7e590c3aba6abdaed2bbcfd8fbe0e014b7396affb1",
+      },
+      block_number: "0x361485",
+    },
+    {
+      cell_output: {
+        capacity: "0x98049e1d02f",
+        lock: {
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type",
+        },
+        type: undefined,
+      },
+      data: "0x",
+      out_point: {
+        index: "0x1",
+        tx_hash:
+          "0x0f1cf3ddefa6141d16375dfefc9ac3bef40fd7698e206925ee9df4c809ea1958",
+      },
+      block_number: "0x361489",
+    },
+  ];
+  const cellProvider = new CellProvider(inputs);
+  const upgradeBinary = Uint8Array.of(1);
+  const upgradeOptions = {
+    cellProvider: cellProvider,
+    scriptBinary: upgradeBinary,
+    outputScriptLock: outputScriptLock,
+    typeId: {
+      code_hash:
+        "0x00000000000000000000000000000000000000000000000000545950455f4944",
+      hash_type: "type" as const,
+      args:
+        "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
+    },
+    config: AGGRON4,
   };
 
-  t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);
+  let { txSkeleton } = await generateUpgradeTypeIdDataTx(upgradeOptions);
+
+  const txFee = getTxFee(txSkeleton);
+  t.true(txFee < BigInt(1000000));
+
+  const deployLock = txSkeleton.outputs.get(0)!.cell_output.lock!;
+  const changeLock = txSkeleton.outputs.get(1)!.cell_output.lock!;
+  t.deepEqual(deployLock, outputScriptLock);
+  t.deepEqual(changeLock, outputScriptLock);
+
+  const deployData = txSkeleton.outputs.get(0)!.data;
+  t.is(deployData, "0x01");
 });
 
 test("collected capacity is enough for change cell and deploy cell", async (t) => {
