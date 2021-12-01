@@ -5,7 +5,10 @@ export interface ScriptConfig {
   TX_HASH: string;
   INDEX: string;
   DEP_TYPE: "dep_group" | "code";
-  /** Short ID for creating CKB address, not all scripts have short IDs. */
+  /**
+   * @deprecated the short address will be removed in the future
+   * Short ID for creating CKB address, not all scripts have short IDs.
+   */
   SHORT_ID?: number;
 }
 
@@ -18,6 +21,10 @@ export interface ScriptConfigs {
  * own address prefix, and its own set of deployed scripts.
  */
 export interface Config {
+  /**
+   * @deprecated
+   * defaults to true, used to generate CKB address, but this will be removed in the future, please migrate to {@link encodeToAddress}
+   */
   CKB2021?: boolean;
   PREFIX: string;
   SCRIPTS: ScriptConfigs;
