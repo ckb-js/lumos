@@ -49,10 +49,6 @@
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
-  "peerDependencies": {
-    "mysql2": "^2.1.0",
-    "pg": "^8.2.1"
-  },
   "ava": {
     "extensions": [
       "ts"
