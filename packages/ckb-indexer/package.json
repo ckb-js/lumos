@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/ckb-indexer",
-  "version": "0.17.0-rc5",
+  "version": "0.17.0-rc6",
   "description": "CKB Indexer",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -28,8 +28,8 @@
     "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc5",
-    "@ckb-lumos/rpc": "^0.17.0-rc5",
+    "@ckb-lumos/base": "^0.17.0-rc6",
+    "@ckb-lumos/rpc": "^0.17.0-rc6",
     "@types/sinon": "^10.0.6",
     "ava": "^3.15.0",
     "ckb-js-toolkit": "^0.10.2",
