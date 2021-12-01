@@ -1,5 +1,5 @@
 build:
-	yarn workspace @ckb-lumos/config-manager run build
+	yarn workspace @ckb-lumos/config-manager build
 	yarn workspace @ckb-lumos/helpers build
 	yarn workspace @ckb-lumos/rpc build
 	yarn workspace @ckb-lumos/common-scripts build
