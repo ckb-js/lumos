@@ -1,3 +1,5 @@
+const primitive = require("./primitive");
+
 module.exports = {
   core: require("./core"),
   denormalizers: require("./denormalizers"),
@@ -7,5 +9,6 @@ module.exports = {
   helpers: require("./helpers"),
   indexer: require("./indexer"),
   logger: require("./logger"),
-  primitive: require("./primitive"),
+  primitive,
+  ...primitive,
 };
