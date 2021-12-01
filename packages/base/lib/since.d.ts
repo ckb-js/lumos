@@ -1,4 +1,4 @@
-import { HexNumber, PackedSince, HexString } from "./primitive";
+import { HexNumber, PackedSince, HexString, JSBI } from "./primitive";
 
 export interface EpochSinceValue {
   length: number;
@@ -30,7 +30,7 @@ export function parseSince(
   | {
       relative: boolean;
       type: "blockNumber" | "blockTimestamp";
-      value: bigint;
+      value: JSBI;
     };
 
 /**
@@ -96,7 +96,7 @@ export function generateSince(
     | {
         relative: boolean;
         type: SinceType;
-        value: bigint;
+        value: JSBI;
       }
     | {
         relative: boolean;

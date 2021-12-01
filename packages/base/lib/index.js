@@ -7,4 +7,5 @@ module.exports = {
   helpers: require("./helpers"),
   indexer: require("./indexer"),
   logger: require("./logger"),
+  primitive: require("./primitive"),
 };

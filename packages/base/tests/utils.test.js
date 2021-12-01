@@ -1,5 +1,6 @@
 const test = require("ava");
 const { Reader } = require("ckb-js-toolkit");
+const { JSBI } = require("../lib/primitive");
 
 const {
   CKBHasher,
@@ -33,8 +34,7 @@ test("ckbHash", (t) => {
   const result = ckbHash(arrayBuffer);
   t.is(result.serializeJson(), messageDigest);
 });
-
-const uint64 = 1965338n;
+const uint64 = JSBI.BigInt(1965338);
 const uint64le = "0x1afd1d0000000000";
 
 test("toBigUInt64LE", (t) => {
@@ -42,10 +42,9 @@ test("toBigUInt64LE", (t) => {
 });
 
 test("readBigUInt64LE", (t) => {
-  t.is(readBigUInt64LE(uint64le), uint64);
+  t.true(JSBI.equal(readBigUInt64LE(uint64le), uint64));
 });
-
-const u128 = 1208925819614629174706177n;
+const u128 = JSBI.BigInt("1208925819614629174706177");
 const u128le = "0x01000000000000000000010000000000";
 
 test("toBigUInt128LE", (t) => {
@@ -53,17 +52,26 @@ test("toBigUInt128LE", (t) => {
 });
 
 test("toBigUInt128LE, to small", (t) => {
-  t.throws(() => toBigUInt128LE(-1n));
-  t.notThrows(() => toBigUInt128LE(0n));
+  t.throws(() => toBigUInt128LE(JSBI.unaryMinus(JSBI.BigInt(1))));
+  t.notThrows(() => toBigUInt128LE(JSBI.BigInt(0)));
 });
 
 test("toBigUInt128LE, to big", (t) => {
-  t.throws(() => toBigUInt128LE(2n ** 128n));
-  t.notThrows(() => toBigUInt128LE(2n ** 128n - 1n));
+  t.throws(() =>
+    toBigUInt128LE(JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)))
+  );
+  t.notThrows(() =>
+    toBigUInt128LE(
+      JSBI.subtract(
+        JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
+        JSBI.BigInt(1)
+      )
+    )
+  );
 });
 
 test("readBigUInt128LE", (t) => {
-  t.is(readBigUInt128LE(u128le), u128);
+  t.true(JSBI.equal(readBigUInt128LE(u128le), u128));
 });
 
 const script = {
