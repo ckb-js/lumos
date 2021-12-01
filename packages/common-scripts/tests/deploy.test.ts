@@ -1,5 +1,4 @@
 import { Cell, Script } from "@ckb-lumos/base";
-import { common } from "@ckb-lumos/common-scripts";
 import test from "ava";
 import { CellProvider } from "./cell_provider";
 import {
