@@ -111,16 +111,38 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       transactionHashList
     );
 
-    transactionList.forEach(async (transactionWrapper) => {
+    //get input cell transaction batch
+    const txIoTypeInputOutPointList: unknown[] = [];
+    transactionList.forEach((transactionWrapper) => {
       if (transactionWrapper.ioType === "input") {
         const targetOutPoint: OutPoint =
           transactionWrapper.transaction.inputs[
             parseInt(transactionWrapper.ioIndex)
           ].previous_output;
-        const targetCell = await this.getCellByOutPoint(targetOutPoint);
-        transactionWrapper.inputCell = targetCell;
+        txIoTypeInputOutPointList.push({
+          id: targetOutPoint.index,
+          jsonrpc: "2.0",
+          method: "get_transaction",
+          params: [targetOutPoint.tx_hash],
+        });
       }
     });
+    await requestBatch(this.CKBRpcUrl, txIoTypeInputOutPointList).then(
+      (response: GetTransactionRPCResult[]) => {
+        return response.map((item: GetTransactionRPCResult) => {
+          console.log(item);
+          const output: Output = item.result.transaction.outputs[item.id];
+          const transactionHash = item.result.transaction.hash;
+          const targetTx = transactionList.find(
+            (tx) => tx.transaction.hash === item.result.transaction.hash
+          );
+          if (targetTx) {
+            targetTx.inputCell = output;
+          }
+          return { output, transactionHash };
+        });
+      }
+    );
 
     //filter by ScriptWrapper.argsLen
     transactionList = transactionList.filter(
