@@ -22,3 +22,11 @@ lint:
 	yarn workspaces run fmt
 	yarn workspaces run lint
 	git diff --exit-code
+
+build-jsbi:
+	yarn workspace @ckb-lumos/config-manager build
+	yarn workspace @ckb-lumos/helpers build
+	yarn workspace @ckb-lumos/rpc build
+	yarn workspace @ckb-lumos/hd build
+	yarn workspace @ckb-lumos/hd-cache build
+	yarn workspace @ckb-lumos/ckb-indexer build
