@@ -1,4 +1,5 @@
 const { ScriptValue } = require("./values");
+const { JSBI } = require("./primitive");
 
 function isCellMatchQueryOptions(
   cell,
@@ -101,14 +102,14 @@ function isCellMatchQueryOptions(
   if (
     fromBlock &&
     cell.block_number &&
-    BigInt(cell.block_number) < BigInt(fromBlock)
+    JSBI.lessThan(JSBI.BigInt(cell.block_number), JSBI.BigInt(fromBlock))
   ) {
     return false;
   }
   if (
     toBlock &&
     cell.block_number &&
-    BigInt(cell.block_number) > BigInt(toBlock)
+    JSBI.greaterThan(JSBI.BigInt(cell.block_number), JSBI.BigInt(toBlock))
   ) {
     return false;
   }
