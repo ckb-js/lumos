@@ -1,5 +1,5 @@
 import test from "ava";
-import { Cell } from "@ckb-lumos/base";
+import { Cell, JSBI } from "@ckb-lumos/base";
 import { minimalCellCapacity } from "../src";
 
 const normalCell: Cell = {
@@ -60,9 +60,9 @@ const cellWithTypeAndData: Cell = {
 
 test("normal cell, validate true", (t) => {
   const capacity = minimalCellCapacity(normalCell);
-  const expectedCapacity = BigInt(61 * 10 ** 8);
+  const expectedCapacity = JSBI.BigInt(61 * 10 ** 8);
 
-  t.is(capacity, expectedCapacity);
+  t.true(JSBI.equal(capacity, expectedCapacity));
 });
 
 test("normal cell, validate failed", (t) => {
@@ -73,7 +73,7 @@ test("normal cell, validate failed", (t) => {
 
 test("cell with type and data, validate true", (t) => {
   const capacity = minimalCellCapacity(cellWithTypeAndData);
-  const expectedCapacity = BigInt((61 + 33 + 2) * 10 ** 8);
+  const expectedCapacity = JSBI.BigInt((61 + 33 + 2) * 10 ** 8);
 
-  t.is(capacity, expectedCapacity);
+  t.true(JSBI.equal(capacity, expectedCapacity));
 });

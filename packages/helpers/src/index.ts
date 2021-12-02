@@ -10,6 +10,7 @@ import {
   PackedSince,
   Transaction,
   WitnessArgs,
+  JSBI,
 } from "@ckb-lumos/base";
 import { bech32, bech32m } from "bech32";
 import { normalizers, validators, Reader } from "ckb-js-toolkit";
@@ -44,7 +45,7 @@ function hexToByteArray(h: HexString): number[] {
 export function minimalCellCapacity(
   fullCell: Cell,
   { validate = true }: { validate?: boolean } = {}
-): bigint {
+): JSBI {
   if (validate) {
     validators.ValidateCellOutput(fullCell.cell_output);
   }
@@ -62,7 +63,7 @@ export function minimalCellCapacity(
   if (fullCell.data) {
     bytes += new Reader(fullCell.data).length();
   }
-  return BigInt(bytes) * BigInt(100000000);
+  return JSBI.multiply(JSBI.BigInt(bytes), JSBI.BigInt(100000000));
 }
 
 export function locateCellDep(
