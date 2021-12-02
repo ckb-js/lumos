@@ -32,22 +32,23 @@ yarn link @ckb-lumos/base
 
 ```json
 {
-    "resolutions": {
-        "@ckb-lumos": "x.y.z"
-    }
+  "resolutions": {
+    "@ckb-lumos": "x.y.z"
+  }
 }
 ```
 
 ## base
 
-- `added` - `JSBI` from `base` package
-- `changed(return)` - `parseSince`
-- `changed(return)` - `generateSince`
-- `changed(return)` - `readBigUInt64LE`
-- `changed(param)` - `toBigUInt64LE`
-- `changed(return)` - `readBigUInt128LE`
-- `changed(param)` - `toBigUInt128LE`
+- `JSBI`: `added`
+- `isJSBI`: `added`
+- `parseSince`: `changed(return)`
+- `generateSince`: `changed(return)`
+- `toBigUInt64LE`: `changed(param)`
+- `readBigUInt64LE`: `changed(return)`
+- `toBigUInt128LE`: `changed(param)`
+- `readBigUInt128LE`: `changed(return)`
 
 ## helpers
 
-- `changed(return)` - `minimalCellCapacity`
+- `minimalCellCapacity`: `changed(return)`
