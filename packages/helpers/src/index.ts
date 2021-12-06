@@ -11,6 +11,7 @@ import {
   Transaction,
   WitnessArgs,
   JSBI,
+  HexNumber,
 } from "@ckb-lumos/base";
 import * as bech32 from "bech32";
 import { normalizers, validators, Reader } from "ckb-js-toolkit";
@@ -43,6 +44,30 @@ function hexToByteArray(h: HexString): number[] {
 }
 
 export function minimalCellCapacity(
+  fullCell: Cell,
+  { validate = true }: { validate?: boolean } = {}
+): bigint {
+  if (validate) {
+    validators.ValidateCellOutput(fullCell.cell_output);
+  }
+  // Capacity field itself
+  let bytes = 8;
+  bytes += new Reader(fullCell.cell_output.lock.code_hash).length();
+  bytes += new Reader(fullCell.cell_output.lock.args).length();
+  // hash_type field
+  bytes += 1;
+  if (fullCell.cell_output.type) {
+    bytes += new Reader(fullCell.cell_output.type.code_hash).length();
+    bytes += new Reader(fullCell.cell_output.type.args).length();
+    bytes += 1;
+  }
+  if (fullCell.data) {
+    bytes += new Reader(fullCell.data).length();
+  }
+  return BigInt(bytes) * BigInt(100000000);
+}
+
+export function minimalCellCapacityCompatible(
   fullCell: Cell,
   { validate = true }: { validate?: boolean } = {}
 ): JSBI {

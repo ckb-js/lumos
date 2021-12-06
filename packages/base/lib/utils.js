@@ -1,9 +1,9 @@
 const blake2b = require("blake2b");
-const { JSBI, maybeJSBI } = require("./primitive");
 const { validators, normalizers, Reader } = require("ckb-js-toolkit");
+const isEqual = require("lodash.isequal");
 const { SerializeScript } = require("./core");
 const { xxHash32 } = require("js-xxhash");
-const isEqual = require("lodash.isequal");
+const { JSBI, maybeJSBI } = require("./primitive");
 
 class CKBHasher {
   constructor() {
@@ -38,6 +38,10 @@ function ckbHash(buffer) {
 }
 
 function toBigUInt64LE(num) {
+  return toBigUInt64LECompatible(num);
+}
+
+function toBigUInt64LECompatible(num) {
   num = JSBI.BigInt(num);
   const buf = Buffer.alloc(8);
   buf.writeUInt32LE(
@@ -54,25 +58,34 @@ function toBigUInt64LE(num) {
 
 function readBigUInt64LE(hex) {
   const buf = Buffer.from(hex.slice(2), "hex");
+  return buf.readBigUInt64LE();
+}
+
+function readBigUInt64LECompatible(hex) {
+  const buf = Buffer.from(hex.slice(2), "hex");
   return JSBI.add(
     JSBI.BigInt(buf.readUInt32LE()),
     JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(4)), JSBI.BigInt(32))
   );
 }
 
-const U128_MIN = JSBI.BigInt(0);
-const U128_MAX = JSBI.subtract(
-  JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
-  JSBI.BigInt(1)
-);
+// const U128_MIN = BigInt(0);
+// const U128_MAX = BigInt("340282366920938463463374607431768211455");
+function toBigUInt128LE(u128) {
+  return toBigUInt128LECompatible(u128);
+}
 
-function toBigUInt128LE(num) {
+const U128_MIN_COMPATIBLE = JSBI.BigInt(0);
+const U128_MAX_COMPATIBLE = JSBI.BigInt(
+  "340282366920938463463374607431768211455"
+);
+function toBigUInt128LECompatible(num) {
   num = JSBI.BigInt(num);
-  if (maybeJSBI.lessThan(num, U128_MIN)) {
+  if (maybeJSBI.lessThan(num, U128_MIN_COMPATIBLE)) {
     throw new Error(`u128 ${num} too small`);
   }
 
-  if (maybeJSBI.greaterThan(num, U128_MAX)) {
+  if (maybeJSBI.greaterThan(num, U128_MAX_COMPATIBLE)) {
     throw new Error(`u128 ${num} too large`);
   }
 
@@ -102,6 +115,14 @@ function toBigUInt128LE(num) {
 }
 
 function readBigUInt128LE(leHex) {
+  if (leHex.length < 34 || !leHex.startsWith("0x")) {
+    throw new Error(`leHex format error`);
+  }
+  const buf = Buffer.from(leHex.slice(2, 34), "hex");
+  return (buf.readBigUInt64LE(8) << BigInt(64)) + buf.readBigUInt64LE(0);
+}
+
+function readBigUInt128LECompatible(leHex) {
   if (leHex.length < 34 || !leHex.startsWith("0x")) {
     throw new Error(`leHex format error`);
   }
@@ -154,9 +175,13 @@ module.exports = {
   CKBHasher,
   ckbHash,
   toBigUInt64LE,
+  toBigUInt64LECompatible,
   readBigUInt64LE,
+  readBigUInt64LECompatible,
   toBigUInt128LE,
+  toBigUInt128LECompatible,
   readBigUInt128LE,
+  readBigUInt128LECompatible,
   computeScriptHash,
   hashCode,
   assertHexString,
