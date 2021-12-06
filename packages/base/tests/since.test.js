@@ -4,7 +4,7 @@ const { since, utils } = require("../lib");
 const { JSBI, maybeJSBI } = require("../lib/primitive");
 
 const {
-  parseSince,
+  parseSinceCompatible,
   generateSince,
   parseEpoch,
   maximumAbsoluteEpochSince,
@@ -88,7 +88,7 @@ const epochFixtrue = {
 
 test("parsedSince", (t) => {
   fixtrues.forEach((v) => {
-    const parsed = parseSince(v.since);
+    const parsed = parseSinceCompatible(v.since);
     t.true(utils.isDeepEqual(parsed, v.parsed));
   });
 });
