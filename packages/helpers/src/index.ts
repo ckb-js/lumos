@@ -11,7 +11,6 @@ import {
   Transaction,
   WitnessArgs,
   JSBI,
-  HexNumber,
 } from "@ckb-lumos/base";
 import * as bech32 from "bech32";
 import { normalizers, validators, Reader } from "ckb-js-toolkit";
