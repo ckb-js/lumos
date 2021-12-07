@@ -1,14 +1,7 @@
 import { HashType } from "@ckb-lumos/base";
-import test from "ava";
-import { Indexer, TransactionCollector } from "../src";
-import sinon from "sinon";
 import { IOType } from "../src/type";
-import * as services from "../src/services";
 
-const nodeUri = "http://127.0.0.1:8118/rpc";
-const indexUri = "http://127.0.0.1:8120";
-const indexer = new Indexer(indexUri, nodeUri);
-const queryOption = {
+export const queryOption = {
   lock: {
     code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
@@ -17,7 +10,7 @@ const queryOption = {
   },
 };
 
-const ioTypeInputResult = Promise.resolve([
+export const ioTypeInputResult = Promise.resolve([
   {
     jsonrpc: "2.0",
     result: {
@@ -84,7 +77,7 @@ const ioTypeInputResult = Promise.resolve([
       "0x1-0xc8a7917a9b269ca746f49177e75d4f5e7eb7ad20f79f44b079b5caecd4ffe96f",
   },
 ]);
-const batchRequestIoTypeInput = [
+export const batchRequestIoTypeInput = [
   {
     id:
       "0x1-0xc8a7917a9b269ca746f49177e75d4f5e7eb7ad20f79f44b079b5caecd4ffe96f",
@@ -95,7 +88,7 @@ const batchRequestIoTypeInput = [
     ],
   },
 ];
-const result = Promise.resolve({
+export const getTransactionFromIndexerResult = Promise.resolve({
   lastCursor:
     "0x809bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce801bde8b19b4505dd1d1310223edecea20adc4e240e000000000021420d000000010000000000",
   objects: [
@@ -117,7 +110,7 @@ const result = Promise.resolve({
     },
   ],
 });
-const batchRequestAllIoType = [
+export const batchRequestAllIoType = [
   {
     id: 0,
     jsonrpc: "2.0",
@@ -135,7 +128,7 @@ const batchRequestAllIoType = [
     ],
   },
 ];
-const batchRequestResult = Promise.resolve([
+export const batchRequestResult = Promise.resolve([
   {
     jsonrpc: "2.0",
     result: {
@@ -274,27 +267,3 @@ const batchRequestResult = Promise.resolve([
     id: 1,
   },
 ]);
-test("input cell can be found transaction detail", async (t) => {
-  const getTransactionsStub = sinon.stub(indexer, "getTransactions");
-
-  getTransactionsStub.onCall(0).returns(result);
-  getTransactionsStub.onCall(1).returns(
-    Promise.resolve({
-      lastCursor:
-        "0x809bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce801bde8b19b4505dd1d1310223edecea20adc4e240e000000000021420d000000010000000000",
-      objects: [],
-    })
-  );
-  const requestBatchStub = sinon.stub(services, "requestBatch");
-  requestBatchStub
-    .withArgs(nodeUri, batchRequestAllIoType)
-    .returns(batchRequestResult);
-  requestBatchStub
-    .withArgs(nodeUri, batchRequestIoTypeInput)
-    .returns(ioTypeInputResult);
-  const cellCollector = new TransactionCollector(indexer, queryOption, nodeUri);
-  const count = await cellCollector.count();
-  t.is(count, 2);
-  getTransactionsStub.reset();
-  requestBatchStub.reset();
-});
