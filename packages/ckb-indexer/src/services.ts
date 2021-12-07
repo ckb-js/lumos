@@ -1,4 +1,4 @@
-import { utils, Script, ScriptWrapper, HexString } from "@ckb-lumos/base";
+import { utils, Script, ScriptWrapper, HexString, JSBI } from "@ckb-lumos/base";
 import {
   CKBIndexerQueryOptions,
   HexadecimalRange,
@@ -39,7 +39,9 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
     //toBlock+1 cause toBlock need to be included
     block_range = [
       queries.fromBlock,
-      `0x${(BigInt(queries.toBlock) + 1n).toString(16)}`,
+      `0x${JSBI.add(JSBI.BigInt(queries.toBlock), JSBI.BigInt(1)).toString(
+        16
+      )}`,
     ];
   }
   if (block_range) {

@@ -8,7 +8,7 @@ Lumos was initially designed to run in NodeJS 12+, but we found that some of the
 - [x] config-manager
 - [x] helpers
 - [x] rpc
-- [ ] ckb-indexer
+- [x] ckb-indexer
 - [ ] common-scripts
 - [ ] hd
 - [ ] hd-cache

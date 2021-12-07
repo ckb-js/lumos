@@ -8,6 +8,7 @@ import {
   HexNumber,
   Output,
   TransactionWithStatus,
+  JSBI,
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
 
@@ -113,7 +114,7 @@ export class IndexerEmitter extends EventEmitter {
   type?: Script;
   outputData?: HexString | "any";
   argsLen?: number | "any";
-  fromBlock?: bigint;
+  fromBlock?: JSBI;
 }
 
 export interface OtherQueryOptions {
