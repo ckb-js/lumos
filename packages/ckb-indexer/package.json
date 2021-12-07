@@ -23,10 +23,7 @@
     "lib",
     "index.d.ts"
   ],
-  "publishConfig": {
-    "access": "public",
-    "registry": "http://registry.npmjs.org/"
-  },
+
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc5",
     "@ckb-lumos/rpc": "^0.17.0-rc5",

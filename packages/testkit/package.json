@@ -22,10 +22,6 @@
   "files": [
     "lib"
   ],
-  "publishConfig": {
-    "access": "public",
-    "registry": "http://registry.npmjs.org/"
-  },
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc5",
     "@types/body-parser": "^1.19.1",
