@@ -426,7 +426,10 @@ function verifyFromInfo(
   config = config || getConfig();
   if (typeof fromInfo === "string") {
     if (
-      helpers.nameOfScript(parseAddress(fromInfo, { config }), config.SCRIPTS) !== "SECP256K1_BLAKE160"
+      helpers.nameOfScript(
+        parseAddress(fromInfo, { config }),
+        config.SCRIPTS
+      ) !== "SECP256K1_BLAKE160"
     )
       throw new Error(
         "only SECP256K1_BLAKE160 or SECP256K1_MULTISIG is supported"
