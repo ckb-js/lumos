@@ -17,11 +17,13 @@ import {
   minimalCellCapacity,
   Options,
   createTransactionFromSkeleton,
+  parseAddress,
 } from "@ckb-lumos/helpers";
 import { Reader, normalizers } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
+import { nameOfScript } from "../../config-manager/src/helpers";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -409,6 +411,34 @@ function getScriptConfig(
   return getScriptConfigByDataHash(txSkeleton, outputIndex);
 }
 
+function isMultisigFromInfo(fromInfo: FromInfo): fromInfo is MultisigScript {
+  if (typeof fromInfo !== "object") return false;
+  return (
+    "M" in fromInfo &&
+    "R" in fromInfo &&
+    Array.isArray(fromInfo.publicKeyHashes)
+  );
+}
+
+function verifyFromInfo(
+  fromInfo: FromInfo,
+  { config = undefined }: Options = {}
+): void {
+  config = config || getConfig();
+  if (typeof fromInfo === "string") {
+    if (
+      nameOfScript(parseAddress(fromInfo, { config })) !== "SECP256K1_BLAKE160"
+    )
+      throw new Error(
+        "only SECP256K1_BLAKE160 or SECP256K1_MULTISIG is supported"
+      );
+  } else if (!isMultisigFromInfo(fromInfo)) {
+    throw new Error(
+      "only SECP256K1_BLAKE160 or SECP256K1_MULTISIG is supported"
+    );
+  }
+}
+
 interface DeployOptions {
   cellProvider: CellProvider;
   scriptBinary: Uint8Array;
@@ -438,8 +468,9 @@ interface TypeIDDeployResult extends DeployResult {
 export async function generateDeployWithDataTx(
   options: DeployOptions
 ): Promise<DeployResult> {
-  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
+  verifyFromInfo(options.fromInfo, { config: options.config });
 
+  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
   const { fromScript } = parseFromInfo(options.fromInfo, {
     config: options.config,
   });
@@ -474,8 +505,9 @@ export async function generateDeployWithDataTx(
 export async function generateDeployWithTypeIdTx(
   options: DeployOptions
 ): Promise<TypeIDDeployResult> {
-  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
+  verifyFromInfo(options.fromInfo, { config: options.config });
 
+  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
   const { fromScript } = parseFromInfo(options.fromInfo, {
     config: options.config,
   });
@@ -512,8 +544,9 @@ export async function generateDeployWithTypeIdTx(
 export async function generateUpgradeTypeIdDataTx(
   options: UpgradeOptions
 ): Promise<DeployResult> {
-  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
+  verifyFromInfo(options.fromInfo, { config: options.config });
 
+  let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
   const { fromScript } = parseFromInfo(options.fromInfo, {
     config: options.config,
   });
