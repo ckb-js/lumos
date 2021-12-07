@@ -9,7 +9,6 @@ const {
 import { HashType } from "@ckb-lumos/base";
 import { OtherQueryOptions } from "../src/type";
 
-//TODO enhance testkit jsonrpc to support rpc batch and change to use testkit
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);

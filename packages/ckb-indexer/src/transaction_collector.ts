@@ -1,7 +1,6 @@
 import {
   TransactionCollectorOptions,
   indexer as BaseIndexerModule,
-  Transaction,
   Output,
   OutPoint,
   TransactionWithStatus,
@@ -17,13 +16,7 @@ import {
   GetTransactionRPCResult,
 } from "./type";
 import { CkbIndexer } from "./indexer";
-import {
-  generateSearchKey,
-  getHexStringBytes,
-  instanceOfScriptWrapper,
-  requestBatch,
-  request,
-} from "./services";
+import * as services from "./services";
 
 interface GetTransactionDetailResult {
   objects: TransactionWithStatus[];
@@ -78,8 +71,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
 
     //if both lock and type, search search them in independent and then get intersection, GetTransactionsResults.lastCursor change to `${lockLastCursor}-${typeLastCursor}`
     if (
-      instanceOfScriptWrapper(this.queries.lock) &&
-      instanceOfScriptWrapper(this.queries.type)
+      services.instanceOfScriptWrapper(this.queries.lock) &&
+      services.instanceOfScriptWrapper(this.queries.type)
     ) {
       transactionHashList = await this.getTransactionByLockAndTypeIndependent(
         searchKeyFilter
@@ -88,7 +81,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     } else {
       //query by ScriptWrapper.script,block_range,order
       transactionHashList = await this.indexer.getTransactions(
-        generateSearchKey(this.queries),
+        services.generateSearchKey(this.queries),
         searchKeyFilter
       );
       lastCursor = transactionHashList.lastCursor;
@@ -106,11 +99,9 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         lastCursor: lastCursor,
       };
     }
-
     let transactionList: TransactionWithIOType[] = await this.getTransactionListFromRpc(
       transactionHashList
     );
-
     //get input cell transaction batch
     const txIoTypeInputOutPointList: unknown[] = [];
     transactionList.forEach((transactionWrapper) => {
@@ -120,29 +111,29 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
             parseInt(transactionWrapper.ioIndex)
           ].previous_output;
         txIoTypeInputOutPointList.push({
-          id: targetOutPoint.index,
+          id: targetOutPoint.index + "-" + transactionWrapper.transaction.hash,
           jsonrpc: "2.0",
           method: "get_transaction",
           params: [targetOutPoint.tx_hash],
         });
       }
     });
-    await requestBatch(this.CKBRpcUrl, txIoTypeInputOutPointList).then(
-      (response: GetTransactionRPCResult[]) => {
-        return response.map((item: GetTransactionRPCResult) => {
-          console.log(item);
-          const output: Output = item.result.transaction.outputs[item.id];
-          const transactionHash = item.result.transaction.hash;
+    await services
+      .requestBatch(this.CKBRpcUrl, txIoTypeInputOutPointList)
+      .then((response: GetTransactionRPCResult[]) => {
+        response.forEach((item: GetTransactionRPCResult) => {
+          const itemId = item.id.toString();
+          const [cellIndex, transactionHash] = itemId.split("-");
+          const output: Output =
+            item.result.transaction.outputs[parseInt(cellIndex)];
           const targetTx = transactionList.find(
-            (tx) => tx.transaction.hash === item.result.transaction.hash
+            (tx) => tx.transaction.hash === transactionHash
           );
           if (targetTx) {
             targetTx.inputCell = output;
           }
-          return { output, transactionHash };
         });
-      }
-    );
+      });
 
     //filter by ScriptWrapper.argsLen
     transactionList = transactionList.filter(
@@ -185,12 +176,12 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
     const queriesWithoutType = { ...this.queries, type: undefined };
     const transactionByLock = await this.indexer.getTransactions(
-      generateSearchKey(queriesWithoutType),
+      services.generateSearchKey(queriesWithoutType),
       queryWithTypeAdditionOptions
     );
     const queriesWithoutLock = { ...this.queries, lock: undefined };
     const transactionByType = await this.indexer.getTransactions(
-      generateSearchKey(queriesWithoutLock),
+      services.generateSearchKey(queriesWithoutLock),
       queryWithLockAdditionOptions
     );
 
@@ -235,35 +226,25 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         };
       }
     );
-    const transactionList: TransactionWithIOType[] = await requestBatch(
-      this.CKBRpcUrl,
-      getDetailRequestData
-    ).then((response: GetTransactionRPCResult[]) => {
-      return response.map(
-        (item: GetTransactionRPCResult): TransactionWithIOType => {
-          if (!this.filterOptions.skipMissing && !item.result) {
-            throw new Error(
-              `Transaction ${
-                transactionHashList.objects[item.id].tx_hash
-              } is missing!`
-            );
+    const transactionList: TransactionWithIOType[] = await services
+      .requestBatch(this.CKBRpcUrl, getDetailRequestData)
+      .then((response: GetTransactionRPCResult[]) => {
+        return response.map(
+          (item: GetTransactionRPCResult): TransactionWithIOType => {
+            if (!this.filterOptions.skipMissing && !item.result) {
+              throw new Error(
+                `Transaction ${
+                  transactionHashList.objects[item.id].tx_hash
+                } is missing!`
+              );
+            }
+            const ioType = transactionHashList.objects[item.id].io_type;
+            const ioIndex = transactionHashList.objects[item.id].io_index;
+            return { ioType, ioIndex, ...item.result };
           }
-          const ioType = transactionHashList.objects[item.id].io_type;
-          const ioIndex = transactionHashList.objects[item.id].io_index;
-          return { ioType, ioIndex, ...item.result };
-        }
-      );
-    });
+        );
+      });
     return transactionList;
-  };
-
-  private getCellByOutPoint = async (output: OutPoint) => {
-    const transaction: Transaction = await request(
-      this.CKBRpcUrl,
-      "get_transaction",
-      [output.tx_hash]
-    );
-    return transaction.outputs[parseInt(output.index)];
   };
 
   private isLockArgsLenMatched = (
@@ -273,13 +254,13 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     if (!argsLen) return true;
     if (argsLen === "any") return true;
     if (argsLen === -1) return true;
-    return getHexStringBytes(args as string) === argsLen;
+    return services.getHexStringBytes(args as string) === argsLen;
   };
 
   // only valid after pass flow three validate
   private isCellScriptArgsValid = (targetCell: Output) => {
     if (this.queries.lock) {
-      let lockArgsLen = instanceOfScriptWrapper(this.queries.lock)
+      let lockArgsLen = services.instanceOfScriptWrapper(this.queries.lock)
         ? this.queries.lock.argsLen
         : this.queries.argsLen;
       if (!this.isLockArgsLenMatched(targetCell.lock.args, lockArgsLen)) {
@@ -288,7 +269,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
 
     if (this.queries.type && this.queries.type !== "empty") {
-      let typeArgsLen = instanceOfScriptWrapper(this.queries.type)
+      let typeArgsLen = services.instanceOfScriptWrapper(this.queries.type)
         ? this.queries.type.argsLen
         : this.queries.argsLen;
       if (!this.isLockArgsLenMatched(targetCell.type?.args, typeArgsLen)) {
@@ -326,10 +307,10 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     queries: CKBIndexerQueryOptions
   ) => {
     let result = inputResult;
-    if (instanceOfScriptWrapper(queries.lock) && queries.lock.ioType) {
+    if (services.instanceOfScriptWrapper(queries.lock) && queries.lock.ioType) {
       result = this.filterByIoType(result, queries.lock.ioType);
     }
-    if (instanceOfScriptWrapper(queries.type) && queries.type.ioType) {
+    if (services.instanceOfScriptWrapper(queries.type) && queries.type.ioType) {
       result = this.filterByIoType(result, queries.type.ioType);
     }
     return result;
