@@ -6,7 +6,7 @@
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "browser": "lib/lumos.umd.js",
+  "browser": "lib/lumos.min.js",
   "engines": {
     "node": ">=12.0.0"
   },
@@ -59,6 +59,7 @@
     "crypto-browserify": "^3.12.0",
     "fork-ts-checker-webpack-plugin": "^6.4.0",
     "ts-loader": "^9.2.6",
+    "unminified-webpack-plugin": "^3.0.0",
     "webpack": "^5.64.1",
     "webpack-cli": "^4.9.1"
   }
