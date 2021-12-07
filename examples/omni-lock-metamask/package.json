@@ -1,5 +1,6 @@
 {
-  "name": "omni-lock-metamask",
+  "private": true,
+  "name": "@lumos-examples/omni-lock-metamask",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",

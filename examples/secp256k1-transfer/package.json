@@ -1,5 +1,6 @@
 {
-  "name": "transfer",
+  "private": true,
+  "name": "@lumos-examples/secp256k1-transfer",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
