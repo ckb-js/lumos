@@ -10,7 +10,7 @@ import {
   Transaction,
 } from "@ckb-lumos/base";
 import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
-import { getConfig, Config } from "@ckb-lumos/config-manager";
+import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
   TransactionSkeleton,
@@ -23,7 +23,6 @@ import { Reader, normalizers } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
-import { nameOfScript } from "../../config-manager/src/helpers";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -427,7 +426,7 @@ function verifyFromInfo(
   config = config || getConfig();
   if (typeof fromInfo === "string") {
     if (
-      nameOfScript(parseAddress(fromInfo, { config })) !== "SECP256K1_BLAKE160"
+      helpers.nameOfScript(parseAddress(fromInfo, { config }), config.SCRIPTS) !== "SECP256K1_BLAKE160"
     )
       throw new Error(
         "only SECP256K1_BLAKE160 or SECP256K1_MULTISIG is supported"
