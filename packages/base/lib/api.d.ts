@@ -11,7 +11,7 @@ export interface Header {
   parent_hash: Hash;
   proposals_hash: Hash;
   transactions_root: Hash;
-  uncles_hash: Hash;
+  extra_hash: Hash;
   version: HexNumber;
 }
 

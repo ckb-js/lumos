@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/base",
-  "version": "0.18.0-rc2",
+  "version": "0.18.0-rc3",
   "description": "Base data structures and utilities used in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -19,10 +19,6 @@
     "lib",
     "index.d.ts"
   ],
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"

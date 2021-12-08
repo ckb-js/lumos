@@ -1,17 +1,20 @@
 const path = require("path");
 const webpack = require("webpack");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const UnminifiedWebpackPlugin = require("unminified-webpack-plugin");
 
 module.exports = {
   mode: "production",
+  devtool: "source-map",
   entry: {
     output: "./src/index.ts",
   },
   output: {
     path: path.join(__dirname, "lib"),
-    filename: "lumos.umd.js",
+    filename: "lumos.min.js",
     library: "lumos",
     libraryTarget: "umd",
+    globalObject: "this",
   },
   module: {
     rules: [
@@ -38,5 +41,6 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin({ async: false }),
     new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
+    new UnminifiedWebpackPlugin(),
   ],
 };

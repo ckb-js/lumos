@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/rpc",
-  "version": "0.18.0-rc2",
+  "version": "0.18.0-rc3",
   "description": "RPC module for CKB",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -22,10 +22,6 @@
   "files": [
     "lib"
   ],
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
@@ -43,7 +39,7 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.18.0-rc2",
+    "@ckb-lumos/base": "^0.18.0-rc3",
     "ckb-js-toolkit": "^0.100.0-rc1"
   },
   "ava": {
