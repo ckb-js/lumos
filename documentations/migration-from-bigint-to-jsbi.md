@@ -1,6 +1,18 @@
 ## Migration From BigInt to JSBI
 
-Lumos was initially designed to run in NodeJS 12+, but we found that some of the dApps actually run in browsers, and some of the earlier browsers, such as safari in iOS13, do not support the BigInt feature, so we plan to migrate the bigint-related APIs from BigInt to JSBI. If your dApp is also having this problem, you can use the code under this branch to build the program
+Lumos was initially designed to run in NodeJS 12+, but we found that some of the dApps actually run in browsers, and some of the earlier browsers, such as safari in iOS13, do not support the BigInt feature, so we plan to migrate the bigint-related APIs from BigInt to JSBI. If your dApp is also having this problem, you can use the code under this branch to build the program.
+
+In order to keep compatibility, we have adapted the API according to the following rules
+
+### Migration Rule
+
+#### BigInt in Parameter
+
+We provide a union API that allow user pass a JSBI as the parameter, for example, both `toBigUint128LE(1n)` and `toBigUint128LE(JSBI.BigInt(1))` will work
+
+#### BigInt in Return
+
+We provide a new API for returning JSBI that ends with Compatible, for example, both `readBigUint128LE -> readBigUint128LECompatible`
 
 ## Progress
 
@@ -38,17 +50,29 @@ yarn link @ckb-lumos/base
 }
 ```
 
-## base
+### Codemod
 
-- `JSBI`: `added`
-- `isJSBI`: `added`
-- `parseSince`: `changed(return)`
-- `generateSince`: `changed(return)`
-- `toBigUInt64LE`: `changed(param)`
-- `readBigUInt64LE`: `changed(return)`
-- `toBigUInt128LE`: `changed(param)`
-- `readBigUInt128LE`: `changed(return)`
+```ts
+// before
+minimalCapacity(...) // bigint
 
-## helpers
+// after
+minimalCapacityCompatible(...) // JSBI
+```
 
-- `minimalCellCapacity`: `changed(return)`
+## Related API
+
+### base
+
+- `JSBI`
+- `isJSBI`
+- `parseSince` -> `parseSinceCompatible`
+- `generateSince`
+- `toBigUInt64LE`
+- `readBigUInt64LE` -> `readBigUint64LECompatible`
+- `toBigUInt128LE`
+- `readBigUInt128LE` -> `readBigUInt128LECompatible`
+
+### helpers
+
+- `minimalCellCapacity` -> `minimalCellCapacityCompatible`

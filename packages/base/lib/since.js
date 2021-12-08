@@ -1,6 +1,13 @@
 const { JSBI, maybeJSBI, isJSBI } = require("./primitive");
 
 function parseSince(since) {
+  const result = parseSinceCompatible(since);
+
+  if (result.type === "epochNumber") return result;
+  return { ...result, value: BigInt(String(result.value)) };
+}
+
+function parseSinceCompatible(since) {
   since = JSBI.BigInt(since);
   const flag = JSBI.signedRightShift(since, JSBI.BigInt(56));
   const metricFlag = JSBI.bitwiseAnd(
@@ -134,7 +141,7 @@ function generateHeaderEpoch({ length, index, number }) {
 }
 
 function parseAbsoluteEpochSince(since) {
-  const { relative, type, value } = parseSince(since);
+  const { relative, type, value } = parseSinceCompatible(since);
 
   if (!(maybeJSBI.equal(relative, false) && type === "epochNumber")) {
     throw new Error("Since format error!");
@@ -144,7 +151,7 @@ function parseAbsoluteEpochSince(since) {
 }
 
 function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
-  const { value } = parseSince(since);
+  const { value } = parseSinceCompatible(since);
   const headerEpochParams = parseEpoch(JSBI.BigInt(tipHeaderEpoch));
   return (
     maybeJSBI.lessThan(value.number, headerEpochParams.number) ||
@@ -163,7 +170,7 @@ function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
 }
 
 function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
-  const { relative, type, value } = parseSince(since);
+  const { relative, type, value } = parseSinceCompatible(since);
 
   if (!relative) {
     if (type === "epochNumber") {
@@ -280,6 +287,7 @@ function _toHex(num) {
 
 module.exports = {
   parseSince,
+  parseSinceCompatible,
   parseEpoch,
   maximumAbsoluteEpochSince,
   generateAbsoluteEpochSince,

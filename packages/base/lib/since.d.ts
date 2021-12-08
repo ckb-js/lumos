@@ -30,6 +30,20 @@ export function parseSince(
   | {
       relative: boolean;
       type: "blockNumber" | "blockTimestamp";
+      value: bigint;
+    };
+
+export function parseSinceCompatible(
+  since: PackedSince
+):
+  | {
+      relative: boolean;
+      type: "epochNumber";
+      value: EpochSinceValue;
+    }
+  | {
+      relative: boolean;
+      type: "blockNumber" | "blockTimestamp";
       value: JSBI;
     };
 
@@ -96,7 +110,7 @@ export function generateSince(
     | {
         relative: boolean;
         type: SinceType;
-        value: JSBI;
+        value: bigint | JSBI;
       }
     | {
         relative: boolean;
