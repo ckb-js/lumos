@@ -3,6 +3,7 @@ import {
   minimalCellCapacity,
   Options,
   TransactionSkeletonType,
+  minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
@@ -23,6 +24,7 @@ import {
   QueryOptions,
   CellCollector as CellCollectorType,
   SinceValidationInfo,
+  JSBI,
 } from "@ckb-lumos/base";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
@@ -612,6 +614,203 @@ async function _transfer(
   return txSkeleton;
 }
 
+async function injectCapacityWithoutChangeCompatible(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  amount: JSBI,
+  tipHeader: Header,
+  minimalChangeCapacity: JSBI,
+  {
+    config = undefined,
+    LocktimeCellCollector = CellCollector,
+    enableDeductCapacity = true,
+  }: {
+    config?: Config;
+    LocktimeCellCollector?: any;
+    enableDeductCapacity?: boolean;
+  }
+): Promise<{
+  txSkeleton: TransactionSkeletonType;
+  capacity: JSBI;
+  changeCapacity: JSBI;
+}> {
+  config = config || getConfig();
+  // fromScript can be secp256k1_blake160 / secp256k1_blake160_multisig
+
+  amount = JSBI.BigInt(amount.toString() || 0);
+  minimalChangeCapacity = JSBI.BigInt(minimalChangeCapacity.toString())
+  if (enableDeductCapacity) {
+    for (const fromInfo of fromInfos) {
+      const fromScript: Script = parseFromInfo(fromInfo, { config }).fromScript;
+      // validate fromScript
+      if (
+        !isSecp256k1Blake160MultisigScript(fromScript, config) &&
+        !isSecp256k1Blake160Script(fromScript, config)
+      ) {
+        // Skip if not support.
+        continue;
+      }
+      const lastFreezedOutput = txSkeleton
+        .get("fixedEntries")
+        .filter(({ field }) => field === "outputs")
+        .maxBy(({ index }) => index);
+      let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
+      for (; i < txSkeleton.get("outputs").size && JSBI.greaterThan(amount,JSBI.BigInt(0)); ++i) {
+        const output = txSkeleton.get("outputs").get(i)!;
+        if (
+          new ScriptValue(output.cell_output.lock, { validate: false }).equals(
+            new ScriptValue(fromScript, { validate: false })
+          )
+        ) {
+          const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
+          const cellCapacity = JSBI.BigInt(clonedOutput.cell_output.capacity);
+          let deductCapacity;
+          if (JSBI.greaterThanOrEqual(amount,cellCapacity)) {
+            deductCapacity = cellCapacity;
+          } else {
+            deductCapacity = JSBI.subtract(cellCapacity,minimalCellCapacityCompatible(clonedOutput));
+            if (deductCapacity > amount) {
+              deductCapacity = amount;
+            }
+          }
+          amount = JSBI.subtract(amount,deductCapacity);
+          clonedOutput.cell_output.capacity =
+            "0x" + (JSBI.subtract(cellCapacity,deductCapacity)).toString(16);
+
+          txSkeleton = txSkeleton.update("outputs", (outputs) => {
+            return outputs.update(i, () => clonedOutput);
+          });
+        }
+      }
+      // remove all output cells with capacity equal to 0
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.filter(
+          (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
+        );
+      });
+    }
+  }
+
+  /*
+   * Collect and add new input cells so as to prepare remaining capacities.
+   */
+  let changeCapacity = JSBI.BigInt(0);
+  if (JSBI.greaterThan(amount,JSBI.BigInt(0))) {
+    const cellProvider = txSkeleton.get("cellProvider");
+    if (!cellProvider) {
+      throw new Error("cell provider is missing!");
+    }
+
+    const getInputKey = (input: Cell) =>
+      `${input.out_point!.tx_hash}_${input.out_point!.index}`;
+    let previousInputs = Set<string>();
+    for (const input of txSkeleton.get("inputs")) {
+      previousInputs = previousInputs.add(getInputKey(input));
+    }
+
+    for (const fromInfo of fromInfos) {
+      const fromScript: Script = parseFromInfo(fromInfo, { config }).fromScript;
+      const cellCollector = new LocktimeCellCollector(fromInfo, cellProvider, {
+        config,
+        tipHeader,
+      });
+      for await (const inputCell of cellCollector.collect()) {
+        // skip inputs already exists in txSkeleton.inputs
+        if (previousInputs.has(getInputKey(inputCell))) {
+          continue;
+        }
+
+        let witness: HexString = "0x";
+        if (isDaoScript(inputCell.cell_output.type, config)) {
+          const template = config.SCRIPTS.DAO!;
+          txSkeleton = addCellDep(txSkeleton, {
+            dep_type: template.DEP_TYPE,
+            out_point: {
+              tx_hash: template.TX_HASH,
+              index: template.INDEX,
+            },
+          });
+
+          txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
+            return headerDeps.push(
+              inputCell.depositBlockHash!,
+              inputCell.withdrawBlockHash!
+            );
+          });
+
+          const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
+          const witnessArgs = {
+            input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
+          };
+          witness = new Reader(
+            core.SerializeWitnessArgs(
+              normalizers.NormalizeWitnessArgs(witnessArgs)
+            )
+          ).serializeJson();
+        }
+        let multisigSince: bigint | undefined;
+        if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
+          // multisig
+          const lockArgs = inputCell.cell_output.lock.args;
+          multisigSince =
+            lockArgs.length === 58
+              ? _parseMultisigArgsSince(lockArgs)
+              : undefined;
+        }
+        txSkeleton = await collectInput(
+          txSkeleton,
+          inputCell,
+          Object.assign({}, fromInfo, { since: multisigSince }),
+          { config, defaultWitness: witness, since: inputCell.since }
+        );
+
+        const inputCapacity = JSBI.BigInt(inputCell.cell_output.capacity);
+        let deductCapacity = inputCapacity;
+        if (JSBI.greaterThan(deductCapacity,amount)) {
+          deductCapacity = amount;
+        }
+        amount = JSBI.subtract(amount,deductCapacity);
+        changeCapacity = JSBI.add(changeCapacity, JSBI.subtract(inputCapacity,deductCapacity));
+
+        if (isDaoScript(inputCell.cell_output.type, config)) {
+          // fix inputs / outputs / witnesses
+          txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+            return fixedEntries.push(
+              {
+                field: "inputs",
+                index: txSkeleton.get("inputs").size - 1,
+              },
+              {
+                field: "witnesses",
+                index: txSkeleton.get("witnesses").size - 1,
+              },
+              {
+                field: "headerDeps",
+                index: txSkeleton.get("headerDeps").size - 2,
+              }
+            );
+          });
+        }
+
+        if (
+          JSBI.equal(amount,JSBI.BigInt(0)) &&
+          (JSBI.equal(changeCapacity,JSBI.BigInt(0)) ||
+            JSBI.greaterThan(changeCapacity,minimalChangeCapacity))
+        ) {
+          break;
+        }
+      }
+    }
+  }
+
+  return {
+    txSkeleton,
+    capacity: amount,
+    changeCapacity: changeCapacity,
+  };
+}
+
+
 async function injectCapacityWithoutChange(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
@@ -940,4 +1139,5 @@ export default {
   injectCapacity,
   setupInputCell,
   injectCapacityWithoutChange,
+  injectCapacityWithoutChangeCompatible
 };

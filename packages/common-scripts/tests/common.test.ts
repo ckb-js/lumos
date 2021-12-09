@@ -8,7 +8,7 @@ import {
   TransactionSkeleton,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { Cell, Transaction, values, Script } from "@ckb-lumos/base";
+import { Cell, Transaction, values, Script, JSBI } from "@ckb-lumos/base";
 import { FromInfo, anyoneCanPay, parseFromInfo } from "../src";
 import { Config, predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4, LINA } = predefined;
@@ -691,9 +691,16 @@ test("getTransactionSizeByTx", (t) => {
 test("calculateFee, without carry", (t) => {
   t.is(__tests__.calculateFee(1035, BigInt(1000)), BigInt(1035));
 });
+test("calculateFeeCompatible, without carry", (t) => {
+  t.is(__tests__.calculateFeeCompatible(1035, JSBI.BigInt(1000)).toString(), JSBI.BigInt(1035).toString());
+});
 
 test("calculateFee, with carry", (t) => {
   t.is(__tests__.calculateFee(1035, BigInt(900)), BigInt(932));
+});
+
+test("calculateFeeCompatible, with carry", (t) => {
+  t.is(__tests__.calculateFeeCompatible(1035, JSBI.BigInt(900)).toString(), JSBI.BigInt(932).toString());
 });
 
 function getExpectedFee(
