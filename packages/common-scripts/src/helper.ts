@@ -12,6 +12,7 @@ import {
   Script,
   Address,
   HexString,
+  JSBI,
 } from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
 import { normalizers, Reader } from "ckb-js-toolkit";
@@ -140,9 +141,15 @@ export function isAcpAddress(address: Address, config: Config): boolean {
   return isAcpScript(script, config);
 }
 
+//TODO: dataview require bigint, need change to unit32
 export function hashWitness(hasher: any, witness: HexString): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
+  // const witnessLength = JSBI.BigInt(new Reader(witness).length())
+  // const helfWitnessLength = JSBI.divide(witnessLength, JSBI.BigInt(2))
+  // view.setUint32(0, JSBI.toNumber(helfWitnessLength), true)
+  // view.setUint32(0, JSBI.toNumber(helfWitnessLength), true)
+  console.log((new Reader(witness).length()))
   view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
   hasher.update(lengthBuffer);
   hasher.update(witness);

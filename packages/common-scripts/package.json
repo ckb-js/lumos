@@ -41,7 +41,7 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "test": "ava **/common.test.ts",
+    "test": "ava **/*.test.ts",
     "build": "tsc",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
