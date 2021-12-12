@@ -12,7 +12,6 @@ import {
   Script,
   Address,
   HexString,
-  JSBI,
 } from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
 import { normalizers, Reader } from "ckb-js-toolkit";
@@ -149,7 +148,7 @@ export function hashWitness(hasher: any, witness: HexString): void {
   // const helfWitnessLength = JSBI.divide(witnessLength, JSBI.BigInt(2))
   // view.setUint32(0, JSBI.toNumber(helfWitnessLength), true)
   // view.setUint32(0, JSBI.toNumber(helfWitnessLength), true)
-  console.log((new Reader(witness).length()))
+  console.log(new Reader(witness).length());
   view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
   hasher.update(lengthBuffer);
   hasher.update(witness);

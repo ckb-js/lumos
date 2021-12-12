@@ -26,7 +26,7 @@ import {
   SinceValidationInfo,
   JSBI,
 } from "@ckb-lumos/base";
-const { toBigUInt64LE, readBigUInt64LE } = utils;
+const { toBigUInt64LE, readBigUInt64LECompatible, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
 import { normalizers, Reader } from "ckb-js-toolkit";
 import {
@@ -178,7 +178,8 @@ export class CellCollector implements CellCollectorType {
         // multisig
         if (lock.args.length === 58) {
           const header = (await this.rpc.get_header(inputCell.block_hash!))!;
-          since = "0x" + _parseMultisigArgsSince(lock.args).toString(16);
+          since =
+            "0x" + _parseMultisigArgsSinceCompatible(lock.args).toString(16);
           // TODO: `median_timestamp` not provided now!
           sinceValidationInfo = {
             epoch: header.epoch,
@@ -277,9 +278,9 @@ export class CellCollector implements CellCollectorType {
         };
         result.cell_output.capacity =
           "0x" +
-          (maximumCapacity || BigInt(inputCell.cell_output.capacity)).toString(
-            16
-          );
+          (
+            maximumCapacity || JSBI.BigInt(inputCell.cell_output.capacity)
+          ).toString(16);
 
         yield result;
       }
@@ -363,6 +364,94 @@ export async function transfer(
     amount = value[1];
 
     if (amount === BigInt(0)) {
+      if (assertAmountEnough) {
+        return txSkeleton;
+      }
+      return [txSkeleton, amount];
+    }
+  }
+
+  if (assertAmountEnough) {
+    throw new Error("Not enough capacity in from addresses!");
+  }
+  return [txSkeleton, amount];
+}
+
+export async function transferCompatible(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  toAddress: Address | undefined,
+  amount: JSBI,
+  tipHeader: Header,
+  {
+    config,
+    requireToAddress,
+    assertAmountEnough,
+    LocktimeCellCollector,
+  }: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough?: true;
+    LocktimeCellCollector?: any;
+  }
+): Promise<TransactionSkeletonType>;
+
+export async function transferCompatible(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  toAddress: Address | undefined,
+  amount: JSBI,
+  tipHeader: Header,
+  {
+    config,
+    requireToAddress,
+    assertAmountEnough,
+    LocktimeCellCollector,
+  }: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough: false;
+    LocktimeCellCollector?: any;
+  }
+): Promise<[TransactionSkeletonType, JSBI]>;
+export async function transferCompatible(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  toAddress: Address | undefined,
+  amount: JSBI,
+  tipHeader: Header,
+  {
+    config = undefined,
+    requireToAddress = true,
+    assertAmountEnough = true,
+    LocktimeCellCollector = CellCollector,
+  }: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough?: boolean;
+    LocktimeCellCollector?: any;
+  } = {}
+): Promise<TransactionSkeletonType | [TransactionSkeletonType, JSBI]> {
+  amount = JSBI.BigInt(amount);
+  for (const [index, fromInfo] of fromInfos.entries()) {
+    const value = (await _transferCompatible(
+      txSkeleton,
+      fromInfo,
+      index === 0 ? toAddress : undefined,
+      amount,
+      tipHeader,
+      {
+        config,
+        requireToAddress: index === 0 ? requireToAddress : false,
+        assertAmountEnough: false,
+        LocktimeCellCollector,
+      }
+    )) as [TransactionSkeletonType, JSBI];
+    // [txSkeleton, amount] = value
+    txSkeleton = value[0];
+    amount = value[1];
+
+    if (JSBI.equal(amount, JSBI.BigInt(0))) {
       if (assertAmountEnough) {
         return txSkeleton;
       }
@@ -614,6 +703,256 @@ async function _transfer(
   return txSkeleton;
 }
 
+async function _transferCompatible(
+  txSkeleton: TransactionSkeletonType,
+  fromInfo: FromInfo,
+  toAddress: Address | undefined,
+  amount: JSBI,
+  tipHeader: Header,
+  {
+    config = undefined,
+    requireToAddress = true,
+    assertAmountEnough = true,
+    LocktimeCellCollector = CellCollector,
+    changeAddress = undefined,
+  }: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough?: boolean;
+    LocktimeCellCollector: any;
+    changeAddress?: Address;
+  }
+): Promise<TransactionSkeletonType | [TransactionSkeletonType, JSBI]> {
+  config = config || getConfig();
+  // fromScript can be secp256k1_blake160 / secp256k1_blake160_multisig
+  const { fromScript } = parseFromInfo(fromInfo, { config });
+
+  // validate fromScript
+  if (
+    !isSecp256k1Blake160MultisigScript(fromScript, config) &&
+    !isSecp256k1Blake160Script(fromScript, config)
+  ) {
+    throw new Error("fromInfo not supported!");
+  }
+
+  if (requireToAddress && !toAddress) {
+    throw new Error("You must provide a to address!");
+  }
+
+  amount = JSBI.BigInt(amount || 0);
+  if (toAddress) {
+    const toScript = parseAddress(toAddress, { config });
+
+    txSkeleton = txSkeleton.update("outputs", (outputs) => {
+      return outputs.push({
+        cell_output: {
+          capacity: "0x" + amount.toString(16),
+          lock: toScript,
+          type: undefined,
+        },
+        data: "0x",
+        out_point: undefined,
+        block_hash: undefined,
+      });
+    });
+  }
+
+  const lastFreezedOutput = txSkeleton
+    .get("fixedEntries")
+    .filter(({ field }) => field === "outputs")
+    .maxBy(({ index }) => index);
+  let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
+  for (
+    ;
+    i < txSkeleton.get("outputs").size &&
+    JSBI.greaterThan(amount, JSBI.BigInt(0));
+    ++i
+  ) {
+    const output = txSkeleton.get("outputs").get(i)!;
+    if (
+      new ScriptValue(output.cell_output.lock, { validate: false }).equals(
+        new ScriptValue(fromScript, { validate: false })
+      )
+    ) {
+      const cellCapacity = JSBI.BigInt(output.cell_output.capacity);
+      let deductCapacity;
+      if (JSBI.greaterThanOrEqual(amount, cellCapacity)) {
+        deductCapacity = cellCapacity;
+      } else {
+        deductCapacity = JSBI.subtract(
+          cellCapacity,
+          minimalCellCapacityCompatible(output)
+        );
+        if (JSBI.greaterThan(deductCapacity, amount)) {
+          deductCapacity = amount;
+        }
+      }
+      amount = JSBI.subtract(amount, deductCapacity);
+
+      const clonedOutput = JSON.parse(JSON.stringify(output));
+      clonedOutput.cell_output.capacity =
+        "0x" + JSBI.subtract(cellCapacity, deductCapacity).toString(16);
+      txSkeleton = txSkeleton.update("outputs", (outputs) => {
+        return outputs.update(i, () => clonedOutput);
+      });
+    }
+  }
+  // remove all output cells with capacity equal to 0
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.filter((output) =>
+      JSBI.notEqual(JSBI.BigInt(output.cell_output.capacity), JSBI.BigInt(0))
+    );
+  });
+  /*
+   * Collect and add new input cells so as to prepare remaining capacities.
+   */
+  if (JSBI.greaterThan(amount, JSBI.BigInt(0))) {
+    const cellProvider = txSkeleton.get("cellProvider");
+    if (!cellProvider) {
+      throw new Error("cell provider is missing!");
+    }
+
+    const changeLockScript: Script = changeAddress
+      ? parseAddress(changeAddress, { config })
+      : fromScript;
+    const changeCell: Cell = {
+      cell_output: {
+        capacity: "0x0",
+        lock: changeLockScript,
+        type: undefined,
+      },
+      data: "0x",
+      out_point: undefined,
+      block_hash: undefined,
+    };
+    let changeCapacity = JSBI.BigInt(0);
+
+    let previousInputs = Set<string>();
+    for (const input of txSkeleton.get("inputs")) {
+      previousInputs = previousInputs.add(
+        `${input.out_point!.tx_hash}_${input.out_point!.index}`
+      );
+    }
+    const cellCollector = new LocktimeCellCollector(fromInfo, cellProvider, {
+      config,
+      tipHeader,
+    });
+    for await (const inputCell of cellCollector.collect()) {
+      // skip inputs already exists in txSkeleton.inputs
+      if (
+        previousInputs.has(
+          `${inputCell.out_point!.tx_hash}_${inputCell.out_point!.index}`
+        )
+      ) {
+        continue;
+      }
+
+      let multisigSince: JSBI | undefined;
+      if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
+        const lockArgs = inputCell.cell_output.lock.args;
+        multisigSince =
+          lockArgs.length === 58
+            ? _parseMultisigArgsSinceCompatible(lockArgs)
+            : undefined;
+      }
+      let witness: HexString = "0x";
+      if (isDaoScript(inputCell.cell_output.type, config)) {
+        const template = config.SCRIPTS.DAO!;
+        txSkeleton = addCellDep(txSkeleton, {
+          dep_type: template.DEP_TYPE,
+          out_point: {
+            tx_hash: template.TX_HASH,
+            index: template.INDEX,
+          },
+        });
+
+        txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
+          return headerDeps.push(
+            inputCell.depositBlockHash!,
+            inputCell.withdrawBlockHash!
+          );
+        });
+
+        const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
+
+        const witnessArgs = {
+          input_type: toBigUInt64LE(JSBI.BigInt(depositHeaderDepIndex)),
+        };
+        witness = new Reader(
+          core.SerializeWitnessArgs(
+            normalizers.NormalizeWitnessArgs(witnessArgs)
+          )
+        ).serializeJson();
+      }
+
+      txSkeleton = await collectInput(
+        txSkeleton,
+        inputCell,
+        isSecp256k1Blake160MultisigScript(fromScript, config)
+          ? Object.assign({}, fromInfo, { since: multisigSince })
+          : fromInfo,
+        { config, defaultWitness: witness, since: inputCell.since }
+      );
+
+      const inputCapacity = JSBI.BigInt(inputCell.cell_output.capacity);
+      let deductCapacity = inputCapacity;
+      if (JSBI.greaterThan(deductCapacity, amount)) {
+        deductCapacity = amount;
+      }
+      amount = JSBI.subtract(amount, deductCapacity);
+      changeCapacity = JSBI.add(
+        changeCapacity,
+        JSBI.subtract(inputCapacity, deductCapacity)
+      );
+      if (isDaoScript(inputCell.cell_output.type, config)) {
+        // fix inputs / outputs / witnesses
+        txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
+          return fixedEntries.push(
+            {
+              field: "inputs",
+              index: txSkeleton.get("inputs").size - 1,
+            },
+            {
+              field: "witnesses",
+              index: txSkeleton.get("witnesses").size - 1,
+            },
+            {
+              field: "headerDeps",
+              index: txSkeleton.get("headerDeps").size - 2,
+            }
+          );
+        });
+      }
+      if (
+        JSBI.equal(amount, JSBI.BigInt(0)) &&
+        (JSBI.equal(changeCapacity, JSBI.BigInt(0)) ||
+          JSBI.greaterThan(
+            changeCapacity,
+            minimalCellCapacityCompatible(changeCell)
+          ))
+      ) {
+        break;
+      }
+    }
+    if (JSBI.greaterThan(changeCapacity, JSBI.BigInt(0))) {
+      changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+      txSkeleton = txSkeleton.update("outputs", (outputs) =>
+        outputs.push(changeCell)
+      );
+    }
+  }
+
+  if (!assertAmountEnough) {
+    return [txSkeleton, amount];
+  }
+
+  if (JSBI.greaterThan(amount, JSBI.BigInt(0))) {
+    throw new Error("Not enough capacity in from address!");
+  }
+
+  return txSkeleton;
+}
+
 async function injectCapacityWithoutChangeCompatible(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
@@ -638,7 +977,7 @@ async function injectCapacityWithoutChangeCompatible(
   // fromScript can be secp256k1_blake160 / secp256k1_blake160_multisig
 
   amount = JSBI.BigInt(amount.toString() || 0);
-  minimalChangeCapacity = JSBI.BigInt(minimalChangeCapacity.toString())
+  minimalChangeCapacity = JSBI.BigInt(minimalChangeCapacity.toString());
   if (enableDeductCapacity) {
     for (const fromInfo of fromInfos) {
       const fromScript: Script = parseFromInfo(fromInfo, { config }).fromScript;
@@ -655,7 +994,12 @@ async function injectCapacityWithoutChangeCompatible(
         .filter(({ field }) => field === "outputs")
         .maxBy(({ index }) => index);
       let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
-      for (; i < txSkeleton.get("outputs").size && JSBI.greaterThan(amount,JSBI.BigInt(0)); ++i) {
+      for (
+        ;
+        i < txSkeleton.get("outputs").size &&
+        JSBI.greaterThan(amount, JSBI.BigInt(0));
+        ++i
+      ) {
         const output = txSkeleton.get("outputs").get(i)!;
         if (
           new ScriptValue(output.cell_output.lock, { validate: false }).equals(
@@ -665,17 +1009,20 @@ async function injectCapacityWithoutChangeCompatible(
           const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
           const cellCapacity = JSBI.BigInt(clonedOutput.cell_output.capacity);
           let deductCapacity;
-          if (JSBI.greaterThanOrEqual(amount,cellCapacity)) {
+          if (JSBI.greaterThanOrEqual(amount, cellCapacity)) {
             deductCapacity = cellCapacity;
           } else {
-            deductCapacity = JSBI.subtract(cellCapacity,minimalCellCapacityCompatible(clonedOutput));
+            deductCapacity = JSBI.subtract(
+              cellCapacity,
+              minimalCellCapacityCompatible(clonedOutput)
+            );
             if (deductCapacity > amount) {
               deductCapacity = amount;
             }
           }
-          amount = JSBI.subtract(amount,deductCapacity);
+          amount = JSBI.subtract(amount, deductCapacity);
           clonedOutput.cell_output.capacity =
-            "0x" + (JSBI.subtract(cellCapacity,deductCapacity)).toString(16);
+            "0x" + JSBI.subtract(cellCapacity, deductCapacity).toString(16);
 
           txSkeleton = txSkeleton.update("outputs", (outputs) => {
             return outputs.update(i, () => clonedOutput);
@@ -685,7 +1032,8 @@ async function injectCapacityWithoutChangeCompatible(
       // remove all output cells with capacity equal to 0
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.filter(
-          (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
+          (output) =>
+            JSBI.BigInt(output.cell_output.capacity) !== JSBI.BigInt(0)
         );
       });
     }
@@ -695,7 +1043,7 @@ async function injectCapacityWithoutChangeCompatible(
    * Collect and add new input cells so as to prepare remaining capacities.
    */
   let changeCapacity = JSBI.BigInt(0);
-  if (JSBI.greaterThan(amount,JSBI.BigInt(0))) {
+  if (JSBI.greaterThan(amount, JSBI.BigInt(0))) {
     const cellProvider = txSkeleton.get("cellProvider");
     if (!cellProvider) {
       throw new Error("cell provider is missing!");
@@ -740,7 +1088,7 @@ async function injectCapacityWithoutChangeCompatible(
 
           const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
           const witnessArgs = {
-            input_type: toBigUInt64LE(BigInt(depositHeaderDepIndex)),
+            input_type: toBigUInt64LE(JSBI.BigInt(depositHeaderDepIndex)),
           };
           witness = new Reader(
             core.SerializeWitnessArgs(
@@ -748,13 +1096,13 @@ async function injectCapacityWithoutChangeCompatible(
             )
           ).serializeJson();
         }
-        let multisigSince: bigint | undefined;
+        let multisigSince: JSBI | undefined;
         if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
           // multisig
           const lockArgs = inputCell.cell_output.lock.args;
           multisigSince =
             lockArgs.length === 58
-              ? _parseMultisigArgsSince(lockArgs)
+              ? _parseMultisigArgsSinceCompatible(lockArgs)
               : undefined;
         }
         txSkeleton = await collectInput(
@@ -766,11 +1114,14 @@ async function injectCapacityWithoutChangeCompatible(
 
         const inputCapacity = JSBI.BigInt(inputCell.cell_output.capacity);
         let deductCapacity = inputCapacity;
-        if (JSBI.greaterThan(deductCapacity,amount)) {
+        if (JSBI.greaterThan(deductCapacity, amount)) {
           deductCapacity = amount;
         }
-        amount = JSBI.subtract(amount,deductCapacity);
-        changeCapacity = JSBI.add(changeCapacity, JSBI.subtract(inputCapacity,deductCapacity));
+        amount = JSBI.subtract(amount, deductCapacity);
+        changeCapacity = JSBI.add(
+          changeCapacity,
+          JSBI.subtract(inputCapacity, deductCapacity)
+        );
 
         if (isDaoScript(inputCell.cell_output.type, config)) {
           // fix inputs / outputs / witnesses
@@ -793,9 +1144,9 @@ async function injectCapacityWithoutChangeCompatible(
         }
 
         if (
-          JSBI.equal(amount,JSBI.BigInt(0)) &&
-          (JSBI.equal(changeCapacity,JSBI.BigInt(0)) ||
-            JSBI.greaterThan(changeCapacity,minimalChangeCapacity))
+          JSBI.equal(amount, JSBI.BigInt(0)) &&
+          (JSBI.equal(changeCapacity, JSBI.BigInt(0)) ||
+            JSBI.greaterThan(changeCapacity, minimalChangeCapacity))
         ) {
           break;
         }
@@ -809,7 +1160,6 @@ async function injectCapacityWithoutChangeCompatible(
     changeCapacity: changeCapacity,
   };
 }
-
 
 async function injectCapacityWithoutChange(
   txSkeleton: TransactionSkeletonType,
@@ -1010,7 +1360,7 @@ async function injectCapacityWithoutChange(
 export async function payFee(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  amount: bigint,
+  amount: bigint | JSBI,
   tipHeader: Header,
   {
     config = undefined,
@@ -1020,11 +1370,19 @@ export async function payFee(
     LocktimeCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
-  return transfer(txSkeleton, fromInfos, undefined, amount, tipHeader, {
-    config,
-    requireToAddress: false,
-    LocktimeCellCollector,
-  });
+  amount = JSBI.BigInt(amount.toString());
+  return transferCompatible(
+    txSkeleton,
+    fromInfos,
+    undefined,
+    amount,
+    tipHeader,
+    {
+      config,
+      requireToAddress: false,
+      LocktimeCellCollector,
+    }
+  );
 }
 
 export function prepareSigningEntries(
@@ -1058,14 +1416,21 @@ export async function injectCapacity(
   if (outputIndex >= txSkeleton.get("outputs").size) {
     throw new Error("Invalid output index!");
   }
-  const capacity = BigInt(
+  const capacity = JSBI.BigInt(
     txSkeleton.get("outputs").get(outputIndex)!.cell_output.capacity
   );
-  return transfer(txSkeleton, fromInfos, undefined, capacity, tipHeader, {
-    config,
-    requireToAddress: false,
-    LocktimeCellCollector,
-  });
+  return transferCompatible(
+    txSkeleton,
+    fromInfos,
+    undefined,
+    capacity,
+    tipHeader,
+    {
+      config,
+      requireToAddress: false,
+      LocktimeCellCollector,
+    }
+  );
 }
 
 async function collectInput(
@@ -1131,6 +1496,13 @@ function _parseMultisigArgsSince(args: HexString): bigint {
   return readBigUInt64LE("0x" + args.slice(42));
 }
 
+function _parseMultisigArgsSinceCompatible(args: HexString): JSBI {
+  if (args.length !== 58) {
+    throw new Error("Invalid multisig with since args!");
+  }
+  return readBigUInt64LECompatible("0x" + args.slice(42));
+}
+
 export default {
   CellCollector,
   transfer,
@@ -1139,5 +1511,5 @@ export default {
   injectCapacity,
   setupInputCell,
   injectCapacityWithoutChange,
-  injectCapacityWithoutChangeCompatible
+  injectCapacityWithoutChangeCompatible,
 };

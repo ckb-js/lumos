@@ -692,7 +692,10 @@ test("calculateFee, without carry", (t) => {
   t.is(__tests__.calculateFee(1035, BigInt(1000)), BigInt(1035));
 });
 test("calculateFeeCompatible, without carry", (t) => {
-  t.is(__tests__.calculateFeeCompatible(1035, JSBI.BigInt(1000)).toString(), JSBI.BigInt(1035).toString());
+  t.is(
+    __tests__.calculateFeeCompatible(1035, JSBI.BigInt(1000)).toString(),
+    JSBI.BigInt(1035).toString()
+  );
 });
 
 test("calculateFee, with carry", (t) => {
@@ -700,7 +703,10 @@ test("calculateFee, with carry", (t) => {
 });
 
 test("calculateFeeCompatible, with carry", (t) => {
-  t.is(__tests__.calculateFeeCompatible(1035, JSBI.BigInt(900)).toString(), JSBI.BigInt(932).toString());
+  t.is(
+    __tests__.calculateFeeCompatible(1035, JSBI.BigInt(900)).toString(),
+    JSBI.BigInt(932).toString()
+  );
 });
 
 function getExpectedFee(
