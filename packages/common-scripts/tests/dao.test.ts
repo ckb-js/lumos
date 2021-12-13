@@ -17,7 +17,7 @@ import {
   bobSecpDaoWithdrawInput,
 } from "./inputs";
 
-const cellProvider = new CellProvider(inputs);
+const cellProvider = new CellProvider(inputs());
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
 
 const generateDaoTypeScript = (config: Config): Script => {

@@ -1,6 +1,6 @@
 import { Cell } from "@ckb-lumos/base";
 
-export const inputs: Cell[] = [
+export const inputs = ():Cell[] => ([
   {
     cell_output: {
       capacity: "0x11716ddd8a8e",
@@ -61,4 +61,4 @@ export const inputs: Cell[] = [
     block_number: "0x7928",
     data: "0x",
   },
-];
+]);
