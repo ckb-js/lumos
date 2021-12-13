@@ -142,7 +142,7 @@ async function injectCapacity(
     changeCapacity -= amount;
   }
 
-  if (amount > 0n) {
+  if (amount > 0n || changeCapacity < minimalChangeCapacity) {
     const cellProvider = txSkeleton.get("cellProvider");
     if (!cellProvider) throw new Error("Cell provider is missing!");
     const cellCollector = cellProvider.collector({
