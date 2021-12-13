@@ -140,6 +140,7 @@ async function injectCapacity(
 
   if (amount < 0n) {
     changeCapacity -= amount;
+    amount = 0n;
   }
 
   if (amount > 0n || changeCapacity < minimalChangeCapacity) {
