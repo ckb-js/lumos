@@ -21,9 +21,9 @@ We provide a new API for returning JSBI that ends with Compatible, for example, 
 - [x] helpers
 - [x] rpc
 - [x] ckb-indexer
-- [ ] common-scripts
-- [ ] hd
-- [ ] hd-cache
+- [x] common-scripts
+- [x] hd
+- [x] hd-cache
 
 ## Quick Start
 
