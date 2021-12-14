@@ -144,16 +144,18 @@ export function isAcpAddress(address: Address, config: Config): boolean {
 export function hashWitness(hasher: any, witness: HexString): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
-  const witnessHexString = JSBI.BigInt(new Reader(witness).length()).toString(16);
-  if(witnessHexString.length <= 8) {
-    view.setUint32(0, Number('0x'+ witnessHexString), true)
-    view.setUint32(4, Number('0x'+ '00000000'), true)
-}
+  const witnessHexString = JSBI.BigInt(new Reader(witness).length()).toString(
+    16
+  );
+  if (witnessHexString.length <= 8) {
+    view.setUint32(0, Number("0x" + witnessHexString), true);
+    view.setUint32(4, Number("0x" + "00000000"), true);
+  }
 
-if(witnessHexString.length > 8 && witnessHexString.length <= 16) {
-    view.setUint32(0, Number('0x'+ witnessHexString.slice(-8)), true)
-    view.setUint32(4, Number('0x'+ witnessHexString.slice(0, -8)), true)
-}
+  if (witnessHexString.length > 8 && witnessHexString.length <= 16) {
+    view.setUint32(0, Number("0x" + witnessHexString.slice(-8)), true);
+    view.setUint32(4, Number("0x" + witnessHexString.slice(0, -8)), true);
+  }
   view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
   hasher.update(lengthBuffer);
   hasher.update(witness);

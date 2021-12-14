@@ -1,6 +1,10 @@
 import { Set } from "immutable";
 import { normalizers, Reader } from "ckb-js-toolkit";
-import { parseAddress, minimalCellCapacity, minimalCellCapacityCompatible } from "@ckb-lumos/helpers";
+import {
+  parseAddress,
+  minimalCellCapacity,
+  minimalCellCapacityCompatible,
+} from "@ckb-lumos/helpers";
 import {
   core,
   values,
@@ -497,7 +501,7 @@ export async function transferCompatible(
  * @param amount
  * @param options
  */
- export async function transferCompatible(
+export async function transferCompatible(
   txSkeleton: TransactionSkeletonType,
   fromAddress: Address,
   toAddress: Address | null | undefined,
@@ -568,7 +572,12 @@ export async function transferCompatible(
     .filter(({ field }) => field === "outputs")
     .maxBy(({ index }) => index);
   let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
-  for (; i < txSkeleton.get("outputs").size && JSBI.greaterThan(amount, JSBI.BigInt(0)); i++) {
+  for (
+    ;
+    i < txSkeleton.get("outputs").size &&
+    JSBI.greaterThan(amount, JSBI.BigInt(0));
+    i++
+  ) {
     const output = txSkeleton.get("outputs").get(i)!;
     if (
       new ScriptValue(output.cell_output.lock, { validate: false }).equals(
@@ -580,20 +589,23 @@ export async function transferCompatible(
       if (JSBI.greaterThanOrEqual(amount, cellCapacity)) {
         deductCapacity = cellCapacity;
       } else {
-        deductCapacity = JSBI.subtract(cellCapacity, minimalCellCapacityCompatible(output));
+        deductCapacity = JSBI.subtract(
+          cellCapacity,
+          minimalCellCapacityCompatible(output)
+        );
         if (JSBI.greaterThan(deductCapacity, amount)) {
           deductCapacity = amount;
         }
       }
-      amount = JSBI.subtract(amount, deductCapacity)
+      amount = JSBI.subtract(amount, deductCapacity);
       output.cell_output.capacity =
         "0x" + JSBI.subtract(cellCapacity, deductCapacity).toString(16);
     }
   }
   // Remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.filter(
-      (output) => JSBI.notEqual(JSBI.BigInt(output.cell_output.capacity), JSBI.BigInt(0))
+    return outputs.filter((output) =>
+      JSBI.notEqual(JSBI.BigInt(output.cell_output.capacity), JSBI.BigInt(0))
     );
   });
   /*
@@ -645,10 +657,18 @@ export async function transferCompatible(
         deductCapacity = amount;
       }
       amount = JSBI.subtract(amount, deductCapacity);
-      changeCapacity = JSBI.add(changeCapacity, JSBI.subtract(inputCapacity, deductCapacity));
-      if (JSBI.equal(amount, JSBI.BigInt(0)) && 
-      (JSBI.equal(changeCapacity, JSBI.BigInt(0)) || 
-      JSBI.greaterThan(changeCapacity, minimalCellCapacityCompatible(changeCell)))) {
+      changeCapacity = JSBI.add(
+        changeCapacity,
+        JSBI.subtract(inputCapacity, deductCapacity)
+      );
+      if (
+        JSBI.equal(amount, JSBI.BigInt(0)) &&
+        (JSBI.equal(changeCapacity, JSBI.BigInt(0)) ||
+          JSBI.greaterThan(
+            changeCapacity,
+            minimalCellCapacityCompatible(changeCell)
+          ))
+      ) {
         break;
       }
     }
@@ -735,7 +755,7 @@ export async function transferCompatible(
 export async function payFee(
   txSkeleton: TransactionSkeletonType,
   fromAddress: Address,
-  amount: bigint|JSBI,
+  amount: bigint | JSBI,
   { config = undefined }: Options = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();

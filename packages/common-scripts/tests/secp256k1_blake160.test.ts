@@ -48,12 +48,12 @@ test("JSBI:transfer success", async (t) => {
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
     .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) =>JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
     .map((o) => JSBI.BigInt(o.cell_output.capacity))
     .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
-    t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 });
 
 test("transfer to non secp256k1_blake160 address", async (t) => {
@@ -98,13 +98,13 @@ test("JSBI:transfer to non secp256k1_blake160 address", async (t) => {
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
-  .get("inputs")
-  .map((i) => JSBI.BigInt(i.cell_output.capacity))
-  .reduce((result, c) =>JSBI.add(result, c), JSBI.BigInt(0));
-const sumOfOutputCapacity = txSkeleton
-  .get("outputs")
-  .map((o) => JSBI.BigInt(o.cell_output.capacity))
-  .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .get("inputs")
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("outputs").size, 2);
@@ -166,14 +166,17 @@ test("JSBI:payFee", async (t) => {
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
-  .get("inputs")
-  .map((i) => JSBI.BigInt(i.cell_output.capacity))
-  .reduce((result, c) =>JSBI.add(result, c), JSBI.BigInt(0));
-const sumOfOutputCapacity = txSkeleton
-  .get("outputs")
-  .map((o) => JSBI.BigInt(o.cell_output.capacity))
-  .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
-  t.is(JSBI.add(sumOfOutputCapacity, fee).toString(), sumOfInputCapacity.toString());
+    .get("inputs")
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(
+    JSBI.add(sumOfOutputCapacity, fee).toString(),
+    sumOfInputCapacity.toString()
+  );
 
   t.is(txSkeleton.get("inputs").size, 1);
 });
@@ -237,14 +240,17 @@ test("JSBI:prepareSigningEntries", async (t) => {
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
-  .get("inputs")
-  .map((i) => JSBI.BigInt(i.cell_output.capacity))
-  .reduce((result, c) =>JSBI.add(result, c), JSBI.BigInt(0));
-const sumOfOutputCapacity = txSkeleton
-  .get("outputs")
-  .map((o) => JSBI.BigInt(o.cell_output.capacity))
-  .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
-  t.is(JSBI.add(sumOfOutputCapacity, fee).toString(), sumOfInputCapacity.toString());
+    .get("inputs")
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(
+    JSBI.add(sumOfOutputCapacity, fee).toString(),
+    sumOfInputCapacity.toString()
+  );
 
   t.is(txSkeleton.get("inputs").size, 1);
 
@@ -328,13 +334,13 @@ test.skip("JSBI:transferCompatible, skip duplicated input", async (t) => {
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
-  .get("inputs")
-  .map((i) => JSBI.BigInt(i.cell_output.capacity))
-  .reduce((result, c) =>JSBI.add(result, c), JSBI.BigInt(0));
-const sumOfOutputCapacity = txSkeleton
-  .get("outputs")
-  .map((o) => JSBI.BigInt(o.cell_output.capacity))
-  .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .get("inputs")
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("inputs").size, 2);
