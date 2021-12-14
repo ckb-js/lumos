@@ -126,7 +126,7 @@ export class CkbIndexer implements Indexer {
           };
         }
       }
-      if (liveCells.length < sizeLimit) {
+      if (liveCells.length <= sizeLimit) {
         break;
       }
     }
@@ -150,7 +150,7 @@ export class CkbIndexer implements Indexer {
       const txs = res.objects;
       cursor = res.last_cursor as string;
       infos = infos.concat(txs);
-      if (txs.length < sizeLimit) {
+      if (txs.length <= sizeLimit) {
         break;
       }
     }
