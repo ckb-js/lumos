@@ -11,8 +11,8 @@ import {
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
 
-export type ScriptType = 'type' | 'lock';
-export type Order = 'asc' | 'desc'
+export type ScriptType = "type" | "lock";
+export type Order = "asc" | "desc";
 
 export interface CKBIndexerQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;

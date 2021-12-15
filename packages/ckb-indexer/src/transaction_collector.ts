@@ -332,11 +332,11 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
-    let skippedCount:number = 0;
+    let skippedCount: number = 0;
     while (true) {
       if (this.queries.skip && skippedCount < this.queries.skip) {
         skippedCount++;
-      }else {
+      } else {
         counter += 1;
       }
       index++;
@@ -371,7 +371,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
-    let skippedCount:number = 0
+    let skippedCount: number = 0;
     while (true) {
       if (this.queries.skip && skippedCount < this.queries.skip) {
         skippedCount++;
@@ -411,7 +411,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
-    let skippedCount:number = 0
+    let skippedCount: number = 0;
     while (true) {
       if (this.queries.skip && skippedCount < this.queries.skip) {
         skippedCount++;

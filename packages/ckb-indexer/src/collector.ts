@@ -135,7 +135,7 @@ export class CKBCellCollector implements BaseCellCollector {
     return result;
   }
 
-  private shouldSkipped(cell: Cell, skippedCount:number = 0) {
+  private shouldSkipped(cell: Cell, skippedCount: number = 0) {
     if (this.queries.skip && skippedCount < this.queries.skip) {
       return true;
     }
@@ -168,12 +168,12 @@ export class CKBCellCollector implements BaseCellCollector {
     }
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
-    let skippedCount:number = 0;
+    let skippedCount: number = 0;
     while (true) {
       if (!this.shouldSkipped(cells[index], skippedCount)) {
         counter += 1;
       } else {
-        skippedCount++
+        skippedCount++;
       }
       index++;
       //reset index and exchange `cells` and `buffer` after count last cell
@@ -262,12 +262,12 @@ export class CKBCellCollector implements BaseCellCollector {
     }
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
-    let skippedCount:number = 0;
+    let skippedCount: number = 0;
     while (true) {
       if (!this.shouldSkipped(cells[index], skippedCount)) {
         yield cells[index];
       } else {
-        skippedCount++
+        skippedCount++;
       }
       index++;
       //reset index and exchange `cells` and `buffer` after yield last cell

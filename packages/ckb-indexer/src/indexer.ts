@@ -22,7 +22,6 @@ import {
   GetTransactionsResult,
   GetTransactionsResults,
   IndexerEmitter,
-  Order,
   OutputToVerify,
   SearchKey,
   SearchKeyFilter,
