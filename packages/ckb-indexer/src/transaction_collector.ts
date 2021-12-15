@@ -326,19 +326,19 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       return result.objects;
     };
     let counter = 0;
-    //skip query result in first query
     let txs: TransactionWithStatus[] = await getTxWithCursor();
     if (txs.length === 0) {
       return 0;
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
+    let skippedCount:number = 0;
     while (true) {
-      if (this.queries.skip && index < this.queries.skip) {
-        index++;
-        continue;
+      if (this.queries.skip && skippedCount < this.queries.skip) {
+        skippedCount++;
+      }else {
+        counter += 1;
       }
-      counter += 1;
       index++;
       //reset index and exchange `txs` and `buffer` after count last tx
       if (index === txs.length) {
@@ -371,14 +371,16 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
+    let skippedCount:number = 0
     while (true) {
-      if (this.queries.skip && index < this.queries.skip) {
-        index++;
-        continue;
+      if (this.queries.skip && skippedCount < this.queries.skip) {
+        skippedCount++;
+      } else {
+        if (txs[index].transaction.hash) {
+          transactionHashes.push(txs[index].transaction.hash as string);
+        }
       }
-      if (txs[index].transaction.hash) {
-        transactionHashes.push(txs[index].transaction.hash as string);
-      }
+
       index++;
       //reset index and exchange `txs` and `buffer` after count last tx
       if (index === txs.length) {
@@ -409,15 +411,16 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index: number = 0;
+    let skippedCount:number = 0
     while (true) {
-      if (this.queries.skip && index < this.queries.skip) {
-        index++;
-        continue;
-      }
-      if (this.filterOptions.includeStatus) {
-        yield txs[index];
+      if (this.queries.skip && skippedCount < this.queries.skip) {
+        skippedCount++;
       } else {
-        yield txs[index].transaction;
+        if (this.filterOptions.includeStatus) {
+          yield txs[index];
+        } else {
+          yield txs[index].transaction;
+        }
       }
       index++;
       //reset index and exchange `txs` and `buffer` after count last tx

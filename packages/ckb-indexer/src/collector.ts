@@ -135,8 +135,8 @@ export class CKBCellCollector implements BaseCellCollector {
     return result;
   }
 
-  private shouldSkipped(cell: Cell, index: number) {
-    if (this.queries.skip && index < this.queries.skip) {
+  private shouldSkipped(cell: Cell, skippedCount:number = 0) {
+    if (this.queries.skip && skippedCount < this.queries.skip) {
       return true;
     }
     if (cell && this.queries.type === "empty" && cell.cell_output.type) {
@@ -168,9 +168,12 @@ export class CKBCellCollector implements BaseCellCollector {
     }
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
+    let skippedCount:number = 0;
     while (true) {
-      if (!this.shouldSkipped(cells[index], index)) {
+      if (!this.shouldSkipped(cells[index], skippedCount)) {
         counter += 1;
+      } else {
+        skippedCount++
       }
       index++;
       //reset index and exchange `cells` and `buffer` after count last cell
@@ -254,17 +257,17 @@ export class CKBCellCollector implements BaseCellCollector {
       return result.objects;
     };
     let cells: Cell[] = await getCellWithCursor();
-    console.log(cells.length)
     if (cells.length === 0) {
       return;
     }
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
+    let skippedCount:number = 0;
     while (true) {
-      console.log(this.shouldSkipped(cells[index], index), index)
-      if (!this.shouldSkipped(cells[index], index)) {
-        console.log(cells[index])
+      if (!this.shouldSkipped(cells[index], skippedCount)) {
         yield cells[index];
+      } else {
+        skippedCount++
       }
       index++;
       //reset index and exchange `cells` and `buffer` after yield last cell
