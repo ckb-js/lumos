@@ -36,7 +36,7 @@ export class CKBCellCollector implements BaseCellCollector {
       data: "any",
       fromBlock: undefined,
       toBlock: undefined,
-      order: Order.asc,
+      order: "asc",
       skip: undefined,
       outputDataLenRange: undefined,
       outputCapacityRange: undefined,
@@ -82,7 +82,7 @@ export class CKBCellCollector implements BaseCellCollector {
     if (this.queries.toBlock) {
       utils.assertHexadecimal("toBlock", this.queries.toBlock);
     }
-    if (this.queries.order !== Order.asc && this.queries.order !== Order.desc) {
+    if (this.queries.order !== "asc" && this.queries.order !== "desc") {
       throw new Error("Order must be either asc or desc!");
     }
     if (this.queries.outputCapacityRange) {
@@ -254,13 +254,16 @@ export class CKBCellCollector implements BaseCellCollector {
       return result.objects;
     };
     let cells: Cell[] = await getCellWithCursor();
+    console.log(cells.length)
     if (cells.length === 0) {
       return;
     }
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
     while (true) {
+      console.log(this.shouldSkipped(cells[index], index), index)
       if (!this.shouldSkipped(cells[index], index)) {
+        console.log(cells[index])
         yield cells[index];
       }
       index++;

@@ -101,7 +101,7 @@ export class CkbIndexer implements Indexer {
     const infos: Cell[] = [];
     let cursor: string | undefined = searchKeyFilter.lastCursor;
     let sizeLimit = searchKeyFilter.sizeLimit || 100;
-    let order = searchKeyFilter.order || Order.asc;
+    let order = searchKeyFilter.order || "asc";
     const index = 0;
     while (true) {
       let params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
@@ -143,7 +143,7 @@ export class CkbIndexer implements Indexer {
     let infos: GetTransactionsResult[] = [];
     let cursor: string | undefined = searchKeyFilter.lastCursor;
     let sizeLimit = searchKeyFilter.sizeLimit || 100;
-    let order = searchKeyFilter.order || Order.asc;
+    let order = searchKeyFilter.order || "asc";
     for (;;) {
       const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res = await this.request("get_transactions", params);
