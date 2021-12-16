@@ -24,6 +24,7 @@ We provide a new API for returning JSBI that ends with Compatible, for example, 
 - [x] common-scripts
 - [x] hd
 - [x] hd-cache
+- [x] transaction-manager
 
 ## Quick Start
 
