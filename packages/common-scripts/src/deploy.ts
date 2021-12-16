@@ -99,7 +99,8 @@ function updateCellDeps(
 async function completeTx(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
-  config?: Config
+  config?: Config,
+  feeRate?: bigint
 ): Promise<TransactionSkeletonType> {
   const inputCapacity = txSkeleton
     .get("inputs")
@@ -112,6 +113,7 @@ async function completeTx(
   const needCapacity = outputCapacity - inputCapacity;
   txSkeleton = await injectCapacity(txSkeleton, fromInfo, needCapacity, {
     config: config,
+    feeRate: feeRate,
   });
   return txSkeleton;
 }
@@ -120,9 +122,13 @@ async function injectCapacity(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
   amount: bigint,
-  { config = undefined }: Options = {}
+  {
+    config = undefined,
+    feeRate = undefined,
+  }: { config?: Config; feeRate?: bigint }
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
+  feeRate = feeRate || BigInt(1000);
   const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
   amount = BigInt(amount) + BigInt(10) ** BigInt(8);
 
@@ -268,7 +274,7 @@ async function injectCapacity(
     );
   }
 
-  const txFee = calculateTxFee(txSkeleton);
+  const txFee = calculateTxFee(txSkeleton, feeRate);
   changeCapacity = changeCapacity - txFee;
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -308,8 +314,10 @@ function calculateFee(size: number, feeRate: bigint): bigint {
   return fee;
 }
 
-function calculateTxFee(txSkeleton: TransactionSkeletonType): bigint {
-  const feeRate = BigInt(1000);
+function calculateTxFee(
+  txSkeleton: TransactionSkeletonType,
+  feeRate: bigint
+): bigint {
   const txSize = getTransactionSize(txSkeleton);
   return calculateFee(txSize, feeRate);
 }
@@ -447,6 +455,7 @@ interface DeployOptions {
   scriptBinary: Uint8Array;
   fromInfo: FromInfo;
   config?: Config;
+  feeRate?: bigint;
 }
 
 interface UpgradeOptions extends DeployOptions {
@@ -488,7 +497,12 @@ export async function generateDeployWithDataTx(
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, options.fromInfo, options.config);
+  txSkeleton = await completeTx(
+    txSkeleton,
+    options.fromInfo,
+    options.config,
+    options.feeRate
+  );
 
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 
@@ -533,7 +547,12 @@ export async function generateDeployWithTypeIdTx(
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, options.fromInfo, options.config);
+  txSkeleton = await completeTx(
+    txSkeleton,
+    options.fromInfo,
+    options.config,
+    options.feeRate
+  );
 
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 
@@ -577,7 +596,12 @@ export async function generateUpgradeTypeIdDataTx(
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, options.fromInfo, options.config);
+  txSkeleton = await completeTx(
+    txSkeleton,
+    options.fromInfo,
+    options.config,
+    options.feeRate
+  );
 
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 

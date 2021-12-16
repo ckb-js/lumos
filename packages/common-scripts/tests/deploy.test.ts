@@ -2,11 +2,6 @@ import { Cell, Script } from "@ckb-lumos/base";
 import { common } from "@ckb-lumos/common-scripts";
 import test from "ava";
 import { CellProvider } from "./cell_provider";
-// import {
-//   generateDeployWithDataTx,
-//   generateDeployWithTypeIdTx,
-//   generateUpgradeTypeIdDataTx,
-// } from "../src/deploy";
 import deploy from "../src/deploy";
 const { __tests__ } = deploy;
 const { calculateTxFee } = __tests__;
@@ -134,7 +129,7 @@ test("deploy with data", async (t) => {
   }
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton);
+  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
   t.is(txFee, expectTxFee);
   t.true(txFee < BigInt(1000000));
 
@@ -231,7 +226,7 @@ test("deploy with typeID", async (t) => {
   }
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton);
+  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
   t.is(txFee, expectTxFee);
   t.true(txFee < BigInt(1000000));
 
@@ -329,7 +324,7 @@ test("upgrade with typeID", async (t) => {
   let { txSkeleton } = await deploy.generateUpgradeTypeIdDataTx(upgradeOptions);
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton);
+  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
   t.is(txFee, expectTxFee);
   t.true(txFee < BigInt(1000000));
 
@@ -427,7 +422,7 @@ test("upgrade contract with size reduced", async (t) => {
   let { txSkeleton } = await deploy.generateUpgradeTypeIdDataTx(upgradeOptions);
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton);
+  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
   t.is(txFee, expectTxFee);
   t.true(txFee < BigInt(1000000));
 
@@ -524,7 +519,7 @@ test("deploy with data by multisig", async (t) => {
   }
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton);
+  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
   t.is(txFee, expectTxFee);
   t.true(txFee < BigInt(1000000));
 
