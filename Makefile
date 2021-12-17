@@ -22,6 +22,9 @@ test:
 	yarn workspace @ckb-lumos/transaction-manager test
 	yarn workspace @ckb-lumos/rpc test
 
+test-coverage:
+	c8 --reporter=html --clean -o coverage make test
+	
 lint:
 	yarn workspaces run fmt
 	yarn workspaces run lint
