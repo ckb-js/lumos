@@ -77,3 +77,10 @@ minimalCapacityCompatible(...) // JSBI
 ### helpers
 
 - `minimalCellCapacity` -> `minimalCellCapacityCompatible`
+
+### common-scripts
+
+- `calculateMaximumWithdraw` -> `calculateMaximumWithdrawCompatible`
+- `calculateDaoEarliestSince` -> `calculateDaoEarliestSinceCompatible`
+- `injectCapacityWithoutChange` -> `injectCapacityWithoutChangeCompatible`
+- `transfer` -> `transferCompatible`
