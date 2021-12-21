@@ -156,7 +156,6 @@ export function hashWitness(hasher: any, witness: HexString): void {
     view.setUint32(0, Number("0x" + witnessHexString.slice(-8)), true);
     view.setUint32(4, Number("0x" + witnessHexString.slice(0, -8)), true);
   }
-  view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
   hasher.update(lengthBuffer);
   hasher.update(witness);
 }
