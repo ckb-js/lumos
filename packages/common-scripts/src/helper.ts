@@ -12,6 +12,7 @@ import {
   Script,
   Address,
   HexString,
+  JSBI,
 } from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
 import { normalizers, Reader } from "ckb-js-toolkit";
@@ -143,7 +144,18 @@ export function isAcpAddress(address: Address, config: Config): boolean {
 export function hashWitness(hasher: any, witness: HexString): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
-  view.setBigUint64(0, BigInt(new Reader(witness).length()), true);
+  const witnessHexString = JSBI.BigInt(new Reader(witness).length()).toString(
+    16
+  );
+  if (witnessHexString.length <= 8) {
+    view.setUint32(0, Number("0x" + witnessHexString), true);
+    view.setUint32(4, Number("0x" + "00000000"), true);
+  }
+
+  if (witnessHexString.length > 8 && witnessHexString.length <= 16) {
+    view.setUint32(0, Number("0x" + witnessHexString.slice(-8)), true);
+    view.setUint32(4, Number("0x" + witnessHexString.slice(0, -8)), true);
+  }
   hasher.update(lengthBuffer);
   hasher.update(witness);
 }

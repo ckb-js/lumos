@@ -8,7 +8,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { bob, alice } from "./account_info";
 import { predefined } from "@ckb-lumos/config-manager";
-import { Script, utils } from "@ckb-lumos/base";
+import { JSBI, Script, utils } from "@ckb-lumos/base";
 import { isSudtScript } from "../src/helper";
 import {
   bobSecpInputs,
@@ -18,6 +18,7 @@ import {
   bobAcpSudtInputs,
   aliceAcpSudtInputs,
 } from "./inputs";
+import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
 const { readBigUInt128LE } = utils;
 const { AGGRON4 } = predefined;
 
@@ -62,7 +63,7 @@ test("transfer secp", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(10000);
+  const amount = JSBI.BigInt(10000);
   txSkeleton = await sudt.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -77,30 +78,35 @@ test("transfer secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
-  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), amount);
+  t.is(
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    amount.toString()
+  );
 
   t.true(
     isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
@@ -164,7 +170,7 @@ test("transfer locktime pool multisig & secp", async (t) => {
     .map((i) => readBigUInt128LE(i.data))
     .reduce((result, c) => result + c, BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 3);
   t.is(txSkeleton.get("headerDeps").size, 0);
