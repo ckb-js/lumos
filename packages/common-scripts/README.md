@@ -6,6 +6,8 @@ Common script implementation for lumos. Includes `secp256k1_blake2b` lock script
 
 `common` script allows you to `transfer` capacity from `fromInfos` to an address. It will use locktime pool cells first by default.
 
+`deploy` script provides `generateDeployWithDataTx`, `generateDeployWithTypeIdTx` and `generateUpgradeTypeIdDataTx`, these generators help in the process of deploying contracts.
+
 ## Usage
 
 `common` script support new lock scripts provided by user, and [`pw-lock`](./examples/pw_lock/lock.ts) shows how to do it.
@@ -154,4 +156,55 @@ txSkeleton = await sudt.transfer(
   1000n,
   "ckb1qyqrdsefa43s6m882pcj53m4gdnj4k440axqdt9rtd",
 );
+```
+
+Following script will show how to use `deploy` script.
+```javascript
+const { generateDeployWithDataTx, generateDeployWithTypeIdTx, generateUpgradeTypeIdDataTx, payFee } = require("@ckb-lumos/common-scripts");
+const { Indexer } = require("@ckb-lumos/ckb-indexer");
+const { initializeConfig, predefined } = require("@ckb-lumos/config-manager");
+const { parseAddress } = require("@ckb-lumos/helpers");
+
+initializeConfig(predefined.AGGRON4);
+
+const CKB_RPC_URL = "http://localhost:8114";
+const CKB_INDEXER_URL = "http://localhost:8116";
+const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+
+const address = "ckt1qyqptxys5l9vk39ft0hswscxgseawc77y2wqlr558h";
+// Lock script of the deploy account
+const outputScriptLock = parseAddress(address);
+// Binary data you want to deploy
+const scriptBinary = Uint8Array.of(1);
+
+let deployOptions = {
+  cellProvider: indexer,
+  scriptBinary: scriptBinary,
+  outputScriptLock: outputScriptLock,
+}
+
+// Ganarate txSkeleton for deploying with data.
+let txSkeleton = await generateDeployWithDataTx(deployOptions);
+// Or if you want to delpoy with Type ID so that you can upgarde the contract in the future.
+let txSkeleton = await generateDeployWithTypeIdTx(deployOptions);
+
+// Pay transaction fee.
+txSkeleton = await payFee(txSkeleton, address, txFee);
+// Then you can sign and seal the transaction for sending.
+
+
+// To upgrade a contract with Type ID, add its Type ID to deployOptions.
+const typeId = {
+  code_hash: '0x00000000000000000000000000000000000000000000000000545950455f4944',
+  hash_type: 'type',
+  args: '0x7abcd9f949a16b40ff5b50b56e62d2a6a007e544d8491bb56476693b6c45fd27'
+}
+const upgradeOptions = {
+  cellProvider: cellProvider,
+  scriptBinary: scriptBinary,
+  outputScriptLock: outputScriptLock,
+  typeId: typeId
+}
+// Ganarate txSkeleton for upgrading.
+let upgradeTxSkeleton = await generateUpgradeTypeIdDataTx(upgradeOptions);
 ```

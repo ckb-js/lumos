@@ -9,7 +9,7 @@ import { predefined, Config } from "@ckb-lumos/config-manager";
 const { LINA, AGGRON4 } = predefined;
 import { bob } from "./account_info";
 import { inputs } from "./secp256k1_blake160_inputs";
-import { Script, Cell, HexString } from "@ckb-lumos/base";
+import { Script, Cell, HexString, JSBI } from "@ckb-lumos/base";
 import {
   bobMultisigDaoInputs,
   bobMultisigInputs,
@@ -17,7 +17,7 @@ import {
   bobSecpDaoWithdrawInput,
 } from "./inputs";
 
-const cellProvider = new CellProvider(inputs);
+const cellProvider = new CellProvider(inputs());
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
 
 const generateDaoTypeScript = (config: Config): Script => {
@@ -201,6 +201,25 @@ test("calculateMaximumWithdraw", (t) => {
   );
 
   t.is(result, expectedWithdrawCapacity);
+});
+
+test("JSBI:calculateMaximumWithdrawCompatible", (t) => {
+  const {
+    depositInput,
+    depositHeader,
+    withdrawHeader,
+    expectedWithdrawCapacity,
+  } = calculateMaximumWithdrawInfo;
+  const result = dao.calculateMaximumWithdrawCompatible(
+    depositInput as Cell,
+    depositHeader.dao,
+    withdrawHeader.dao
+  );
+
+  t.is(
+    result.toString(),
+    JSBI.BigInt(expectedWithdrawCapacity.toString()).toString()
+  );
 });
 
 test("deposit multisig", async (t) => {
@@ -461,6 +480,19 @@ test("calculateDaoEarliestSince", (t) => {
   // since: relative = false, type = epochNumber value = { length: 10, index: 5, number: 10478 }
   // if decrease index to 4, will false to validation by dao script
   t.is(result, BigInt("0x20000a00050028ee"));
+});
+
+test("JSBI:calculateDaoEarliestSinceCompatible", (t) => {
+  const { depositHeader, withdrawHeader } = calculateMaximumWithdrawInfo;
+
+  const result = dao.calculateDaoEarliestSinceCompatible(
+    depositHeader.epoch,
+    withdrawHeader.epoch
+  );
+
+  // since: relative = false, type = epochNumber value = { length: 10, index: 5, number: 10478 }
+  // if decrease index to 4, will false to validation by dao script
+  t.is(result.toString(), JSBI.BigInt("0x20000a00050028ee").toString());
 });
 
 class RpcMocker {

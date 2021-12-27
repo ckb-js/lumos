@@ -32,7 +32,7 @@
   ],
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/"
+    "registry": "http://registry.npmjs.org/"
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.18.0-rc2",

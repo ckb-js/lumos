@@ -1,4 +1,4 @@
-import { utils, Script, ScriptWrapper, HexString } from "@ckb-lumos/base";
+import { utils, Script, ScriptWrapper, HexString, JSBI } from "@ckb-lumos/base";
 import {
   CKBIndexerQueryOptions,
   HexadecimalRange,
@@ -24,7 +24,7 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   if (queries.lock) {
     const lock = UnwrapScriptWrapper(queries.lock);
     script = lock as Script;
-    script_type = ScriptType.lock;
+    script_type = "lock";
     if (queries.type && typeof queries.type !== "string") {
       const type = UnwrapScriptWrapper(queries.type);
       filter.script = type as Script;
@@ -32,14 +32,16 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   } else if (queries.type && typeof queries.type !== "string") {
     const type = UnwrapScriptWrapper(queries.type);
     script = type as Script;
-    script_type = ScriptType.type;
+    script_type = "type";
   }
   let block_range: HexadecimalRange | null = null;
   if (queries.fromBlock && queries.toBlock) {
     //toBlock+1 cause toBlock need to be included
     block_range = [
       queries.fromBlock,
-      `0x${(BigInt(queries.toBlock) + 1n).toString(16)}`,
+      `0x${JSBI.add(JSBI.BigInt(queries.toBlock), JSBI.BigInt(1)).toString(
+        16
+      )}`,
     ];
   }
   if (block_range) {

@@ -8,18 +8,12 @@ import {
   HexNumber,
   Output,
   TransactionWithStatus,
+  JSBI,
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
 
-export enum ScriptType {
-  type = "type",
-  lock = "lock",
-}
-
-export enum Order {
-  asc = "asc",
-  desc = "desc",
-}
+export type ScriptType = "type" | "lock";
+export type Order = "asc" | "desc";
 
 export interface CKBIndexerQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;
@@ -113,7 +107,7 @@ export class IndexerEmitter extends EventEmitter {
   type?: Script;
   outputData?: HexString | "any";
   argsLen?: number | "any";
-  fromBlock?: bigint;
+  fromBlock?: JSBI;
 }
 
 export interface OtherQueryOptions {

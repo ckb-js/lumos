@@ -16,7 +16,7 @@ import { calculateMaximumWithdraw } from "../src/dao";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config, predefined } from "@ckb-lumos/config-manager";
-import { Header, Cell, CellCollector, Script } from "@ckb-lumos/base";
+import { Header, Cell, CellCollector, Script, JSBI } from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 import {
   bobMultisigInputs,
@@ -26,6 +26,8 @@ import {
 } from "./inputs";
 import { bob } from "./account_info";
 import { since as SinceUtils } from "@ckb-lumos/base";
+import { transferCompatible } from "../lib/locktime_pool";
+import { calculateMaximumWithdrawCompatible } from "../lib/dao";
 const { AGGRON4 } = predefined;
 
 const originCapacity = "0x174876e800";
@@ -220,6 +222,35 @@ test("transfer multisig", async (t) => {
   t.is(txSkeleton.get("headerDeps").size, 0);
 });
 
+test("JSBI:transferCompatible multisig", async (t) => {
+  txSkeleton = await transferCompatible(
+    txSkeleton,
+    [fromInfo, aliceAddress],
+    bobAddress,
+    JSBI.BigInt(500 * 10 ** 8),
+    tipHeader,
+    { config: DEV_CONFIG, LocktimeCellCollector }
+  );
+
+  // sum of outputs capacity should be equal to sum of inputs capacity
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+
+  t.is(txSkeleton.get("inputs").size, 1);
+  t.is(txSkeleton.get("witnesses").size, 1);
+  t.is(txSkeleton.get("inputSinces").size, 1);
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.is(txSkeleton.get("cellDeps").size, 1);
+  t.is(txSkeleton.get("headerDeps").size, 0);
+});
+
 test("prepareSigningEntries, multisig", async (t) => {
   txSkeleton = await transfer(
     txSkeleton,
@@ -243,12 +274,91 @@ test("prepareSigningEntries, multisig", async (t) => {
   t.is(signingEntry.message, expectedMessage);
 });
 
+test("JSBI:prepareSigningEntries, multisig", async (t) => {
+  txSkeleton = await transferCompatible(
+    txSkeleton,
+    [fromInfo, aliceAddress],
+    bobAddress,
+    JSBI.BigInt(500 * 10 ** 8),
+    tipHeader,
+    { config: DEV_CONFIG, LocktimeCellCollector }
+  );
+
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: DEV_CONFIG });
+
+  t.is(txSkeleton.get("signingEntries").size, 1);
+
+  const expectedMessage =
+    "0x185fb55177cefec3187c681889d10f85bb142400bf9817dd68b4efb5b51b9b04";
+
+  const signingEntry = txSkeleton.get("signingEntries").get(0)!;
+  t.is(signingEntry.index, 0);
+  t.is(signingEntry.type, "witness_args_lock");
+  t.is(signingEntry.message, expectedMessage);
+});
+
 test("transfer multisig & dao", async (t) => {
   txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
     BigInt(2500 * 10 ** 8),
+    tipHeader,
+    { config: DEV_CONFIG, LocktimeCellCollector }
+  );
+
+  // sum of outputs capacity should be equal to sum of inputs capacity
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
+
+  const interest =
+    calculateMaximumWithdraw(
+      {
+        ...inputInfos[2],
+        cell_output: {
+          ...inputInfos[2].cell_output,
+          capacity: originCapacity,
+        },
+      },
+      depositDao,
+      withdrawDao
+    ) - BigInt(originCapacity);
+
+  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+  t.is(
+    interest,
+    sumOfInputCapacity -
+      BigInt(originCapacity) * BigInt(txSkeleton.get("inputs").size)
+  );
+
+  t.is(txSkeleton.get("inputs").size, 3);
+  t.is(txSkeleton.get("witnesses").size, 3);
+  t.is(txSkeleton.get("inputSinces").size, 3);
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.is(txSkeleton.get("cellDeps").size, 3);
+  t.is(txSkeleton.get("headerDeps").size, 2);
+
+  const expectedWitnesses = [
+    "0x6d000000100000006d0000006d000000590000000000010136c329ed630d6ce750712a477543672adab57f4c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "0x6d000000100000006d0000006d000000590000000000010136c329ed630d6ce750712a477543672adab57f4c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "0x61000000100000005500000061000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000",
+  ];
+
+  t.true(txSkeleton.get("witnesses").equals(List(expectedWitnesses)));
+});
+
+test("JSBI:transferCompatible multisig & dao", async (t) => {
+  txSkeleton = await transferCompatible(
+    txSkeleton,
+    [fromInfo, aliceAddress],
+    bobAddress,
+    JSBI.BigInt(2500 * 10 ** 8),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -328,6 +438,35 @@ test("prepareSigningEntries, multisig & dao", async (t) => {
   });
 });
 
+test("JSBI.prepareSigningEntries, multisig & dao", async (t) => {
+  txSkeleton = await transferCompatible(
+    txSkeleton,
+    [fromInfo, aliceAddress],
+    bobAddress,
+    JSBI.BigInt(2500 * 10 ** 8),
+    tipHeader,
+    { config: DEV_CONFIG, LocktimeCellCollector }
+  );
+
+  txSkeleton = await prepareSigningEntries(txSkeleton, { config: DEV_CONFIG });
+
+  t.is(txSkeleton.get("signingEntries").size, 3);
+
+  const expectedMessages = [
+    "0x98d2c7a0f7293f7cc95383f9bfd3559db148b661559684b2109c3ee22dc261f6",
+    "0x98d2c7a0f7293f7cc95383f9bfd3559db148b661559684b2109c3ee22dc261f6",
+    "0x8c34fa355fc0b13cca51e3a9ee9926b1f35795dc22f986d5596fc443321bdc44",
+  ];
+
+  expectedMessages.forEach((expectedMessage, index) => {
+    const message = txSkeleton
+      .get("signingEntries")
+      .find((s) => s.type === "witness_args_lock" && s.index === index)!
+      .message;
+    t.is(message, expectedMessage);
+  });
+});
+
 test("payFee, multisig & dao", async (t) => {
   txSkeleton = await transfer(
     txSkeleton,
@@ -384,6 +523,73 @@ test("payFee, multisig & dao", async (t) => {
   t.is(txSkeleton.get("headerDeps").size, 2);
 });
 
+test("JSBI:payFee, multisig & dao", async (t) => {
+  txSkeleton = await transferCompatible(
+    txSkeleton,
+    [fromInfo, aliceAddress],
+    bobAddress,
+    JSBI.BigInt(2500 * 10 ** 8),
+    tipHeader,
+    { config: DEV_CONFIG, LocktimeCellCollector }
+  );
+
+  const fee = JSBI.BigInt(1 * 10 ** 8);
+  txSkeleton = await payFee(
+    txSkeleton,
+    [fromInfo, aliceAddress],
+    fee,
+    tipHeader,
+    { config: DEV_CONFIG, LocktimeCellCollector }
+  );
+
+  const sumOfInputCapacity = txSkeleton
+    .get("inputs")
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  const sumOfOutputCapacity = txSkeleton
+    .get("outputs")
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+
+  const interest = JSBI.subtract(
+    calculateMaximumWithdrawCompatible(
+      {
+        ...inputInfos[2],
+        cell_output: {
+          ...inputInfos[2].cell_output,
+          capacity: originCapacity,
+        },
+      },
+      depositDao,
+      withdrawDao
+    ),
+    JSBI.BigInt(originCapacity)
+  );
+  console.log(fee);
+  console.log(sumOfInputCapacity);
+  console.log(sumOfOutputCapacity);
+  t.is(
+    sumOfOutputCapacity.toString(),
+    JSBI.subtract(sumOfInputCapacity, fee).toString()
+  );
+  t.is(
+    interest.toString(),
+    JSBI.subtract(
+      sumOfInputCapacity,
+      JSBI.multiply(
+        JSBI.BigInt(originCapacity),
+        JSBI.BigInt(txSkeleton.get("inputs").size)
+      )
+    ).toString()
+  );
+
+  t.is(txSkeleton.get("inputs").size, 3);
+  t.is(txSkeleton.get("witnesses").size, 3);
+  t.is(txSkeleton.get("inputSinces").size, 3);
+  t.is(txSkeleton.get("outputs").size, 2);
+  t.is(txSkeleton.get("cellDeps").size, 3);
+  t.is(txSkeleton.get("headerDeps").size, 2);
+});
 test("Don't update capacity directly when deduct", async (t) => {
   class LocktimeCellCollector {
     private fromInfo: FromInfo;
@@ -437,6 +643,74 @@ test("Don't update capacity directly when deduct", async (t) => {
       [fromInfo, aliceAddress],
       bobAddress,
       BigInt(500 * 10 ** 8),
+      tipHeader,
+      { config: DEV_CONFIG, LocktimeCellCollector }
+    );
+  } catch {
+    errFlag = true;
+  }
+
+  const inputCapacitiesAfter = getCapacities(txSkeleton.get("inputs"));
+  const outputCapacitiesAfter = getCapacities(txSkeleton.get("outputs"));
+
+  t.true(errFlag);
+  t.deepEqual(inputCapacitiesBefore, inputCapacitiesAfter);
+  t.deepEqual(outputCapacitiesBefore, outputCapacitiesAfter);
+});
+
+test("JSBI:Don't update capacity directly when deduct", async (t) => {
+  class LocktimeCellCollector {
+    private fromInfo: FromInfo;
+    private config: Config;
+
+    constructor(
+      fromInfo: FromInfo,
+      _: any,
+      { config = undefined }: Options = {}
+    ) {
+      this.fromInfo = fromInfo;
+      this.config = config!;
+    }
+
+    async *collect() {
+      const { fromScript } = parseFromInfo(this.fromInfo, {
+        config: this.config,
+      });
+      for (const info of [inputInfos[0]]) {
+        const lock = info.cell_output.lock;
+        if (
+          lock.code_hash === fromScript.code_hash &&
+          lock.hash_type === fromScript.hash_type
+        ) {
+          yield info;
+        }
+      }
+    }
+  }
+
+  txSkeleton = await transferCompatible(
+    txSkeleton,
+    [fromInfo, aliceAddress],
+    bobAddress,
+    JSBI.BigInt(600 * 10 ** 8),
+    tipHeader,
+    { config: DEV_CONFIG, LocktimeCellCollector }
+  );
+
+  const getCapacities = (cells: List<Cell>): string[] => {
+    return cells.map((c) => c.cell_output.capacity).toJS();
+  };
+
+  const inputCapacitiesBefore = getCapacities(txSkeleton.get("inputs"));
+  const outputCapacitiesBefore = getCapacities(txSkeleton.get("outputs"));
+
+  let errFlag: boolean = false;
+  try {
+    await transferCompatible(
+      txSkeleton,
+      [fromInfo, aliceAddress],
+      bobAddress,
+      JSBI.BigInt(500 * 10 ** 8),
       tipHeader,
       { config: DEV_CONFIG, LocktimeCellCollector }
     );

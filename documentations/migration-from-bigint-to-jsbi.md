@@ -20,10 +20,11 @@ We provide a new API for returning JSBI that ends with Compatible, for example, 
 - [x] config-manager
 - [x] helpers
 - [x] rpc
-- [ ] ckb-indexer
-- [ ] common-scripts
-- [ ] hd
-- [ ] hd-cache
+- [x] ckb-indexer
+- [x] common-scripts
+- [x] hd
+- [x] hd-cache
+- [x] transaction-manager
 
 ## Quick Start
 
@@ -76,3 +77,10 @@ minimalCapacityCompatible(...) // JSBI
 ### helpers
 
 - `minimalCellCapacity` -> `minimalCellCapacityCompatible`
+
+### common-scripts
+
+- `calculateMaximumWithdraw` -> `calculateMaximumWithdrawCompatible`
+- `calculateDaoEarliestSince` -> `calculateDaoEarliestSinceCompatible`
+- `injectCapacityWithoutChange` -> `injectCapacityWithoutChangeCompatible`
+- `transfer` -> `transferCompatible`
