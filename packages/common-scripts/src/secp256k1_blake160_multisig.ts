@@ -327,7 +327,7 @@ export async function transfer(
     );
   });
 
-  if (noMultisigBefore && fromInfo === "string") {
+  if (noMultisigBefore && typeof fromInfo === "string") {
     throw new Error("MultisigScript is required for witness!");
   }
 

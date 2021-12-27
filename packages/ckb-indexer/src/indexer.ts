@@ -23,7 +23,6 @@ import {
   GetTransactionsResult,
   GetTransactionsResults,
   IndexerEmitter,
-  Order,
   OutputToVerify,
   SearchKey,
   SearchKeyFilter,
@@ -102,7 +101,7 @@ export class CkbIndexer implements Indexer {
     const infos: Cell[] = [];
     let cursor: string | undefined = searchKeyFilter.lastCursor;
     let sizeLimit = searchKeyFilter.sizeLimit || 100;
-    let order = searchKeyFilter.order || Order.asc;
+    let order = searchKeyFilter.order || "asc";
     const index = 0;
     while (true) {
       let params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
@@ -127,7 +126,7 @@ export class CkbIndexer implements Indexer {
           };
         }
       }
-      if (liveCells.length < sizeLimit) {
+      if (liveCells.length <= sizeLimit) {
         break;
       }
     }
@@ -144,14 +143,14 @@ export class CkbIndexer implements Indexer {
     let infos: GetTransactionsResult[] = [];
     let cursor: string | undefined = searchKeyFilter.lastCursor;
     let sizeLimit = searchKeyFilter.sizeLimit || 100;
-    let order = searchKeyFilter.order || Order.asc;
+    let order = searchKeyFilter.order || "asc";
     for (;;) {
       const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res = await this.request("get_transactions", params);
       const txs = res.objects;
       cursor = res.last_cursor as string;
       infos = infos.concat(txs);
-      if (txs.length < sizeLimit) {
+      if (txs.length <= sizeLimit) {
         break;
       }
     }
