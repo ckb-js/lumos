@@ -115,3 +115,6 @@ packages/rpc/lib
 
 # knex config
 packages/sql-indexer/knexfile.ts
+
+# IDE or environment specific files
+.idea

@@ -23,6 +23,7 @@
     "babel-plugin-transform-bigint": "^1.0.12",
     "eslint": "^7.1.0",
     "husky": "^7.0.4",
+    "lerna": "^4.0.0",
     "mysql2": "^2.1.0",
     "pg": "^8.2.1",
     "prettier": "^2.0.5",

@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@lumos-examples/omni-lock-metamask",
+  "name": "@lumos-examples/secp256k1-transfer",
   "version": "0.17.0-rc6",
   "description": "",
   "main": "index.js",
