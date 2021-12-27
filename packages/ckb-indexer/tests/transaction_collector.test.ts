@@ -6,6 +6,16 @@ const {
   transactionCollectorHashTestCases,
   transactionCollectorCollectTestCases,
 } = require("./test_cases.js");
+import sinon from "sinon";
+import * as services from "../src/services";
+import {
+  batchRequestAllIoType,
+  batchRequestIoTypeInput,
+  batchRequestResult,
+  getTransactionFromIndexerResult,
+  ioTypeInputResult,
+  queryOption,
+} from "./transaction_collector_special_test_case";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
@@ -119,4 +129,30 @@ test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (
     { instanceOf: Error }
   );
   t.is(error.message, "toBlock must be a hexadecimal!");
+});
+
+test("input cell can be found in transaction detail", async (t) => {
+  const getTransactionsStub = sinon.stub(indexer, "getTransactions");
+  getTransactionsStub.onCall(0).returns(getTransactionFromIndexerResult);
+  getTransactionsStub.onCall(1).returns(
+    Promise.resolve({
+      lastCursor:
+        "0x809bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce801bde8b19b4505dd1d1310223edecea20adc4e240e000000000021420d000000010000000000",
+      objects: [],
+    })
+  );
+  const requestBatchStub = sinon.stub(services, "requestBatch");
+  requestBatchStub
+    .withArgs(nodeUri, batchRequestAllIoType)
+    .returns(batchRequestResult);
+  requestBatchStub
+    .withArgs(nodeUri, batchRequestIoTypeInput)
+    .returns(ioTypeInputResult);
+  const cellCollector = new TransactionCollector(indexer, queryOption, nodeUri);
+  const count = await cellCollector.count();
+  t.is(count, 2);
+  getTransactionsStub.reset();
+  requestBatchStub.reset();
+  getTransactionsStub.restore();
+  requestBatchStub.restore();
 });
