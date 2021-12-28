@@ -32,7 +32,8 @@
   },
   "scripts": {
     "docs": "typedoc .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test": "lerna run test"
   },
   "husky": {
     "hooks": {
