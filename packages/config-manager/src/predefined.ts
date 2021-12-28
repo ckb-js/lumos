@@ -16,7 +16,6 @@ export function createConfig<S extends ScriptRecord>(configShape: {
 }
 
 const LINA = createConfig({
-  CKB2021: true,
   PREFIX: "ckb",
   SCRIPTS: {
     SECP256K1_BLAKE160: {
@@ -71,7 +70,6 @@ const LINA = createConfig({
 });
 
 const AGGRON4 = createConfig({
-  CKB2021: true,
   PREFIX: "ckt",
   SCRIPTS: {
     SECP256K1_BLAKE160: {
