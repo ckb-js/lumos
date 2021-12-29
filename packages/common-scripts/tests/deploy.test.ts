@@ -1,4 +1,4 @@
-import { Cell, Script } from "@ckb-lumos/base";
+import { Cell, JSBI, Script } from "@ckb-lumos/base";
 import { common } from "@ckb-lumos/common-scripts";
 import test from "ava";
 import { CellProvider } from "./cell_provider";
@@ -32,16 +32,16 @@ const MULTISIGSCRIPT = {
 };
 const SCRIPTBINARY = Uint8Array.of(1);
 
-function getTxFee(txSkeleton: TransactionSkeletonType): bigint {
+function getTxFee(txSkeleton: TransactionSkeletonType): JSBI {
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((c) => BigInt(c.cell_output.capacity))
-    .reduce((a, b) => a + b, BigInt(0));
+    .map((c) => JSBI.BigInt(c.cell_output.capacity))
+    .reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((c) => BigInt(c.cell_output.capacity))
-    .reduce((a, b) => a + b, BigInt(0));
-  const txFee = inputCapacity - outputCapacity;
+    .map((c) => JSBI.BigInt(c.cell_output.capacity))
+    .reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
+  const txFee = JSBI.subtract(inputCapacity, outputCapacity);
   return txFee;
 }
 
@@ -129,9 +129,9 @@ test("deploy with data", async (t) => {
   }
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
-  t.is(txFee, expectTxFee);
-  t.true(txFee < BigInt(1000000));
+  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  t.is(txFee.toString(), expectTxFee.toString());
+  t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 
   const deployLock = txSkeleton.outputs.get(0)!.cell_output.lock!;
   const changeLock = txSkeleton.outputs.get(1)!.cell_output.lock!;
@@ -226,9 +226,9 @@ test("deploy with typeID", async (t) => {
   }
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
-  t.is(txFee, expectTxFee);
-  t.true(txFee < BigInt(1000000));
+  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  t.is(txFee.toString(), expectTxFee.toString());
+  t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 
   const deployLock = txSkeleton.outputs.get(0)!.cell_output.lock!;
   const changeLock = txSkeleton.outputs.get(1)!.cell_output.lock!;
@@ -324,9 +324,9 @@ test("upgrade with typeID", async (t) => {
   let { txSkeleton } = await deploy.generateUpgradeTypeIdDataTx(upgradeOptions);
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
-  t.is(txFee, expectTxFee);
-  t.true(txFee < BigInt(1000000));
+  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  t.is(txFee.toString(), expectTxFee.toString());
+  t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 
   const deployLock = txSkeleton.outputs.get(0)!.cell_output.lock!;
   const changeLock = txSkeleton.outputs.get(1)!.cell_output.lock!;
@@ -422,9 +422,9 @@ test("upgrade contract with size reduced", async (t) => {
   let { txSkeleton } = await deploy.generateUpgradeTypeIdDataTx(upgradeOptions);
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
-  t.is(txFee, expectTxFee);
-  t.true(txFee < BigInt(1000000));
+  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  t.is(txFee.toString(), expectTxFee.toString());
+  t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 
   const deployLock = txSkeleton.outputs.get(0)!.cell_output.lock!;
   const changeLock = txSkeleton.outputs.get(1)!.cell_output.lock!;
@@ -519,9 +519,9 @@ test("deploy with data by multisig", async (t) => {
   }
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, BigInt(1000));
-  t.is(txFee, expectTxFee);
-  t.true(txFee < BigInt(1000000));
+  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  t.is(txFee.toString(), expectTxFee.toString());
+  t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 
   const deployLock = txSkeleton.outputs.get(0)!.cell_output.lock!;
   const changeLock = txSkeleton.outputs.get(1)!.cell_output.lock!;
