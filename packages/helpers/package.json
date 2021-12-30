@@ -29,7 +29,7 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
-    "test": "ava tests/**/*.test.ts",
+    "test": "ava tests/**/*.test.ts --match='!BigInt*'",
     "build": "tsc",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
