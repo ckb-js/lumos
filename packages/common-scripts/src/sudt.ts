@@ -16,7 +16,6 @@ import { FromInfo, parseFromInfo } from "./from_info";
 import common from "./common";
 import {
   parseAddress,
-  minimalCellCapacity,
   TransactionSkeletonType,
   Options,
   minimalCellCapacityCompatible,

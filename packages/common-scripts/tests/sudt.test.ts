@@ -19,7 +19,6 @@ import {
   aliceAcpSudtInputs,
 } from "./inputs";
 import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
-const { readBigUInt128LE } = utils;
 const { AGGRON4 } = predefined;
 
 test.before(() => {

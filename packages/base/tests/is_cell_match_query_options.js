@@ -87,7 +87,7 @@ function filterIndex(cells, queryOptions) {
 
 test.before(() => {
   BigInt = () => {
-    throw new Error('can not find bigint')
+    throw new Error("can not find bigint");
   };
 });
 

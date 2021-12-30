@@ -28,7 +28,7 @@ const messageDigest =
 
 test.before(() => {
   BigInt = () => {
-    throw new Error('can not find bigint')
+    throw new Error("can not find bigint");
   };
 });
 
@@ -88,7 +88,7 @@ test("toBigUInt64LECompatible", (t) => {
 });
 
 test("readBigUInt64LECompatible", (t) => {
-  BigInt(1)
+  BigInt(1);
   t.true(
     JSBI.equal(readBigUInt64LECompatible(uint64leCompatible), uint64Compatible)
   );

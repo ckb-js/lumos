@@ -8,8 +8,6 @@ import {
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import {
-  calculateMaximumWithdraw,
-  calculateDaoEarliestSince,
   calculateMaximumWithdrawCompatible,
   calculateDaoEarliestSinceCompatible,
 } from "./dao";
@@ -43,7 +41,6 @@ import {
   addCellDep,
 } from "./helper";
 const {
-  parseSince,
   parseEpoch,
   maximumAbsoluteEpochSince,
   generateAbsoluteEpochSince,

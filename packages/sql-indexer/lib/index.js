@@ -7,7 +7,7 @@ const SCRIPT_TYPE_TYPE = 1;
 const IO_TYPE_INPUT = 0;
 const IO_TYPE_OUTPUT = 1;
 
-class IndexerEmitter extends EventEmitter { }
+class IndexerEmitter extends EventEmitter {}
 IndexerEmitter.prototype.lock = undefined;
 IndexerEmitter.prototype.type = undefined;
 IndexerEmitter.prototype.outputData = undefined;
@@ -156,10 +156,17 @@ class Indexer {
   async waitForSync(blockDifference = 3) {
     while (true) {
       const tip = await this.tip();
-      const indexedNumber = tip ? JSBI.BigInt(tip.block_number) : JSBI.BigInt(0);
+      const indexedNumber = tip
+        ? JSBI.BigInt(tip.block_number)
+        : JSBI.BigInt(0);
       const ckbTip = await this.rpc.get_tip_block_number();
 
-      if (JSBI.lessThanOrEqual(JSBI.subtract(JSBI.BigInt(ckbTip), indexedNumber), JSBI.BigInt(blockDifference))) {
+      if (
+        JSBI.lessThanOrEqual(
+          JSBI.subtract(JSBI.BigInt(ckbTip), indexedNumber),
+          JSBI.BigInt(blockDifference)
+        )
+      ) {
         break;
       }
 
@@ -172,7 +179,10 @@ class Indexer {
     const tip = await this.tip();
     if (tip) {
       const { block_number, block_hash } = tip;
-      const nextBlockNumber = JSBI.add(JSBI.BigInt(block_number), JSBI.BigInt(1));
+      const nextBlockNumber = JSBI.add(
+        JSBI.BigInt(block_number),
+        JSBI.BigInt(1)
+      );
       const block = await this.rpc.get_block_by_number(
         dbBigIntToHex(nextBlockNumber)
       );
@@ -325,8 +335,10 @@ class Indexer {
   async checkAndPrune(block) {
     // prune old blocks
     if (
-      JSBI.remainder(JSBI.BigInt(block.header.number), JSBI.BigInt(this.pruneInterval)) ===
-      JSBI.BigInt(0)
+      JSBI.remainder(
+        JSBI.BigInt(block.header.number),
+        JSBI.BigInt(this.pruneInterval)
+      ) === JSBI.BigInt(0)
     ) {
       await this.prune();
     }
@@ -377,7 +389,9 @@ class Indexer {
     }
     const tipNumber = JSBI.BigInt(tip.block_number);
     if (JSBI.greaterThan(tipNumber, JSBI.BigInt(this.keepNum))) {
-      const pruneToBlock = JSBI.subtract(tipNumber - JSBI.BigInt(this.keepNum)).toString();
+      const pruneToBlock = JSBI.subtract(
+        tipNumber - JSBI.BigInt(this.keepNum)
+      ).toString();
       await this.knex.transaction(async (trx) => {
         await trx("cells")
           .whereNotNull("consumed_block_number")
@@ -598,7 +612,8 @@ class Indexer {
     if (fromBlock) {
       utils.assertHexadecimal("fromBlock", fromBlock);
     }
-    emitter.fromBlock = fromBlock === null ? JSBI.BigInt(0) : JSBI.BigInt(fromBlock);
+    emitter.fromBlock =
+      fromBlock === null ? JSBI.BigInt(0) : JSBI.BigInt(fromBlock);
     if (lock) {
       validators.ValidateScript(lock);
       emitter.lock = lock;

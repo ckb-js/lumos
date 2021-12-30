@@ -4,7 +4,6 @@ import { CellProvider } from "./cell_provider";
 import {
   TransactionSkeletonType,
   TransactionSkeleton,
-  minimalCellCapacity,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
 import { predefined } from "@ckb-lumos/config-manager";

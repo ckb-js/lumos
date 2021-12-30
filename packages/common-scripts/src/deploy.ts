@@ -15,7 +15,6 @@ import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
   TransactionSkeleton,
-  minimalCellCapacity,
   Options,
   createTransactionFromSkeleton,
   parseAddress,
