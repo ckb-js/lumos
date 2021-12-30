@@ -23,7 +23,7 @@ test:
 	yarn workspace @ckb-lumos/rpc test
 
 test-coverage:
-	c8 --reporter=html --clean -o coverage make test
+	yarn c8 --reporter=cobertura --reporter=html --clean -o coverage make test
 	
 lint:
 	yarn workspaces run fmt

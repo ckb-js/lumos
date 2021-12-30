@@ -30,7 +30,6 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
-    "test": "ava",
     "build": "tsc",
     "build:umd": "webpack",
     "clean": "rm -rf lib",

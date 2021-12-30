@@ -1,7 +1,8 @@
 # lumos
 
-[![Build Status](https://travis-ci.com/nervosnetwork/lumos.svg?branch=develop)](https://travis-ci.com/nervosnetwork/lumos)
-
+![build](https://img.shields.io/azure-devops/build/nervosnetwork/lumos/16)
+![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/nervosnetwork/lumos/16/develop)
+![license](https://img.shields.io/github/license/nervosnetwork/lumos)
 ![Lumos](./assets/lumos.jpg)
 
 > Lumos is still under active development and considered to be a work in progress.
