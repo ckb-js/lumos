@@ -7,7 +7,12 @@ import {
 } from "@ckb-lumos/helpers";
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
-import { calculateMaximumWithdraw, calculateDaoEarliestSince } from "./dao";
+import {
+  calculateMaximumWithdraw,
+  calculateDaoEarliestSince,
+  calculateMaximumWithdrawCompatible,
+  calculateDaoEarliestSinceCompatible,
+} from "./dao";
 import {
   core,
   values,
@@ -48,6 +53,7 @@ import { List, Set } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { RPC } from "@ckb-lumos/rpc";
 import { secp256k1Blake160Multisig } from ".";
+import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
 
 export interface LocktimeCell extends Cell {
   since: PackedSince;
@@ -170,7 +176,7 @@ export class CellCollector implements CellCollectorType {
         const lock = inputCell.cell_output.lock;
 
         let since: PackedSince | undefined;
-        let maximumCapacity: bigint | undefined;
+        let maximumCapacity: JSBI | undefined;
         let depositBlockHash: Hash | undefined;
         let withdrawBlockHash: Hash | undefined;
         let sinceValidationInfo: SinceValidationInfo | undefined;
@@ -211,11 +217,11 @@ export class CellCollector implements CellCollectorType {
           );
           let daoSince: PackedSince =
             "0x" +
-            calculateDaoEarliestSince(
+            calculateDaoEarliestSinceCompatible(
               depositBlockHeader!.epoch,
               withdrawBlockHeader!.epoch
             ).toString(16);
-          maximumCapacity = calculateMaximumWithdraw(
+          maximumCapacity = calculateMaximumWithdrawCompatible(
             inputCell,
             depositBlockHeader!.dao,
             withdrawBlockHeader!.dao
@@ -233,7 +239,7 @@ export class CellCollector implements CellCollectorType {
 
           // if multisig with locktime
           if (since) {
-            const multisigSince = parseSince(since);
+            const multisigSince = parseSinceCompatible(since);
             if (
               !(
                 multisigSince.relative === false &&
@@ -258,7 +264,7 @@ export class CellCollector implements CellCollectorType {
         }
 
         if (
-          parseSince(since!).type === "blockTimestamp" ||
+          parseSinceCompatible(since!).type === "blockTimestamp" ||
           (this.tipHeader &&
             !validateSince(
               since!,
