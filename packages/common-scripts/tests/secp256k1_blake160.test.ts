@@ -16,7 +16,14 @@ import { bobSecpInputs } from "./inputs";
 const cellProvider = new CellProvider(inputs());
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
 
-test("transfer success", async (t) => {
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
+test("BigInt:transfer success", async (t) => {
   txSkeleton = await secp256k1Blake160.transfer(
     txSkeleton,
     bob.mainnetAddress,
@@ -56,7 +63,7 @@ test("JSBI:transfer success", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 });
 
-test("transfer to non secp256k1_blake160 address", async (t) => {
+test("BigInt:transfer to non secp256k1_blake160 address", async (t) => {
   txSkeleton = await secp256k1Blake160.transfer(
     txSkeleton,
     bob.mainnetAddress,
@@ -120,7 +127,7 @@ test("JSBI:transfer to non secp256k1_blake160 address", async (t) => {
   t.deepEqual(changeOutput.cell_output!.lock, expectedChangeLockScript);
 });
 
-test("payFee", async (t) => {
+test("BigInt:payFee", async (t) => {
   txSkeleton = await secp256k1Blake160.transfer(
     txSkeleton,
     bob.mainnetAddress,
@@ -181,7 +188,7 @@ test("JSBI:payFee", async (t) => {
   t.is(txSkeleton.get("inputs").size, 1);
 });
 
-test("prepareSigningEntries", async (t) => {
+test("BigInt:prepareSigningEntries", async (t) => {
   const expectedMessage =
     "0xd90a4204aee91348bf2ada132065a9a7aa4479001ec61e046c54804987b309ce";
 
@@ -258,7 +265,7 @@ test("JSBI:prepareSigningEntries", async (t) => {
   t.is(message, expectedMessage);
 });
 
-test("transfer, skip duplicated input", async (t) => {
+test("BigInt:transfer, skip duplicated input", async (t) => {
   const firstInput = inputs()[0];
   txSkeleton = txSkeleton.update("inputs", (inputs) => {
     return inputs.push(firstInput);
@@ -394,7 +401,7 @@ test("injectCapacity", async (t) => {
   const cellProvider = new CellProvider(bobSecpInputs);
   let txSkeleton = TransactionSkeleton({ cellProvider });
 
-  const amount = BigInt(500 * 10 ** 8);
+  const amount = JSBI.BigInt(500 * 10 ** 8);
   const output: Cell = {
     cell_output: {
       capacity: "0x" + amount.toString(16),
@@ -421,12 +428,12 @@ test("injectCapacity", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("signingEntries").size, 1);

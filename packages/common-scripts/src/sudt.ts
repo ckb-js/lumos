@@ -90,7 +90,7 @@ export async function issueToken(
   };
 
   if (!capacity) {
-    capacity = minimalCellCapacity(targetOutput);
+    capacity = minimalCellCapacityCompatible(targetOutput);
   }
   capacity = JSBI.BigInt(capacity.toString());
   targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
@@ -250,7 +250,7 @@ export async function transfer(
     );
   } else {
     if (!capacity) {
-      capacity = minimalCellCapacity(targetOutput);
+      capacity = minimalCellCapacityCompatible(targetOutput);
     }
     targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
   }
