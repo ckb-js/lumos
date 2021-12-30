@@ -76,8 +76,15 @@ const fromInfo: FromInfo = {
   M: 1,
   publicKeyHashes: ["0x36c329ed630d6ce750712a477543672adab57f4c"],
 };
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
 
-test("_commonTransfer, only alice", async (t) => {
+// TODO: need to add _commonTransferCompatible test
+test("BigInt:_commonTransfer, only alice", async (t) => {
   const amount: bigint = BigInt(20000 * 10 ** 8);
   const result = await _commonTransfer(
     txSkeleton,
@@ -93,7 +100,7 @@ test("_commonTransfer, only alice", async (t) => {
   t.is(result.capacity, amount - BigInt(aliceInput.cell_output.capacity));
 });
 
-test("_commonTransfer, alice and fromInfo", async (t) => {
+test("BigInt:_commonTransfer, alice and fromInfo", async (t) => {
   const amount: bigint = BigInt(20000 * 10 ** 8);
   const result = await _commonTransfer(
     txSkeleton,
@@ -121,7 +128,7 @@ test("transfer, acp => acp", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(500 * 10 ** 8);
+  const amount = JSBI.BigInt(500 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.acpTestnetAddress],
@@ -134,15 +141,15 @@ test("transfer, acp => acp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+  t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
 
   t.is(txSkeleton.get("witnesses").size, 2);
 
@@ -194,7 +201,7 @@ test("transfer secp => secp", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -207,19 +214,24 @@ test("transfer secp => secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+  t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+  t.is(
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(0)!.cell_output.capacity
+    ).toString(),
+    amount.toString()
+  );
 
   t.is(txSkeleton.get("witnesses").size, 1);
 
@@ -248,7 +260,7 @@ test("transfer secp & multisig => secp", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(1500 * 10 ** 8);
+  const amount = JSBI.BigInt(1500 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress, bob.fromInfo],
@@ -261,19 +273,24 @@ test("transfer secp & multisig => secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+  t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+  t.is(
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(0)!.cell_output.capacity
+    ).toString(),
+    amount.toString()
+  );
 
   t.is(txSkeleton.get("witnesses").size, 2);
 
@@ -312,7 +329,7 @@ test("transfer multisig lock => secp", async (t) => {
     }
   }
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.fromInfo],
@@ -328,19 +345,24 @@ test("transfer multisig lock => secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+  t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+  t.is(
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(0)!.cell_output.capacity
+    ).toString(),
+    amount.toString()
+  );
 
   t.is(txSkeleton.get("witnesses").size, 1);
 
@@ -366,7 +388,7 @@ test("transfer secp => acp", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -379,22 +401,24 @@ test("transfer secp => acp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+  t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 2);
   t.is(
-    BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity) -
-      BigInt(aliceAcpCells[0]!.cell_output.capacity),
-    amount
+    JSBI.subtract(
+      JSBI.BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity),
+      JSBI.BigInt(aliceAcpCells[0]!.cell_output.capacity)
+    ).toString(),
+    amount.toString()
   );
 
   const expectedWitnesses = [
@@ -425,7 +449,7 @@ test("transfer secp => acp, no acp previous input", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -438,21 +462,26 @@ test("transfer secp => acp, no acp previous input", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+  t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
   t.is(txSkeleton.get("headerDeps").size, 0);
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+  t.is(
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(0)!.cell_output.capacity
+    ).toString(),
+    amount.toString()
+  );
 
   const expectedWitnesses = [
     "0x55000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
@@ -481,7 +510,7 @@ test("transfer acp => secp, destroy", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(1000 * 10 ** 8);
+  const amount = JSBI.BigInt(1000 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [
@@ -499,19 +528,24 @@ test("transfer acp => secp, destroy", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputCapacity, sumOfOutputCapcity);
+  t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 1);
-  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
+  t.is(
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(0)!.cell_output.capacity
+    ).toString(),
+    amount.toString()
+  );
 
   t.is(txSkeleton.get("witnesses").size, 1);
 
@@ -537,7 +571,7 @@ test("Don't update capacity directly when deduct", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -561,7 +595,7 @@ test("Don't update capacity directly when deduct", async (t) => {
       txSkeleton,
       [bob.testnetAddress],
       aliceAddress,
-      BigInt(500 * 10 ** 8),
+      JSBI.BigInt(500 * 10 ** 8),
       undefined,
       undefined,
       { config: AGGRON4 }
@@ -688,7 +722,7 @@ test("getTransactionSizeByTx", (t) => {
   t.is(size, 536);
 });
 
-test("calculateFee, without carry", (t) => {
+test("BigInt:calculateFee, without carry", (t) => {
   t.is(__tests__.calculateFee(1035, BigInt(1000)), BigInt(1035));
 });
 test("calculateFeeCompatible, without carry", (t) => {
@@ -698,7 +732,7 @@ test("calculateFeeCompatible, without carry", (t) => {
   );
 });
 
-test("calculateFee, with carry", (t) => {
+test("BigInt:calculateFee, with carry", (t) => {
   t.is(__tests__.calculateFee(1035, BigInt(900)), BigInt(932));
 });
 
@@ -711,26 +745,26 @@ test("calculateFeeCompatible, with carry", (t) => {
 
 function getExpectedFee(
   txSkeleton: TransactionSkeletonType,
-  feeRate: bigint
-): bigint {
-  return __tests__.calculateFee(
+  feeRate: JSBI
+): JSBI {
+  return __tests__.calculateFeeCompatible(
     __tests__.getTransactionSize(txSkeleton),
     feeRate
   );
 }
 
-function getFee(txSkeleton: TransactionSkeletonType): bigint {
+function getFee(txSkeleton: TransactionSkeletonType): JSBI {
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  return sumOfInputCapacity - sumOfOutputCapcity;
+  return JSBI.subtract(sumOfInputCapacity, sumOfOutputCapcity);
 }
 
 // from same address and only secp156k1_blake160 lock
@@ -745,7 +779,7 @@ test("payFeeByFeeRate 1 in 1 out, add 1 in 1 out", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(1000 * 10 ** 8);
+  const amount = JSBI.BigInt(1000 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -756,7 +790,7 @@ test("payFeeByFeeRate 1 in 1 out, add 1 in 1 out", async (t) => {
     { config: AGGRON4 }
   );
 
-  const feeRate = BigInt(1 * 10 ** 8 * 1000);
+  const feeRate = JSBI.BigInt(1 * 10 ** 8 * 1000);
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
@@ -769,7 +803,10 @@ test("payFeeByFeeRate 1 in 1 out, add 1 in 1 out", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(getFee(txSkeleton), getExpectedFee(txSkeleton, feeRate));
+  t.is(
+    getFee(txSkeleton).toString(),
+    getExpectedFee(txSkeleton, feeRate).toString()
+  );
 });
 
 test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
@@ -778,7 +815,7 @@ test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -789,7 +826,7 @@ test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
     { config: AGGRON4 }
   );
 
-  const feeRate = BigInt(1 * 10 ** 8);
+  const feeRate = JSBI.BigInt(1 * 10 ** 8);
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
@@ -802,7 +839,10 @@ test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(getFee(txSkeleton), getExpectedFee(txSkeleton, feeRate));
+  t.is(
+    getFee(txSkeleton).toString(),
+    getExpectedFee(txSkeleton, feeRate).toString()
+  );
 });
 
 test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
@@ -811,7 +851,7 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(536 * 10 ** 8);
+  const amount = JSBI.BigInt(536 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -822,7 +862,7 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
     { config: AGGRON4 }
   );
 
-  const feeRate = BigInt(1 * 10 ** 8 * 1000);
+  const feeRate = JSBI.BigInt(1 * 10 ** 8 * 1000);
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
@@ -839,8 +879,8 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 1);
   t.is(
-    getFee(txSkeleton),
-    __tests__.calculateFee(ONE_IN_TWO_OUT_SIZE, feeRate)
+    getFee(txSkeleton).toString(),
+    __tests__.calculateFeeCompatible(ONE_IN_TWO_OUT_SIZE, feeRate).toString()
   );
 });
 
@@ -850,7 +890,7 @@ test("payFeeByFeeRate 1 in 2 out, add 1 in", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -861,7 +901,7 @@ test("payFeeByFeeRate 1 in 2 out, add 1 in", async (t) => {
     { config: AGGRON4 }
   );
 
-  const feeRate = BigInt(1 * 10 ** 8 * 1000);
+  const feeRate = JSBI.BigInt(1 * 10 ** 8 * 1000);
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
@@ -874,7 +914,10 @@ test("payFeeByFeeRate 1 in 2 out, add 1 in", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(getFee(txSkeleton), getExpectedFee(txSkeleton, feeRate));
+  t.is(
+    getFee(txSkeleton).toString(),
+    getExpectedFee(txSkeleton, feeRate).toString()
+  );
 });
 
 test("payFeeByFeeRate, capacity 500", async (t) => {
@@ -883,7 +926,7 @@ test("payFeeByFeeRate, capacity 500", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(500 * 10 ** 8);
+  const amount = JSBI.BigInt(500 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -894,7 +937,7 @@ test("payFeeByFeeRate, capacity 500", async (t) => {
     { config: AGGRON4 }
   );
 
-  const feeRate = BigInt(1000);
+  const feeRate = JSBI.BigInt(1000);
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
@@ -905,9 +948,9 @@ test("payFeeByFeeRate, capacity 500", async (t) => {
     }
   );
 
-  const expectedFee: bigint = BigInt(464);
+  const expectedFee: JSBI = JSBI.BigInt(464);
 
-  t.is(getFee(txSkeleton), expectedFee);
+  t.is(getFee(txSkeleton).toString(), expectedFee.toString());
 });
 
 test("payFeeByFeeRate, capacity 1000", async (t) => {
@@ -916,7 +959,7 @@ test("payFeeByFeeRate, capacity 1000", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(1000 * 10 ** 8);
+  const amount = JSBI.BigInt(1000 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -927,7 +970,7 @@ test("payFeeByFeeRate, capacity 1000", async (t) => {
     { config: AGGRON4 }
   );
 
-  const feeRate = BigInt(1000);
+  const feeRate = JSBI.BigInt(1000);
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
@@ -938,9 +981,9 @@ test("payFeeByFeeRate, capacity 1000", async (t) => {
     }
   );
 
-  const expectedFee: bigint = BigInt(516);
+  const expectedFee: JSBI = JSBI.BigInt(516);
 
-  t.is(getFee(txSkeleton), expectedFee);
+  t.is(getFee(txSkeleton).toString(), expectedFee.toString());
 });
 
 test("Should not throw if anyone-can-pay config not provided", async (t) => {
@@ -959,7 +1002,7 @@ test("Should not throw if anyone-can-pay config not provided", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   await t.notThrowsAsync(async () => {
     await common.transfer(
       txSkeleton,
@@ -980,7 +1023,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.testnetAddress],
@@ -995,7 +1038,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
 
   t.is(txSkeleton.get("outputs").size, 2);
 
-  const fee: bigint = BigInt(1000);
+  const fee: JSBI = JSBI.BigInt(1000);
   txSkeleton = await common.payFee(
     txSkeleton,
     [bob.testnetAddress],
@@ -1012,24 +1055,42 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputCapacity - sumOfOutputCapcity, fee);
-
-  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
   t.is(
-    BigInt(txSkeleton.get("outputs").get(1)!.cell_output.capacity),
-    BigInt(bobSecpInputs[0].cell_output.capacity) - amount
+    JSBI.subtract(sumOfInputCapacity, sumOfOutputCapcity).toString(),
+    fee.toString()
+  );
+
+  t.is(
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(0)!.cell_output.capacity
+    ).toString(),
+    amount.toString()
   );
   t.is(
-    BigInt(txSkeleton.get("outputs").get(2)!.cell_output.capacity),
-    BigInt(bobSecpInputs[1].cell_output.capacity) - fee
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(1)!.cell_output.capacity
+    ).toString(),
+    JSBI.subtract(
+      JSBI.BigInt(bobSecpInputs[0].cell_output.capacity),
+      amount
+    ).toString()
+  );
+  t.is(
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(2)!.cell_output.capacity
+    ).toString(),
+    JSBI.subtract(
+      JSBI.BigInt(bobSecpInputs[1].cell_output.capacity),
+      fee
+    ).toString()
   );
 
   const changeLockScript: Script = parseAddress(bob.testnetAddress, {
@@ -1084,7 +1145,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     }
   }
 
-  const amount = BigInt(600 * 10 ** 8);
+  const amount = JSBI.BigInt(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
     [bob.fromInfo],
@@ -1101,7 +1162,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
 
-  const fee = BigInt(1000);
+  const fee = JSBI.BigInt(1000);
   txSkeleton = await common.injectCapacity(
     txSkeleton,
     [bob.fromInfo],
@@ -1120,24 +1181,42 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(sumOfInputCapacity - sumOfOutputCapcity, fee);
-
-  t.is(BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity), amount);
   t.is(
-    BigInt(txSkeleton.get("outputs").get(1)!.cell_output.capacity),
-    BigInt(bobMultisigInputs[0].cell_output.capacity) - amount
+    JSBI.subtract(sumOfInputCapacity, sumOfOutputCapcity).toString(),
+    fee.toString()
+  );
+
+  t.is(
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(0)!.cell_output.capacity
+    ).toString(),
+    amount.toString()
   );
   t.is(
-    BigInt(txSkeleton.get("outputs").get(2)!.cell_output.capacity),
-    BigInt(bobMultisigInputs[1].cell_output.capacity) - fee
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(1)!.cell_output.capacity
+    ).toString(),
+    JSBI.subtract(
+      JSBI.BigInt(bobMultisigInputs[0].cell_output.capacity),
+      amount
+    ).toString()
+  );
+  t.is(
+    JSBI.BigInt(
+      txSkeleton.get("outputs").get(2)!.cell_output.capacity
+    ).toString(),
+    JSBI.subtract(
+      JSBI.BigInt(bobMultisigInputs[1].cell_output.capacity),
+      fee
+    ).toString()
   );
 
   const changeLockScript: Script = parseFromInfo(bob.fromInfo, {

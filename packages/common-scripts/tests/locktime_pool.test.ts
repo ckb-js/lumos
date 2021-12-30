@@ -193,7 +193,7 @@ const fromInfo: FromInfo = {
   publicKeyHashes: ["0x36c329ed630d6ce750712a477543672adab57f4c"],
 };
 
-test("transfer multisig", async (t) => {
+test("BigInt:transfer multisig", async (t) => {
   txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
@@ -251,7 +251,7 @@ test("JSBI:transferCompatible multisig", async (t) => {
   t.is(txSkeleton.get("headerDeps").size, 0);
 });
 
-test("prepareSigningEntries, multisig", async (t) => {
+test("BigInt:prepareSigningEntries, multisig", async (t) => {
   txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
@@ -297,7 +297,7 @@ test("JSBI:prepareSigningEntries, multisig", async (t) => {
   t.is(signingEntry.message, expectedMessage);
 });
 
-test("transfer multisig & dao", async (t) => {
+test("BigInt:transfer multisig & dao", async (t) => {
   txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
@@ -409,7 +409,7 @@ test("JSBI:transferCompatible multisig & dao", async (t) => {
   t.true(txSkeleton.get("witnesses").equals(List(expectedWitnesses)));
 });
 
-test("prepareSigningEntries, multisig & dao", async (t) => {
+test("BigInt:prepareSigningEntries, multisig & dao", async (t) => {
   txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
@@ -467,7 +467,7 @@ test("JSBI.prepareSigningEntries, multisig & dao", async (t) => {
   });
 });
 
-test("payFee, multisig & dao", async (t) => {
+test("BigInt:payFee, multisig & dao", async (t) => {
   txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
@@ -590,7 +590,7 @@ test("JSBI:payFee, multisig & dao", async (t) => {
   t.is(txSkeleton.get("cellDeps").size, 3);
   t.is(txSkeleton.get("headerDeps").size, 2);
 });
-test("Don't update capacity directly when deduct", async (t) => {
+test("BigInt:Don't update capacity directly when deduct", async (t) => {
   class LocktimeCellCollector {
     private fromInfo: FromInfo;
     private config: Config;
@@ -817,7 +817,7 @@ async function collectAllCells(collector: CellCollector): Promise<Cell[]> {
   return cells;
 }
 
-test("CellCollector, dao", async (t) => {
+test("BigInt:CellCollector, dao", async (t) => {
   const cellProvider = new CellProvider([bobSecpDaoWithdrawInput]);
   const tipHeader = cloneObject(inputTipHeader);
   const epochValue = { length: 10, index: 5, number: 10478 };
