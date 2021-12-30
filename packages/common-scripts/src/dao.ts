@@ -488,7 +488,7 @@ export async function unlock(
 
   const outputCapacity: HexString =
     "0x" +
-    calculateMaximumWithdraw(
+    calculateMaximumWithdrawCompatible(
       withdrawInput,
       depositBlockHeader!.dao,
       withdrawBlockHeader!.dao
