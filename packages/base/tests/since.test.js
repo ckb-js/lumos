@@ -85,6 +85,11 @@ const epochFixtrue = {
     number: 1,
   },
 };
+test.before(() => {
+  BigInt = () => {
+    throw new Error('can not find bigint')
+  };
+});
 
 test("parsedSince", (t) => {
   fixtrues.forEach((v) => {

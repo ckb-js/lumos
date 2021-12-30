@@ -85,6 +85,12 @@ function filterIndex(cells, queryOptions) {
     .filter((index) => typeof index === "number");
 }
 
+test.before(() => {
+  BigInt = () => {
+    throw new Error('can not find bigint')
+  };
+});
+
 test("filter by lock", (t) => {
   const queryOptions = {
     lock: {
