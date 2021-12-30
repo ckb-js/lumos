@@ -26,6 +26,12 @@ const message = "0x";
 const messageDigest =
   "0x44f4c69744d5f8c55d642062949dcae49bc4e7ef43d388c5a12f42b5633d163e";
 
+test.before(() => {
+  BigInt = () => {
+    throw new Error('can not find bigint')
+  };
+});
+
 test("CKBHasher, hex", (t) => {
   const result = new CKBHasher().update(message).digestHex();
   t.is(result, messageDigest);
