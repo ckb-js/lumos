@@ -12,6 +12,13 @@
     "darwin",
     "linux"
   ],
+  "resolutions": { 
+    "lerna/**/json-schema": "^0.4.0",
+    "@strictsoftware/typedoc-plugin-monorepo/highlight.js": "^10.4.1",
+    "ava/trim-off-newlines": "^1.0.3",
+    "ava/**/ansi-regex": "^5.0.1",
+    "lerna/**/ansi-regex": "^5.0.1"
+  },
   "devDependencies": {
     "@strictsoftware/typedoc-plugin-monorepo": "^0.3.1",
     "@typescript-eslint/eslint-plugin": "^3.5.0",
