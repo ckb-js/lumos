@@ -194,22 +194,6 @@ const calculateMaximumWithdrawInfo = {
   expectedWithdrawCapacity: BigInt("0x1748ec3fdc"),
 };
 
-test("BigInt:calculateMaximumWithdraw", (t) => {
-  const {
-    depositInput,
-    depositHeader,
-    withdrawHeader,
-    expectedWithdrawCapacity,
-  } = calculateMaximumWithdrawInfo;
-  const result = dao.calculateMaximumWithdraw(
-    depositInput as Cell,
-    depositHeader.dao,
-    withdrawHeader.dao
-  );
-
-  t.is(result, expectedWithdrawCapacity);
-});
-
 test("JSBI:calculateMaximumWithdrawCompatible", (t) => {
   const {
     depositInput,
@@ -474,19 +458,6 @@ test("listDaoCells, deposit", async (t) => {
   }
 
   t.is(count, 1);
-});
-
-test("BigInt:calculateDaoEarliestSince", (t) => {
-  const { depositHeader, withdrawHeader } = calculateMaximumWithdrawInfo;
-
-  const result = dao.calculateDaoEarliestSince(
-    depositHeader.epoch,
-    withdrawHeader.epoch
-  );
-
-  // since: relative = false, type = epochNumber value = { length: 10, index: 5, number: 10478 }
-  // if decrease index to 4, will false to validation by dao script
-  t.is(result, BigInt("0x20000a00050028ee"));
 });
 
 test("JSBI:calculateDaoEarliestSinceCompatible", (t) => {

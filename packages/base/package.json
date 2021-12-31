@@ -27,7 +27,7 @@
     "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.js\"",
     "regenerate-schema": "mkdir -p tmp && curl -L https://raw.githubusercontent.com/nervosnetwork/ckb/b8a4743c4ae9368f5d56880c74d7edb7580d0d45/util/types/schemas/blockchain.mol -o tmp/blockchain.mol && moleculec --language - --schema-file tmp/blockchain.mol --format json > tmp/core.json && moleculec-es -inputFile tmp/core.json -outputFile tmp/core.esm.js -generateTypeScriptDefinition && rollup -f umd -i tmp/core.esm.js -o lib/core.js --name CKBCore && cp tmp/core.esm.d.ts lib/core.d.ts && rm -rf tmp",
-    "test": "ava --match='!BigInt*'"
+    "test": "ava"
   },
   "devDependencies": {
     "rollup": "^1.32.0"

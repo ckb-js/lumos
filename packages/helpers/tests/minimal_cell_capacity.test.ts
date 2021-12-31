@@ -65,13 +65,6 @@ test.before(() => {
   };
 });
 
-test("BigInt:normal cell, validate true", (t) => {
-  const capacity = minimalCellCapacity(normalCell);
-  const expectedCapacity = BigInt(61 * 10 ** 8);
-
-  t.true(capacity === expectedCapacity);
-});
-
 test("normal cell, validate true", (t) => {
   const capacity = minimalCellCapacityCompatible(normalCell);
   const expectedCapacity = JSBI.BigInt(
@@ -88,13 +81,6 @@ test("normal cell, validate failed", (t) => {
   t.throws(() => {
     minimalCellCapacity(invalidCell as any);
   });
-});
-
-test("BigInt:cell with type and data, validate true", (t) => {
-  const capacity = minimalCellCapacity(cellWithTypeAndData);
-  const expectedCapacity = BigInt((61 + 33 + 2) * 10 ** 8);
-
-  t.true(capacity === expectedCapacity);
 });
 
 test("cell with type and data, validate true", (t) => {
