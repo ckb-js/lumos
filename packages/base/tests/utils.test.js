@@ -88,7 +88,6 @@ test("toBigUInt64LECompatible", (t) => {
 });
 
 test("readBigUInt64LECompatible", (t) => {
-  BigInt(1);
   t.true(
     JSBI.equal(readBigUInt64LECompatible(uint64leCompatible), uint64Compatible)
   );
