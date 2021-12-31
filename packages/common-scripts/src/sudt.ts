@@ -281,7 +281,7 @@ export async function transfer(
       lock: changeOutputLockScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(0n),
+    data: toBigUInt128LE(JSBI.BigInt(0)),
     out_point: undefined,
     block_hash: undefined,
   };
