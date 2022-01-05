@@ -1,0 +1,52 @@
+{
+  "name": "@ckb-lumos/bi",
+  "version": "0.17.0-rc6",
+  "description": "Bigint support in lumos",
+  "author": "",
+  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "os": [
+    "win32",
+    "darwin",
+    "linux"
+  ],
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "jsbi": "^4.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "test": "ava **/*.test.ts",
+    "build": "tsc",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
+  },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  }
+}
