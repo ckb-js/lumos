@@ -1,6 +1,6 @@
 import JSBI from "jsbi";
 
-export type BIish = number | string | bigint;
+export type BIish = number | string | bigint | BI;
 
 export function isBIish(value: any): value is BIish {
   return (
@@ -9,7 +9,8 @@ export function isBIish(value: any): value is BIish {
       (typeof value === "string" &&
         (!!value.match(/^0x(0|[0-9a-fA-F]+)$/) ||
           !!value.match(/^-?[0-9]+$/))) ||
-      typeof value === "bigint")
+      typeof value === "bigint" ||
+      BI.isBI(value))
   );
 }
 
@@ -81,9 +82,11 @@ export class BI {
     if (JSBI.lessThanOrEqual(length, jsbiOther)) {
       return toBI(this.jsbi);
     } else {
-      return toBI(
-        JSBI.signedRightShift(JSBI.leftShift(this.jsbi, jsbiOther), jsbiOther)
+      const maskNum = JSBI.leftShift(
+        JSBI.signedRightShift(this.jsbi, jsbiOther),
+        jsbiOther
       );
+      return toBI(JSBI.bitwiseXor(this.jsbi, maskNum));
     }
   }
 
@@ -136,7 +139,7 @@ export class BI {
   }
 
   toString(radix?: number): string {
-    radix = radix || 0;
+    radix = radix || 10;
     return this.jsbi.toString(radix);
   }
 
