@@ -1,5 +1,6 @@
 import test from "ava";
-import { isBIish, BI } from "../src/index";
+import { isBIish, BI, toJSBI } from "../src/index";
+import JSBI from "jsbi";
 
 test("validate if a value is BIish", (t) => {
   t.is(isBIish(1), true);
@@ -195,4 +196,11 @@ test("is BI", (t) => {
   t.is(BI.isBI("0"), false);
   t.is(BI.isBI("0x0"), false);
   t.is(BI.isBI(BI.from(BI.from(0))), true);
+});
+
+test("to jsbi", (t) => {
+  const bi = BI.from(2);
+  const jsbi = JSBI.BigInt(2);
+  t.is(toJSBI(bi) instanceof JSBI, true);
+  t.is(JSBI.equal(toJSBI(bi), jsbi), true);
 });

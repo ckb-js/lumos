@@ -166,7 +166,7 @@ function toBI(value: JSBI): BI {
   return new BI(value);
 }
 
-function toJSBI(value: BIish): JSBI {
+export function toJSBI(value: BIish): JSBI {
   if (typeof value === "number" || typeof value === "string") {
     return JSBI.BigInt(value);
   } else {
