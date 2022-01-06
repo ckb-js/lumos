@@ -16,9 +16,11 @@ export function isBIish(value: any): value is BIish {
 
 export class BI {
   private jsbi: JSBI;
+  readonly _isBI: boolean;
 
   constructor(value: JSBI) {
     this.jsbi = value;
+    this._isBI = true;
   }
 
   add(other: BIish): BI {
@@ -144,7 +146,11 @@ export class BI {
   }
 
   toHexString(): string {
-    return this.jsbi.toString(16);
+    if (JSBI.lessThan(this.jsbi, toJSBI(0))) {
+      return "-0x" + JSBI.unaryMinus(this.jsbi).toString(16);
+    } else {
+      return "0x" + this.jsbi.toString(16);
+    }
   }
 
   static from(value: any): BI {
@@ -158,7 +164,7 @@ export class BI {
   }
 
   static isBI(value: any): value is BI {
-    return value instanceof BI;
+    return !!(value && value._isBI);
   }
 }
 

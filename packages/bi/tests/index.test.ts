@@ -65,15 +65,15 @@ test("exponentiation", (t) => {
 });
 
 test("bitwise and", (t) => {
-  t.is(BI.from("0x1234").and("0xff").toHexString(), "34");
+  t.is(BI.from("0x1234").and("0xff").toHexString(), "0x34");
 });
 
 test("bitwise or", (t) => {
-  t.is(BI.from("0xf0").or("0xf").toHexString(), "ff");
+  t.is(BI.from("0xf0").or("0xf").toHexString(), "0xff");
 });
 
 test("bitwise xor", (t) => {
-  t.is(BI.from("0xf0f0f0f0").xor("0xf0ff0f0").toHexString(), "ffff0000");
+  t.is(BI.from("0xf0f0f0f0").xor("0xf0ff0f0").toHexString(), "0xffff0000");
 });
 
 test("bitwise not", (t) => {
@@ -82,8 +82,8 @@ test("bitwise not", (t) => {
 
 test("mask", (t) => {
   t.is(BI.from(3).mask(1).toNumber(), 1);
-  t.is(BI.from("0x1234567").mask(8).toHexString(), "67");
-  t.is(BI.from("0x12345").mask(30).toHexString(), "12345");
+  t.is(BI.from("0x1234567").mask(8).toHexString(), "0x67");
+  t.is(BI.from("0x12345").mask(30).toHexString(), "0x12345");
   t.throws(() => {
     BI.from(-1).mask(3);
   });
@@ -97,7 +97,7 @@ test("left shifting", (t) => {
 });
 
 test("right shifting", (t) => {
-  t.is(BI.from("0xff").shr(4).toHexString(), "f");
+  t.is(BI.from("0xff").shr(4).toHexString(), "0xf");
 });
 
 test("equal", (t) => {
@@ -177,8 +177,8 @@ test("to string", (t) => {
 });
 
 test("to hex string", (t) => {
-  t.is(BI.from(15).toHexString(), "f");
-  t.is(BI.from(-15).toHexString(), "-f");
+  t.is(BI.from(15).toHexString(), "0xf");
+  t.is(BI.from(-15).toHexString(), "-0xf");
 });
 
 test("from", (t) => {
