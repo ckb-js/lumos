@@ -112,6 +112,7 @@ packages/common-scripts/lib
 packages/hd/lib
 packages/hd-cache/lib
 packages/rpc/lib
+packages/bi/lib
 
 # knex config
 packages/sql-indexer/knexfile.ts
