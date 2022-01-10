@@ -27,6 +27,7 @@ import { bob } from "./account_info";
 import { since as SinceUtils } from "@ckb-lumos/base";
 import { transferCompatible } from "../lib/locktime_pool";
 import { calculateMaximumWithdrawCompatible } from "../lib/dao";
+import { toJSBI } from "../../bi/lib";
 const { AGGRON4 } = predefined;
 
 const originCapacity = "0x174876e800";
@@ -272,16 +273,18 @@ test("JSBI:transferCompatible multisig & dao", async (t) => {
     .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const interest = JSBI.subtract(
-    calculateMaximumWithdrawCompatible(
-      {
-        ...inputInfos[2],
-        cell_output: {
-          ...inputInfos[2].cell_output,
-          capacity: originCapacity,
+    toJSBI(
+      calculateMaximumWithdrawCompatible(
+        {
+          ...inputInfos[2],
+          cell_output: {
+            ...inputInfos[2].cell_output,
+            capacity: originCapacity,
+          },
         },
-      },
-      depositDao,
-      withdrawDao
+        depositDao,
+        withdrawDao
+      )
     ),
     JSBI.BigInt(originCapacity)
   );
@@ -372,16 +375,18 @@ test("JSBI:payFee, multisig & dao", async (t) => {
     .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const interest = JSBI.subtract(
-    calculateMaximumWithdrawCompatible(
-      {
-        ...inputInfos[2],
-        cell_output: {
-          ...inputInfos[2].cell_output,
-          capacity: originCapacity,
+    toJSBI(
+      calculateMaximumWithdrawCompatible(
+        {
+          ...inputInfos[2],
+          cell_output: {
+            ...inputInfos[2].cell_output,
+            capacity: originCapacity,
+          },
         },
-      },
-      depositDao,
-      withdrawDao
+        depositDao,
+        withdrawDao
+      )
     ),
     JSBI.BigInt(originCapacity)
   );
