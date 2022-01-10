@@ -4,6 +4,7 @@ const isEqual = require("lodash.isequal");
 const { SerializeScript, SerializeCellInput } = require("./core");
 const { xxHash32 } = require("js-xxhash");
 const { JSBI, maybeJSBI } = require("./primitive");
+const { BI, toJSBI } = require("../../bi/lib");
 
 class CKBHasher {
   constructor() {
@@ -42,7 +43,7 @@ function toBigUInt64LE(num) {
 }
 
 function toBigUInt64LECompatible(num) {
-  num = JSBI.BigInt(num);
+  num = toJSBI(num);
   const buf = Buffer.alloc(8);
   buf.writeUInt32LE(
     JSBI.toNumber(JSBI.bitwiseAnd(num, JSBI.BigInt("0xffffffff"))),
@@ -63,10 +64,10 @@ function readBigUInt64LE(hex) {
 
 function readBigUInt64LECompatible(hex) {
   const buf = Buffer.from(hex.slice(2), "hex");
-  return JSBI.add(
+  return BI.from(JSBI.add(
     JSBI.BigInt(buf.readUInt32LE()),
     JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(4)), JSBI.BigInt(32))
-  );
+  ));
 }
 
 // const U128_MIN = BigInt(0);
@@ -80,7 +81,7 @@ const U128_MAX_COMPATIBLE = JSBI.BigInt(
   "340282366920938463463374607431768211455"
 );
 function toBigUInt128LECompatible(num) {
-  num = JSBI.BigInt(num);
+  num = toJSBI(num);
   if (maybeJSBI.lessThan(num, U128_MIN_COMPATIBLE)) {
     throw new Error(`u128 ${num} too small`);
   }
@@ -129,7 +130,7 @@ function readBigUInt128LECompatible(leHex) {
 
   const buf = Buffer.from(leHex.slice(2, 34), "hex");
 
-  return JSBI.add(
+  const result = JSBI.add(
     JSBI.add(
       JSBI.add(
         JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(0)), JSBI.BigInt(0)),
@@ -139,6 +140,7 @@ function readBigUInt128LECompatible(leHex) {
     ),
     JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(12)), JSBI.BigInt(96))
   );
+  return BI.from(result);
 }
 
 function computeScriptHash(script, { validate = true } = {}) {

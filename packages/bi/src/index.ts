@@ -9,6 +9,7 @@ export function isBIish(value: any): value is BIish {
         (!!value.match(/^0x(0|[0-9a-fA-F]+)$/) ||
           !!value.match(/^-?[0-9]+$/))) ||
       typeof value === "bigint" ||
+      value instanceof JSBI ||
       BI.isBI(value))
   );
 }
@@ -155,8 +156,8 @@ export class BI {
   static from(value: any): BI {
     if (value instanceof BI) {
       return value;
-    } else if (isBIish(value)) {
-      return toBI(toJSBI(value));
+    } else if (isBIish(value.toString())) {
+      return toBI(toJSBI(value.toString()));
     } else if (value instanceof JSBI) {
       return toBI(toJSBI(value.toString()));
     } else {

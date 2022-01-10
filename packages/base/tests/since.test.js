@@ -1,7 +1,9 @@
 const test = require("ava");
+const { BI } = require("../../bi/lib");
 
 const { since, utils } = require("../lib");
-const { JSBI, maybeJSBI } = require("../lib/primitive");
+const { maybeJSBI } = require("../lib/primitive");
+const JSBI = require('jsbi')
 
 const {
   parseSinceCompatible,
@@ -21,7 +23,7 @@ const fixtrues = [
     parsed: {
       relative: false,
       type: "blockNumber",
-      value: JSBI.BigInt("12345"),
+      value: BI.from(JSBI.BigInt("12345").toString()),
     },
   },
   {
@@ -29,10 +31,10 @@ const fixtrues = [
     parsed: {
       relative: false,
       type: "blockTimestamp",
-      value: JSBI.divide(
+      value: BI.from(JSBI.divide(
         JSBI.BigInt(+new Date("2020-04-01")),
         JSBI.BigInt(1000)
-      ),
+      ).toString()),
     },
   },
   {
@@ -52,7 +54,7 @@ const fixtrues = [
     parsed: {
       relative: true,
       type: "blockNumber",
-      value: JSBI.BigInt("100"),
+      value: BI.from(JSBI.BigInt("100").toString()),
     },
   },
   {
@@ -60,7 +62,7 @@ const fixtrues = [
     parsed: {
       relative: true,
       type: "blockTimestamp",
-      value: JSBI.BigInt(14 * 24 * 60 * 60),
+      value: BI.from(JSBI.BigInt(14 * 24 * 60 * 60).toString()),
     },
   },
   {
@@ -145,7 +147,7 @@ test("validateSince, absolute blockNumber", (t) => {
   const since = generateSince({
     relative: false,
     type: "blockNumber",
-    value: JSBI.BigInt("12345"),
+    value: JSBI.BigInt("12345").toString(),
   });
 
   const cellSinceValidationInfo = {
@@ -176,7 +178,7 @@ test("validateSince, relative blockNumber", (t) => {
   const since = generateSince({
     relative: true,
     type: "blockNumber",
-    value: JSBI.BigInt("12345"),
+    value: BI.from("12345"),
   });
 
   const cellSinceValidationInfo = {
@@ -211,7 +213,7 @@ test("validateSince, absolute blockTimestamp", (t) => {
   const since = generateSince({
     relative: false,
     type: "blockTimestamp",
-    value: timestamp,
+    value: BI.from(timestamp.toString()),
   });
 
   const cellSinceValidationInfo = {
@@ -250,7 +252,7 @@ test("validateSince, relative blockTimestamp", (t) => {
   const since = generateSince({
     relative: true,
     type: "blockTimestamp",
-    value: timestamp,
+    value: BI.from(timestamp.toString()),
   });
 
   const cellMedianTimestamp =
