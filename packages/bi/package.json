@@ -1,8 +1,8 @@
 {
-  "name": "@ckb-lumos/hd-cache",
+  "name": "@ckb-lumos/bi",
   "version": "0.17.0-rc6",
-  "description": "HD wallet cache in lumos",
-  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "description": "Bigint support in lumos",
+  "author": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
@@ -23,21 +23,16 @@
     "lib"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc6",
-    "@ckb-lumos/config-manager": "^0.17.0-rc6",
-    "@ckb-lumos/hd": "^0.17.0-rc6",
-    "@ckb-lumos/indexer": "^0.17.0-rc6",
-    "@ckb-lumos/rpc": "^0.17.0-rc6",
-    "immutable": "^4.0.0-rc.12"
+    "jsbi": "^4.1.0"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
-    "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
-    "test": "ava **/*.test.ts --timeout=2m",
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "test": "ava **/*.test.ts",
     "build": "tsc",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
