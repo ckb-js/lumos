@@ -29,7 +29,7 @@ import { Set } from "immutable";
 import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
 import { normalizers } from "ckb-js-toolkit";
 import { isAcpScript } from "./helper";
-import { toJSBI } from "../../bi/lib";
+import { BI, BIish, toJSBI } from "../../bi/lib";
 
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
@@ -178,7 +178,7 @@ export async function transfer(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
   toAddress: Address,
-  amount: bigint | JSBI,
+  amount: BIish,
   changeAddress?: Address,
   tipHeader?: Header,
   {
@@ -192,7 +192,7 @@ export async function transfer(
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  amount = JSBI.BigInt(amount.toString());
+  let _amount = toJSBI(amount);
   if (!toAddress) {
     throw new Error("You must provide a to address!");
   }
@@ -200,7 +200,7 @@ export async function transfer(
   const toScript: Script = parseAddress(toAddress, { config });
   const targetOutput: Cell = {
     cell_output: {
-      capacity: "0x" + JSBI.BigInt(amount).toString(16),
+      capacity: "0x" + JSBI.BigInt(_amount).toString(16),
       lock: toScript,
       type: undefined,
     },
@@ -238,7 +238,7 @@ export async function transfer(
   txSkeleton = await injectCapacity(
     txSkeleton,
     fromInfos,
-    amount,
+    _amount.toString(),
     changeAddress,
     tipHeader,
     {
@@ -254,7 +254,7 @@ export async function transfer(
 export async function injectCapacity(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  amount: bigint | JSBI,
+  amount: BIish,
   changeAddress?: Address,
   tipHeader?: Header,
   {
@@ -270,8 +270,8 @@ export async function injectCapacity(
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  amount = JSBI.BigInt(amount.toString());
-  let deductAmount = JSBI.BigInt(amount);
+  let _amount = toJSBI(amount.toString());
+  let deductAmount = JSBI.BigInt(_amount);
 
   if (fromInfos.length === 0) {
     throw new Error("No from info provided!");
@@ -418,7 +418,7 @@ export async function injectCapacity(
 export async function payFee(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  amount: bigint | JSBI,
+  amount: BIish,
   tipHeader?: Header,
   {
     config = undefined,
@@ -817,7 +817,7 @@ export async function setupInputCell(
 export async function payFeeByFeeRate(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  feeRate: bigint | JSBI,
+  feeRate: BIish,
   tipHeader?: Header,
   {
     config = undefined,
@@ -829,7 +829,6 @@ export async function payFeeByFeeRate(
     enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
-  feeRate = JSBI.BigInt(feeRate.toString());
   let size: number = 0;
   let newTxSkeleton: TransactionSkeletonType = txSkeleton;
 
@@ -841,7 +840,7 @@ export async function payFeeByFeeRate(
   let currentTransactionSize: number = getTransactionSize(newTxSkeleton);
   while (currentTransactionSize > size) {
     size = currentTransactionSize;
-    const fee: JSBI = calculateFeeCompatible(size, feeRate);
+    const fee: BI = calculateFeeCompatible(size, feeRate);
 
     newTxSkeleton = await payFee(txSkeleton, fromInfos, fee, tipHeader, {
       config,
@@ -855,18 +854,18 @@ export async function payFeeByFeeRate(
 }
 
 function calculateFee(size: number, feeRate: bigint): bigint {
-  const result = calculateFeeCompatible(size, JSBI.BigInt(feeRate.toString()));
+  const result = calculateFeeCompatible(size, feeRate);
   return BigInt(result.toString());
 }
 
-function calculateFeeCompatible(size: number, feeRate: JSBI): JSBI {
+function calculateFeeCompatible(size: number, feeRate: BIish): BI {
   const ratio = JSBI.BigInt(1000);
-  const base = JSBI.multiply(JSBI.BigInt(size), feeRate);
+  const base = JSBI.multiply(JSBI.BigInt(size), toJSBI(feeRate));
   const fee = JSBI.divide(base, ratio);
   if (JSBI.lessThan(JSBI.multiply(fee, ratio), base)) {
-    return JSBI.add(fee, JSBI.BigInt(1));
+    return BI.from(JSBI.add(fee, JSBI.BigInt(1)));
   }
-  return fee;
+  return BI.from(fee);
 }
 
 function getTransactionSize(txSkeleton: TransactionSkeletonType): number {

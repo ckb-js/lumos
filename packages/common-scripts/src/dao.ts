@@ -116,7 +116,7 @@ export async function deposit(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
   toAddress: Address,
-  amount: bigint | JSBI,
+  amount: BIish,
   { config = undefined }: Options = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -341,12 +341,12 @@ function epochSinceCompatible({
   length: BIish;
   index: BIish;
   number: BIish;
-}): JSBI {
+}): BI {
   const _length = toJSBI(length);
   const _index = toJSBI(index);
   const _number = toJSBI(number);
 
-  return JSBI.add(
+  const result = JSBI.add(
     JSBI.add(
       JSBI.add(
         JSBI.leftShift(JSBI.BigInt(0x20), JSBI.BigInt(56)),
@@ -356,6 +356,7 @@ function epochSinceCompatible({
     ),
     _number
   );
+  return BI.from(result);
 }
 
 /**
@@ -579,7 +580,7 @@ export function calculateDaoEarliestSince(
 export function calculateDaoEarliestSinceCompatible(
   depositBlockHeaderEpoch: HexString,
   withdrawBlockHeaderEpoch: HexString
-): JSBI {
+): BI {
   const depositEpoch = parseEpochCompatible(
     JSBI.BigInt(depositBlockHeaderEpoch)
   );
@@ -618,9 +619,7 @@ export function calculateDaoEarliestSinceCompatible(
     index: BI.from(depositEpoch.index),
     length: BI.from(depositEpoch.length),
   };
-  const minimalSince = epochSinceCompatible(minimalSinceEpoch);
-
-  return minimalSince;
+  return epochSinceCompatible(minimalSinceEpoch);
 }
 
 function _checkDaoScript(config: Config): void {

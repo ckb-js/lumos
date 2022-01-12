@@ -29,7 +29,7 @@ import anyoneCanPay, {
 const { ScriptValue } = values;
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
-import { toJSBI } from "../../bi/lib";
+import { BI, BIish, toJSBI } from "../../bi/lib";
 
 export type Token = Hash;
 
@@ -46,14 +46,12 @@ export type Token = Hash;
 export async function issueToken(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
-  amount: bigint | JSBI,
-  capacity?: bigint | JSBI,
+  amount: BIish,
+  capacity?: BIish,
   tipHeader?: Header,
   { config = undefined }: Options = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  amount = JSBI.BigInt(amount.toString());
-  capacity = capacity ? JSBI.BigInt(capacity.toString()) : capacity;
   const template = config.SCRIPTS.SUDT;
 
   if (!template) {
@@ -84,15 +82,14 @@ export async function issueToken(
       lock: toScript,
       type: sudtTypeScript,
     },
-    data: toBigUInt128LE(amount.toString()),
+    data: toBigUInt128LE(amount),
     out_point: undefined,
     block_hash: undefined,
   };
 
   if (!capacity) {
-    capacity = toJSBI(minimalCellCapacityCompatible(targetOutput));
+    capacity = minimalCellCapacityCompatible(targetOutput);
   }
-  capacity = JSBI.BigInt(capacity.toString());
   targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -112,7 +109,7 @@ export async function issueToken(
   txSkeleton = await common.injectCapacity(
     txSkeleton,
     [fromInfo],
-    JSBI.BigInt(targetOutput.cell_output.capacity),
+    BI.from(JSBI.BigInt(targetOutput.cell_output.capacity)),
     undefined,
     tipHeader,
     {
@@ -140,9 +137,9 @@ export async function transfer(
   fromInfos: FromInfo[],
   sudtToken: Token,
   toAddress: Address,
-  amount: bigint | JSBI,
+  amount: BIish,
   changeAddress?: Address,
-  capacity?: bigint | JSBI,
+  capacity?: BIish,
   tipHeader?: Header,
   {
     config = undefined,
@@ -154,8 +151,8 @@ export async function transfer(
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  amount = JSBI.BigInt(amount.toString());
-  capacity = capacity ? JSBI.BigInt(capacity.toString()) : undefined;
+  let _amount = toJSBI(amount);
+  let _capacity = capacity ? toJSBI(capacity) : undefined;
 
   const SUDT_SCRIPT = config.SCRIPTS.SUDT;
 
@@ -179,8 +176,7 @@ export async function transfer(
     ? parseAddress(changeAddress, { config })
     : fromScripts[0];
 
-  amount = JSBI.BigInt(amount);
-  if (JSBI.lessThanOrEqual(amount, JSBI.BigInt(0))) {
+  if (JSBI.lessThanOrEqual(_amount, JSBI.BigInt(0))) {
     throw new Error("amount must be greater than 0");
   }
 
@@ -234,27 +230,24 @@ export async function transfer(
       lock: toScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(amount.toString()),
+    data: toBigUInt128LE(_amount.toString()),
     out_point: undefined,
     block_hash: undefined,
   };
-  if (capacity) {
-    capacity = JSBI.BigInt(capacity);
-  }
   if (isAcpScript(toScript, config)) {
-    if (!capacity) {
-      capacity = JSBI.BigInt(0);
+    if (!_capacity) {
+      _capacity = JSBI.BigInt(0);
     }
     targetOutput.cell_output.capacity =
-      "0x" + JSBI.add(toAddressInputCapacity, capacity).toString(16);
+      "0x" + JSBI.add(toAddressInputCapacity, _capacity).toString(16);
     targetOutput.data = toBigUInt128LE(
-      JSBI.add(toAddressInputAmount, JSBI.BigInt(amount)).toString()
+      JSBI.add(toAddressInputAmount, JSBI.BigInt(_amount)).toString()
     );
   } else {
-    if (!capacity) {
-      capacity = toJSBI(minimalCellCapacityCompatible(targetOutput));
+    if (!_capacity) {
+      _capacity = toJSBI(minimalCellCapacityCompatible(targetOutput));
     }
-    targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
+    targetOutput.cell_output.capacity = "0x" + _capacity.toString(16);
   }
 
   // collect cells with which includes sUDT info
@@ -499,11 +492,11 @@ export async function transfer(
             )
           : inputCapacity;
       let deductAmount: JSBI = inputAmount;
-      if (JSBI.greaterThan(deductCapacity, JSBI.BigInt(capacity.toString()))) {
-        deductCapacity = JSBI.BigInt(capacity.toString());
+      if (JSBI.greaterThan(deductCapacity, JSBI.BigInt(_capacity.toString()))) {
+        deductCapacity = JSBI.BigInt(_capacity.toString());
       }
-      capacity = JSBI.subtract(
-        JSBI.BigInt(capacity.toString()),
+      _capacity = JSBI.subtract(
+        JSBI.BigInt(_capacity.toString()),
         deductCapacity
       );
       const currentChangeCapacity: JSBI = JSBI.subtract(
@@ -513,10 +506,10 @@ export async function transfer(
       if (!isAnyoneCanPay || (isAnyoneCanPay && destroyable)) {
         changeCapacity = JSBI.add(changeCapacity, currentChangeCapacity);
       }
-      if (JSBI.greaterThan(deductAmount, amount)) {
-        deductAmount = amount;
+      if (JSBI.greaterThan(deductAmount, _amount)) {
+        deductAmount = _amount;
       }
-      amount = JSBI.subtract(amount, deductAmount);
+      _amount = JSBI.subtract(_amount, deductAmount);
       const currentChangeAmount: JSBI = JSBI.subtract(
         inputAmount,
         deductAmount
@@ -553,8 +546,8 @@ export async function transfer(
 
       // changeAmount = 0n, the change output no need to include sudt type script
       if (
-        JSBI.equal(capacity, JSBI.BigInt(0)) &&
-        JSBI.equal(amount, JSBI.BigInt(0)) &&
+        JSBI.equal(_capacity, JSBI.BigInt(0)) &&
+        JSBI.equal(_amount, JSBI.BigInt(0)) &&
         ((JSBI.equal(changeCapacity, JSBI.BigInt(0)) &&
           JSBI.equal(changeAmount, JSBI.BigInt(0))) ||
           (JSBI.greaterThan(
@@ -568,8 +561,8 @@ export async function transfer(
         break;
       }
       if (
-        JSBI.equal(capacity, JSBI.BigInt(0)) &&
-        JSBI.equal(amount, JSBI.BigInt(0)) &&
+        JSBI.equal(_capacity, JSBI.BigInt(0)) &&
+        JSBI.equal(_amount, JSBI.BigInt(0)) &&
         JSBI.greaterThan(
           changeCapacity,
           toJSBI(minimalCellCapacityCompatible(changeCellWithoutSudt))
@@ -728,10 +721,10 @@ export async function transfer(
   ) {
     throw new Error("Not enough capacity for change in from infos!");
   }
-  if (JSBI.greaterThan(JSBI.BigInt(capacity.toString()), JSBI.BigInt(0))) {
+  if (JSBI.greaterThan(JSBI.BigInt(_capacity.toString()), JSBI.BigInt(0))) {
     throw new Error("Not enough capacity in from infos!");
   }
-  if (JSBI.greaterThan(amount, JSBI.BigInt(0))) {
+  if (JSBI.greaterThan(_amount, JSBI.BigInt(0))) {
     throw new Error("Not enough amount in from infos!");
   }
 

@@ -353,7 +353,7 @@ export async function transfer(
     txSkeleton,
     fromInfos,
     toAddress,
-    JSBI.BigInt(amount.toString()),
+    amount,
     tipHeader,
     {
       config,
@@ -378,7 +378,7 @@ export async function transferCompatible(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
   toAddress: Address | undefined,
-  amount: JSBI,
+  amount: BIish,
   tipHeader: Header,
   {
     config,
@@ -397,7 +397,7 @@ export async function transferCompatible(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
   toAddress: Address | undefined,
-  amount: JSBI,
+  amount: BIish,
   tipHeader: Header,
   {
     config,
@@ -410,12 +410,12 @@ export async function transferCompatible(
     assertAmountEnough: false;
     LocktimeCellCollector?: any;
   }
-): Promise<[TransactionSkeletonType, JSBI]>;
+): Promise<[TransactionSkeletonType, BI]>;
 export async function transferCompatible(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
   toAddress: Address | undefined,
-  amount: JSBI,
+  amount: BIish,
   tipHeader: Header,
   {
     config = undefined,
@@ -428,14 +428,14 @@ export async function transferCompatible(
     assertAmountEnough?: boolean;
     LocktimeCellCollector?: any;
   } = {}
-): Promise<TransactionSkeletonType | [TransactionSkeletonType, JSBI]> {
-  amount = JSBI.BigInt(amount);
+): Promise<TransactionSkeletonType | [TransactionSkeletonType, BI]> {
+  let _amount = toJSBI(amount);
   for (const [index, fromInfo] of fromInfos.entries()) {
     const value = (await _transferCompatible(
       txSkeleton,
       fromInfo,
       index === 0 ? toAddress : undefined,
-      amount,
+      _amount,
       tipHeader,
       {
         config,
@@ -446,20 +446,20 @@ export async function transferCompatible(
     )) as [TransactionSkeletonType, JSBI];
     // [txSkeleton, amount] = value
     txSkeleton = value[0];
-    amount = value[1];
+    _amount = value[1];
 
-    if (JSBI.equal(amount, JSBI.BigInt(0))) {
+    if (JSBI.equal(_amount, JSBI.BigInt(0))) {
       if (assertAmountEnough) {
         return txSkeleton;
       }
-      return [txSkeleton, amount];
+      return [txSkeleton, BI.from(_amount)];
     }
   }
 
   if (assertAmountEnough) {
     throw new Error("Not enough capacity in from addresses!");
   }
-  return [txSkeleton, amount];
+  return [txSkeleton, BI.from(_amount)];
 }
 
 async function _transferCompatible(
@@ -967,7 +967,7 @@ async function injectCapacityWithoutChange(
 export async function payFee(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  amount: bigint | JSBI,
+  amount: BIish,
   tipHeader: Header,
   {
     config = undefined,
@@ -977,7 +977,6 @@ export async function payFee(
     LocktimeCellCollector?: any;
   } = {}
 ): Promise<TransactionSkeletonType> {
-  amount = JSBI.BigInt(amount.toString());
   return transferCompatible(
     txSkeleton,
     fromInfos,
@@ -1030,7 +1029,7 @@ export async function injectCapacity(
     txSkeleton,
     fromInfos,
     undefined,
-    capacity,
+    BI.from(capacity),
     tipHeader,
     {
       config,
