@@ -25,6 +25,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { normalizers, Reader } from "ckb-js-toolkit";
 import { List, Set } from "immutable";
+import { toJSBI } from "../../bi/lib";
 import { FromInfo, parseFromInfo } from "./from_info";
 import {
   addCellDep,
@@ -359,7 +360,7 @@ export async function injectCapacity(
       const cellCapacity: JSBI = JSBI.BigInt(output.cell_output.capacity);
       const availableCapacity: JSBI = JSBI.subtract(
         cellCapacity,
-        minimalCellCapacityCompatible(output)
+        toJSBI(minimalCellCapacityCompatible(output))
       );
       // should maintain minimal cell capcity in anyone-can-pay output
       const deductCapacity: JSBI = JSBI.greaterThanOrEqual(
@@ -394,8 +395,8 @@ export async function injectCapacity(
       block_hash: undefined,
     };
     let changeCapacity = JSBI.BigInt(0);
-    const minimalChangeCapacity: JSBI = minimalCellCapacityCompatible(
-      changeCell
+    const minimalChangeCapacity: JSBI = toJSBI(
+      minimalCellCapacityCompatible(changeCell)
     );
 
     let previousInputs = Set<string>();
@@ -513,7 +514,7 @@ export function prepareSigningEntries(
 
       const sumOfOutputAmount: JSBI = outputs
         .filter((output) => output.data !== "0x")
-        .map((output) => readBigUInt128LECompatible(output.data))
+        .map((output) => toJSBI(readBigUInt128LECompatible(output.data)))
         .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
       const fInputs: List<Cell> = inputs.filter((i) => {
@@ -528,7 +529,7 @@ export function prepareSigningEntries(
 
       const sumOfInputAmount: JSBI = fInputs
         .filter((i) => i.data !== "0x")
-        .map((i) => readBigUInt128LECompatible(i.data))
+        .map((i) => toJSBI(readBigUInt128LECompatible(i.data)))
         .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
       if (
@@ -593,8 +594,8 @@ export async function withdraw(
   // check capacity
   capacity = JSBI.BigInt(capacity.toString());
   const fromInputCapacity: JSBI = JSBI.BigInt(fromInput.cell_output.capacity);
-  const inputMinimalCellCapacity: JSBI = minimalCellCapacityCompatible(
-    fromInput
+  const inputMinimalCellCapacity: JSBI = toJSBI(
+    minimalCellCapacityCompatible(fromInput)
   );
   if (
     !(

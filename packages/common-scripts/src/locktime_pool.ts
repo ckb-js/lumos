@@ -540,7 +540,7 @@ async function _transferCompatible(
       } else {
         deductCapacity = JSBI.subtract(
           cellCapacity,
-          minimalCellCapacityCompatible(output)
+          toJSBI(minimalCellCapacityCompatible(output))
         );
         if (JSBI.greaterThan(deductCapacity, amount)) {
           deductCapacity = amount;
@@ -611,7 +611,7 @@ async function _transferCompatible(
         const lockArgs = inputCell.cell_output.lock.args;
         multisigSince =
           lockArgs.length === 58
-            ? _parseMultisigArgsSinceCompatible(lockArgs)
+            ? toJSBI(_parseMultisigArgsSinceCompatible(lockArgs))
             : undefined;
       }
       let witness: HexString = "0x";
@@ -635,7 +635,9 @@ async function _transferCompatible(
         const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
 
         const witnessArgs = {
-          input_type: toBigUInt64LE(JSBI.BigInt(depositHeaderDepIndex)),
+          input_type: toBigUInt64LE(
+            JSBI.BigInt(depositHeaderDepIndex).toString()
+          ),
         };
         witness = new Reader(
           core.SerializeWitnessArgs(
@@ -687,7 +689,7 @@ async function _transferCompatible(
         (JSBI.equal(changeCapacity, JSBI.BigInt(0)) ||
           JSBI.greaterThan(
             changeCapacity,
-            minimalCellCapacityCompatible(changeCell)
+            toJSBI(minimalCellCapacityCompatible(changeCell))
           ))
       ) {
         break;
@@ -773,7 +775,7 @@ async function injectCapacityWithoutChangeCompatible(
           } else {
             deductCapacity = JSBI.subtract(
               cellCapacity,
-              minimalCellCapacityCompatible(clonedOutput)
+              toJSBI(minimalCellCapacityCompatible(clonedOutput))
             );
             if (JSBI.greaterThan(deductCapacity, _amount)) {
               deductCapacity = _amount;
@@ -847,7 +849,9 @@ async function injectCapacityWithoutChangeCompatible(
 
           const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
           const witnessArgs = {
-            input_type: toBigUInt64LE(JSBI.BigInt(depositHeaderDepIndex)),
+            input_type: toBigUInt64LE(
+              JSBI.BigInt(depositHeaderDepIndex).toString()
+            ),
           };
           witness = new Reader(
             core.SerializeWitnessArgs(
@@ -861,7 +865,7 @@ async function injectCapacityWithoutChangeCompatible(
           const lockArgs = inputCell.cell_output.lock.args;
           multisigSince =
             lockArgs.length === 58
-              ? _parseMultisigArgsSinceCompatible(lockArgs)
+              ? toJSBI(_parseMultisigArgsSinceCompatible(lockArgs))
               : undefined;
         }
         txSkeleton = await collectInput(
@@ -1099,7 +1103,7 @@ function _parseMultisigArgsSince(args: HexString): bigint {
   return readBigUInt64LE("0x" + args.slice(42));
 }
 
-function _parseMultisigArgsSinceCompatible(args: HexString): JSBI {
+function _parseMultisigArgsSinceCompatible(args: HexString): BI {
   if (args.length !== 58) {
     throw new Error("Invalid multisig with since args!");
   }

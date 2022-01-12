@@ -24,6 +24,7 @@ import { Reader, normalizers } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
+import { toJSBI } from "../../bi/lib";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -147,7 +148,7 @@ async function injectCapacity(
     data: "0x",
   };
   const minimalChangeCapacity: JSBI = JSBI.add(
-    minimalCellCapacityCompatible(changeCell),
+    toJSBI(minimalCellCapacityCompatible(changeCell)),
     JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
   );
 

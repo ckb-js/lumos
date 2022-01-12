@@ -30,6 +30,7 @@ import {
 } from "./helper";
 import { FromInfo } from ".";
 import { parseFromInfo } from "./from_info";
+import { toJSBI } from "../../bi/lib";
 const { ScriptValue } = values;
 
 export class CellCollector implements CellCollectorType {
@@ -399,7 +400,7 @@ export async function transferCompatible(
       } else {
         deductCapacity = JSBI.subtract(
           cellCapacity,
-          minimalCellCapacityCompatible(output)
+          toJSBI(minimalCellCapacityCompatible(output))
         );
         if (JSBI.greaterThan(deductCapacity, amount)) {
           deductCapacity = amount;
@@ -474,7 +475,7 @@ export async function transferCompatible(
         (JSBI.equal(changeCapacity, JSBI.BigInt(0)) ||
           JSBI.greaterThan(
             changeCapacity,
-            minimalCellCapacityCompatible(changeCell)
+            toJSBI(minimalCellCapacityCompatible(changeCell))
           ))
       ) {
         break;

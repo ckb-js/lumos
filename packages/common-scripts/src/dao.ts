@@ -284,7 +284,9 @@ async function withdraw(
   const targetOutputIndex: number = txSkeleton.get("outputs").size - 1;
   const targetOutput: Cell = txSkeleton.get("outputs").get(targetOutputIndex)!;
   const clonedTargetOutput: Cell = JSON.parse(JSON.stringify(targetOutput));
-  clonedTargetOutput.data = toBigUInt64LE(JSBI.BigInt(fromInput.block_number!));
+  clonedTargetOutput.data = toBigUInt64LE(
+    JSBI.BigInt(fromInput.block_number!).toString()
+  );
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.update(targetOutputIndex, () => clonedTargetOutput);
   });
@@ -496,7 +498,7 @@ export async function unlock(
 
   // setup input cell
   const defaultWitnessArgs: WitnessArgs = {
-    input_type: toBigUInt64LE(JSBI.BigInt(depositHeaderDepIndex)),
+    input_type: toBigUInt64LE(JSBI.BigInt(depositHeaderDepIndex).toString()),
   };
   const defaultWitness: HexString = new Reader(
     core.SerializeWitnessArgs(
@@ -710,7 +712,7 @@ export function calculateMaximumWithdrawCompatible(
   const depositAR = toJSBI(extractDaoDataCompatible(depositDao).ar);
   const withdrawAR = toJSBI(extractDaoDataCompatible(withdrawDao).ar);
 
-  const occupiedCapacity = minimalCellCapacityCompatible(withdrawCell);
+  const occupiedCapacity = toJSBI(minimalCellCapacityCompatible(withdrawCell));
   const outputCapacity = JSBI.BigInt(withdrawCell.cell_output.capacity);
   const countedCapacity = JSBI.subtract(outputCapacity, occupiedCapacity);
   const withdrawCountedCapacity = JSBI.divide(

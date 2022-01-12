@@ -37,6 +37,7 @@ import {
   serializeMultisigScript,
   multisigArgs,
 } from "./from_info";
+import { toJSBI } from "../../bi/lib";
 
 export { serializeMultisigScript, multisigArgs };
 
@@ -437,7 +438,7 @@ export async function transferCompatible(
       } else {
         deductCapacity = JSBI.subtract(
           cellCapacity,
-          minimalCellCapacityCompatible(output)
+          toJSBI(minimalCellCapacityCompatible(output))
         );
         if (JSBI.greaterThan(deductCapacity, amount)) {
           deductCapacity = amount;
@@ -513,7 +514,7 @@ export async function transferCompatible(
         (JSBI.equal(changeCapacity, JSBI.BigInt(0)) ||
           JSBI.greaterThan(
             changeCapacity,
-            minimalCellCapacityCompatible(changeCell)
+            toJSBI(minimalCellCapacityCompatible(changeCell))
           ))
       ) {
         break;

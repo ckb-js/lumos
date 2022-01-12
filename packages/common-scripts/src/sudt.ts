@@ -29,6 +29,7 @@ import anyoneCanPay, {
 const { ScriptValue } = values;
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
+import { toJSBI } from "../../bi/lib";
 
 export type Token = Hash;
 
@@ -83,13 +84,13 @@ export async function issueToken(
       lock: toScript,
       type: sudtTypeScript,
     },
-    data: toBigUInt128LE(amount),
+    data: toBigUInt128LE(amount.toString()),
     out_point: undefined,
     block_hash: undefined,
   };
 
   if (!capacity) {
-    capacity = minimalCellCapacityCompatible(targetOutput);
+    capacity = toJSBI(minimalCellCapacityCompatible(targetOutput));
   }
   capacity = JSBI.BigInt(capacity.toString());
   targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
@@ -222,7 +223,9 @@ export async function transfer(
     });
 
     toAddressInputCapacity = JSBI.BigInt(toAddressInput.cell_output.capacity);
-    toAddressInputAmount = readBigUInt128LECompatible(toAddressInput.data);
+    toAddressInputAmount = toJSBI(
+      readBigUInt128LECompatible(toAddressInput.data)
+    );
   }
 
   const targetOutput: Cell = {
@@ -231,7 +234,7 @@ export async function transfer(
       lock: toScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(amount),
+    data: toBigUInt128LE(amount.toString()),
     out_point: undefined,
     block_hash: undefined,
   };
@@ -245,11 +248,11 @@ export async function transfer(
     targetOutput.cell_output.capacity =
       "0x" + JSBI.add(toAddressInputCapacity, capacity).toString(16);
     targetOutput.data = toBigUInt128LE(
-      JSBI.add(toAddressInputAmount, JSBI.BigInt(amount))
+      JSBI.add(toAddressInputAmount, JSBI.BigInt(amount)).toString()
     );
   } else {
     if (!capacity) {
-      capacity = minimalCellCapacityCompatible(targetOutput);
+      capacity = toJSBI(minimalCellCapacityCompatible(targetOutput));
     }
     targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
   }
@@ -281,7 +284,7 @@ export async function transfer(
       lock: changeOutputLockScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(JSBI.BigInt(0)),
+    data: toBigUInt128LE(JSBI.BigInt(0).toString()),
     out_point: undefined,
     block_hash: undefined,
   };
@@ -486,13 +489,13 @@ export async function transfer(
 
       const inputCapacity: JSBI = JSBI.BigInt(inputCell.cell_output.capacity);
       const inputAmount: JSBI = inputCell.cell_output.type
-        ? readBigUInt128LECompatible(inputCell.data)
+        ? toJSBI(readBigUInt128LECompatible(inputCell.data))
         : JSBI.BigInt(0);
       let deductCapacity: JSBI =
         isAnyoneCanPay && !destroyable
           ? JSBI.subtract(
               inputCapacity,
-              minimalCellCapacityCompatible(inputCell)
+              toJSBI(minimalCellCapacityCompatible(inputCell))
             )
           : inputCapacity;
       let deductAmount: JSBI = inputAmount;
@@ -530,7 +533,7 @@ export async function transfer(
             type: inputCell.cell_output.type,
           },
           data: inputCell.cell_output.type
-            ? toBigUInt128LE(currentChangeAmount)
+            ? toBigUInt128LE(currentChangeAmount.toString())
             : "0x",
         };
 
@@ -556,7 +559,7 @@ export async function transfer(
           JSBI.equal(changeAmount, JSBI.BigInt(0))) ||
           (JSBI.greaterThan(
             changeCapacity,
-            minimalCellCapacityCompatible(changeCellWithoutSudt)
+            toJSBI(minimalCellCapacityCompatible(changeCellWithoutSudt))
           ) &&
             JSBI.equal(changeAmount, JSBI.BigInt(0))))
       ) {
@@ -569,7 +572,7 @@ export async function transfer(
         JSBI.equal(amount, JSBI.BigInt(0)) &&
         JSBI.greaterThan(
           changeCapacity,
-          minimalCellCapacityCompatible(changeCellWithoutSudt)
+          toJSBI(minimalCellCapacityCompatible(changeCellWithoutSudt))
         ) &&
         JSBI.greaterThan(changeAmount, JSBI.BigInt(0))
       ) {
@@ -623,13 +626,18 @@ export async function transfer(
       ).toString(16);
     if (JSBI.greaterThan(changeAmount, JSBI.BigInt(0))) {
       clonedOutput.data = toBigUInt128LE(
-        JSBI.add(readBigUInt128LECompatible(originOutput.data), changeAmount)
+        JSBI.add(
+          toJSBI(readBigUInt128LECompatible(originOutput.data)),
+          changeAmount
+        ).toString()
       );
     }
 
-    const minimalChangeCellCapcaity = minimalCellCapacityCompatible(changeCell);
-    const minimalChangeCellWithoutSudtCapacity = minimalCellCapacityCompatible(
-      changeCellWithoutSudt
+    const minimalChangeCellCapcaity = toJSBI(
+      minimalCellCapacityCompatible(changeCell)
+    );
+    const minimalChangeCellWithoutSudtCapacity = toJSBI(
+      minimalCellCapacityCompatible(changeCellWithoutSudt)
     );
     let splitFlag: boolean = false;
     if (
@@ -661,17 +669,19 @@ export async function transfer(
   } else if (
     JSBI.greaterThanOrEqual(
       changeCapacity,
-      minimalCellCapacityCompatible(changeCell)
+      toJSBI(minimalCellCapacityCompatible(changeCell))
     )
   ) {
     changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
     if (JSBI.greaterThan(changeAmount, JSBI.BigInt(0))) {
-      changeCell.data = toBigUInt128LE(changeAmount);
+      changeCell.data = toBigUInt128LE(changeAmount.toString());
     }
 
-    const minimalChangeCellCapcaity = minimalCellCapacityCompatible(changeCell);
-    const minimalChangeCellWithoutSudtCapacity = minimalCellCapacityCompatible(
-      changeCellWithoutSudt
+    const minimalChangeCellCapcaity = toJSBI(
+      minimalCellCapacityCompatible(changeCell)
+    );
+    const minimalChangeCellWithoutSudtCapacity = toJSBI(
+      minimalCellCapacityCompatible(changeCellWithoutSudt)
     );
     let splitFlag = false;
     if (JSBI.greaterThan(changeAmount, JSBI.BigInt(0)) && splitChangeCell) {
@@ -711,7 +721,10 @@ export async function transfer(
     }
   } else if (
     JSBI.greaterThan(changeAmount, JSBI.BigInt(0)) &&
-    JSBI.lessThan(changeCapacity, minimalCellCapacityCompatible(changeCell))
+    JSBI.lessThan(
+      changeCapacity,
+      toJSBI(minimalCellCapacityCompatible(changeCell))
+    )
   ) {
     throw new Error("Not enough capacity for change in from infos!");
   }
