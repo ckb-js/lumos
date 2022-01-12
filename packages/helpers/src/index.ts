@@ -16,6 +16,7 @@ import * as bech32 from "bech32";
 import { normalizers, validators, Reader } from "ckb-js-toolkit";
 import { List, Record, Map as ImmutableMap } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
+import { BI } from "../../bi/lib";
 
 export interface Options {
   config?: Config;
@@ -54,7 +55,7 @@ export function minimalCellCapacity(
 export function minimalCellCapacityCompatible(
   fullCell: Cell,
   { validate = true }: { validate?: boolean } = {}
-): JSBI {
+): BI {
   if (validate) {
     validators.ValidateCellOutput(fullCell.cell_output);
   }
@@ -72,7 +73,7 @@ export function minimalCellCapacityCompatible(
   if (fullCell.data) {
     bytes += new Reader(fullCell.data).length();
   }
-  return JSBI.multiply(JSBI.BigInt(bytes), JSBI.BigInt(100000000));
+  return BI.from(JSBI.multiply(JSBI.BigInt(bytes), JSBI.BigInt(100000000)));
 }
 
 export function locateCellDep(
