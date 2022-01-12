@@ -11,6 +11,7 @@ import {
   JSBI,
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
+import { BIish } from "../../bi/lib";
 
 export type ScriptType = "type" | "lock";
 export type Order = "asc" | "desc";
@@ -107,7 +108,7 @@ export class IndexerEmitter extends EventEmitter {
   type?: Script;
   outputData?: HexString | "any";
   argsLen?: number | "any";
-  fromBlock?: JSBI;
+  fromBlock?: BIish;
 }
 
 export interface OtherQueryOptions {

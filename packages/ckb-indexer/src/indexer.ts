@@ -29,6 +29,7 @@ import {
   Terminator,
   OtherQueryOptions,
 } from "./type";
+import { BI, toJSBI } from "../../bi/lib";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -206,8 +207,8 @@ export class CkbIndexer implements Indexer {
       utils.assertHexadecimal("fromBlock", queries.fromBlock);
     }
     emitter.fromBlock = !queries.fromBlock
-      ? JSBI.BigInt(0)
-      : JSBI.BigInt(queries.fromBlock);
+      ? BI.from(JSBI.BigInt(0))
+      : BI.from(JSBI.BigInt(queries.fromBlock));
     if (queries.lock) {
       validators.ValidateScript(queries.lock);
       emitter.lock = queries.lock as Script;
@@ -374,7 +375,7 @@ export class CkbIndexer implements Indexer {
   ) {
     const checkBlockNumber = emitter.fromBlock
       ? JSBI.lessThanOrEqual(
-          JSBI.BigInt(emitter.fromBlock),
+          JSBI.BigInt(toJSBI(emitter.fromBlock)),
           JSBI.BigInt(blockNumber)
         )
       : true;
