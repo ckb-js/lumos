@@ -1,6 +1,6 @@
 import { Reader } from "ckb-js-toolkit";
 import { HexNumber } from "..";
-import { BI, BIish } from "../../bi/lib";
+import { BI, BIish } from "@ckb-lumos/bi";
 import { Script, Input } from "./api";
 import { Hash, HexString } from "./primitive";
 

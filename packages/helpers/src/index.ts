@@ -16,7 +16,7 @@ import * as bech32 from "bech32";
 import { normalizers, validators, Reader } from "ckb-js-toolkit";
 import { List, Record, Map as ImmutableMap } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-import { BI } from "../../bi/lib";
+import { BI } from "@ckb-lumos/bi";
 
 export interface Options {
   config?: Config;

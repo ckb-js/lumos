@@ -1,7 +1,7 @@
 const test = require("ava");
 const { Reader } = require("ckb-js-toolkit");
 const { JSBI } = require("../lib/primitive");
-const { BI } = require('../../bi/lib');
+const { BI } = require("@ckb-lumos/bi");
 
 const {
   CKBHasher,
@@ -51,9 +51,7 @@ test("toBigUInt64LECompatible", (t) => {
 });
 
 test("readBigUInt64LECompatible", (t) => {
-  t.true(
-    readBigUInt64LECompatible(uint64leCompatible).eq(uint64Compatible)
-  );
+  t.true(readBigUInt64LECompatible(uint64leCompatible).eq(uint64Compatible));
 });
 const u128Compatible = BI.from("1208925819614629174706177");
 const u128leCompatible = "0x01000000000000000000010000000000";
@@ -84,9 +82,7 @@ test("toBigUInt128LECompatible, to big", (t) => {
 });
 
 test("readBigUInt128LECompatible", (t) => {
-  t.true(
-    readBigUInt128LECompatible(u128leCompatible).eq(u128Compatible)
-  );
+  t.true(readBigUInt128LECompatible(u128leCompatible).eq(u128Compatible));
 });
 
 const script = {

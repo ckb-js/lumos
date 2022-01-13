@@ -4,7 +4,7 @@ const isEqual = require("lodash.isequal");
 const { SerializeScript, SerializeCellInput } = require("./core");
 const { xxHash32 } = require("js-xxhash");
 const { JSBI, maybeJSBI } = require("./primitive");
-const { BI, toJSBI } = require("../../bi/lib");
+const { BI, toJSBI } = require("@ckb-lumos/bi");
 
 class CKBHasher {
   constructor() {
@@ -64,10 +64,12 @@ function readBigUInt64LE(hex) {
 
 function readBigUInt64LECompatible(hex) {
   const buf = Buffer.from(hex.slice(2), "hex");
-  return BI.from(JSBI.add(
-    JSBI.BigInt(buf.readUInt32LE()),
-    JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(4)), JSBI.BigInt(32))
-  ));
+  return BI.from(
+    JSBI.add(
+      JSBI.BigInt(buf.readUInt32LE()),
+      JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(4)), JSBI.BigInt(32))
+    )
+  );
 }
 
 // const U128_MIN = BigInt(0);

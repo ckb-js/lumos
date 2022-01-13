@@ -30,7 +30,7 @@ import {
 } from "./helper";
 import { FromInfo } from ".";
 import { parseFromInfo } from "./from_info";
-import { BI, BIish, toJSBI } from "../../bi/lib";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 const { ScriptValue } = values;
 
 export class CellCollector implements CellCollectorType {

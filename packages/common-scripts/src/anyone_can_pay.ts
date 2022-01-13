@@ -25,7 +25,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { normalizers, Reader } from "ckb-js-toolkit";
 import { List, Set } from "immutable";
-import { BIish, toJSBI } from "../../bi/lib";
+import { BIish, toJSBI } from "@ckb-lumos/bi";
 import { FromInfo, parseFromInfo } from "./from_info";
 import {
   addCellDep,
@@ -205,7 +205,7 @@ export async function setupInputCell(
 
 // export for tests
 export function checkLimit(acpArgs: HexString, capacity: BIish): void {
-  let _capacity = JSBI.BigInt(capacity.toString());
+  let _capacity = toJSBI(capacity);
   let minimalAmount: JSBI | undefined;
   let minimalCapacity: JSBI | undefined;
   if (acpArgs.length >= 46) {

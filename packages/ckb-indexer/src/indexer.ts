@@ -29,7 +29,7 @@ import {
   Terminator,
   OtherQueryOptions,
 } from "./type";
-import { BI, toJSBI } from "../../bi/lib";
+import { BI, toJSBI } from "@ckb-lumos/bi";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };

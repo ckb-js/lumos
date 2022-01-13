@@ -37,7 +37,7 @@ import {
   serializeMultisigScript,
   multisigArgs,
 } from "./from_info";
-import { BI, BIish, toJSBI } from "../../bi/lib";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 
 export { serializeMultisigScript, multisigArgs };
 

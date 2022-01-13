@@ -29,7 +29,7 @@ import anyoneCanPay, {
 const { ScriptValue } = values;
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
-import { BI, BIish, toJSBI } from "../../bi/lib";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 
 export type Token = Hash;
 

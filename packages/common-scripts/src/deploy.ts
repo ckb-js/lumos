@@ -24,7 +24,7 @@ import { Reader, normalizers } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
-import { BI, BIish, toJSBI } from "../../bi/lib";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {

@@ -27,7 +27,7 @@ import { bob } from "./account_info";
 import { since as SinceUtils } from "@ckb-lumos/base";
 import { transferCompatible } from "../lib/locktime_pool";
 import { calculateMaximumWithdrawCompatible } from "../lib/dao";
-import { toJSBI } from "../../bi/lib";
+import { BI, toJSBI } from "@ckb-lumos/bi";
 const { AGGRON4 } = predefined;
 
 const originCapacity = "0x174876e800";
@@ -205,7 +205,7 @@ test("JSBI:transferCompatible multisig", async (t) => {
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    JSBI.BigInt(500 * 10 ** 8),
+    BI.from(JSBI.BigInt(500 * 10 ** 8)),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -234,7 +234,7 @@ test("JSBI:prepareSigningEntries, multisig", async (t) => {
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    JSBI.BigInt(500 * 10 ** 8),
+    BI.from(JSBI.BigInt(500 * 10 ** 8)),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -257,7 +257,7 @@ test("JSBI:transferCompatible multisig & dao", async (t) => {
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    JSBI.BigInt(2500 * 10 ** 8),
+    BI.from(JSBI.BigInt(2500 * 10 ** 8)),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -322,7 +322,7 @@ test("JSBI.prepareSigningEntries, multisig & dao", async (t) => {
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    JSBI.BigInt(2500 * 10 ** 8),
+    BI.from(JSBI.BigInt(2500 * 10 ** 8)),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -351,7 +351,7 @@ test("JSBI:payFee, multisig & dao", async (t) => {
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    JSBI.BigInt(2500 * 10 ** 8),
+    BI.from(JSBI.BigInt(2500 * 10 ** 8)),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -360,7 +360,7 @@ test("JSBI:payFee, multisig & dao", async (t) => {
   txSkeleton = await payFee(
     txSkeleton,
     [fromInfo, aliceAddress],
-    fee,
+    BI.from(fee),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -450,7 +450,7 @@ test("JSBI:Don't update capacity directly when deduct", async (t) => {
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    JSBI.BigInt(600 * 10 ** 8),
+    BI.from(JSBI.BigInt(600 * 10 ** 8)),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -468,7 +468,7 @@ test("JSBI:Don't update capacity directly when deduct", async (t) => {
       txSkeleton,
       [fromInfo, aliceAddress],
       bobAddress,
-      JSBI.BigInt(500 * 10 ** 8),
+      BI.from(JSBI.BigInt(500 * 10 ** 8)),
       tipHeader,
       { config: DEV_CONFIG, LocktimeCellCollector }
     );
@@ -645,7 +645,7 @@ test("CellCollector, multisig, timestamp should be skipped", async (t) => {
   const since = SinceUtils.generateSince({
     relative: false,
     type: "blockTimestamp",
-    value: JSBI.BigInt(0),
+    value: BI.from(JSBI.BigInt(0)),
   });
   const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
     bob.fromInfo
@@ -834,7 +834,7 @@ test("CellCollector, dao & multisig, multisig since type = blockNumber", async (
   const multisigSince = SinceUtils.generateSince({
     relative: false,
     type: "blockNumber",
-    value: epochValue,
+    value: BI.from(epochValue),
   });
   // const daoEpochValue = { length: 10, index: 5, number: 10478 }
   // const daoSince = SinceUtils.generateSince({

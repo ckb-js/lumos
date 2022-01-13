@@ -50,7 +50,7 @@ import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { RPC } from "@ckb-lumos/rpc";
 import { secp256k1Blake160Multisig } from ".";
 import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
-import { BI, BIish, toJSBI } from "../../bi/lib";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 
 export interface LocktimeCell extends Cell {
   since: PackedSince;

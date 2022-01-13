@@ -12,6 +12,7 @@ import { bobAcpCells, aliceAcpCells } from "./inputs";
 import { Cell, JSBI, values } from "@ckb-lumos/base";
 const { AGGRON4 } = predefined;
 import { checkLimit } from "../src/anyone_can_pay";
+import { BI, toJSBI } from "@ckb-lumos/bi";
 test.before(() => {
   // @ts-ignore: Unreachable code error
   BigInt = () => {
@@ -28,7 +29,7 @@ test("withdraw, acp to acp, all", async (t) => {
     txSkeleton,
     bobAcpCells[0],
     alice.acpTestnetAddress,
-    JSBI.BigInt(1000 * 10 ** 8),
+    BI.from(JSBI.BigInt(1000 * 10 ** 8)),
     { config: AGGRON4 }
   );
 
@@ -95,7 +96,7 @@ test("withdraw, acp to acp, half", async (t) => {
     txSkeleton,
     bobAcpCells[0],
     alice.acpTestnetAddress,
-    capacity,
+    BI.from(capacity),
     { config: AGGRON4 }
   );
 
@@ -169,7 +170,7 @@ test("withdraw, acp to secp, half", async (t) => {
     txSkeleton,
     bobAcpCells[0],
     alice.testnetAddress,
-    capacity,
+    BI.from(capacity),
     { config: AGGRON4 }
   );
 
@@ -245,7 +246,7 @@ test("withdraw, acp to secp, all", async (t) => {
     txSkeleton,
     bobAcpCells[0],
     alice.testnetAddress,
-    capacity,
+    BI.from(capacity),
     { config: AGGRON4 }
   );
 
@@ -321,7 +322,7 @@ test("withdraw, acp to secp, greater than capacity - minimal", async (t) => {
   const capacity = JSBI.add(
     JSBI.subtract(
       JSBI.BigInt(bobCell.cell_output.capacity),
-      minimalCellCapacityCompatible(bobCell)
+      toJSBI(minimalCellCapacityCompatible(bobCell))
     ),
     JSBI.BigInt(1)
   );
@@ -332,7 +333,7 @@ test("withdraw, acp to secp, greater than capacity - minimal", async (t) => {
         txSkeleton,
         bobCell,
         alice.testnetAddress,
-        capacity,
+        BI.from(capacity),
         { config: AGGRON4 }
       );
     },
@@ -383,19 +384,19 @@ test("setupInputCell", async (t) => {
 
 test("checkLimit, amount and capacity", (t) => {
   const args = bob.blake160 + "01" + "02";
-  t.throws(() => checkLimit(args, JSBI.BigInt(0)));
-  t.throws(() => checkLimit(args, JSBI.BigInt(10 * 10 ** 8 - 1)));
-  t.notThrows(() => checkLimit(args, JSBI.BigInt(10 * 10 ** 8)));
+  t.throws(() => checkLimit(args, BI.from(JSBI.BigInt(0))));
+  t.throws(() => checkLimit(args, BI.from(JSBI.BigInt(10 * 10 ** 8 - 1))));
+  t.notThrows(() => checkLimit(args, BI.from(JSBI.BigInt(10 * 10 ** 8))));
 });
 
 test("checkLimit, only capacity", (t) => {
   const args = bob.blake160 + "01";
-  t.throws(() => checkLimit(args, JSBI.BigInt(0)));
-  t.throws(() => checkLimit(args, JSBI.BigInt(10 * 10 ** 8 - 1)));
-  t.notThrows(() => checkLimit(args, JSBI.BigInt(10 * 10 ** 8)));
+  t.throws(() => checkLimit(args, BI.from(JSBI.BigInt(0))));
+  t.throws(() => checkLimit(args, BI.from(JSBI.BigInt(10 * 10 ** 8 - 1))));
+  t.notThrows(() => checkLimit(args, BI.from(JSBI.BigInt(10 * 10 ** 8))));
 });
 
 test("checkLimit, no limit", (t) => {
   const args = bob.blake160;
-  t.notThrows(() => checkLimit(args, JSBI.BigInt(0)));
+  t.notThrows(() => checkLimit(args, BI.from(JSBI.BigInt(0))));
 });

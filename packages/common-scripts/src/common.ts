@@ -29,7 +29,7 @@ import { Set } from "immutable";
 import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
 import { normalizers } from "ckb-js-toolkit";
 import { isAcpScript } from "./helper";
-import { BI, BIish, toJSBI } from "../../bi/lib";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);

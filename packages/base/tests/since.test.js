@@ -1,9 +1,9 @@
 const test = require("ava");
-const { BI } = require("../../bi/lib");
+const { BI } = require("@ckb-lumos/bi");
 
 const { since, utils } = require("../lib");
 const { maybeJSBI } = require("../lib/primitive");
-const JSBI = require('jsbi')
+const JSBI = require("jsbi");
 
 const {
   parseSinceCompatible,
@@ -31,10 +31,12 @@ const fixtrues = [
     parsed: {
       relative: false,
       type: "blockTimestamp",
-      value: BI.from(JSBI.divide(
-        JSBI.BigInt(+new Date("2020-04-01")),
-        JSBI.BigInt(1000)
-      ).toString()),
+      value: BI.from(
+        JSBI.divide(
+          JSBI.BigInt(+new Date("2020-04-01")),
+          JSBI.BigInt(1000)
+        ).toString()
+      ),
     },
   },
   {

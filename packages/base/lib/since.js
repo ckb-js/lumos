@@ -1,5 +1,5 @@
-const { JSBI } = require("./primitive");
-const { isBIish, toJSBI, BI } = require("../../bi/lib")
+const { JSBI, maybeJSBI } = require("./primitive");
+const { isBIish, toJSBI, BI } = require("@ckb-lumos/bi");
 
 function parseSince(since) {
   const result = parseSinceCompatible(since);
@@ -258,7 +258,10 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
 
     if (type === "blockNumber") {
       return JSBI.lessThanOrEqual(
-        JSBI.add(toJSBI(value), JSBI.BigInt(cellSinceValidationInfo.block_number)),
+        JSBI.add(
+          toJSBI(value),
+          JSBI.BigInt(cellSinceValidationInfo.block_number)
+        ),
         JSBI.BigInt(tipSinceValidationInfo.block_number)
       );
     }
