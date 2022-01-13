@@ -2,7 +2,6 @@
   "name": "@ckb-lumos/testkit",
   "version": "0.17.0-rc6",
   "description": "Test toolkit for CKB",
-  "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
