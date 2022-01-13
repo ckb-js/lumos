@@ -21,23 +21,26 @@
   },
   "files": [
     "lib",
-    "index.d.ts"
+    "src"
   ],
   "dependencies": {
     "@ckb-lumos/base": "^0.18.0-rc3",
     "@ckb-lumos/rpc": "^0.18.0-rc3",
-    "@types/sinon": "^10.0.6",
-    "ava": "^3.15.0",
     "ckb-js-toolkit": "^0.100.0-rc1",
     "cross-fetch": "^3.1.4",
-    "events": "^3.3.0",
+    "events": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/sinon": "^10.0.6",
     "sinon": "^12.0.1"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "ava **/*.test.ts --timeout=2m",
-    "build": "tsc",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
     "release": "npm publish"

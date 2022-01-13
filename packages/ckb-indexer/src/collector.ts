@@ -36,7 +36,7 @@ export class CKBCellCollector implements BaseCellCollector {
       data: "any",
       fromBlock: undefined,
       toBlock: undefined,
-      order: Order.asc,
+      order: "asc",
       skip: undefined,
       outputDataLenRange: undefined,
       outputCapacityRange: undefined,
@@ -82,7 +82,7 @@ export class CKBCellCollector implements BaseCellCollector {
     if (this.queries.toBlock) {
       utils.assertHexadecimal("toBlock", this.queries.toBlock);
     }
-    if (this.queries.order !== Order.asc && this.queries.order !== Order.desc) {
+    if (this.queries.order !== "asc" && this.queries.order !== "desc") {
       throw new Error("Order must be either asc or desc!");
     }
     if (this.queries.outputCapacityRange) {
@@ -135,8 +135,8 @@ export class CKBCellCollector implements BaseCellCollector {
     return result;
   }
 
-  private shouldSkipped(cell: Cell, index: number) {
-    if (this.queries.skip && index < this.queries.skip) {
+  private shouldSkipped(cell: Cell, skippedCount: number = 0) {
+    if (this.queries.skip && skippedCount < this.queries.skip) {
       return true;
     }
     if (cell && this.queries.type === "empty" && cell.cell_output.type) {
@@ -168,9 +168,12 @@ export class CKBCellCollector implements BaseCellCollector {
     }
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
+    let skippedCount: number = 0;
     while (true) {
-      if (!this.shouldSkipped(cells[index], index)) {
+      if (!this.shouldSkipped(cells[index], skippedCount)) {
         counter += 1;
+      } else {
+        skippedCount++;
       }
       index++;
       //reset index and exchange `cells` and `buffer` after count last cell
@@ -259,9 +262,12 @@ export class CKBCellCollector implements BaseCellCollector {
     }
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index: number = 0;
+    let skippedCount: number = 0;
     while (true) {
-      if (!this.shouldSkipped(cells[index], index)) {
+      if (!this.shouldSkipped(cells[index], skippedCount)) {
         yield cells[index];
+      } else {
+        skippedCount++;
       }
       index++;
       //reset index and exchange `cells` and `buffer` after yield last cell

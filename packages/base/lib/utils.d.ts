@@ -1,5 +1,6 @@
 import { Reader } from "ckb-js-toolkit";
-import { Script } from "./api";
+import { HexNumber } from "..";
+import { Script, Input } from "./api";
 import { Hash, HexString } from "./primitive";
 
 export class CKBHasher {
@@ -56,3 +57,8 @@ export function hashCode(buffer: Buffer): number;
 export function assertHexString(debugPath: string, str: string): void;
 
 export function assertHexadecimal(debugPath: string, str: string): void;
+
+export function generateTypeIdScript(
+  input: Input,
+  outputIndex?: HexNumber
+): Script;

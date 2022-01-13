@@ -30,8 +30,9 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
-    "test": "ava",
-    "build": "tsc",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "build:umd": "webpack",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build && yarn run build:umd",
@@ -42,6 +43,7 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.18.0-rc3",
+    "@ckb-lumos/bi": "^0.18.0-rc3",
     "@ckb-lumos/ckb-indexer": "^0.18.0-rc3",
     "@ckb-lumos/common-scripts": "^0.18.0-rc3",
     "@ckb-lumos/config-manager": "^0.18.0-rc3",
