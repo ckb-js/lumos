@@ -20,7 +20,8 @@
     "test": "tests"
   },
   "files": [
-    "lib"
+    "lib",
+    "src"
   ],
   "dependencies": {
     "@ckb-lumos/base": "^0.18.0-rc3",
@@ -28,7 +29,6 @@
     "@ckb-lumos/hd": "^0.18.0-rc3",
     "@ckb-lumos/indexer": "^0.18.0-rc3",
     "@ckb-lumos/rpc": "^0.18.0-rc3",
-    "ckb-js-toolkit": "^0.100.0-rc1",
     "immutable": "^4.0.0-rc.12"
   },
   "repository": {

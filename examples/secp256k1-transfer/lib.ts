@@ -72,7 +72,7 @@ export async function transfer(options: Options): Promise<string> {
   // additional 0.001 ckb for tx fee
   // the tx fee could calculated by tx size
   // this is just a simple example
-  const neededCapacity = BigInt(options.amount) + 0_00100000n;
+  const neededCapacity = BigInt(options.amount) + 100000n;
   let collectedSum = 0n;
   const collected: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });
