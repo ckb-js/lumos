@@ -13,7 +13,6 @@ test("validate if a value is BIish", (t) => {
   t.is(isBIish(BI.from(1)), true);
   t.is(isBIish("f"), false);
   t.is(isBIish("0x"), false);
-  t.is(isBIish(JSBI.BigInt(1)), true);
 });
 
 test("addition", (t) => {

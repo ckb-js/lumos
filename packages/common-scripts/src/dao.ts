@@ -662,11 +662,6 @@ function extractDaoDataCompatible(
 
   return ["c", "ar", "s", "u"]
     .map((key, i) => {
-      console.log(
-        BI.from(
-          readBigUInt64LECompatible("0x" + hex.slice(len * i, len * (i + 1)))
-        )
-      );
       return {
         [key]: BI.from(
           readBigUInt64LECompatible("0x" + hex.slice(len * i, len * (i + 1)))
