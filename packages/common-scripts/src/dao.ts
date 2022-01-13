@@ -576,7 +576,6 @@ export function calculateDaoEarliestSince(
  * @param depositBlockHeaderEpoch depositBlockHeader.epoch
  * @param withdrawBlockHeaderEpoch withdrawBlockHeader.epoch
  */
-// TODO return BI
 export function calculateDaoEarliestSinceCompatible(
   depositBlockHeaderEpoch: HexString,
   withdrawBlockHeaderEpoch: HexString

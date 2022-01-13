@@ -51,7 +51,6 @@ export function minimalCellCapacity(
   return BigInt(result.toString());
 }
 
-//TODO return BI
 export function minimalCellCapacityCompatible(
   fullCell: Cell,
   { validate = true }: { validate?: boolean } = {}

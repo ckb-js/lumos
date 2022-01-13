@@ -693,7 +693,6 @@ export async function withdraw(
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
         cell_output: {
-          //TODO check why capacity there is bigint|JSBI
           capacity:
             "0x" +
             JSBI.subtract(
