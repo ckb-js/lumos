@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/config-manager",
-  "version": "0.18.0-rc3",
+  "version": "0.18.0-rc4",
   "description": "Config manager for lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -41,7 +41,7 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.18.0-rc3",
+    "@ckb-lumos/base": "^0.18.0-rc4",
     "@types/deep-freeze-strict": "^1.1.0",
     "deep-freeze-strict": "^1.1.1"
   }

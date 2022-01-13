@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@lumos-examples/omni-lock-metamask",
-  "version": "0.18.0-rc3",
+  "version": "0.18.0-rc4",
   "description": "",
   "main": "index.js",
   "scripts": {
