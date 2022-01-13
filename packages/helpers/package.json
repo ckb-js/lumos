@@ -42,6 +42,7 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
+    "@ckb-lumos/bi": "^0.17.0-rc6",
     "@ckb-lumos/base": "^0.17.0-rc6",
     "@ckb-lumos/config-manager": "^0.17.0-rc6",
     "bech32": "^1.1.4",
