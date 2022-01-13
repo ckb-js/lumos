@@ -2,7 +2,6 @@
   "name": "@ckb-lumos/testkit",
   "version": "0.17.0-rc6",
   "description": "Test toolkit for CKB",
-  "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
@@ -40,7 +39,9 @@
     "start": "ts-node example/mock-ckb-node.ts",
     "fmt": "prettier --write \"{src,tests,example}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,example}/**/*.ts\"",
-    "build": "tsc",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
     "release": "npm publish"

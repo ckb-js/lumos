@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc6",
+    "@ckb-lumos/bi": "^0.17.0-rc6",
     "@ckb-lumos/ckb-indexer": "^0.17.0-rc6",
     "@ckb-lumos/common-scripts": "^0.17.0-rc6",
     "@ckb-lumos/config-manager": "^0.17.0-rc6",
