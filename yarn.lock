@@ -3091,6 +3091,13 @@ babel-plugin-polyfill-regenerator@^0.3.0:
   dependencies:
     "@babel/helper-define-polyfill-provider" "^0.3.0"
 
+babel-plugin-transform-bigint@^1.0.12:
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/babel-plugin-transform-bigint/-/babel-plugin-transform-bigint-1.0.12.tgz#d00aff7f9b210faf1853283b798a086956a6d01c"
+  integrity sha512-WJ6BM9ERc8RGv/Oj/UYSs3BX6OCsE4Y70qOh+8c8l4SWc+2js3DmHRTGGbdJXMOtj9UnEKgnr1bfSOvw3GcWuQ==
+  dependencies:
+    "@babel/plugin-syntax-bigint" "^7.8.3"
+
 balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
