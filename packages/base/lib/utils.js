@@ -3,8 +3,7 @@ const { validators, normalizers, Reader } = require("ckb-js-toolkit");
 const isEqual = require("lodash.isequal");
 const { SerializeScript, SerializeCellInput } = require("./core");
 const { xxHash32 } = require("js-xxhash");
-const { JSBI, maybeJSBI } = require("./primitive");
-const { BI, toJSBI } = require("@ckb-lumos/bi");
+const { BI } = require("@ckb-lumos/bi");
 
 class CKBHasher {
   constructor() {
@@ -43,17 +42,11 @@ function toBigUInt64LE(num) {
 }
 
 function toBigUInt64LECompatible(num) {
-  num = toJSBI(num);
+  num = BI.from(num);
   const buf = Buffer.alloc(8);
-  buf.writeUInt32LE(
-    JSBI.toNumber(JSBI.bitwiseAnd(num, JSBI.BigInt("0xffffffff"))),
-    0
-  );
-  num = JSBI.signedRightShift(num, JSBI.BigInt(32));
-  buf.writeUInt32LE(
-    JSBI.toNumber(JSBI.bitwiseAnd(num, JSBI.BigInt("0xffffffff"))),
-    4
-  );
+  buf.writeUInt32LE(num.and("0xffffffff").toNumber(), 0);
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and("0xffffffff").toNumber(), 4);
   return `0x${buf.toString("hex")}`;
 }
 
@@ -64,12 +57,7 @@ function readBigUInt64LE(hex) {
 
 function readBigUInt64LECompatible(hex) {
   const buf = Buffer.from(hex.slice(2), "hex");
-  return BI.from(
-    JSBI.add(
-      JSBI.BigInt(buf.readUInt32LE()),
-      JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(4)), JSBI.BigInt(32))
-    )
-  );
+  return BI.from(buf.readUInt32LE()).add(BI.from(buf.readUInt32LE(4)).shl(32));
 }
 
 // const U128_MIN = BigInt(0);
@@ -78,42 +66,28 @@ function toBigUInt128LE(u128) {
   return toBigUInt128LECompatible(u128);
 }
 
-const U128_MIN_COMPATIBLE = JSBI.BigInt(0);
-const U128_MAX_COMPATIBLE = JSBI.BigInt(
-  "340282366920938463463374607431768211455"
-);
+const U128_MIN_COMPATIBLE = BI.from(0);
+const U128_MAX_COMPATIBLE = BI.from("340282366920938463463374607431768211455");
 function toBigUInt128LECompatible(num) {
-  num = toJSBI(num);
-  if (maybeJSBI.lessThan(num, U128_MIN_COMPATIBLE)) {
+  num = BI.from(num);
+  if (num.lt(U128_MIN_COMPATIBLE)) {
     throw new Error(`u128 ${num} too small`);
   }
 
-  if (maybeJSBI.greaterThan(num, U128_MAX_COMPATIBLE)) {
+  if (num.gt(U128_MAX_COMPATIBLE)) {
     throw new Error(`u128 ${num} too large`);
   }
 
   const buf = Buffer.alloc(16);
-  buf.writeUInt32LE(
-    JSBI.toNumber(JSBI.bitwiseAnd(num, JSBI.BigInt("0xffffffff"))),
-    0
-  );
-  num = JSBI.signedRightShift(num, JSBI.BigInt(32));
-  buf.writeUInt32LE(
-    JSBI.toNumber(JSBI.bitwiseAnd(num, JSBI.BigInt("0xffffffff"))),
-    4
-  );
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 0);
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 4);
 
-  num = JSBI.signedRightShift(num, JSBI.BigInt(32));
-  buf.writeUInt32LE(
-    JSBI.toNumber(JSBI.bitwiseAnd(num, JSBI.BigInt("0xffffffff"))),
-    8
-  );
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 8);
 
-  num = JSBI.signedRightShift(num, JSBI.BigInt(32));
-  buf.writeUInt32LE(
-    JSBI.toNumber(JSBI.bitwiseAnd(num, JSBI.BigInt("0xffffffff"))),
-    12
-  );
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 12);
   return `0x${buf.toString("hex")}`;
 }
 
@@ -132,17 +106,11 @@ function readBigUInt128LECompatible(leHex) {
 
   const buf = Buffer.from(leHex.slice(2, 34), "hex");
 
-  const result = JSBI.add(
-    JSBI.add(
-      JSBI.add(
-        JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(0)), JSBI.BigInt(0)),
-        JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(4)), JSBI.BigInt(32))
-      ),
-      JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(8)), JSBI.BigInt(64))
-    ),
-    JSBI.leftShift(JSBI.BigInt(buf.readUInt32LE(12)), JSBI.BigInt(96))
-  );
-  return BI.from(result);
+  return BI.from(buf.readUInt32LE(0))
+    .shl(0)
+    .add(BI.from(buf.readUInt32LE(4)).shl(32))
+    .add(BI.from(buf.readUInt32LE(8)).shl(64))
+    .add(BI.from(buf.readUInt32LE(12)).shl(96));
 }
 
 function computeScriptHash(script, { validate = true } = {}) {

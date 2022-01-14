@@ -1,12 +1,11 @@
+const { BI } = require("@ckb-lumos/bi");
 const { Reader } = require("ckb-js-toolkit");
-const { JSBI } = require("./primitive");
 
 function DenormalizeOutPoint(outPoint) {
   return {
     tx_hash: new Reader(outPoint.getTxHash().raw()).serializeJson(),
     index:
-      "0x" +
-      JSBI.BigInt(outPoint.getIndex().toLittleEndianUint32()).toString(16),
+      "0x" + BI.from(outPoint.getIndex().toLittleEndianUint32()).toString(16),
   };
 }
 
