@@ -34,7 +34,7 @@ import {
 } from "./helper";
 import { RPC } from "@ckb-lumos/rpc";
 import { readBigUInt64LECompatible } from "@ckb-lumos/base/lib/utils";
-import { BI, BIish, toJSBI } from "../../bi";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE = JSBI.BigInt(180);
