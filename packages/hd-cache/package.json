@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/hd-cache",
-  "version": "0.17.0-rc6",
+  "version": "0.17.0-rc7",
   "description": "HD wallet cache in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -20,14 +20,15 @@
     "test": "tests"
   },
   "files": [
-    "lib"
+    "lib",
+    "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc6",
-    "@ckb-lumos/config-manager": "^0.17.0-rc6",
-    "@ckb-lumos/hd": "^0.17.0-rc6",
-    "@ckb-lumos/indexer": "^0.17.0-rc6",
-    "@ckb-lumos/rpc": "^0.17.0-rc6",
+    "@ckb-lumos/base": "^0.17.0-rc7",
+    "@ckb-lumos/config-manager": "^0.17.0-rc7",
+    "@ckb-lumos/hd": "^0.17.0-rc7",
+    "@ckb-lumos/indexer": "^0.17.0-rc7",
+    "@ckb-lumos/rpc": "^0.17.0-rc7",
     "immutable": "^4.0.0-rc.12"
   },
   "repository": {
@@ -38,7 +39,9 @@
     "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
     "test": "ava **/*.test.ts --timeout=2m",
-    "build": "tsc",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
     "release": "npm publish"
