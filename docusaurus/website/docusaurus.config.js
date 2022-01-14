@@ -56,7 +56,7 @@ const config = {
             position: "left",
             label: "Docs",
           },
-          // { to: "/blog", label: "Blog", position: "left" },
+          { to: "/tools/address-conversion", label: "Tools", position: "left" },
           {
             href: "https://github.com/nervosnetwork/lumos",
             label: "GitHub",
