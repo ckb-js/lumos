@@ -18,10 +18,13 @@
     "@docusaurus/core": "2.0.0-beta.14",
     "@docusaurus/preset-classic": "2.0.0-beta.14",
     "@mdx-js/react": "^1.6.21",
+    "antd": "^4.18.3",
     "clsx": "^1.1.1",
+    "formik": "^2.2.9",
     "prism-react-renderer": "^1.2.1",
     "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react-dom": "^17.0.1",
+    "styled-components": "^5.3.3"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.0.0-beta.14",
