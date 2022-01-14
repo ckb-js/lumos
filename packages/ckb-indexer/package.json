@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/ckb-indexer",
-  "version": "0.17.0-rc6",
+  "version": "0.17.0-rc7",
   "description": "CKB Indexer",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -24,8 +24,8 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc6",
-    "@ckb-lumos/rpc": "^0.17.0-rc6",
+    "@ckb-lumos/base": "^0.17.0-rc7",
+    "@ckb-lumos/rpc": "^0.17.0-rc7",
     "ckb-js-toolkit": "^0.10.2",
     "cross-fetch": "^3.1.4",
     "events": "^3.3.0"
