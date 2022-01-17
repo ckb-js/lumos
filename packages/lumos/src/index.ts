@@ -1,4 +1,9 @@
-import { Reader, validators, normalizers, transformers } from "ckb-js-toolkit";
+import {
+  Reader,
+  validators,
+  normalizers,
+  transformers,
+} from "@ckb-lumos/toolkit";
 
 export const toolkit = { Reader, validators, normalizers, transformers };
 

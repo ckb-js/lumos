@@ -1,5 +1,5 @@
 const test = require("ava");
-const { transformers, Reader } = require("../build/ckb-js-toolkit.node.js");
+const { transformers, Reader } = require("../lib/ckb-js-toolkit.node.js");
 
 test("transform script", t => {
   const s = transformers.TransformScript({

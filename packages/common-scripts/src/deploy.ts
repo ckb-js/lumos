@@ -19,7 +19,7 @@ import {
   createTransactionFromSkeleton,
   parseAddress,
 } from "@ckb-lumos/helpers";
-import { Reader, normalizers } from "ckb-js-toolkit";
+import { Reader, normalizers } from "@ckb-lumos/toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";

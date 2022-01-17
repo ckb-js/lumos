@@ -45,7 +45,7 @@
     "@ckb-lumos/base": "^0.17.0-rc6",
     "@ckb-lumos/config-manager": "^0.17.0-rc6",
     "bech32": "^1.1.4",
-    "ckb-js-toolkit": "^0.10.2",
+    "@ckb-lumos/toolkit": "^0.17.0-rc6",
     "immutable": "^4.0.0-rc.12"
   },
   "devDependencies": {

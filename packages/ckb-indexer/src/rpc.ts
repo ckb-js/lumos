@@ -1,4 +1,4 @@
-import { RPC as ToolkitRPC } from "ckb-js-toolkit";
+import { RPC as ToolkitRPC } from "@ckb-lumos/toolkit";
 import { HexString, Tip } from "@ckb-lumos/base";
 import {
   GetCellsResults,

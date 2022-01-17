@@ -20,7 +20,7 @@ import {
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { ScriptValue } = values;
-import { normalizers, Reader } from "ckb-js-toolkit";
+import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import { Set } from "immutable";
 import {
   addCellDep,

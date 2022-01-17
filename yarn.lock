@@ -3764,14 +3764,6 @@ cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
 
-ckb-js-toolkit@^0.9.2:
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/ckb-js-toolkit/-/ckb-js-toolkit-0.9.2.tgz#c80eb98dc25099241e97bb025ac1566b896bbd49"
-  integrity sha512-KutTBpsvkioPl3wPzwS6A5yEppq2pbpSPG4dXnbAu+L5gBzhQVEOj5tH4WBwF8qHm6u9mc/zCRnmjPw8e8Ad2g==
-  dependencies:
-    cross-fetch "^3.0.6"
-    jsbi "^3.1.2"
-
 class-utils@^0.3.5:
   version "0.3.6"
   resolved "https://registry.yarnpkg.com/class-utils/-/class-utils-0.3.6.tgz#f93369ae8b9a7ce02fd41faad0ca83033190c463"

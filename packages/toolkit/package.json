@@ -1,17 +1,25 @@
 {
-  "name": "ckb-js-toolkit",
-  "version": "0.10.2",
+  "name": "@ckb-lumos/toolkit",
+  "version": "0.17.0-rc6",
   "description": "JavaScript toolkits used to build dapps for Nervos CKB",
-  "main": "dist/ckb-js-toolkit.node.js",
-  "browser": "dist/ckb-js-toolkit.esm.js",
+  "main": "lib/ckb-js-toolkit.node.js",
+  "browser": "lib/ckb-js-toolkit.esm.js",
   "types": "index.d.ts",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "os": [
+    "win32",
+    "darwin",
+    "linux"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/xxuejie/ckb-js-toolkit.git"
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "files": [
     "index.d.ts",
-    "dist"
+    "lib"
   ],
   "scripts": {
     "build": "rollup -c --environment BUILD:production",

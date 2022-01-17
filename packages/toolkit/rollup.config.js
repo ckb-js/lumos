@@ -6,7 +6,7 @@ import { terser } from "rollup-plugin-terser";
 import * as package_json from "./package.json";
 
 const isProduction = process.env.BUILD === 'production';
-const outputFolder = isProduction ? "lib" : "build";
+const outputFolder = "lib";
 const sourcemap = !isProduction;
 
 module.exports = [

@@ -1,5 +1,6 @@
 build:
 	yarn workspace @ckb-lumos/bi build
+	yarn workspace @ckb-lumos/toolkit build
 	yarn workspace @ckb-lumos/config-manager build
 	yarn workspace @ckb-lumos/helpers build
 	yarn workspace @ckb-lumos/rpc build
@@ -8,13 +9,13 @@ build:
 	yarn workspace @ckb-lumos/hd-cache build
 	yarn workspace @ckb-lumos/ckb-indexer build
 	yarn workspace @ckb-lumos/lumos build
-	yarn workspace @ckb-lumos/core build
 
 build-release: build
 	yarn workspace @ckb-lumos/lumos build:umd
 
 test:
 	yarn workspace @ckb-lumos/bi test
+	yarn workspace @ckb-lumos/toolkit test
 	yarn workspace @ckb-lumos/base test
 	yarn workspace @ckb-lumos/common-scripts test
 	yarn workspace @ckb-lumos/config-manager test
@@ -24,7 +25,6 @@ test:
 	yarn workspace @ckb-lumos/indexer test
 	yarn workspace @ckb-lumos/transaction-manager test
 	yarn workspace @ckb-lumos/rpc test
-	yarn workspace @ckb-lumos/core test
 
 test-coverage:
 	yarn c8 --reporter=cobertura --reporter=html --clean -o coverage make test
