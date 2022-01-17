@@ -8,7 +8,7 @@ const SCRIPT_TYPE_TYPE = 1;
 const IO_TYPE_INPUT = 0;
 const IO_TYPE_OUTPUT = 1;
 
-class IndexerEmitter extends EventEmitter { }
+class IndexerEmitter extends EventEmitter {}
 IndexerEmitter.prototype.lock = undefined;
 IndexerEmitter.prototype.type = undefined;
 IndexerEmitter.prototype.outputData = undefined;
@@ -157,9 +157,7 @@ class Indexer {
   async waitForSync(blockDifference = 3) {
     while (true) {
       const tip = await this.tip();
-      const indexedNumber = tip
-        ? BI.from(tip.block_number)
-        : BI.from(0);
+      const indexedNumber = tip ? BI.from(tip.block_number) : BI.from(0);
       const ckbTip = await this.rpc.get_tip_block_number();
 
       if (BI.from(ckbTip).sub(indexedNumber).lte(blockDifference)) {
@@ -175,7 +173,7 @@ class Indexer {
     const tip = await this.tip();
     if (tip) {
       const { block_number, block_hash } = tip;
-      const nextBlockNumber = BI.from(block_number).add(1)
+      const nextBlockNumber = BI.from(block_number).add(1);
       const block = await this.rpc.get_block_by_number(
         dbBigIntToHex(nextBlockNumber)
       );
@@ -327,9 +325,7 @@ class Indexer {
 
   async checkAndPrune(block) {
     // prune old blocks
-    if (
-      BI.from(block.header.number).mod(this.pruneInterval).eq(0)
-    ) {
+    if (BI.from(block.header.number).mod(this.pruneInterval).eq(0)) {
       await this.prune();
     }
   }
@@ -600,8 +596,7 @@ class Indexer {
     if (fromBlock) {
       utils.assertHexadecimal("fromBlock", fromBlock);
     }
-    emitter.fromBlock =
-      fromBlock === null ? BI.from(0) : BI.from(fromBlock);
+    emitter.fromBlock = fromBlock === null ? BI.from(0) : BI.from(fromBlock);
     if (lock) {
       validators.ValidateScript(lock);
       emitter.lock = lock;

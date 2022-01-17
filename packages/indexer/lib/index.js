@@ -156,14 +156,10 @@ class Indexer {
   async waitForSync(blockDifference = 3) {
     while (true) {
       const tip = await this.tip();
-      const indexedNumber = tip
-        ? BI.from(tip.block_number)
-        : BI.from(0);
+      const indexedNumber = tip ? BI.from(tip.block_number) : BI.from(0);
       const ckbTip = await this.rpc.get_tip_block_number();
 
-      if (
-        BI.from(ckbTip).sub(indexedNumber).lte(blockDifference)
-      ) {
+      if (BI.from(ckbTip).sub(indexedNumber).lte(blockDifference)) {
         break;
       }
 
