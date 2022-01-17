@@ -14,7 +14,6 @@ import {
   HexNumber,
   HexString,
   Indexer,
-  JSBI,
   LocalNode,
   OutPoint,
   RawTxPool,
@@ -27,6 +26,7 @@ import {
   TxPoolInfo,
   TxPoolVerbosity,
 } from "@ckb-lumos/base";
+import { BI } from "@ckb-lumos/bi";
 
 export type SerializedBlock = HexString;
 export type SerializedHeader = HexString;
@@ -86,17 +86,11 @@ class RpcProxy {
       return;
     }
     const header: Header = await this.rpc.get_tip_header();
-    const blockNumber = JSBI.BigInt(header.number);
+    const blockNumber = BI.from(header.number);
     while (true) {
       const tip = await this.indexer.tip();
       if (tip) {
-        const indexedNumber = JSBI.BigInt(tip.block_number);
-        if (
-          JSBI.lessThanOrEqual(
-            JSBI.subtract(blockNumber, indexedNumber),
-            JSBI.BigInt(this.blockDifference)
-          )
-        ) {
+        if (blockNumber.sub(tip.block_number).lte(this.blockDifference)) {
           // TODO: do we need to handle forks?
           break;
         }
