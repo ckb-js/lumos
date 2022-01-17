@@ -5,6 +5,7 @@ const { Indexer: NativeIndexer, Emitter, BlockEmitter } = require("../native");
 const { EventEmitter } = require("events");
 const util = require("util");
 const { utils, indexer: BaseIndexerModule } = require("@ckb-lumos/base");
+const { BI } = require("@ckb-lumos/bi");
 
 util.inherits(Emitter, EventEmitter);
 util.inherits(BlockEmitter, EventEmitter);
@@ -156,15 +157,12 @@ class Indexer {
     while (true) {
       const tip = await this.tip();
       const indexedNumber = tip
-        ? JSBI.BigInt(tip.block_number)
-        : JSBI.BigInt(0);
+        ? BI.from(tip.block_number)
+        : BI.from(0);
       const ckbTip = await this.rpc.get_tip_block_number();
 
       if (
-        JSBI.lessThanOrEqual(
-          JSBI.subtract(JSBI.BigInt(ckbTip), indexedNumber),
-          JSBI.BigInt(blockDifference)
-        )
+        BI.from(ckbTip).sub(indexedNumber).lte(blockDifference)
       ) {
         break;
       }
