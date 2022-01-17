@@ -13,6 +13,11 @@ const tmpIndexedDataPath = "/tmp/indexed_data2";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(nodeUri, tmpIndexedDataPath);
 
+test.before(() => {
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
 test.before(async () => {
   // setup rocksdb test data
   await indexer.initDbFromJsonFile(blocksDataFilePath);

@@ -13,6 +13,13 @@ import {
   fullAddressInfo,
 } from "./addresses";
 
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test("short address, mainnet", (t) => {
   const address = generateAddress(shortAddressInfo.script, { config: LINA });
 

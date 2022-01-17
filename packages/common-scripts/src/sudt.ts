@@ -16,7 +16,6 @@ import { FromInfo, parseFromInfo } from "./from_info";
 import common from "./common";
 import {
   parseAddress,
-  minimalCellCapacity,
   TransactionSkeletonType,
   Options,
   minimalCellCapacityCompatible,
@@ -90,7 +89,7 @@ export async function issueToken(
   };
 
   if (!capacity) {
-    capacity = minimalCellCapacity(targetOutput);
+    capacity = minimalCellCapacityCompatible(targetOutput);
   }
   capacity = JSBI.BigInt(capacity.toString());
   targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
@@ -250,7 +249,7 @@ export async function transfer(
     );
   } else {
     if (!capacity) {
-      capacity = minimalCellCapacity(targetOutput);
+      capacity = minimalCellCapacityCompatible(targetOutput);
     }
     targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
   }
@@ -282,7 +281,7 @@ export async function transfer(
       lock: changeOutputLockScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(0n),
+    data: toBigUInt128LE(JSBI.BigInt(0)),
     out_point: undefined,
     block_hash: undefined,
   };

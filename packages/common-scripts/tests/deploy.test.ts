@@ -45,6 +45,13 @@ function getTxFee(txSkeleton: TransactionSkeletonType): JSBI {
   return txFee;
 }
 
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test("deploy with data", async (t) => {
   const inputs: Cell[] = [
     {

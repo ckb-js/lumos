@@ -28,25 +28,32 @@ const generateDaoTypeScript = (config: Config): Script => {
   };
 };
 
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test("deposit secp256k1_blake160", async (t) => {
   txSkeleton = await dao.deposit(
     txSkeleton,
     bob.mainnetAddress,
     bob.mainnetAddress,
-    BigInt(1000 * 10 ** 8)
+    JSBI.BigInt(1000 * 10 ** 8)
   );
 
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(outputCapacity, inputCapacity);
+  t.is(outputCapacity.toString(), inputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
 
@@ -71,7 +78,7 @@ test("withdraw secp256k1_blake160", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     bob.mainnetAddress,
-    BigInt(1000 * 10 ** 8)
+    JSBI.BigInt(1000 * 10 ** 8)
   );
 
   const fromInput = txSkeleton.get("outputs").get(0)!;
@@ -110,15 +117,15 @@ test("withdraw secp256k1_blake160", async (t) => {
 
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(outputCapacity, inputCapacity);
+  t.is(outputCapacity.toString(), inputCapacity.toString());
 });
 
 const calculateMaximumWithdrawInfo = {
@@ -187,22 +194,6 @@ const calculateMaximumWithdrawInfo = {
   expectedWithdrawCapacity: BigInt("0x1748ec3fdc"),
 };
 
-test("calculateMaximumWithdraw", (t) => {
-  const {
-    depositInput,
-    depositHeader,
-    withdrawHeader,
-    expectedWithdrawCapacity,
-  } = calculateMaximumWithdrawInfo;
-  const result = dao.calculateMaximumWithdraw(
-    depositInput as Cell,
-    depositHeader.dao,
-    withdrawHeader.dao
-  );
-
-  t.is(result, expectedWithdrawCapacity);
-});
-
 test("JSBI:calculateMaximumWithdrawCompatible", (t) => {
   const {
     depositInput,
@@ -232,7 +223,7 @@ test("deposit multisig", async (t) => {
     txSkeleton,
     bob.fromInfo,
     bob.multisigTestnetAddress,
-    BigInt(500 * 10 ** 8),
+    JSBI.BigInt(500 * 10 ** 8),
     { config: AGGRON4 }
   );
 
@@ -240,15 +231,15 @@ test("deposit multisig", async (t) => {
 
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(outputCapacity, inputCapacity);
+  t.is(outputCapacity.toString(), inputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
 
@@ -331,15 +322,15 @@ test("withdraw multisig", async (t) => {
 
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
-  t.is(outputCapacity, inputCapacity);
+  t.is(outputCapacity.toString(), inputCapacity.toString());
 
   const expectedMessage =
     "0x0d54fdf2cb8ec8cfbb41376e8fbd2851866a07724e5f5075d83d8b519279e801";
@@ -467,19 +458,6 @@ test("listDaoCells, deposit", async (t) => {
   }
 
   t.is(count, 1);
-});
-
-test("calculateDaoEarliestSince", (t) => {
-  const { depositHeader, withdrawHeader } = calculateMaximumWithdrawInfo;
-
-  const result = dao.calculateDaoEarliestSince(
-    depositHeader.epoch,
-    withdrawHeader.epoch
-  );
-
-  // since: relative = false, type = epochNumber value = { length: 10, index: 5, number: 10478 }
-  // if decrease index to 4, will false to validation by dao script
-  t.is(result, BigInt("0x20000a00050028ee"));
 });
 
 test("JSBI:calculateDaoEarliestSinceCompatible", (t) => {

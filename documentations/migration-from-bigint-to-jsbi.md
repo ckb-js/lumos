@@ -77,10 +77,59 @@ minimalCapacityCompatible(...) // JSBI
 ### helpers
 
 - `minimalCellCapacity` -> `minimalCellCapacityCompatible`
+- `hashWitness`
+
+### indexer
+
+- `waitForSync`
+
+### hd-cache
+
+- `getBalance`
+- private `innerLoopTransactions`
+- private `loopTransactions`
+
+### ckb-indexer
+
+- `subscribe`
+- `generateSearchKey`
 
 ### common-scripts
 
 - `calculateMaximumWithdraw` -> `calculateMaximumWithdrawCompatible`
 - `calculateDaoEarliestSince` -> `calculateDaoEarliestSinceCompatible`
 - `injectCapacityWithoutChange` -> `injectCapacityWithoutChangeCompatible`
-- `transfer` -> `transferCompatible`
+- `deploy.completeTx`
+- `deploy.calculateTxFee`
+- `deploy.calculateFee`
+- `secp256k1_blake160.transfer` -> `secp256k1_blake160.transferCompatible`
+- `secp256k1_blake160.payFee`
+- `secp256k1_blake160.injectCapacity`
+- `secp256k1_blake160_multisig.transfer` -> `secp256k1_blake160_multisig.transferCompatible`
+- `secp256k1_blake160_multisig.payFee`
+- `secp256k1_blake160_multisig.injectCapacity`
+- `anyone_can_pay.checkLimit`
+- `anyone_can_pay.setupOutputCell`
+- `anyone_can_pay.injectCapacity`
+- `anyone_can_pay.prepareSigningEntries`
+- `anyone_can_pay.withdraw`
+- `common.transfer`
+- `common.injectCapacity`
+- `common.payFee`
+- `common._commonTransferCompatible`
+- `common._deductCapacityCompatible`
+- `common.collectInputCompatible`
+- `common.payFeeByFeeRate`
+- `dao.deposit`
+- `dao.parseEpoch` -> `dao.parseEpochCompatible`
+- `dao.epochSince`-> `dao.epochSinceCompatible`
+- `dao.calculateDaoEarliestSince` -> `dao.calculateDaoEarliestSinceCompatible`
+- `dao.extractDaoData` -> `dao.extractDaoDataCompatible`
+- `locktime_pool.transfer` -> `locktime_pool.transferCompatible`
+- `locktime_pool.injectCapacityWithoutChange` -> `locktime_pool.injectCapacityWithoutChangeCompatible`
+- `locktime_pool.payFee`
+- `locktime_pool.injectCapacity`
+- `locktime_pool._parseMultisigArgsSince` -> `locktime_pool._parseMultisigArgsSinceCompatible`
+- `sudt.issueToken`
+- `sudt.transfer`
+- `form_info.multisigArgs`

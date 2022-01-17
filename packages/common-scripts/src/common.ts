@@ -769,7 +769,9 @@ function _deductCapacityCompatible(
   // Remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.filter(
-      (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
+      (output) =>
+        JSBI.BigInt(output.cell_output.capacity).toString() !==
+        JSBI.BigInt(0).toString()
     );
   });
 

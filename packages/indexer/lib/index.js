@@ -155,10 +155,17 @@ class Indexer {
   async waitForSync(blockDifference = 3) {
     while (true) {
       const tip = await this.tip();
-      const indexedNumber = tip ? BigInt(tip.block_number) : 0n;
+      const indexedNumber = tip
+        ? JSBI.BigInt(tip.block_number)
+        : JSBI.BigInt(0);
       const ckbTip = await this.rpc.get_tip_block_number();
 
-      if (BigInt(ckbTip) - indexedNumber <= BigInt(blockDifference)) {
+      if (
+        JSBI.lessThanOrEqual(
+          JSBI.subtract(JSBI.BigInt(ckbTip), indexedNumber),
+          JSBI.BigInt(blockDifference)
+        )
+      ) {
         break;
       }
 

@@ -15,7 +15,6 @@ import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
   TransactionSkeleton,
-  minimalCellCapacity,
   Options,
   createTransactionFromSkeleton,
   parseAddress,
@@ -51,7 +50,7 @@ function updateOutputs(
   txSkeleton: TransactionSkeletonType,
   output: Cell
 ): TransactionSkeletonType {
-  const cellCapacity = minimalCellCapacity(output);
+  const cellCapacity = minimalCellCapacityCompatible(output);
   output.cell_output.capacity = `0x${cellCapacity.toString(16)}`;
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push(output);
