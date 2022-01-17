@@ -1,6 +1,5 @@
 const test = require("ava");
 const { Reader } = require("ckb-js-toolkit");
-const { JSBI } = require("../lib/primitive");
 const { BI } = require("@ckb-lumos/bi");
 
 const {
@@ -61,24 +60,13 @@ test("toBigUInt128LECompatible", (t) => {
 });
 
 test("toBigUInt128LECompatible, to small", (t) => {
-  t.throws(() => toBigUInt128LECompatible(JSBI.unaryMinus(JSBI.BigInt(1))));
-  t.notThrows(() => toBigUInt128LECompatible(JSBI.BigInt(0)));
+  t.throws(() => toBigUInt128LECompatible(BI.from(-1)));
+  t.notThrows(() => toBigUInt128LECompatible(0));
 });
 
 test("toBigUInt128LECompatible, to big", (t) => {
-  t.throws(() =>
-    toBigUInt128LECompatible(
-      JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128))
-    )
-  );
-  t.notThrows(() =>
-    toBigUInt128LECompatible(
-      JSBI.subtract(
-        JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
-        JSBI.BigInt(1)
-      )
-    )
-  );
+  t.throws(() => toBigUInt128LECompatible(BI.from(2).pow(128)));
+  t.notThrows(() => toBigUInt128LECompatible(BI.from(2).pow(128).sub(1)));
 });
 
 test("readBigUInt128LECompatible", (t) => {

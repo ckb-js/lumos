@@ -2,8 +2,6 @@ const test = require("ava");
 const { BI } = require("@ckb-lumos/bi");
 
 const { since, utils } = require("../lib");
-const { maybeJSBI } = require("../lib/primitive");
-const JSBI = require("jsbi");
 
 const {
   parseSinceCompatible,
@@ -23,7 +21,7 @@ const fixtrues = [
     parsed: {
       relative: false,
       type: "blockNumber",
-      value: BI.from(JSBI.BigInt("12345").toString()),
+      value: BI.from(12345),
     },
   },
   {
@@ -31,12 +29,7 @@ const fixtrues = [
     parsed: {
       relative: false,
       type: "blockTimestamp",
-      value: BI.from(
-        JSBI.divide(
-          JSBI.BigInt(+new Date("2020-04-01")),
-          JSBI.BigInt(1000)
-        ).toString()
-      ),
+      value: BI.from(+new Date("2020-04-01")).div(1000),
     },
   },
   {
@@ -56,7 +49,7 @@ const fixtrues = [
     parsed: {
       relative: true,
       type: "blockNumber",
-      value: BI.from(JSBI.BigInt("100").toString()),
+      value: BI.from(100),
     },
   },
   {
@@ -64,7 +57,7 @@ const fixtrues = [
     parsed: {
       relative: true,
       type: "blockTimestamp",
-      value: BI.from(JSBI.BigInt(14 * 24 * 60 * 60).toString()),
+      value: BI.from(14 * 24 * 60 * 60),
     },
   },
   {
@@ -82,7 +75,7 @@ const fixtrues = [
 ];
 
 const epochFixtrue = {
-  epoch: "0x" + JSBI.BigInt("1979121332649985").toString(16),
+  epoch: "0x" + BI.from("1979121332649985").toString(16),
   parsed: {
     length: 1800,
     index: 24,
@@ -122,9 +115,7 @@ test("generateHeaderEpoch", (t) => {
 test("generateAbsoluteEpochSince", (t) => {
   fixtrues
     .filter(
-      (f) =>
-        f.parsed.type === "epochNumber" &&
-        maybeJSBI.equal(f.parsed.relative, false)
+      (f) => f.parsed.type === "epochNumber" && f.parsed.relative === false
     )
     .map((f) => {
       const since = generateAbsoluteEpochSince(f.parsed.value);
@@ -134,10 +125,7 @@ test("generateAbsoluteEpochSince", (t) => {
 
 test("parseAbsoluteEpochSince", (t) => {
   fixtrues.map((f) => {
-    if (
-      maybeJSBI.equal(f.parsed.relative, false) &&
-      f.parsed.type === "epochNumber"
-    ) {
+    if (f.parsed.relative === false && f.parsed.type === "epochNumber") {
       t.deepEqual(parseAbsoluteEpochSince(f.since), f.parsed.value);
     } else {
       t.throws(() => parseAbsoluteEpochSince(f.since));
@@ -149,18 +137,18 @@ test("validateSince, absolute blockNumber", (t) => {
   const since = generateSince({
     relative: false,
     type: "blockNumber",
-    value: JSBI.BigInt("12345").toString(),
+    value: BI.from("12345").toString(),
   });
 
   const cellSinceValidationInfo = {
-    number: "0x" + JSBI.BigInt(11).toString(16),
+    number: "0x" + BI.from(11).toString(16),
   };
 
   t.true(
     validateSince(
       since,
       {
-        block_number: "0x" + JSBI.BigInt(12345).toString(16),
+        block_number: "0x" + BI.from(12345).toString(16),
       },
       cellSinceValidationInfo
     )
@@ -169,7 +157,7 @@ test("validateSince, absolute blockNumber", (t) => {
     validateSince(
       since,
       {
-        block_number: "0x" + JSBI.BigInt(12345 - 1).toString(16),
+        block_number: "0x" + BI.from(12345 - 1).toString(16),
       },
       cellSinceValidationInfo
     )
@@ -184,14 +172,14 @@ test("validateSince, relative blockNumber", (t) => {
   });
 
   const cellSinceValidationInfo = {
-    block_number: "0x" + JSBI.BigInt(11).toString(16),
+    block_number: "0x" + BI.from(11).toString(16),
   };
 
   t.true(
     validateSince(
       since,
       {
-        block_number: "0x" + JSBI.BigInt(11 + 12345).toString(16),
+        block_number: "0x" + BI.from(11 + 12345).toString(16),
       },
       cellSinceValidationInfo
     )
@@ -200,7 +188,7 @@ test("validateSince, relative blockNumber", (t) => {
     validateSince(
       since,
       {
-        block_number: "0x" + JSBI.BigInt(11 + 12345 - 1).toString(16),
+        block_number: "0x" + BI.from(11 + 12345 - 1).toString(16),
       },
       cellSinceValidationInfo
     )
@@ -208,10 +196,7 @@ test("validateSince, relative blockNumber", (t) => {
 });
 
 test("validateSince, absolute blockTimestamp", (t) => {
-  const timestamp = JSBI.divide(
-    JSBI.BigInt(+new Date("2020-04-01")),
-    JSBI.BigInt(1000)
-  );
+  const timestamp = BI.from(+new Date("2020-04-01")).div(1000);
   const since = generateSince({
     relative: false,
     type: "blockTimestamp",
@@ -221,14 +206,9 @@ test("validateSince, absolute blockTimestamp", (t) => {
   const cellSinceValidationInfo = {
     // timestamp: "0x" + BigInt(+new Date("2020-01-01")).toString(16),
   };
-  const validTipMedianTimestamp =
-    "0x" + JSBI.multiply(timestamp, JSBI.BigInt(1000)).toString(16);
+  const validTipMedianTimestamp = "0x" + timestamp.mul(1000).toString(16);
   const invalidTipMedianTimestamp =
-    "0x" +
-    JSBI.subtract(
-      JSBI.multiply(timestamp, JSBI.BigInt(1000)),
-      JSBI.BigInt(1)
-    ).toString(16);
+    "0x" + timestamp.mul(1000).sub(1).toString(16);
   t.true(
     validateSince(
       since,
@@ -250,7 +230,7 @@ test("validateSince, absolute blockTimestamp", (t) => {
 });
 
 test("validateSince, relative blockTimestamp", (t) => {
-  const timestamp = JSBI.BigInt(14 * 24 * 60 * 60);
+  const timestamp = BI.from(14 * 24 * 60 * 60);
   const since = generateSince({
     relative: true,
     type: "blockTimestamp",
@@ -258,26 +238,16 @@ test("validateSince, relative blockTimestamp", (t) => {
   });
 
   const cellMedianTimestamp =
-    "0x" + JSBI.BigInt(+new Date("2020-01-01")).toString(16);
+    "0x" + BI.from(+new Date("2020-01-01")).toString(16);
   const cellSinceValidationInfo = {
     median_timestamp: cellMedianTimestamp,
   };
 
   const validTipMedianTimestamp =
-    "0x" +
-    JSBI.add(
-      JSBI.BigInt(cellMedianTimestamp),
-      JSBI.multiply(timestamp, JSBI.BigInt(1000))
-    ).toString(16);
+    "0x" + BI.from(cellMedianTimestamp).add(timestamp.mul(1000)).toString(16);
   const invalidTipMedianTimestamp =
     "0x" +
-    JSBI.subtract(
-      JSBI.add(
-        JSBI.BigInt(cellMedianTimestamp),
-        JSBI.multiply(timestamp, JSBI.BigInt(1000))
-      ),
-      JSBI.BigInt(1)
-    ).toString(16);
+    BI.from(cellMedianTimestamp).add(timestamp.mul(1000)).sub(1).toString(16);
   t.true(
     validateSince(
       since,
