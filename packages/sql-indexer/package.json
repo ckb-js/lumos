@@ -26,6 +26,7 @@
   ],
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc7",
+    "@ckb-lumos/bi": "^0.17.0-rc7",
     "ckb-js-toolkit": "^0.10.2",
     "knex": "^0.21.1"
   },

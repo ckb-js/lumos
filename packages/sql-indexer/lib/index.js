@@ -1,13 +1,14 @@
 const { RPC, Reader, validators } = require("ckb-js-toolkit");
 const { EventEmitter } = require("events");
 const { utils, indexer: BaseIndexerModule } = require("@ckb-lumos/base");
+const { BI } = require("@ckb-lumos/bi");
 const SCRIPT_TYPE_LOCK = 0;
 const SCRIPT_TYPE_TYPE = 1;
 
 const IO_TYPE_INPUT = 0;
 const IO_TYPE_OUTPUT = 1;
 
-class IndexerEmitter extends EventEmitter {}
+class IndexerEmitter extends EventEmitter { }
 IndexerEmitter.prototype.lock = undefined;
 IndexerEmitter.prototype.type = undefined;
 IndexerEmitter.prototype.outputData = undefined;
@@ -23,11 +24,11 @@ function asyncSleep(ms = 0) {
 }
 
 function hexToDbBigInt(hex) {
-  return JSBI.BigInt(hex).toString();
+  return BI.from(hex).toString();
 }
 
 function dbBigIntToHex(i) {
-  return "0x" + JSBI.BigInt(i).toString(16);
+  return "0x" + BI.from(i).toString(16);
 }
 
 function nodeBufferToHex(b) {
@@ -157,16 +158,11 @@ class Indexer {
     while (true) {
       const tip = await this.tip();
       const indexedNumber = tip
-        ? JSBI.BigInt(tip.block_number)
-        : JSBI.BigInt(0);
+        ? BI.from(tip.block_number)
+        : BI.from(0);
       const ckbTip = await this.rpc.get_tip_block_number();
 
-      if (
-        JSBI.lessThanOrEqual(
-          JSBI.subtract(JSBI.BigInt(ckbTip), indexedNumber),
-          JSBI.BigInt(blockDifference)
-        )
-      ) {
+      if (BI.from(ckbTip).sub(indexedNumber).lte(blockDifference)) {
         break;
       }
 
@@ -179,10 +175,7 @@ class Indexer {
     const tip = await this.tip();
     if (tip) {
       const { block_number, block_hash } = tip;
-      const nextBlockNumber = JSBI.add(
-        JSBI.BigInt(block_number),
-        JSBI.BigInt(1)
-      );
+      const nextBlockNumber = BI.from(block_number).add(1)
       const block = await this.rpc.get_block_by_number(
         dbBigIntToHex(nextBlockNumber)
       );
@@ -335,10 +328,7 @@ class Indexer {
   async checkAndPrune(block) {
     // prune old blocks
     if (
-      JSBI.remainder(
-        JSBI.BigInt(block.header.number),
-        JSBI.BigInt(this.pruneInterval)
-      ) === JSBI.BigInt(0)
+      BI.from(block.header.number).mod(this.pruneInterval).eq(0)
     ) {
       await this.prune();
     }
@@ -387,11 +377,9 @@ class Indexer {
     if (!tip) {
       return;
     }
-    const tipNumber = JSBI.BigInt(tip.block_number);
-    if (JSBI.greaterThan(tipNumber, JSBI.BigInt(this.keepNum))) {
-      const pruneToBlock = JSBI.subtract(
-        tipNumber - JSBI.BigInt(this.keepNum)
-      ).toString();
+    const tipNumber = BI.from(tip.block_number);
+    if (tipNumber.gt(this.keepNum)) {
+      const pruneToBlock = tipNumber.sub(this.keepNum).toString();
       await this.knex.transaction(async (trx) => {
         await trx("cells")
           .whereNotNull("consumed_block_number")
@@ -613,7 +601,7 @@ class Indexer {
       utils.assertHexadecimal("fromBlock", fromBlock);
     }
     emitter.fromBlock =
-      fromBlock === null ? JSBI.BigInt(0) : JSBI.BigInt(fromBlock);
+      fromBlock === null ? BI.from(0) : BI.from(fromBlock);
     if (lock) {
       validators.ValidateScript(lock);
       emitter.lock = lock;
@@ -688,8 +676,8 @@ class CellCollector {
     this.knex = knex;
     this.data = data;
     this.argsLen = argsLen;
-    this.fromBlock = fromBlock === null ? null : JSBI.BigInt(fromBlock);
-    this.toBlock = toBlock === null ? null : JSBI.BigInt(toBlock);
+    this.fromBlock = fromBlock === null ? null : BI.from(fromBlock);
+    this.toBlock = toBlock === null ? null : BI.from(toBlock);
     this.skip = skip;
     this.order = order;
   }
