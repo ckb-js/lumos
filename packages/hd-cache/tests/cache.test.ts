@@ -14,8 +14,8 @@ import {
   QueryOptions,
   TransactionWithStatus,
   HexString,
-  JSBI,
 } from "@ckb-lumos/base";
+import { BI } from "@ckb-lumos/bi";
 
 const mockTxs: TransactionWithStatus[] = [
   {
@@ -333,26 +333,11 @@ test("CellCollector", async (t) => {
 
   t.is(cells.length, 3);
   t.deepEqual(
-    cells.map((cell) => JSBI.BigInt(cell.cell_output.capacity).toString()),
+    cells.map((cell) => BI.from(cell.cell_output.capacity).toString()),
     [
-      JSBI.BigInt(
-        JSBI.multiply(
-          JSBI.BigInt(200),
-          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-        )
-      ).toString(),
-      JSBI.BigInt(
-        JSBI.multiply(
-          JSBI.BigInt(300),
-          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-        )
-      ).toString(),
-      JSBI.BigInt(
-        JSBI.multiply(
-          JSBI.BigInt(400),
-          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-        )
-      ).toString(),
+      BI.from(200).mul(BI.from(10).pow(8)).toString(),
+      BI.from(300).mul(BI.from(10).pow(8)).toString(),
+      BI.from(400).mul(BI.from(10).pow(8)).toString(),
     ]
   );
 
@@ -389,15 +374,8 @@ test("CellCollectorWithQueryOptions", async (t) => {
 
   t.is(cells.length, 1);
   t.deepEqual(
-    cells.map((cell) => JSBI.BigInt(cell.cell_output.capacity).toString()),
-    [
-      JSBI.BigInt(
-        JSBI.multiply(
-          JSBI.BigInt(200),
-          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-        )
-      ).toString(),
-    ]
+    cells.map((cell) => BI.from(cell.cell_output.capacity).toString()),
+    [BI.from(200).mul(BI.from(10).pow(8)).toString()]
   );
 });
 
@@ -421,20 +399,10 @@ test("CellCollectorWithQueryOptions, skip", async (t) => {
 
   t.is(cells.length, 2);
   t.deepEqual(
-    cells.map((cell) => JSBI.BigInt(cell.cell_output.capacity).toString()),
+    cells.map((cell) => BI.from(cell.cell_output.capacity).toString()),
     [
-      JSBI.BigInt(
-        JSBI.multiply(
-          JSBI.BigInt(300),
-          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-        )
-      ).toString(),
-      JSBI.BigInt(
-        JSBI.multiply(
-          JSBI.BigInt(400),
-          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-        )
-      ).toString(),
+      BI.from(300).mul(BI.from(10).pow(8)).toString(),
+      BI.from(400).mul(BI.from(10).pow(8)).toString(),
     ]
   );
 });
@@ -446,13 +414,8 @@ test("getBalance", async (t) => {
   const balance = await getBalance(new CellCollector(cacheManager));
 
   t.is(
-    JSBI.BigInt(balance).toString(),
-    JSBI.BigInt(
-      JSBI.multiply(
-        JSBI.BigInt(900),
-        JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-      )
-    ).toString()
+    BI.from(balance).toString(),
+    BI.from(900).mul(BI.from(10).pow(8)).toString()
   );
 });
 
@@ -473,13 +436,8 @@ test("getBalance, needMasterPublicKey", async (t) => {
   const balance = await getBalance(new CellCollector(cacheManager));
 
   t.is(
-    JSBI.BigInt(balance).toString(),
-    JSBI.BigInt(
-      JSBI.multiply(
-        JSBI.BigInt(950),
-        JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-      )
-    ).toString()
+    BI.from(balance).toString(),
+    BI.from(950).mul(BI.from(10).pow(8)).toString()
   );
 });
 

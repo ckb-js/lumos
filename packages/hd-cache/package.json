@@ -25,6 +25,7 @@
   ],
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc7",
+    "@ckb-lumos/bi": "^0.17.0-rc6",
     "@ckb-lumos/config-manager": "^0.17.0-rc7",
     "@ckb-lumos/hd": "^0.17.0-rc7",
     "@ckb-lumos/indexer": "^0.17.0-rc7",
