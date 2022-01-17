@@ -9,9 +9,9 @@ import { toConfigWithoutShortId } from "../helpers/configHelper";
 let config;
 let helpers;
 if (ExecutionEnvironment.canUseDOM) {
-  // const lumos = require("@ckb-lumos/lumos");
-  // config = lumos.config;
-  // helpers = lumos.helpers;
+  const lumos = require("@ckb-lumos/lumos");
+  config = lumos.config;
+  helpers = lumos.helpers;
 }
 
 const StyleWrapper = styled.div`

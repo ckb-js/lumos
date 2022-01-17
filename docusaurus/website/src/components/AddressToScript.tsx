@@ -14,9 +14,9 @@ declare global {
   }
 }
 if (ExecutionEnvironment.canUseDOM) {
-  // const lumos = require("@ckb-lumos/lumos");
-  // config = lumos.config;
-  // helpers = lumos.helpers;
+  const lumos = require("@ckb-lumos/lumos");
+  config = lumos.config;
+  helpers = lumos.helpers;
 }
 
 export type HashType = "type" | "data";
