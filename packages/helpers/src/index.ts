@@ -10,7 +10,6 @@ import {
   PackedSince,
   Transaction,
   WitnessArgs,
-  JSBI,
 } from "@ckb-lumos/base";
 import * as bech32 from "bech32";
 import { normalizers, validators, Reader } from "ckb-js-toolkit";
@@ -72,7 +71,7 @@ export function minimalCellCapacityCompatible(
   if (fullCell.data) {
     bytes += new Reader(fullCell.data).length();
   }
-  return BI.from(JSBI.multiply(JSBI.BigInt(bytes), JSBI.BigInt(100000000)));
+  return BI.from(bytes).mul(100000000);
 }
 
 export function locateCellDep(

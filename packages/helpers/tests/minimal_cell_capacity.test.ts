@@ -1,6 +1,7 @@
 import test from "ava";
-import { Cell, JSBI } from "@ckb-lumos/base";
+import { Cell } from "@ckb-lumos/base";
 import { minimalCellCapacity, minimalCellCapacityCompatible } from "../src";
+import { BI } from "@ckb-lumos/bi";
 
 const normalCell: Cell = {
   cell_output: {
@@ -67,13 +68,7 @@ test.before(() => {
 
 test("normal cell, validate true", (t) => {
   const capacity = minimalCellCapacityCompatible(normalCell);
-  const expectedCapacity = JSBI.BigInt(
-    JSBI.multiply(
-      JSBI.BigInt(61),
-      JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-    )
-  ).toString();
-
+  const expectedCapacity = BI.from(61).mul(BI.from(10).pow(8));
   t.true(capacity.toString() === expectedCapacity.toString());
 });
 
@@ -85,12 +80,6 @@ test("normal cell, validate failed", (t) => {
 
 test("cell with type and data, validate true", (t) => {
   const capacity = minimalCellCapacityCompatible(cellWithTypeAndData);
-  const expectedCapacity = JSBI.BigInt(
-    JSBI.multiply(
-      JSBI.BigInt(61 + 33 + 2),
-      JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
-    )
-  ).toString();
-
+  const expectedCapacity = BI.from(61 + 33 + 2).mul(BI.from(10).pow(8));
   t.true(capacity.toString() === expectedCapacity.toString());
 });
