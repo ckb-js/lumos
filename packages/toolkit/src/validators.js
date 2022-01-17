@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // This package provides validator functions that check JSON objects are
 // following the correct format, so we can submit them to CKB via RPC
 // directly
