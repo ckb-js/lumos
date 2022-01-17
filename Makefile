@@ -1,5 +1,6 @@
 build:
 	yarn workspace @ckb-lumos/bi build
+	yarn workspace @ckb-lumos/toolkit build
 	yarn workspace @ckb-lumos/config-manager build
 	yarn workspace @ckb-lumos/helpers build
 	yarn workspace @ckb-lumos/rpc build
@@ -14,6 +15,7 @@ build-release: build
 
 test:
 	yarn workspace @ckb-lumos/bi test
+	yarn workspace @ckb-lumos/toolkit test
 	yarn workspace @ckb-lumos/base test
 	yarn workspace @ckb-lumos/common-scripts test
 	yarn workspace @ckb-lumos/config-manager test

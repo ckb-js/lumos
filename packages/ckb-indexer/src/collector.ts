@@ -1,5 +1,5 @@
 import { utils, Cell, BaseCellCollector } from "@ckb-lumos/base";
-import { validators } from "ckb-js-toolkit";
+import { validators } from "@ckb-lumos/toolkit";
 import {
   SearchKeyFilter,
   CKBIndexerQueryOptions,

@@ -1,20 +1,25 @@
 {
-  "name": "ckb-js-toolkit",
-  "version": "0.100.0-rc1",
+  "name": "@ckb-lumos/toolkit",
+  "version": "0.18.0-rc4",
   "description": "JavaScript toolkits used to build dapps for Nervos CKB",
-  "main": "dist/ckb-js-toolkit.node.js",
-  "browser": "dist/ckb-js-toolkit.esm.js",
+  "main": "lib/ckb-js-toolkit.node.js",
+  "browser": "lib/ckb-js-toolkit.esm.js",
   "types": "index.d.ts",
+  "os": [
+    "win32",
+    "darwin",
+    "linux"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/xxuejie/ckb-js-toolkit.git"
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "files": [
     "index.d.ts",
-    "dist"
+    "lib"
   ],
   "scripts": {
-    "dist": "rollup -c --environment BUILD:production",
+    "build": "rollup -c --environment BUILD:production",
     "test": "rollup -c --environment BUILD:development && ava",
     "fmt": "prettier --write \"{src,tests}/**/*.js\" index.d.ts",
     "update-test-files": "curl -L https://raw.githubusercontent.com/nervosnetwork/ckb/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol -o testfiles/blockchain.mol && moleculec --language - --schema-file testfiles/blockchain.mol --format json > testfiles/blockchain.json && moleculec-es -hasBigInt -inputFile testfiles/blockchain.json -outputFile testfiles/blockchain.esm.js && rollup -f umd -i testfiles/blockchain.esm.js -o testfiles/blockchain.umd.js --name Blockchain && rm testfiles/blockchain.mol testfiles/blockchain.json testfiles/blockchain.esm.js"

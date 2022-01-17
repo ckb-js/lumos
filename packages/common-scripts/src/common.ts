@@ -27,7 +27,7 @@ import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
 import { Set } from "immutable";
 import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
-import { normalizers } from "ckb-js-toolkit";
+import { normalizers } from "@ckb-lumos/toolkit";
 import { isAcpScript } from "./helper";
 
 function defaultLogger(level: string, message: string) {
