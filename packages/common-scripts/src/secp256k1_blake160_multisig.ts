@@ -1,6 +1,5 @@
 import {
   parseAddress,
-  minimalCellCapacity,
   TransactionSkeletonType,
   Options,
   minimalCellCapacityCompatible,
@@ -38,6 +37,7 @@ import {
   serializeMultisigScript,
   multisigArgs,
 } from "./from_info";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 
 export { serializeMultisigScript, multisigArgs };
 
@@ -300,232 +300,33 @@ export async function transfer(
     assertAmountEnough?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
-  config = config || getConfig();
-  const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
-  if (!template) {
-    throw new Error(
-      "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
-    );
-  }
-  const scriptOutPoint: OutPoint = {
-    tx_hash: template.TX_HASH,
-    index: template.INDEX,
-  };
-
-  txSkeleton = addCellDep(txSkeleton, {
-    out_point: scriptOutPoint,
-    dep_type: template.DEP_TYPE,
-  });
-
-  const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
-
-  ensureScript(fromScript, config, "SECP256K1_BLAKE160_MULTISIG");
-
-  const noMultisigBefore = !txSkeleton.get("inputs").find((i) => {
-    return new ScriptValue(i.cell_output.lock, { validate: false }).equals(
-      new ScriptValue(fromScript!, { validate: false })
-    );
-  });
-
-  if (noMultisigBefore && typeof fromInfo === "string") {
-    throw new Error("MultisigScript is required for witness!");
-  }
-
-  if (requireToAddress && !toAddress) {
-    throw new Error("You must provide a to address!");
-  }
-
-  amount = BigInt(amount || 0);
-  if (toAddress) {
-    const toScript = parseAddress(toAddress, { config });
-
-    txSkeleton = txSkeleton.update("outputs", (outputs) => {
-      return outputs.push({
-        cell_output: {
-          capacity: "0x" + amount.toString(16),
-          lock: toScript,
-          type: undefined,
-        },
-        data: "0x",
-        out_point: undefined,
-        block_hash: undefined,
-      });
-    });
-  }
-
-  const lastFreezedOutput = txSkeleton
-    .get("fixedEntries")
-    .filter(({ field }) => field === "outputs")
-    .maxBy(({ index }) => index);
-  let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
-  for (; i < txSkeleton.get("outputs").size && amount > 0; ++i) {
-    const output = txSkeleton.get("outputs").get(i)!;
-    if (
-      new ScriptValue(output.cell_output.lock, { validate: false }).equals(
-        new ScriptValue(fromScript, { validate: false })
-      )
-    ) {
-      const cellCapacity = BigInt(output.cell_output.capacity);
-      let deductCapacity;
-      if (amount >= cellCapacity) {
-        deductCapacity = cellCapacity;
-      } else {
-        deductCapacity = cellCapacity - minimalCellCapacity(output);
-        if (deductCapacity > amount) {
-          deductCapacity = amount;
-        }
-      }
-      amount -= deductCapacity;
-      output.cell_output.capacity =
-        "0x" + (cellCapacity - deductCapacity).toString(16);
+  const result = await transferCompatible(
+    txSkeleton,
+    fromInfo,
+    toAddress,
+    amount,
+    {
+      config,
+      requireToAddress,
+      assertAmountEnough: assertAmountEnough as true | undefined,
     }
+  );
+  let _txSkeleton: TransactionSkeletonType;
+  let _amount: bigint;
+  if (result instanceof Array) {
+    _txSkeleton = result[0];
+    _amount = BigInt(result[1].toString());
+    return [_txSkeleton, _amount];
+  } else {
+    _txSkeleton = result;
+    return _txSkeleton;
   }
-  // remove all output cells with capacity equal to 0
-  txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.filter(
-      (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
-    );
-  });
-  /*
-   * Collect and add new input cells so as to prepare remaining capacities.
-   */
-  if (amount > 0n) {
-    const cellProvider = txSkeleton.get("cellProvider");
-    if (!cellProvider) {
-      throw new Error("cell provider is missing!");
-    }
-    // TODO: ignore locktime now.
-    const cellCollector = cellProvider.collector({
-      lock: fromScript,
-    });
-    const changeCell: Cell = {
-      cell_output: {
-        capacity: "0x0",
-        lock: fromScript,
-        type: undefined,
-      },
-      data: "0x",
-      out_point: undefined,
-      block_hash: undefined,
-    };
-    let changeCapacity = BigInt(0);
-    let previousInputs = Set<string>();
-    for (const input of txSkeleton.get("inputs")) {
-      previousInputs = previousInputs.add(
-        `${input.out_point!.tx_hash}_${input.out_point!.index}`
-      );
-    }
-    for await (const inputCell of cellCollector.collect()) {
-      // skip inputs already exists in txSkeleton.inputs
-      if (
-        previousInputs.has(
-          `${inputCell.out_point!.tx_hash}_${inputCell.out_point!.index}`
-        )
-      ) {
-        continue;
-      }
-      txSkeleton = txSkeleton.update("inputs", (inputs) =>
-        inputs.push(inputCell)
-      );
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-        witnesses.push("0x")
-      );
-      const inputCapacity = BigInt(inputCell.cell_output.capacity);
-      let deductCapacity = inputCapacity;
-      if (deductCapacity > amount) {
-        deductCapacity = amount;
-      }
-      amount -= deductCapacity;
-      changeCapacity += inputCapacity - deductCapacity;
-      if (
-        amount === BigInt(0) &&
-        (changeCapacity === BigInt(0) ||
-          changeCapacity > minimalCellCapacity(changeCell))
-      ) {
-        break;
-      }
-    }
-    if (changeCapacity > BigInt(0)) {
-      changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
-      txSkeleton = txSkeleton.update("outputs", (outputs) =>
-        outputs.push(changeCell)
-      );
-    }
-  }
-  if (amount > 0 && assertAmountEnough) {
-    throw new Error("Not enough capacity in from address!");
-  }
-
-  const firstIndex = txSkeleton
-    .get("inputs")
-    .findIndex((input) =>
-      new ScriptValue(input.cell_output.lock, { validate: false }).equals(
-        new ScriptValue(fromScript!, { validate: false })
-      )
-    );
-  if (firstIndex !== -1) {
-    while (firstIndex >= txSkeleton.get("witnesses").size) {
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-        witnesses.push("0x")
-      );
-    }
-
-    // if using MultisigScript, check witnesses
-    if (noMultisigBefore || typeof fromInfo !== "string") {
-      let witness = txSkeleton.get("witnesses").get(firstIndex)!;
-      const newWitnessArgs: WitnessArgs = {
-        lock:
-          "0x" +
-          multisigScript!.slice(2) +
-          SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat(
-            (fromInfo as MultisigScript).M
-          ),
-      };
-      if (witness !== "0x") {
-        const witnessArgs = new core.WitnessArgs(new Reader(witness));
-        const lock = witnessArgs.getLock();
-        if (
-          lock.hasValue() &&
-          new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
-        ) {
-          throw new Error(
-            "Lock field in first witness is set aside for signature!"
-          );
-        }
-        const inputType = witnessArgs.getInputType();
-        if (inputType.hasValue()) {
-          newWitnessArgs.input_type = new Reader(
-            inputType.value().raw()
-          ).serializeJson();
-        }
-        const outputType = witnessArgs.getOutputType();
-        if (outputType.hasValue()) {
-          newWitnessArgs.output_type = new Reader(
-            outputType.value().raw()
-          ).serializeJson();
-        }
-      }
-      witness = new Reader(
-        core.SerializeWitnessArgs(
-          normalizers.NormalizeWitnessArgs(newWitnessArgs)
-        )
-      ).serializeJson();
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-        witnesses.set(firstIndex, witness)
-      );
-    }
-  }
-  if (!assertAmountEnough) {
-    return [txSkeleton, amount];
-  }
-  return txSkeleton;
 }
-
 export async function transferCompatible(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
   toAddress: Address | undefined,
-  amount: JSBI,
+  amount: BIish,
   options?: {
     config?: Config;
     requireToAddress?: boolean;
@@ -537,19 +338,19 @@ export async function transferCompatible(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
   toAddress: Address | undefined,
-  amount: JSBI,
+  amount: BIish,
   options: {
     config?: Config;
     requireToAddress?: boolean;
     assertAmountEnough: false;
   }
-): Promise<[TransactionSkeletonType, JSBI]>;
+): Promise<[TransactionSkeletonType, BI]>;
 
 export async function transferCompatible(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
   toAddress: Address | undefined,
-  amount: JSBI,
+  amount: BIish,
   {
     config = undefined,
     requireToAddress = true,
@@ -559,7 +360,7 @@ export async function transferCompatible(
     requireToAddress?: boolean;
     assertAmountEnough?: boolean;
   } = {}
-): Promise<TransactionSkeletonType | [TransactionSkeletonType, JSBI]> {
+): Promise<TransactionSkeletonType | [TransactionSkeletonType, BI]> {
   config = config || getConfig();
   const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
   if (!template) {
@@ -595,7 +396,7 @@ export async function transferCompatible(
     throw new Error("You must provide a to address!");
   }
 
-  amount = JSBI.BigInt(amount || 0);
+  let _amount = amount ? toJSBI(amount) : JSBI.BigInt(0);
   if (toAddress) {
     const toScript = parseAddress(toAddress, { config });
 
@@ -621,7 +422,7 @@ export async function transferCompatible(
   for (
     ;
     i < txSkeleton.get("outputs").size &&
-    JSBI.greaterThan(amount, JSBI.BigInt(0));
+    JSBI.greaterThan(_amount, JSBI.BigInt(0));
     ++i
   ) {
     const output = txSkeleton.get("outputs").get(i)!;
@@ -632,18 +433,18 @@ export async function transferCompatible(
     ) {
       const cellCapacity = JSBI.BigInt(output.cell_output.capacity);
       let deductCapacity;
-      if (JSBI.greaterThanOrEqual(amount, cellCapacity)) {
+      if (JSBI.greaterThanOrEqual(_amount, cellCapacity)) {
         deductCapacity = cellCapacity;
       } else {
         deductCapacity = JSBI.subtract(
           cellCapacity,
-          minimalCellCapacityCompatible(output)
+          toJSBI(minimalCellCapacityCompatible(output))
         );
-        if (JSBI.greaterThan(deductCapacity, amount)) {
-          deductCapacity = amount;
+        if (JSBI.greaterThan(deductCapacity, _amount)) {
+          deductCapacity = _amount;
         }
       }
-      amount = JSBI.subtract(amount, deductCapacity);
+      _amount = JSBI.subtract(_amount, deductCapacity);
       output.cell_output.capacity =
         "0x" + JSBI.subtract(cellCapacity, deductCapacity).toString(16);
     }
@@ -657,7 +458,7 @@ export async function transferCompatible(
   /*
    * Collect and add new input cells so as to prepare remaining capacities.
    */
-  if (JSBI.greaterThan(amount, JSBI.BigInt(0))) {
+  if (JSBI.greaterThan(_amount, JSBI.BigInt(0))) {
     const cellProvider = txSkeleton.get("cellProvider");
     if (!cellProvider) {
       throw new Error("cell provider is missing!");
@@ -700,20 +501,20 @@ export async function transferCompatible(
       );
       const inputCapacity = JSBI.BigInt(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
-      if (JSBI.greaterThan(deductCapacity, amount)) {
-        deductCapacity = amount;
+      if (JSBI.greaterThan(deductCapacity, _amount)) {
+        deductCapacity = _amount;
       }
-      amount = JSBI.subtract(amount, deductCapacity);
+      _amount = JSBI.subtract(_amount, deductCapacity);
       changeCapacity = JSBI.add(
         changeCapacity,
         JSBI.subtract(inputCapacity, deductCapacity)
       );
       if (
-        JSBI.equal(amount, JSBI.BigInt(0)) &&
+        JSBI.equal(_amount, JSBI.BigInt(0)) &&
         (JSBI.equal(changeCapacity, JSBI.BigInt(0)) ||
           JSBI.greaterThan(
             changeCapacity,
-            minimalCellCapacityCompatible(changeCell)
+            toJSBI(minimalCellCapacityCompatible(changeCell))
           ))
       ) {
         break;
@@ -726,7 +527,7 @@ export async function transferCompatible(
       );
     }
   }
-  if (JSBI.greaterThan(amount, JSBI.BigInt(0)) && assertAmountEnough) {
+  if (JSBI.greaterThan(_amount, JSBI.BigInt(0)) && assertAmountEnough) {
     throw new Error("Not enough capacity in from address!");
   }
 
@@ -795,7 +596,7 @@ export async function transferCompatible(
     }
   }
   if (!assertAmountEnough) {
-    return [txSkeleton, amount];
+    return [txSkeleton, BI.from(_amount)];
   }
   return txSkeleton;
 }
@@ -811,11 +612,10 @@ export async function transferCompatible(
 export async function payFee(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
-  amount: bigint | JSBI,
+  amount: BIish,
   { config = undefined }: Options = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  amount = JSBI.BigInt(amount.toString());
   return transferCompatible(txSkeleton, fromInfo, undefined, amount, {
     config,
     requireToAddress: false,
@@ -843,10 +643,16 @@ export async function injectCapacity(
   const capacity = JSBI.BigInt(
     txSkeleton.get("outputs").get(outputIndex)!.cell_output.capacity
   );
-  return transferCompatible(txSkeleton, fromInfo, undefined, capacity, {
-    config,
-    requireToAddress: false,
-  });
+  return transferCompatible(
+    txSkeleton,
+    fromInfo,
+    undefined,
+    BI.from(capacity),
+    {
+      config,
+      requireToAddress: false,
+    }
+  );
 }
 
 /**

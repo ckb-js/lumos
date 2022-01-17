@@ -12,6 +12,7 @@ import { bob, alice, fullAddressInfo } from "./account_info";
 import { inputs } from "./secp256k1_blake160_inputs";
 import { Cell, JSBI, values } from "@ckb-lumos/base";
 import { bobSecpInputs } from "./inputs";
+import { BI } from "@ckb-lumos/bi";
 
 const cellProvider = new CellProvider(inputs());
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
@@ -28,7 +29,7 @@ test("JSBI:transfer success", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     alice.mainnetAddress,
-    JSBI.BigInt(1000 * 10 ** 8)
+    BI.from(JSBI.BigInt(1000 * 10 ** 8))
   );
 
   // sum of outputs capacity should be equal to sum of inputs capacity
@@ -48,7 +49,7 @@ test("JSBI:transfer to non secp256k1_blake160 address", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     fullAddressInfo.mainnetAddress,
-    JSBI.BigInt(1000 * 10 ** 8)
+    BI.from(JSBI.BigInt(1000 * 10 ** 8))
   );
 
   // sum of outputs capacity should be equal to sum of inputs capacity
@@ -80,14 +81,14 @@ test("JSBI:payFee", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     alice.mainnetAddress,
-    JSBI.BigInt(1000 * 10 ** 8)
+    BI.from(JSBI.BigInt(1000 * 10 ** 8))
   );
 
   const fee = JSBI.BigInt(1 * 10 ** 8);
   txSkeleton = await secp256k1Blake160.payFee(
     txSkeleton,
     bob.mainnetAddress,
-    fee
+    BI.from(fee)
   );
 
   // sum of outputs capacity should be equal to sum of inputs capacity
@@ -115,14 +116,14 @@ test("JSBI:prepareSigningEntries", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     alice.mainnetAddress,
-    JSBI.BigInt(1000 * 10 ** 8)
+    BI.from(JSBI.BigInt(1000 * 10 ** 8))
   );
 
   const fee = JSBI.BigInt(1 * 10 ** 8);
   txSkeleton = await secp256k1Blake160.payFee(
     txSkeleton,
     bob.mainnetAddress,
-    fee
+    BI.from(fee)
   );
 
   txSkeleton = await secp256k1Blake160.prepareSigningEntries(txSkeleton);
@@ -172,7 +173,7 @@ test.skip("JSBI:transferCompatible, skip duplicated input", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     alice.mainnetAddress,
-    JSBI.BigInt(1000 * 10 ** 8)
+    BI.from(JSBI.BigInt(1000 * 10 ** 8))
   );
 
   // sum of outputs capacity should be equal to sum of inputs capacity

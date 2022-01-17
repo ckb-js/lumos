@@ -7,6 +7,7 @@ const { __tests__ } = deploy;
 const { calculateTxFee } = __tests__;
 import { predefined } from "@ckb-lumos/config-manager";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
+import { BI } from "@ckb-lumos/bi";
 const { AGGRON4 } = predefined;
 
 const FROMADDRESS = "ckt1qyqptxys5l9vk39ft0hswscxgseawc77y2wqlr558h";
@@ -136,7 +137,7 @@ test("deploy with data", async (t) => {
   }
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  const expectTxFee = calculateTxFee(txSkeleton, BI.from(JSBI.BigInt(1000)));
   t.is(txFee.toString(), expectTxFee.toString());
   t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 
@@ -233,7 +234,7 @@ test("deploy with typeID", async (t) => {
   }
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  const expectTxFee = calculateTxFee(txSkeleton, BI.from(JSBI.BigInt(1000)));
   t.is(txFee.toString(), expectTxFee.toString());
   t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 
@@ -331,7 +332,7 @@ test("upgrade with typeID", async (t) => {
   let { txSkeleton } = await deploy.generateUpgradeTypeIdDataTx(upgradeOptions);
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  const expectTxFee = calculateTxFee(txSkeleton, BI.from(JSBI.BigInt(1000)));
   t.is(txFee.toString(), expectTxFee.toString());
   t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 
@@ -429,7 +430,7 @@ test("upgrade contract with size reduced", async (t) => {
   let { txSkeleton } = await deploy.generateUpgradeTypeIdDataTx(upgradeOptions);
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  const expectTxFee = calculateTxFee(txSkeleton, BI.from(JSBI.BigInt(1000)));
   t.is(txFee.toString(), expectTxFee.toString());
   t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 
@@ -526,7 +527,7 @@ test("deploy with data by multisig", async (t) => {
   }
 
   const txFee = getTxFee(txSkeleton);
-  const expectTxFee = calculateTxFee(txSkeleton, JSBI.BigInt(1000));
+  const expectTxFee = calculateTxFee(txSkeleton, BI.from(JSBI.BigInt(1000)));
   t.is(txFee.toString(), expectTxFee.toString());
   t.true(JSBI.lessThan(txFee, JSBI.BigInt(1000000)));
 

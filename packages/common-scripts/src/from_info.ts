@@ -79,7 +79,7 @@ export function multisigArgs(
 ): HexString {
   let sinceLE = "0x";
   if (since != null) {
-    sinceLE = toBigUInt64LE(JSBI.BigInt(since));
+    sinceLE = toBigUInt64LE(JSBI.BigInt(since).toString());
   }
   return (
     new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +

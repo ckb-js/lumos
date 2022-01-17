@@ -1,4 +1,5 @@
-import { HexNumber, PackedSince, HexString, JSBI } from "./primitive";
+import { BIish, BI } from "@ckb-lumos/bi";
+import { HexNumber, PackedSince, HexString } from "./primitive";
 
 export interface EpochSinceValue {
   length: number;
@@ -44,7 +45,7 @@ export function parseSinceCompatible(
   | {
       relative: boolean;
       type: "blockNumber" | "blockTimestamp";
-      value: JSBI;
+      value: BI;
     };
 
 /**
@@ -110,7 +111,7 @@ export function generateSince(
     | {
         relative: boolean;
         type: SinceType;
-        value: bigint | JSBI;
+        value: BIish;
       }
     | {
         relative: boolean;

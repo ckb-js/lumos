@@ -11,6 +11,7 @@ const { AGGRON4 } = predefined;
 import { Cell, JSBI, values } from "@ckb-lumos/base";
 import { bobMultisigInputs } from "./inputs";
 import { bob, alice } from "./account_info";
+import { BI } from "@ckb-lumos/bi";
 
 const cellProvider = new CellProvider(bobMultisigInputs);
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
@@ -63,7 +64,7 @@ test("JSBI:transfer success", async (t) => {
     txSkeleton,
     bob.fromInfo,
     alice.testnetAddress,
-    JSBI.BigInt(500 * 10 ** 8),
+    BI.from(JSBI.BigInt(500 * 10 ** 8)),
     {
       config: AGGRON4,
     }
