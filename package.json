@@ -45,8 +45,8 @@
   "scripts": {
     "docs": "typedoc .",
     "prepare": "husky install",
-    "test": "lerna run test --ignore \"**/*/*indexer*\"",
-    "test-coverage": "yarn c8 --reporter=cobertura --reporter=html --clean -o coverage lerna run test --ignore \"**/*/*indexer*\"",
+    "test": "lerna run test --parallel --ignore \"**/*/*indexer*\"",
+    "test-coverage": "yarn c8 --reporter=cobertura --reporter=html --clean -o coverage yarn run test",
     "build:types": "lerna run build:types",
     "build:js": "lerna run build:js --parallel",
     "build": "run-p build:*",
