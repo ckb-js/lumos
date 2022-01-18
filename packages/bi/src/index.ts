@@ -14,7 +14,7 @@ export function isBIish(value: any): value is BIish {
 }
 
 export class BI {
-  private jsbi: JSBI;
+  private readonly jsbi: JSBI;
   readonly _isBI: boolean;
 
   constructor(value: JSBI) {

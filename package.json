@@ -12,7 +12,7 @@
     "darwin",
     "linux"
   ],
-  "resolutions": { 
+  "resolutions": {
     "lerna/**/json-schema": "^0.4.0",
     "@strictsoftware/typedoc-plugin-monorepo/highlight.js": "^10.4.1",
     "ava/trim-off-newlines": "^1.0.3",
@@ -21,18 +21,21 @@
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
-    "@babel/cli": "^7.16.0",
-    "@babel/core": "^7.16.0",
+    "@babel/cli": "^7.16.7",
+    "@babel/core": "^7.16.7",
+    "@babel/plugin-syntax-bigint": "^7.8.3",
+    "@babel/preset-env": "^7.16.7",
+    "@babel/preset-typescript": "^7.16.7",
     "@strictsoftware/typedoc-plugin-monorepo": "^0.3.1",
     "@typescript-eslint/eslint-plugin": "^3.5.0",
     "@typescript-eslint/parser": "^3.5.0",
     "ava": "^3.8.2",
-    "babel-plugin-transform-bigint": "^1.0.12",
     "c8": "^7.10.0",
     "eslint": "^7.1.0",
     "husky": "^7.0.4",
     "lerna": "^4.0.0",
     "mysql2": "^2.1.0",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.0.5",
     "sinon": "^9.2.0",
     "ts-node": "^8.10.2",
@@ -42,7 +45,11 @@
   "scripts": {
     "docs": "typedoc .",
     "prepare": "husky install",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "build:types": "lerna run build:types",
+    "build:js": "lerna run build:js --parallel",
+    "build": "run-p build:*",
+    "clean": "lerna run clean"
   },
   "husky": {
     "hooks": {
