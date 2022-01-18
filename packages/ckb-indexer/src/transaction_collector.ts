@@ -118,22 +118,24 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         });
       }
     });
-    await services
-      .requestBatch(this.CKBRpcUrl, txIoTypeInputOutPointList)
-      .then((response: GetTransactionRPCResult[]) => {
-        response.forEach((item: GetTransactionRPCResult) => {
-          const itemId = item.id.toString();
-          const [cellIndex, transactionHash] = itemId.split("-");
-          const output: Output =
-            item.result.transaction.outputs[parseInt(cellIndex)];
-          const targetTx = transactionList.find(
-            (tx) => tx.transaction.hash === transactionHash
-          );
-          if (targetTx) {
-            targetTx.inputCell = output;
-          }
+    if (txIoTypeInputOutPointList.length > 0) {
+      await services
+        .requestBatch(this.CKBRpcUrl, txIoTypeInputOutPointList)
+        .then((response: GetTransactionRPCResult[]) => {
+          response.forEach((item: GetTransactionRPCResult) => {
+            const itemId = item.id.toString();
+            const [cellIndex, transactionHash] = itemId.split("-");
+            const output: Output =
+              item.result.transaction.outputs[parseInt(cellIndex)];
+            const targetTx = transactionList.find(
+              (tx) => tx.transaction.hash === transactionHash
+            );
+            if (targetTx) {
+              targetTx.inputCell = output;
+            }
+          });
         });
-      });
+    }
 
     //filter by ScriptWrapper.argsLen
     transactionList = transactionList.filter(
