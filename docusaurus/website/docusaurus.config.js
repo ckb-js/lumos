@@ -15,7 +15,7 @@ const config = {
   favicon: "img/favicon.ico",
   organizationName: "nervosnetwork", // Usually your GitHub org/user name.
   projectName: "lumos", // Usually your repo name.
-
+  plugins: [require.resolve('./webpack.js')],
   presets: [
     [
       "classic",
