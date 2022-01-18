@@ -11,21 +11,8 @@ export const Sidebar = () => {
       defaultSelectedKeys={[location.pathname]}
       mode="inline"
     >
-      <Menu.ItemGroup key="g1" title="Item 1">
-        <Menu.Item key="/tools/address-conversion">
-          <NavLink to="/tools/address-conversion">Address Conversion</NavLink>
-        </Menu.Item>
-        <Menu.Item key="/tools/test">
-          <NavLink to="/tools/test">Test Page</NavLink>
-        </Menu.Item>
-      </Menu.ItemGroup>
-      <Menu.ItemGroup key="g2" title="Item 2">
-        <Menu.Item key="3">Option 3</Menu.Item>
-        <Menu.Item key="4">Option 4</Menu.Item>
-      </Menu.ItemGroup>
-
-      <Menu.Item key="5">Option 5</Menu.Item>
-      <Menu.Item key="6">Option 6</Menu.Item>
+      {/* https://github.com/facebook/docusaurus/issues/4712 */}
+      <Menu.Item key="/lumos/tools/address-conversion"><NavLink to="/lumos/tools/address-conversion">Address Conversion</NavLink></Menu.Item>
     </Menu>
   );
 };
