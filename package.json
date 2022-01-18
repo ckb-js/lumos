@@ -23,7 +23,6 @@
     "@ava/typescript": "^1.1.1",
     "@babel/cli": "^7.16.7",
     "@babel/core": "^7.16.7",
-    "@babel/plugin-syntax-bigint": "^7.8.3",
     "@babel/preset-env": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
     "@strictsoftware/typedoc-plugin-monorepo": "^0.3.1",
