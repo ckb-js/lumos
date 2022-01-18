@@ -1,3 +1,5 @@
+const webpack = require("webpack");
+
 module.exports = function (context, options) {
     return {
         name: 'custom-docusaurus-plugin',
@@ -15,8 +17,12 @@ module.exports = function (context, options) {
                         "https": false,
                         "stream": false,
                         "crypto": false,
+                        buffer: require.resolve("buffer/"),
                     }
                 },
+                plugins: [
+                    new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
+                ],
             };
         },
     };
