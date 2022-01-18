@@ -45,15 +45,18 @@
   "scripts": {
     "docs": "typedoc .",
     "prepare": "husky install",
-    "test": "lerna run test",
+    "test": "lerna run test --ignore \"**/*/*indexer*\"",
+    "test-coverage": "yarn c8 --reporter=cobertura --reporter=html --clean -o coverage lerna run test --ignore \"**/*/*indexer*\"",
     "build:types": "lerna run build:types",
     "build:js": "lerna run build:js --parallel",
     "build": "run-p build:*",
+    "build-release": "lerna run --scope @ckb-lumos/lumos build:umd",
+    "lint": "lerna run fmt && lerna run lint && git diff --exit-code",
     "clean": "lerna run clean"
   },
   "husky": {
     "hooks": {
-      "pre-push": "make lint"
+      "pre-push": "yarn run lint"
     }
   }
 }
