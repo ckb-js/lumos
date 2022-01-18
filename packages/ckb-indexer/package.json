@@ -25,6 +25,7 @@
   ],
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc6",
+    "@ckb-lumos/bi": "^0.17.0-rc6",
     "@ckb-lumos/rpc": "^0.17.0-rc6",
     "@types/sinon": "^10.0.6",
     "ava": "^3.15.0",

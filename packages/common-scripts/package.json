@@ -24,6 +24,7 @@
   ],
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc6",
+    "@ckb-lumos/bi": "^0.17.0-rc6",
     "@ckb-lumos/config-manager": "^0.17.0-rc6",
     "@ckb-lumos/helpers": "^0.17.0-rc6",
     "@ckb-lumos/rpc": "^0.17.0-rc6",
