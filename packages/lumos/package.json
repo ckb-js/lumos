@@ -50,7 +50,7 @@
     "@ckb-lumos/hd": "^0.18.0-rc4",
     "@ckb-lumos/helpers": "^0.18.0-rc4",
     "@ckb-lumos/rpc": "^0.18.0-rc4",
-    "ckb-js-toolkit": "^0.100.0-rc1"
+    "@ckb-lumos/toolkit": "^0.18.0-rc4"
   },
   "devDependencies": {
     "buffer": "^6.0.3",
