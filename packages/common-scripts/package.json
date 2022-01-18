@@ -28,7 +28,7 @@
     "@ckb-lumos/config-manager": "^0.17.0-rc7",
     "@ckb-lumos/helpers": "^0.17.0-rc7",
     "@ckb-lumos/rpc": "^0.17.0-rc7",
-    "ckb-js-toolkit": "^0.10.2",
+    "@ckb-lumos/toolkit": "^0.17.0-rc7",
     "immutable": "^4.0.0-rc.12"
   },
   "repository": {

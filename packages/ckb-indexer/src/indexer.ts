@@ -9,7 +9,7 @@ import {
   utils,
   Block,
 } from "@ckb-lumos/base";
-import { validators } from "ckb-js-toolkit";
+import { validators } from "@ckb-lumos/toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { request, requestBatch } from "./services";
 import { CKBCellCollector } from "./collector";
