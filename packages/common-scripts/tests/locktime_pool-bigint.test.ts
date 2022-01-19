@@ -11,7 +11,7 @@ import { calculateMaximumWithdraw } from "../src/dao";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config, predefined } from "@ckb-lumos/config-manager";
-import { Header, Cell, CellCollector, JSBI } from "@ckb-lumos/base";
+import { Header, Cell, CellCollector } from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 import {
   bobSecpDaoDepositInput,
@@ -20,6 +20,7 @@ import {
 } from "./inputs";
 import { bob } from "./account_info";
 import { since as SinceUtils } from "@ckb-lumos/base";
+import { BI } from "@ckb-lumos/bi";
 const { AGGRON4 } = predefined;
 
 const originCapacity = "0x174876e800";
@@ -198,12 +199,12 @@ test("BigInt:transfer multisig", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => JSBI.BigInt(o.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((o) => BI.from(o.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("inputs").size, 1);
@@ -250,12 +251,12 @@ test("BigInt:transfer multisig & dao", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => JSBI.BigInt(o.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((o) => BI.from(o.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
 
   const interest =
     calculateMaximumWithdraw(
@@ -273,13 +274,9 @@ test("BigInt:transfer multisig & dao", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
   t.is(
     interest.toString(),
-    JSBI.subtract(
-      sumOfInputCapacity,
-      JSBI.multiply(
-        JSBI.BigInt(originCapacity),
-        JSBI.BigInt(txSkeleton.get("inputs").size)
-      )
-    ).toString()
+    sumOfInputCapacity
+      .sub(BI.from(originCapacity).mul(txSkeleton.get("inputs").size))
+      .toString()
   );
 
   t.is(txSkeleton.get("inputs").size, 3);

@@ -9,10 +9,10 @@ import {
 import { predefined } from "@ckb-lumos/config-manager";
 import { bob, alice } from "./account_info";
 import { bobAcpCells, aliceAcpCells } from "./inputs";
-import { Cell, JSBI, values } from "@ckb-lumos/base";
+import { Cell, values } from "@ckb-lumos/base";
 const { AGGRON4 } = predefined;
 import { checkLimit } from "../src/anyone_can_pay";
-import { BI, toJSBI } from "@ckb-lumos/bi";
+import { BI } from "@ckb-lumos/bi";
 test.before(() => {
   // @ts-ignore: Unreachable code error
   BigInt = () => {
@@ -29,19 +29,19 @@ test("withdraw, acp to acp, all", async (t) => {
     txSkeleton,
     bobAcpCells[0],
     alice.acpTestnetAddress,
-    BI.from(JSBI.BigInt(1000 * 10 ** 8)),
+    BI.from(BI.from(1000 * 10 ** 8)),
     { config: AGGRON4 }
   );
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
@@ -91,7 +91,7 @@ test("withdraw, acp to acp, half", async (t) => {
     cellProvider,
   });
 
-  const capacity = JSBI.BigInt(500 * 10 ** 8);
+  const capacity = BI.from(500 * 10 ** 8);
   txSkeleton = await anyoneCanPay.withdraw(
     txSkeleton,
     bobAcpCells[0],
@@ -103,12 +103,12 @@ test("withdraw, acp to acp, half", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
@@ -138,10 +138,9 @@ test("withdraw, acp to acp, half", async (t) => {
     [alice.blake160, bob.blake160]
   );
 
-  const aliceReceiveCapacity: JSBI = JSBI.subtract(
-    JSBI.BigInt(txSkeleton.get("outputs").get(0)!.cell_output.capacity),
-    JSBI.BigInt(txSkeleton.get("inputs").get(0)!.cell_output.capacity)
-  );
+  const aliceReceiveCapacity: BI = BI.from(
+    txSkeleton.get("outputs").get(0)!.cell_output.capacity
+  ).sub(BI.from(txSkeleton.get("inputs").get(0)!.cell_output.capacity));
 
   t.is(aliceReceiveCapacity.toString(), capacity.toString());
 
@@ -165,7 +164,7 @@ test("withdraw, acp to secp, half", async (t) => {
     cellProvider,
   });
 
-  const capacity = JSBI.BigInt(500 * 10 ** 8);
+  const capacity = BI.from(500 * 10 ** 8);
   txSkeleton = await anyoneCanPay.withdraw(
     txSkeleton,
     bobAcpCells[0],
@@ -177,12 +176,12 @@ test("withdraw, acp to secp, half", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
@@ -212,7 +211,7 @@ test("withdraw, acp to secp, half", async (t) => {
     [alice.blake160, bob.blake160]
   );
 
-  const aliceReceiveCapacity: JSBI = JSBI.BigInt(
+  const aliceReceiveCapacity: BI = BI.from(
     txSkeleton.get("outputs").get(0)!.cell_output.capacity
   );
 
@@ -241,7 +240,7 @@ test("withdraw, acp to secp, all", async (t) => {
     cellProvider,
   });
 
-  const capacity = JSBI.BigInt(1000 * 10 ** 8);
+  const capacity = BI.from(1000 * 10 ** 8);
   txSkeleton = await anyoneCanPay.withdraw(
     txSkeleton,
     bobAcpCells[0],
@@ -253,12 +252,12 @@ test("withdraw, acp to secp, all", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
@@ -288,7 +287,7 @@ test("withdraw, acp to secp, all", async (t) => {
     [alice.blake160]
   );
 
-  const aliceReceiveCapacity: JSBI = JSBI.BigInt(
+  const aliceReceiveCapacity: BI = BI.from(
     txSkeleton.get("outputs").get(0)!.cell_output.capacity
   );
 
@@ -319,13 +318,9 @@ test("withdraw, acp to secp, greater than capacity - minimal", async (t) => {
 
   const bobCell = bobAcpCells[0]!;
 
-  const capacity = JSBI.add(
-    JSBI.subtract(
-      JSBI.BigInt(bobCell.cell_output.capacity),
-      toJSBI(minimalCellCapacityCompatible(bobCell))
-    ),
-    JSBI.BigInt(1)
-  );
+  const capacity = BI.from(bobCell.cell_output.capacity)
+    .sub(minimalCellCapacityCompatible(bobCell))
+    .add(1);
 
   await t.throwsAsync(
     async () => {
@@ -384,19 +379,19 @@ test("setupInputCell", async (t) => {
 
 test("checkLimit, amount and capacity", (t) => {
   const args = bob.blake160 + "01" + "02";
-  t.throws(() => checkLimit(args, BI.from(JSBI.BigInt(0))));
-  t.throws(() => checkLimit(args, BI.from(JSBI.BigInt(10 * 10 ** 8 - 1))));
-  t.notThrows(() => checkLimit(args, BI.from(JSBI.BigInt(10 * 10 ** 8))));
+  t.throws(() => checkLimit(args, BI.from(BI.from(0))));
+  t.throws(() => checkLimit(args, BI.from(BI.from(10 * 10 ** 8 - 1))));
+  t.notThrows(() => checkLimit(args, BI.from(BI.from(10 * 10 ** 8))));
 });
 
 test("checkLimit, only capacity", (t) => {
   const args = bob.blake160 + "01";
-  t.throws(() => checkLimit(args, BI.from(JSBI.BigInt(0))));
-  t.throws(() => checkLimit(args, BI.from(JSBI.BigInt(10 * 10 ** 8 - 1))));
-  t.notThrows(() => checkLimit(args, BI.from(JSBI.BigInt(10 * 10 ** 8))));
+  t.throws(() => checkLimit(args, BI.from(BI.from(0))));
+  t.throws(() => checkLimit(args, BI.from(BI.from(10 * 10 ** 8 - 1))));
+  t.notThrows(() => checkLimit(args, BI.from(BI.from(10 * 10 ** 8))));
 });
 
 test("checkLimit, no limit", (t) => {
   const args = bob.blake160;
-  t.notThrows(() => checkLimit(args, BI.from(JSBI.BigInt(0))));
+  t.notThrows(() => checkLimit(args, BI.from(BI.from(0))));
 });

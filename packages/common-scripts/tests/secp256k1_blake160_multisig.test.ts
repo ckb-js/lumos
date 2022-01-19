@@ -8,7 +8,7 @@ import {
 import { secp256k1Blake160Multisig } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4 } = predefined;
-import { Cell, JSBI, values } from "@ckb-lumos/base";
+import { Cell, values } from "@ckb-lumos/base";
 import { bobMultisigInputs } from "./inputs";
 import { bob, alice } from "./account_info";
 import { BI } from "@ckb-lumos/bi";
@@ -64,7 +64,7 @@ test("JSBI:transfer success", async (t) => {
     txSkeleton,
     bob.fromInfo,
     alice.testnetAddress,
-    BI.from(JSBI.BigInt(500 * 10 ** 8)),
+    BI.from(BI.from(500 * 10 ** 8)),
     {
       config: AGGRON4,
     }
@@ -77,12 +77,12 @@ test("JSBI:transfer success", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => JSBI.BigInt(o.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((o) => BI.from(o.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("signingEntries").size, 1);
@@ -98,7 +98,7 @@ test("JSBI:transfer success", async (t) => {
 });
 
 test("injectCapacity", async (t) => {
-  const amount = JSBI.BigInt(500 * 10 ** 8);
+  const amount = BI.from(500 * 10 ** 8);
   const output: Cell = {
     cell_output: {
       capacity: "0x" + amount.toString(16),
@@ -126,12 +126,12 @@ test("injectCapacity", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => JSBI.BigInt(o.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((o) => BI.from(o.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("signingEntries").size, 1);

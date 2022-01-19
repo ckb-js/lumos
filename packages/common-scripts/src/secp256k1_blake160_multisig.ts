@@ -402,7 +402,7 @@ export async function transferCompatible(
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
         cell_output: {
-          capacity: "0x" + amount.toString(16),
+          capacity: "0x" + _amount.toString(16),
           lock: toScript,
           type: undefined,
         },
@@ -498,7 +498,7 @@ export async function transferCompatible(
         deductCapacity = _amount;
       }
       _amount = _amount.sub(deductCapacity);
-      changeCapacity = changeCapacity.add(changeCapacity).sub(deductCapacity);
+      changeCapacity = changeCapacity.add(inputCapacity.sub(deductCapacity));
       if (
         _amount.eq(0) &&
         (changeCapacity.eq(0) ||
@@ -622,18 +622,13 @@ export async function injectCapacity(
   if (outputIndex >= txSkeleton.get("outputs").size) {
     throw new Error("Invalid output index!");
   }
-  const capacity = txSkeleton.get("outputs").get(outputIndex)!.cell_output
-    .capacity;
-  return transferCompatible(
-    txSkeleton,
-    fromInfo,
-    undefined,
-    BI.from(capacity),
-    {
-      config,
-      requireToAddress: false,
-    }
+  const capacity = BI.from(
+    txSkeleton.get("outputs").get(outputIndex)!.cell_output.capacity
   );
+  return transferCompatible(txSkeleton, fromInfo, undefined, capacity, {
+    config,
+    requireToAddress: false,
+  });
 }
 
 /**

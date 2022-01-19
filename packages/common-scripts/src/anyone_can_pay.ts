@@ -5,7 +5,6 @@ import {
   CellProvider,
   core,
   HexString,
-  JSBI,
   OutPoint,
   PackedSince,
   QueryOptions,
@@ -25,7 +24,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { normalizers, Reader } from "ckb-js-toolkit";
 import { List, Set } from "immutable";
-import { BIish, toJSBI } from "@ckb-lumos/bi";
+import { BI, BIish } from "@ckb-lumos/bi";
 import { FromInfo, parseFromInfo } from "./from_info";
 import {
   addCellDep,
@@ -205,35 +204,29 @@ export async function setupInputCell(
 
 // export for tests
 export function checkLimit(acpArgs: HexString, capacity: BIish): void {
-  let _capacity = toJSBI(capacity);
-  let minimalAmount: JSBI | undefined;
-  let minimalCapacity: JSBI | undefined;
+  let _capacity = BI.from(capacity);
+  let minimalAmount: BI | undefined;
+  let minimalCapacity: BI | undefined;
   if (acpArgs.length >= 46) {
-    minimalAmount = JSBI.exponentiate(
-      JSBI.BigInt(10),
-      JSBI.BigInt("0x" + acpArgs.slice(44, 46))
-    );
+    minimalAmount = BI.from(10).pow("0x" + acpArgs.slice(44, 46));
   }
   if (acpArgs.length >= 44) {
     // should convert to shannons
-    const multiplier = JSBI.exponentiate(
-      JSBI.BigInt(10),
-      JSBI.BigInt("0x" + acpArgs.slice(42, 44))
-    );
-    const multiplicand = JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8));
-    minimalCapacity = JSBI.multiply(multiplier, multiplicand);
+    const multiplier = BI.from(10).pow("0x" + acpArgs.slice(42, 44));
+    const multiplicand = BI.from(10).pow(8);
+    minimalCapacity = multiplier.mul(multiplicand);
   }
   // Both minimalAmount & minimalCapacity OR only minimalCapacity
   if (minimalCapacity && minimalAmount) {
     //check if undefined
-    if (JSBI.lessThan(_capacity, minimalCapacity)) {
+    if (_capacity.lt(minimalCapacity)) {
       throw new Error(
         `capacity(${capacity}) less than toAddress minimal capacity limit(${minimalCapacity}), and amount less then toAddress minimal amount limit(${minimalAmount})! If you want to transfer sudt, maybe sudt.transfer can help you.`
       );
     }
   } else if (minimalCapacity) {
     //check if undefined
-    if (JSBI.lessThan(_capacity, minimalCapacity)) {
+    if (_capacity.lt(minimalCapacity)) {
       throw new Error(
         `capacity(${capacity}) less than toAddress minimal capacity limit(${minimalCapacity})!`
       );
@@ -250,7 +243,7 @@ export async function setupOutputCell(
 
   const toScript: Script = outputCell.cell_output.lock;
 
-  const capacity: JSBI = JSBI.BigInt(outputCell.cell_output.capacity);
+  const capacity: BI = BI.from(outputCell.cell_output.capacity);
 
   checkLimit(toScript.args, capacity.toString());
 
@@ -268,12 +261,9 @@ export async function setupOutputCell(
     await toAddressCellCollector.collect().next()
   ).value;
 
-  let outputCapacity: JSBI = capacity;
+  let outputCapacity: BI = capacity;
   if (toAddressInput) {
-    outputCapacity = JSBI.add(
-      capacity,
-      JSBI.BigInt(toAddressInput.cell_output.capacity)
-    );
+    outputCapacity = capacity.add(toAddressInput.cell_output.capacity);
 
     txSkeleton = txSkeleton.update("inputs", (inputs) => {
       return inputs.push(toAddressInput);
@@ -321,7 +311,7 @@ export async function injectCapacity(
     throw new Error(`Invalid output index!`);
   }
 
-  let _capacity = JSBI.BigInt(capacity.toString());
+  let _capacity = BI.from(capacity);
 
   const template = config.SCRIPTS.ANYONE_CAN_PAY;
   if (!template) {
@@ -345,45 +335,36 @@ export async function injectCapacity(
     .filter(({ field }) => field === "outputs")
     .maxBy(({ index }) => index);
   let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
-  for (
-    ;
-    i < txSkeleton.get("outputs").size &&
-    JSBI.greaterThan(_capacity, JSBI.BigInt(0));
-    i++
-  ) {
+  for (; i < txSkeleton.get("outputs").size && _capacity.gt(0); i++) {
     const output = txSkeleton.get("outputs").get(i)!;
     if (
       new ScriptValue(output.cell_output.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
     ) {
-      const cellCapacity: JSBI = JSBI.BigInt(output.cell_output.capacity);
-      const availableCapacity: JSBI = JSBI.subtract(
-        cellCapacity,
-        toJSBI(minimalCellCapacityCompatible(output))
+      const cellCapacity: BI = BI.from(output.cell_output.capacity);
+      const availableCapacity: BI = cellCapacity.sub(
+        minimalCellCapacityCompatible(output)
       );
       // should maintain minimal cell capcity in anyone-can-pay output
-      const deductCapacity: JSBI = JSBI.greaterThanOrEqual(
-        _capacity,
-        availableCapacity
-      )
+      const deductCapacity: BI = _capacity.gte(availableCapacity)
         ? availableCapacity
         : _capacity;
-      _capacity = JSBI.subtract(_capacity, deductCapacity);
+      _capacity = _capacity.sub(deductCapacity);
       output.cell_output.capacity =
-        "0x" + JSBI.subtract(cellCapacity, deductCapacity).toString(16);
+        "0x" + cellCapacity.sub(deductCapacity).toString(16);
     }
   }
   // Remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.filter((output) =>
-      JSBI.notEqual(JSBI.BigInt(output.cell_output.capacity), JSBI.BigInt(0))
+    return outputs.filter(
+      (output) => !BI.from(output.cell_output.capacity).eq(0)
     );
   });
 
   const getInputKey = (input: Cell) =>
     `${input.out_point!.tx_hash}_${input.out_point!.index}`;
-  if (JSBI.greaterThan(_capacity, JSBI.BigInt(0))) {
+  if (_capacity.gt(0)) {
     const changeCell: Cell = {
       cell_output: {
         capacity: "0x0",
@@ -394,8 +375,8 @@ export async function injectCapacity(
       out_point: undefined,
       block_hash: undefined,
     };
-    let changeCapacity = JSBI.BigInt(0);
-    const minimalChangeCapacity: JSBI = toJSBI(
+    let changeCapacity = BI.from(0);
+    const minimalChangeCapacity: BI = BI.from(
       minimalCellCapacityCompatible(changeCell)
     );
 
@@ -431,20 +412,14 @@ export async function injectCapacity(
         });
       }
 
-      const inputCapacity = JSBI.BigInt(inputCell.cell_output.capacity);
+      const inputCapacity = BI.from(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
-      if (JSBI.greaterThan(deductCapacity, _capacity)) {
+      if (deductCapacity.gt(_capacity)) {
         deductCapacity = _capacity;
       }
-      _capacity = JSBI.subtract(_capacity, deductCapacity);
-      changeCapacity = JSBI.add(
-        changeCapacity,
-        JSBI.subtract(inputCapacity, deductCapacity)
-      );
-      if (
-        JSBI.equal(_capacity, JSBI.BigInt(0)) &&
-        JSBI.greaterThanOrEqual(changeCapacity, minimalChangeCapacity)
-      ) {
+      _capacity = _capacity.sub(deductCapacity);
+      changeCapacity = changeCapacity.add(inputCapacity.sub(deductCapacity));
+      if (_capacity.eq(0) && changeCapacity.gte(minimalChangeCapacity)) {
         break;
       }
 
@@ -454,10 +429,7 @@ export async function injectCapacity(
       });
     }
 
-    if (
-      JSBI.greaterThan(_capacity, JSBI.BigInt(0)) ||
-      changeCapacity < minimalChangeCapacity
-    ) {
+    if (_capacity.gt(0) || changeCapacity < minimalChangeCapacity) {
       throw new Error(`Not enough capacity in from address!`);
     }
 
@@ -508,14 +480,14 @@ export function prepareSigningEntries(
           validate: false,
         }).equals(new ScriptValue(input.cell_output.lock, { validate: false }));
       });
-      const sumOfOutputCapacity: JSBI = outputs
-        .map((output) => JSBI.BigInt(output.cell_output.capacity))
-        .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+      const sumOfOutputCapacity: BI = outputs
+        .map((output) => BI.from(output.cell_output.capacity))
+        .reduce((result, c) => result.add(c), BI.from(0));
 
-      const sumOfOutputAmount: JSBI = outputs
+      const sumOfOutputAmount: BI = outputs
         .filter((output) => output.data !== "0x")
-        .map((output) => toJSBI(readBigUInt128LECompatible(output.data)))
-        .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+        .map((output) => BI.from(readBigUInt128LECompatible(output.data)))
+        .reduce((result, c) => result.add(c), BI.from(0));
 
       const fInputs: List<Cell> = inputs.filter((i) => {
         return new ScriptValue(i.cell_output.lock, { validate: false }).equals(
@@ -523,18 +495,18 @@ export function prepareSigningEntries(
         );
       });
 
-      const sumOfInputCapacity: JSBI = fInputs
-        .map((i) => JSBI.BigInt(i.cell_output.capacity))
-        .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+      const sumOfInputCapacity: BI = fInputs
+        .map((i) => BI.from(i.cell_output.capacity))
+        .reduce((result, c) => result.add(c), BI.from(0));
 
-      const sumOfInputAmount: JSBI = fInputs
+      const sumOfInputAmount: BI = fInputs
         .filter((i) => i.data !== "0x")
-        .map((i) => toJSBI(readBigUInt128LECompatible(i.data)))
-        .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+        .map((i) => BI.from(readBigUInt128LECompatible(i.data)))
+        .reduce((result, c) => result.add(c), BI.from(0));
 
       if (
-        JSBI.lessThanOrEqual(sumOfInputCapacity, sumOfOutputCapacity) &&
-        JSBI.lessThanOrEqual(sumOfInputAmount, sumOfOutputAmount)
+        sumOfInputCapacity.lte(sumOfOutputCapacity) &&
+        sumOfInputAmount.lte(sumOfOutputAmount)
       ) {
         continue;
       }
@@ -592,24 +564,20 @@ export async function withdraw(
   }
 
   // check capacity
-  let _capacity = JSBI.BigInt(capacity.toString());
-  const fromInputCapacity: JSBI = JSBI.BigInt(fromInput.cell_output.capacity);
-  const inputMinimalCellCapacity: JSBI = toJSBI(
+  let _capacity = BI.from(capacity);
+  const fromInputCapacity: BI = BI.from(fromInput.cell_output.capacity);
+  const inputMinimalCellCapacity: BI = BI.from(
     minimalCellCapacityCompatible(fromInput)
   );
   if (
     !(
-      (JSBI.greaterThanOrEqual(_capacity, JSBI.BigInt(0)) &&
-        JSBI.lessThanOrEqual(
-          _capacity,
-          JSBI.subtract(fromInputCapacity, inputMinimalCellCapacity)
-        )) ||
-      JSBI.equal(_capacity, fromInputCapacity)
+      (_capacity.gte(0) &&
+        _capacity.lte(fromInputCapacity.sub(inputMinimalCellCapacity))) ||
+      _capacity.eq(fromInputCapacity)
     )
   ) {
     throw new Error(
-      `capacity must be in [0, ${JSBI.subtract(
-        fromInputCapacity,
+      `capacity must be in [0, ${fromInputCapacity.sub(
         inputMinimalCellCapacity
       )}] or ${fromInputCapacity} !`
     );
@@ -647,9 +615,8 @@ export async function withdraw(
       throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
     }
 
-    const outputCapacity: JSBI = JSBI.add(
-      _capacity,
-      JSBI.BigInt(toAddressInput.cell_output.capacity)
+    const outputCapacity: BI = _capacity.add(
+      toAddressInput.cell_output.capacity
     );
     targetOutput.cell_output.capacity = "0x" + outputCapacity.toString(16);
 
@@ -689,16 +656,11 @@ export async function withdraw(
     });
   }
 
-  if (JSBI.notEqual(_capacity, fromInputCapacity)) {
+  if (!_capacity.eq(fromInputCapacity)) {
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
         cell_output: {
-          capacity:
-            "0x" +
-            JSBI.subtract(
-              fromInputCapacity,
-              JSBI.BigInt(capacity.toString())
-            ).toString(16),
+          capacity: "0x" + fromInputCapacity.sub(capacity).toString(16),
           lock: fromInput.cell_output.lock,
           type: fromInput.cell_output.type,
         },

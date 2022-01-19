@@ -8,7 +8,6 @@ import {
   Header,
   CellCollector as CellCollectorInterface,
   values,
-  JSBI,
 } from "@ckb-lumos/base";
 const { toBigUInt128LE, computeScriptHash } = utils;
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
@@ -29,7 +28,7 @@ import anyoneCanPay, {
 const { ScriptValue } = values;
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
-import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
+import { BI, BIish } from "@ckb-lumos/bi";
 
 export type Token = Hash;
 
@@ -90,7 +89,8 @@ export async function issueToken(
   if (!capacity) {
     capacity = minimalCellCapacityCompatible(targetOutput);
   }
-  targetOutput.cell_output.capacity = "0x" + capacity.toString(16);
+  let _capacity = BI.from(capacity);
+  targetOutput.cell_output.capacity = "0x" + _capacity.toString(16);
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push(targetOutput);
@@ -109,7 +109,7 @@ export async function issueToken(
   txSkeleton = await common.injectCapacity(
     txSkeleton,
     [fromInfo],
-    BI.from(JSBI.BigInt(targetOutput.cell_output.capacity)),
+    BI.from(BI.from(targetOutput.cell_output.capacity)),
     undefined,
     tipHeader,
     {
@@ -151,8 +151,8 @@ export async function transfer(
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  let _amount = toJSBI(amount);
-  let _capacity = capacity ? toJSBI(capacity) : undefined;
+  let _amount = BI.from(amount);
+  let _capacity = capacity ? BI.from(capacity) : undefined;
 
   const SUDT_SCRIPT = config.SCRIPTS.SUDT;
 
@@ -176,7 +176,7 @@ export async function transfer(
     ? parseAddress(changeAddress, { config })
     : fromScripts[0];
 
-  if (JSBI.lessThanOrEqual(_amount, JSBI.BigInt(0))) {
+  if (_amount.lte(0)) {
     throw new Error("amount must be greater than 0");
   }
 
@@ -188,8 +188,8 @@ export async function transfer(
   }
 
   // if toScript is an anyone-can-pay script
-  let toAddressInputCapacity: JSBI = JSBI.BigInt(0);
-  let toAddressInputAmount: JSBI = JSBI.BigInt(0);
+  let toAddressInputCapacity: BI = BI.from(0);
+  let toAddressInputAmount: BI = BI.from(0);
   if (isAcpScript(toScript, config)) {
     const toAddressCellCollector = new AnyoneCanPayCellCollector(
       toAddress,
@@ -218,8 +218,8 @@ export async function transfer(
       return witnesses.push("0x");
     });
 
-    toAddressInputCapacity = JSBI.BigInt(toAddressInput.cell_output.capacity);
-    toAddressInputAmount = toJSBI(
+    toAddressInputCapacity = BI.from(toAddressInput.cell_output.capacity);
+    toAddressInputAmount = BI.from(
       readBigUInt128LECompatible(toAddressInput.data)
     );
   }
@@ -236,16 +236,14 @@ export async function transfer(
   };
   if (isAcpScript(toScript, config)) {
     if (!_capacity) {
-      _capacity = JSBI.BigInt(0);
+      _capacity = BI.from(0);
     }
     targetOutput.cell_output.capacity =
-      "0x" + JSBI.add(toAddressInputCapacity, _capacity).toString(16);
-    targetOutput.data = toBigUInt128LE(
-      JSBI.add(toAddressInputAmount, JSBI.BigInt(_amount)).toString()
-    );
+      "0x" + toAddressInputCapacity.add(_capacity).toString(16);
+    targetOutput.data = toBigUInt128LE(toAddressInputAmount.add(_amount));
   } else {
     if (!_capacity) {
-      _capacity = toJSBI(minimalCellCapacityCompatible(targetOutput));
+      _capacity = BI.from(minimalCellCapacityCompatible(targetOutput));
     }
     targetOutput.cell_output.capacity = "0x" + _capacity.toString(16);
   }
@@ -277,7 +275,7 @@ export async function transfer(
       lock: changeOutputLockScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(JSBI.BigInt(0).toString()),
+    data: toBigUInt128LE(BI.from(0).toString()),
     out_point: undefined,
     block_hash: undefined,
   };
@@ -291,8 +289,8 @@ export async function transfer(
     out_point: undefined,
     block_hash: undefined,
   };
-  let changeCapacity = JSBI.BigInt(0);
-  let changeAmount = JSBI.BigInt(0);
+  let changeCapacity = BI.from(0);
+  let changeAmount = BI.from(0);
   let previousInputs = Set<string>();
   for (const input of txSkeleton.get("inputs")) {
     previousInputs = previousInputs.add(
@@ -480,42 +478,30 @@ export async function transfer(
         });
       }
 
-      const inputCapacity: JSBI = JSBI.BigInt(inputCell.cell_output.capacity);
-      const inputAmount: JSBI = inputCell.cell_output.type
-        ? toJSBI(readBigUInt128LECompatible(inputCell.data))
-        : JSBI.BigInt(0);
-      let deductCapacity: JSBI =
+      const inputCapacity: BI = BI.from(inputCell.cell_output.capacity);
+      const inputAmount: BI = inputCell.cell_output.type
+        ? BI.from(readBigUInt128LECompatible(inputCell.data))
+        : BI.from(0);
+      let deductCapacity: BI =
         isAnyoneCanPay && !destroyable
-          ? JSBI.subtract(
-              inputCapacity,
-              toJSBI(minimalCellCapacityCompatible(inputCell))
-            )
+          ? inputCapacity.sub(minimalCellCapacityCompatible(inputCell))
           : inputCapacity;
-      let deductAmount: JSBI = inputAmount;
-      if (JSBI.greaterThan(deductCapacity, JSBI.BigInt(_capacity.toString()))) {
-        deductCapacity = JSBI.BigInt(_capacity.toString());
+      let deductAmount: BI = inputAmount;
+      if (deductCapacity.gt(_capacity)) {
+        deductCapacity = BI.from(_capacity);
       }
-      _capacity = JSBI.subtract(
-        JSBI.BigInt(_capacity.toString()),
-        deductCapacity
-      );
-      const currentChangeCapacity: JSBI = JSBI.subtract(
-        inputCapacity,
-        deductCapacity
-      );
+      _capacity = _capacity.sub(deductCapacity);
+      const currentChangeCapacity: BI = inputCapacity.sub(deductCapacity);
       if (!isAnyoneCanPay || (isAnyoneCanPay && destroyable)) {
-        changeCapacity = JSBI.add(changeCapacity, currentChangeCapacity);
+        changeCapacity = changeCapacity.add(currentChangeCapacity);
       }
-      if (JSBI.greaterThan(deductAmount, _amount)) {
+      if (deductAmount.gt(_amount)) {
         deductAmount = _amount;
       }
-      _amount = JSBI.subtract(_amount, deductAmount);
-      const currentChangeAmount: JSBI = JSBI.subtract(
-        inputAmount,
-        deductAmount
-      );
+      _amount = _amount.sub(deductAmount);
+      const currentChangeAmount: BI = inputAmount.sub(deductAmount);
       if (!isAnyoneCanPay || (isAnyoneCanPay && destroyable)) {
-        changeAmount = JSBI.add(changeAmount, currentChangeAmount);
+        changeAmount = changeAmount.add(currentChangeAmount);
       }
 
       if (isAnyoneCanPay && !destroyable) {
@@ -546,28 +532,25 @@ export async function transfer(
 
       // changeAmount = 0n, the change output no need to include sudt type script
       if (
-        JSBI.equal(_capacity, JSBI.BigInt(0)) &&
-        JSBI.equal(_amount, JSBI.BigInt(0)) &&
-        ((JSBI.equal(changeCapacity, JSBI.BigInt(0)) &&
-          JSBI.equal(changeAmount, JSBI.BigInt(0))) ||
-          (JSBI.greaterThan(
-            changeCapacity,
-            toJSBI(minimalCellCapacityCompatible(changeCellWithoutSudt))
+        _capacity.eq(0) &&
+        _amount.eq(0) &&
+        ((changeCapacity.eq(0) && changeAmount.eq(0)) ||
+          (changeCapacity.gt(
+            minimalCellCapacityCompatible(changeCellWithoutSudt)
           ) &&
-            JSBI.equal(changeAmount, JSBI.BigInt(0))))
+            changeAmount.eq(0)))
       ) {
         changeCell.cell_output.type = undefined;
         changeCell.data = "0x";
         break;
       }
       if (
-        JSBI.equal(_capacity, JSBI.BigInt(0)) &&
-        JSBI.equal(_amount, JSBI.BigInt(0)) &&
-        JSBI.greaterThan(
-          changeCapacity,
-          toJSBI(minimalCellCapacityCompatible(changeCellWithoutSudt))
+        _capacity.eq(0) &&
+        _amount.eq(0) &&
+        changeCapacity.gt(
+          minimalCellCapacityCompatible(changeCellWithoutSudt)
         ) &&
-        JSBI.greaterThan(changeAmount, JSBI.BigInt(0))
+        changeAmount.gt(0)
       ) {
         break;
       }
@@ -588,10 +571,10 @@ export async function transfer(
         }).equals(
           new ScriptValue(output.cell_output.lock, { validate: false })
         ) &&
-        ((JSBI.equal(changeAmount, JSBI.BigInt(0)) &&
+        ((changeAmount.eq(0) &&
           !changeCell.cell_output.type &&
           !output.cell_output.type) ||
-          (JSBI.greaterThanOrEqual(changeAmount, JSBI.BigInt(0)) &&
+          (changeAmount.gte(0) &&
             !!changeCell.cell_output.type &&
             !!output.cell_output.type &&
             new ScriptValue(changeCell.cell_output.type, {
@@ -613,35 +596,27 @@ export async function transfer(
     const clonedOutput: Cell = JSON.parse(JSON.stringify(originOutput));
     clonedOutput.cell_output.capacity =
       "0x" +
-      JSBI.add(
-        JSBI.BigInt(originOutput.cell_output.capacity),
-        changeCapacity
-      ).toString(16);
-    if (JSBI.greaterThan(changeAmount, JSBI.BigInt(0))) {
+      BI.from(originOutput.cell_output.capacity)
+        .add(changeCapacity)
+        .toString(16);
+    if (changeAmount.gt(0)) {
       clonedOutput.data = toBigUInt128LE(
-        JSBI.add(
-          toJSBI(readBigUInt128LECompatible(originOutput.data)),
-          changeAmount
-        ).toString()
+        readBigUInt128LECompatible(originOutput.data).add(changeAmount)
       );
     }
 
-    const minimalChangeCellCapcaity = toJSBI(
+    const minimalChangeCellCapcaity = BI.from(
       minimalCellCapacityCompatible(changeCell)
     );
-    const minimalChangeCellWithoutSudtCapacity = toJSBI(
+    const minimalChangeCellWithoutSudtCapacity = BI.from(
       minimalCellCapacityCompatible(changeCellWithoutSudt)
     );
     let splitFlag: boolean = false;
     if (
-      JSBI.greaterThan(changeAmount, JSBI.BigInt(0)) &&
+      changeAmount.gt(0) &&
       splitChangeCell &&
-      JSBI.greaterThanOrEqual(
-        changeCapacity,
-        JSBI.add(
-          minimalChangeCellCapcaity,
-          minimalChangeCellWithoutSudtCapacity
-        )
+      changeCapacity.gte(
+        minimalChangeCellCapcaity.add(minimalChangeCellWithoutSudtCapacity)
       )
     ) {
       clonedOutput.cell_output.capacity = originOutput.cell_output.capacity;
@@ -659,39 +634,29 @@ export async function transfer(
         return outputs.push(changeCellWithoutSudt);
       });
     }
-  } else if (
-    JSBI.greaterThanOrEqual(
-      changeCapacity,
-      toJSBI(minimalCellCapacityCompatible(changeCell))
-    )
-  ) {
+  } else if (changeCapacity.gte(minimalCellCapacityCompatible(changeCell))) {
     changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
-    if (JSBI.greaterThan(changeAmount, JSBI.BigInt(0))) {
+    if (changeAmount.gt(0)) {
       changeCell.data = toBigUInt128LE(changeAmount.toString());
     }
 
-    const minimalChangeCellCapcaity = toJSBI(
+    const minimalChangeCellCapcaity = BI.from(
       minimalCellCapacityCompatible(changeCell)
     );
-    const minimalChangeCellWithoutSudtCapacity = toJSBI(
+    const minimalChangeCellWithoutSudtCapacity = BI.from(
       minimalCellCapacityCompatible(changeCellWithoutSudt)
     );
     let splitFlag = false;
-    if (JSBI.greaterThan(changeAmount, JSBI.BigInt(0)) && splitChangeCell) {
+    if (changeAmount.gt(0) && splitChangeCell) {
       if (
-        JSBI.greaterThanOrEqual(
-          changeCapacity,
-          JSBI.add(
-            minimalChangeCellCapcaity,
-            minimalChangeCellWithoutSudtCapacity
-          )
+        changeCapacity.gte(
+          minimalChangeCellCapcaity.add(minimalChangeCellWithoutSudtCapacity)
         )
       ) {
         changeCell.cell_output.capacity =
           "0x" + minimalChangeCellCapcaity.toString(16);
         changeCellWithoutSudt.cell_output.capacity =
-          "0x" +
-          JSBI.subtract(changeCapacity, minimalChangeCellCapcaity).toString(16);
+          "0x" + changeCapacity.sub(minimalChangeCellCapcaity).toString(16);
         splitFlag = true;
       }
     }
@@ -699,7 +664,7 @@ export async function transfer(
     txSkeleton = txSkeleton.update("outputs", (outputs) =>
       outputs.push(changeCell)
     );
-    if (JSBI.greaterThan(changeAmount, JSBI.BigInt(0))) {
+    if (changeAmount.gt(0)) {
       txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
         return fixedEntries.push({
           field: "outputs",
@@ -713,18 +678,15 @@ export async function transfer(
       });
     }
   } else if (
-    JSBI.greaterThan(changeAmount, JSBI.BigInt(0)) &&
-    JSBI.lessThan(
-      changeCapacity,
-      toJSBI(minimalCellCapacityCompatible(changeCell))
-    )
+    changeAmount.gt(0) &&
+    changeCapacity.lt(minimalCellCapacityCompatible(changeCell))
   ) {
     throw new Error("Not enough capacity for change in from infos!");
   }
-  if (JSBI.greaterThan(JSBI.BigInt(_capacity.toString()), JSBI.BigInt(0))) {
+  if (_capacity.gt(0)) {
     throw new Error("Not enough capacity in from infos!");
   }
-  if (JSBI.greaterThan(_amount, JSBI.BigInt(0))) {
+  if (_amount.gt(0)) {
     throw new Error("Not enough amount in from infos!");
   }
 

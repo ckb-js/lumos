@@ -17,7 +17,6 @@ import {
   PackedDao,
   PackedSince,
   CellCollector as CellCollectorInterface,
-  JSBI,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
@@ -34,10 +33,10 @@ import {
 } from "./helper";
 import { RPC } from "@ckb-lumos/rpc";
 import { readBigUInt64LECompatible } from "@ckb-lumos/base/lib/utils";
-import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
+import { BI, BIish } from "@ckb-lumos/bi";
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
-const DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE = JSBI.BigInt(180);
+const DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE = BI.from(180);
 
 export class CellCollector implements CellCollectorInterface {
   private cellCollector: CellCollectorInterface;
@@ -144,7 +143,7 @@ export async function deposit(
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push({
       cell_output: {
-        capacity: "0x" + JSBI.BigInt(amount.toString()).toString(16),
+        capacity: "0x" + BI.from(amount).toString(16),
         lock: toScript,
         type: daoTypeScript,
       },
@@ -284,9 +283,7 @@ async function withdraw(
   const targetOutputIndex: number = txSkeleton.get("outputs").size - 1;
   const targetOutput: Cell = txSkeleton.get("outputs").get(targetOutputIndex)!;
   const clonedTargetOutput: Cell = JSON.parse(JSON.stringify(targetOutput));
-  clonedTargetOutput.data = toBigUInt64LE(
-    JSBI.BigInt(fromInput.block_number!).toString()
-  );
+  clonedTargetOutput.data = toBigUInt64LE(BI.from(fromInput.block_number));
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.update(targetOutputIndex, () => clonedTargetOutput);
   });
@@ -314,22 +311,17 @@ async function withdraw(
 }
 
 function parseEpochCompatible(
-  epoch: JSBI
+  epoch: BIish
 ): {
-  length: JSBI;
-  index: JSBI;
-  number: JSBI;
+  length: BI;
+  index: BI;
+  number: BI;
 } {
+  const _epoch = BI.from(epoch);
   return {
-    length: JSBI.bitwiseAnd(
-      JSBI.signedRightShift(epoch, JSBI.BigInt(40)),
-      JSBI.BigInt(0xffff)
-    ),
-    index: JSBI.bitwiseAnd(
-      JSBI.signedRightShift(epoch, JSBI.BigInt(24)),
-      JSBI.BigInt(0xffff)
-    ),
-    number: JSBI.bitwiseAnd(epoch, JSBI.BigInt(0xffffff)),
+    length: _epoch.shr(40).and(0xfff),
+    index: _epoch.shr(24).and(0xfff),
+    number: _epoch.and(0xffffff),
   };
 }
 
@@ -342,21 +334,14 @@ function epochSinceCompatible({
   index: BIish;
   number: BIish;
 }): BI {
-  const _length = toJSBI(length);
-  const _index = toJSBI(index);
-  const _number = toJSBI(number);
-
-  const result = JSBI.add(
-    JSBI.add(
-      JSBI.add(
-        JSBI.leftShift(JSBI.BigInt(0x20), JSBI.BigInt(56)),
-        JSBI.leftShift(_length, JSBI.BigInt(40))
-      ),
-      JSBI.leftShift(_index, JSBI.BigInt(24))
-    ),
-    _number
-  );
-  return BI.from(result);
+  const _length = BI.from(length);
+  const _index = BI.from(index);
+  const _number = BI.from(number);
+  return BI.from(0x20)
+    .shl(56)
+    .add(_length.shl(40))
+    .add(_index.shl(24))
+    .add(_number);
 }
 
 /**
@@ -417,44 +402,27 @@ export async function unlock(
 
   // calculate since & capacity (interest)
   const depositBlockHeader = await rpc.get_header(depositInput.block_hash!);
-  const depositEpoch = parseEpochCompatible(
-    JSBI.BigInt(depositBlockHeader!.epoch)
-  );
+  const depositEpoch = parseEpochCompatible(depositBlockHeader!.epoch);
   // const depositCapacity = BigInt(depositInput.cell_output.capacity)
 
   const withdrawBlockHeader = await rpc.get_header(withdrawInput.block_hash!);
-  const withdrawEpoch = parseEpochCompatible(
-    JSBI.BigInt(withdrawBlockHeader!.epoch)
-  );
+  const withdrawEpoch = parseEpochCompatible(withdrawBlockHeader!.epoch);
 
-  const withdrawFraction = JSBI.multiply(
-    withdrawEpoch.index,
-    depositEpoch.length
-  );
-  const depositFraction = JSBI.multiply(
-    depositEpoch.index,
-    withdrawEpoch.length
-  );
-  let depositedEpochs = JSBI.subtract(
-    withdrawEpoch.number,
-    depositEpoch.number
-  );
+  const withdrawFraction = withdrawEpoch.index.mul(depositEpoch.length);
+  const depositFraction = depositEpoch.index.mul(withdrawEpoch.length);
+  let depositedEpochs = withdrawEpoch.number.sub(depositEpoch.number);
 
-  if (JSBI.greaterThan(withdrawFraction, depositFraction)) {
-    depositedEpochs = JSBI.add(depositedEpochs, JSBI.BigInt(1));
+  if (withdrawFraction.gt(depositFraction)) {
+    depositedEpochs = depositedEpochs.add(1);
   }
-  const lockEpochs = JSBI.multiply(
-    JSBI.divide(
-      JSBI.add(
-        depositedEpochs,
-        JSBI.subtract(DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE, JSBI.BigInt(1))
-      ),
-      DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE
-    ),
-    DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE
-  );
+
+  const lockEpochs = depositedEpochs
+    .add(DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE)
+    .sub(1)
+    .div(DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE)
+    .mul(DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE);
   const minimalSinceEpoch = {
-    number: BI.from(JSBI.add(depositEpoch.number, lockEpochs)),
+    number: BI.from(depositEpoch.number.add(lockEpochs)),
     index: BI.from(depositEpoch.index),
     length: BI.from(depositEpoch.length),
   };
@@ -499,7 +467,7 @@ export async function unlock(
 
   // setup input cell
   const defaultWitnessArgs: WitnessArgs = {
-    input_type: toBigUInt64LE(JSBI.BigInt(depositHeaderDepIndex).toString()),
+    input_type: toBigUInt64LE(depositHeaderDepIndex),
   };
   const defaultWitness: HexString = new Reader(
     core.SerializeWitnessArgs(
@@ -580,41 +548,23 @@ export function calculateDaoEarliestSinceCompatible(
   depositBlockHeaderEpoch: HexString,
   withdrawBlockHeaderEpoch: HexString
 ): BI {
-  const depositEpoch = parseEpochCompatible(
-    JSBI.BigInt(depositBlockHeaderEpoch)
-  );
-  const withdrawEpoch = parseEpochCompatible(
-    JSBI.BigInt(withdrawBlockHeaderEpoch)
-  );
-  const withdrawFraction = JSBI.multiply(
-    withdrawEpoch.index,
-    depositEpoch.length
-  );
-  const depositFraction = JSBI.multiply(
-    depositEpoch.index,
-    withdrawEpoch.length
-  );
-  let depositedEpochs = JSBI.subtract(
-    withdrawEpoch.number,
-    depositEpoch.number
-  );
+  const depositEpoch = parseEpochCompatible(depositBlockHeaderEpoch);
+  const withdrawEpoch = parseEpochCompatible(withdrawBlockHeaderEpoch);
+  const withdrawFraction = withdrawEpoch.index.mul(depositEpoch.length);
+  const depositFraction = depositEpoch.index.mul(withdrawEpoch.length);
+  let depositedEpochs = withdrawEpoch.number.sub(depositEpoch.number);
 
-  if (JSBI.greaterThan(withdrawFraction, depositFraction)) {
-    depositedEpochs = JSBI.add(depositedEpochs, JSBI.BigInt(1));
+  if (withdrawFraction.gt(depositFraction)) {
+    depositedEpochs = depositedEpochs.add(1);
   }
 
-  const lockEpochs = JSBI.multiply(
-    JSBI.divide(
-      JSBI.add(
-        depositedEpochs,
-        JSBI.subtract(DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE, JSBI.BigInt(1))
-      ),
-      DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE
-    ),
-    DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE
-  );
+  const lockEpochs = depositedEpochs
+    .add(DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE)
+    .sub(1)
+    .div(DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE)
+    .mul(DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE);
   const minimalSinceEpoch = {
-    number: BI.from(JSBI.add(depositEpoch.number, lockEpochs).toString()),
+    number: BI.from(depositEpoch.number.add(lockEpochs)),
     index: BI.from(depositEpoch.index),
     length: BI.from(depositEpoch.length),
   };
@@ -702,18 +652,17 @@ export function calculateMaximumWithdrawCompatible(
   depositDao: PackedDao,
   withdrawDao: PackedDao
 ): BI {
-  const depositAR = toJSBI(extractDaoDataCompatible(depositDao).ar);
-  const withdrawAR = toJSBI(extractDaoDataCompatible(withdrawDao).ar);
+  const depositAR = BI.from(extractDaoDataCompatible(depositDao).ar);
+  const withdrawAR = BI.from(extractDaoDataCompatible(withdrawDao).ar);
 
-  const occupiedCapacity = toJSBI(minimalCellCapacityCompatible(withdrawCell));
-  const outputCapacity = JSBI.BigInt(withdrawCell.cell_output.capacity);
-  const countedCapacity = JSBI.subtract(outputCapacity, occupiedCapacity);
-  const withdrawCountedCapacity = JSBI.divide(
-    JSBI.multiply(countedCapacity, withdrawAR),
-    depositAR
-  );
+  const occupiedCapacity = BI.from(minimalCellCapacityCompatible(withdrawCell));
+  const outputCapacity = BI.from(withdrawCell.cell_output.capacity);
+  const countedCapacity = outputCapacity.sub(occupiedCapacity);
+  const withdrawCountedCapacity = countedCapacity
+    .mul(withdrawAR)
+    .div(depositAR);
 
-  return BI.from(JSBI.add(withdrawCountedCapacity, occupiedCapacity));
+  return withdrawCountedCapacity.add(occupiedCapacity);
 }
 
 export default {

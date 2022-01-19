@@ -9,7 +9,7 @@ import { predefined, Config } from "@ckb-lumos/config-manager";
 const { LINA, AGGRON4 } = predefined;
 import { bob } from "./account_info";
 import { inputs } from "./secp256k1_blake160_inputs";
-import { Script, Cell, HexString, JSBI } from "@ckb-lumos/base";
+import { Script, Cell, HexString } from "@ckb-lumos/base";
 import {
   bobMultisigDaoInputs,
   bobMultisigInputs,
@@ -41,18 +41,18 @@ test("deposit secp256k1_blake160", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     bob.mainnetAddress,
-    BI.from(JSBI.BigInt(1000 * 10 ** 8))
+    BI.from(BI.from(1000 * 10 ** 8))
   );
 
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
 
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => JSBI.BigInt(o.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((o) => BI.from(o.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(outputCapacity.toString(), inputCapacity.toString());
 
@@ -79,7 +79,7 @@ test("withdraw secp256k1_blake160", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     bob.mainnetAddress,
-    BI.from(JSBI.BigInt(1000 * 10 ** 8))
+    BI.from(BI.from(1000 * 10 ** 8))
   );
 
   const fromInput = txSkeleton.get("outputs").get(0)!;
@@ -118,13 +118,13 @@ test("withdraw secp256k1_blake160", async (t) => {
 
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
 
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => JSBI.BigInt(o.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((o) => BI.from(o.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(outputCapacity.toString(), inputCapacity.toString());
 });
@@ -210,7 +210,7 @@ test("JSBI:calculateMaximumWithdrawCompatible", (t) => {
 
   t.is(
     result.toString(),
-    JSBI.BigInt(expectedWithdrawCapacity.toString()).toString()
+    BI.from(expectedWithdrawCapacity.toString()).toString()
   );
 });
 
@@ -224,7 +224,7 @@ test("deposit multisig", async (t) => {
     txSkeleton,
     bob.fromInfo,
     bob.multisigTestnetAddress,
-    BI.from(JSBI.BigInt(500 * 10 ** 8)),
+    BI.from(BI.from(500 * 10 ** 8)),
     { config: AGGRON4 }
   );
 
@@ -232,13 +232,13 @@ test("deposit multisig", async (t) => {
 
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
 
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => JSBI.BigInt(o.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((o) => BI.from(o.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(outputCapacity.toString(), inputCapacity.toString());
 
@@ -323,13 +323,13 @@ test("withdraw multisig", async (t) => {
 
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => JSBI.BigInt(i.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((i) => BI.from(i.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
 
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => JSBI.BigInt(o.cell_output.capacity))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .map((o) => BI.from(o.cell_output.capacity))
+    .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(outputCapacity.toString(), inputCapacity.toString());
 
@@ -471,7 +471,7 @@ test("JSBI:calculateDaoEarliestSinceCompatible", (t) => {
 
   // since: relative = false, type = epochNumber value = { length: 10, index: 5, number: 10478 }
   // if decrease index to 4, will false to validation by dao script
-  t.is(result.toString(), JSBI.BigInt("0x20000a00050028ee").toString());
+  t.is(result.toString(), BI.from("0x20000a00050028ee").toString());
 });
 
 class RpcMocker {
