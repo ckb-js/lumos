@@ -2,7 +2,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "examples/*"
+    "examples/*",
+    "docusaurus/website"
   ],
   "engines": {
     "node": ">=12.0.0"
@@ -43,7 +44,7 @@
   },
   "scripts": {
     "docs": "npm run docs:docusaurus && npm run docs:typedoc",
-    "docs:docusaurus": "cd docusaurus/website && yarn && yarn build",
+    "docs:docusaurus": "cd docusaurus/website && yarn build",
     "docs:typedoc": "typedoc .",
     "prepare": "husky install",
     "test": "lerna run test",

@@ -17,7 +17,7 @@
   "dependencies": {
     "@docusaurus/core": "2.0.0-beta.14",
     "@docusaurus/preset-classic": "2.0.0-beta.14",
-    "@ckb-lumos/lumos": "file:../../packages/lumos",
+    "@ckb-lumos/lumos": "0.18.0-rc4",
     "@mdx-js/react": "^1.6.21",
     "antd": "^4.18.3",
     "clsx": "^1.1.1",

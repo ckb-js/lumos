@@ -1,7 +1,7 @@
 module.exports = {
   mode: "modules",
   out: "docusaurus/website/build/api",
-  includes: [
+  exclude: [
     "**/node_modules/**",
     "**/tests/**/*",
     "**/examples/**/*",
