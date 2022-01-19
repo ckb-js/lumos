@@ -5,3 +5,4 @@ lib/
 # ignore ide configurations
 .idea
 .vscode
+dist/

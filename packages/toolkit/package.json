@@ -23,7 +23,7 @@
     "test": "rollup -c --environment BUILD:development && ava",
     "fmt": "prettier --write \"{src,tests}/**/*.js\" index.d.ts",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.js\"",
-    "update-test-files": "curl -L https://raw.githubusercontent.com/nervosnetwork/ckb/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol -o testfiles/blockchain.mol && moleculec --language - --schema-file testfiles/blockchain.mol --format json > testfiles/blockchain.json && moleculec-es -hasBigInt -inputFile testfiles/blockchain.json -outputFile testfiles/blockchain.esm.js && rollup -f umd -i testfiles/blockchain.esm.js -o testfiles/blockchain.umd.js --name Blockchain && rm testfiles/blockchain.mol testfiles/blockchain.json testfiles/blockchain.esm.js"
+    "update-test-files": "curl -L https://raw.githubusercontent.com/nervosnetwork/ckb/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol -o testfiles/blockchain.mol && moleculec --language - --schema-file testfiles/blockchain.mol --format json > testfiles/blockchain.json && moleculec-es -inputFile testfiles/blockchain.json -outputFile testfiles/blockchain.esm.js && rollup -f umd -i testfiles/blockchain.esm.js -o testfiles/blockchain.umd.js --name Blockchain && rm testfiles/blockchain.mol testfiles/blockchain.json testfiles/blockchain.esm.js"
   },
   "author": "Xuejie Xiao",
   "license": "MIT",
