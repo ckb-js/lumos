@@ -25,6 +25,7 @@
   ],
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc7",
+    "@ckb-lumos/bi": "^0.17.0-rc7",
     "bn.js": "^5.1.3",
     "elliptic": "^6.5.4",
     "sha3": "^2.1.3",
