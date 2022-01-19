@@ -42,7 +42,9 @@
     "typescript": "^3.9.5"
   },
   "scripts": {
-    "docs": "typedoc .",
+    "docs": "npm run docs:docusaurus && npm run docs:typedoc",
+    "docs:docusaurus": "cd docusaurus/website && yarn && yarn build",
+    "docs:typedoc": "typedoc .",
     "prepare": "husky install",
     "test": "lerna run test",
     "build:types": "lerna run build:types",

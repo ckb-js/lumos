@@ -1,12 +1,14 @@
 module.exports = {
   mode: "modules",
-  out: "docs",
-  exclude: [
+  out: "docusaurus/website/build/api",
+  includes: [
     "**/node_modules/**",
     "**/tests/**/*",
     "**/examples/**/*",
     "**/docusaurus/**/*",
     "**/examples/**/*",
+    "**/docusaurus/**/*",
+    "**/experiment/**/*",
   ],
   name: "lumos",
   includeDeclarations: true,
