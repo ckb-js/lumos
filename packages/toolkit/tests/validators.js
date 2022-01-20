@@ -1,5 +1,5 @@
 const test = require("ava");
-const { validators } = require("../lib/ckb-js-toolkit.node.js");
+const { validators } = require("../lib");
 
 test("correct script should pass validation", t => {
   validators.ValidateScript({

@@ -1,5 +1,5 @@
 const test = require("ava");
-const { normalizers, Reader } = require("../lib/ckb-js-toolkit.node.js");
+const { normalizers, Reader } = require("../lib");
 const CKB = require("../testfiles/blockchain.umd.js");
 
 test("normalize and serialize script", t => {
