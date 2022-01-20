@@ -1662,6 +1662,19 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@ckb-lumos/lumos@file:packages/lumos":
+  version "0.18.0-rc4"
+  dependencies:
+    "@ckb-lumos/base" "^0.18.0-rc4"
+    "@ckb-lumos/bi" "^0.18.0-rc4"
+    "@ckb-lumos/ckb-indexer" "^0.18.0-rc4"
+    "@ckb-lumos/common-scripts" "^0.18.0-rc4"
+    "@ckb-lumos/config-manager" "^0.18.0-rc4"
+    "@ckb-lumos/hd" "^0.18.0-rc4"
+    "@ckb-lumos/helpers" "^0.18.0-rc4"
+    "@ckb-lumos/rpc" "^0.18.0-rc4"
+    "@ckb-lumos/toolkit" "^0.18.0-rc4"
+
 "@concordance/react@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@concordance/react/-/react-2.0.0.tgz#aef913f27474c53731f4fd79cc2f54897de90fde"
