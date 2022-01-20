@@ -38,7 +38,7 @@ export class TransactionDumper {
         cell_dep: cellDep,
         output,
         data,
-        header
+        header,
       });
       if (cellDep.dep_type === "dep_group") {
         if (!this.depGroupUnpacker) {
@@ -55,11 +55,11 @@ export class TransactionDumper {
           mockCellDeps.push({
             cell_dep: {
               out_point: outPoint,
-              dep_type: "code"
+              dep_type: "code",
             },
             output,
             data,
-            header
+            header,
           });
         }
       }
@@ -72,9 +72,9 @@ export class TransactionDumper {
       mock_info: {
         inputs: mockInputs,
         cell_deps: mockCellDeps,
-        header_deps: mockHeaderDeps
+        header_deps: mockHeaderDeps,
       },
-      tx
+      tx,
     });
   }
 
@@ -92,7 +92,7 @@ export class TransactionDumper {
     }
     const data = {
       output: tx.outputs[index],
-      data: tx.outputs_data[index]
+      data: tx.outputs_data[index],
     };
     if (txStatus.tx_status.status === "committed") {
       data.header = txStatus.tx_status.block_hash;

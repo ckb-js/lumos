@@ -20,7 +20,7 @@ import {
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
 import { getConfig, Config, initializeConfig } from "@ckb-lumos/config-manager";
-import { Reader, normalizers } from "ckb-js-toolkit";
+import { Reader, normalizers } from "@ckb-lumos/toolkit";
 import { Set } from "immutable";
 import keccak, { Keccak } from "keccak";
 

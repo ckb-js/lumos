@@ -6,7 +6,7 @@ import {
   generateAddress,
 } from "../src";
 import { CKB2021, Config, predefined } from "@ckb-lumos/config-manager";
-import { Script, HashType } from "@ckb-lumos/base";
+import { HashType, Script } from "@ckb-lumos/base";
 
 const LINA = CKB2021(predefined.LINA);
 const AGGRON4 = CKB2021(predefined.AGGRON4);
@@ -34,10 +34,12 @@ function ScriptFrom(
 
 function ConfigFrom(
   networkType: NetworkType,
-  options: { excludeShortId?: boolean } = {}
+  options: { excludeShortId?: boolean; CKB2021?: boolean } = {}
 ): Config {
   const { excludeShortId = false } = options;
-  const config = predefined[networkType];
+  const config = options.CKB2021
+    ? CKB2021(predefined[networkType])
+    : predefined[networkType];
   return {
     ...config,
     SCRIPTS: excludeShortId ? {} : config.SCRIPTS,
@@ -105,14 +107,16 @@ test("full address test (hash_type = 0x00)", (t) => {
 
   t.is(
     generateAddress(script, {
-      config: ConfigFrom("LINA", { excludeShortId: true }),
+      config: CKB2021(
+        ConfigFrom("LINA", { excludeShortId: true, CKB2021: true })
+      ),
     }),
     "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq9nnw7qkdnnclfkg59uzn8umtfd2kwxceqvguktl"
   );
 
   t.is(
     generateAddress(script, {
-      config: ConfigFrom("AGGRON4", { excludeShortId: true }),
+      config: ConfigFrom("AGGRON4", { excludeShortId: true, CKB2021: true }),
     }),
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq9nnw7qkdnnclfkg59uzn8umtfd2kwxceqz6hep8"
   );
@@ -128,14 +132,14 @@ test("full address test (hash_type = 0x01)", (t) => {
 
   t.is(
     generateAddress(script, {
-      config: ConfigFrom("LINA", { excludeShortId: true }),
+      config: ConfigFrom("LINA", { excludeShortId: true, CKB2021: true }),
     }),
     "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqxwquc4"
   );
 
   t.is(
     generateAddress(script, {
-      config: ConfigFrom("AGGRON4", { excludeShortId: true }),
+      config: ConfigFrom("AGGRON4", { excludeShortId: true, CKB2021: true }),
     }),
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqgutnjd"
   );
@@ -151,14 +155,14 @@ test("full address test (hash_type = 0x02)", (t) => {
 
   t.is(
     generateAddress(script, {
-      config: ConfigFrom("LINA", { excludeShortId: true }),
+      config: ConfigFrom("LINA", { excludeShortId: true, CKB2021: true }),
     }),
     "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqcydzyt"
   );
 
   t.is(
     generateAddress(script, {
-      config: ConfigFrom("AGGRON4", { excludeShortId: true }),
+      config: ConfigFrom("AGGRON4", { excludeShortId: true, CKB2021: true }),
     }),
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqkkxdwn"
   );
