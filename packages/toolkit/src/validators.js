@@ -31,12 +31,12 @@ function assertObjectWithKeys(
     throw new Error(errorMessage);
   }
   let optionalProvidedKeys = providedKeys.filter(
-    key => !expectedKeys.includes(key)
+    (key) => !expectedKeys.includes(key)
   );
   if (providedKeys.length - optionalProvidedKeys.length !== requiredLength) {
     throw new Error(errorMessage);
   }
-  if (optionalProvidedKeys.find(key => !optionalKeys.includes(key))) {
+  if (optionalProvidedKeys.find((key) => !optionalKeys.includes(key))) {
     throw new Error(errorMessage);
   }
 }
@@ -49,7 +49,7 @@ function assertHexString(debugPath, string) {
 
 function assertHash(debugPath, hash) {
   assertHexString(debugPath, hash);
-  if (hash.length != 66) {
+  if (hash.length !== 66) {
     throw new Error(`${debugPath} must be a hex string of 66 bytes long!`);
   }
 }
@@ -99,7 +99,7 @@ export function ValidateCellInput(
 
   if (nestedValidation) {
     ValidateOutPoint(cellInput.previous_output, {
-      debugPath: `${debugPath}.previous_output`
+      debugPath: `${debugPath}.previous_output`,
     });
   }
 }
@@ -113,11 +113,11 @@ export function ValidateCellOutput(
 
   if (nestedValidation) {
     ValidateScript(cellOutput.lock, {
-      debugPath: `${debugPath}.lock`
+      debugPath: `${debugPath}.lock`,
     });
     if (cellOutput.type) {
       ValidateScript(cellOutput.type, {
-        debugPath: `${debugPath}.type`
+        debugPath: `${debugPath}.type`,
       });
     }
   }
@@ -134,7 +134,7 @@ export function ValidateCellDep(
 
   if (nestedValidation) {
     ValidateOutPoint(cellDep.out_point, {
-      debugPath: `${debugPath}.out_point`
+      debugPath: `${debugPath}.out_point`,
     });
   }
 }
@@ -151,10 +151,10 @@ function assertArray(debugPath, array, validateFunction, nestedValidation) {
 }
 
 function toAssert(validateFunction, nestedValidation) {
-  return function(debugPath, value) {
+  return function (debugPath, value) {
     validateFunction(value, {
       nestedValidation: nestedValidation,
-      debugPath: debugPath
+      debugPath: debugPath,
     });
   };
 }
@@ -206,7 +206,7 @@ export function ValidateRawTransaction(
       "header_deps",
       "inputs",
       "outputs",
-      "outputs_data"
+      "outputs_data",
     ],
     []
   );
@@ -227,7 +227,7 @@ export function ValidateTransaction(
       "inputs",
       "outputs",
       "outputs_data",
-      "witnesses"
+      "witnesses",
     ],
     []
   );
@@ -270,7 +270,7 @@ export function ValidateRawHeader(
       "transactions_root",
       "proposals_hash",
       "uncles_hash",
-      "dao"
+      "dao",
     ],
     []
   );
@@ -295,12 +295,12 @@ export function ValidateHeader(
       "proposals_hash",
       "uncles_hash",
       "dao",
-      "nonce"
+      "nonce",
     ],
     []
   );
   assertHexString(`${debugPath}.nonce`, header.nonce);
-  if (header.nonce.length != 34) {
+  if (header.nonce.length !== 34) {
     throw new Error(
       `${debugPath}.nonce must be a hex string of 34 bytes long!`
     );
@@ -309,7 +309,7 @@ export function ValidateHeader(
 
 function assertProposalShortId(debugPath, shortId) {
   assertHexString(debugPath, shortId);
-  if (shortId.length != 22) {
+  if (shortId.length !== 22) {
     throw new Error(`${debugPath} must be a hex string of 22 bytes long!`);
   }
 }
@@ -322,7 +322,7 @@ export function ValidateUncleBlock(
 
   if (nestedValidation) {
     ValidateHeader(uncleBlock.header, {
-      debugPath: `${debugPath}.header`
+      debugPath: `${debugPath}.header`,
     });
   }
   assertArray(
@@ -346,7 +346,7 @@ export function ValidateBlock(
 
   if (nestedValidation) {
     ValidateHeader(block.header, {
-      debugPath: `${debugPath}.header`
+      debugPath: `${debugPath}.header`,
     });
   }
   assertArray(
@@ -378,7 +378,7 @@ export function ValidateCellbaseWitness(
 
   if (nestedValidation) {
     ValidateScript(cellbaseWitness.lock, {
-      debugPath: `${debugPath}.lock`
+      debugPath: `${debugPath}.lock`,
     });
   }
 }

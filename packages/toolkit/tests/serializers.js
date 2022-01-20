@@ -1,13 +1,13 @@
 const test = require("ava");
-const { normalizers, Reader } = require("../lib/ckb-js-toolkit.node.js");
+const { normalizers, Reader } = require("../lib");
 const CKB = require("../testfiles/blockchain.umd.js");
 
-test("normalize and serialize script", t => {
+test("normalize and serialize script", (t) => {
   const value = {
     code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     args: "0xaabbccdd44332211",
-    hash_type: "type"
+    hash_type: "type",
   };
   const normalizedValue = normalizers.NormalizeScript(value);
   const serializedValue = CKB.SerializeScript(normalizedValue);
@@ -18,12 +18,12 @@ test("normalize and serialize script", t => {
   );
 });
 
-test("normalize and serialize script with integer hash type", t => {
+test("normalize and serialize script with integer hash type", (t) => {
   const value = {
     code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     args: "0xaabbccdd44332211",
-    hash_type: 1
+    hash_type: 1,
   };
   const normalizedValue = normalizers.NormalizeScript(value);
   const serializedValue = CKB.SerializeScript(normalizedValue);
@@ -34,35 +34,35 @@ test("normalize and serialize script with integer hash type", t => {
   );
 });
 
-test("normalize invalid script", t => {
+test("normalize invalid script", (t) => {
   const value = {
     code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     args: "0xaabbccdd4433221",
-    hash_type: "type"
+    hash_type: "type",
   };
   t.throws(() => {
     normalizers.NormalizeScript(value);
   });
 });
 
-test("normalize invalid script type", t => {
+test("normalize invalid script type", (t) => {
   const value = {
     code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     args: "0xaabbccdd44332211",
-    hash_type: "invalidtype"
+    hash_type: "invalidtype",
   };
   t.throws(() => {
     normalizers.NormalizeScript(value);
   });
 });
 
-test("normalize and serialize outpoint", t => {
+test("normalize and serialize outpoint", (t) => {
   const value = {
     tx_hash:
       "0x4565f957aa65ca5d094ede05cbeaedcee70f5a71200ae2e31b643d2952c929bc",
-    index: 3
+    index: 3,
   };
   const normalizedValue = normalizers.NormalizeOutPoint(value);
   const serializedValue = CKB.SerializeOutPoint(normalizedValue);
@@ -73,11 +73,11 @@ test("normalize and serialize outpoint", t => {
   );
 });
 
-test("normalize and serialize outpoint with hex number", t => {
+test("normalize and serialize outpoint with hex number", (t) => {
   const value = {
     tx_hash:
       "0x4565f957aa65ca5d094ede05cbeaedcee70f5a71200ae2e31b643d2952c929bc",
-    index: "0x3"
+    index: "0x3",
   };
   const normalizedValue = normalizers.NormalizeOutPoint(value);
   const serializedValue = CKB.SerializeOutPoint(normalizedValue);
@@ -88,25 +88,25 @@ test("normalize and serialize outpoint with hex number", t => {
   );
 });
 
-test("normalize invalid outpoint", t => {
+test("normalize invalid outpoint", (t) => {
   const value = {
     tx_hash:
       "0x4565f957aa65ca5d094ede05cbeaedcee70f5a71200ae2e31b643d2952c929bc",
-    index: "0x123412341"
+    index: "0x123412341",
   };
   t.throws(() => {
     normalizers.NormalizeOutPoint(value);
   });
 });
 
-test("normalize and serialize cellinput", t => {
+test("normalize and serialize cellinput", (t) => {
   const value = {
     since: "0x60a0001234",
     previous_output: {
       tx_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-      index: "0x10"
-    }
+      index: "0x10",
+    },
   };
   const normalizedValue = normalizers.NormalizeCellInput(value);
   const serializedValue = CKB.SerializeCellInput(normalizedValue);
@@ -117,31 +117,31 @@ test("normalize and serialize cellinput", t => {
   );
 });
 
-test("normalize invalid cellinput", t => {
+test("normalize invalid cellinput", (t) => {
   const value = {
     since: "0x60a0001234",
-    previous_output: "hahah"
+    previous_output: "hahah",
   };
   t.throws(() => {
     normalizers.NormalizeCellInput(value);
   });
 });
 
-test("normalize and serialize celloutput", t => {
+test("normalize and serialize celloutput", (t) => {
   const value = {
     capacity: "0x10",
     lock: {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x1234",
-      hash_type: "data"
+      hash_type: "data",
     },
     type: {
       code_hash:
         "0xa98c57135830e1b900000000f6c4b8870828199a786b26f09f7dec4bc27a73db",
       args: "0x",
-      hash_type: "type"
-    }
+      hash_type: "type",
+    },
   };
   const normalizedValue = normalizers.NormalizeCellOutput(value);
   const serializedValue = CKB.SerializeCellOutput(normalizedValue);
@@ -152,15 +152,15 @@ test("normalize and serialize celloutput", t => {
   );
 });
 
-test("normalize and serialize celloutput without type", t => {
+test("normalize and serialize celloutput without type", (t) => {
   const value = {
     capacity: "0x10",
     lock: {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x1234",
-      hash_type: "data"
-    }
+      hash_type: "data",
+    },
   };
   const normalizedValue = normalizers.NormalizeCellOutput(value);
   const serializedValue = CKB.SerializeCellOutput(normalizedValue);
@@ -171,29 +171,29 @@ test("normalize and serialize celloutput without type", t => {
   );
 });
 
-test("normalize invalid celloutput", t => {
+test("normalize invalid celloutput", (t) => {
   const value = {
     capacity: "0x102030405060708090",
     lock: {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x1234",
-      hash_type: "data"
-    }
+      hash_type: "data",
+    },
   };
   t.throws(() => {
     normalizers.NormalizeCellOutput(value);
   });
 });
 
-test("normalize and serialize celldep", t => {
+test("normalize and serialize celldep", (t) => {
   const value = {
     dep_type: "code",
     out_point: {
       tx_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-      index: "0x11"
-    }
+      index: "0x11",
+    },
   };
   const normalizedValue = normalizers.NormalizeCellDep(value);
   const serializedValue = CKB.SerializeCellDep(normalizedValue);
@@ -204,7 +204,7 @@ test("normalize and serialize celldep", t => {
   );
 });
 
-test("normalize and serialize transaction", t => {
+test("normalize and serialize transaction", (t) => {
   const value = {
     version: "0x0",
     cell_deps: [
@@ -213,12 +213,12 @@ test("normalize and serialize transaction", t => {
         out_point: {
           tx_hash:
             "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7300",
-          index: "0x0"
-        }
-      }
+          index: "0x0",
+        },
+      },
     ],
     header_deps: [
-      "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6"
+      "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6",
     ],
     inputs: [
       {
@@ -226,9 +226,9 @@ test("normalize and serialize transaction", t => {
         previous_output: {
           tx_hash:
             "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7301",
-          index: "0x2"
-        }
-      }
+          index: "0x2",
+        },
+      },
     ],
     outputs: [
       {
@@ -237,12 +237,12 @@ test("normalize and serialize transaction", t => {
           code_hash:
             "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7302",
           args: "0x1234",
-          hash_type: "data"
-        }
-      }
+          hash_type: "data",
+        },
+      },
     ],
     outputs_data: ["0xabcdef"],
-    witnesses: ["0x31313131"]
+    witnesses: ["0x31313131"],
   };
   const normalizedValue = normalizers.NormalizeTransaction(value);
   const serializedValue = CKB.SerializeTransaction(normalizedValue);
@@ -253,7 +253,7 @@ test("normalize and serialize transaction", t => {
   );
 });
 
-test("normalize and serialize header", t => {
+test("normalize and serialize header", (t) => {
   const value = {
     compact_target: "0x1a2d3494",
     number: "0xfb1bc",
@@ -269,7 +269,7 @@ test("normalize and serialize header", t => {
       "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
     epoch: "0x7080612000287",
-    dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107"
+    dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
   };
   const normalizedValue = normalizers.NormalizeHeader(value);
   const serializedValue = CKB.SerializeHeader(normalizedValue);
@@ -280,7 +280,7 @@ test("normalize and serialize header", t => {
   );
 });
 
-test("normalize and serialize uncle block", t => {
+test("normalize and serialize uncle block", (t) => {
   const value = {
     header: {
       compact_target: "0x1a2d3494",
@@ -297,9 +297,9 @@ test("normalize and serialize uncle block", t => {
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",
-      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107"
+      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
     },
-    proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"]
+    proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"],
   };
   const normalizedValue = normalizers.NormalizeUncleBlock(value);
   const serializedValue = CKB.SerializeUncleBlock(normalizedValue);
@@ -310,7 +310,7 @@ test("normalize and serialize uncle block", t => {
   );
 });
 
-test("normalize and serialize block", t => {
+test("normalize and serialize block", (t) => {
   const value = {
     header: {
       compact_target: "0x1a2d3494",
@@ -327,7 +327,7 @@ test("normalize and serialize block", t => {
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",
-      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107"
+      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
     },
     transactions: [
       {
@@ -338,12 +338,12 @@ test("normalize and serialize block", t => {
             out_point: {
               tx_hash:
                 "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7300",
-              index: "0x0"
-            }
-          }
+              index: "0x0",
+            },
+          },
         ],
         header_deps: [
-          "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6"
+          "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6",
         ],
         inputs: [
           {
@@ -351,9 +351,9 @@ test("normalize and serialize block", t => {
             previous_output: {
               tx_hash:
                 "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7301",
-              index: "0x2"
-            }
-          }
+              index: "0x2",
+            },
+          },
         ],
         outputs: [
           {
@@ -362,16 +362,16 @@ test("normalize and serialize block", t => {
               code_hash:
                 "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7302",
               args: "0x1234",
-              hash_type: "data"
-            }
-          }
+              hash_type: "data",
+            },
+          },
         ],
         outputs_data: ["0xabcdef"],
-        witnesses: ["0x1111"]
-      }
+        witnesses: ["0x1111"],
+      },
     ],
     uncles: [],
-    proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"]
+    proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"],
   };
   const normalizedValue = normalizers.NormalizeBlock(value);
   const serializedValue = CKB.SerializeBlock(normalizedValue);
@@ -382,15 +382,15 @@ test("normalize and serialize block", t => {
   );
 });
 
-test("normalize and serialize cellbase witness", t => {
+test("normalize and serialize cellbase witness", (t) => {
   const value = {
     lock: {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x1234",
-      hash_type: "data"
+      hash_type: "data",
     },
-    message: "0x1234abcdef"
+    message: "0x1234abcdef",
   };
   const normalizedValue = normalizers.NormalizeCellbaseWitness(value);
   const serializedValue = CKB.SerializeCellbaseWitness(normalizedValue);
@@ -401,11 +401,11 @@ test("normalize and serialize cellbase witness", t => {
   );
 });
 
-test("normalize and serialize witness args", t => {
+test("normalize and serialize witness args", (t) => {
   const value = {
     lock: "0x1234",
     input_type: "0x4678",
-    output_type: "0x2312"
+    output_type: "0x2312",
   };
   const normalizedValue = normalizers.NormalizeWitnessArgs(value);
   const serializedValue = CKB.SerializeWitnessArgs(normalizedValue);
@@ -416,7 +416,7 @@ test("normalize and serialize witness args", t => {
   );
 });
 
-test("normalize and serialize empty witness args", t => {
+test("normalize and serialize empty witness args", (t) => {
   const value = {};
   const normalizedValue = normalizers.NormalizeWitnessArgs(value);
   const serializedValue = CKB.SerializeWitnessArgs(normalizedValue);
@@ -424,9 +424,9 @@ test("normalize and serialize empty witness args", t => {
   t.deepEqual(serializedHex, "0x10000000100000001000000010000000");
 });
 
-test("normalize and serialize only one witness args", t => {
+test("normalize and serialize only one witness args", (t) => {
   const value = {
-    lock: "0x1234"
+    lock: "0x1234",
   };
   const normalizedValue = normalizers.NormalizeWitnessArgs(value);
   const serializedValue = CKB.SerializeWitnessArgs(normalizedValue);

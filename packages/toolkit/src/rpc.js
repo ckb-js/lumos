@@ -9,7 +9,7 @@ function mergeOptions(overrideOptions, defaultOptions) {
     overrideOptions.headers || {}
   );
   return Object.assign({}, defaultOptions, overrideOptions, {
-    headers: headers
+    headers: headers,
   });
 }
 
@@ -23,9 +23,9 @@ const batchHandler = {
             {
               method: "post",
               headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
               },
-              body: JSON.stringify(target.payload)
+              body: JSON.stringify(target.payload),
             },
             target.defaultOptions
           )
@@ -40,11 +40,11 @@ const batchHandler = {
         jsonrpc: "2.0",
         id: id,
         method: method,
-        params: params
+        params: params,
       });
       return receiver;
     };
-  }
+  },
 };
 
 const handler = {
@@ -56,7 +56,7 @@ const handler = {
             id: Math.round(Math.random() * 10000000),
             payload: [],
             uri: target.uri,
-            defaultOptions: target.defaultOptions
+            defaultOptions: target.defaultOptions,
           },
           batchHandler
         );
@@ -70,14 +70,14 @@ const handler = {
           {
             method: "post",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               jsonrpc: "2.0",
               id: id,
               method: method,
-              params: params
-            })
+              params: params,
+            }),
           },
           target.defaultOptions
         )
@@ -93,7 +93,7 @@ const handler = {
       }
       return data.result;
     };
-  }
+  },
 };
 
 export class RPC {
