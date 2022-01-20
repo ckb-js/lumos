@@ -12,7 +12,9 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "fmt": "echo \"fmt skip in example\"",
+    "lint": "echo \"lint skip in example\""
   },
   "dependencies": {
     "@docusaurus/core": "2.0.0-beta.14",
