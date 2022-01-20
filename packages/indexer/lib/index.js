@@ -1,4 +1,4 @@
-const { validators, normalizers, Reader, RPC } = require("ckb-js-toolkit");
+const { validators, normalizers, Reader, RPC } = require("@ckb-lumos/toolkit");
 const { OrderedSet, Map } = require("immutable");
 const XXHash = require("xxhash");
 const { Indexer: NativeIndexer, Emitter, BlockEmitter } = require("../native");

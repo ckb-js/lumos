@@ -1,5 +1,5 @@
 const test = require("ava");
-const { normalizers } = require("ckb-js-toolkit");
+const { normalizers } = require("@ckb-lumos/toolkit");
 
 const core = require("../lib/core");
 const denormalizers = require("../lib/denormalizers");

@@ -1,5 +1,5 @@
 const blake2b = require("blake2b");
-const { validators, normalizers, Reader } = require("ckb-js-toolkit");
+const { validators, normalizers, Reader } = require("@ckb-lumos/toolkit");
 const { SerializeScript, SerializeCellInput } = require("./core");
 const { xxHash32 } = require("js-xxhash");
 

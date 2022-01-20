@@ -1,5 +1,5 @@
 import { Set } from "immutable";
-import { normalizers, Reader } from "ckb-js-toolkit";
+import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import { parseAddress, minimalCellCapacity } from "@ckb-lumos/helpers";
 import {
   core,

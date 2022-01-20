@@ -12,7 +12,7 @@ import {
   WitnessArgs,
 } from "@ckb-lumos/base";
 import * as bech32 from "bech32";
-import { normalizers, validators, Reader } from "ckb-js-toolkit";
+import { normalizers, validators, Reader } from "@ckb-lumos/toolkit";
 import { List, Record, Map as ImmutableMap } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 
