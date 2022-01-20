@@ -15,7 +15,7 @@ import { Reader } from "./reader";
 import { BigIntToHexString } from "./rpc";
 
 function normalizeHexNumber(length) {
-  return function(debugPath, value) {
+  return function (debugPath, value) {
     if (!(value instanceof ArrayBuffer)) {
       let intValue = BigIntToHexString(JSBI.BigInt(value)).substr(2);
       if (intValue.length % 2 !== 0) {
@@ -23,8 +23,9 @@ function normalizeHexNumber(length) {
       }
       if (intValue.length / 2 > length) {
         throw new Error(
-          `${debugPath} is ${intValue.length /
-            2} bytes long, expected length is ${length}!`
+          `${debugPath} is ${
+            intValue.length / 2
+          } bytes long, expected length is ${length}!`
         );
       }
       const view = new DataView(new ArrayBuffer(length));
@@ -44,7 +45,7 @@ function normalizeHexNumber(length) {
 }
 
 function normalizeRawData(length) {
-  return function(debugPath, value) {
+  return function (debugPath, value) {
     value = new Reader(value).toArrayBuffer();
     if (length > 0 && value.byteLength !== length) {
       throw new Error(
@@ -71,7 +72,7 @@ function normalizeObject(debugPath, object, keys) {
 export function NormalizeScript(script, { debugPath = "script" } = {}) {
   return normalizeObject(debugPath, script, {
     code_hash: normalizeRawData(32),
-    hash_type: function(debugPath, value) {
+    hash_type: function (debugPath, value) {
       switch (value) {
         case "data":
           return 0;
@@ -89,21 +90,21 @@ export function NormalizeScript(script, { debugPath = "script" } = {}) {
           throw new Error(`${debugPath}.hash_type has invalid value: ${value}`);
       }
     },
-    args: normalizeRawData(-1)
+    args: normalizeRawData(-1),
   });
 }
 
 export function NormalizeOutPoint(outPoint, { debugPath = "out_point" } = {}) {
   return normalizeObject(debugPath, outPoint, {
     tx_hash: normalizeRawData(32),
-    index: normalizeHexNumber(4)
+    index: normalizeHexNumber(4),
   });
 }
 
 function toNormalize(normalize) {
-  return function(debugPath, value) {
+  return function (debugPath, value) {
     return normalize(value, {
-      debugPath
+      debugPath,
     });
   };
 }
@@ -114,7 +115,7 @@ export function NormalizeCellInput(
 ) {
   return normalizeObject(debugPath, cellInput, {
     since: normalizeHexNumber(8),
-    previous_output: toNormalize(NormalizeOutPoint)
+    previous_output: toNormalize(NormalizeOutPoint),
   });
 }
 
@@ -124,11 +125,11 @@ export function NormalizeCellOutput(
 ) {
   const result = normalizeObject(debugPath, cellOutput, {
     capacity: normalizeHexNumber(8),
-    lock: toNormalize(NormalizeScript)
+    lock: toNormalize(NormalizeScript),
   });
   if (cellOutput.type) {
     result.type_ = NormalizeScript(cellOutput.type, {
-      debugPath: `${debugPath}.type`
+      debugPath: `${debugPath}.type`,
     });
   }
   return result;
@@ -137,7 +138,7 @@ export function NormalizeCellOutput(
 export function NormalizeCellDep(cellDep, { debugPath = "cell_dep" } = {}) {
   return normalizeObject(debugPath, cellDep, {
     out_point: toNormalize(NormalizeOutPoint),
-    dep_type: function(debugPath, value) {
+    dep_type: function (debugPath, value) {
       switch (value) {
         case "code":
           return 0;
@@ -150,12 +151,12 @@ export function NormalizeCellDep(cellDep, { debugPath = "cell_dep" } = {}) {
         default:
           throw new Error(`${debugPath}.dep_type has invalid value: ${value}`);
       }
-    }
+    },
   });
 }
 
 function toNormalizeArray(normalizeFunction) {
-  return function(debugPath, array) {
+  return function (debugPath, array) {
     return array.map((item, i) => {
       return normalizeFunction(`${debugPath}[${i}]`, item);
     });
@@ -172,7 +173,7 @@ export function NormalizeRawTransaction(
     header_deps: toNormalizeArray(normalizeRawData(32)),
     inputs: toNormalizeArray(toNormalize(NormalizeCellInput)),
     outputs: toNormalizeArray(toNormalize(NormalizeCellOutput)),
-    outputs_data: toNormalizeArray(normalizeRawData(-1))
+    outputs_data: toNormalizeArray(normalizeRawData(-1)),
   });
 }
 
@@ -181,10 +182,10 @@ export function NormalizeTransaction(
   { debugPath = "transaction" } = {}
 ) {
   const rawTransaction = NormalizeRawTransaction(transaction, {
-    debugPath: `(raw)${debugPath}`
+    debugPath: `(raw)${debugPath}`,
   });
   const result = normalizeObject(debugPath, transaction, {
-    witnesses: toNormalizeArray(normalizeRawData(-1))
+    witnesses: toNormalizeArray(normalizeRawData(-1)),
   });
   result.raw = rawTransaction;
   return result;
@@ -204,16 +205,16 @@ export function NormalizeRawHeader(
     transactions_root: normalizeRawData(32),
     proposals_hash: normalizeRawData(32),
     extra_hash: normalizeRawData(32),
-    dao: normalizeRawData(32)
+    dao: normalizeRawData(32),
   });
 }
 
 export function NormalizeHeader(header, { debugPath = "header" } = {}) {
   const rawHeader = NormalizeRawHeader(header, {
-    debugPath: `(raw)${debugPath}`
+    debugPath: `(raw)${debugPath}`,
   });
   const result = normalizeObject(debugPath, header, {
-    nonce: normalizeHexNumber(16)
+    nonce: normalizeHexNumber(16),
   });
   result.raw = rawHeader;
   return result;
@@ -225,7 +226,7 @@ export function NormalizeUncleBlock(
 ) {
   return normalizeObject(debugPath, uncleBlock, {
     header: toNormalize(NormalizeHeader),
-    proposals: toNormalizeArray(normalizeRawData(10))
+    proposals: toNormalizeArray(normalizeRawData(10)),
   });
 }
 
@@ -234,7 +235,7 @@ export function NormalizeBlock(block, { debugPath = "block" } = {}) {
     header: toNormalize(NormalizeHeader),
     uncles: toNormalizeArray(toNormalize(NormalizeUncleBlock)),
     transactions: toNormalizeArray(toNormalize(NormalizeTransaction)),
-    proposals: toNormalizeArray(normalizeRawData(10))
+    proposals: toNormalizeArray(normalizeRawData(10)),
   });
 }
 
@@ -244,7 +245,7 @@ export function NormalizeCellbaseWitness(
 ) {
   return normalizeObject(debugPath, cellbaseWitness, {
     lock: toNormalize(NormalizeScript),
-    message: normalizeRawData(-1)
+    message: normalizeRawData(-1),
   });
 }
 

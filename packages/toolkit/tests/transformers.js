@@ -1,76 +1,76 @@
 const test = require("ava");
-const { transformers, Reader } = require("../lib/ckb-js-toolkit.node.js");
+const { transformers, Reader } = require("../lib");
 
-test("transform script", t => {
+test("transform script", (t) => {
   const s = transformers.TransformScript({
     code_hash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
     args: Reader.fromRawString("args1234"),
     hash_type: {
-      serializeJson: () => "data"
-    }
+      serializeJson: () => "data",
+    },
   });
 
   t.deepEqual(s, {
     code_hash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
     args: "0x6172677331323334",
-    hash_type: "data"
+    hash_type: "data",
   });
 });
 
-test("transform camel case script", t => {
+test("transform camel case script", (t) => {
   const s = transformers.TransformScript({
     codeHash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
     args: Reader.fromRawString("args1234"),
     hashType: {
-      serializeJson: () => "data"
-    }
+      serializeJson: () => "data",
+    },
   });
 
   t.deepEqual(s, {
     code_hash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
     args: "0x6172677331323334",
-    hash_type: "data"
+    hash_type: "data",
   });
 });
 
-test("transform plain script", t => {
+test("transform plain script", (t) => {
   const s = transformers.TransformScript({
     code_hash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
     args: "0x1234",
-    hash_type: "data"
+    hash_type: "data",
   });
 
   t.deepEqual(s, {
     code_hash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
     args: "0x1234",
-    hash_type: "data"
+    hash_type: "data",
   });
 });
 
-test("transform invalid script", t => {
+test("transform invalid script", (t) => {
   t.throws(() => {
     transformers.TransformScript({
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0xgghh",
-      hash_type: "data"
+      hash_type: "data",
     });
   });
 });
 
-test("transform invalid script but do not validate", t => {
+test("transform invalid script but do not validate", (t) => {
   const s = transformers.TransformScript(
     {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0xgghh",
-      hash_type: "data"
+      hash_type: "data",
     },
     { validation: false }
   );
@@ -79,50 +79,50 @@ test("transform invalid script but do not validate", t => {
     code_hash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
     args: "0xgghh",
-    hash_type: "data"
+    hash_type: "data",
   });
 });
 
-test("transform outpoint", t => {
+test("transform outpoint", (t) => {
   const o = transformers.TransformOutPoint({
     tx_hash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-    index: "0x0"
+    index: "0x0",
   });
 
   t.deepEqual(o, {
     tx_hash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-    index: "0x0"
+    index: "0x0",
   });
 });
 
-test("transform outpoint more fields", t => {
+test("transform outpoint more fields", (t) => {
   const o = transformers.TransformOutPoint({
     tx_hash: {
       serializeJson: () =>
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-      anotherfield: "not used"
+      anotherfield: "not used",
     },
     index: "0x10",
-    unneeded: "unneeded field"
+    unneeded: "unneeded field",
   });
 
   t.deepEqual(o, {
     tx_hash:
       "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-    index: "0x10"
+    index: "0x10",
   });
 });
 
-test("correct cellinput", t => {
+test("correct cellinput", (t) => {
   const v = transformers.TransformCellInput({
     since: "0x0",
     previous_output: {
       tx_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-      index: new Reader("0x10")
-    }
+      index: new Reader("0x10"),
+    },
   });
 
   t.deepEqual(v, {
@@ -130,24 +130,24 @@ test("correct cellinput", t => {
     previous_output: {
       tx_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-      index: "0x10"
-    }
+      index: "0x10",
+    },
   });
 });
 
-test("correct cellinput with serialize function using this", t => {
+test("correct cellinput with serialize function using this", (t) => {
   const v = transformers.TransformCellInput({
     since: "0x0",
     previous_output: {
       value: {
         tx_hash:
           "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-        index: "0x10"
+        index: "0x10",
       },
-      serializeJson: function() {
+      serializeJson: function () {
         return this.value;
-      }
-    }
+      },
+    },
   });
 
   t.deepEqual(v, {
@@ -155,25 +155,25 @@ test("correct cellinput with serialize function using this", t => {
     previous_output: {
       tx_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-      index: "0x10"
-    }
+      index: "0x10",
+    },
   });
 });
 
-test("invalid cellinput", t => {
+test("invalid cellinput", (t) => {
   t.throws(() => {
     transformers.TransformCellInput({
       since: "0x0",
       previous_output: {
         tx_hash:
           "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-        index: new Reader("0x00")
-      }
+        index: new Reader("0x00"),
+      },
     });
   });
 });
 
-test("celloutput with type", t => {
+test("celloutput with type", (t) => {
   const v = transformers.TransformCellOutput({
     capacity: "0x10",
     lock: {
@@ -181,18 +181,18 @@ test("celloutput with type", t => {
         code_hash:
           "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
         args: new Reader("0x1234"),
-        hash_type: "data"
+        hash_type: "data",
       },
-      serializeJson: function() {
+      serializeJson: function () {
         return this.value;
-      }
+      },
     },
     type: {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x",
-      hash_type: "type"
-    }
+      hash_type: "type",
+    },
   });
 
   t.deepEqual(v, {
@@ -201,26 +201,26 @@ test("celloutput with type", t => {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x1234",
-      hash_type: "data"
+      hash_type: "data",
     },
     type: {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x",
-      hash_type: "type"
-    }
+      hash_type: "type",
+    },
   });
 });
 
-test("celloutput", t => {
+test("celloutput", (t) => {
   const v = transformers.TransformCellOutput({
     capacity: "0x1024",
     lock: {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x",
-      hash_type: "type"
-    }
+      hash_type: "type",
+    },
   });
 
   t.deepEqual(v, {
@@ -229,12 +229,12 @@ test("celloutput", t => {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x",
-      hash_type: "type"
-    }
+      hash_type: "type",
+    },
   });
 });
 
-test("celloutput invalid lock but skip validation", t => {
+test("celloutput invalid lock but skip validation", (t) => {
   const v = transformers.TransformCellOutput(
     {
       capacity: "0x1024",
@@ -242,9 +242,9 @@ test("celloutput invalid lock but skip validation", t => {
         code_hash:
           "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
         args: "0x",
-        hash_type: "type"
+        hash_type: "type",
       },
-      unused: "value"
+      unused: "value",
     },
     { validation: false }
   );
@@ -255,12 +255,12 @@ test("celloutput invalid lock but skip validation", t => {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x",
-      hash_type: "type"
-    }
+      hash_type: "type",
+    },
   });
 });
 
-test("celloutput invalid lock", t => {
+test("celloutput invalid lock", (t) => {
   t.throws(() => {
     transformers.TransformCellOutput({
       capacity: "0x1024",
@@ -268,24 +268,24 @@ test("celloutput invalid lock", t => {
         code_hash:
           "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
         args: "0x",
-        hash_type: "type"
-      }
+        hash_type: "type",
+      },
     });
   });
 });
 
-test("correct celldep", t => {
+test("correct celldep", (t) => {
   const v = transformers.TransformCellDep({
     dep_type: {
       serializeJson: () => {
         return "code";
-      }
+      },
     },
     out_point: {
       tx_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-      index: "0x0"
-    }
+      index: "0x0",
+    },
   });
 
   t.deepEqual(v, {
@@ -293,8 +293,8 @@ test("correct celldep", t => {
     out_point: {
       tx_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
-      index: "0x0"
-    }
+      index: "0x0",
+    },
   });
 });
 
@@ -308,7 +308,7 @@ class DummyValueHolder {
   }
 }
 
-test("correct transaction", t => {
+test("correct transaction", (t) => {
   const v = transformers.TransformTransaction({
     version: "0x0",
     cell_deps: [
@@ -317,17 +317,17 @@ test("correct transaction", t => {
         out_point: {
           tx_hash: {
             value: "0xa98c57135830e1b91345948df6c4b887082819",
-            serializeJson: function() {
+            serializeJson: function () {
               return this.value + "9a786b26f09f7dec4bc27a7300";
-            }
+            },
           },
-          index: "0x0"
+          index: "0x0",
         },
-        redundant_key: "unused value"
-      }
+        redundant_key: "unused value",
+      },
     ],
     header_deps: [
-      "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6"
+      "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6",
     ],
     inputs: [
       {
@@ -338,10 +338,10 @@ test("correct transaction", t => {
           index: {
             serializeJson: () => {
               return "0x2";
-            }
-          }
-        }
-      }
+            },
+          },
+        },
+      },
     ],
     outputs: [
       {
@@ -350,12 +350,12 @@ test("correct transaction", t => {
           code_hash:
             "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7302",
           args: new Reader("0x1234"),
-          hash_type: "data"
-        }
-      }
+          hash_type: "data",
+        },
+      },
     ],
     outputs_data: ["0xabcdef"],
-    witnesses: [Reader.fromRawString("1111")]
+    witnesses: [Reader.fromRawString("1111")],
   });
 
   t.deepEqual(v, {
@@ -366,12 +366,12 @@ test("correct transaction", t => {
         out_point: {
           tx_hash:
             "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7300",
-          index: "0x0"
-        }
-      }
+          index: "0x0",
+        },
+      },
     ],
     header_deps: [
-      "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6"
+      "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6",
     ],
     inputs: [
       {
@@ -379,9 +379,9 @@ test("correct transaction", t => {
         previous_output: {
           tx_hash:
             "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7301",
-          index: "0x2"
-        }
-      }
+          index: "0x2",
+        },
+      },
     ],
     outputs: [
       {
@@ -390,16 +390,16 @@ test("correct transaction", t => {
           code_hash:
             "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7302",
           args: "0x1234",
-          hash_type: "data"
-        }
-      }
+          hash_type: "data",
+        },
+      },
     ],
     outputs_data: ["0xabcdef"],
-    witnesses: ["0x31313131"]
+    witnesses: ["0x31313131"],
   });
 });
 
-test("correct header", t => {
+test("correct header", (t) => {
   const v = transformers.TransformHeader({
     compact_target: "0x1a2d3494",
     number: "0xfb1bc",
@@ -416,7 +416,7 @@ test("correct header", t => {
       "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
     epoch: "0x7080612000287",
-    dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107"
+    dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
   });
 
   t.deepEqual(v, {
@@ -434,11 +434,11 @@ test("correct header", t => {
       "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
     epoch: "0x7080612000287",
-    dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107"
+    dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
   });
 });
 
-test("invalid header", t => {
+test("invalid header", (t) => {
   t.throws(() => {
     transformers.TransformHeader({
       compact_target: "0x1a2d3494",
@@ -455,12 +455,12 @@ test("invalid header", t => {
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287a",
-      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107"
+      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
     });
   });
 });
 
-test("correct block", t => {
+test("correct block", (t) => {
   const v = transformers.TransformBlock({
     header: {
       compact_target: "0x1a2d3494",
@@ -477,7 +477,7 @@ test("correct block", t => {
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",
-      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107"
+      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
     },
     transactions: [
       {
@@ -489,12 +489,12 @@ test("correct block", t => {
               tx_hash: new Reader(
                 "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7300"
               ),
-              index: "0x0"
-            }
-          }
+              index: "0x0",
+            },
+          },
         ],
         header_deps: [
-          "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6"
+          "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6",
         ],
         inputs: [
           {
@@ -502,9 +502,9 @@ test("correct block", t => {
             previous_output: {
               tx_hash:
                 "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7301",
-              index: "0x2"
-            }
-          }
+              index: "0x2",
+            },
+          },
         ],
         outputs: [
           {
@@ -516,17 +516,17 @@ test("correct block", t => {
               hash_type: {
                 serializeJson: () => {
                   return "data";
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         ],
         outputs_data: ["0xabcdef"],
-        witnesses: ["0x1111"]
-      }
+        witnesses: ["0x1111"],
+      },
     ],
     uncles: [],
-    proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"]
+    proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"],
   });
 
   t.deepEqual(v, {
@@ -545,7 +545,7 @@ test("correct block", t => {
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",
-      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107"
+      dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
     },
     transactions: [
       {
@@ -556,12 +556,12 @@ test("correct block", t => {
             out_point: {
               tx_hash:
                 "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7300",
-              index: "0x0"
-            }
-          }
+              index: "0x0",
+            },
+          },
         ],
         header_deps: [
-          "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6"
+          "0xb39d53656421d1532dd995a0924441ca8f43052bc2b7740a0e814a488a8214d6",
         ],
         inputs: [
           {
@@ -569,9 +569,9 @@ test("correct block", t => {
             previous_output: {
               tx_hash:
                 "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7301",
-              index: "0x2"
-            }
-          }
+              index: "0x2",
+            },
+          },
         ],
         outputs: [
           {
@@ -580,30 +580,30 @@ test("correct block", t => {
               code_hash:
                 "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7302",
               args: "0x1234",
-              hash_type: "data"
-            }
-          }
+              hash_type: "data",
+            },
+          },
         ],
         outputs_data: ["0xabcdef"],
-        witnesses: ["0x1111"]
-      }
+        witnesses: ["0x1111"],
+      },
     ],
     uncles: [],
-    proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"]
+    proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"],
   });
 });
 
-test("correct cellbase witness", t => {
+test("correct cellbase witness", (t) => {
   const v = transformers.TransformCellbaseWitness({
     lock: {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x1234",
       hash_type: "data",
-      unneeded1: "unneeded1"
+      unneeded1: "unneeded1",
     },
     message: "0x1234abcdef",
-    unneeded2: 2
+    unneeded2: 2,
   });
 
   t.deepEqual(v, {
@@ -611,39 +611,39 @@ test("correct cellbase witness", t => {
       code_hash:
         "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
       args: "0x1234",
-      hash_type: "data"
+      hash_type: "data",
     },
-    message: "0x1234abcdef"
+    message: "0x1234abcdef",
   });
 });
 
-test("correct witness args", t => {
+test("correct witness args", (t) => {
   const v = transformers.TransformWitnessArgs({
     lock: "0x1234",
     input_type: "0x4678",
-    output_type: "0x2312"
+    output_type: "0x2312",
   });
 
   t.deepEqual(v, {
     lock: "0x1234",
     input_type: "0x4678",
-    output_type: "0x2312"
+    output_type: "0x2312",
   });
 });
 
-test("empty witness args", t => {
+test("empty witness args", (t) => {
   const v = transformers.TransformWitnessArgs({});
 
   t.deepEqual(v, {});
 });
 
-test("only one witness args", t => {
+test("only one witness args", (t) => {
   const v = transformers.TransformWitnessArgs({
     lock: "0x1234",
-    unneeded: "unneeded123"
+    unneeded: "unneeded123",
   });
 
   t.deepEqual(v, {
-    lock: "0x1234"
+    lock: "0x1234",
   });
 });

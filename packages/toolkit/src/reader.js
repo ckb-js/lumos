@@ -19,7 +19,7 @@ class ArrayBufferReader {
     return (
       "0x" +
       Array.prototype.map
-        .call(new Uint8Array(this.view.buffer), x =>
+        .call(new Uint8Array(this.view.buffer), (x) =>
           ("00" + x.toString(16)).slice(-2)
         )
         .join("")

@@ -35,7 +35,7 @@ function transformObject(debugPath, object, keys) {
   for (const [key, f] of Object.entries(keys)) {
     let value = object[key];
     if (!value) {
-      const camelKey = key.replace(/(_[a-z])/g, group =>
+      const camelKey = key.replace(/(_[a-z])/g, (group) =>
         group.toUpperCase().replace("_", "")
       );
       value = object[camelKey];
@@ -54,12 +54,12 @@ export function TransformScript(
   script = transformObject(debugPath, script, {
     code_hash: invokeSerializeJson,
     hash_type: invokeSerializeJson,
-    args: invokeSerializeJson
+    args: invokeSerializeJson,
   });
 
   if (validation) {
     validators.ValidateScript(script, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return script;
@@ -71,22 +71,22 @@ export function TransformOutPoint(
 ) {
   outPoint = transformObject(debugPath, outPoint, {
     tx_hash: invokeSerializeJson,
-    index: invokeSerializeJson
+    index: invokeSerializeJson,
   });
 
   if (validation) {
     validators.ValidateOutPoint(outPoint, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return outPoint;
 }
 
 function toInvoke(transform) {
-  return function(debugPath, value) {
+  return function (debugPath, value) {
     return transform(value, {
       validation: false,
-      debugPath
+      debugPath,
     });
   };
 }
@@ -97,12 +97,12 @@ export function TransformCellInput(
 ) {
   cellInput = transformObject(debugPath, cellInput, {
     since: invokeSerializeJson,
-    previous_output: toInvoke(TransformOutPoint)
+    previous_output: toInvoke(TransformOutPoint),
   });
 
   if (validation) {
     validators.ValidateCellInput(cellInput, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return cellInput;
@@ -115,12 +115,12 @@ export function TransformCellOutput(
   cellOutput = transformObject(debugPath, cellOutput, {
     capacity: invokeSerializeJson,
     lock: toInvoke(TransformScript),
-    type: toInvoke(TransformScript)
+    type: toInvoke(TransformScript),
   });
 
   if (validation) {
     validators.ValidateCellOutput(cellOutput, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return cellOutput;
@@ -132,19 +132,19 @@ export function TransformCellDep(
 ) {
   cellDep = transformObject(debugPath, cellDep, {
     out_point: toInvoke(TransformOutPoint),
-    dep_type: invokeSerializeJson
+    dep_type: invokeSerializeJson,
   });
 
   if (validation) {
     validators.ValidateCellDep(cellDep, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return cellDep;
 }
 
 function toInvokeArray(invokeFunction) {
-  return function(debugPath, array) {
+  return function (debugPath, array) {
     return array.map((item, i) => {
       return invokeFunction(`${debugPath}[${i}]`, item);
     });
@@ -161,12 +161,12 @@ export function TransformRawTransaction(
     header_deps: toInvokeArray(invokeSerializeJson),
     inputs: toInvokeArray(toInvoke(TransformCellInput)),
     outputs: toInvokeArray(toInvoke(TransformCellOutput)),
-    outputs_data: toInvokeArray(invokeSerializeJson)
+    outputs_data: toInvokeArray(invokeSerializeJson),
   });
 
   if (validation) {
     validators.ValidateRawTransaction(rawTransaction, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return rawTransaction;
@@ -183,12 +183,12 @@ export function TransformTransaction(
     inputs: toInvokeArray(toInvoke(TransformCellInput)),
     outputs: toInvokeArray(toInvoke(TransformCellOutput)),
     outputs_data: toInvokeArray(invokeSerializeJson),
-    witnesses: toInvokeArray(invokeSerializeJson)
+    witnesses: toInvokeArray(invokeSerializeJson),
   });
 
   if (validation) {
     validators.ValidateTransaction(transaction, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return transaction;
@@ -208,12 +208,12 @@ export function TransformRawHeader(
     transactions_root: invokeSerializeJson,
     proposals_hash: invokeSerializeJson,
     extra_hash: invokeSerializeJson,
-    dao: invokeSerializeJson
+    dao: invokeSerializeJson,
   });
 
   if (validation) {
     validators.ValidateRawHeader(rawHeader, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return rawHeader;
@@ -234,12 +234,12 @@ export function TransformHeader(
     proposals_hash: invokeSerializeJson,
     extra_hash: invokeSerializeJson,
     dao: invokeSerializeJson,
-    nonce: invokeSerializeJson
+    nonce: invokeSerializeJson,
   });
 
   if (validation) {
     validators.ValidateHeader(header, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return header;
@@ -251,12 +251,12 @@ export function TransformUncleBlock(
 ) {
   uncleBlock = transformObject(debugPath, uncleBlock, {
     header: toInvoke(TransformHeader),
-    proposals: toInvokeArray(invokeSerializeJson)
+    proposals: toInvokeArray(invokeSerializeJson),
   });
 
   if (validation) {
     validators.ValidateUncleBlock(uncleBlock, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return uncleBlock;
@@ -270,12 +270,12 @@ export function TransformBlock(
     header: toInvoke(TransformHeader),
     uncles: toInvokeArray(toInvoke(TransformUncleBlock)),
     transactions: toInvokeArray(toInvoke(TransformTransaction)),
-    proposals: toInvokeArray(invokeSerializeJson)
+    proposals: toInvokeArray(invokeSerializeJson),
   });
 
   if (validation) {
     validators.ValidateBlock(block, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return block;
@@ -287,12 +287,12 @@ export function TransformCellbaseWitness(
 ) {
   cellbaseWitness = transformObject(debugPath, cellbaseWitness, {
     lock: toInvoke(TransformScript),
-    message: invokeSerializeJson
+    message: invokeSerializeJson,
   });
 
   if (validation) {
     validators.ValidateCellbaseWitness(cellbaseWitness, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return cellbaseWitness;
@@ -305,12 +305,12 @@ export function TransformWitnessArgs(
   witnessArgs = transformObject(debugPath, witnessArgs, {
     lock: invokeSerializeJson,
     input_type: invokeSerializeJson,
-    output_type: invokeSerializeJson
+    output_type: invokeSerializeJson,
   });
 
   if (validation) {
     validators.ValidateWitnessArgs(witnessArgs, {
-      debugPath: `(transformed) ${debugPath}`
+      debugPath: `(transformed) ${debugPath}`,
     });
   }
   return witnessArgs;
