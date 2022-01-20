@@ -23,7 +23,7 @@ test("normalize and serialize ckb2021 script", (t) => {
     code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     args: "0xaabbccdd44332211",
-    hash_type: "data1"
+    hash_type: "data1",
   };
 
   const normalizedValue = normalizers.NormalizeScript(value);
