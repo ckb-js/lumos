@@ -9,7 +9,7 @@ export class RPCCollector {
     {
       skipCellWithContent = true,
       loadData = false,
-      loadBlockNumber = true
+      loadBlockNumber = true,
     } = {}
   ) {
     this.rpc = rpc;
@@ -62,13 +62,13 @@ export class RPCCollector {
           cell_output: {
             capacity: cell.capacity,
             lock: cell.lock,
-            type: cell.type
+            type: cell.type,
           },
           out_point: cell.out_point,
           block_hash: cell.block_hash,
           data: data,
           output_data_len: cell.output_data_len,
-          block_number
+          block_number,
         };
       }
       currentFrom = JSBI.add(currentTo, JSBI.BigInt(1));
