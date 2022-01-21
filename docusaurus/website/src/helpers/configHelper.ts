@@ -1,6 +1,10 @@
-export function toConfigWithoutShortId(configWithShortId) {
+import { config } from "@ckb-lumos/lumos";
+
+export function toConfigWithoutShortId(
+  configWithShortId: config.Config
+): config.Config {
   const configScripts = configWithShortId.SCRIPTS;
-  const newConfigScript = new Array();
+  const newConfigScript: Record<string, config.ScriptConfig> = {};
   for (let key in configScripts) {
     const s = configScripts[key];
     newConfigScript[key] = {
@@ -11,10 +15,8 @@ export function toConfigWithoutShortId(configWithShortId) {
       DEP_TYPE: s.DEP_TYPE,
     };
   }
-  const configWithoutShortId = {
-    CKB2019: true,
+  return config.CKB2019({
     PREFIX: configWithShortId.PREFIX,
     SCRIPTS: newConfigScript,
-  };
-  return configWithoutShortId;
+  });
 }

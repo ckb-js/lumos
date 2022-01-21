@@ -3,41 +3,25 @@ import { Button, Form, Input, Typography } from "antd";
 import { useFormik } from "formik";
 import "antd/dist/antd.css";
 import styled from "styled-components";
-import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 import { toConfigWithoutShortId } from "../helpers/configHelper";
+import { Address, config, helpers, Script } from "@ckb-lumos/lumos";
 
-let config;
-let helpers;
-declare global {
-  interface Window {
-    lumos?: any;
-  }
-}
-if (ExecutionEnvironment.canUseDOM) {
-  const lumos = require("@ckb-lumos/lumos");
-  config = lumos.config;
-  helpers = lumos.helpers;
-}
-
-export type HashType = "type" | "data";
-export interface Script {
-  code_hash: string;
-  hash_type: HashType;
-  args: string;
-}
 type AddressType = "Mainnet" | "Testnet";
 
 const StyleWrapper = styled.div`
   padding: 20px;
+
   .resultForm {
     .ant-form-item {
       margin-bottom: 0px;
     }
   }
+
   .errorMessage {
     color: #ff4d4f;
   }
 `;
+
 interface ModalFormErrors {
   address?: string;
 }
@@ -45,11 +29,12 @@ interface ModalFormErrors {
 interface ModalFormValues {
   address: string;
 }
+
 export const AddressToScript = () => {
   const [script, setScript] = useState<Script>();
-  const [newAddress, setNewAddress] = useState<Script>();
-  const [deprecatedFullAddress, setDeprecateFullAddress] = useState<Script>();
-  const [deprecatedAddress, setDeprecatedAddress] = useState<Script>();
+  const [newAddress, setNewAddress] = useState<Address>();
+  const [deprecatedFullAddress, setDeprecateFullAddress] = useState<Address>();
+  const [deprecatedAddress, setDeprecatedAddress] = useState<Address>();
   const [addressType, setAddressType] = useState<AddressType>();
   const validate = (values: ModalFormValues): ModalFormErrors => {
     const errors: ModalFormErrors = {};
