@@ -1,18 +1,20 @@
 import React from "react";
 import { Menu } from "antd";
-import { NavLink, useLocation } from "react-router-dom";
+import Link from "@docusaurus/Link";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 
 export const Sidebar = () => {
-  const location = useLocation();
+  const keyAddressConversion = useBaseUrl("/tools/address-conversion");
 
   return (
     <Menu
       style={{ width: 256 }}
-      defaultSelectedKeys={[location.pathname]}
+      defaultSelectedKeys={[keyAddressConversion]}
       mode="inline"
     >
-      {/* https://github.com/facebook/docusaurus/issues/4712 */}
-      <Menu.Item key="/lumos/tools/address-conversion"><NavLink to="/lumos/tools/address-conversion">Address Conversion</NavLink></Menu.Item>
+      <Menu.Item key={keyAddressConversion}>
+        <Link to="/tools/address-conversion">Address Conversion</Link>
+      </Menu.Item>
     </Menu>
   );
 };

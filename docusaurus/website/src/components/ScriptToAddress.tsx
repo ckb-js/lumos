@@ -3,24 +3,18 @@ import { Button, Form, Input, Radio, Typography } from "antd";
 import { useFormik } from "formik";
 import "antd/dist/antd.css";
 import styled from "styled-components";
-import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 import { toConfigWithoutShortId } from "../helpers/configHelper";
-
-let config;
-let helpers;
-if (ExecutionEnvironment.canUseDOM) {
-  const lumos = require("@ckb-lumos/lumos");
-  config = lumos.config;
-  helpers = lumos.helpers;
-}
+import { config, helpers, Script } from "@ckb-lumos/lumos";
 
 const StyleWrapper = styled.div`
   padding: 20px;
+
   .resultForm {
     .ant-form-item {
       margin-bottom: 0px;
     }
   }
+
   .errorMessage {
     color: #ff4d4f;
   }
@@ -33,7 +27,7 @@ export const ScriptToAddress = () => {
   const [testnetAddress, setTestnetAddress] = useState("");
   const [testNewFullAddr, setTestNewFullAddr] = useState("");
   const [testDepreFullAddr, setTestDepreFullAddr] = useState("");
-  const scriptToAddressForm = useFormik({
+  const scriptToAddressForm = useFormik<Script>({
     async onSubmit(val) {
       config.initializeConfig(config.predefined.AGGRON4);
       const address = helpers.scriptToAddress(val);
@@ -73,7 +67,7 @@ export const ScriptToAddress = () => {
     },
     initialValues: {
       code_hash: "",
-      hash_type: "",
+      hash_type: "type",
       args: "",
     },
   });
