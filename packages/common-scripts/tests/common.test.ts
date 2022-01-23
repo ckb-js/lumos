@@ -22,6 +22,7 @@ import {
 } from "./inputs";
 import { bob, alice } from "./account_info";
 import { List } from "immutable";
+import { BI, toJSBI } from "@ckb-lumos/bi";
 
 const aliceAddress = "ckt1qyqwyxfa75whssgkq9ukkdd30d8c7txct0gqfvmy2v";
 
@@ -43,7 +44,7 @@ test("transfer, acp => acp", async (t) => {
     txSkeleton,
     [bob.acpTestnetAddress],
     alice.acpTestnetAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -116,7 +117,7 @@ test("transfer secp => secp", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -175,7 +176,7 @@ test("transfer secp & multisig => secp", async (t) => {
     txSkeleton,
     [bob.testnetAddress, bob.fromInfo],
     aliceAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -244,7 +245,7 @@ test("transfer multisig lock => secp", async (t) => {
     txSkeleton,
     [bob.fromInfo],
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     undefined,
     tipHeader,
     {
@@ -303,7 +304,7 @@ test("transfer secp => acp", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     alice.acpTestnetAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -364,7 +365,7 @@ test("transfer secp => acp, no acp previous input", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     alice.acpTestnetAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -430,7 +431,7 @@ test("transfer acp => secp, destroy", async (t) => {
       },
     ],
     bob.testnetAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -486,7 +487,7 @@ test("Don't update capacity directly when deduct", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -505,7 +506,7 @@ test("Don't update capacity directly when deduct", async (t) => {
       txSkeleton,
       [bob.testnetAddress],
       aliceAddress,
-      JSBI.BigInt(500 * 10 ** 8),
+      BI.from(JSBI.BigInt(500 * 10 ** 8)),
       undefined,
       undefined,
       { config: AGGRON4 }
@@ -634,14 +635,18 @@ test("getTransactionSizeByTx", (t) => {
 
 test("calculateFeeCompatible, without carry", (t) => {
   t.is(
-    __tests__.calculateFeeCompatible(1035, JSBI.BigInt(1000)).toString(),
+    __tests__
+      .calculateFeeCompatible(1035, BI.from(JSBI.BigInt(1000)))
+      .toString(),
     JSBI.BigInt(1035).toString()
   );
 });
 
 test("calculateFeeCompatible, with carry", (t) => {
   t.is(
-    __tests__.calculateFeeCompatible(1035, JSBI.BigInt(900)).toString(),
+    __tests__
+      .calculateFeeCompatible(1035, BI.from(JSBI.BigInt(900)))
+      .toString(),
     JSBI.BigInt(932).toString()
   );
 });
@@ -650,9 +655,11 @@ function getExpectedFee(
   txSkeleton: TransactionSkeletonType,
   feeRate: JSBI
 ): JSBI {
-  return __tests__.calculateFeeCompatible(
-    __tests__.getTransactionSize(txSkeleton),
-    feeRate
+  return toJSBI(
+    __tests__.calculateFeeCompatible(
+      __tests__.getTransactionSize(txSkeleton),
+      BI.from(feeRate)
+    )
   );
 }
 
@@ -687,7 +694,7 @@ test("payFeeByFeeRate 1 in 1 out, add 1 in 1 out", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -697,7 +704,7 @@ test("payFeeByFeeRate 1 in 1 out, add 1 in 1 out", async (t) => {
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
-    feeRate,
+    BI.from(feeRate),
     undefined,
     {
       config: AGGRON4,
@@ -723,7 +730,7 @@ test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -733,7 +740,7 @@ test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
-    feeRate,
+    BI.from(feeRate),
     undefined,
     {
       config: AGGRON4,
@@ -759,7 +766,7 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -769,7 +776,7 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
-    feeRate,
+    BI.from(feeRate),
     undefined,
     {
       config: AGGRON4,
@@ -783,7 +790,9 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
   t.is(txSkeleton.get("outputs").size, 1);
   t.is(
     getFee(txSkeleton).toString(),
-    __tests__.calculateFeeCompatible(ONE_IN_TWO_OUT_SIZE, feeRate).toString()
+    __tests__
+      .calculateFeeCompatible(ONE_IN_TWO_OUT_SIZE, BI.from(feeRate))
+      .toString()
   );
 });
 
@@ -798,7 +807,7 @@ test("payFeeByFeeRate 1 in 2 out, add 1 in", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -808,7 +817,7 @@ test("payFeeByFeeRate 1 in 2 out, add 1 in", async (t) => {
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
-    feeRate,
+    BI.from(feeRate),
     undefined,
     {
       config: AGGRON4,
@@ -834,7 +843,7 @@ test("payFeeByFeeRate, capacity 500", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -844,7 +853,7 @@ test("payFeeByFeeRate, capacity 500", async (t) => {
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
-    feeRate,
+    BI.from(feeRate),
     undefined,
     {
       config: AGGRON4,
@@ -867,7 +876,7 @@ test("payFeeByFeeRate, capacity 1000", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -877,7 +886,7 @@ test("payFeeByFeeRate, capacity 1000", async (t) => {
   txSkeleton = await common.payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
-    feeRate,
+    BI.from(feeRate),
     undefined,
     {
       config: AGGRON4,
@@ -911,7 +920,7 @@ test("Should not throw if anyone-can-pay config not provided", async (t) => {
       txSkeleton,
       [bob.testnetAddress],
       aliceAddress,
-      amount,
+      BI.from(amount),
       undefined,
       undefined,
       { config }
@@ -931,7 +940,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
     txSkeleton,
     [bob.testnetAddress],
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -945,7 +954,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
   txSkeleton = await common.payFee(
     txSkeleton,
     [bob.testnetAddress],
-    fee,
+    BI.from(fee),
     undefined,
     {
       config: AGGRON4,
@@ -1053,7 +1062,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     txSkeleton,
     [bob.fromInfo],
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     undefined,
     tipHeader,
     {
@@ -1069,7 +1078,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
   txSkeleton = await common.injectCapacity(
     txSkeleton,
     [bob.fromInfo],
-    fee,
+    BI.from(fee),
     undefined,
     tipHeader,
     {

@@ -19,6 +19,7 @@ import {
   aliceAcpSudtInputs,
 } from "./inputs";
 import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
+import { BI, toJSBI } from "@ckb-lumos/bi";
 const { AGGRON4 } = predefined;
 
 test.before(() => {
@@ -38,7 +39,7 @@ test("issueToken", async (t) => {
   txSkeleton = await sudt.issueToken(
     txSkeleton,
     bob.testnetAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -80,7 +81,7 @@ test("transfer secp", async (t) => {
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.testnetAddress,
     undefined,
     undefined,
@@ -101,13 +102,13 @@ test("transfer secp", async (t) => {
     .get("inputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
@@ -152,7 +153,7 @@ test("transfer locktime pool multisig & secp", async (t) => {
     ],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.testnetAddress,
     undefined,
     tipHeader,
@@ -173,13 +174,13 @@ test("transfer locktime pool multisig & secp", async (t) => {
     .get("inputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
@@ -232,7 +233,7 @@ test("transfer acp", async (t) => {
     [bob.acpTestnetAddress],
     bob.secpLockHash,
     alice.acpTestnetAddress,
-    amount,
+    BI.from(amount),
     bob.acpTestnetAddress,
     undefined,
     undefined,
@@ -257,13 +258,13 @@ test("transfer acp", async (t) => {
     .get("inputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
@@ -274,7 +275,7 @@ test("transfer acp", async (t) => {
     ).toString(),
     JSBI.add(
       amount,
-      readBigUInt128LECompatible(aliceAcpSudtInputs[0].data)
+      toJSBI(readBigUInt128LECompatible(aliceAcpSudtInputs[0].data))
     ).toString()
   );
 
@@ -308,9 +309,9 @@ test("transfer acp => secp, destroyable", async (t) => {
     ],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.acpTestnetAddress,
-    JSBI.BigInt(1000 * 10 ** 8),
+    BI.from(JSBI.BigInt(1000 * 10 ** 8)),
     undefined,
     { config: AGGRON4 }
   );
@@ -333,13 +334,13 @@ test("transfer acp => secp, destroyable", async (t) => {
     .get("inputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
@@ -386,7 +387,7 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
         lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
         type: sudtTypeScript,
       },
-      data: utils.toBigUInt128LE(JSBI.BigInt(0)),
+      data: utils.toBigUInt128LE(BI.from(JSBI.BigInt(0))),
     });
   });
 
@@ -404,9 +405,9 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.acpTestnetAddress,
-    capacity,
+    BI.from(capacity),
     undefined,
     { config: AGGRON4 }
   );
@@ -425,13 +426,13 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
     .get("inputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
@@ -480,9 +481,9 @@ test("transfer secp, split change cell", async (t) => {
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.testnetAddress,
-    capacity,
+    BI.from(capacity),
     undefined,
     { config: AGGRON4, splitChangeCell: true }
   );
@@ -501,13 +502,13 @@ test("transfer secp, split change cell", async (t) => {
     .get("inputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
@@ -544,9 +545,9 @@ test("transfer secp, split change cell, not enough for two minimals", async (t) 
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.testnetAddress,
-    capacity,
+    BI.from(capacity),
     undefined,
     { config: AGGRON4, splitChangeCell: true }
   );
@@ -565,13 +566,13 @@ test("transfer secp, split change cell, not enough for two minimals", async (t) 
     .get("inputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
@@ -620,7 +621,7 @@ test("transfer secp => secp, change to acp and has previous output, split change
         lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
         type: sudtTypeScript,
       },
-      data: utils.toBigUInt128LE(JSBI.BigInt(0)),
+      data: utils.toBigUInt128LE(BI.from(JSBI.BigInt(0))),
     });
   });
 
@@ -631,9 +632,9 @@ test("transfer secp => secp, change to acp and has previous output, split change
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.acpTestnetAddress,
-    capacity,
+    BI.from(capacity),
     undefined,
     { config: AGGRON4, splitChangeCell: true }
   );
@@ -652,13 +653,13 @@ test("transfer secp => secp, change to acp and has previous output, split change
     .get("inputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
     .map((i) => readBigUInt128LECompatible(i.data))
-    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 

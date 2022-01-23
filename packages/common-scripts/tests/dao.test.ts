@@ -16,6 +16,7 @@ import {
   bobSecpDaoDepositInput,
   bobSecpDaoWithdrawInput,
 } from "./inputs";
+import { BI } from "@ckb-lumos/bi";
 
 const cellProvider = new CellProvider(inputs());
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
@@ -40,7 +41,7 @@ test("deposit secp256k1_blake160", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     bob.mainnetAddress,
-    JSBI.BigInt(1000 * 10 ** 8)
+    BI.from(JSBI.BigInt(1000 * 10 ** 8))
   );
 
   const inputCapacity = txSkeleton
@@ -78,7 +79,7 @@ test("withdraw secp256k1_blake160", async (t) => {
     txSkeleton,
     bob.mainnetAddress,
     bob.mainnetAddress,
-    JSBI.BigInt(1000 * 10 ** 8)
+    BI.from(JSBI.BigInt(1000 * 10 ** 8))
   );
 
   const fromInput = txSkeleton.get("outputs").get(0)!;
@@ -223,7 +224,7 @@ test("deposit multisig", async (t) => {
     txSkeleton,
     bob.fromInfo,
     bob.multisigTestnetAddress,
-    JSBI.BigInt(500 * 10 ** 8),
+    BI.from(JSBI.BigInt(500 * 10 ** 8)),
     { config: AGGRON4 }
   );
 

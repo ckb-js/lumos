@@ -25,6 +25,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { normalizers, Reader } from "ckb-js-toolkit";
 import { List, Set } from "immutable";
+import { BIish, toJSBI } from "@ckb-lumos/bi";
 import { FromInfo, parseFromInfo } from "./from_info";
 import {
   addCellDep,
@@ -203,8 +204,8 @@ export async function setupInputCell(
 }
 
 // export for tests
-export function checkLimit(acpArgs: HexString, capacity: bigint | JSBI): void {
-  capacity = JSBI.BigInt(capacity.toString());
+export function checkLimit(acpArgs: HexString, capacity: BIish): void {
+  let _capacity = toJSBI(capacity);
   let minimalAmount: JSBI | undefined;
   let minimalCapacity: JSBI | undefined;
   if (acpArgs.length >= 46) {
@@ -225,14 +226,14 @@ export function checkLimit(acpArgs: HexString, capacity: bigint | JSBI): void {
   // Both minimalAmount & minimalCapacity OR only minimalCapacity
   if (minimalCapacity && minimalAmount) {
     //check if undefined
-    if (JSBI.lessThan(capacity, minimalCapacity)) {
+    if (JSBI.lessThan(_capacity, minimalCapacity)) {
       throw new Error(
         `capacity(${capacity}) less than toAddress minimal capacity limit(${minimalCapacity}), and amount less then toAddress minimal amount limit(${minimalAmount})! If you want to transfer sudt, maybe sudt.transfer can help you.`
       );
     }
   } else if (minimalCapacity) {
     //check if undefined
-    if (JSBI.lessThan(capacity, minimalCapacity)) {
+    if (JSBI.lessThan(_capacity, minimalCapacity)) {
       throw new Error(
         `capacity(${capacity}) less than toAddress minimal capacity limit(${minimalCapacity})!`
       );
@@ -251,7 +252,7 @@ export async function setupOutputCell(
 
   const capacity: JSBI = JSBI.BigInt(outputCell.cell_output.capacity);
 
-  checkLimit(toScript.args, capacity);
+  checkLimit(toScript.args, capacity.toString());
 
   const cellProvider = txSkeleton.get("cellProvider");
   if (!cellProvider) {
@@ -311,7 +312,7 @@ export async function injectCapacity(
   cellCollector: CellCollector,
   txSkeleton: TransactionSkeletonType,
   outputIndex: number,
-  capacity: bigint | JSBI,
+  capacity: BIish,
   { config = undefined }: Options = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -320,7 +321,7 @@ export async function injectCapacity(
     throw new Error(`Invalid output index!`);
   }
 
-  capacity = JSBI.BigInt(capacity.toString());
+  let _capacity = JSBI.BigInt(capacity.toString());
 
   const template = config.SCRIPTS.ANYONE_CAN_PAY;
   if (!template) {
@@ -347,7 +348,7 @@ export async function injectCapacity(
   for (
     ;
     i < txSkeleton.get("outputs").size &&
-    JSBI.greaterThan(capacity, JSBI.BigInt(0));
+    JSBI.greaterThan(_capacity, JSBI.BigInt(0));
     i++
   ) {
     const output = txSkeleton.get("outputs").get(i)!;
@@ -359,16 +360,16 @@ export async function injectCapacity(
       const cellCapacity: JSBI = JSBI.BigInt(output.cell_output.capacity);
       const availableCapacity: JSBI = JSBI.subtract(
         cellCapacity,
-        minimalCellCapacityCompatible(output)
+        toJSBI(minimalCellCapacityCompatible(output))
       );
       // should maintain minimal cell capcity in anyone-can-pay output
       const deductCapacity: JSBI = JSBI.greaterThanOrEqual(
-        capacity,
+        _capacity,
         availableCapacity
       )
         ? availableCapacity
-        : capacity;
-      capacity = JSBI.subtract(capacity, deductCapacity);
+        : _capacity;
+      _capacity = JSBI.subtract(_capacity, deductCapacity);
       output.cell_output.capacity =
         "0x" + JSBI.subtract(cellCapacity, deductCapacity).toString(16);
     }
@@ -382,7 +383,7 @@ export async function injectCapacity(
 
   const getInputKey = (input: Cell) =>
     `${input.out_point!.tx_hash}_${input.out_point!.index}`;
-  if (JSBI.greaterThan(capacity, JSBI.BigInt(0))) {
+  if (JSBI.greaterThan(_capacity, JSBI.BigInt(0))) {
     const changeCell: Cell = {
       cell_output: {
         capacity: "0x0",
@@ -394,8 +395,8 @@ export async function injectCapacity(
       block_hash: undefined,
     };
     let changeCapacity = JSBI.BigInt(0);
-    const minimalChangeCapacity: JSBI = minimalCellCapacityCompatible(
-      changeCell
+    const minimalChangeCapacity: JSBI = toJSBI(
+      minimalCellCapacityCompatible(changeCell)
     );
 
     let previousInputs = Set<string>();
@@ -432,16 +433,16 @@ export async function injectCapacity(
 
       const inputCapacity = JSBI.BigInt(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
-      if (JSBI.greaterThan(deductCapacity, capacity)) {
-        deductCapacity = capacity;
+      if (JSBI.greaterThan(deductCapacity, _capacity)) {
+        deductCapacity = _capacity;
       }
-      capacity = JSBI.subtract(capacity, deductCapacity);
+      _capacity = JSBI.subtract(_capacity, deductCapacity);
       changeCapacity = JSBI.add(
         changeCapacity,
         JSBI.subtract(inputCapacity, deductCapacity)
       );
       if (
-        JSBI.equal(capacity, JSBI.BigInt(0)) &&
+        JSBI.equal(_capacity, JSBI.BigInt(0)) &&
         JSBI.greaterThanOrEqual(changeCapacity, minimalChangeCapacity)
       ) {
         break;
@@ -454,7 +455,7 @@ export async function injectCapacity(
     }
 
     if (
-      JSBI.greaterThan(capacity, JSBI.BigInt(0)) ||
+      JSBI.greaterThan(_capacity, JSBI.BigInt(0)) ||
       changeCapacity < minimalChangeCapacity
     ) {
       throw new Error(`Not enough capacity in from address!`);
@@ -513,7 +514,7 @@ export function prepareSigningEntries(
 
       const sumOfOutputAmount: JSBI = outputs
         .filter((output) => output.data !== "0x")
-        .map((output) => readBigUInt128LECompatible(output.data))
+        .map((output) => toJSBI(readBigUInt128LECompatible(output.data)))
         .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
       const fInputs: List<Cell> = inputs.filter((i) => {
@@ -528,7 +529,7 @@ export function prepareSigningEntries(
 
       const sumOfInputAmount: JSBI = fInputs
         .filter((i) => i.data !== "0x")
-        .map((i) => readBigUInt128LECompatible(i.data))
+        .map((i) => toJSBI(readBigUInt128LECompatible(i.data)))
         .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
 
       if (
@@ -580,7 +581,7 @@ export async function withdraw(
   txSkeleton: TransactionSkeletonType,
   fromInput: Cell,
   toAddress: Address,
-  capacity: bigint | JSBI,
+  capacity: BIish,
   { config = undefined }: Options = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -591,19 +592,19 @@ export async function withdraw(
   }
 
   // check capacity
-  capacity = JSBI.BigInt(capacity.toString());
+  let _capacity = JSBI.BigInt(capacity.toString());
   const fromInputCapacity: JSBI = JSBI.BigInt(fromInput.cell_output.capacity);
-  const inputMinimalCellCapacity: JSBI = minimalCellCapacityCompatible(
-    fromInput
+  const inputMinimalCellCapacity: JSBI = toJSBI(
+    minimalCellCapacityCompatible(fromInput)
   );
   if (
     !(
-      (JSBI.greaterThanOrEqual(capacity, JSBI.BigInt(0)) &&
+      (JSBI.greaterThanOrEqual(_capacity, JSBI.BigInt(0)) &&
         JSBI.lessThanOrEqual(
-          capacity,
+          _capacity,
           JSBI.subtract(fromInputCapacity, inputMinimalCellCapacity)
         )) ||
-      JSBI.equal(capacity, fromInputCapacity)
+      JSBI.equal(_capacity, fromInputCapacity)
     )
   ) {
     throw new Error(
@@ -647,7 +648,7 @@ export async function withdraw(
     }
 
     const outputCapacity: JSBI = JSBI.add(
-      capacity,
+      _capacity,
       JSBI.BigInt(toAddressInput.cell_output.capacity)
     );
     targetOutput.cell_output.capacity = "0x" + outputCapacity.toString(16);
@@ -688,11 +689,10 @@ export async function withdraw(
     });
   }
 
-  if (JSBI.notEqual(capacity, fromInputCapacity)) {
+  if (JSBI.notEqual(_capacity, fromInputCapacity)) {
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
         cell_output: {
-          //TODO check why capacity there is bigint|JSBI
           capacity:
             "0x" +
             JSBI.subtract(

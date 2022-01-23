@@ -24,6 +24,7 @@ import { Reader, normalizers } from "ckb-js-toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -101,7 +102,7 @@ async function completeTx(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
   config?: Config,
-  feeRate?: bigint | JSBI
+  feeRate?: BIish
 ): Promise<TransactionSkeletonType> {
   const inputCapacity = txSkeleton
     .get("inputs")
@@ -112,28 +113,33 @@ async function completeTx(
     .map((c) => JSBI.BigInt(c.cell_output.capacity))
     .reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
   const needCapacity = JSBI.subtract(outputCapacity, inputCapacity);
-  txSkeleton = await injectCapacity(txSkeleton, fromInfo, needCapacity, {
-    config: config,
-    feeRate: feeRate,
-  });
+  txSkeleton = await injectCapacity(
+    txSkeleton,
+    fromInfo,
+    BI.from(needCapacity),
+    {
+      config: config,
+      feeRate: feeRate,
+    }
+  );
   return txSkeleton;
 }
 
 async function injectCapacity(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
-  amount: bigint | JSBI,
+  amount: BIish,
   {
     config = undefined,
     feeRate = undefined,
-  }: { config?: Config; feeRate?: bigint | JSBI }
+  }: { config?: Config; feeRate?: BIish }
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  feeRate = feeRate || JSBI.BigInt(1000);
-  amount = JSBI.BigInt(amount.toString());
+  let _feeRate = feeRate || 1000;
+  let _amount = toJSBI(amount);
   const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
-  amount = JSBI.add(
-    JSBI.BigInt(amount),
+  _amount = JSBI.add(
+    JSBI.BigInt(_amount),
     JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
   );
 
@@ -147,16 +153,16 @@ async function injectCapacity(
     data: "0x",
   };
   const minimalChangeCapacity: JSBI = JSBI.add(
-    minimalCellCapacityCompatible(changeCell),
+    toJSBI(minimalCellCapacityCompatible(changeCell)),
     JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
   );
 
-  if (JSBI.lessThan(amount, JSBI.BigInt(0))) {
-    changeCapacity = JSBI.subtract(changeCapacity, amount);
-    amount = JSBI.BigInt(0);
+  if (JSBI.lessThan(_amount, JSBI.BigInt(0))) {
+    changeCapacity = JSBI.subtract(changeCapacity, _amount);
+    _amount = JSBI.BigInt(0);
   }
   if (
-    JSBI.greaterThan(amount, JSBI.BigInt(0)) ||
+    JSBI.greaterThan(_amount, JSBI.BigInt(0)) ||
     JSBI.lessThan(changeCapacity, minimalChangeCapacity)
   ) {
     const cellProvider = txSkeleton.get("cellProvider");
@@ -189,16 +195,16 @@ async function injectCapacity(
       );
       const inputCapacity = JSBI.BigInt(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
-      if (JSBI.greaterThan(deductCapacity, amount)) {
-        deductCapacity = amount;
+      if (JSBI.greaterThan(deductCapacity, _amount)) {
+        deductCapacity = _amount;
       }
-      amount = JSBI.subtract(amount, deductCapacity);
+      _amount = JSBI.subtract(_amount, deductCapacity);
       changeCapacity = JSBI.add(
         changeCapacity,
         JSBI.subtract(inputCapacity, deductCapacity)
       );
       if (
-        JSBI.equal(amount, JSBI.BigInt(0)) &&
+        JSBI.equal(_amount, JSBI.BigInt(0)) &&
         (JSBI.equal(changeCapacity, JSBI.BigInt(0)) ||
           JSBI.greaterThanOrEqual(changeCapacity, minimalChangeCapacity))
       )
@@ -213,7 +219,7 @@ async function injectCapacity(
     );
   }
   if (
-    JSBI.greaterThan(amount, JSBI.BigInt(0)) ||
+    JSBI.greaterThan(_amount, JSBI.BigInt(0)) ||
     JSBI.lessThan(changeCapacity, minimalChangeCapacity)
   )
     throw new Error("Not enough capacity in from address!");
@@ -288,8 +294,8 @@ async function injectCapacity(
     );
   }
 
-  const txFee = calculateTxFee(txSkeleton, feeRate);
-  changeCapacity = JSBI.subtract(changeCapacity, txFee);
+  const txFee = calculateTxFee(txSkeleton, _feeRate);
+  changeCapacity = JSBI.subtract(changeCapacity, toJSBI(txFee));
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.pop();
@@ -318,24 +324,23 @@ function getTransactionSizeByTx(tx: Transaction): number {
   return size;
 }
 
-function calculateFee(size: number, feeRate: JSBI): JSBI {
+function calculateFee(size: number, feeRate: BIish): BI {
   const ratio = JSBI.BigInt(1000);
-  const base = JSBI.multiply(JSBI.BigInt(size), feeRate);
+  const base = JSBI.multiply(JSBI.BigInt(size), toJSBI(feeRate));
   const fee = JSBI.divide(base, ratio);
 
   if (JSBI.lessThan(JSBI.multiply(fee, ratio), base)) {
-    return JSBI.add(fee, JSBI.BigInt(1));
+    return BI.from(JSBI.add(fee, JSBI.BigInt(1)));
   }
-  return fee;
+  return BI.from(fee);
 }
 
 function calculateTxFee(
   txSkeleton: TransactionSkeletonType,
-  feeRate: bigint | JSBI
-): JSBI {
-  feeRate = JSBI.BigInt(feeRate.toString());
+  feeRate: BIish
+): BI {
   const txSize = getTransactionSize(txSkeleton);
-  return calculateFee(txSize, feeRate);
+  return BI.from(calculateFee(txSize, feeRate));
 }
 
 function calculateCodeHashByBin(scriptBin: Uint8Array): string {

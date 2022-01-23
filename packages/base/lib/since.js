@@ -1,10 +1,11 @@
-const { JSBI, maybeJSBI, isJSBI } = require("./primitive");
+const { JSBI, maybeJSBI } = require("./primitive");
+const { isBIish, toJSBI, BI } = require("@ckb-lumos/bi");
 
 function parseSince(since) {
   const result = parseSinceCompatible(since);
 
   if (result.type === "epochNumber") return result;
-  return { ...result, value: BigInt(String(result.value)) };
+  return { ...result, value: result.value.toBigInt() };
 }
 
 function parseSinceCompatible(since) {
@@ -19,7 +20,7 @@ function parseSinceCompatible(since) {
 
   if (JSBI.equal(metricFlag, JSBI.BigInt(0b00))) {
     type = "blockNumber";
-    value = JSBI.bitwiseAnd(since, JSBI.BigInt("0xFFFFFFFFFFFFFF"));
+    value = BI.from(JSBI.bitwiseAnd(since, JSBI.BigInt("0xFFFFFFFFFFFFFF")));
   } else if (JSBI.equal(metricFlag, JSBI.BigInt(0b01))) {
     type = "epochNumber";
     value = {
@@ -39,7 +40,7 @@ function parseSinceCompatible(since) {
     };
   } else if (JSBI.equal(metricFlag, JSBI.BigInt(0b10))) {
     type = "blockTimestamp";
-    value = JSBI.bitwiseAnd(since, JSBI.BigInt("0xFFFFFFFFFFFFFF"));
+    value = BI.from(JSBI.bitwiseAnd(since, JSBI.BigInt("0xFFFFFFFFFFFFFF")));
   } else {
     throw new Error("Invalid metric flag!");
   }
@@ -68,12 +69,12 @@ function generateSince({ relative, type, value }) {
   }
 
   let v;
-  if (isJSBI(value)) {
-    v = JSBI.BigInt(value);
+  if (isBIish(value)) {
+    v = toJSBI(value);
   } else if (typeof value === "object") {
     v = JSBI.BigInt(generateHeaderEpoch(value));
   } else {
-    v = JSBI.BigInt(value);
+    v = toJSBI(value);
   } // TODO: check v is valid
 
   return _toHex(JSBI.add(JSBI.leftShift(flag, JSBI.BigInt(56)), v));
@@ -143,7 +144,7 @@ function generateHeaderEpoch({ length, index, number }) {
 function parseAbsoluteEpochSince(since) {
   const { relative, type, value } = parseSinceCompatible(since);
 
-  if (!(maybeJSBI.equal(relative, false) && type === "epochNumber")) {
+  if (!(relative === false && type === "epochNumber")) {
     throw new Error("Since format error!");
   }
 
@@ -179,7 +180,7 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
 
     if (type === "blockNumber") {
       return JSBI.lessThanOrEqual(
-        value,
+        toJSBI(value),
         JSBI.BigInt(tipSinceValidationInfo.block_number)
       );
     }
@@ -190,7 +191,7 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
       }
 
       return JSBI.lessThanOrEqual(
-        JSBI.multiply(value, JSBI.BigInt(1000)),
+        JSBI.multiply(toJSBI(value), JSBI.BigInt(1000)),
         JSBI.BigInt(tipSinceValidationInfo.median_timestamp)
       );
     }
@@ -257,7 +258,10 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
 
     if (type === "blockNumber") {
       return JSBI.lessThanOrEqual(
-        JSBI.add(value, JSBI.BigInt(cellSinceValidationInfo.block_number)),
+        JSBI.add(
+          toJSBI(value),
+          JSBI.BigInt(cellSinceValidationInfo.block_number)
+        ),
         JSBI.BigInt(tipSinceValidationInfo.block_number)
       );
     }
@@ -272,7 +276,7 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
 
       return JSBI.lessThanOrEqual(
         JSBI.add(
-          JSBI.multiply(value, JSBI.BigInt(1000)),
+          JSBI.multiply(toJSBI(value), JSBI.BigInt(1000)),
           JSBI.BigInt(cellSinceValidationInfo.median_timestamp)
         ),
         JSBI.BigInt(tipSinceValidationInfo.median_timestamp)

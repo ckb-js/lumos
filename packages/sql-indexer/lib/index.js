@@ -390,7 +390,8 @@ class Indexer {
     const tipNumber = JSBI.BigInt(tip.block_number);
     if (JSBI.greaterThan(tipNumber, JSBI.BigInt(this.keepNum))) {
       const pruneToBlock = JSBI.subtract(
-        tipNumber - JSBI.BigInt(this.keepNum)
+        tipNumber,
+        JSBI.BigInt(this.keepNum)
       ).toString();
       await this.knex.transaction(async (trx) => {
         await trx("cells")

@@ -32,7 +32,8 @@ lint:
 	yarn workspaces run lint
 	git diff --exit-code
 
-build-jsbi:
+build-bi:
+	yarn workspace@ckb-lumos/bi build
 	yarn workspace @ckb-lumos/config-manager build
 	yarn workspace @ckb-lumos/helpers build
 	yarn workspace @ckb-lumos/rpc build
