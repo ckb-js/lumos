@@ -1,4 +1,4 @@
-const { RPC, Reader, validators } = require("ckb-js-toolkit");
+const { RPC, Reader, validators } = require("@ckb-lumos/toolkit");
 const { EventEmitter } = require("events");
 const { utils, indexer: BaseIndexerModule } = require("@ckb-lumos/base");
 const { BI } = require("@ckb-lumos/bi");

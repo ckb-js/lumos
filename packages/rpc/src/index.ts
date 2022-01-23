@@ -1,4 +1,4 @@
-import { RPC as ToolkitRPC } from "ckb-js-toolkit";
+import { RPC as ToolkitRPC } from "@ckb-lumos/toolkit";
 import {
   Alert,
   BannedAddr,

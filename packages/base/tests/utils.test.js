@@ -1,5 +1,5 @@
 const test = require("ava");
-const { Reader } = require("ckb-js-toolkit");
+const { Reader } = require("@ckb-lumos/toolkit");
 const { BI } = require("@ckb-lumos/bi");
 
 const {

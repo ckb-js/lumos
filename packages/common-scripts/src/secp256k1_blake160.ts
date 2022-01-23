@@ -1,5 +1,5 @@
 import { Set } from "immutable";
-import { normalizers, Reader } from "ckb-js-toolkit";
+import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import {
   parseAddress,
   minimalCellCapacityCompatible,
@@ -80,6 +80,7 @@ export class CellCollector implements CellCollectorType {
  *
  * @param txSkeleton
  * @param inputCell
+ * @param _fromInfo
  * @param options
  */
 export async function setupInputCell(

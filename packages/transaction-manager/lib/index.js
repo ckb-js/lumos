@@ -1,4 +1,4 @@
-const { validators, RPC } = require("ckb-js-toolkit");
+const { validators, RPC } = require("@ckb-lumos/toolkit");
 const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
 const { TransactionCollector } = require("@ckb-lumos/indexer/lib");

@@ -1,4 +1,4 @@
-import { Reader } from "ckb-js-toolkit";
+import { Reader } from "@ckb-lumos/toolkit";
 import { HexNumber } from "..";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { Script, Input } from "./api";

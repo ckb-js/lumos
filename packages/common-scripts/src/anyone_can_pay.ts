@@ -22,7 +22,7 @@ import {
   parseAddress,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { normalizers, Reader } from "ckb-js-toolkit";
+import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import { List, Set } from "immutable";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { FromInfo, parseFromInfo } from "./from_info";

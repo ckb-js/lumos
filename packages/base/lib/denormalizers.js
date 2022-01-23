@@ -1,5 +1,5 @@
 const { BI } = require("@ckb-lumos/bi");
-const { Reader } = require("ckb-js-toolkit");
+const { Reader } = require("@ckb-lumos/toolkit");
 
 function DenormalizeOutPoint(outPoint) {
   return {

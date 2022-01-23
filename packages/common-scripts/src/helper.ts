@@ -14,7 +14,7 @@ import {
   HexString,
 } from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
-import { normalizers, Reader } from "ckb-js-toolkit";
+import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import { Config } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
 

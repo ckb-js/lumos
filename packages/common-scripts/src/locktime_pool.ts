@@ -29,7 +29,7 @@ import {
 } from "@ckb-lumos/base";
 const { toBigUInt64LE, readBigUInt64LECompatible, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
-import { normalizers, Reader } from "ckb-js-toolkit";
+import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import {
   generateDaoScript,
   isSecp256k1Blake160MultisigScript,
