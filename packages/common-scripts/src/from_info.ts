@@ -5,6 +5,7 @@ import {
   Script,
   HexString,
   utils,
+  JSBI,
 } from "@ckb-lumos/base";
 import { Options, parseAddress } from "@ckb-lumos/helpers";
 import { getConfig } from "@ckb-lumos/config-manager";
@@ -78,7 +79,7 @@ export function multisigArgs(
 ): HexString {
   let sinceLE = "0x";
   if (since != null) {
-    sinceLE = toBigUInt64LE(BigInt(since));
+    sinceLE = toBigUInt64LE(JSBI.BigInt(since).toString());
   }
   return (
     new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +

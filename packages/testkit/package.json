@@ -39,9 +39,6 @@
     "start": "ts-node example/mock-ckb-node.ts",
     "fmt": "prettier --write \"{src,tests,example}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,example}/**/*.ts\"",
-    "build": "npm run build:types && npm run build:js",
-    "build:types": "tsc --declaration --emitDeclarationOnly",
-    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
     "release": "npm publish"

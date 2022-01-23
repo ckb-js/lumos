@@ -2,8 +2,8 @@ import {
   parseAddress,
   TransactionSkeletonType,
   Options,
-  minimalCellCapacity,
   createTransactionFromSkeleton,
+  minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
@@ -21,6 +21,7 @@ import {
   PackedSince,
   utils,
   Transaction,
+  JSBI,
 } from "@ckb-lumos/base";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
@@ -28,6 +29,7 @@ import { Set } from "immutable";
 import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
 import { normalizers } from "@ckb-lumos/toolkit";
 import { isAcpScript } from "./helper";
+import { BI, BIish, toJSBI } from "@ckb-lumos/bi";
 
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
@@ -176,7 +178,7 @@ export async function transfer(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
   toAddress: Address,
-  amount: bigint,
+  amount: BIish,
   changeAddress?: Address,
   tipHeader?: Header,
   {
@@ -190,7 +192,7 @@ export async function transfer(
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-
+  let _amount = toJSBI(amount);
   if (!toAddress) {
     throw new Error("You must provide a to address!");
   }
@@ -198,7 +200,7 @@ export async function transfer(
   const toScript: Script = parseAddress(toAddress, { config });
   const targetOutput: Cell = {
     cell_output: {
-      capacity: "0x" + BigInt(amount).toString(16),
+      capacity: "0x" + JSBI.BigInt(_amount).toString(16),
       lock: toScript,
       type: undefined,
     },
@@ -236,7 +238,7 @@ export async function transfer(
   txSkeleton = await injectCapacity(
     txSkeleton,
     fromInfos,
-    amount,
+    _amount.toString(),
     changeAddress,
     tipHeader,
     {
@@ -252,7 +254,7 @@ export async function transfer(
 export async function injectCapacity(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  amount: bigint,
+  amount: BIish,
   changeAddress?: Address,
   tipHeader?: Header,
   {
@@ -268,8 +270,8 @@ export async function injectCapacity(
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  amount = BigInt(amount);
-  let deductAmount = BigInt(amount);
+  let _amount = toJSBI(amount.toString());
+  let deductAmount = JSBI.BigInt(_amount);
 
   if (fromInfos.length === 0) {
     throw new Error("No from info provided!");
@@ -287,17 +289,18 @@ export async function injectCapacity(
     },
     data: "0x",
   };
-  const minimalChangeCapacity: bigint = minimalCellCapacity(changeCell);
-
-  let changeCapacity: bigint = 0n;
+  const minimalChangeCapacity: JSBI = toJSBI(
+    minimalCellCapacityCompatible(changeCell)
+  );
+  let changeCapacity: JSBI = JSBI.BigInt(0);
   if (useLocktimeCellsFirst) {
     if (tipHeader) {
-      const result = await locktimePool.injectCapacityWithoutChange(
+      const result = await locktimePool.injectCapacityWithoutChangeCompatible(
         txSkeleton,
         fromInfos,
-        deductAmount,
+        deductAmount.toString(),
         tipHeader,
-        minimalChangeCapacity,
+        minimalChangeCapacity.toString(),
         {
           config,
           LocktimeCellCollector: LocktimePoolCellCollector,
@@ -305,13 +308,13 @@ export async function injectCapacity(
         }
       );
       txSkeleton = result.txSkeleton;
-      deductAmount = result.capacity;
+      deductAmount = toJSBI(result.capacity);
       // if deductAmount > 0, changeCapacity must be 0
-      changeCapacity = result.changeCapacity;
+      changeCapacity = toJSBI(result.changeCapacity);
     }
 
-    if (deductAmount > 0n) {
-      const result = await _commonTransfer(
+    if (JSBI.greaterThan(deductAmount, JSBI.BigInt(0))) {
+      const result = await _commonTransferCompatible(
         txSkeleton,
         fromInfos,
         deductAmount,
@@ -322,15 +325,15 @@ export async function injectCapacity(
       deductAmount = result.capacity;
       changeCapacity = result.changeCapacity;
     } else if (
-      deductAmount === 0n &&
-      changeCapacity > 0n &&
-      changeCapacity < minimalChangeCapacity
+      JSBI.equal(deductAmount, JSBI.BigInt(0)) &&
+      JSBI.greaterThan(changeCapacity, JSBI.BigInt(0)) &&
+      JSBI.lessThan(changeCapacity, minimalChangeCapacity)
     ) {
-      const result = await _commonTransfer(
+      const result = await _commonTransferCompatible(
         txSkeleton,
         fromInfos,
-        minimalChangeCapacity - changeCapacity,
-        0n,
+        JSBI.subtract(minimalChangeCapacity, changeCapacity),
+        JSBI.BigInt(0),
         { config, enableDeductCapacity }
       );
       txSkeleton = result.txSkeleton;
@@ -338,7 +341,7 @@ export async function injectCapacity(
       changeCapacity = result.changeCapacity;
     }
   } else {
-    const result = await _commonTransfer(
+    const result = await _commonTransferCompatible(
       txSkeleton,
       fromInfos,
       deductAmount,
@@ -350,13 +353,13 @@ export async function injectCapacity(
     changeCapacity = result.changeCapacity;
 
     if (tipHeader) {
-      if (deductAmount > 0n) {
-        const result = await locktimePool.injectCapacityWithoutChange(
+      if (JSBI.greaterThan(deductAmount, JSBI.BigInt(0))) {
+        const result = await locktimePool.injectCapacityWithoutChangeCompatible(
           txSkeleton,
           fromInfos,
-          deductAmount,
+          deductAmount.toString(),
           tipHeader,
-          minimalChangeCapacity,
+          minimalChangeCapacity.toString(),
           {
             config,
             LocktimeCellCollector: LocktimePoolCellCollector,
@@ -364,19 +367,19 @@ export async function injectCapacity(
           }
         );
         txSkeleton = result.txSkeleton;
-        deductAmount = result.capacity;
-        changeCapacity = result.changeCapacity;
+        deductAmount = toJSBI(result.capacity);
+        changeCapacity = toJSBI(result.changeCapacity);
       } else if (
-        deductAmount === 0n &&
-        changeCapacity > 0n &&
-        changeCapacity < minimalChangeCapacity
+        JSBI.equal(deductAmount, JSBI.BigInt(0)) &&
+        JSBI.greaterThan(changeCapacity, JSBI.BigInt(0)) &&
+        JSBI.lessThan(changeCapacity, minimalChangeCapacity)
       ) {
-        const result = await locktimePool.injectCapacityWithoutChange(
+        const result = await locktimePool.injectCapacityWithoutChangeCompatible(
           txSkeleton,
           fromInfos,
-          minimalChangeCapacity - changeCapacity,
+          JSBI.subtract(minimalChangeCapacity, changeCapacity).toString(),
           tipHeader,
-          0n,
+          0,
           {
             config,
             LocktimeCellCollector: LocktimePoolCellCollector,
@@ -384,21 +387,24 @@ export async function injectCapacity(
           }
         );
         txSkeleton = result.txSkeleton;
-        deductAmount = result.capacity;
-        changeCapacity = result.changeCapacity;
+        deductAmount = toJSBI(result.capacity);
+        changeCapacity = toJSBI(result.changeCapacity);
       }
     }
   }
 
-  if (deductAmount > 0n) {
+  if (JSBI.greaterThan(deductAmount, JSBI.BigInt(0))) {
     throw new Error("Not enough capacity in from infos!");
   }
 
-  if (changeCapacity > 0n && changeCapacity < minimalChangeCapacity) {
+  if (
+    JSBI.greaterThan(changeCapacity, JSBI.BigInt(0)) &&
+    JSBI.lessThan(changeCapacity, minimalChangeCapacity)
+  ) {
     throw new Error("Not enough capacity in from infos for change!");
   }
 
-  if (changeCapacity > 0n) {
+  if (JSBI.greaterThan(changeCapacity, JSBI.BigInt(0))) {
     changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
 
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -412,7 +418,7 @@ export async function injectCapacity(
 export async function payFee(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  amount: bigint,
+  amount: BIish,
   tipHeader?: Header,
   {
     config = undefined,
@@ -463,8 +469,39 @@ async function _commonTransfer(
   capacity: bigint;
   changeCapacity: bigint;
 }> {
+  const result = await _commonTransferCompatible(
+    txSkeleton,
+    fromInfos,
+    JSBI.BigInt(amount.toString()),
+    JSBI.BigInt(minimalChangeCapacity.toString()),
+    {
+      config,
+      enableDeductCapacity,
+    }
+  );
+  return {
+    txSkeleton: result.txSkeleton,
+    capacity: BigInt(result.capacity.toString()),
+    changeCapacity: BigInt(result.changeCapacity.toString()),
+  };
+}
+
+async function _commonTransferCompatible(
+  txSkeleton: TransactionSkeletonType,
+  fromInfos: FromInfo[],
+  amount: JSBI,
+  minimalChangeCapacity: JSBI,
+  {
+    config = undefined,
+    enableDeductCapacity = true,
+  }: Options & { enableDeductCapacity?: boolean } = {}
+): Promise<{
+  txSkeleton: TransactionSkeletonType;
+  capacity: JSBI;
+  changeCapacity: JSBI;
+}> {
   config = config || getConfig();
-  amount = BigInt(amount);
+  amount = JSBI.BigInt(amount);
 
   const cellProvider = txSkeleton.get("cellProvider");
   if (!cellProvider) {
@@ -483,16 +520,20 @@ async function _commonTransfer(
   });
 
   for (const fromScript of fromScripts) {
-    if (enableDeductCapacity && amount > 0n) {
-      [txSkeleton, amount] = _deductCapacity(txSkeleton, fromScript, amount);
+    if (enableDeductCapacity && JSBI.greaterThan(amount, JSBI.BigInt(0))) {
+      [txSkeleton, amount] = _deductCapacityCompatible(
+        txSkeleton,
+        fromScript,
+        amount
+      );
     }
   }
 
   generateLockScriptInfos({ config });
 
-  let changeCapacity: bigint = 0n;
+  let changeCapacity: JSBI = JSBI.BigInt(0);
 
-  if (amount > 0n) {
+  if (JSBI.greaterThan(amount, JSBI.BigInt(0))) {
     // collect cells
     loop1: for (const fromInfo of fromInfos) {
       const cellCollectors = lockScriptInfos.infos.map((lockScriptInfo) => {
@@ -512,23 +553,32 @@ async function _commonTransfer(
             continue;
           }
           previousInputs = previousInputs.add(inputKey);
-          const result = await collectInput(txSkeleton, inputCell, fromInfo, {
-            config,
-            needCapacity: amount,
-          });
+          const result = await collectInputCompatible(
+            txSkeleton,
+            inputCell,
+            fromInfo,
+            {
+              config,
+              needCapacity: amount,
+            }
+          );
           txSkeleton = result.txSkeleton;
 
-          const inputCapacity: bigint = BigInt(result.availableCapacity);
-          let deductCapacity: bigint = inputCapacity;
-          if (deductCapacity > amount) {
+          const inputCapacity: JSBI = JSBI.BigInt(result.availableCapacity);
+          let deductCapacity: JSBI = inputCapacity;
+          if (JSBI.greaterThan(deductCapacity, amount)) {
             deductCapacity = amount;
           }
-          amount -= deductCapacity;
-          changeCapacity += inputCapacity - deductCapacity;
+          amount = JSBI.subtract(amount, deductCapacity);
+          changeCapacity = JSBI.add(
+            changeCapacity,
+            JSBI.subtract(inputCapacity, deductCapacity)
+          );
 
           if (
-            amount === 0n &&
-            (changeCapacity === 0n || changeCapacity > minimalChangeCapacity)
+            JSBI.equal(amount, JSBI.BigInt(0)) &&
+            (JSBI.equal(changeCapacity, JSBI.BigInt(0)) ||
+              JSBI.greaterThan(changeCapacity, minimalChangeCapacity))
           ) {
             break loop1;
           }
@@ -544,11 +594,11 @@ async function _commonTransfer(
   };
 }
 
-function _deductCapacity(
+function _deductCapacityCompatible(
   txSkeleton: TransactionSkeletonType,
   fromScript: Script,
-  capacity: bigint
-): [TransactionSkeletonType, bigint] {
+  capacity: JSBI
+): [TransactionSkeletonType, JSBI] {
   /*
    * First, check if there is any output cells that contains enough capacity
    * for us to tinker with.
@@ -562,7 +612,12 @@ function _deductCapacity(
     .filter(({ field }) => field === "outputs")
     .maxBy(({ index }) => index);
   let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
-  for (; i < txSkeleton.get("outputs").size && capacity > 0; i++) {
+  for (
+    ;
+    i < txSkeleton.get("outputs").size &&
+    JSBI.greaterThan(capacity, JSBI.BigInt(0));
+    i++
+  ) {
     const output = txSkeleton.get("outputs").get(i)!;
     if (
       new ScriptValue(output.cell_output.lock, { validate: false }).equals(
@@ -570,20 +625,23 @@ function _deductCapacity(
       )
     ) {
       const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
-      const cellCapacity = BigInt(clonedOutput.cell_output.capacity);
-      const availableCapacity: bigint = cellCapacity;
+      const cellCapacity = JSBI.BigInt(clonedOutput.cell_output.capacity);
+      const availableCapacity: JSBI = cellCapacity;
       let deductCapacity;
-      if (capacity >= availableCapacity) {
+      if (JSBI.greaterThanOrEqual(capacity, availableCapacity)) {
         deductCapacity = availableCapacity;
       } else {
-        deductCapacity = cellCapacity - minimalCellCapacity(clonedOutput);
-        if (deductCapacity > capacity) {
+        deductCapacity = JSBI.subtract(
+          cellCapacity,
+          toJSBI(minimalCellCapacityCompatible(clonedOutput))
+        );
+        if (JSBI.greaterThan(deductCapacity, capacity)) {
           deductCapacity = capacity;
         }
       }
-      capacity -= deductCapacity;
+      capacity = JSBI.subtract(capacity, deductCapacity);
       clonedOutput.cell_output.capacity =
-        "0x" + (cellCapacity - deductCapacity).toString(16);
+        "0x" + JSBI.subtract(cellCapacity, deductCapacity).toString(16);
 
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.update(i, () => clonedOutput);
@@ -593,7 +651,9 @@ function _deductCapacity(
   // Remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.filter(
-      (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
+      (output) =>
+        JSBI.BigInt(output.cell_output.capacity).toString() !==
+        JSBI.BigInt(0).toString()
     );
   });
 
@@ -601,7 +661,7 @@ function _deductCapacity(
 }
 
 // Alter output generated by `setupInputCell`
-async function collectInput(
+async function collectInputCompatible(
   txSkeleton: TransactionSkeletonType,
   inputCell: Cell,
   fromInfo?: FromInfo,
@@ -613,11 +673,11 @@ async function collectInput(
   }: Options & {
     defaultWitness?: HexString;
     since?: PackedSince;
-    needCapacity?: bigint;
+    needCapacity?: JSBI;
   } = {}
 ): Promise<{
   txSkeleton: TransactionSkeletonType;
-  availableCapacity: bigint;
+  availableCapacity: JSBI;
 }> {
   config = config || getConfig();
 
@@ -629,7 +689,7 @@ async function collectInput(
 
   const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
   const lastOutput: Cell = txSkeleton.get("outputs").get(lastOutputIndex)!;
-  const lastOutputCapacity: bigint = BigInt(lastOutput.cell_output.capacity);
+  const lastOutputCapacity: JSBI = JSBI.BigInt(lastOutput.cell_output.capacity);
   const lastOutputFixedEntryIndex: number = txSkeleton
     .get("fixedEntries")
     .findIndex((fixedEntry) => {
@@ -639,7 +699,7 @@ async function collectInput(
     });
   const fromScript: Script = inputCell.cell_output.lock;
 
-  let availableCapacity: bigint = 0n;
+  let availableCapacity: JSBI = JSBI.BigInt(0);
   if (config.SCRIPTS.ANYONE_CAN_PAY && isAcpScript(fromScript, config)) {
     const destroyable: boolean = !!(
       fromInfo &&
@@ -662,13 +722,18 @@ async function collectInput(
       }
     } else {
       // Ignore `fixedEntries` and update capacity of output which generated by `setupInputCell`
-      const minimalOutputCapacity: bigint = minimalCellCapacity(lastOutput);
-      const canUseCapacity = lastOutputCapacity - minimalOutputCapacity;
+      const minimalOutputCapacity: JSBI = toJSBI(
+        minimalCellCapacityCompatible(lastOutput)
+      );
+      const canUseCapacity = JSBI.subtract(
+        lastOutputCapacity,
+        minimalOutputCapacity
+      );
       const clonedLastOutput: Cell = JSON.parse(JSON.stringify(lastOutput));
-      let outputCapacity: bigint = minimalOutputCapacity;
+      let outputCapacity: JSBI = minimalOutputCapacity;
       availableCapacity = canUseCapacity;
-      if (needCapacity < canUseCapacity) {
-        outputCapacity = lastOutputCapacity - needCapacity;
+      if (JSBI.lessThan(needCapacity, canUseCapacity)) {
+        outputCapacity = JSBI.subtract(lastOutputCapacity, needCapacity);
         availableCapacity = needCapacity;
       }
       clonedLastOutput.cell_output.capacity =
@@ -681,7 +746,7 @@ async function collectInput(
     // Ignore if last output is fixed.
     if (lastOutputFixedEntryIndex < 0) {
       // Remove last output
-      availableCapacity = BigInt(
+      availableCapacity = JSBI.BigInt(
         txSkeleton.get("outputs").get(lastOutputIndex)!.cell_output.capacity
       );
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -752,7 +817,7 @@ export async function setupInputCell(
 export async function payFeeByFeeRate(
   txSkeleton: TransactionSkeletonType,
   fromInfos: FromInfo[],
-  feeRate: bigint,
+  feeRate: BIish,
   tipHeader?: Header,
   {
     config = undefined,
@@ -764,7 +829,6 @@ export async function payFeeByFeeRate(
     enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
-  feeRate = BigInt(feeRate);
   let size: number = 0;
   let newTxSkeleton: TransactionSkeletonType = txSkeleton;
 
@@ -776,7 +840,7 @@ export async function payFeeByFeeRate(
   let currentTransactionSize: number = getTransactionSize(newTxSkeleton);
   while (currentTransactionSize > size) {
     size = currentTransactionSize;
-    const fee: bigint = calculateFee(size, feeRate);
+    const fee: BI = calculateFeeCompatible(size, feeRate);
 
     newTxSkeleton = await payFee(txSkeleton, fromInfos, fee, tipHeader, {
       config,
@@ -790,13 +854,18 @@ export async function payFeeByFeeRate(
 }
 
 function calculateFee(size: number, feeRate: bigint): bigint {
-  const ratio = 1000n;
-  const base = BigInt(size) * feeRate;
-  const fee = base / ratio;
-  if (fee * ratio < base) {
-    return fee + 1n;
+  const result = calculateFeeCompatible(size, feeRate);
+  return BigInt(result.toString());
+}
+
+function calculateFeeCompatible(size: number, feeRate: BIish): BI {
+  const ratio = JSBI.BigInt(1000);
+  const base = JSBI.multiply(JSBI.BigInt(size), toJSBI(feeRate));
+  const fee = JSBI.divide(base, ratio);
+  if (JSBI.lessThan(JSBI.multiply(fee, ratio), base)) {
+    return BI.from(JSBI.add(fee, JSBI.BigInt(1)));
   }
-  return fee;
+  return BI.from(fee);
 }
 
 function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
@@ -829,5 +898,6 @@ export default {
     getTransactionSizeByTx,
     getTransactionSize,
     calculateFee,
+    calculateFeeCompatible,
   },
 };

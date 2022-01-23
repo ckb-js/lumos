@@ -9,6 +9,7 @@ import {
   CellCollector as CellCollectorInterface,
   helpers,
   utils,
+  JSBI,
 } from "@ckb-lumos/base";
 import {
   TransactionCollector as TxCollector,
@@ -368,7 +369,7 @@ export class Cache {
   public readonly txCache: TransactionCache;
   private indexer: Indexer;
 
-  private lastTipBlockNumber: bigint = 0n;
+  private lastTipBlockNumber: JSBI = JSBI.BigInt(0);
   private TransactionCollector: any;
 
   private rpc: RPC;
@@ -406,7 +407,10 @@ export class Cache {
     return t.block_number;
   }
 
-  private async innerLoopTransactions(fromBlock: bigint, toBlock: bigint) {
+  private async innerLoopTransactions(
+    fromBlock: bigint | JSBI,
+    toBlock: bigint | JSBI
+  ) {
     for (const lockScriptInfo of this.hdCache.getLockScriptInfos()) {
       const lockScript: Script = lockScriptInfo.lockScript;
       const transactionCollector = new this.TransactionCollector(
@@ -440,12 +444,15 @@ export class Cache {
   }
 
   private async loopTransactions(tipBlockNumber: HexString) {
-    const tip: bigint = BigInt(tipBlockNumber);
-    if (tip <= this.lastTipBlockNumber) {
+    const tip: JSBI = JSBI.BigInt(tipBlockNumber);
+    if (JSBI.lessThanOrEqual(tip, this.lastTipBlockNumber)) {
       return;
     }
 
-    await this.innerLoopTransactions(this.lastTipBlockNumber + 1n, tip);
+    await this.innerLoopTransactions(
+      JSBI.add(this.lastTipBlockNumber, JSBI.BigInt(1)),
+      tip
+    );
     this.lastTipBlockNumber = tip;
   }
 
@@ -767,9 +774,9 @@ export class CellCollectorWithQueryOptions implements CellCollectorInterface {
 export async function getBalance(
   cellCollector: CellCollectorInterface
 ): Promise<HexString> {
-  let balance: bigint = 0n;
+  let balance: JSBI = JSBI.BigInt(0);
   for await (const cell of cellCollector.collect()) {
-    balance += BigInt(cell.cell_output.capacity);
+    balance = JSBI.add(balance, JSBI.BigInt(cell.cell_output.capacity));
   }
   return "0x" + balance.toString(16);
 }

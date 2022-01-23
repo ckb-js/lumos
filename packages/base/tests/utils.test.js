@@ -1,13 +1,16 @@
 const test = require("ava");
+const test = require("ava");
 const { Reader } = require("@ckb-lumos/toolkit");
+const { JSBI } = require("../lib/primitive");
+const { BI } = require("@ckb-lumos/bi");
 
 const {
   CKBHasher,
   ckbHash,
-  toBigUInt64LE,
-  readBigUInt64LE,
-  readBigUInt128LE,
-  toBigUInt128LE,
+  toBigUInt64LECompatible,
+  readBigUInt64LECompatible,
+  readBigUInt128LECompatible,
+  toBigUInt128LECompatible,
   computeScriptHash,
   hashCode,
   assertHexString,
@@ -18,6 +21,12 @@ const {
 const message = "0x";
 const messageDigest =
   "0x44f4c69744d5f8c55d642062949dcae49bc4e7ef43d388c5a12f42b5633d163e";
+
+test.before(() => {
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
 
 test("CKBHasher, hex", (t) => {
   const result = new CKBHasher().update(message).digestHex();
@@ -35,36 +44,46 @@ test("ckbHash", (t) => {
   t.is(result.serializeJson(), messageDigest);
 });
 
-const uint64 = 1965338n;
-const uint64le = "0x1afd1d0000000000";
+const uint64Compatible = BI.from(1965338);
+const uint64leCompatible = "0x1afd1d0000000000";
 
-test("toBigUInt64LE", (t) => {
-  t.is(toBigUInt64LE(uint64), uint64le);
+test("toBigUInt64LECompatible", (t) => {
+  t.is(toBigUInt64LECompatible(uint64Compatible), uint64leCompatible);
 });
 
-test("readBigUInt64LE", (t) => {
-  t.is(readBigUInt64LE(uint64le), uint64);
+test("readBigUInt64LECompatible", (t) => {
+  t.true(readBigUInt64LECompatible(uint64leCompatible).eq(uint64Compatible));
+});
+const u128Compatible = BI.from("1208925819614629174706177");
+const u128leCompatible = "0x01000000000000000000010000000000";
+
+test("toBigUInt128LECompatible", (t) => {
+  t.is(toBigUInt128LECompatible(u128Compatible), u128leCompatible);
 });
 
-const u128 = 1208925819614629174706177n;
-const u128le = "0x01000000000000000000010000000000";
-
-test("toBigUInt128LE", (t) => {
-  t.is(toBigUInt128LE(u128), u128le);
+test("toBigUInt128LECompatible, to small", (t) => {
+  t.throws(() => toBigUInt128LECompatible(JSBI.unaryMinus(JSBI.BigInt(1))));
+  t.notThrows(() => toBigUInt128LECompatible(JSBI.BigInt(0)));
 });
 
-test("toBigUInt128LE, to small", (t) => {
-  t.throws(() => toBigUInt128LE(-1n));
-  t.notThrows(() => toBigUInt128LE(0n));
+test("toBigUInt128LECompatible, to big", (t) => {
+  t.throws(() =>
+    toBigUInt128LECompatible(
+      JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128))
+    )
+  );
+  t.notThrows(() =>
+    toBigUInt128LECompatible(
+      JSBI.subtract(
+        JSBI.exponentiate(JSBI.BigInt(2), JSBI.BigInt(128)),
+        JSBI.BigInt(1)
+      )
+    )
+  );
 });
 
-test("toBigUInt128LE, to big", (t) => {
-  t.throws(() => toBigUInt128LE(2n ** 128n));
-  t.notThrows(() => toBigUInt128LE(2n ** 128n - 1n));
-});
-
-test("readBigUInt128LE", (t) => {
-  t.is(readBigUInt128LE(u128le), u128);
+test("readBigUInt128LECompatible", (t) => {
+  t.true(readBigUInt128LECompatible(u128leCompatible).eq(u128Compatible));
 });
 
 const script = {

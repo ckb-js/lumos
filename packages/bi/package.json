@@ -22,7 +22,7 @@
   "files": [
     "lib"
   ],
-  "dependencies": {
+  "peerDependencies": {
     "jsbi": "^4.1.0"
   },
   "repository": {

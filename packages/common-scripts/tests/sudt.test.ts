@@ -8,7 +8,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { bob, alice } from "./account_info";
 import { predefined } from "@ckb-lumos/config-manager";
-import { Script, utils } from "@ckb-lumos/base";
+import { JSBI, Script, utils } from "@ckb-lumos/base";
 import { isSudtScript } from "../src/helper";
 import {
   bobSecpInputs,
@@ -18,8 +18,16 @@ import {
   bobAcpSudtInputs,
   aliceAcpSudtInputs,
 } from "./inputs";
-const { readBigUInt128LE } = utils;
+import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
+import { BI, toJSBI } from "@ckb-lumos/bi";
 const { AGGRON4 } = predefined;
+
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
 
 test("issueToken", async (t) => {
   const cellProvider = new CellProvider(bobSecpInputs);
@@ -27,11 +35,11 @@ test("issueToken", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(10000);
+  const amount = JSBI.BigInt(10000);
   txSkeleton = await sudt.issueToken(
     txSkeleton,
     bob.testnetAddress,
-    amount,
+    BI.from(amount),
     undefined,
     undefined,
     { config: AGGRON4 }
@@ -40,16 +48,21 @@ test("issueToken", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
-  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), amount);
+  t.is(
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    amount.toString()
+  );
 
   t.true(
     isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
@@ -62,13 +75,13 @@ test("transfer secp", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(10000);
+  const amount = JSBI.BigInt(10000);
   txSkeleton = await sudt.transfer(
     txSkeleton,
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.testnetAddress,
     undefined,
     undefined,
@@ -77,30 +90,35 @@ test("transfer secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
-  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), amount);
+  t.is(
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    amount.toString()
+  );
 
   t.true(
     isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
@@ -114,7 +132,7 @@ test("transfer locktime pool multisig & secp", async (t) => {
   });
 
   const since = "0x0";
-  const amount = BigInt(10000);
+  const amount = JSBI.BigInt(10000);
 
   class LocktimePoolCellCollector {
     constructor() {}
@@ -135,7 +153,7 @@ test("transfer locktime pool multisig & secp", async (t) => {
     ],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.testnetAddress,
     undefined,
     tipHeader,
@@ -144,27 +162,27 @@ test("transfer locktime pool multisig & secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 3);
   t.is(txSkeleton.get("headerDeps").size, 0);
@@ -172,7 +190,10 @@ test("transfer locktime pool multisig & secp", async (t) => {
   t.is(txSkeleton.get("outputs").size, 2);
   const targetOutput = txSkeleton.get("outputs").get(0)!;
   const changeOutput = txSkeleton.get("outputs").get(1)!;
-  t.is(readBigUInt128LE(targetOutput!.data), amount);
+  t.is(
+    readBigUInt128LECompatible(targetOutput!.data).toString(),
+    amount.toString()
+  );
   t.true(isSudtScript(targetOutput.cell_output.type!, AGGRON4));
   t.is(changeOutput!.data, "0x");
   t.is(changeOutput.cell_output.type, undefined);
@@ -206,13 +227,13 @@ test("transfer acp", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(10000);
+  const amount = JSBI.BigInt(10000);
   txSkeleton = await sudt.transfer(
     txSkeleton,
     [bob.acpTestnetAddress],
     bob.secpLockHash,
     alice.acpTestnetAddress,
-    amount,
+    BI.from(amount),
     bob.acpTestnetAddress,
     undefined,
     undefined,
@@ -225,32 +246,37 @@ test("transfer acp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data),
-    amount + readBigUInt128LE(aliceAcpSudtInputs[0].data)
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    JSBI.add(
+      amount,
+      toJSBI(readBigUInt128LECompatible(aliceAcpSudtInputs[0].data))
+    ).toString()
   );
 
   t.true(
@@ -272,7 +298,7 @@ test("transfer acp => secp, destroyable", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(10000);
+  const amount = JSBI.BigInt(10000);
   txSkeleton = await sudt.transfer(
     txSkeleton,
     [
@@ -283,9 +309,9 @@ test("transfer acp => secp, destroyable", async (t) => {
     ],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.acpTestnetAddress,
-    BigInt(1000 * 10 ** 8),
+    BI.from(JSBI.BigInt(1000 * 10 ** 8)),
     undefined,
     { config: AGGRON4 }
   );
@@ -296,30 +322,35 @@ test("transfer acp => secp, destroyable", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
-  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), amount);
+  t.is(
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    amount.toString()
+  );
 
   t.true(
     isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
@@ -356,7 +387,7 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
         lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
         type: sudtTypeScript,
       },
-      data: utils.toBigUInt128LE(BigInt(0)),
+      data: utils.toBigUInt128LE(BI.from(JSBI.BigInt(0))),
     });
   });
 
@@ -367,50 +398,62 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
     });
   });
 
-  const amount = BigInt(2000);
-  const capacity = BigInt(200 * 10 ** 8);
+  const amount = JSBI.BigInt(2000);
+  const capacity = JSBI.BigInt(200 * 10 ** 8);
   txSkeleton = await sudt.transfer(
     txSkeleton,
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.acpTestnetAddress,
-    capacity,
+    BI.from(capacity),
     undefined,
     { config: AGGRON4 }
   );
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
-  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), BigInt(0));
-  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(1)!.data), amount);
   t.is(
-    readBigUInt128LE(txSkeleton.get("outputs").get(2)!.data),
-    BigInt(10000) - amount
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    JSBI.BigInt(0).toString()
+  );
+  t.is(
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(1)!.data
+    ).toString(),
+    amount.toString()
+  );
+  t.is(
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(2)!.data
+    ).toString(),
+    JSBI.subtract(JSBI.BigInt(10000), amount).toString()
   );
 
   t.true(
@@ -431,46 +474,51 @@ test("transfer secp, split change cell", async (t) => {
     cellProvider,
   });
 
-  const amount = BigInt(2000);
-  const capacity = BigInt((1000 - 142 - 61) * 10 ** 8);
+  const amount = JSBI.BigInt(2000);
+  const capacity = JSBI.BigInt((1000 - 142 - 61) * 10 ** 8);
   txSkeleton = await sudt.transfer(
     txSkeleton,
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.testnetAddress,
-    capacity,
+    BI.from(capacity),
     undefined,
     { config: AGGRON4, splitChangeCell: true }
   );
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
-  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), amount);
+  t.is(
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    amount.toString()
+  );
 
   t.true(
     isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
@@ -490,46 +538,51 @@ test("transfer secp, split change cell, not enough for two minimals", async (t) 
     cellProvider,
   });
 
-  const amount = BigInt(2000);
-  const capacity = BigInt((1000 - 142 - 61 + 1) * 10 ** 8);
+  const amount = JSBI.BigInt(2000);
+  const capacity = JSBI.BigInt((1000 - 142 - 61 + 1) * 10 ** 8);
   txSkeleton = await sudt.transfer(
     txSkeleton,
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.testnetAddress,
-    capacity,
+    BI.from(capacity),
     undefined,
     { config: AGGRON4, splitChangeCell: true }
   );
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
-  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data), amount);
+  t.is(
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    amount.toString()
+  );
 
   t.true(
     isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
@@ -568,54 +621,61 @@ test("transfer secp => secp, change to acp and has previous output, split change
         lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
         type: sudtTypeScript,
       },
-      data: utils.toBigUInt128LE(BigInt(0)),
+      data: utils.toBigUInt128LE(BI.from(JSBI.BigInt(0))),
     });
   });
 
-  const amount = BigInt(2000);
-  const capacity = BigInt((1000 - 142 - 61) * 10 ** 8);
+  const amount = JSBI.BigInt(2000);
+  const capacity = JSBI.BigInt((1000 - 142 - 61) * 10 ** 8);
   txSkeleton = await sudt.transfer(
     txSkeleton,
     [bob.testnetAddress],
     bob.secpLockHash,
     alice.testnetAddress,
-    amount,
+    BI.from(amount),
     bob.acpTestnetAddress,
-    capacity,
+    BI.from(capacity),
     undefined,
     { config: AGGRON4, splitChangeCell: true }
   );
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cell_output.type)
-    .map((i) => readBigUInt128LE(i.data))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => readBigUInt128LECompatible(i.data))
+    .reduce((result, c) => JSBI.add(result, toJSBI(c)), JSBI.BigInt(0));
 
-  t.is(sumOfInputAmount, sumOfOutputAmount);
+  t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LE(txSkeleton.get("outputs").get(0)!.data),
-    BigInt(10000) - amount
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    JSBI.subtract(JSBI.BigInt(10000), amount).toString()
   );
-  t.is(readBigUInt128LE(txSkeleton.get("outputs").get(1)!.data), amount);
+  t.is(
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(1)!.data
+    ).toString(),
+    amount.toString()
+  );
 
   t.true(
     isSudtScript(txSkeleton.get("outputs").get(1)!.cell_output.type, AGGRON4)

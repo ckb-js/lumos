@@ -8,12 +8,20 @@ import {
 import { secp256k1Blake160Multisig } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4 } = predefined;
-import { Cell, values } from "@ckb-lumos/base";
+import { Cell, JSBI, values } from "@ckb-lumos/base";
 import { bobMultisigInputs } from "./inputs";
 import { bob, alice } from "./account_info";
+import { BI } from "@ckb-lumos/bi";
 
 const cellProvider = new CellProvider(bobMultisigInputs);
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
+
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
 
 test("setupInputCell", async (t) => {
   const inputCell: Cell = bobMultisigInputs[0];
@@ -51,12 +59,12 @@ test("setupInputCell", async (t) => {
   );
 });
 
-test("transfer success", async (t) => {
-  txSkeleton = await secp256k1Blake160Multisig.transfer(
+test("JSBI:transfer success", async (t) => {
+  txSkeleton = await secp256k1Blake160Multisig.transferCompatible(
     txSkeleton,
     bob.fromInfo,
     alice.testnetAddress,
-    BigInt(500 * 10 ** 8),
+    BI.from(JSBI.BigInt(500 * 10 ** 8)),
     {
       config: AGGRON4,
     }
@@ -69,13 +77,13 @@ test("transfer success", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("signingEntries").size, 1);
   const expectedMessage =
@@ -90,7 +98,7 @@ test("transfer success", async (t) => {
 });
 
 test("injectCapacity", async (t) => {
-  const amount = BigInt(500 * 10 ** 8);
+  const amount = JSBI.BigInt(500 * 10 ** 8);
   const output: Cell = {
     cell_output: {
       capacity: "0x" + amount.toString(16),
@@ -118,13 +126,13 @@ test("injectCapacity", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
+    .map((i) => JSBI.BigInt(i.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
-    .reduce((result, c) => result + c, BigInt(0));
-  t.is(sumOfOutputCapacity, sumOfInputCapacity);
+    .map((o) => JSBI.BigInt(o.cell_output.capacity))
+    .reduce((result, c) => JSBI.add(result, c), JSBI.BigInt(0));
+  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("signingEntries").size, 1);
   const expectedMessage =

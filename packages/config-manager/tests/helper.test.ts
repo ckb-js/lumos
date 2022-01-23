@@ -3,6 +3,13 @@ import { helpers, initializeConfig, predefined } from "../src";
 
 const SECP256K1_BLAKE160 = predefined.LINA.SCRIPTS.SECP256K1_BLAKE160;
 
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test.beforeEach(() => {
   initializeConfig(predefined.LINA);
 });

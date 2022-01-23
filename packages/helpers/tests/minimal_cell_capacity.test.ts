@@ -1,6 +1,6 @@
 import test from "ava";
-import { Cell } from "@ckb-lumos/base";
-import { minimalCellCapacity } from "../src";
+import { Cell, JSBI } from "@ckb-lumos/base";
+import { minimalCellCapacity, minimalCellCapacityCompatible } from "../src";
 
 const normalCell: Cell = {
   cell_output: {
@@ -58,11 +58,23 @@ const cellWithTypeAndData: Cell = {
   out_point: undefined,
 };
 
-test("normal cell, validate true", (t) => {
-  const capacity = minimalCellCapacity(normalCell);
-  const expectedCapacity = BigInt(61 * 10 ** 8);
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
 
-  t.is(capacity, expectedCapacity);
+test("normal cell, validate true", (t) => {
+  const capacity = minimalCellCapacityCompatible(normalCell);
+  const expectedCapacity = JSBI.BigInt(
+    JSBI.multiply(
+      JSBI.BigInt(61),
+      JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+    )
+  ).toString();
+
+  t.true(capacity.toString() === expectedCapacity.toString());
 });
 
 test("normal cell, validate failed", (t) => {
@@ -72,8 +84,13 @@ test("normal cell, validate failed", (t) => {
 });
 
 test("cell with type and data, validate true", (t) => {
-  const capacity = minimalCellCapacity(cellWithTypeAndData);
-  const expectedCapacity = BigInt((61 + 33 + 2) * 10 ** 8);
+  const capacity = minimalCellCapacityCompatible(cellWithTypeAndData);
+  const expectedCapacity = JSBI.BigInt(
+    JSBI.multiply(
+      JSBI.BigInt(61 + 33 + 2),
+      JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+    )
+  ).toString();
 
-  t.is(capacity, expectedCapacity);
+  t.true(capacity.toString() === expectedCapacity.toString());
 });

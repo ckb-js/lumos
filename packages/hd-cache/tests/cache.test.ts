@@ -14,6 +14,7 @@ import {
   QueryOptions,
   TransactionWithStatus,
   HexString,
+  JSBI,
 } from "@ckb-lumos/base";
 
 const mockTxs: TransactionWithStatus[] = [
@@ -217,6 +218,13 @@ const cacheManager = CacheManager.fromMnemonic(
   }
 );
 
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test("derive threshold", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
     indexer as Indexer,
@@ -325,8 +333,27 @@ test("CellCollector", async (t) => {
 
   t.is(cells.length, 3);
   t.deepEqual(
-    cells.map((cell) => BigInt(cell.cell_output.capacity)),
-    [BigInt(200 * 10 ** 8), BigInt(300 * 10 ** 8), BigInt(400 * 10 ** 8)]
+    cells.map((cell) => JSBI.BigInt(cell.cell_output.capacity).toString()),
+    [
+      JSBI.BigInt(
+        JSBI.multiply(
+          JSBI.BigInt(200),
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+        )
+      ).toString(),
+      JSBI.BigInt(
+        JSBI.multiply(
+          JSBI.BigInt(300),
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+        )
+      ).toString(),
+      JSBI.BigInt(
+        JSBI.multiply(
+          JSBI.BigInt(400),
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+        )
+      ).toString(),
+    ]
   );
 
   const firstCell = cells[0];
@@ -362,8 +389,15 @@ test("CellCollectorWithQueryOptions", async (t) => {
 
   t.is(cells.length, 1);
   t.deepEqual(
-    cells.map((cell) => BigInt(cell.cell_output.capacity)),
-    [BigInt(200 * 10 ** 8)]
+    cells.map((cell) => JSBI.BigInt(cell.cell_output.capacity).toString()),
+    [
+      JSBI.BigInt(
+        JSBI.multiply(
+          JSBI.BigInt(200),
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+        )
+      ).toString(),
+    ]
   );
 });
 
@@ -387,8 +421,21 @@ test("CellCollectorWithQueryOptions, skip", async (t) => {
 
   t.is(cells.length, 2);
   t.deepEqual(
-    cells.map((cell) => BigInt(cell.cell_output.capacity)),
-    [BigInt(300 * 10 ** 8), BigInt(400 * 10 ** 8)]
+    cells.map((cell) => JSBI.BigInt(cell.cell_output.capacity).toString()),
+    [
+      JSBI.BigInt(
+        JSBI.multiply(
+          JSBI.BigInt(300),
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+        )
+      ).toString(),
+      JSBI.BigInt(
+        JSBI.multiply(
+          JSBI.BigInt(400),
+          JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+        )
+      ).toString(),
+    ]
   );
 });
 
@@ -398,7 +445,15 @@ test("getBalance", async (t) => {
 
   const balance = await getBalance(new CellCollector(cacheManager));
 
-  t.is(BigInt(balance), BigInt(900 * 10 ** 8));
+  t.is(
+    JSBI.BigInt(balance).toString(),
+    JSBI.BigInt(
+      JSBI.multiply(
+        JSBI.BigInt(900),
+        JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+      )
+    ).toString()
+  );
 });
 
 test("getBalance, needMasterPublicKey", async (t) => {
@@ -417,7 +472,15 @@ test("getBalance, needMasterPublicKey", async (t) => {
 
   const balance = await getBalance(new CellCollector(cacheManager));
 
-  t.is(BigInt(balance), BigInt(950 * 10 ** 8));
+  t.is(
+    JSBI.BigInt(balance).toString(),
+    JSBI.BigInt(
+      JSBI.multiply(
+        JSBI.BigInt(950),
+        JSBI.exponentiate(JSBI.BigInt(10), JSBI.BigInt(8))
+      )
+    ).toString()
+  );
 });
 
 test("publicKeyToMultisigArgs", (t) => {

@@ -8,6 +8,7 @@ import {
   Output,
   utils,
   Block,
+  JSBI,
 } from "@ckb-lumos/base";
 import { validators } from "@ckb-lumos/toolkit";
 import { RPC } from "@ckb-lumos/rpc";
@@ -28,6 +29,7 @@ import {
   Terminator,
   OtherQueryOptions,
 } from "./type";
+import { BI, toJSBI } from "@ckb-lumos/bi";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -204,7 +206,9 @@ export class CkbIndexer implements Indexer {
     if (queries.fromBlock) {
       utils.assertHexadecimal("fromBlock", queries.fromBlock);
     }
-    emitter.fromBlock = !queries.fromBlock ? 0n : BigInt(queries.fromBlock);
+    emitter.fromBlock = !queries.fromBlock
+      ? BI.from(JSBI.BigInt(0))
+      : BI.from(JSBI.BigInt(queries.fromBlock));
     if (queries.lock) {
       validators.ValidateScript(queries.lock);
       emitter.lock = queries.lock as Script;
@@ -253,7 +257,7 @@ export class CkbIndexer implements Indexer {
       );
       await this.publishAppendBlockEvents(block);
     }
-    const nextBlockNumber = BigInt(block_number) + BigInt(1);
+    const nextBlockNumber = JSBI.add(JSBI.BigInt(block_number), JSBI.BigInt(1));
     const block = await this.request(
       "get_block_by_number",
       [`0x${nextBlockNumber.toString(16)}`],
@@ -370,7 +374,10 @@ export class CkbIndexer implements Indexer {
     script: Script | undefined
   ) {
     const checkBlockNumber = emitter.fromBlock
-      ? emitter.fromBlock <= BigInt(blockNumber)
+      ? JSBI.lessThanOrEqual(
+          JSBI.BigInt(toJSBI(emitter.fromBlock)),
+          JSBI.BigInt(blockNumber)
+        )
       : true;
     const checkOutputData =
       emitter.outputData === "any" || !emitter.outputData

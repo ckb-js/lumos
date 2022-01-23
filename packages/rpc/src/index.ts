@@ -14,6 +14,7 @@ import {
   HexNumber,
   HexString,
   Indexer,
+  JSBI,
   LocalNode,
   OutPoint,
   RawTxPool,
@@ -85,12 +86,17 @@ class RpcProxy {
       return;
     }
     const header: Header = await this.rpc.get_tip_header();
-    const blockNumber = BigInt(header.number);
+    const blockNumber = JSBI.BigInt(header.number);
     while (true) {
       const tip = await this.indexer.tip();
       if (tip) {
-        const indexedNumber = BigInt(tip.block_number);
-        if (blockNumber - indexedNumber <= this.blockDifference) {
+        const indexedNumber = JSBI.BigInt(tip.block_number);
+        if (
+          JSBI.lessThanOrEqual(
+            JSBI.subtract(blockNumber, indexedNumber),
+            JSBI.BigInt(this.blockDifference)
+          )
+        ) {
           // TODO: do we need to handle forks?
           break;
         }
