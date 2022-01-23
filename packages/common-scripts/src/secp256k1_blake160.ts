@@ -17,6 +17,7 @@ import {
   OutPoint,
   HexString,
   PackedSince,
+  JSBI,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { TransactionSkeletonType, Options } from "@ckb-lumos/helpers";
@@ -80,6 +81,7 @@ export class CellCollector implements CellCollectorType {
  *
  * @param txSkeleton
  * @param inputCell
+ * @param _fromInfo
  * @param options
  */
 export async function setupInputCell(

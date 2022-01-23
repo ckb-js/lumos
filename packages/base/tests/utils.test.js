@@ -1,5 +1,4 @@
 const test = require("ava");
-const test = require("ava");
 const { Reader } = require("@ckb-lumos/toolkit");
 const { JSBI } = require("../lib/primitive");
 const { BI } = require("@ckb-lumos/bi");
