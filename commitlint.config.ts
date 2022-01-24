@@ -23,7 +23,6 @@ const Configuration: UserConfig = {
   extends: ["@commitlint/config-conventional"],
   rules: {
     "scope-enum": [2, "always", scopeEnumValues],
-    "scope-empty": [2, "never"],
   },
 };
 
