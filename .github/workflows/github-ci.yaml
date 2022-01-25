@@ -24,9 +24,9 @@ jobs:
       - name: Install project dependencies
         if: steps.yarn-cache.outputs.cache-hit != 'true' # Over here!
         run: yarn
-      - name: Build project
+      - name: Build and test
         run: |
-          yarn install
+          yarn
           yarn lint
           yarn build
           yarn test-coverage
