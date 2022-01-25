@@ -1,7 +1,7 @@
 const { validators, RPC } = require("@ckb-lumos/toolkit");
 const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
-const { TransactionCollector } = require("@ckb-lumos/indexer/lib");
+const { TransactionCollector } = require("@ckb-lumos/ckb-indexer");
 const { isCellMatchQueryOptions } = helpers;
 
 function defaultLogger(level, message) {
@@ -188,7 +188,7 @@ class TransactionManager {
       this.logger(
         "warn",
         params.map((param) => `\`${param}\``).join(", ") +
-          " will not effect on pending cells."
+        " will not effect on pending cells."
       );
     }
     const innerCollector = this.indexer.collector({

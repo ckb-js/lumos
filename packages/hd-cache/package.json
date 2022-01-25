@@ -27,7 +27,7 @@
     "@ckb-lumos/base": "^0.17.0-rc7",
     "@ckb-lumos/config-manager": "^0.17.0-rc7",
     "@ckb-lumos/hd": "^0.17.0-rc7",
-    "@ckb-lumos/indexer": "^0.17.0-rc7",
+    "@ckb-lumos/ckb-indexer": "^0.17.0-rc7",
     "@ckb-lumos/rpc": "^0.17.0-rc7",
     "immutable": "^4.0.0-rc.12"
   },

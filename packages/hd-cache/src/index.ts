@@ -9,11 +9,9 @@ import {
   CellCollector as CellCollectorInterface,
   helpers,
   utils,
-} from "@ckb-lumos/base";
-import {
-  TransactionCollector as TxCollector,
   Indexer,
-} from "@ckb-lumos/indexer";
+} from "@ckb-lumos/base";
+import { TransactionCollector as TxCollector } from "@ckb-lumos/ckb-indexer";
 import { Map, Set } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import { RPC } from "@ckb-lumos/rpc";

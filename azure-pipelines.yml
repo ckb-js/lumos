@@ -28,15 +28,14 @@ jobs:
       - template: devtools/azure/start-indexer/start-linux-osx-test-evn.yml
       - template: devtools/azure/ci.yml
       - script: |
-          yarn workspace @ckb-lumos/sql-indexer test
           yarn run docs
         displayName: "Linux specific tests"
       - template: devtools/azure/ci-completion.yml
       - task: PublishCodeCoverageResults@1
         inputs:
           codeCoverageTool: Cobertura
-          summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/*coverage.xml'
-          reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'
+          summaryFileLocation: "$(System.DefaultWorkingDirectory)/**/*coverage.xml"
+          reportDirectory: "$(System.DefaultWorkingDirectory)/**/coverage"
   - job: OSXBuild
     pool:
       vmImage: "macOS-10.15"
@@ -77,12 +76,6 @@ jobs:
       - script: |
           npm -g install neon-cli
         displayName: "Install neon-cli"
-      - script: |
-          rm -rf packages/indexer/build
-          yarn
-          yarn workspace @ckb-lumos/indexer run package
-          yarn workspace @ckb-lumos/indexer run package-for-electron
-        displayName: "Build release packages"
       - task: GithubRelease@1
         displayName: "Upload release file"
         inputs:
@@ -106,12 +99,6 @@ jobs:
       - script: |
           npm -g install neon-cli
         displayName: "Install neon-cli"
-      - script: |
-          rm -rf packages/indexer/build
-          yarn
-          yarn workspace @ckb-lumos/indexer run package
-          yarn workspace @ckb-lumos/indexer run package-for-electron
-        displayName: "Build release packages"
       - task: GithubRelease@1
         displayName: "Upload release file"
         inputs:
@@ -141,12 +128,6 @@ jobs:
       - script: |
           yarn
         displayName: "Install dependencies"
-      - script: |
-          yarn workspace @ckb-lumos/indexer run package
-        displayName: "Build node package"
-      - script: |
-          yarn workspace @ckb-lumos/indexer run package-for-electron
-        displayName: "Build electron package"
       - task: GithubRelease@1
         displayName: "Upload release file"
         inputs:

@@ -1,5 +1,5 @@
 import test from "ava";
-import { Indexer, TransactionCollector } from "@ckb-lumos/indexer";
+import { Indexer, TransactionCollector } from "@ckb-lumos/ckb-indexer";
 
 import { CacheManager, getBalance } from "../src";
 import {
