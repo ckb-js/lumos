@@ -1,5 +1,3 @@
-import primitive from "jsbi";
-
 /**
  * HexString represents string starts with "0x" and followed by even number(including empty) of [0-9a-fA-F] characters.
  */
@@ -16,8 +14,3 @@ export type PackedDao = string;
 export type Address = string;
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
-
-export function isJSBI(x: unknown): x is typeof primitive.BigInt;
-
-export type maybeJSBI = primitive;
-export { primitive as JSBI };
