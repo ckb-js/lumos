@@ -169,12 +169,8 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
         !BI.from(added.length).eq(0) &&
         BI.from(added.index).gte(added.length)
       ) {
-        let _x, _y;
-
-        (_x = added),
-          (_y = "number"),
-          (_x[_y] = BI.from(added.index).div(added.length).add(_x[_y]));
-        added.index = BI.from(added.index).mod(added.length);
+        added.number = added.index.div(added.length).add(added.number);
+        added.index = added.index.mod(added.length);
       }
 
       return (
