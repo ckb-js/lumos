@@ -7,6 +7,7 @@ import {
   SearchKey,
 } from "./type";
 import fetch from "cross-fetch";
+import { BI } from "@ckb-lumos/bi";
 
 function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
   return typeof object === "object" && object != null && "script" in object;
@@ -39,7 +40,7 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
     //toBlock+1 cause toBlock need to be included
     block_range = [
       queries.fromBlock,
-      `0x${(BigInt(queries.toBlock) + 1n).toString(16)}`,
+      `0x${BI.from(queries.toBlock).add(1).toString(16)}`,
     ];
   }
   if (block_range) {

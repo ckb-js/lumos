@@ -26,7 +26,7 @@
     "@types/body-parser": "^1.19.1",
     "@types/express": "^4.17.13",
     "body-parser": "^1.19.0",
-    "@ckb-lumos/toolkit": "^0.17.0-rc6",
+    "@ckb-lumos/toolkit": "^0.17.0-rc7",
     "express": "^4.17.1",
     "json-rpc-2.0": "^0.2.19",
     "ts-node": "^10.4.0"
@@ -39,9 +39,6 @@
     "start": "ts-node example/mock-ckb-node.ts",
     "fmt": "prettier --write \"{src,tests,example}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,example}/**/*.ts\"",
-    "build": "npm run build:types && npm run build:js",
-    "build:types": "tsc --declaration --emitDeclarationOnly",
-    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
     "release": "npm publish"

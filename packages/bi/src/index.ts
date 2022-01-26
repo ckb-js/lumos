@@ -1,5 +1,4 @@
 import JSBI from "jsbi";
-
 export type BIish = number | string | bigint | BI;
 
 export function isBIish(value: any): value is BIish {
@@ -158,6 +157,8 @@ export class BI {
       return value;
     } else if (isBIish(value)) {
       return toBI(toJSBI(value));
+    } else if (value instanceof JSBI) {
+      return toBI(toJSBI(value.toString()));
     } else {
       throw new Error(`invalid type: ${value} can't be converted into BI`);
     }

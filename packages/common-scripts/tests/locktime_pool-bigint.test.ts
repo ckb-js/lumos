@@ -4,29 +4,22 @@ import {
   TransactionSkeletonType,
   Options,
 } from "@ckb-lumos/helpers";
-import {
-  locktimePool,
-  LocktimeCell,
-  FromInfo,
-  secp256k1Blake160Multisig,
-} from "../src";
-const { prepareSigningEntries, payFee } = locktimePool;
+import { locktimePool, LocktimeCell, FromInfo } from "../src";
+const { transfer, prepareSigningEntries, payFee } = locktimePool;
 import { CellProvider } from "./cell_provider";
+import { calculateMaximumWithdraw } from "../src/dao";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config, predefined } from "@ckb-lumos/config-manager";
-import { Header, Cell, CellCollector, Script } from "@ckb-lumos/base";
+import { Header, Cell, CellCollector } from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 import {
-  bobMultisigInputs,
   bobSecpDaoDepositInput,
   bobSecpDaoWithdrawInput,
   tipHeader as inputTipHeader,
 } from "./inputs";
 import { bob } from "./account_info";
 import { since as SinceUtils } from "@ckb-lumos/base";
-import { transferCompatible } from "../lib/locktime_pool";
-import { calculateMaximumWithdrawCompatible } from "../lib/dao";
 import { BI } from "@ckb-lumos/bi";
 const { AGGRON4 } = predefined;
 
@@ -193,19 +186,12 @@ const fromInfo: FromInfo = {
   publicKeyHashes: ["0x36c329ed630d6ce750712a477543672adab57f4c"],
 };
 
-test.before(() => {
-  // @ts-ignore: Unreachable code error
-  BigInt = () => {
-    throw new Error("can not find bigint");
-  };
-});
-
-test("JSBI:transferCompatible multisig", async (t) => {
-  txSkeleton = await transferCompatible(
+test("BigInt:transfer multisig", async (t) => {
+  txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    BI.from(BI.from(500 * 10 ** 8)),
+    BigInt(500 * 10 ** 8),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -229,12 +215,12 @@ test("JSBI:transferCompatible multisig", async (t) => {
   t.is(txSkeleton.get("headerDeps").size, 0);
 });
 
-test("JSBI:prepareSigningEntries, multisig", async (t) => {
-  txSkeleton = await transferCompatible(
+test("BigInt:prepareSigningEntries, multisig", async (t) => {
+  txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    BI.from(BI.from(500 * 10 ** 8)),
+    BigInt(500 * 10 ** 8),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -252,12 +238,12 @@ test("JSBI:prepareSigningEntries, multisig", async (t) => {
   t.is(signingEntry.message, expectedMessage);
 });
 
-test("JSBI:transferCompatible multisig & dao", async (t) => {
-  txSkeleton = await transferCompatible(
+test("BigInt:transfer multisig & dao", async (t) => {
+  txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    BI.from(BI.from(2500 * 10 ** 8)),
+    BigInt(2500 * 10 ** 8),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -272,17 +258,18 @@ test("JSBI:transferCompatible multisig & dao", async (t) => {
     .map((o) => BI.from(o.cell_output.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
-  const interest = calculateMaximumWithdrawCompatible(
-    {
-      ...inputInfos[2],
-      cell_output: {
-        ...inputInfos[2].cell_output,
-        capacity: originCapacity,
+  const interest =
+    calculateMaximumWithdraw(
+      {
+        ...inputInfos[2],
+        cell_output: {
+          ...inputInfos[2].cell_output,
+          capacity: originCapacity,
+        },
       },
-    },
-    depositDao,
-    withdrawDao
-  ).sub(originCapacity);
+      depositDao,
+      withdrawDao
+    ) - BigInt(originCapacity);
 
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
   t.is(
@@ -308,12 +295,12 @@ test("JSBI:transferCompatible multisig & dao", async (t) => {
   t.true(txSkeleton.get("witnesses").equals(List(expectedWitnesses)));
 });
 
-test("JSBI.prepareSigningEntries, multisig & dao", async (t) => {
-  txSkeleton = await transferCompatible(
+test("BigInt:prepareSigningEntries, multisig & dao", async (t) => {
+  txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    BI.from(BI.from(2500 * 10 ** 8)),
+    BigInt(2500 * 10 ** 8),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -337,54 +324,52 @@ test("JSBI.prepareSigningEntries, multisig & dao", async (t) => {
   });
 });
 
-test("JSBI:payFee, multisig & dao", async (t) => {
-  txSkeleton = await transferCompatible(
+test("BigInt:payFee, multisig & dao", async (t) => {
+  txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    BI.from(BI.from(2500 * 10 ** 8)),
+    BigInt(2500 * 10 ** 8),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
 
-  const fee = BI.from(1 * 10 ** 8);
+  const fee = BigInt(1 * 10 ** 8);
   txSkeleton = await payFee(
     txSkeleton,
     [fromInfo, aliceAddress],
-    BI.from(fee),
+    fee,
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
-    .reduce((result, c) => result.add(c), BI.from(0));
+    .map((i) => BigInt(i.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
-    .reduce((result, c) => result.add(c), BI.from(0));
+    .map((o) => BigInt(o.cell_output.capacity))
+    .reduce((result, c) => result + c, BigInt(0));
 
-  const interest = calculateMaximumWithdrawCompatible(
-    {
-      ...inputInfos[2],
-      cell_output: {
-        ...inputInfos[2].cell_output,
-        capacity: originCapacity,
+  const interest =
+    calculateMaximumWithdraw(
+      {
+        ...inputInfos[2],
+        cell_output: {
+          ...inputInfos[2].cell_output,
+          capacity: originCapacity,
+        },
       },
-    },
-    depositDao,
-    withdrawDao
-  ).sub(originCapacity);
-  console.log(fee);
-  console.log(sumOfInputCapacity);
-  console.log(sumOfOutputCapacity);
-  t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.sub(fee).toString());
+      depositDao,
+      withdrawDao
+    ) - BigInt(originCapacity);
+
+  t.is(sumOfOutputCapacity, sumOfInputCapacity - fee);
   t.is(
-    interest.toString(),
-    sumOfInputCapacity
-      .sub(BI.from(originCapacity).mul(txSkeleton.get("inputs").size))
-      .toString()
+    interest,
+    sumOfInputCapacity -
+      BigInt(originCapacity) * BigInt(txSkeleton.get("inputs").size)
   );
 
   t.is(txSkeleton.get("inputs").size, 3);
@@ -395,7 +380,7 @@ test("JSBI:payFee, multisig & dao", async (t) => {
   t.is(txSkeleton.get("headerDeps").size, 2);
 });
 
-test("JSBI:Don't update capacity directly when deduct", async (t) => {
+test("BigInt:Don't update capacity directly when deduct", async (t) => {
   class LocktimeCellCollector {
     private fromInfo: FromInfo;
     private config: Config;
@@ -425,11 +410,11 @@ test("JSBI:Don't update capacity directly when deduct", async (t) => {
     }
   }
 
-  txSkeleton = await transferCompatible(
+  txSkeleton = await transfer(
     txSkeleton,
     [fromInfo, aliceAddress],
     bobAddress,
-    BI.from(BI.from(600 * 10 ** 8)),
+    BigInt(600 * 10 ** 8),
     tipHeader,
     { config: DEV_CONFIG, LocktimeCellCollector }
   );
@@ -443,11 +428,11 @@ test("JSBI:Don't update capacity directly when deduct", async (t) => {
 
   let errFlag: boolean = false;
   try {
-    await transferCompatible(
+    await transfer(
       txSkeleton,
       [fromInfo, aliceAddress],
       bobAddress,
-      BI.from(BI.from(500 * 10 ** 8)),
+      BigInt(500 * 10 ** 8),
       tipHeader,
       { config: DEV_CONFIG, LocktimeCellCollector }
     );
@@ -554,10 +539,10 @@ async function collectAllCells(collector: CellCollector): Promise<Cell[]> {
   return cells;
 }
 
-test("CellCollector, dao, invalid", async (t) => {
+test("BigInt:CellCollector, dao", async (t) => {
   const cellProvider = new CellProvider([bobSecpDaoWithdrawInput]);
   const tipHeader = cloneObject(inputTipHeader);
-  const epochValue = { length: 10, index: 4, number: 10478 };
+  const epochValue = { length: 10, index: 5, number: 10478 };
   const epoch = SinceUtils.generateHeaderEpoch(epochValue);
   tipHeader.epoch = epoch;
   const collector = new locktimePool.CellCollector(
@@ -570,142 +555,8 @@ test("CellCollector, dao, invalid", async (t) => {
     }
   );
 
-  const cells = await collectAllCells(collector);
-
-  t.is(cells.length, 0);
-});
-
-test("CellCollector, multisig", async (t) => {
-  const tipHeader = inputTipHeader;
-  const epochValue = { length: 653, index: 174, number: 318 };
-  const since = SinceUtils.generateSince({
-    relative: false,
-    type: "epochNumber",
-    value: epochValue,
-  });
-  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
-    bob.fromInfo
-  );
-  const args = secp256k1Blake160Multisig.multisigArgs(multisigScript, since);
-  const input: Cell = cloneObject(bobMultisigInputs[0]);
-  input.cell_output.lock.args = args;
-  // For using RpcMocker
-  input.block_hash = withdrawHeader.hash;
-
-  const cellProvider = new CellProvider([input]);
-
-  const collector = new locktimePool.CellCollector(
-    bob.multisigTestnetAddress,
-    cellProvider,
-    {
-      config: AGGRON4,
-      NodeRPC: RpcMocker as any,
-      tipHeader,
-    }
-  );
-
-  const cells = await collectAllCells(collector);
-
-  t.is(cells.length, 1);
-  const cell = cells[0]! as LocktimeCell;
-  t.is(cell.cell_output.capacity, bobMultisigInputs[0]!.cell_output.capacity);
-  t.is(cell.block_hash, withdrawHeader.hash);
-  t.is(cell.since, since);
-  t.deepEqual(cell.sinceValidationInfo, {
-    epoch: withdrawHeader.epoch,
-    block_number: withdrawHeader.number,
-    // timestamp: withdrawHeader.timestamp,
-    median_timestamp: "",
-  });
-});
-
-test("CellCollector, multisig, timestamp should be skipped", async (t) => {
-  const tipHeader = inputTipHeader;
-  const since = SinceUtils.generateSince({
-    relative: false,
-    type: "blockTimestamp",
-    value: BI.from(BI.from(0)),
-  });
-  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
-    bob.fromInfo
-  );
-  const args = secp256k1Blake160Multisig.multisigArgs(multisigScript, since);
-  const input: Cell = cloneObject(bobMultisigInputs[0]);
-  input.cell_output.lock.args = args;
-  // For using RpcMocker
-  input.block_hash = withdrawHeader.hash;
-
-  const cellProvider = new CellProvider([input]);
-
-  const collector = new locktimePool.CellCollector(
-    bob.multisigTestnetAddress,
-    cellProvider,
-    {
-      config: AGGRON4,
-      NodeRPC: RpcMocker as any,
-      tipHeader,
-    }
-  );
-
-  const cells = await collectAllCells(collector);
-
-  t.is(cells.length, 0);
-});
-
-test("CellCollector, dao & multisig, dao since > multisig since", async (t) => {
-  const tipHeader = cloneObject(inputTipHeader);
-
-  const epochValue = { length: 10, index: 4, number: 10478 };
-  const multisigSince = SinceUtils.generateSince({
-    relative: false,
-    type: "epochNumber",
-    value: epochValue,
-  });
-  const daoEpochValue = { length: 10, index: 5, number: 10478 };
-  const daoSince = SinceUtils.generateSince({
-    relative: false,
-    type: "epochNumber",
-    value: daoEpochValue,
-  });
-  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
-    bob.fromInfo
-  );
-  const args = secp256k1Blake160Multisig.multisigArgs(
-    multisigScript,
-    multisigSince
-  );
-  const depositCell: Cell = cloneObject(bobSecpDaoDepositInput);
-  const withdrawCell: Cell = cloneObject(bobSecpDaoWithdrawInput);
-
-  const multisigLock: Script = {
-    code_hash:
-      "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
-    hash_type: "type",
-    args,
-  };
-
-  depositCell.cell_output.lock = cloneObject(multisigLock);
-  depositCell.block_hash = depositHeader.hash;
-  withdrawCell.cell_output.lock = cloneObject(multisigLock);
-  withdrawCell.block_hash = withdrawHeader.hash;
-
-  const headerEpochValue = { length: 10, index: 5, number: 10479 };
-  const epoch = SinceUtils.generateHeaderEpoch(headerEpochValue);
-  tipHeader.epoch = epoch;
-
-  const cellProvider = new CellProvider([withdrawCell]);
-  const collector = new locktimePool.CellCollector(
-    bob.multisigTestnetAddress,
-    cellProvider,
-    {
-      config: AGGRON4,
-      NodeRPC: RpcMocker as any,
-      tipHeader,
-    }
-  );
-
-  const maximumWithdrawCapacity = calculateMaximumWithdrawCompatible(
-    withdrawCell,
+  const maximumWithdrawCapacity = calculateMaximumWithdraw(
+    bobSecpDaoWithdrawInput,
     depositHeader.dao,
     withdrawHeader.dao
   );
@@ -716,151 +567,11 @@ test("CellCollector, dao & multisig, dao since > multisig since", async (t) => {
 
   const cell = cells[0]! as LocktimeCell;
 
+  const parsedSince = SinceUtils.parseSince(cell.since);
+  t.deepEqual(parsedSince.value, epochValue);
   t.is(cell.depositBlockHash, depositHeader.hash);
   t.is(cell.withdrawBlockHash, withdrawHeader.hash);
   t.is(cell.block_hash, withdrawHeader.hash);
   t.is(cell.block_number, withdrawHeader.number);
-
-  // t.is(cell.since, multisigSince)
-  t.is(cell.since, daoSince);
-  t.is(
-    BI.from(cell.cell_output.capacity).toString(),
-    maximumWithdrawCapacity.toString()
-  );
-});
-
-test("CellCollector, dao & multisig, multisig since > dao since", async (t) => {
-  const tipHeader = cloneObject(inputTipHeader);
-
-  const epochValue = { length: 10, index: 6, number: 10478 };
-  const multisigSince = SinceUtils.generateSince({
-    relative: false,
-    type: "epochNumber",
-    value: epochValue,
-  });
-  // const daoEpochValue = { length: 10, index: 5, number: 10478 }
-  // const daoSince = SinceUtils.generateSince({
-  //   relative: false,
-  //   type: "epochNumber",
-  //   value: daoEpochValue
-  // })
-  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
-    bob.fromInfo
-  );
-  const args = secp256k1Blake160Multisig.multisigArgs(
-    multisigScript,
-    multisigSince
-  );
-  const depositCell: Cell = cloneObject(bobSecpDaoDepositInput);
-  const withdrawCell: Cell = cloneObject(bobSecpDaoWithdrawInput);
-
-  const multisigLock: Script = {
-    code_hash:
-      "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
-    hash_type: "type",
-    args,
-  };
-
-  depositCell.cell_output.lock = cloneObject(multisigLock);
-  depositCell.block_hash = depositHeader.hash;
-  withdrawCell.cell_output.lock = cloneObject(multisigLock);
-  withdrawCell.block_hash = withdrawHeader.hash;
-
-  // number add 1
-  const headerEpochValue = { length: 10, index: 5, number: 10479 };
-  const epoch = SinceUtils.generateHeaderEpoch(headerEpochValue);
-  tipHeader.epoch = epoch;
-
-  const cellProvider = new CellProvider([withdrawCell]);
-  const collector = new locktimePool.CellCollector(
-    bob.multisigTestnetAddress,
-    cellProvider,
-    {
-      config: AGGRON4,
-      NodeRPC: RpcMocker as any,
-      tipHeader,
-    }
-  );
-
-  const maximumWithdrawCapacity = calculateMaximumWithdrawCompatible(
-    withdrawCell,
-    depositHeader.dao,
-    withdrawHeader.dao
-  );
-
-  const cells = await collectAllCells(collector);
-
-  t.is(cells.length, 1);
-
-  const cell = cells[0]! as LocktimeCell;
-
-  t.is(cell.depositBlockHash, depositHeader.hash);
-  t.is(cell.withdrawBlockHash, withdrawHeader.hash);
-  t.is(cell.block_hash, withdrawHeader.hash);
-  t.is(cell.block_number, withdrawHeader.number);
-  t.is(
-    BI.from(cell.cell_output.capacity).toString(),
-    maximumWithdrawCapacity.toString()
-  );
-
-  t.is(cell.since, multisigSince);
-});
-
-test("CellCollector, dao & multisig, multisig since type = blockNumber", async (t) => {
-  const tipHeader = cloneObject(inputTipHeader);
-
-  const epochValue = BI.from(1024);
-  const multisigSince = SinceUtils.generateSince({
-    relative: false,
-    type: "blockNumber",
-    value: BI.from(epochValue),
-  });
-  // const daoEpochValue = { length: 10, index: 5, number: 10478 }
-  // const daoSince = SinceUtils.generateSince({
-  //   relative: false,
-  //   type: "epochNumber",
-  //   value: daoEpochValue
-  // })
-  const multisigScript = secp256k1Blake160Multisig.serializeMultisigScript(
-    bob.fromInfo
-  );
-  const args = secp256k1Blake160Multisig.multisigArgs(
-    multisigScript,
-    multisigSince
-  );
-  const depositCell: Cell = cloneObject(bobSecpDaoDepositInput);
-  const withdrawCell: Cell = cloneObject(bobSecpDaoWithdrawInput);
-
-  const multisigLock: Script = {
-    code_hash:
-      "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
-    hash_type: "type",
-    args,
-  };
-
-  depositCell.cell_output.lock = cloneObject(multisigLock);
-  depositCell.block_hash = depositHeader.hash;
-  withdrawCell.cell_output.lock = cloneObject(multisigLock);
-  withdrawCell.block_hash = withdrawHeader.hash;
-
-  // number add 1
-  const headerEpochValue = { length: 10, index: 5, number: 10479 };
-  const epoch = SinceUtils.generateHeaderEpoch(headerEpochValue);
-  tipHeader.epoch = epoch;
-
-  const cellProvider = new CellProvider([withdrawCell]);
-  const collector = new locktimePool.CellCollector(
-    bob.multisigTestnetAddress,
-    cellProvider,
-    {
-      config: AGGRON4,
-      NodeRPC: RpcMocker as any,
-      tipHeader,
-    }
-  );
-
-  const cells = await collectAllCells(collector);
-
-  // will skip
-  t.is(cells.length, 0);
+  t.is(BigInt(cell.cell_output.capacity), maximumWithdrawCapacity);
 });

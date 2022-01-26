@@ -1,3 +1,4 @@
+import { BIish, BI } from "@ckb-lumos/bi";
 import { HexNumber, PackedSince, HexString } from "./primitive";
 
 export interface EpochSinceValue {
@@ -31,6 +32,20 @@ export function parseSince(
       relative: boolean;
       type: "blockNumber" | "blockTimestamp";
       value: bigint;
+    };
+
+export function parseSinceCompatible(
+  since: PackedSince
+):
+  | {
+      relative: boolean;
+      type: "epochNumber";
+      value: EpochSinceValue;
+    }
+  | {
+      relative: boolean;
+      type: "blockNumber" | "blockTimestamp";
+      value: BI;
     };
 
 /**
@@ -96,7 +111,7 @@ export function generateSince(
     | {
         relative: boolean;
         type: SinceType;
-        value: bigint;
+        value: BIish;
       }
     | {
         relative: boolean;

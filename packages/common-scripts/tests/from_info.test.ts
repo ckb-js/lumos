@@ -18,6 +18,13 @@ const multiInfo = {
   multisigArgs: "0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a",
 };
 
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test("multisigArgs, single", (t) => {
   const serialized = serializeMultisigScript(bob.fromInfo);
   const args = multisigArgs(serialized);
