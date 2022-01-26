@@ -5,8 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "fmt": "echo \"fmt skip in example\"",
-    "lint": "echo \"lint skip in example\""
+    "start": "parcel index.html"
   },
   "keywords": [],
   "author": "",
@@ -16,10 +15,5 @@
     "@types/react-dom": "^17.0.11",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.16.0",
-    "@babel/core": "^7.16.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.16.0"
   }
 }
