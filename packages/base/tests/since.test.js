@@ -1,8 +1,10 @@
 const test = require("ava");
+const { BI } = require("@ckb-lumos/bi");
 
-const { since } = require("../lib");
+const { since, utils } = require("../lib");
+
 const {
-  parseSince,
+  parseSinceCompatible,
   generateSince,
   parseEpoch,
   maximumAbsoluteEpochSince,
@@ -19,7 +21,7 @@ const fixtrues = [
     parsed: {
       relative: false,
       type: "blockNumber",
-      value: BigInt("12345"),
+      value: BI.from(12345),
     },
   },
   {
@@ -27,7 +29,7 @@ const fixtrues = [
     parsed: {
       relative: false,
       type: "blockTimestamp",
-      value: BigInt(+new Date("2020-04-01")) / BigInt(1000),
+      value: BI.from(+new Date("2020-04-01")).div(1000),
     },
   },
   {
@@ -47,7 +49,7 @@ const fixtrues = [
     parsed: {
       relative: true,
       type: "blockNumber",
-      value: BigInt("100"),
+      value: BI.from(100),
     },
   },
   {
@@ -55,7 +57,7 @@ const fixtrues = [
     parsed: {
       relative: true,
       type: "blockTimestamp",
-      value: BigInt(14 * 24 * 60 * 60),
+      value: BI.from(14 * 24 * 60 * 60),
     },
   },
   {
@@ -73,18 +75,23 @@ const fixtrues = [
 ];
 
 const epochFixtrue = {
-  epoch: "0x" + BigInt("1979121332649985").toString(16),
+  epoch: "0x" + BI.from("1979121332649985").toString(16),
   parsed: {
     length: 1800,
     index: 24,
     number: 1,
   },
 };
+test.before(() => {
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
 
 test("parsedSince", (t) => {
   fixtrues.forEach((v) => {
-    const parsed = parseSince(v.since);
-    t.deepEqual(parsed, v.parsed);
+    const parsed = parseSinceCompatible(v.since);
+    t.true(utils.isDeepEqual(parsed, v.parsed));
   });
 });
 
@@ -130,24 +137,28 @@ test("validateSince, absolute blockNumber", (t) => {
   const since = generateSince({
     relative: false,
     type: "blockNumber",
-    value: BigInt("12345"),
+    value: BI.from("12345").toString(),
   });
 
   const cellSinceValidationInfo = {
-    number: "0x" + BigInt(11).toString(16),
+    number: "0x" + BI.from(11).toString(16),
   };
 
   t.true(
     validateSince(
       since,
-      { block_number: "0x" + BigInt(12345).toString(16) },
+      {
+        block_number: "0x" + BI.from(12345).toString(16),
+      },
       cellSinceValidationInfo
     )
   );
   t.false(
     validateSince(
       since,
-      { block_number: "0x" + BigInt(12345 - 1).toString(16) },
+      {
+        block_number: "0x" + BI.from(12345 - 1).toString(16),
+      },
       cellSinceValidationInfo
     )
   );
@@ -157,92 +168,101 @@ test("validateSince, relative blockNumber", (t) => {
   const since = generateSince({
     relative: true,
     type: "blockNumber",
-    value: BigInt("12345"),
+    value: BI.from("12345"),
   });
 
   const cellSinceValidationInfo = {
-    block_number: "0x" + BigInt(11).toString(16),
+    block_number: "0x" + BI.from(11).toString(16),
   };
 
   t.true(
     validateSince(
       since,
-      { block_number: "0x" + BigInt(11 + 12345).toString(16) },
+      {
+        block_number: "0x" + BI.from(11 + 12345).toString(16),
+      },
       cellSinceValidationInfo
     )
   );
   t.false(
     validateSince(
       since,
-      { block_number: "0x" + BigInt(11 + 12345 - 1).toString(16) },
+      {
+        block_number: "0x" + BI.from(11 + 12345 - 1).toString(16),
+      },
       cellSinceValidationInfo
     )
   );
 });
 
 test("validateSince, absolute blockTimestamp", (t) => {
-  const timestamp = BigInt(+new Date("2020-04-01")) / BigInt(1000);
+  const timestamp = BI.from(+new Date("2020-04-01")).div(1000);
   const since = generateSince({
     relative: false,
     type: "blockTimestamp",
-    value: timestamp,
+    value: BI.from(timestamp.toString()),
   });
 
   const cellSinceValidationInfo = {
     // timestamp: "0x" + BigInt(+new Date("2020-01-01")).toString(16),
   };
-
-  const validTipMedianTimestamp = "0x" + (timestamp * 1000n).toString(16);
+  const validTipMedianTimestamp = "0x" + timestamp.mul(1000).toString(16);
   const invalidTipMedianTimestamp =
-    "0x" + (timestamp * 1000n - 1n).toString(16);
-
+    "0x" + timestamp.mul(1000).sub(1).toString(16);
   t.true(
     validateSince(
       since,
-      { median_timestamp: validTipMedianTimestamp },
+      {
+        median_timestamp: validTipMedianTimestamp,
+      },
       cellSinceValidationInfo
     )
   );
   t.false(
     validateSince(
       since,
-      { median_timestamp: invalidTipMedianTimestamp },
+      {
+        median_timestamp: invalidTipMedianTimestamp,
+      },
       cellSinceValidationInfo
     )
   );
 });
 
 test("validateSince, relative blockTimestamp", (t) => {
-  const timestamp = BigInt(14 * 24 * 60 * 60);
+  const timestamp = BI.from(14 * 24 * 60 * 60);
   const since = generateSince({
     relative: true,
     type: "blockTimestamp",
-    value: timestamp,
+    value: BI.from(timestamp.toString()),
   });
 
   const cellMedianTimestamp =
-    "0x" + BigInt(+new Date("2020-01-01")).toString(16);
-
+    "0x" + BI.from(+new Date("2020-01-01")).toString(16);
   const cellSinceValidationInfo = {
     median_timestamp: cellMedianTimestamp,
   };
 
   const validTipMedianTimestamp =
-    "0x" + (BigInt(cellMedianTimestamp) + timestamp * 1000n).toString(16);
+    "0x" + BI.from(cellMedianTimestamp).add(timestamp.mul(1000)).toString(16);
   const invalidTipMedianTimestamp =
-    "0x" + (BigInt(cellMedianTimestamp) + timestamp * 1000n - 1n).toString(16);
-
+    "0x" +
+    BI.from(cellMedianTimestamp).add(timestamp.mul(1000)).sub(1).toString(16);
   t.true(
     validateSince(
       since,
-      { median_timestamp: validTipMedianTimestamp },
+      {
+        median_timestamp: validTipMedianTimestamp,
+      },
       cellSinceValidationInfo
     )
   );
   t.false(
     validateSince(
       since,
-      { median_timestamp: invalidTipMedianTimestamp },
+      {
+        median_timestamp: invalidTipMedianTimestamp,
+      },
       cellSinceValidationInfo
     )
   );
@@ -271,7 +291,9 @@ test("validateSince, absolute epochNumber", (t) => {
   t.true(
     validateSince(
       since,
-      { epoch: generateHeaderEpoch(value) },
+      {
+        epoch: generateHeaderEpoch(value),
+      },
       cellSinceValidationInfo
     )
   );

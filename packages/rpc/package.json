@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.18.0-rc4",
+    "@ckb-lumos/bi": "^0.18.0-rc4",
     "@ckb-lumos/toolkit": "^0.18.0-rc4"
   },
   "ava": {

@@ -204,3 +204,10 @@ test("to jsbi", (t) => {
   t.is(toJSBI(bi) instanceof JSBI, true);
   t.is(JSBI.equal(toJSBI(bi), jsbi), true);
 });
+
+test("from JSBI", (t) => {
+  const bi = BI.from(JSBI.BigInt(2));
+  const jsbi = JSBI.BigInt(2);
+  t.is(toJSBI(bi) instanceof JSBI, true);
+  t.is(JSBI.equal(toJSBI(bi), jsbi), true);
+});

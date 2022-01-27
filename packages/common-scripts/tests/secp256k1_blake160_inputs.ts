@@ -1,6 +1,6 @@
 import { Cell } from "@ckb-lumos/base";
 
-export const inputs: Cell[] = [
+export const inputs = (): Cell[] => [
   {
     cell_output: {
       capacity: "0x11716ddd8a8e",

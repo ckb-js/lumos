@@ -14,15 +14,16 @@ import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
   TransactionSkeleton,
-  minimalCellCapacity,
   Options,
   createTransactionFromSkeleton,
   parseAddress,
+  minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
 import { Reader, normalizers } from "@ckb-lumos/toolkit";
 import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
+import { BI, BIish } from "@ckb-lumos/bi";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -49,7 +50,7 @@ function updateOutputs(
   txSkeleton: TransactionSkeletonType,
   output: Cell
 ): TransactionSkeletonType {
-  const cellCapacity = minimalCellCapacity(output);
+  const cellCapacity = minimalCellCapacityCompatible(output);
   output.cell_output.capacity = `0x${cellCapacity.toString(16)}`;
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push(output);
@@ -100,39 +101,44 @@ async function completeTx(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
   config?: Config,
-  feeRate?: bigint
+  feeRate?: BIish
 ): Promise<TransactionSkeletonType> {
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((c) => BigInt(c.cell_output.capacity))
-    .reduce((a, b) => a + b, BigInt(0));
+    .map((c) => BI.from(c.cell_output.capacity))
+    .reduce((a, b) => a.add(b), BI.from(0));
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((c) => BigInt(c.cell_output.capacity))
-    .reduce((a, b) => a + b, BigInt(0));
-  const needCapacity = outputCapacity - inputCapacity;
-  txSkeleton = await injectCapacity(txSkeleton, fromInfo, needCapacity, {
-    config: config,
-    feeRate: feeRate,
-  });
+    .map((c) => BI.from(c.cell_output.capacity))
+    .reduce((a, b) => a.add(b), BI.from(0));
+  const needCapacity = outputCapacity.sub(inputCapacity);
+  txSkeleton = await injectCapacity(
+    txSkeleton,
+    fromInfo,
+    BI.from(needCapacity),
+    {
+      config: config,
+      feeRate: feeRate,
+    }
+  );
   return txSkeleton;
 }
 
 async function injectCapacity(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
-  amount: bigint,
+  amount: BIish,
   {
     config = undefined,
     feeRate = undefined,
-  }: { config?: Config; feeRate?: bigint }
+  }: { config?: Config; feeRate?: BIish }
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  feeRate = feeRate || BigInt(1000);
+  let _feeRate = feeRate || 1000;
+  let _amount = BI.from(amount);
   const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
-  amount = BigInt(amount) + BigInt(10) ** BigInt(8);
-
-  let changeCapacity: bigint = BigInt(10) ** BigInt(8);
+  _amount = _amount.add(BI.from(10).pow(8));
+  let changeCapacity = BI.from(10).pow(8);
   const changeCell: Cell = {
     cell_output: {
       capacity: "0x0",
@@ -141,15 +147,15 @@ async function injectCapacity(
     },
     data: "0x",
   };
-  const minimalChangeCapacity: bigint =
-    minimalCellCapacity(changeCell) + BigInt(10) ** BigInt(8);
+  const minimalChangeCapacity: BI = BI.from(
+    minimalCellCapacityCompatible(changeCell)
+  ).add(BI.from(10).pow(8));
 
-  if (amount < 0n) {
-    changeCapacity -= amount;
-    amount = 0n;
+  if (_amount.lt(0)) {
+    changeCapacity = changeCapacity.sub(_amount);
+    _amount = BI.from(0);
   }
-
-  if (amount > 0n || changeCapacity < minimalChangeCapacity) {
+  if (_amount.gt(0) || changeCapacity.lt(minimalChangeCapacity)) {
     const cellProvider = txSkeleton.get("cellProvider");
     if (!cellProvider) throw new Error("Cell provider is missing!");
     const cellCollector = cellProvider.collector({
@@ -178,30 +184,28 @@ async function injectCapacity(
       txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
         witnesses.push("0x")
       );
-      const inputCapacity = BigInt(inputCell.cell_output.capacity);
+      const inputCapacity = BI.from(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
-      if (deductCapacity > amount) {
-        deductCapacity = amount;
+      if (deductCapacity.gt(_amount)) {
+        deductCapacity = _amount;
       }
-      amount -= deductCapacity;
-      changeCapacity += inputCapacity - deductCapacity;
+      _amount = _amount.sub(deductCapacity);
+      changeCapacity = changeCapacity.add(inputCapacity).sub(deductCapacity);
       if (
-        amount === BigInt(0) &&
-        (changeCapacity === BigInt(0) ||
-          changeCapacity >= minimalChangeCapacity)
+        _amount.eq(0) &&
+        (changeCapacity.eq(0) || changeCapacity.gte(minimalChangeCapacity))
       )
         break;
     }
   }
 
-  if (changeCapacity > BigInt(0)) {
+  if (changeCapacity.gt(0)) {
     changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
     txSkeleton = txSkeleton.update("outputs", (outputs) =>
       outputs.push(changeCell)
     );
   }
-
-  if (amount > 0n || changeCapacity < minimalChangeCapacity)
+  if (_amount.gt(0) || changeCapacity.lt(minimalChangeCapacity))
     throw new Error("Not enough capacity in from address!");
 
   /*
@@ -274,13 +278,13 @@ async function injectCapacity(
     );
   }
 
-  const txFee = calculateTxFee(txSkeleton, feeRate);
-  changeCapacity = changeCapacity - txFee;
+  const txFee = calculateTxFee(txSkeleton, _feeRate);
+  changeCapacity = changeCapacity.sub(txFee);
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.pop();
   });
-  if (changeCapacity > BigInt(0)) {
+  if (changeCapacity.gt(0)) {
     changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
     txSkeleton = txSkeleton.update("outputs", (outputs) =>
       outputs.push(changeCell)
@@ -304,22 +308,23 @@ function getTransactionSizeByTx(tx: Transaction): number {
   return size;
 }
 
-function calculateFee(size: number, feeRate: bigint): bigint {
-  const ratio = 1000n;
-  const base = BigInt(size) * feeRate;
-  const fee = base / ratio;
-  if (fee * ratio < base) {
-    return fee + 1n;
+function calculateFee(size: number, feeRate: BIish): BI {
+  const ratio = BI.from(1000);
+  const base = BI.from(size).mul(feeRate);
+  const fee = base.div(ratio);
+
+  if (fee.mul(ratio).lt(base)) {
+    return fee.add(1);
   }
-  return fee;
+  return BI.from(fee);
 }
 
 function calculateTxFee(
   txSkeleton: TransactionSkeletonType,
-  feeRate: bigint
-): bigint {
+  feeRate: BIish
+): BI {
   const txSize = getTransactionSize(txSkeleton);
-  return calculateFee(txSize, feeRate);
+  return BI.from(calculateFee(txSize, feeRate));
 }
 
 function calculateCodeHashByBin(scriptBin: Uint8Array): string {

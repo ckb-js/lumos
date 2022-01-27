@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "name": "@lumos-examples/pw-lock-metamask",
+  "version": "0.17.0-rc7",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/react": "^17.0.34",
+    "@types/react-dom": "^17.0.11",
+    "keccak": "^3.0.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}

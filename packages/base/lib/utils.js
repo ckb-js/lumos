@@ -1,7 +1,9 @@
 const blake2b = require("blake2b");
 const { validators, normalizers, Reader } = require("@ckb-lumos/toolkit");
+const isEqual = require("lodash.isequal");
 const { SerializeScript, SerializeCellInput } = require("./core");
 const { xxHash32 } = require("js-xxhash");
+const { BI } = require("@ckb-lumos/bi");
 
 class CKBHasher {
   constructor() {
@@ -36,9 +38,15 @@ function ckbHash(buffer) {
 }
 
 function toBigUInt64LE(num) {
-  num = BigInt(num);
+  return toBigUInt64LECompatible(num);
+}
+
+function toBigUInt64LECompatible(num) {
+  num = BI.from(num);
   const buf = Buffer.alloc(8);
-  buf.writeBigUInt64LE(num);
+  buf.writeUInt32LE(num.and("0xffffffff").toNumber(), 0);
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and("0xffffffff").toNumber(), 4);
   return `0x${buf.toString("hex")}`;
 }
 
@@ -47,22 +55,40 @@ function readBigUInt64LE(hex) {
   return buf.readBigUInt64LE();
 }
 
-const U128_MIN = BigInt(0);
-// create-react-app@4.0.3 default config will transform `**` to `Math.pow`.
-// However, Math.pow(BigInt(), BigInt()) will cause an error
-// const U128_MAX = BigInt(2) ** BigInt(128) - BigInt(1);
-const U128_MAX = 340282366920938463463374607431768211455n;
+function readBigUInt64LECompatible(hex) {
+  const buf = Buffer.from(hex.slice(2), "hex");
+  return BI.from(buf.readUInt32LE()).add(BI.from(buf.readUInt32LE(4)).shl(32));
+}
+
+// const U128_MIN = BigInt(0);
+// const U128_MAX = BigInt("340282366920938463463374607431768211455");
 function toBigUInt128LE(u128) {
-  if (u128 < U128_MIN) {
-    throw new Error(`u128 ${u128} too small`);
+  return toBigUInt128LECompatible(u128);
+}
+
+const U128_MIN_COMPATIBLE = BI.from(0);
+const U128_MAX_COMPATIBLE = BI.from("340282366920938463463374607431768211455");
+function toBigUInt128LECompatible(num) {
+  num = BI.from(num);
+  if (num.lt(U128_MIN_COMPATIBLE)) {
+    throw new Error(`u128 ${num} too small`);
   }
-  if (u128 > U128_MAX) {
-    throw new Error(`u128 ${u128} too large`);
+
+  if (num.gt(U128_MAX_COMPATIBLE)) {
+    throw new Error(`u128 ${num} too large`);
   }
+
   const buf = Buffer.alloc(16);
-  buf.writeBigUInt64LE(u128 & BigInt("0xFFFFFFFFFFFFFFFF"), 0);
-  buf.writeBigUInt64LE(u128 >> BigInt(64), 8);
-  return "0x" + buf.toString("hex");
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 0);
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 4);
+
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 8);
+
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 12);
+  return `0x${buf.toString("hex")}`;
 }
 
 function readBigUInt128LE(leHex) {
@@ -71,6 +97,20 @@ function readBigUInt128LE(leHex) {
   }
   const buf = Buffer.from(leHex.slice(2, 34), "hex");
   return (buf.readBigUInt64LE(8) << BigInt(64)) + buf.readBigUInt64LE(0);
+}
+
+function readBigUInt128LECompatible(leHex) {
+  if (leHex.length < 34 || !leHex.startsWith("0x")) {
+    throw new Error(`leHex format error`);
+  }
+
+  const buf = Buffer.from(leHex.slice(2, 34), "hex");
+
+  return BI.from(buf.readUInt32LE(0))
+    .shl(0)
+    .add(BI.from(buf.readUInt32LE(4)).shl(32))
+    .add(BI.from(buf.readUInt32LE(8)).shl(64))
+    .add(BI.from(buf.readUInt32LE(12)).shl(96));
 }
 
 function computeScriptHash(script, { validate = true } = {}) {
@@ -99,6 +139,9 @@ function assertHexadecimal(debugPath, str) {
   }
 }
 
+function isDeepEqual(a, b) {
+  return isEqual(a, b);
+}
 // Buffer.from('TYPE_ID')
 const TYPE_ID_CODE_HASH =
   "0x00000000000000000000000000000000000000000000000000545950455f4944";
@@ -128,12 +171,17 @@ module.exports = {
   CKBHasher,
   ckbHash,
   toBigUInt64LE,
+  toBigUInt64LECompatible,
   readBigUInt64LE,
+  readBigUInt64LECompatible,
   toBigUInt128LE,
+  toBigUInt128LECompatible,
   readBigUInt128LE,
+  readBigUInt128LECompatible,
   computeScriptHash,
   hashCode,
   assertHexString,
   assertHexadecimal,
+  isDeepEqual,
   generateTypeIdScript,
 };
