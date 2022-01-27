@@ -1,6 +1,6 @@
-import JSBI from "jsbi";
+import { BI } from "@ckb-lumos/bi";
 import { Reader } from "../reader";
-import { HexStringToBigInt, BigIntToHexString } from "../rpc";
+import { BigIntToHexString } from "../rpc";
 
 export class RPCCollector {
   constructor(
@@ -20,11 +20,11 @@ export class RPCCollector {
   }
 
   async *collect() {
-    const to = HexStringToBigInt(await this.rpc.get_tip_block_number());
-    let currentFrom = JSBI.BigInt(0);
-    while (JSBI.lessThanOrEqual(currentFrom, to)) {
-      let currentTo = JSBI.add(currentFrom, JSBI.BigInt(100));
-      if (JSBI.greaterThan(currentTo, to)) {
+    const to = BI.from(await this.rpc.get_tip_block_number());
+    let currentFrom = BI.from(0);
+    while (currentFrom.lte(to)) {
+      let currentTo = currentFrom.add(100);
+      if (currentTo.gt(to)) {
         currentTo = to;
       }
       const cells = await this.rpc.get_cells_by_lock_hash(
@@ -34,13 +34,7 @@ export class RPCCollector {
       );
       for (const cell of cells) {
         if (this.skipCellWithContent) {
-          if (
-            cell.type ||
-            JSBI.greaterThan(
-              HexStringToBigInt(cell.output_data_len),
-              JSBI.BigInt(100)
-            )
-          ) {
+          if (cell.type || BI.from(cell.output_data_len).gt(100)) {
             continue;
           }
         }
@@ -71,7 +65,7 @@ export class RPCCollector {
           block_number,
         };
       }
-      currentFrom = JSBI.add(currentTo, JSBI.BigInt(1));
+      currentFrom = currentTo.add(1);
     }
   }
 }

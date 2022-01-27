@@ -1,6 +1,6 @@
-import JSBI from "jsbi";
 import { Reader } from "./reader";
 import { ValidateTransaction, ValidateOutPoint } from "./validators";
+import { BI } from "@ckb-lumos/bi";
 
 export class TransactionDumper {
   constructor(
@@ -84,7 +84,7 @@ export class TransactionDumper {
       throw new Error(`Transaction ${out_point.tx_hash} cannot be found!`);
     }
     const tx = txStatus.transaction;
-    const index = JSBI.toNumber(JSBI.BigInt(out_point.index));
+    const index = BI.from(out_point.index).toNumber();
     if (index >= tx.outputs.length) {
       throw new Error(
         `Transaction ${out_point.tx_hash} does not have output ${index}!`

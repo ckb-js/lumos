@@ -1,5 +1,5 @@
 import fetch from "cross-fetch";
-import JSBI from "jsbi";
+import { BI, toJSBI } from "@ckb-lumos/bi";
 
 function mergeOptions(overrideOptions, defaultOptions) {
   defaultOptions = defaultOptions || {};
@@ -109,9 +109,9 @@ export class RPC {
 }
 
 export function HexStringToBigInt(hexString) {
-  return JSBI.BigInt(hexString);
+  return toJSBI(BI.from(hexString));
 }
 
-export function BigIntToHexString(bigInt) {
-  return "0x" + bigInt.toString(16);
+export function BigIntToHexString(bi) {
+  return "0x" + BI.from(bi).toString(16);
 }

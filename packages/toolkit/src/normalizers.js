@@ -10,14 +10,13 @@
 // Note this is only used when you need to deal with CKB structures in molecule
 // format. If you are using RPCs or GraphQL to interact with CKB, chances are you
 // will not need this package.
-import JSBI from "jsbi";
 import { Reader } from "./reader";
 import { BigIntToHexString } from "./rpc";
 
 function normalizeHexNumber(length) {
   return function (debugPath, value) {
     if (!(value instanceof ArrayBuffer)) {
-      let intValue = BigIntToHexString(JSBI.BigInt(value)).substr(2);
+      let intValue = BigIntToHexString(value).substr(2);
       if (intValue.length % 2 !== 0) {
         intValue = "0" + intValue;
       }
