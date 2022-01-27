@@ -18,6 +18,23 @@ test("normalize and serialize script", (t) => {
   );
 });
 
+test("normalize and serialize ckb2021 script", (t) => {
+  const value = {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    args: "0xaabbccdd44332211",
+    hash_type: "data1",
+  };
+
+  const normalizedValue = normalizers.NormalizeScript(value);
+  const serializedValue = CKB.SerializeScript(normalizedValue);
+  const serializedHex = new Reader(serializedValue).serializeJson();
+  t.deepEqual(
+    serializedHex,
+    "0x3d0000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80208000000aabbccdd44332211"
+  );
+});
+
 test("normalize and serialize script with integer hash type", (t) => {
   const value = {
     code_hash:
@@ -265,7 +282,7 @@ test("normalize and serialize header", (t) => {
       "0x68a83c880eb942396d22020aa83343906986f66418e9b8a4488f2866ecc4e86a",
     proposals_hash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
-    uncles_hash:
+    extra_hash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
     epoch: "0x7080612000287",
@@ -293,7 +310,7 @@ test("normalize and serialize uncle block", (t) => {
         "0x68a83c880eb942396d22020aa83343906986f66418e9b8a4488f2866ecc4e86a",
       proposals_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
-      uncles_hash:
+      extra_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",
@@ -323,7 +340,7 @@ test("normalize and serialize block", (t) => {
         "0x68a83c880eb942396d22020aa83343906986f66418e9b8a4488f2866ecc4e86a",
       proposals_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
-      uncles_hash:
+      extra_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",

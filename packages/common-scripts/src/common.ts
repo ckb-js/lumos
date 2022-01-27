@@ -21,6 +21,7 @@ import {
   PackedSince,
   utils,
   Transaction,
+  HashType,
 } from "@ckb-lumos/base";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
@@ -41,7 +42,7 @@ function defaultLogger(level: string, message: string) {
  */
 export interface LockScriptInfo {
   code_hash: Hash;
-  hash_type: "type" | "data";
+  hash_type: HashType;
   lockScriptInfo: {
     CellCollector: any;
     setupInputCell(

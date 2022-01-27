@@ -8,6 +8,7 @@ export type ScriptRecord = Record<string, ScriptConfig>;
  * @param configShape
  */
 export function createConfig<S extends ScriptRecord>(configShape: {
+  CKB2021?: boolean;
   PREFIX: string;
   SCRIPTS: S;
 }): typeof configShape {
@@ -63,6 +64,7 @@ const LINA = createConfig({
         "0x4153a2014952d7cac45f285ce9a7c5c0c0e1b21f2d378b82ac1433cb11c25c4d",
       INDEX: "0x0",
       DEP_TYPE: "dep_group",
+      SHORT_ID: 2,
     },
   },
 });
@@ -116,6 +118,7 @@ const AGGRON4 = createConfig({
         "0xec26b0f85ed839ece5f11c4c4e837ec359f5adc4420410f6453b1f6b60fb96a6",
       INDEX: "0x0",
       DEP_TYPE: "dep_group",
+      SHORT_ID: 2,
     },
   },
 });

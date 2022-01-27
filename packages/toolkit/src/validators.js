@@ -76,7 +76,11 @@ export function ValidateScript(
   assertHash(`${debugPath}.code_hash`, script.code_hash);
   assertHexString(`${debugPath}.args`, script.args);
 
-  if (script.hash_type !== "data" && script.hash_type !== "type") {
+  if (
+    script.hash_type !== "data" &&
+    script.hash_type !== "type" &&
+    script.hash_type !== "data1"
+  ) {
     throw new Error(`${debugPath}.hash_type must be either data or type!`);
   }
 }
@@ -249,7 +253,7 @@ function assertCommonHeader(debugPath, rawHeader) {
   assertHash(`${debugPath}.parent_hash`, rawHeader.parent_hash);
   assertHash(`${debugPath}.transactions_root`, rawHeader.transactions_root);
   assertHash(`${debugPath}.proposals_hash`, rawHeader.proposals_hash);
-  assertHash(`${debugPath}.uncles_hash`, rawHeader.uncles_hash);
+  assertHash(`${debugPath}.extra_hash`, rawHeader.extra_hash);
   assertHash(`${debugPath}.dao`, rawHeader.dao);
 }
 
@@ -269,7 +273,7 @@ export function ValidateRawHeader(
       "parent_hash",
       "transactions_root",
       "proposals_hash",
-      "uncles_hash",
+      "extra_hash",
       "dao",
     ],
     []
@@ -293,7 +297,7 @@ export function ValidateHeader(
       "parent_hash",
       "transactions_root",
       "proposals_hash",
-      "uncles_hash",
+      "extra_hash",
       "dao",
       "nonce",
     ],

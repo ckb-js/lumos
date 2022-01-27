@@ -7,7 +7,8 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "Lumos Docs",
-  tagline: "Full featured JavaScript(TypeScript) based dApp library for Nervos CKB",
+  tagline:
+    "Full featured JavaScript(TypeScript) based dApp library for Nervos CKB",
   url: "https://nervosnetwork.github.io",
   baseUrl: "/lumos/",
   onBrokenLinks: "throw",
@@ -15,7 +16,7 @@ const config = {
   favicon: "img/favicon.ico",
   organizationName: "nervosnetwork", // Usually your GitHub org/user name.
   projectName: "lumos", // Usually your repo name.
-
+  plugins: [require.resolve("./webpack.js")],
   presets: [
     [
       "classic",
@@ -56,7 +57,12 @@ const config = {
             position: "left",
             label: "Docs",
           },
-          // { to: "/blog", label: "Blog", position: "left" },
+          { to: "/tools/address-conversion", label: "Tools", position: "left" },
+          {
+            href: "https://nervosnetwork.github.io/lumos/api",
+            label: "API",
+            position: "left",
+          },
           {
             href: "https://github.com/nervosnetwork/lumos",
             label: "GitHub",

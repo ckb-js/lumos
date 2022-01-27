@@ -2,7 +2,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "examples/*"
+    "examples/*",
+    "docusaurus/website"
   ],
   "engines": {
     "node": ">=12.0.0"
@@ -23,7 +24,6 @@
     "@ava/typescript": "^1.1.1",
     "@babel/cli": "^7.16.7",
     "@babel/core": "^7.16.7",
-    "@babel/plugin-syntax-bigint": "^7.8.3",
     "@babel/preset-env": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
     "@strictsoftware/typedoc-plugin-monorepo": "^0.3.1",
@@ -43,7 +43,9 @@
     "typescript": "^3.9.5"
   },
   "scripts": {
-    "docs": "typedoc .",
+    "docs": "npm run docs:docusaurus && npm run docs:typedoc",
+    "docs:docusaurus": "cd docusaurus/website && yarn build",
+    "docs:typedoc": "typedoc .",
     "prepare": "husky install",
     "test": "lerna run test --parallel --ignore \"**/*/*indexer*\"",
     "test-coverage": "yarn c8 --reporter=cobertura --reporter=html --clean -o coverage yarn run test",

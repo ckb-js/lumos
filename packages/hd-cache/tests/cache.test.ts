@@ -139,7 +139,7 @@ class MockRpc {
       timestamp: "0x5cd2b117",
       transactions_root:
         "0xc47d5b78b3c4c4c853e2a32810818940d0ee403423bea9ec7b8e566d9595206c",
-      uncles_hash:
+      extra_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
     };
