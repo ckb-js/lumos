@@ -2,7 +2,7 @@ const test = require("ava");
 const { helpers, values } = require("@ckb-lumos/base");
 const TransactionManager = require("../lib");
 const { isCellMatchQueryOptions } = helpers;
-const sinon = require('sinon');
+const sinon = require("sinon");
 const { TransactionCollector } = require("@ckb-lumos/ckb-indexer");
 
 const cells = [
@@ -147,23 +147,24 @@ class MockRPC {
     return txHash;
   }
   async get_live_cell() {
-    return cells[0]
+    return cells[0];
   }
-
 }
-
-
 
 const indexer = new MockIndexer();
 const rpc = new MockRPC();
-const stub = sinon.stub(TransactionCollector.prototype, "getTransactionHashes")
-  .onCall(0).resolves([])
-  .onCall(1).resolves([txHash])
-  .onCall(2).resolves([txHash])
+const stub = sinon
+  .stub(TransactionCollector.prototype, "getTransactionHashes")
+  .onCall(0)
+  .resolves([])
+  .onCall(1)
+  .resolves([txHash])
+  .onCall(2)
+  .resolves([txHash]);
 
 test.afterEach(() => {
-  stub.reset()
-})
+  stub.reset();
+});
 test("send_transaction1", async (t) => {
   const transactionManager = new TransactionManager(indexer, {
     rpc,
@@ -207,7 +208,7 @@ test("_checkTransactions, uncommitted", async (t) => {
   await transactionManager.send_transaction(tx);
   await transactionManager._checkTransactions();
   t.is(transactionManager.transactions.size, 1);
-  t.is(transactionManager.createdCells.size, 2)
+  t.is(transactionManager.createdCells.size, 2);
 });
 
 test("_checkTransactions, committed", async (t) => {

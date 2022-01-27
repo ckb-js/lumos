@@ -53,13 +53,13 @@ class TransactionManager {
   }
 
   async _checkTransactions() {
-    let filteredTransactions = Set()
+    let filteredTransactions = Set();
     for await (let transactionValue of this.transactions) {
       /* Extract tx value from TransactionValue wrapper */
       let tx = transactionValue.value;
       /* First, remove all transactions that use already spent cells */
       for (const input of tx.inputs) {
-        const cell = await this.rpc.get_live_cell(input.previous_output, false)
+        const cell = await this.rpc.get_live_cell(input.previous_output, false);
         if (!cell) {
           continue;
         }
@@ -80,7 +80,7 @@ class TransactionManager {
           continue;
         }
       }
-      filteredTransactions = filteredTransactions.add(transactionValue)
+      filteredTransactions = filteredTransactions.add(transactionValue);
     }
     this.transactions = filteredTransactions;
     let createdCells = List();
@@ -187,7 +187,7 @@ class TransactionManager {
       this.logger(
         "warn",
         params.map((param) => `\`${param}\``).join(", ") +
-        " will not effect on pending cells."
+          " will not effect on pending cells."
       );
     }
     const innerCollector = this.indexer.collector({
