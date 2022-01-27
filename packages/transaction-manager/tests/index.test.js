@@ -2,6 +2,8 @@ const test = require("ava");
 const { helpers, values } = require("@ckb-lumos/base");
 const TransactionManager = require("../lib");
 const { isCellMatchQueryOptions } = helpers;
+const sinon = require('sinon');
+const { TransactionCollector } = require("@ckb-lumos/ckb-indexer");
 
 const cells = [
   {
@@ -79,12 +81,6 @@ const tx = {
 const txHash =
   "0x4ca142a2b1e3eae453161340dbf437368cf76040f3c4d8454f3780b46b4e48c8";
 
-class MockNativeIndexer {
-  getDetailedLiveCell() {
-    return cells[0];
-  }
-}
-
 class MockCellCollector {
   constructor(
     indexer,
@@ -122,18 +118,7 @@ class MockCellCollector {
 class MockIndexer {
   constructor(committedTxHashes = []) {
     this.uri = "";
-    this.nativeIndexer = new MockNativeIndexer();
     this.committedTxHashes = committedTxHashes;
-  }
-
-  _getTransactionsByScriptIterator() {
-    const txHashes = this.committedTxHashes;
-    class Collector {
-      collect() {
-        return txHashes;
-      }
-    }
-    return new Collector();
   }
 
   collector({
@@ -161,12 +146,25 @@ class MockRPC {
   async send_transaction() {
     return txHash;
   }
+  async get_live_cell() {
+    return cells[0]
+  }
+
 }
+
+
 
 const indexer = new MockIndexer();
 const rpc = new MockRPC();
+const stub = sinon.stub(TransactionCollector.prototype, "getTransactionHashes")
+  .onCall(0).resolves([])
+  .onCall(1).resolves([txHash])
+  .onCall(2).resolves([txHash])
 
-test("send_transaction", async (t) => {
+test.afterEach(() => {
+  stub.reset()
+})
+test("send_transaction1", async (t) => {
   const transactionManager = new TransactionManager(indexer, {
     rpc,
   });
@@ -206,25 +204,21 @@ test("_checkTransactions, uncommitted", async (t) => {
   const transactionManager = new TransactionManager(indexer, {
     rpc,
   });
-
   await transactionManager.send_transaction(tx);
-
-  transactionManager._checkTransactions();
+  await transactionManager._checkTransactions();
   t.is(transactionManager.transactions.size, 1);
-  t.is(transactionManager.createdCells.size, 2);
+  t.is(transactionManager.createdCells.size, 2)
 });
 
 test("_checkTransactions, committed", async (t) => {
   const indexer = new MockIndexer([txHash]);
   const rpc = new MockRPC();
-
   const transactionManager = new TransactionManager(indexer, {
     rpc,
   });
 
   await transactionManager.send_transaction(tx);
-
-  transactionManager._checkTransactions();
+  await transactionManager._checkTransactions();
   t.is(transactionManager.transactions.size, 0);
 });
 
@@ -262,7 +256,6 @@ test("TransactionManagerCellCollector#count", async (t) => {
   const transactionManager = new TransactionManager(indexer, {
     rpc,
   });
-
   await transactionManager.send_transaction(tx);
 
   const collector = transactionManager.collector();
@@ -275,13 +268,11 @@ test("TransactionManagerCellCollector#count", async (t) => {
 test("TransactionManagerCellCollector, update createdCells if committed", async (t) => {
   const indexer = new MockIndexer([txHash]);
   const rpc = new MockRPC();
-
   const transactionManager = new TransactionManager(indexer, {
     rpc,
   });
-
   await transactionManager.send_transaction(tx);
-  transactionManager._checkTransactions();
+  await transactionManager._checkTransactions();
 
   const collector = transactionManager.collector();
 

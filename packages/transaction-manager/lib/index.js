@@ -41,9 +41,9 @@ class TransactionManager {
     this.running = false;
   }
 
-  _loopMonitor() {
+  async _loopMonitor() {
     try {
-      this._checkTransactions();
+      await this._checkTransactions();
     } catch (e) {
       this.logger("error", `Error checking transactions: ${e}`);
     }
@@ -52,18 +52,16 @@ class TransactionManager {
     }
   }
 
-  _checkTransactions() {
-    this.transactions = this.transactions.filter((transactionValue) => {
+  async _checkTransactions() {
+    let filteredTransactions = Set()
+    for await (let transactionValue of this.transactions) {
       /* Extract tx value from TransactionValue wrapper */
       let tx = transactionValue.value;
       /* First, remove all transactions that use already spent cells */
       for (const input of tx.inputs) {
-        const opBuffer = new values.OutPointValue(input.previous_output, {
-          validate: false,
-        }).buffer;
-        const cell = this.indexer.nativeIndexer.getDetailedLiveCell(opBuffer);
+        const cell = await this.rpc.get_live_cell(input.previous_output, false)
         if (!cell) {
-          return false;
+          continue;
         }
       }
       /* Second, remove all transactions that have already been committed */
@@ -72,18 +70,19 @@ class TransactionManager {
         const transactionCollector = new TransactionCollector(this.indexer, {
           lock: output.lock,
         });
-        const txHashes = transactionCollector.getTransactionHashes();
+        const txHashes = await transactionCollector.getTransactionHashes();
         // remove witnesses property because it's redundant for calculating tx_hash
         delete tx.witnesses;
         const targetTxHash = new values.RawTransactionValue(tx, {
           validate: false,
         }).hash();
         if (txHashes.includes(targetTxHash)) {
-          return false;
+          continue;
         }
       }
-      return true;
-    });
+      filteredTransactions = filteredTransactions.add(transactionValue)
+    }
+    this.transactions = filteredTransactions;
     let createdCells = List();
     this.transactions.forEach((transactionValue) => {
       const tx = transactionValue.value;
