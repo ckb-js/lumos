@@ -1,16 +1,16 @@
 # Lumos Works with MetaMask
 
-Nervos maintains a powerful lock called Omni Lock(previously named RC lock), which can use MetaMask as a signer.
-This example will show how to use Lumos to send a transaction using Omni lock and MetaMask
+Nervos maintains a powerful lock
+called [Omni Lock](https://github.com/XuJiandong/docs-bank/blob/master/omni_lock.md) (previously named RC lock), which
+can use MetaMask as a signer. This example will show how to use Lumos to send a transaction using Omni lock and MetaMask
 
 ## Quick Start
 
-> we should [build](..) Lumos project first before we start the example,
+> we should [build](..) Lumos project first before we start this example
 
 ```
-yarn global add parcel
-yarn install
-parcel examples/omni-lock-metamask/index.html
+cd examples/omni-lock-metamask
+yarn start
 ```
 
 ## Links

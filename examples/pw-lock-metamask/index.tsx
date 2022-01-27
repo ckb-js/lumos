@@ -8,8 +8,8 @@ ReactDOM.render(<App />, app);
 
 export function App() {
   const [ethAddr, setEthAddr] = useState("");
-  const [omniAddr, setOmniAddr] = useState("");
-  const [omniLock, setOmniLock] = useState<Script>();
+  const [pwAddr, setPwAddr] = useState("");
+  const [pwLock, setPwLock] = useState<Script>();
   const [balance, setBalance] = useState("-");
 
   const [transferAddr, setTransferAddress] = useState("");
@@ -29,26 +29,21 @@ export function App() {
     ethereum
       .enable()
       .then(([ethAddr]: string[]) => {
-        const omniLock: Script = {
-          code_hash: CONFIG.SCRIPTS.OMNI_LOCK.CODE_HASH,
-          hash_type: CONFIG.SCRIPTS.OMNI_LOCK.HASH_TYPE,
-          // omni flag       pubkey hash   omni lock flags
-          // chain identity   eth addr      function flag()
-          // 00: Nervos       👇            00: owner
-          // 01: Ethereum     👇            01: administrator
-          //      👇          👇            👇
-          args: `0x01${ethAddr.substring(2)}00`,
+        const pwLock: Script = {
+          code_hash: CONFIG.SCRIPTS.PW_LOCK.CODE_HASH,
+          hash_type: CONFIG.SCRIPTS.PW_LOCK.HASH_TYPE,
+          args: ethAddr,
         };
 
-        const omniAddr = helpers.generateAddress(omniLock);
+        const pwAddr = helpers.generateAddress(pwLock);
 
         setEthAddr(ethAddr);
-        setOmniAddr(omniAddr);
-        setOmniLock(omniLock);
+        setPwAddr(pwAddr);
+        setPwLock(pwLock);
 
-        return omniAddr;
+        return pwAddr;
       })
-      .then((omniAddr) => capacityOf(omniAddr))
+      .then((pwAddr) => capacityOf(pwAddr))
       .then((balance) => setBalance(balance.div(10 ** 8).toString() + " CKB"));
   }
 
@@ -56,7 +51,7 @@ export function App() {
     if (isSendingTx) return;
     setIsSendingTx(true);
 
-    transfer({ amount: transferAmount, from: omniAddr, to: transferAddr })
+    transfer({ amount: transferAmount, from: pwAddr, to: transferAddr })
       .then(setTxHash)
       .catch((e) => alert(e.message || JSON.stringify(e)))
       .finally(() => setIsSendingTx(false));
@@ -69,10 +64,10 @@ export function App() {
     <div>
       <ul>
         <li>Ethereum Address: {ethAddr}</li>
-        <li>Nervos Address(Omni): {omniAddr}</li>
+        <li>Nervos Address(PW): {pwAddr}</li>
         <li>
-          Current Omni lock script:
-          <pre>{JSON.stringify(omniLock, null, 2)}</pre>
+          Current Pw lock script:
+          <pre>{JSON.stringify(pwLock, null, 2)}</pre>
         </li>
 
         <li>Balance: {balance}</li>

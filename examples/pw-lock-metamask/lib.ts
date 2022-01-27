@@ -1,15 +1,15 @@
 import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils } from "@ckb-lumos/lumos";
-import { SerializeRcLockWitnessLock } from "./generated/omni";
+import { default as createKeccak } from "keccak";
 
 export const CONFIG = config.createConfig({
   PREFIX: "ckt",
   SCRIPTS: {
     ...config.predefined.AGGRON4.SCRIPTS,
-    // for more about Omni lock, please check https://github.com/XuJiandong/docs-bank/blob/master/omni_lock.md
-    OMNI_LOCK: {
-      CODE_HASH: "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
+    // https://github.com/lay2dev/pw-core/blob/861310b3dd8638f668db1a08d4c627db4c34d815/src/constants.ts#L156-L169
+    PW_LOCK: {
+      CODE_HASH: "0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63",
       HASH_TYPE: "type",
-      TX_HASH: "0x9154df4f7336402114d04495175b37390ce86a4906d2d4001cf02c3e6d97f39c",
+      TX_HASH: "0x57a62003daeab9d54aa29b944fc3b451213a5ebdf2e232216a3cfed0dde61b38",
       INDEX: "0x0",
       DEP_TYPE: "code",
     },
@@ -26,7 +26,7 @@ const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
 // prettier-ignore
 interface EthereumRpc {
     (payload: { method: 'personal_sign'; params: [string /*from*/, string /*message*/] }): Promise<string>;
-  }
+}
 
 // prettier-ignore
 export interface EthereumProvider {
@@ -36,7 +36,8 @@ export interface EthereumProvider {
     addListener: (event: 'accountsChanged', listener: (addresses: string[]) => void) => void;
     removeEventListener: (event: 'accountsChanged', listener: (addresses: string[]) => void) => void;
     request: EthereumRpc;
-  }
+}
+
 // @ts-ignore
 export const ethereum = window.ethereum as EthereumProvider;
 
@@ -92,15 +93,15 @@ export async function transfer(options: Options): Promise<string> {
   tx = tx.update("outputs", (outputs) => outputs.push(transferOutput, changeOutput));
   tx = tx.update("cellDeps", (cellDeps) =>
     cellDeps.push(
-      // omni lock dep
+      // pw-lock dep
       {
         out_point: {
-          tx_hash: CONFIG.SCRIPTS.OMNI_LOCK.TX_HASH,
-          index: CONFIG.SCRIPTS.OMNI_LOCK.INDEX,
+          tx_hash: CONFIG.SCRIPTS.PW_LOCK.TX_HASH,
+          index: CONFIG.SCRIPTS.PW_LOCK.INDEX,
         },
-        dep_type: CONFIG.SCRIPTS.OMNI_LOCK.DEP_TYPE,
+        dep_type: CONFIG.SCRIPTS.PW_LOCK.DEP_TYPE,
       },
-      // SECP256K1 lock is depended by omni lock
+      // pw-lock is dependent on secp256k1
       {
         out_point: {
           tx_hash: CONFIG.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
@@ -112,8 +113,6 @@ export async function transfer(options: Options): Promise<string> {
   );
 
   const messageForSigning = (() => {
-    const hasher = new utils.CKBHasher();
-
     const rawTxHash = utils.ckbHash(
       core.SerializeRawTransaction(
         toolkit.normalizers.NormalizeRawTransaction(helpers.createTransactionFromSkeleton(tx))
@@ -122,20 +121,23 @@ export async function transfer(options: Options): Promise<string> {
 
     // serialized unsigned witness
     const serializedWitness = core.SerializeWitnessArgs({
-      lock: new toolkit.Reader(
-        "0x" +
-          "00".repeat(
-            SerializeRcLockWitnessLock({
-              signature: new toolkit.Reader("0x" + "00".repeat(65)),
-            }).byteLength
-          )
-      ),
+      // secp256k1 placeholder
+      lock: new toolkit.Reader("0x" + "00".repeat(65)),
     });
 
-    hasher.update(rawTxHash);
-    hashWitness(hasher, serializedWitness);
+    // just like P2PKH
+    // https://github.com/nervosnetwork/ckb-system-scripts/wiki/How-to-sign-transaction
+    const keccak = createKeccak("keccak256");
+    keccak.update(Buffer.from(new Uint8Array(rawTxHash.toArrayBuffer())));
 
-    return hasher.digestHex();
+    const lengthBuffer = new ArrayBuffer(8);
+    const view = new DataView(lengthBuffer);
+    view.setBigUint64(0, BigInt(new toolkit.Reader(serializedWitness).length()), true);
+
+    keccak.update(Buffer.from(new Uint8Array(lengthBuffer)));
+    keccak.update(Buffer.from(new Uint8Array(serializedWitness)));
+
+    return "0x" + keccak.digest("hex");
   })();
 
   let signedMessage = await ethereum.request({
@@ -149,9 +151,7 @@ export async function transfer(options: Options): Promise<string> {
 
   const signedWitness = new toolkit.Reader(
     core.SerializeWitnessArgs({
-      lock: SerializeRcLockWitnessLock({
-        signature: new toolkit.Reader(signedMessage),
-      }),
+      lock: new toolkit.Reader(signedMessage),
     })
   ).serializeJson();
 
@@ -161,15 +161,6 @@ export async function transfer(options: Options): Promise<string> {
   const txHash = await rpc.send_transaction(signedTx, "passthrough");
 
   return txHash;
-}
-
-function hashWitness(hasher: utils.CKBHasher, witness: ArrayBuffer): void {
-  const lengthBuffer = new ArrayBuffer(8);
-  const view = new DataView(lengthBuffer);
-  view.setBigUint64(0, BigInt(new toolkit.Reader(witness).length()), true);
-
-  hasher.update(lengthBuffer);
-  hasher.update(witness);
 }
 
 export async function capacityOf(address: string): Promise<BI> {
