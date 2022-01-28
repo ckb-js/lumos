@@ -2,10 +2,8 @@
   "packages": [
     "packages/*"
   ],
-  "workspaces": [
-    "packages/*"
-  ],
   "npmClient": "yarn",
+  "useWorkspaces": true,
   "version": "0.18.0-rc5",
   "command": {
     "publish": {
