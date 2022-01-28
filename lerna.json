@@ -1,8 +1,11 @@
 {
-  "packages": [
-    "packages/*"
-  ],
+  "packages": ["packages/*"],
   "npmClient": "yarn",
   "useWorkspaces": true,
-  "version": "0.17.0-rc7"
+  "version": "0.17.0-rc7",
+  "command": {
+    "publish": {
+      "access": "public"
+    }
+  }
 }
