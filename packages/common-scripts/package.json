@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/common-scripts",
-  "version": "0.17.0-rc7",
+  "version": "0.17.0-rc8",
   "description": "Common script support in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -24,12 +24,12 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "0.17.0-rc7",
-    "@ckb-lumos/bi": "0.17.0-rc7",
-    "@ckb-lumos/config-manager": "0.17.0-rc7",
-    "@ckb-lumos/helpers": "0.17.0-rc7",
-    "@ckb-lumos/rpc": "0.17.0-rc7",
-    "@ckb-lumos/toolkit": "0.17.0-rc7",
+    "@ckb-lumos/base": "^0.17.0-rc8",
+    "@ckb-lumos/bi": "^0.17.0-rc8",
+    "@ckb-lumos/config-manager": "^0.17.0-rc8",
+    "@ckb-lumos/helpers": "^0.17.0-rc8",
+    "@ckb-lumos/rpc": "^0.17.0-rc8",
+    "@ckb-lumos/toolkit": "^0.17.0-rc8",
     "immutable": "^4.0.0-rc.12"
   },
   "repository": {
