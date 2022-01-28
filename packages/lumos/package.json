@@ -42,15 +42,15 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc7",
-    "@ckb-lumos/bi": "^0.17.0-rc7",
-    "@ckb-lumos/ckb-indexer": "^0.17.0-rc7",
-    "@ckb-lumos/common-scripts": "^0.17.0-rc7",
-    "@ckb-lumos/config-manager": "^0.17.0-rc7",
-    "@ckb-lumos/hd": "^0.17.0-rc7",
-    "@ckb-lumos/helpers": "^0.17.0-rc7",
-    "@ckb-lumos/rpc": "^0.17.0-rc7",
-    "@ckb-lumos/toolkit": "^0.17.0-rc7"
+    "@ckb-lumos/base": "0.17.0-rc7",
+    "@ckb-lumos/bi": "0.17.0-rc7",
+    "@ckb-lumos/ckb-indexer": "0.17.0-rc7",
+    "@ckb-lumos/common-scripts": "0.17.0-rc7",
+    "@ckb-lumos/config-manager": "0.17.0-rc7",
+    "@ckb-lumos/hd": "0.17.0-rc7",
+    "@ckb-lumos/helpers": "0.17.0-rc7",
+    "@ckb-lumos/rpc": "0.17.0-rc7",
+    "@ckb-lumos/toolkit": "0.17.0-rc7"
   },
   "devDependencies": {
     "buffer": "^6.0.3",

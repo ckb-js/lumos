@@ -42,11 +42,11 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc7",
-    "@ckb-lumos/bi": "^0.17.0-rc7",
-    "@ckb-lumos/config-manager": "^0.17.0-rc7",
+    "@ckb-lumos/base": "0.17.0-rc7",
+    "@ckb-lumos/bi": "0.17.0-rc7",
+    "@ckb-lumos/config-manager": "0.17.0-rc7",
     "bech32": "^1.1.4",
-    "@ckb-lumos/toolkit": "^0.17.0-rc7",
+    "@ckb-lumos/toolkit": "0.17.0-rc7",
     "immutable": "^4.0.0-rc.12"
   },
   "devDependencies": {

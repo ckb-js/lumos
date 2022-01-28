@@ -31,9 +31,9 @@
     "scripts/*"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc7",
-    "@ckb-lumos/bi": "^0.17.0-rc7",
-    "@ckb-lumos/toolkit": "^0.17.0-rc7",
+    "@ckb-lumos/base": "0.17.0-rc7",
+    "@ckb-lumos/bi": "0.17.0-rc7",
+    "@ckb-lumos/toolkit": "0.17.0-rc7",
     "neon-cli": "^0.4.0",
     "node-pre-gyp": "^0.14.0",
     "request": "^2.88.2",

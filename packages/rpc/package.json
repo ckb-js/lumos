@@ -42,9 +42,9 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc7",
-    "@ckb-lumos/bi": "^0.17.0-rc7",
-    "@ckb-lumos/toolkit": "^0.17.0-rc7"
+    "@ckb-lumos/base": "0.17.0-rc7",
+    "@ckb-lumos/bi": "0.17.0-rc7",
+    "@ckb-lumos/toolkit": "0.17.0-rc7"
   },
   "ava": {
     "extensions": [
