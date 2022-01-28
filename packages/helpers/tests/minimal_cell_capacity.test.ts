@@ -1,6 +1,7 @@
 import test from "ava";
 import { Cell } from "@ckb-lumos/base";
-import { minimalCellCapacity } from "../src";
+import { minimalCellCapacity, minimalCellCapacityCompatible } from "../src";
+import { BI } from "@ckb-lumos/bi";
 
 const normalCell: Cell = {
   cell_output: {
@@ -58,11 +59,17 @@ const cellWithTypeAndData: Cell = {
   out_point: undefined,
 };
 
-test("normal cell, validate true", (t) => {
-  const capacity = minimalCellCapacity(normalCell);
-  const expectedCapacity = BigInt(61 * 10 ** 8);
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
 
-  t.is(capacity, expectedCapacity);
+test("normal cell, validate true", (t) => {
+  const capacity = minimalCellCapacityCompatible(normalCell);
+  const expectedCapacity = BI.from(61).mul(BI.from(10).pow(8));
+  t.true(capacity.toString() === expectedCapacity.toString());
 });
 
 test("normal cell, validate failed", (t) => {
@@ -72,8 +79,7 @@ test("normal cell, validate failed", (t) => {
 });
 
 test("cell with type and data, validate true", (t) => {
-  const capacity = minimalCellCapacity(cellWithTypeAndData);
-  const expectedCapacity = BigInt((61 + 33 + 2) * 10 ** 8);
-
-  t.is(capacity, expectedCapacity);
+  const capacity = minimalCellCapacityCompatible(cellWithTypeAndData);
+  const expectedCapacity = BI.from(61 + 33 + 2).mul(BI.from(10).pow(8));
+  t.true(capacity.toString() === expectedCapacity.toString());
 });

@@ -1,62 +1,71 @@
+const { BI, isBIish } = require("@ckb-lumos/bi");
 function parseSince(since) {
-  since = BigInt(since);
-  const flag = since >> BigInt(56);
-  const metricFlag = (flag >> BigInt(5)) & BigInt("0b11");
+  const result = parseSinceCompatible(since);
+
+  if (result.type === "epochNumber") return result;
+  return { ...result, value: result.value.toBigInt() };
+}
+
+function parseSinceCompatible(since) {
+  since = BI.from(since);
+  const flag = since.shr(56);
+  const metricFlag = flag.shr(5).and("0b11");
   let type;
   let value;
-  if (metricFlag === BigInt(0b00)) {
+  if (metricFlag.eq(0b00)) {
     type = "blockNumber";
-    value = since & BigInt("0xFFFFFFFFFFFFFF");
-  } else if (metricFlag === BigInt(0b01)) {
+    value = since.and("0xFFFFFFFFFFFFFF");
+  } else if (metricFlag.eq(0b01)) {
     type = "epochNumber";
     value = {
-      length: Number((since >> BigInt(40)) & BigInt(0xffff)),
-      index: Number((since >> BigInt(24)) & BigInt(0xffff)),
-      number: Number(since & BigInt(0xffffff)),
+      length: since.shr(40).and(0xffff).toNumber(),
+      index: since.shr(24).and(0xffff).toNumber(),
+      number: since.and(0xffffff).toNumber(),
     };
-  } else if (metricFlag === BigInt(0b10)) {
+  } else if (metricFlag.eq(0b10)) {
     type = "blockTimestamp";
-    value = since & BigInt("0xFFFFFFFFFFFFFF");
+    value = since.and("0xFFFFFFFFFFFFFF");
   } else {
     throw new Error("Invalid metric flag!");
   }
 
   return {
-    relative: (flag & BigInt("0x80")) !== BigInt(0),
+    relative: !flag.and("0x80").eq(0),
     type,
     value,
   };
 }
 
 function generateSince({ relative, type, value }) {
-  let flag = BigInt(0);
+  let flag = BI.from(0);
+
   if (relative) {
-    flag += BigInt(0b10000000);
+    flag = flag.add(0b10000000);
   }
+
   if (type === "epochNumber") {
-    flag += BigInt(0b00100000);
+    flag = flag.add(0b00100000);
   } else if (type === "blockTimestamp") {
-    flag += BigInt(0b01000000);
+    flag = flag.add(0b01000000);
   }
 
   let v;
-  if (typeof value === "object") {
-    v = BigInt(generateHeaderEpoch(value));
+  if (isBIish(value)) {
+    v = BI.from(value);
+  } else if (typeof value === "object") {
+    v = generateHeaderEpoch(value);
   } else {
-    v = BigInt(value);
+    v = BI.from(value);
   }
-
-  // TODO: check v is valid
-
-  return _toHex((flag << BigInt(56)) + v);
+  return _toHex(flag.shl(56).add(v));
 }
 
 function parseEpoch(epoch) {
-  epoch = BigInt(epoch);
+  epoch = BI.from(epoch);
   return {
-    length: Number((epoch >> BigInt(40)) & BigInt(0xffff)),
-    index: Number((epoch >> BigInt(24)) & BigInt(0xffff)),
-    number: Number(epoch & BigInt(0xffffff)),
+    length: epoch.shr(40).and(0xffff).toNumber(),
+    index: epoch.shr(24).and(0xffff).toNumber(),
+    number: epoch.and(0xffffff).toNumber(),
   };
 }
 
@@ -64,13 +73,14 @@ function maximumAbsoluteEpochSince(...args) {
   const parsedArgs = args.map((arg) => parseAbsoluteEpochSince(arg));
   const maxNumber = Math.max(...parsedArgs.map((arg) => arg.number));
   const maxArgs = parsedArgs.filter((arg) => arg.number === maxNumber);
-
   let max = maxArgs[0];
+
   for (let i = 1; i < maxArgs.length; ++i) {
     const current = maxArgs[i];
     if (
-      BigInt(current.index) * BigInt(max.length) >=
-      BigInt(max.index) * BigInt(current.length)
+      BI.from(current.index)
+        .mul(max.length)
+        .gte(BI.from(max.index).mul(current.length))
     ) {
       max = current;
     }
@@ -89,86 +99,95 @@ function generateAbsoluteEpochSince({ length, index, number }) {
 
 function generateHeaderEpoch({ length, index, number }) {
   return _toHex(
-    (BigInt(length) << BigInt(40)) +
-      (BigInt(index) << BigInt(24)) +
-      BigInt(number)
+    BI.from(length).shl(40).add(BI.from(index).shl(24)).add(number)
   );
 }
 
 function parseAbsoluteEpochSince(since) {
-  const { relative, type, value } = parseSince(since);
+  const { relative, type, value } = parseSinceCompatible(since);
+
   if (!(relative === false && type === "epochNumber")) {
     throw new Error("Since format error!");
   }
+
   return value;
 }
 
 function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
-  const { value } = parseSince(since);
-  const headerEpochParams = parseEpoch(BigInt(tipHeaderEpoch));
-
+  const { value } = parseSinceCompatible(since);
+  const headerEpochParams = parseEpoch(tipHeaderEpoch);
   return (
-    value.number < headerEpochParams.number ||
-    (value.number === headerEpochParams.number &&
-      BigInt(value.index) * BigInt(headerEpochParams.length) <=
-        BigInt(headerEpochParams.index) * BigInt(value.length))
+    BI.from(value.number).lt(headerEpochParams.number) ||
+    (BI.from(value.number).eq(headerEpochParams.number) &&
+      BI.from(value.index)
+        .mul(headerEpochParams.length)
+        .lte(BI.from(headerEpochParams.index).mul(value.length)))
   );
 }
 
 function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
-  const { relative, type, value } = parseSince(since);
+  const { relative, type, value } = parseSinceCompatible(since);
+
   if (!relative) {
     if (type === "epochNumber") {
       return validateAbsoluteEpochSince(since, tipSinceValidationInfo.epoch);
     }
+
     if (type === "blockNumber") {
-      return value <= BigInt(tipSinceValidationInfo.block_number);
+      return BI.from(value).lte(tipSinceValidationInfo.block_number);
     }
+
     if (type === "blockTimestamp") {
       if (!tipSinceValidationInfo.median_timestamp) {
         throw new Error(`Must provide tip median_timestamp!`);
       }
-
-      return value * 1000n <= BigInt(tipSinceValidationInfo.median_timestamp);
+      return BI.from(value)
+        .mul(1000)
+        .lte(tipSinceValidationInfo.median_timestamp);
     }
   } else {
     if (type === "epochNumber") {
-      const tipHeaderEpoch = parseEpoch(BigInt(tipSinceValidationInfo.epoch));
-      const sinceHeaderEpoch = parseEpoch(
-        BigInt(cellSinceValidationInfo.epoch)
-      );
+      const tipHeaderEpoch = parseEpoch(tipSinceValidationInfo.epoch);
+      const sinceHeaderEpoch = parseEpoch(cellSinceValidationInfo.epoch);
       const added = {
-        number: BigInt(value.number + sinceHeaderEpoch.number),
-        index:
-          BigInt(value.index) * BigInt(sinceHeaderEpoch.length) +
-          BigInt(sinceHeaderEpoch.index) * BigInt(value.length),
-        length: BigInt(value.length) * BigInt(sinceHeaderEpoch.length),
+        number: BI.from(value.number).add(sinceHeaderEpoch.number),
+        index: BI.from(value.index)
+          .mul(sinceHeaderEpoch.length)
+          .add(BI.from(sinceHeaderEpoch.index).mul(value.length)),
+        length: BI.from(value.length).mul(sinceHeaderEpoch.length),
       };
+
       if (value.length === 0 && sinceHeaderEpoch.length !== 0) {
-        added.index = BigInt(sinceHeaderEpoch.index);
-        added.length = BigInt(sinceHeaderEpoch.length);
+        added.index = sinceHeaderEpoch.index;
+        added.length = sinceHeaderEpoch.length;
       } else if (sinceHeaderEpoch.length === 0 && value.length !== 0) {
-        added.index = BigInt(value.index);
-        added.length = BigInt(value.length);
+        added.index = BI.from(value.index);
+        added.length = BI.from(value.length);
       }
-      if (added.length && added.index >= added.length) {
-        added.number += added.index / added.length;
-        added.index = added.index % added.length;
+
+      if (
+        !BI.from(added.length).eq(0) &&
+        BI.from(added.index).gte(added.length)
+      ) {
+        added.number = added.index.div(added.length).add(added.number);
+        added.index = added.index.mod(added.length);
       }
 
       return (
-        added.number < BigInt(tipHeaderEpoch.number) ||
-        (added.number === BigInt(tipHeaderEpoch.number) &&
-          added.index * BigInt(tipHeaderEpoch.length) <=
-            BigInt(tipHeaderEpoch.index) * added.length)
+        BI.from(added.number).lt(tipHeaderEpoch.number) ||
+        (BI.from(added.number).eq(tipHeaderEpoch.number) &&
+          BI.from(added.index)
+            .mul(tipHeaderEpoch.length)
+            .lte(BI.from(tipHeaderEpoch.index).mul(added.length)))
       );
     }
+
     if (type === "blockNumber") {
-      return (
-        value + BigInt(cellSinceValidationInfo.block_number) <=
-        BigInt(tipSinceValidationInfo.block_number)
-      );
+      return BI.from(value)
+        .add(cellSinceValidationInfo.block_number)
+        .lte(tipSinceValidationInfo.block_number);
     }
+
     if (type === "blockTimestamp") {
       if (
         !tipSinceValidationInfo.median_timestamp ||
@@ -176,11 +195,10 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
       ) {
         throw new Error(`Must provide median_timestamp!`);
       }
-
-      return (
-        value * 1000n + BigInt(cellSinceValidationInfo.median_timestamp) <=
-        BigInt(tipSinceValidationInfo.median_timestamp)
-      );
+      return BI.from(value)
+        .mul(1000)
+        .add(cellSinceValidationInfo.median_timestamp)
+        .lte(tipSinceValidationInfo.median_timestamp);
     }
   }
 }
@@ -191,6 +209,7 @@ function _toHex(num) {
 
 module.exports = {
   parseSince,
+  parseSinceCompatible,
   parseEpoch,
   maximumAbsoluteEpochSince,
   generateAbsoluteEpochSince,

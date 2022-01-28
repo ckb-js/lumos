@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "^0.18.0-rc4",
+    "@ckb-lumos/bi": "^0.18.0-rc4",
     "@types/deep-freeze-strict": "^1.1.0",
     "deep-freeze-strict": "^1.1.1"
   }

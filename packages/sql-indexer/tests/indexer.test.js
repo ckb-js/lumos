@@ -12,6 +12,12 @@ test.before(async () => {
   await knex.migrate.up();
 });
 
+test.before(() => {
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test.after(async () => {
   await knex.migrate.down();
 });

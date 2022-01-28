@@ -4,7 +4,7 @@ import ReactDOM from "react-dom";
 import { asyncSleep, capacityOf, CONFIG, ethereum, transfer } from "./lib";
 
 const app = document.getElementById("root");
-ReactDOM.render(<App/>, app);
+ReactDOM.render(<App />, app);
 
 export function App() {
   const [ethAddr, setEthAddr] = useState("");
@@ -49,14 +49,14 @@ export function App() {
         return omniAddr;
       })
       .then((omniAddr) => capacityOf(omniAddr))
-      .then((balance) => setBalance(balance.toString()));
+      .then((balance) => setBalance(balance.div(10 ** 8).toString() + " CKB"));
   }
 
   function onTransfer() {
     if (isSendingTx) return;
     setIsSendingTx(true);
 
-    transfer({amount: transferAmount, from: omniAddr, to: transferAddr})
+    transfer({ amount: transferAmount, from: omniAddr, to: transferAddr })
       .then(setTxHash)
       .catch((e) => alert(e.message || JSON.stringify(e)))
       .finally(() => setIsSendingTx(false));
@@ -81,12 +81,12 @@ export function App() {
       <div>
         <h2>Transfer to</h2>
         <label htmlFor="address">Address</label>&nbsp;
-        <input id="address" type="text" onChange={(e) => setTransferAddress(e.target.value)} placeholder="ckt1..."/>
-        <br/>
+        <input id="address" type="text" onChange={(e) => setTransferAddress(e.target.value)} placeholder="ckt1..." />
+        <br />
         <label htmlFor="amount">Amount</label>
         &nbsp;
-        <input id="amount" type="text" onChange={(e) => setTransferAmount(e.target.value)} placeholder="shannon"/>
-        <br/>
+        <input id="amount" type="text" onChange={(e) => setTransferAmount(e.target.value)} placeholder="shannon" />
+        <br />
         <button onClick={onTransfer} disabled={isSendingTx}>
           Transfer
         </button>
