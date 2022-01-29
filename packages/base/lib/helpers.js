@@ -1,4 +1,5 @@
 const { ScriptValue } = require("./values");
+const { BI } = require("@ckb-lumos/bi");
 
 function isCellMatchQueryOptions(
   cell,
@@ -101,14 +102,14 @@ function isCellMatchQueryOptions(
   if (
     fromBlock &&
     cell.block_number &&
-    BigInt(cell.block_number) < BigInt(fromBlock)
+    BI.from(cell.block_number).lt(BI.from(fromBlock))
   ) {
     return false;
   }
   if (
     toBlock &&
     cell.block_number &&
-    BigInt(cell.block_number) > BigInt(toBlock)
+    BI.from(cell.block_number).gt(BI.from(toBlock))
   ) {
     return false;
   }

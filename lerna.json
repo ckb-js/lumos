@@ -4,5 +4,10 @@
   ],
   "npmClient": "yarn",
   "useWorkspaces": true,
-  "version": "0.17.0-rc7"
+  "version": "0.17.0-rc8",
+  "command": {
+    "publish": {
+      "access": "public"
+    }
+  }
 }

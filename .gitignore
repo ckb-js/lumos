@@ -119,3 +119,4 @@ packages/sql-indexer/knexfile.ts
 
 # IDE or environment specific files
 .idea
+.parcel-cache

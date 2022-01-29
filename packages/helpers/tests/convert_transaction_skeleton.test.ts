@@ -5,6 +5,13 @@ import {
   transactionSkeletonToObject,
 } from "../src";
 
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test("objectToTransactionSkeleton", (t) => {
   const txSkeletonObject = require("./fixtures/tx_skeleton.json");
   const txSkeleton = objectToTransactionSkeleton(txSkeletonObject);
