@@ -13,6 +13,12 @@ test.before(async () => {
   await indexer.initDbFromJsonFile(blocksDataFilePath);
 });
 
+test.before(() => {
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test.after(async () => {
   await knex2.migrate.down();
 });

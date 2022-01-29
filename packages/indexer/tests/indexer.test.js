@@ -8,6 +8,12 @@ const tmpIndexedDataPath = "/tmp/indexed_data3";
 const blocksDataFilePath = __dirname + "/blocks_data.json";
 const indexer = new Indexer(nodeUri, tmpIndexedDataPath);
 
+test.before(() => {
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test("test indexer subscribe by differen queryOptions", async (t) => {
   t.timeout(
     60 * 1000,
