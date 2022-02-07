@@ -39,17 +39,19 @@ You can also specify both `lock` and `type` script:
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
-    lock: {
-        args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-        code_hash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-        hash_type: "type"
-    },
-    type: {
-        args: "0x",
-        code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-        hash_type: "type"
-    }
-})
+  lock: {
+    args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type",
+  },
+  type: {
+    args: "0x",
+    code_hash:
+      "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+    hash_type: "type",
+  },
+});
 ```
 
 Range query for cells between given block_numbers is supported:
@@ -57,7 +59,7 @@ Range query for cells between given block_numbers is supported:
 ```jsx
 cellCollector = new CellCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
@@ -78,7 +80,7 @@ Page jump when query cells is supported:
 ```jsx
 cellCollector = new CellCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
@@ -98,7 +100,7 @@ Order by block number is supported by setting `order` field explicitly:
 ```jsx
 cellCollector = new CellCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
@@ -119,7 +121,7 @@ Prefix search is supported on `args`. The default `argsLen` is -1, which mean
 ```jsx
 cellCollector = new CellCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df3", // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
@@ -141,7 +143,7 @@ You can also set it as `any` when the argsLen of the field args might have mul
 ```jsx
 cellCollector = new CellCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
@@ -164,21 +166,22 @@ Fine grained query for cells can be achieved by using [ScriptWrapper](https://g
 cellCollector = new CellCollector(indexer, {
   lock: {
     script: {
-      code_hash: 
+      code_hash:
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
       hash_type: "type",
       args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
     },
-    argsLen: 20, 
+    argsLen: 20,
   },
   type: {
     script: {
-      code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      code_hash:
+        "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
       hash_type: "type",
       args: "0x",
     },
     // when the `argsLen` is not setted here, it will use the outside `argsLen` config, which in this case is -1 by default
-  }
+  },
 });
 
 for await (const cell of cellCollector.collect()) {
@@ -191,13 +194,13 @@ for await (const cell of cellCollector.collect()) {
 ```jsx
 cellCollector = new CellCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
   },
-	outputDataLenRange: [0x0, 0x160],
-	outputCapacityRange: [0x10000, 0x100000]
+  outputDataLenRange: [0x0, 0x160],
+  outputCapacityRange: [0x10000, 0x100000],
 });
 
 for await (const cell of cellCollector.collect()) {
@@ -231,7 +234,7 @@ txCollector = new TransactionCollector(indexer, {
     hash_type: "data",
     args: "0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18",
   },
-	CKBRpcUrl
+  CKBRpcUrl,
 });
 
 for await (const tx of txCollector.collect()) {
@@ -244,12 +247,12 @@ Range query for transactions between given block_numbers is supported:
 ```jsx
 txCollector = new TransactionCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
   },
-  fromBlock: "0x0", // "0x" + 0n.toString(16) 
+  fromBlock: "0x0", // "0x" + 0n.toString(16)
   toBlock: "0x7d0" , // "0x" + 2000n.toString(16)
 });
 
@@ -265,7 +268,7 @@ Page jump when query transactions is supported:
 ```jsx
 txCollector = new TransactionCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
@@ -285,7 +288,7 @@ Order by block number is supported:
 ```jsx
 txCollector = new TransactionCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
@@ -306,7 +309,7 @@ Prefix search is supported on `args`. The default `argsLen` is -1, which mean
 ```jsx
 txCollector = new TransactionCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7df3", // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
@@ -328,7 +331,7 @@ You can also set it as `any` when the argsLen of the field args might have mul
 ```jsx
 txCollector = new TransactionCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
@@ -351,7 +354,7 @@ Fine grained query for transactions can be achieved by using [ScriptWrapper](ht
 txCollector = new TransactionCollector(indexer, {
   lock: {
     script: {
-      code_hash: 
+      code_hash:
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
       hash_type: "type",
       args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
@@ -361,12 +364,13 @@ txCollector = new TransactionCollector(indexer, {
   },
   type: {
     script: {
-      code_hash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+      code_hash:
+        "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
       hash_type: "type",
       args: "0x",
     },
     ioType: "input",
-  }
+  },
 });
 
 for await (const tx of txCollector.collect()) {
@@ -379,13 +383,13 @@ The `ioType` field is among `input | output | both`.
 ```jsx
 txCollector = new TransactionCollector(indexer, {
   lock: {
-    code_hash: 
+    code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hash_type: "type",
     args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
   },
   outputDataLenRange: [0x0, 0x160],
-	outputCapacityRange: [0x10000, 0x100000]
+  outputCapacityRange: [0x10000, 0x100000],
 });
 
 for await (const tx of txCollector.collect()) {
@@ -411,9 +415,11 @@ eventEmitter = indexer.subscribe({
   },
 });
 
-eventEmitter.on("changed",  () => {
-  console.log("States changed with the script, please pull the data sources from the indexer to find out what happend");
-})
+eventEmitter.on("changed", () => {
+  console.log(
+    "States changed with the script, please pull the data sources from the indexer to find out what happend"
+  );
+});
 ```
 
 Other query options like `fromBlock|argsLen|data` are also supported.
@@ -444,3 +450,7 @@ medianTimeEmitter.on("changed", (medianTime) => {
   console.log(medianTime);
 });
 ```
+
+## **Migration**
+
+if you want to migrate native indexer to ckb-indexer please check more detail in our [migration docs](https://github.com/nervosnetwork/lumos/blob/develop/packages/ckb-indexer/mirgation.md)
