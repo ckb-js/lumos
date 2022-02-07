@@ -1,4 +1,4 @@
-import { Cell, config, core, helpers, Indexer, RPC, toolkit, utils } from "@ckb-lumos/lumos";
+import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils } from "@ckb-lumos/lumos";
 import { SerializeRcLockWitnessLock } from "./generated/omni";
 
 export const CONFIG = config.createConfig({
@@ -58,23 +58,23 @@ export async function transfer(options: Options): Promise<string> {
   // additional 0.001 ckb for tx fee
   // the tx fee could calculated by tx size
   // this is just a simple example
-  const neededCapacity = BigInt(options.amount) + /*0.00*/ 100000n;
-  let collectedSum = 0n;
+  const neededCapacity = BI.from(options.amount).add(100000n);
+  let collectedSum = BI.from(0);
   const collectedCells: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });
   for await (const cell of collector.collect()) {
-    collectedSum += BigInt(cell.cell_output.capacity);
+    collectedSum = collectedSum.add(cell.cell_output.capacity);
     collectedCells.push(cell);
-    if (collectedSum >= neededCapacity) break;
+    if (BI.from(collectedSum).gte(neededCapacity)) break;
   }
 
-  if (collectedSum < neededCapacity) {
+  if (collectedSum.lt(neededCapacity)) {
     throw new Error(`Not enough CKB, expected: ${neededCapacity}, actual: ${collectedSum} `);
   }
 
   const transferOutput: Cell = {
     cell_output: {
-      capacity: "0x" + BigInt(options.amount).toString(16),
+      capacity: BI.from(options.amount).toHexString(),
       lock: toScript,
     },
     data: "0x",
@@ -82,7 +82,7 @@ export async function transfer(options: Options): Promise<string> {
 
   const changeOutput: Cell = {
     cell_output: {
-      capacity: "0x" + BigInt(collectedSum - neededCapacity).toString(16),
+      capacity: collectedSum.sub(neededCapacity).toHexString(),
       lock: fromScript,
     },
     data: "0x",
@@ -172,14 +172,14 @@ function hashWitness(hasher: utils.CKBHasher, witness: ArrayBuffer): void {
   hasher.update(witness);
 }
 
-export async function capacityOf(address: string): Promise<bigint> {
+export async function capacityOf(address: string): Promise<BI> {
   const collector = indexer.collector({
     lock: helpers.parseAddress(address),
   });
 
-  let balance = 0n;
+  let balance = BI.from(0);
   for await (const cell of collector.collect()) {
-    balance += BigInt(cell.cell_output.capacity);
+    balance = balance.add(cell.cell_output.capacity);
   }
 
   return balance;

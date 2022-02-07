@@ -1,6 +1,9 @@
 import { Set } from "immutable";
 import { normalizers, Reader } from "@ckb-lumos/toolkit";
-import { parseAddress, minimalCellCapacity } from "@ckb-lumos/helpers";
+import {
+  parseAddress,
+  minimalCellCapacityCompatible,
+} from "@ckb-lumos/helpers";
 import {
   core,
   values,
@@ -26,6 +29,7 @@ import {
 } from "./helper";
 import { FromInfo } from ".";
 import { parseFromInfo } from "./from_info";
+import { BI, BIish } from "@ckb-lumos/bi";
 const { ScriptValue } = values;
 
 export class CellCollector implements CellCollectorType {
@@ -76,6 +80,7 @@ export class CellCollector implements CellCollectorType {
  *
  * @param txSkeleton
  * @param inputCell
+ * @param _fromInfo
  * @param options
  */
 export async function setupInputCell(
@@ -251,6 +256,75 @@ export async function transfer(
     assertAmountEnough?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
+  const result = await transferCompatible(
+    txSkeleton,
+    fromAddress,
+    toAddress,
+    amount,
+    {
+      config,
+      requireToAddress,
+      assertAmountEnough: assertAmountEnough as true | undefined,
+    }
+  );
+  let _txSkeleton: TransactionSkeletonType;
+  let _amount: bigint;
+  if (result instanceof Array) {
+    _txSkeleton = result[0];
+    _amount = BigInt(result[1].toString());
+    return [_txSkeleton, _amount];
+  } else {
+    _txSkeleton = result;
+    return _txSkeleton;
+  }
+}
+export async function transferCompatible(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: Address,
+  toAddress: Address | null | undefined,
+  amount: BIish,
+  options?: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough?: true;
+  }
+): Promise<TransactionSkeletonType>;
+
+export async function transferCompatible(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: Address,
+  toAddress: Address | null | undefined,
+  amount: BIish,
+  options: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough: false;
+  }
+): Promise<[TransactionSkeletonType, BI]>;
+/**
+ * transfer capacity from secp256k1_blake160 script cells
+ *
+ * @param txSkeleton
+ * @param fromAddress
+ * @param toAddress
+ * @param amount
+ * @param options
+ */
+export async function transferCompatible(
+  txSkeleton: TransactionSkeletonType,
+  fromAddress: Address,
+  toAddress: Address | null | undefined,
+  amount: BIish,
+  {
+    config = undefined,
+    requireToAddress = true,
+    assertAmountEnough = true,
+  }: {
+    config?: Config;
+    requireToAddress?: boolean;
+    assertAmountEnough?: boolean;
+  } = {}
+): Promise<TransactionSkeletonType | [TransactionSkeletonType, BI]> {
   config = config || getConfig();
 
   const template = config.SCRIPTS.SECP256K1_BLAKE160;
@@ -276,14 +350,14 @@ export async function transfer(
     throw new Error("You must provide a to address!");
   }
 
-  amount = BigInt(amount);
+  let _amount = BI.from(amount);
   if (toAddress) {
     const toScript = parseAddress(toAddress, { config });
 
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
         cell_output: {
-          capacity: "0x" + amount.toString(16),
+          capacity: "0x" + _amount.toString(16),
           lock: toScript,
           type: undefined,
         },
@@ -307,38 +381,40 @@ export async function transfer(
     .filter(({ field }) => field === "outputs")
     .maxBy(({ index }) => index);
   let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
-  for (; i < txSkeleton.get("outputs").size && amount > 0; i++) {
+  for (; i < txSkeleton.get("outputs").size && _amount.gt(0); i++) {
     const output = txSkeleton.get("outputs").get(i)!;
     if (
       new ScriptValue(output.cell_output.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
     ) {
-      const cellCapacity = BigInt(output.cell_output.capacity);
+      const cellCapacity = BI.from(output.cell_output.capacity);
       let deductCapacity;
-      if (amount >= cellCapacity) {
+      if (_amount.gte(cellCapacity)) {
         deductCapacity = cellCapacity;
       } else {
-        deductCapacity = cellCapacity - minimalCellCapacity(output);
-        if (deductCapacity > amount) {
-          deductCapacity = amount;
+        deductCapacity = cellCapacity.sub(
+          minimalCellCapacityCompatible(output)
+        );
+        if (deductCapacity.gt(_amount)) {
+          deductCapacity = _amount;
         }
       }
-      amount -= deductCapacity;
+      _amount = _amount.sub(deductCapacity);
       output.cell_output.capacity =
-        "0x" + (cellCapacity - deductCapacity).toString(16);
+        "0x" + cellCapacity.sub(deductCapacity).toString(16);
     }
   }
   // Remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.filter(
-      (output) => BigInt(output.cell_output.capacity) !== BigInt(0)
+      (output) => !BI.from(output.cell_output.capacity).eq(0)
     );
   });
   /*
    * Collect and add new input cells so as to prepare remaining capacities.
    */
-  if (amount > 0) {
+  if (_amount.gt(0)) {
     const cellProvider = txSkeleton.get("cellProvider");
     if (!cellProvider) {
       throw new Error("Cell provider is missing!");
@@ -356,7 +432,7 @@ export async function transfer(
       out_point: undefined,
       block_hash: undefined,
     };
-    let changeCapacity = BigInt(0);
+    let changeCapacity = BI.from(0);
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
       previousInputs = previousInputs.add(
@@ -378,29 +454,29 @@ export async function transfer(
       txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
         witnesses.push("0x")
       );
-      const inputCapacity = BigInt(inputCell.cell_output.capacity);
+      const inputCapacity = BI.from(inputCell.cell_output.capacity);
       let deductCapacity = inputCapacity;
-      if (deductCapacity > amount) {
-        deductCapacity = amount;
+      if (deductCapacity.gt(_amount)) {
+        deductCapacity = _amount;
       }
-      amount -= deductCapacity;
-      changeCapacity += inputCapacity - deductCapacity;
+      _amount = _amount.sub(deductCapacity);
+      changeCapacity = changeCapacity.add(inputCapacity).sub(deductCapacity);
       if (
-        amount === BigInt(0) &&
-        (changeCapacity === BigInt(0) ||
-          changeCapacity > minimalCellCapacity(changeCell))
+        _amount.eq(0) &&
+        (changeCapacity.eq(0) ||
+          changeCapacity.gt(minimalCellCapacityCompatible(changeCell)))
       ) {
         break;
       }
     }
-    if (changeCapacity > BigInt(0)) {
+    if (changeCapacity.gt(0)) {
       changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
       txSkeleton = txSkeleton.update("outputs", (outputs) =>
         outputs.push(changeCell)
       );
     }
   }
-  if (amount > 0 && assertAmountEnough) {
+  if (_amount.gt(0) && assertAmountEnough) {
     throw new Error("Not enough capacity in from address!");
   }
   /*
@@ -460,7 +536,7 @@ export async function transfer(
     );
   }
   if (!assertAmountEnough) {
-    return [txSkeleton, amount];
+    return [txSkeleton, BI.from(_amount)];
   }
   return txSkeleton;
 }
@@ -476,11 +552,11 @@ export async function transfer(
 export async function payFee(
   txSkeleton: TransactionSkeletonType,
   fromAddress: Address,
-  amount: bigint,
+  amount: BIish,
   { config = undefined }: Options = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  return await transfer(txSkeleton, fromAddress, null, amount, {
+  return await transferCompatible(txSkeleton, fromAddress, null, amount, {
     config,
     requireToAddress: false,
   });
@@ -504,13 +580,19 @@ export async function injectCapacity(
   if (outputIndex >= txSkeleton.get("outputs").size) {
     throw new Error("Invalid output index!");
   }
-  const capacity = BigInt(
+  const capacity = BI.from(
     txSkeleton.get("outputs").get(outputIndex)!.cell_output.capacity
   );
-  return await transfer(txSkeleton, fromAddress, null, capacity, {
-    config,
-    requireToAddress: false,
-  });
+  return await transferCompatible(
+    txSkeleton,
+    fromAddress,
+    null,
+    BI.from(capacity),
+    {
+      config,
+      requireToAddress: false,
+    }
+  );
 }
 
 /**
@@ -530,6 +612,7 @@ export function prepareSigningEntries(
 
 export default {
   transfer,
+  transferCompatible,
   payFee,
   prepareSigningEntries,
   injectCapacity,

@@ -15,6 +15,7 @@ import {
   TransactionWithStatus,
   HexString,
 } from "@ckb-lumos/base";
+import { BI } from "@ckb-lumos/bi";
 
 const mockTxs: TransactionWithStatus[] = [
   {
@@ -217,6 +218,13 @@ const cacheManager = CacheManager.fromMnemonic(
   }
 );
 
+test.before(() => {
+  // @ts-ignore: Unreachable code error
+  BigInt = () => {
+    throw new Error("can not find bigint");
+  };
+});
+
 test("derive threshold", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
     indexer as Indexer,
@@ -325,8 +333,12 @@ test("CellCollector", async (t) => {
 
   t.is(cells.length, 3);
   t.deepEqual(
-    cells.map((cell) => BigInt(cell.cell_output.capacity)),
-    [BigInt(200 * 10 ** 8), BigInt(300 * 10 ** 8), BigInt(400 * 10 ** 8)]
+    cells.map((cell) => BI.from(cell.cell_output.capacity).toString()),
+    [
+      BI.from(200).mul(BI.from(10).pow(8)).toString(),
+      BI.from(300).mul(BI.from(10).pow(8)).toString(),
+      BI.from(400).mul(BI.from(10).pow(8)).toString(),
+    ]
   );
 
   const firstCell = cells[0];
@@ -362,8 +374,8 @@ test("CellCollectorWithQueryOptions", async (t) => {
 
   t.is(cells.length, 1);
   t.deepEqual(
-    cells.map((cell) => BigInt(cell.cell_output.capacity)),
-    [BigInt(200 * 10 ** 8)]
+    cells.map((cell) => BI.from(cell.cell_output.capacity).toString()),
+    [BI.from(200).mul(BI.from(10).pow(8)).toString()]
   );
 });
 
@@ -387,8 +399,11 @@ test("CellCollectorWithQueryOptions, skip", async (t) => {
 
   t.is(cells.length, 2);
   t.deepEqual(
-    cells.map((cell) => BigInt(cell.cell_output.capacity)),
-    [BigInt(300 * 10 ** 8), BigInt(400 * 10 ** 8)]
+    cells.map((cell) => BI.from(cell.cell_output.capacity).toString()),
+    [
+      BI.from(300).mul(BI.from(10).pow(8)).toString(),
+      BI.from(400).mul(BI.from(10).pow(8)).toString(),
+    ]
   );
 });
 
@@ -398,7 +413,10 @@ test("getBalance", async (t) => {
 
   const balance = await getBalance(new CellCollector(cacheManager));
 
-  t.is(BigInt(balance), BigInt(900 * 10 ** 8));
+  t.is(
+    BI.from(balance).toString(),
+    BI.from(900).mul(BI.from(10).pow(8)).toString()
+  );
 });
 
 test("getBalance, needMasterPublicKey", async (t) => {
@@ -417,7 +435,10 @@ test("getBalance, needMasterPublicKey", async (t) => {
 
   const balance = await getBalance(new CellCollector(cacheManager));
 
-  t.is(BigInt(balance), BigInt(950 * 10 ** 8));
+  t.is(
+    BI.from(balance).toString(),
+    BI.from(950).mul(BI.from(10).pow(8)).toString()
+  );
 });
 
 test("publicKeyToMultisigArgs", (t) => {
