@@ -1,4 +1,5 @@
 CKB indexer is based on  [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer) with more features. It is designed for:
+
 - Web client usage.
 - CKB's RPC query.
 
@@ -70,7 +71,6 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-
 Skip a certain number of query results, e.g. the below code snippet means it would skip the first 100 cells and return from the 101st one
 
 ```jsx
@@ -88,7 +88,6 @@ for await (const tx of cellCollector.collect()) {
   console.log(tx);
 }
 ```
-
 
 Order by block number is supported by setting `order` field explicitly:
 
@@ -133,7 +132,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-You can also set it as `any` when the argsLen has multiple possibilities. For example, lock script's args is 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
+You can also set it as `any` when the argsLen has multiple possibilities. For example, lock script's args is 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios.
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -237,7 +236,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-Range query for transactions between given block_numbers is supported:
+Query cells in certain block_numbers range (`fromBlock` and `toBlock` are included):
 
 ```jsx
 txCollector = new TransactionCollector(indexer, {
@@ -256,9 +255,7 @@ for await (const tx of txCollector.collect()) {
 
 ```
 
-It will fetch transactions between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
-
-Page jump when query transactions is supported:
+Skip a certain number of query results, e.g. the below code snippet means it would skip the first 100 cells and return from the 101st one.
 
 ```jsx
 txCollector = new TransactionCollector(indexer, {
@@ -275,8 +272,6 @@ for await (const tx of txCollector.collect()) {
   console.log(tx);
 }
 ```
-
-The `skip` field represents the number of transactions being skipped, which in the above code snippet means it would skip the first 100 transactions and return from the 101st one.
 
 Order by block number is supported:
 
@@ -375,6 +370,8 @@ for await (const tx of txCollector.collect()) {
 
 The `ioType` field is among `input | output | both`.
 
+`outputDataLenRange` is support to filter cell by data length, `outputCapacityRange` is support to filter cell by capacity。you can use as below.
+
 ```jsx
 txCollector = new TransactionCollector(indexer, {
   lock: {
@@ -391,8 +388,6 @@ for await (const tx of txCollector.collect()) {
   console.log(tx);
 }
 ```
-
-`outputDataLenRange` is support to filter cell by data length, `outputCapacityRange` is support to filter cell by capacity。you can use as below.
 
 ### **EventEmitter**
 
