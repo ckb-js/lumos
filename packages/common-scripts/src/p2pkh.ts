@@ -1,12 +1,14 @@
 import { Cell, core, utils, toolkit, helpers } from "@ckb-lumos/lumos";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { Reader } from "@ckb-lumos/toolkit";
-import { Hash } from '@ckb-lumos/base';
+import { Hash } from "@ckb-lumos/base";
 
 function groupInputs(inputs: Cell[]): Map<string, number[]> {
   const groups = new Map<string, number[]>();
   for (let i = 0; i < inputs.length; i++) {
-    const scriptHash = utils.ckbHash(core.SerializeScript(inputs[i].cell_output.lock)).serializeJson();
+    const scriptHash = utils
+      .ckbHash(core.SerializeScript(inputs[i].cell_output.lock))
+      .serializeJson();
     if (groups.get(scriptHash) === null) groups.set(scriptHash, []);
     groups.get(scriptHash)!.push(i);
   }
@@ -16,7 +18,9 @@ function groupInputs(inputs: Cell[]): Map<string, number[]> {
 export function calcRawTxHash(tx: TransactionSkeletonType): Reader {
   return utils.ckbHash(
     core.SerializeRawTransaction(
-      toolkit.normalizers.NormalizeRawTransaction(helpers.createTransactionFromSkeleton(tx))
+      toolkit.normalizers.NormalizeRawTransaction(
+        helpers.createTransactionFromSkeleton(tx)
+      )
     )
   );
 }
@@ -26,7 +30,10 @@ export interface Hasher {
   digest(): Hash;
 }
 
-export function createP2PKHMessage(tx: TransactionSkeletonType, hasher?: Hasher): Map<number, Hash> {
+export function createP2PKHMessage(
+  tx: TransactionSkeletonType,
+  hasher?: Hasher
+): Map<number, Hash> {
   const groups = groupInputs(tx.inputs.toArray());
   const rawTxHash = calcRawTxHash(tx);
 
@@ -34,7 +41,7 @@ export function createP2PKHMessage(tx: TransactionSkeletonType, hasher?: Hasher)
   hasher = hasher || {
     update: (message) => defaultHasher.update(message),
     digest: () => defaultHasher.digestHex(),
-  }
+  };
 
   const messageMap = new Map<number, Hash>();
 
@@ -60,7 +67,11 @@ export function createP2PKHMessage(tx: TransactionSkeletonType, hasher?: Hasher)
       hasher.update(witness);
     }
 
-    for (let i = tx.inputs.toArray().length; i < tx.witnesses.toArray().length; i++) {
+    for (
+      let i = tx.inputs.toArray().length;
+      i < tx.witnesses.toArray().length;
+      i++
+    ) {
       const witness = tx.witnesses.get(i)!;
       hasher.update(Buffer.from(new Uint8Array(lengthBuffer)));
       hasher.update(witness);
