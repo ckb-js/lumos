@@ -7,9 +7,9 @@ function groupInputs(inputs: Cell[]): Map<string, number[]> {
   const groups = new Map<string, number[]>();
   for (let i = 0; i < inputs.length; i++) {
     const scriptHash = utils
-      .ckbHash(core.SerializeScript(inputs[i].cell_output.lock))
+      .ckbHash(core.SerializeScript(toolkit.normalizers.NormalizeScript(inputs[i].cell_output.lock)))
       .serializeJson();
-    if (groups.get(scriptHash) === null) groups.set(scriptHash, []);
+    if (groups.get(scriptHash) === undefined) groups.set(scriptHash, []);
     groups.get(scriptHash)!.push(i);
   }
   return groups;
@@ -26,7 +26,7 @@ export function calcRawTxHash(tx: TransactionSkeletonType): Reader {
 }
 
 export interface Hasher {
-  update(message: string | Reader | ArrayBuffer | Buffer): void;
+  update(message: string | ArrayBuffer | Buffer): void;
   digest(): Hash;
 }
 
@@ -45,25 +45,25 @@ export function createP2PKHMessage(
 
   const messageMap = new Map<number, Hash>();
 
-  for (let group in groups.keys()) {
+  for (let group of groups.keys()) {
     const indexes = groups.get(group)!;
     const firstIndex = indexes[0];
     const serializedWitness = core.SerializeWitnessArgs({
       lock: new Reader("0x" + "00".repeat(65)),
     });
 
-    hasher.update(Buffer.from(new Uint8Array(rawTxHash.toArrayBuffer())));
+    hasher.update(rawTxHash.toArrayBuffer());
 
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
     view.setBigUint64(0, BigInt(new Reader(serializedWitness).length()), true);
 
-    hasher.update(Buffer.from(new Uint8Array(lengthBuffer)));
-    hasher.update(Buffer.from(new Uint8Array(serializedWitness)));
+    hasher.update(lengthBuffer);
+    hasher.update(serializedWitness);
 
     for (let i = 1; i < indexes.length; i++) {
       const witness = tx.witnesses.get(i)!;
-      hasher.update(Buffer.from(new Uint8Array(lengthBuffer)));
+      hasher.update(lengthBuffer);
       hasher.update(witness);
     }
 
@@ -73,7 +73,7 @@ export function createP2PKHMessage(
       i++
     ) {
       const witness = tx.witnesses.get(i)!;
-      hasher.update(Buffer.from(new Uint8Array(lengthBuffer)));
+      hasher.update(lengthBuffer);
       hasher.update(witness);
     }
 
