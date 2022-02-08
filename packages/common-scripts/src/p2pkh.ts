@@ -7,7 +7,11 @@ function groupInputs(inputs: Cell[]): Map<string, number[]> {
   const groups = new Map<string, number[]>();
   for (let i = 0; i < inputs.length; i++) {
     const scriptHash = utils
-      .ckbHash(core.SerializeScript(toolkit.normalizers.NormalizeScript(inputs[i].cell_output.lock)))
+      .ckbHash(
+        core.SerializeScript(
+          toolkit.normalizers.NormalizeScript(inputs[i].cell_output.lock)
+        )
+      )
       .serializeJson();
     if (groups.get(scriptHash) === undefined) groups.set(scriptHash, []);
     groups.get(scriptHash)!.push(i);
