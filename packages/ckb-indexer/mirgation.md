@@ -1,20 +1,18 @@
 ## Migrate from native indexer
 
-Lumos is used for execution at the end of the server, so we provide `@ckb-lumos/indexer` and @ckb-`lumos/sql-indexer`. While bringing flexibility, it also increases the complexity of using it, such as having to run the database locally, compile the code, etc.
+Lumos is used for execution on server side, so we provide `@ckb-lumos/indexer` and @ckb-`lumos/sql-indexer`. While bringing flexibility, it also increases the complexity of using it, such as you have to run the database locally, compile the code, etc.
 
-Now that lumos plans to support running on the web, `native indexer` and `sql-indexerd` cannot run on the web. So we marked `native-indexer` and `sql-indexer` as not recommended in version 0.17.0-rc5, and introduced `ckb-indexer` to support running on web side. in this version, we will remove `native-indexer` and `sql-indexer` directly, if you plan to upgrade If you are planning to upgrade your version of lumos, please refer to this upgrade guide.
+Now that lumos plans to support running on the web, we removed `native-indexer` and `sql-indexer`, and introduced `ckb-indexer`. This document is to help you upgrade from the old version.
 
 ### **Start Indexer**
 
-In `native-indexer`, you need to call `indexer.startForever();` . But in the `@ckb-lumos/ckb-indexer`, you don't need to call start anymore, you just need to create an indexer instance and we will turn it on for you automatically.
+Instead of calling `indexer.startForever()` in `native-indexer`, you just need to create an indexer instance in `@ckb-lumos/ckb-indexer`, and we will turn it on for you automatically.
 
 ### Constractor
 
 **CellCollector**
 
-`CellCollertor`'s constructor has a few changes to its parameters. If you don't need the resulting `block_hash`, then you don't need to make the change, just leave it as is.
-
-If you need to return the `block_hash`, then you need to carry carry the third parameter.
+To return the `block_hash`, you need to carry carry the third parameter in `CellCollector`.
 
 ```jsx
 const otherQueryOptions: OtherQueryOptions = {
@@ -43,7 +41,7 @@ const transactionCollector = new TransactionCollector(
 
 **TransactionCollector batch request**
 
-indexer no longer exposes RPC to the public, if you need to get a `batchRpc` object, you need to get it from `@cbk-lumos/tooki`
+Indexer no longer exposes RPC to the public. If you need to get a `batchRpc` object, you need to get it from `@cbk-lumos/tookit`
 
 ```diff
 import {RPC} from '@ckb-lumos/toolkit';

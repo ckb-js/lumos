@@ -1,9 +1,6 @@
-CKB indexer used in lumos framework. Might be possible for independent usage as well. It is based on  [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer) and export more interface.
-
-The indexer is designed to consume from the following sources:
-
-- Run on the web side.
-- Queries of CKB's RPC.
+CKB indexer is based on  [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer) with more features. It is designed for:
+- Web client usage.
+- CKB's RPC query.
 
 ## **Usage**
 
@@ -35,7 +32,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-You can also specify both `lock` and `type` script:
+Specify `lock` or `type` script as constraints for advance search:
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -54,7 +51,7 @@ cellCollector = new CellCollector(indexer, {
 });
 ```
 
-Range query for cells between given block_numbers is supported:
+Query cells in certain block_numbers range (`fromBlock` and `toBlock` are included):
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -73,9 +70,8 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-It will fetch cells between `[fromBlock, toBlock]`, which means both `fromBlock` and `toBlock` are included in query range.
 
-Page jump when query cells is supported:
+Skip a certain number of query results, e.g. the below code snippet means it would skip the first 100 cells and return from the 101st one
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -93,7 +89,6 @@ for await (const tx of cellCollector.collect()) {
 }
 ```
 
-The `skip` field represents the number of cells being skipped, which in the above code snippet means it would skip the first 100 cells and return from the 101st one.
 
 Order by block number is supported by setting `order` field explicitly:
 
@@ -138,7 +133,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-You can also set it as `any` when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
+You can also set it as `any` when the argsLen has multiple possibilities. For example, lock script's args is 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -189,7 +184,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-`outputDataLenRange` is support to filter cell by data length, `outputCapacityRange` is support to filter cell by capacity。you can use as below.
+`outputDataLenRange` for filtering cell by data length, and `outputCapacityRange` for filtering cell by capacity:
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -208,7 +203,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-we will not return block_hash in the result, if you need block_hash, please give the following query options.
+To return block_hash in the result, add the following query options:
 
 ```jsx
 const otherQueryOptions: OtherQueryOptions = {
@@ -224,7 +219,7 @@ const otherQueryOptions: OtherQueryOptions = {
 
 ### **TransactionCollector**
 
-Similar solution can be used to query for transactions related to a lock script:
+Similar usage for quering transactions:
 
 ```jsx
 txCollector = new TransactionCollector(indexer, {
@@ -401,7 +396,7 @@ for await (const tx of txCollector.collect()) {
 
 ### **EventEmitter**
 
-Event-driven pattern is also supported besides the above polling pattern. After subsribing for certain `lock|type` script, it will emit a `changed` event when a block containing the subsribed script is indexed or rollbacked.
+Besides polling pattern, event-driven pattern is also supported. After subsribing for certain `lock|type` script, it will emit a `changed` event when a block containing the subsribed script is indexed or rollbacked.
 
 The principle of the design is unreliable notification queue, so developers are supposed to pull from the data sources via `CellCollector|TransactionCollector`, to find out what might happened: cell consumed, new cell generated, new transaction generated, or a chain fork happened, etc; and take the next step accordingly.
 
@@ -453,4 +448,4 @@ medianTimeEmitter.on("changed", (medianTime) => {
 
 ## **Migration**
 
-if you want to migrate native indexer to ckb-indexer please check more detail in our [migration docs](https://github.com/nervosnetwork/lumos/blob/develop/packages/ckb-indexer/mirgation.md)
+If you want to migrate native indexer to ckb-indexer, please check more detail in our [migration docs](https://github.com/nervosnetwork/lumos/blob/develop/packages/ckb-indexer/mirgation.md)
