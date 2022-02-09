@@ -1,9 +1,17 @@
 import { Cell, core, utils, toolkit, helpers } from "@ckb-lumos/lumos";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { Reader } from "@ckb-lumos/toolkit";
-import { Hash } from "@ckb-lumos/base";
+import { Hash, Script } from "@ckb-lumos/base";
 
-function groupInputs(inputs: Cell[]): Map<string, number[]> {
+function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
+  const lockSet = new Set<string>();
+  for (const lock of locks) {
+    const scriptHash = utils
+      .ckbHash(core.SerializeScript(toolkit.normalizers.NormalizeScript(lock)))
+      .serializeJson();
+    lockSet.add(scriptHash);
+  }
+
   const groups = new Map<string, number[]>();
   for (let i = 0; i < inputs.length; i++) {
     const scriptHash = utils
@@ -13,8 +21,10 @@ function groupInputs(inputs: Cell[]): Map<string, number[]> {
         )
       )
       .serializeJson();
-    if (groups.get(scriptHash) === undefined) groups.set(scriptHash, []);
-    groups.get(scriptHash)!.push(i);
+    if (lockSet.has(scriptHash)) {
+      if (groups.get(scriptHash) === undefined) groups.set(scriptHash, []);
+      groups.get(scriptHash)!.push(i);
+    }
   }
   return groups;
 }
@@ -34,11 +44,18 @@ export interface Hasher {
   digest(): Hash;
 }
 
-export function createP2PKHMessage(
+type Group = {
+  index: number;
+  lock: Script;
+  message: Hash;
+};
+
+export function createP2PKHMessageGroup(
   tx: TransactionSkeletonType,
+  locks: Script[],
   hasher?: Hasher
-): Map<number, Hash> {
-  const groups = groupInputs(tx.inputs.toArray());
+): Group[] {
+  const groups = groupInputs(tx.inputs.toArray(), locks);
   const rawTxHash = calcRawTxHash(tx);
 
   const defaultHasher = new utils.CKBHasher();
@@ -47,23 +64,22 @@ export function createP2PKHMessage(
     digest: () => defaultHasher.digestHex(),
   };
 
-  const messageMap = new Map<number, Hash>();
+  const messageGroup: Group[] = [];
 
-  for (let group of groups.keys()) {
+  for (const group of groups.keys()) {
     const indexes = groups.get(group)!;
     const firstIndex = indexes[0];
-    const serializedWitness = core.SerializeWitnessArgs({
-      lock: new Reader("0x" + "00".repeat(65)),
-    });
+    const firstWitness = tx.witnesses.get(firstIndex);
+    console.log(firstWitness);
 
     hasher.update(rawTxHash.toArrayBuffer());
 
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
-    view.setBigUint64(0, BigInt(new Reader(serializedWitness).length()), true);
+    view.setBigUint64(0, BigInt(new Reader(firstWitness!).length()), true);
 
     hasher.update(lengthBuffer);
-    hasher.update(serializedWitness);
+    hasher.update(firstWitness!);
 
     for (let i = 1; i < indexes.length; i++) {
       const witness = tx.witnesses.get(i)!;
@@ -81,8 +97,14 @@ export function createP2PKHMessage(
       hasher.update(witness);
     }
 
-    messageMap.set(firstIndex, hasher.digest());
+    const g: Group = {
+      index: firstIndex,
+      lock: tx.inputs.get(firstIndex)!.cell_output.lock,
+      message: hasher.digest(),
+    };
+
+    messageGroup.push(g);
   }
 
-  return messageMap;
+  return messageGroup;
 }
