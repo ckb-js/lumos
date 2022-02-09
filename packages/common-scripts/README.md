@@ -17,10 +17,10 @@ Following script will show how to use `common` script to transfer capacity to an
 ```javascript
 const { common } = require('@ckb-lumos/common-scripts');
 const { sealTransaction } = require("@ckb-lumos/helpers")
-const { Indexer } = require("@ckb-lumos/indexer")
+const { Indexer } = require("@ckb-lumos/ckb-indexer")
 
 // We can use Indexer module as cell provider
-const indexer = new Indexer("http://127.0.0.1:8114", "./indexer-data");
+const indexer = new Indexer("http://127.0.0.1:8114");
 
 const tipHeader = {
   compact_target: '0x20010000',
