@@ -314,7 +314,6 @@ test("seck256k1 [g1]", (t) => {
   ).serializeJson();
   tx = tx.update("witnesses", (witnesses) => witnesses.push(tmpWitness));
 
-  const hasher = new utils.CKBHasher();
   const signLock = {
     code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
@@ -444,4 +443,77 @@ test("seck256k1 [g1, g1]", (t) => {
     messageGroup[0].message,
     "0xae04988711de62dca841cb09d78ef182dc3c2c9cc107626d5ccedae75eaf7033"
   );
+});
+
+test("doesn't fill witnesses beforehand", (t) => {
+  let tx = helpers.TransactionSkeleton({});
+
+  const inputCell: Cell = {
+    cell_output: {
+      capacity: "0xe68097a560",
+      lock: {
+        args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
+        code_hash:
+          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        hash_type: "type" as const,
+      },
+      type: undefined,
+    },
+    data: "0x",
+    out_point: {
+      index: "0x1",
+      tx_hash:
+        "0x62f634d380484b56cee28c166f55ffc562129f0ef5311618396bbb979b806ab5",
+    },
+    block_number: "0x42516f",
+  };
+  const outputCell: Cell[] = [
+    {
+      cell_output: {
+        capacity: "0x2540be400",
+        lock: {
+          args: "0x159890a7cacb44a95bef0743064433d763de229c",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type" as const,
+        },
+      },
+      data: "0x",
+    },
+    {
+      cell_output: {
+        capacity: "0xe42c8a3ac0",
+        lock: {
+          args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type" as const,
+        },
+      },
+      data: "0x",
+    },
+  ];
+  tx = tx.update("inputs", (inputs) => inputs.push(inputCell));
+  tx = tx.update("outputs", (outputs) => outputs.push(...outputCell));
+
+  tx = tx.update("cellDeps", (cellDeps) =>
+    cellDeps.push({
+      out_point: {
+        tx_hash: CONFIG.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
+        index: CONFIG.SCRIPTS.SECP256K1_BLAKE160.INDEX,
+      },
+      dep_type: CONFIG.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+    })
+  );
+
+  const signLock = {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type" as const,
+    args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
+  };
+
+  const error = t.throws(() => createP2PKHMessageGroup(tx, [signLock]));
+
+  t.is(error.message, "Please fill witnesses with 0 first!");
 });
