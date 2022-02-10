@@ -70,7 +70,6 @@ export function createP2PKHMessageGroup(
     const indexes = groups.get(group)!;
     const firstIndex = indexes[0];
     const firstWitness = tx.witnesses.get(firstIndex);
-    console.log(firstWitness);
 
     hasher.update(rawTxHash.toArrayBuffer());
 
