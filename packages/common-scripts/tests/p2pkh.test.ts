@@ -1,5 +1,8 @@
 import test from "ava";
-import { Cell, config, core, helpers, toolkit, utils } from "@ckb-lumos/lumos";
+import { Cell, core, utils } from "@ckb-lumos/base";
+import { TransactionSkeleton } from "@ckb-lumos/helpers";
+import { Reader, normalizers } from "@ckb-lumos/toolkit";
+import * as config from "@ckb-lumos/config-manager";
 import { default as createKeccak } from "keccak";
 import { createP2PKHMessageGroup } from "../src/p2pkh";
 
@@ -29,7 +32,7 @@ const CONFIG = config.createConfig({
 });
 
 test("omni lock [g1]", (t) => {
-  let tx = helpers.TransactionSkeleton({});
+  let tx = TransactionSkeleton({});
 
   const inputCell: Cell = {
     cell_output: {
@@ -98,12 +101,10 @@ test("omni lock [g1]", (t) => {
     )
   );
 
-  const SECP_SIGNATURE_PLACEHOLDER = new toolkit.Reader("0x" + "00".repeat(85));
+  const SECP_SIGNATURE_PLACEHOLDER = new Reader("0x" + "00".repeat(85));
   const tmpWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
-  const tmpWitness = new toolkit.Reader(
-    core.SerializeWitnessArgs(
-      toolkit.normalizers.NormalizeWitnessArgs(tmpWitnessArgs)
-    )
+  const tmpWitness = new Reader(
+    core.SerializeWitnessArgs(normalizers.NormalizeWitnessArgs(tmpWitnessArgs))
   ).serializeJson();
   tx = tx.update("witnesses", (witnesses) =>
     witnesses.push(tmpWitness, tmpWitness)
@@ -131,7 +132,7 @@ test("omni lock [g1]", (t) => {
 });
 
 test("pw lock [g1]", (t) => {
-  let tx = helpers.TransactionSkeleton({});
+  let tx = TransactionSkeleton({});
 
   const inputCell: Cell = {
     cell_output: {
@@ -202,10 +203,8 @@ test("pw lock [g1]", (t) => {
 
   const SECP_SIGNATURE_PLACEHOLDER = "0x" + "00".repeat(65);
   const tmpWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
-  const tmpWitness = new toolkit.Reader(
-    core.SerializeWitnessArgs(
-      toolkit.normalizers.NormalizeWitnessArgs(tmpWitnessArgs)
-    )
+  const tmpWitness = new Reader(
+    core.SerializeWitnessArgs(normalizers.NormalizeWitnessArgs(tmpWitnessArgs))
   ).serializeJson();
   tx = tx.update("witnesses", (witnesses) => witnesses.push(tmpWitness));
 
@@ -222,9 +221,7 @@ test("pw lock [g1]", (t) => {
       if (typeof message === "string") {
         keccak.update(
           Buffer.from(
-            new Uint8Array(
-              new toolkit.Reader(message as string).toArrayBuffer()
-            )
+            new Uint8Array(new Reader(message as string).toArrayBuffer())
           )
         );
       } else {
@@ -245,7 +242,7 @@ test("pw lock [g1]", (t) => {
 });
 
 test("seck256k1 [g1]", (t) => {
-  let tx = helpers.TransactionSkeleton({});
+  let tx = TransactionSkeleton({});
 
   const inputCell: Cell = {
     cell_output: {
@@ -307,10 +304,8 @@ test("seck256k1 [g1]", (t) => {
 
   const SECP_SIGNATURE_PLACEHOLDER = "0x" + "00".repeat(65);
   const tmpWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
-  const tmpWitness = new toolkit.Reader(
-    core.SerializeWitnessArgs(
-      toolkit.normalizers.NormalizeWitnessArgs(tmpWitnessArgs)
-    )
+  const tmpWitness = new Reader(
+    core.SerializeWitnessArgs(normalizers.NormalizeWitnessArgs(tmpWitnessArgs))
   ).serializeJson();
   tx = tx.update("witnesses", (witnesses) => witnesses.push(tmpWitness));
 
@@ -332,7 +327,7 @@ test("seck256k1 [g1]", (t) => {
 });
 
 test("seck256k1 [g1, g1]", (t) => {
-  let tx = helpers.TransactionSkeleton({});
+  let tx = TransactionSkeleton({});
 
   const inputCell: Cell[] = [
     {
@@ -415,10 +410,8 @@ test("seck256k1 [g1, g1]", (t) => {
 
   const SECP_SIGNATURE_PLACEHOLDER = "0x" + "00".repeat(65);
   const tmpWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
-  const tmpWitness = new toolkit.Reader(
-    core.SerializeWitnessArgs(
-      toolkit.normalizers.NormalizeWitnessArgs(tmpWitnessArgs)
-    )
+  const tmpWitness = new Reader(
+    core.SerializeWitnessArgs(normalizers.NormalizeWitnessArgs(tmpWitnessArgs))
   ).serializeJson();
   tx = tx.update("witnesses", (witnesses) =>
     witnesses.push(tmpWitness, tmpWitness)
@@ -446,7 +439,7 @@ test("seck256k1 [g1, g1]", (t) => {
 });
 
 test("doesn't fill witnesses beforehand", (t) => {
-  let tx = helpers.TransactionSkeleton({});
+  let tx = TransactionSkeleton({});
 
   const inputCell: Cell = {
     cell_output: {

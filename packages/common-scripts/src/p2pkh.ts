@@ -1,13 +1,16 @@
-import { Cell, core, utils, toolkit, helpers } from "@ckb-lumos/lumos";
-import { TransactionSkeletonType } from "@ckb-lumos/helpers";
-import { Reader } from "@ckb-lumos/toolkit";
+import { Cell, core, utils } from "@ckb-lumos/base";
+import {
+  TransactionSkeletonType,
+  createTransactionFromSkeleton,
+} from "@ckb-lumos/helpers";
+import { Reader, normalizers } from "@ckb-lumos/toolkit";
 import { Hash, Script } from "@ckb-lumos/base";
 
 function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
   const lockSet = new Set<string>();
   for (const lock of locks) {
     const scriptHash = utils
-      .ckbHash(core.SerializeScript(toolkit.normalizers.NormalizeScript(lock)))
+      .ckbHash(core.SerializeScript(normalizers.NormalizeScript(lock)))
       .serializeJson();
     lockSet.add(scriptHash);
   }
@@ -17,7 +20,7 @@ function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
     const scriptHash = utils
       .ckbHash(
         core.SerializeScript(
-          toolkit.normalizers.NormalizeScript(inputs[i].cell_output.lock)
+          normalizers.NormalizeScript(inputs[i].cell_output.lock)
         )
       )
       .serializeJson();
@@ -32,9 +35,7 @@ function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
 function calcRawTxHash(tx: TransactionSkeletonType): Reader {
   return utils.ckbHash(
     core.SerializeRawTransaction(
-      toolkit.normalizers.NormalizeRawTransaction(
-        helpers.createTransactionFromSkeleton(tx)
-      )
+      normalizers.NormalizeRawTransaction(createTransactionFromSkeleton(tx))
     )
   );
 }
