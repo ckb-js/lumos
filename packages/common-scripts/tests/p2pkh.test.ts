@@ -322,6 +322,117 @@ test("seck256k1 [g1]", (t) => {
     args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
   };
 
+  const messageGroup = createP2PKHMessageGroup(tx, [signLock]);
+  t.is(messageGroup.length, 1);
+  t.is(messageGroup[0].index, 0);
+  t.deepEqual(messageGroup[0].lock, signLock);
+  t.is(
+    messageGroup[0].message,
+    "0x9081f53dba1baaafd15be1f6b85bc3e961babf04b9b190f7960f1b514b506c0b"
+  );
+});
+
+test("seck256k1 [g1, g1]", (t) => {
+  let tx = helpers.TransactionSkeleton({});
+
+  const inputCell: Cell[] = [
+    {
+      cell_output: {
+        capacity: "0x2540be400",
+        lock: {
+          args: "0x92764594e255afbb89cd9486b0035c393b2c5323",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type" as const,
+        },
+        type: undefined,
+      },
+      data: "0x",
+      out_point: {
+        index: "0x0",
+        tx_hash:
+          "0x45def2fa2371895941e9e0b26ef9c27dca3ab446238548a472fed3b8ccc799f6",
+      },
+      block_number: "0x426d67",
+    },
+    {
+      cell_output: {
+        capacity: "0x2540be400",
+        lock: {
+          args: "0x92764594e255afbb89cd9486b0035c393b2c5323",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type" as const,
+        },
+        type: undefined,
+      },
+      data: "0x",
+      out_point: {
+        index: "0x0",
+        tx_hash:
+          "0x9fb88345432208ea1182987ff62b7911de877e74c8016cf4af5168815ce30480",
+      },
+      block_number: "0x426d87",
+    },
+  ];
+  const outputCell: Cell[] = [
+    {
+      cell_output: {
+        capacity: "0x28fa6ae00",
+        lock: {
+          args: "0xed20af7322823d0dc33bfb215486a05082669905",
+          code_hash:
+            "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+          hash_type: "type" as const,
+        },
+      },
+      data: "0x",
+    },
+    {
+      cell_output: {
+        capacity: "0x2186f9360",
+        lock: {
+          args: "0x92764594e255afbb89cd9486b0035c393b2c5323",
+          code_hash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hash_type: "type" as const,
+        },
+      },
+      data: "0x",
+    },
+  ];
+  tx = tx.update("inputs", (inputs) => inputs.push(...inputCell));
+  tx = tx.update("outputs", (outputs) => outputs.push(...outputCell));
+
+  tx = tx.update("cellDeps", (cellDeps) =>
+    cellDeps.push({
+      out_point: {
+        tx_hash: CONFIG.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
+        index: CONFIG.SCRIPTS.SECP256K1_BLAKE160.INDEX,
+      },
+      dep_type: CONFIG.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+    })
+  );
+
+  const SECP_SIGNATURE_PLACEHOLDER = "0x" + "00".repeat(65);
+  const tmpWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
+  const tmpWitness = new toolkit.Reader(
+    core.SerializeWitnessArgs(
+      toolkit.normalizers.NormalizeWitnessArgs(tmpWitnessArgs)
+    )
+  ).serializeJson();
+  tx = tx.update("witnesses", (witnesses) =>
+    witnesses.push(tmpWitness, tmpWitness)
+  );
+
+  const hasher = new utils.CKBHasher();
+  const signLock = {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type" as const,
+    args: "0x92764594e255afbb89cd9486b0035c393b2c5323",
+  };
+
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     update: (message) => hasher.update(message),
     digest: () => hasher.digestHex(),
@@ -331,6 +442,6 @@ test("seck256k1 [g1]", (t) => {
   t.deepEqual(messageGroup[0].lock, signLock);
   t.is(
     messageGroup[0].message,
-    "0x9081f53dba1baaafd15be1f6b85bc3e961babf04b9b190f7960f1b514b506c0b"
+    "0xae04988711de62dca841cb09d78ef182dc3c2c9cc107626d5ccedae75eaf7033"
   );
 });
