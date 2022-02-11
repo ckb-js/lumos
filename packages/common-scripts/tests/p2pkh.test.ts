@@ -104,17 +104,7 @@ test("pw lock [g1]", (t) => {
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     update: (message) => {
-      if (typeof message === "string") {
-        keccak.update(
-          Buffer.from(
-            new Uint8Array(new Reader(message as string).toArrayBuffer())
-          )
-        );
-      } else {
-        keccak.update(
-          Buffer.from(new Uint8Array(message as ArrayBuffer | Buffer))
-        );
-      }
+      keccak.update(Buffer.from(new Uint8Array(message)));
     },
     digest: () => "0x" + keccak.digest("hex"),
   });

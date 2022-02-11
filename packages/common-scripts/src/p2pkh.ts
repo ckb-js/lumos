@@ -5,6 +5,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { Reader, normalizers } from "@ckb-lumos/toolkit";
 import { Hash, Script } from "@ckb-lumos/base";
+import { BI } from "@ckb-lumos/bi";
 
 function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
   const lockSet = new Set<string>();
@@ -41,7 +42,7 @@ function calcRawTxHash(tx: TransactionSkeletonType): Reader {
 }
 
 export interface Hasher {
-  update(message: string | ArrayBuffer | Buffer): void;
+  update(message: ArrayBuffer): void;
   digest(): Hash;
 }
 
@@ -90,15 +91,24 @@ export function createP2PKHMessageGroup(
 
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
-    view.setBigUint64(0, BigInt(new Reader(firstWitness!).length()), true);
+    const witnessHexString = BI.from(new Reader(firstWitness).length()).toString(16);
+    if (witnessHexString.length <= 8) {
+      view.setUint32(0, Number("0x" + witnessHexString), true);
+      view.setUint32(4, Number("0x" + "00000000"), true);
+    }
+
+    if (witnessHexString.length > 8 && witnessHexString.length <= 16) {
+      view.setUint32(0, Number("0x" + witnessHexString.slice(-8)), true);
+      view.setUint32(4, Number("0x" + witnessHexString.slice(0, -8)), true);
+    }
 
     hasher.update(lengthBuffer);
-    hasher.update(firstWitness!);
+    hasher.update(new Reader(firstWitness).toArrayBuffer());
 
     for (let i = 1; i < indexes.length; i++) {
       const witness = tx.witnesses.get(i)!;
       hasher.update(lengthBuffer);
-      hasher.update(witness);
+      hasher.update(new Reader(witness).toArrayBuffer());
     }
 
     for (
@@ -108,7 +118,7 @@ export function createP2PKHMessageGroup(
     ) {
       const witness = tx.witnesses.get(i)!;
       hasher.update(lengthBuffer);
-      hasher.update(witness);
+      hasher.update(new Reader(witness).toArrayBuffer());
     }
 
     const g: Group = {

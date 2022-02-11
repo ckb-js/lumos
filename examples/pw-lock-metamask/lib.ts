@@ -133,12 +133,7 @@ export async function transfer(options: Options): Promise<string> {
 
     const messageGroup = commons.createP2PKHMessageGroup(tx, [signLock], {
       update: (message) => {
-        if (typeof message === "string") {
-          keccak.update(Buffer.from(new Uint8Array(new toolkit.Reader(message as string).toArrayBuffer())));
-          // keccak.update(message);
-        } else {
-          keccak.update(Buffer.from(new Uint8Array(message as ArrayBuffer | Buffer)));
-        }
+        keccak.update(Buffer.from(new Uint8Array(message)));
       },
       digest: () => "0x" + keccak.digest("hex"),
     });
