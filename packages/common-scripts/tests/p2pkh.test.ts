@@ -1,84 +1,26 @@
 import test from "ava";
-import { Cell, core, utils } from "@ckb-lumos/base";
+import { Cell, core, Script, utils } from "@ckb-lumos/base";
 import { TransactionSkeleton } from "@ckb-lumos/helpers";
 import { Reader, normalizers } from "@ckb-lumos/toolkit";
 import * as config from "@ckb-lumos/config-manager";
 import { default as createKeccak } from "keccak";
 import { createP2PKHMessageGroup } from "../src/p2pkh";
+import p2pkhJson from "./p2pkh.json";
 
 const CONFIG = config.createConfig({
   PREFIX: "ckt",
   SCRIPTS: {
     ...config.predefined.AGGRON4.SCRIPTS,
-    OMNI_LOCK: {
-      CODE_HASH:
-        "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
-      HASH_TYPE: "type",
-      TX_HASH:
-        "0x9154df4f7336402114d04495175b37390ce86a4906d2d4001cf02c3e6d97f39c",
-      INDEX: "0x0",
-      DEP_TYPE: "code",
-    },
-    PW_LOCK: {
-      CODE_HASH:
-        "0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63",
-      HASH_TYPE: "type",
-      TX_HASH:
-        "0x57a62003daeab9d54aa29b944fc3b451213a5ebdf2e232216a3cfed0dde61b38",
-      INDEX: "0x0",
-      DEP_TYPE: "code",
-    },
+    OMNI_LOCK: p2pkhJson.SCRIPTS.OMNI_LOCK as config.ScriptConfig,
+    PW_LOCK: p2pkhJson.SCRIPTS.PW_LOCK as config.ScriptConfig,
   },
 });
 
 test("omni lock [g1]", (t) => {
   let tx = TransactionSkeleton({});
 
-  const inputCell: Cell = {
-    cell_output: {
-      capacity: "0xdd305a59c0",
-      lock: {
-        args: "0x01a08bcc398854db4eaffd9c28b881c65f91e3a28b00",
-        code_hash:
-          "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
-        hash_type: "type" as const,
-      },
-      type: undefined,
-    },
-    data: "0x",
-    out_point: {
-      index: "0x1",
-      tx_hash:
-        "0x99b883d44d1d82e6a612baafc3bdd573a96702a378e52b38b86c11c86413a00f",
-    },
-    block_number: "0x424da6",
-  };
-  const outputCell: Cell[] = [
-    {
-      cell_output: {
-        capacity: "0x2540be400",
-        lock: {
-          args: "0x159890a7cacb44a95bef0743064433d763de229c",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-    {
-      cell_output: {
-        capacity: "0xdadc4cef20",
-        lock: {
-          args: "0x01a08bcc398854db4eaffd9c28b881c65f91e3a28b00",
-          code_hash:
-            "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-  ];
+  const inputCell: Cell = p2pkhJson["OMNI_LOCK_[G1]"].INPUTS as Cell;
+  const outputCell: Cell[] = p2pkhJson["OMNI_LOCK_[G1]"].OUTPUTS as Cell[];
   tx = tx.update("inputs", (inputs) => inputs.push(inputCell));
   tx = tx.update("outputs", (outputs) => outputs.push(...outputCell));
 
@@ -111,12 +53,7 @@ test("omni lock [g1]", (t) => {
   );
 
   const hasher = new utils.CKBHasher();
-  const signLock = {
-    args: "0x01a08bcc398854db4eaffd9c28b881c65f91e3a28b00",
-    code_hash:
-      "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
-    hash_type: "type" as const,
-  };
+  const signLock = p2pkhJson["OMNI_LOCK_[G1]"].SIGN_LOCK as Script;
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     update: (message) => hasher.update(message),
@@ -125,60 +62,14 @@ test("omni lock [g1]", (t) => {
   t.is(messageGroup.length, 1);
   t.is(messageGroup[0].index, 0);
   t.deepEqual(messageGroup[0].lock, signLock);
-  t.is(
-    messageGroup[0].message,
-    "0x7080217a60c1f6b7ffd107de07ab3a72b6bce00c22cc0ec2b6244715786dc2ef"
-  );
+  t.is(messageGroup[0].message, p2pkhJson["OMNI_LOCK_[G1]"].MESSAGE);
 });
 
 test("pw lock [g1]", (t) => {
   let tx = TransactionSkeleton({});
 
-  const inputCell: Cell = {
-    cell_output: {
-      capacity: "0xd8884725a0",
-      lock: {
-        args: "0xa41127471f513ff4c37fc76a46b6e9abd74a590b",
-        code_hash:
-          "0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63",
-        hash_type: "type" as const,
-      },
-      type: undefined,
-    },
-    data: "0x",
-    out_point: {
-      index: "0x1",
-      tx_hash:
-        "0xebd2f47f26630b38f99d078324163ca7fc521955b3e63b23d016d4f52155356c",
-    },
-    block_number: "0x424cb6",
-  };
-  const outputCell: Cell[] = [
-    {
-      cell_output: {
-        capacity: "0x2540be400",
-        lock: {
-          args: "0x159890a7cacb44a95bef0743064433d763de229c",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-    {
-      cell_output: {
-        capacity: "0xd63439bb00",
-        lock: {
-          args: "0xa41127471f513ff4c37fc76a46b6e9abd74a590b",
-          code_hash:
-            "0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-  ];
+  const inputCell: Cell = p2pkhJson["PW_LOCK_[G1]"].INPUTS as Cell;
+  const outputCell: Cell[] = p2pkhJson["PW_LOCK_[G1]"].OUTPUTS as Cell[];
   tx = tx.update("inputs", (inputs) => inputs.push(inputCell));
   tx = tx.update("outputs", (outputs) => outputs.push(...outputCell));
 
@@ -209,12 +100,7 @@ test("pw lock [g1]", (t) => {
   tx = tx.update("witnesses", (witnesses) => witnesses.push(tmpWitness));
 
   const keccak = createKeccak("keccak256");
-  const signLock = {
-    args: "0xa41127471f513ff4c37fc76a46b6e9abd74a590b",
-    code_hash:
-      "0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63",
-    hash_type: "type" as const,
-  };
+  const signLock = p2pkhJson["PW_LOCK_[G1]"].SIGN_LOCK as Script;
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     update: (message) => {
@@ -235,60 +121,14 @@ test("pw lock [g1]", (t) => {
   t.is(messageGroup.length, 1);
   t.is(messageGroup[0].index, 0);
   t.deepEqual(messageGroup[0].lock, signLock);
-  t.is(
-    messageGroup[0].message,
-    "0x96a0c9b667b73ec970f46cd86e44ebac2995dd3d872bcc9822249906e9c9afa1"
-  );
+  t.is(messageGroup[0].message, p2pkhJson["PW_LOCK_[G1]"].MESSAGE);
 });
 
 test("seck256k1 [g1]", (t) => {
   let tx = TransactionSkeleton({});
 
-  const inputCell: Cell = {
-    cell_output: {
-      capacity: "0xe68097a560",
-      lock: {
-        args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
-        code_hash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-        hash_type: "type" as const,
-      },
-      type: undefined,
-    },
-    data: "0x",
-    out_point: {
-      index: "0x1",
-      tx_hash:
-        "0x62f634d380484b56cee28c166f55ffc562129f0ef5311618396bbb979b806ab5",
-    },
-    block_number: "0x42516f",
-  };
-  const outputCell: Cell[] = [
-    {
-      cell_output: {
-        capacity: "0x2540be400",
-        lock: {
-          args: "0x159890a7cacb44a95bef0743064433d763de229c",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-    {
-      cell_output: {
-        capacity: "0xe42c8a3ac0",
-        lock: {
-          args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-  ];
+  const inputCell: Cell = p2pkhJson["SECP256K1_[G1]"].INPUTS as Cell;
+  const outputCell: Cell[] = p2pkhJson["SECP256K1_[G1]"].OUTPUTS as Cell[];
   tx = tx.update("inputs", (inputs) => inputs.push(inputCell));
   tx = tx.update("outputs", (outputs) => outputs.push(...outputCell));
 
@@ -309,92 +149,20 @@ test("seck256k1 [g1]", (t) => {
   ).serializeJson();
   tx = tx.update("witnesses", (witnesses) => witnesses.push(tmpWitness));
 
-  const signLock = {
-    code_hash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type" as const,
-    args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
-  };
+  const signLock = p2pkhJson["SECP256K1_[G1]"].SIGN_LOCK as Script;
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock]);
   t.is(messageGroup.length, 1);
   t.is(messageGroup[0].index, 0);
   t.deepEqual(messageGroup[0].lock, signLock);
-  t.is(
-    messageGroup[0].message,
-    "0x9081f53dba1baaafd15be1f6b85bc3e961babf04b9b190f7960f1b514b506c0b"
-  );
+  t.is(messageGroup[0].message, p2pkhJson["SECP256K1_[G1]"].MESSAGE);
 });
 
 test("seck256k1 [g1, g1]", (t) => {
   let tx = TransactionSkeleton({});
 
-  const inputCell: Cell[] = [
-    {
-      cell_output: {
-        capacity: "0x2540be400",
-        lock: {
-          args: "0x92764594e255afbb89cd9486b0035c393b2c5323",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type" as const,
-        },
-        type: undefined,
-      },
-      data: "0x",
-      out_point: {
-        index: "0x0",
-        tx_hash:
-          "0x45def2fa2371895941e9e0b26ef9c27dca3ab446238548a472fed3b8ccc799f6",
-      },
-      block_number: "0x426d67",
-    },
-    {
-      cell_output: {
-        capacity: "0x2540be400",
-        lock: {
-          args: "0x92764594e255afbb89cd9486b0035c393b2c5323",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type" as const,
-        },
-        type: undefined,
-      },
-      data: "0x",
-      out_point: {
-        index: "0x0",
-        tx_hash:
-          "0x9fb88345432208ea1182987ff62b7911de877e74c8016cf4af5168815ce30480",
-      },
-      block_number: "0x426d87",
-    },
-  ];
-  const outputCell: Cell[] = [
-    {
-      cell_output: {
-        capacity: "0x28fa6ae00",
-        lock: {
-          args: "0xed20af7322823d0dc33bfb215486a05082669905",
-          code_hash:
-            "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-    {
-      cell_output: {
-        capacity: "0x2186f9360",
-        lock: {
-          args: "0x92764594e255afbb89cd9486b0035c393b2c5323",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-  ];
+  const inputCell: Cell[] = p2pkhJson["SECP256K1_[G1_G1]"].INPUTS as Cell[];
+  const outputCell: Cell[] = p2pkhJson["SECP256K1_[G1_G1]"].OUTPUTS as Cell[];
   tx = tx.update("inputs", (inputs) => inputs.push(...inputCell));
   tx = tx.update("outputs", (outputs) => outputs.push(...outputCell));
 
@@ -418,12 +186,7 @@ test("seck256k1 [g1, g1]", (t) => {
   );
 
   const hasher = new utils.CKBHasher();
-  const signLock = {
-    code_hash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type" as const,
-    args: "0x92764594e255afbb89cd9486b0035c393b2c5323",
-  };
+  const signLock = p2pkhJson["SECP256K1_[G1_G1]"].SIGN_LOCK as Script;
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     update: (message) => hasher.update(message),
@@ -432,60 +195,14 @@ test("seck256k1 [g1, g1]", (t) => {
   t.is(messageGroup.length, 1);
   t.is(messageGroup[0].index, 0);
   t.deepEqual(messageGroup[0].lock, signLock);
-  t.is(
-    messageGroup[0].message,
-    "0xae04988711de62dca841cb09d78ef182dc3c2c9cc107626d5ccedae75eaf7033"
-  );
+  t.is(messageGroup[0].message, p2pkhJson["SECP256K1_[G1_G1]"].MESSAGE);
 });
 
 test("doesn't fill witnesses beforehand", (t) => {
   let tx = TransactionSkeleton({});
 
-  const inputCell: Cell = {
-    cell_output: {
-      capacity: "0xe68097a560",
-      lock: {
-        args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
-        code_hash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-        hash_type: "type" as const,
-      },
-      type: undefined,
-    },
-    data: "0x",
-    out_point: {
-      index: "0x1",
-      tx_hash:
-        "0x62f634d380484b56cee28c166f55ffc562129f0ef5311618396bbb979b806ab5",
-    },
-    block_number: "0x42516f",
-  };
-  const outputCell: Cell[] = [
-    {
-      cell_output: {
-        capacity: "0x2540be400",
-        lock: {
-          args: "0x159890a7cacb44a95bef0743064433d763de229c",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-    {
-      cell_output: {
-        capacity: "0xe42c8a3ac0",
-        lock: {
-          args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
-          code_hash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-          hash_type: "type" as const,
-        },
-      },
-      data: "0x",
-    },
-  ];
+  const inputCell: Cell = p2pkhJson["SECP256K1_[G1]"].INPUTS as Cell;
+  const outputCell: Cell[] = p2pkhJson["SECP256K1_[G1]"].OUTPUTS as Cell[];
   tx = tx.update("inputs", (inputs) => inputs.push(inputCell));
   tx = tx.update("outputs", (outputs) => outputs.push(...outputCell));
 
@@ -499,12 +216,7 @@ test("doesn't fill witnesses beforehand", (t) => {
     })
   );
 
-  const signLock = {
-    code_hash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type" as const,
-    args: "0x7f599d5e44c248e211aa1d1ff47276758cab96f4",
-  };
+  const signLock = p2pkhJson["SECP256K1_[G1]"].SIGN_LOCK as Script;
 
   const error = t.throws(() => createP2PKHMessageGroup(tx, [signLock]));
 
