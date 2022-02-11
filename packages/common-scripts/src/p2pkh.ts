@@ -91,7 +91,9 @@ export function createP2PKHMessageGroup(
 
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
-    const witnessHexString = BI.from(new Reader(firstWitness).length()).toString(16);
+    const witnessHexString = BI.from(
+      new Reader(firstWitness).length()
+    ).toString(16);
     if (witnessHexString.length <= 8) {
       view.setUint32(0, Number("0x" + witnessHexString), true);
       view.setUint32(4, Number("0x" + "00000000"), true);
