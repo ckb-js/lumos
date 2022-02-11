@@ -1,4 +1,4 @@
-import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils } from "@ckb-lumos/lumos";
+import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils, commons } from "@ckb-lumos/lumos";
 import { SerializeRcLockWitnessLock } from "./generated/omni";
 
 export const CONFIG = config.createConfig({
@@ -114,33 +114,38 @@ export async function transfer(options: Options): Promise<string> {
   const messageForSigning = (() => {
     const hasher = new utils.CKBHasher();
 
-    const rawTxHash = utils.ckbHash(
-      core.SerializeRawTransaction(
-        toolkit.normalizers.NormalizeRawTransaction(helpers.createTransactionFromSkeleton(tx))
-      )
+    const SECP_SIGNATURE_PLACEHOLDER = new toolkit.Reader(
+      "0x" +
+        "00".repeat(
+          SerializeRcLockWitnessLock({
+            signature: new toolkit.Reader("0x" + "00".repeat(65)),
+          }).byteLength
+        )
     );
+    const newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
+    const witness = new toolkit.Reader(
+      core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs(newWitnessArgs))
+    ).serializeJson();
 
-    // serialized unsigned witness
-    const serializedWitness = core.SerializeWitnessArgs({
-      lock: new toolkit.Reader(
-        "0x" +
-          "00".repeat(
-            SerializeRcLockWitnessLock({
-              signature: new toolkit.Reader("0x" + "00".repeat(65)),
-            }).byteLength
-          )
-      ),
+    // fill txSkeleton's witness with 0
+    for (let i = 0; i < tx.inputs.toArray().length; i++) {
+      tx = tx.update("witnesses", (witnesses) => witnesses.push(witness));
+    }
+
+    // locks you want to sign
+    const signLock = tx.inputs.get(0)?.cell_output.lock!;
+
+    const messageGroup = commons.createP2PKHMessageGroup(tx, [signLock], {
+      update: (message) => hasher.update(message),
+      digest: () => hasher.digestHex(),
     });
 
-    hasher.update(rawTxHash);
-    hashWitness(hasher, serializedWitness);
-
-    return hasher.digestHex();
+    return messageGroup[0];
   })();
 
   let signedMessage = await ethereum.request({
     method: "personal_sign",
-    params: [ethereum.selectedAddress, messageForSigning],
+    params: [ethereum.selectedAddress, messageForSigning.message],
   });
 
   let v = Number.parseInt(signedMessage.slice(-2), 16);
@@ -155,7 +160,7 @@ export async function transfer(options: Options): Promise<string> {
     })
   ).serializeJson();
 
-  tx = tx.update("witnesses", (witnesses) => witnesses.push(signedWitness));
+  tx = tx.update("witnesses", (witnesses) => witnesses.set(0, signedWitness));
 
   const signedTx = helpers.createTransactionFromSkeleton(tx);
   const txHash = await rpc.send_transaction(signedTx, "passthrough");

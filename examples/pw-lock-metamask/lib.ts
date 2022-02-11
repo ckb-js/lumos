@@ -1,4 +1,4 @@
-import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils } from "@ckb-lumos/lumos";
+import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, commons } from "@ckb-lumos/lumos";
 import { default as createKeccak } from "keccak";
 
 export const CONFIG = config.createConfig({
@@ -113,36 +113,42 @@ export async function transfer(options: Options): Promise<string> {
   );
 
   const messageForSigning = (() => {
-    const rawTxHash = utils.ckbHash(
-      core.SerializeRawTransaction(
-        toolkit.normalizers.NormalizeRawTransaction(helpers.createTransactionFromSkeleton(tx))
-      )
-    );
+    const SECP_SIGNATURE_PLACEHOLDER = "0x" + "00".repeat(65);
+    const newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
+    const witness = new toolkit.Reader(
+      core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs(newWitnessArgs))
+    ).serializeJson();
 
-    // serialized unsigned witness
-    const serializedWitness = core.SerializeWitnessArgs({
-      // secp256k1 placeholder
-      lock: new toolkit.Reader("0x" + "00".repeat(65)),
-    });
+    // fill txSkeleton's witness with 0
+    for (let i = 0; i < tx.inputs.toArray().length; i++) {
+      tx = tx.update("witnesses", (witnesses) => witnesses.push(witness));
+    }
+
+    // locks you want to sign
+    const signLock = tx.inputs.get(0)?.cell_output.lock!;
 
     // just like P2PKH
     // https://github.com/nervosnetwork/ckb-system-scripts/wiki/How-to-sign-transaction
     const keccak = createKeccak("keccak256");
-    keccak.update(Buffer.from(new Uint8Array(rawTxHash.toArrayBuffer())));
 
-    const lengthBuffer = new ArrayBuffer(8);
-    const view = new DataView(lengthBuffer);
-    view.setBigUint64(0, BigInt(new toolkit.Reader(serializedWitness).length()), true);
+    const messageGroup = commons.createP2PKHMessageGroup(tx, [signLock], {
+      update: (message) => {
+        if (typeof message === "string") {
+          keccak.update(Buffer.from(new Uint8Array(new toolkit.Reader(message as string).toArrayBuffer())));
+          // keccak.update(message);
+        } else {
+          keccak.update(Buffer.from(new Uint8Array(message as ArrayBuffer | Buffer)));
+        }
+      },
+      digest: () => "0x" + keccak.digest("hex"),
+    });
 
-    keccak.update(Buffer.from(new Uint8Array(lengthBuffer)));
-    keccak.update(Buffer.from(new Uint8Array(serializedWitness)));
-
-    return "0x" + keccak.digest("hex");
+    return messageGroup[0];
   })();
 
   let signedMessage = await ethereum.request({
     method: "personal_sign",
-    params: [ethereum.selectedAddress, messageForSigning],
+    params: [ethereum.selectedAddress, messageForSigning.message],
   });
 
   let v = Number.parseInt(signedMessage.slice(-2), 16);
@@ -155,7 +161,7 @@ export async function transfer(options: Options): Promise<string> {
     })
   ).serializeJson();
 
-  tx = tx.update("witnesses", (witnesses) => witnesses.push(signedWitness));
+  tx = tx.update("witnesses", (witnesses) => witnesses.set(0, signedWitness));
 
   const signedTx = helpers.createTransactionFromSkeleton(tx);
   const txHash = await rpc.send_transaction(signedTx, "passthrough");

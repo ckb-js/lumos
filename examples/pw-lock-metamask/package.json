@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "parcel index.html"
+    "start": "parcel -p 3003 index.html"
   },
   "keywords": [],
   "author": "",
