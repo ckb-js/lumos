@@ -1,20 +1,10 @@
 import test from "ava";
 import { Script, utils } from "@ckb-lumos/base";
 import { Reader } from "@ckb-lumos/toolkit";
-import * as config from "@ckb-lumos/config-manager";
 import { default as createKeccak } from "keccak";
 import { createP2PKHMessageGroup } from "../src/p2pkh";
 import { txObject, txSkeletonFromJson } from "./helper";
 import p2pkhJson from "./p2pkh.json";
-
-const CONFIG = config.createConfig({
-  PREFIX: "ckt",
-  SCRIPTS: {
-    ...config.predefined.AGGRON4.SCRIPTS,
-    OMNI_LOCK: p2pkhJson.SCRIPTS.OMNI_LOCK as config.ScriptConfig,
-    PW_LOCK: p2pkhJson.SCRIPTS.PW_LOCK as config.ScriptConfig,
-  },
-});
 
 test("omni lock [g1]", (t) => {
   const SIGNATURE_PLACEHOLDER = new Reader("0x" + "00".repeat(85));
