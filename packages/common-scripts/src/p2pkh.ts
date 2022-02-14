@@ -112,7 +112,7 @@ export function createP2PKHMessageGroup(
     hasher.update(new Uint8Array(new Reader(firstWitness).toArrayBuffer()));
 
     for (let i = 1; i < indexes.length; i++) {
-      const witness = tx.witnesses.get(i)!;
+      const witness = tx.witnesses.get(indexes[i])!;
       hasher.update(new Uint8Array(lengthBuffer));
       hasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
     }
