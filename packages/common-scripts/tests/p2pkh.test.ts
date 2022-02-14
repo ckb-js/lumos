@@ -57,8 +57,8 @@ test("omni lock [g1]", (t) => {
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     hasher: {
-      update: (message) => hasher.update(message),
-      digest: () => hasher.digestHex(),
+      update: (message) => hasher.update(message.buffer),
+      digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
     },
   });
   t.is(messageGroup.length, 1);
@@ -109,7 +109,7 @@ test("pw lock [g1]", (t) => {
       update: (message) => {
         keccak.update(Buffer.from(new Uint8Array(message)));
       },
-      digest: () => "0x" + keccak.digest("hex"),
+      digest: () => keccak.digest(),
     },
   });
   t.is(messageGroup.length, 1);
@@ -184,8 +184,8 @@ test("seck256k1 [g1, g1]", (t) => {
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     hasher: {
-      update: (message) => hasher.update(message),
-      digest: () => hasher.digestHex(),
+      update: (message) => hasher.update(message.buffer),
+      digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
     },
   });
   t.is(messageGroup.length, 1);

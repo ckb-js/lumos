@@ -42,8 +42,8 @@ function calcRawTxHash(tx: TransactionSkeletonType): Reader {
 }
 
 export interface Hasher {
-  update(message: ArrayBuffer): void;
-  digest(): Hash;
+  update(message: Uint8Array): void;
+  digest(): Uint8Array;
 }
 
 type Group = {
@@ -77,8 +77,8 @@ export function createP2PKHMessageGroup(
 
   const defaultHasher = new utils.CKBHasher();
   hasher = hasher || {
-    update: (message) => defaultHasher.update(message),
-    digest: () => defaultHasher.digestHex(),
+    update: (message) => defaultHasher.update(message.buffer),
+    digest: () => new Uint8Array(defaultHasher.digestReader().toArrayBuffer()),
   };
 
   const messageGroup: Group[] = [];
@@ -91,7 +91,7 @@ export function createP2PKHMessageGroup(
       throw new Error("Please fill witnesses with 0 first!");
     }
 
-    hasher.update(rawTxHash.toArrayBuffer());
+    hasher.update(new Uint8Array(rawTxHash.toArrayBuffer()));
 
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
@@ -108,13 +108,13 @@ export function createP2PKHMessageGroup(
       view.setUint32(4, Number("0x" + witnessHexString.slice(0, -8)), true);
     }
 
-    hasher.update(lengthBuffer);
-    hasher.update(new Reader(firstWitness).toArrayBuffer());
+    hasher.update(new Uint8Array(lengthBuffer));
+    hasher.update(new Uint8Array(new Reader(firstWitness).toArrayBuffer()));
 
     for (let i = 1; i < indexes.length; i++) {
       const witness = tx.witnesses.get(i)!;
-      hasher.update(lengthBuffer);
-      hasher.update(new Reader(witness).toArrayBuffer());
+      hasher.update(new Uint8Array(lengthBuffer));
+      hasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
     }
 
     for (
@@ -123,14 +123,18 @@ export function createP2PKHMessageGroup(
       i++
     ) {
       const witness = tx.witnesses.get(i)!;
-      hasher.update(lengthBuffer);
-      hasher.update(new Reader(witness).toArrayBuffer());
+      hasher.update(new Uint8Array(lengthBuffer));
+      hasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
     }
 
     const g: Group = {
       index: firstIndex,
       lock: tx.inputs.get(firstIndex)!.cell_output.lock,
-      message: hasher.digest(),
+      message:
+        "0x" +
+        Array.prototype.map
+          .call(hasher.digest(), (x) => ("00" + x.toString(16)).slice(-2))
+          .join(""),
     };
 
     messageGroup.push(g);

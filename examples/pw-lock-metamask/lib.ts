@@ -135,7 +135,7 @@ export async function transfer(options: Options): Promise<string> {
       update: (message) => {
         keccak.update(Buffer.from(new Uint8Array(message)));
       },
-      digest: () => "0x" + keccak.digest("hex"),
+      digest: () => keccak.digest(),
     });
 
     return messageGroup[0];
