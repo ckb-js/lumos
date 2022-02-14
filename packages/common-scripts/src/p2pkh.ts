@@ -52,6 +52,10 @@ type Group = {
   message: Hash;
 };
 
+interface Options {
+  hasher?: Hasher;
+}
+
 /**
  * Return an array of messages as well as their corresponding position indexes and locks for signing a P2PKH transaction.
  * For more details, please see:
@@ -66,7 +70,7 @@ type Group = {
 export function createP2PKHMessageGroup(
   tx: TransactionSkeletonType,
   locks: Script[],
-  hasher?: Hasher
+  { hasher = undefined }: Options = {}
 ): Group[] {
   const groups = groupInputs(tx.inputs.toArray(), locks);
   const rawTxHash = calcRawTxHash(tx);

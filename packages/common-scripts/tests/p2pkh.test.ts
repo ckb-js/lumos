@@ -56,8 +56,10 @@ test("omni lock [g1]", (t) => {
   const signLock = p2pkhJson["OMNI_LOCK_[G1]"].SIGN_LOCK as Script;
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
-    update: (message) => hasher.update(message),
-    digest: () => hasher.digestHex(),
+    hasher: {
+      update: (message) => hasher.update(message),
+      digest: () => hasher.digestHex(),
+    },
   });
   t.is(messageGroup.length, 1);
   t.is(messageGroup[0].index, 0);
@@ -103,10 +105,12 @@ test("pw lock [g1]", (t) => {
   const signLock = p2pkhJson["PW_LOCK_[G1]"].SIGN_LOCK as Script;
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
-    update: (message) => {
-      keccak.update(Buffer.from(new Uint8Array(message)));
+    hasher: {
+      update: (message) => {
+        keccak.update(Buffer.from(new Uint8Array(message)));
+      },
+      digest: () => "0x" + keccak.digest("hex"),
     },
-    digest: () => "0x" + keccak.digest("hex"),
   });
   t.is(messageGroup.length, 1);
   t.is(messageGroup[0].index, 0);
@@ -179,8 +183,10 @@ test("seck256k1 [g1, g1]", (t) => {
   const signLock = p2pkhJson["SECP256K1_[G1_G1]"].SIGN_LOCK as Script;
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
-    update: (message) => hasher.update(message),
-    digest: () => hasher.digestHex(),
+    hasher: {
+      update: (message) => hasher.update(message),
+      digest: () => hasher.digestHex(),
+    },
   });
   t.is(messageGroup.length, 1);
   t.is(messageGroup[0].index, 0);
