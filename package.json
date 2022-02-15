@@ -55,7 +55,16 @@
     "build": "run-p build:*",
     "build-release": "lerna run --scope @ckb-lumos/lumos build:umd",
     "lint": "lerna run fmt && lerna run lint && git diff --exit-code",
-    "clean": "lerna run clean"
+    "clean": "lerna run clean",
+    "versionup": "lerna version --conventional-commits --no-git-tag-version",
+    "versionup:patch": "lerna version patch --conventional-commits --no-git-tag-version",
+    "versionup:minor": "lerna version minor --conventional-commits --no-git-tag-version",
+    "versionup:major": "lerna version major --conventional-commits --no-git-tag-version",
+    "postversionup": "npm run commit-version",
+    "postversionup:patch": "npm run commit-version",
+    "postversionup:minor": "npm run commit-version",
+    "postversionup:major": "npm run commit-version",
+    "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\""
   },
   "husky": {
     "hooks": {
