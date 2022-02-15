@@ -5,7 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "parcel -p 3002 index.html"
+    "start": "parcel index.html",
+    "lint": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
