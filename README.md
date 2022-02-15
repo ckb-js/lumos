@@ -1,7 +1,7 @@
 # lumos
 
-![build](https://img.shields.io/azure-devops/build/nervosnetwork/lumos/16)
-![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/nervosnetwork/lumos/16/develop)
+![build](https://github.com/nervosnetwork/lumos/actions/workflows/github-ci/badge.svg)
+[![codecov](https://codecov.io/gh/nervosnetwork/lumos/branch/develop/graph/badge.svg?token=6WJJOOMD2F)](https://codecov.io/gh/nervosnetwork/lumos)
 ![license](https://img.shields.io/github/license/nervosnetwork/lumos)
 ![Lumos](./assets/lumos.jpg)
 
@@ -24,6 +24,7 @@ As of now, lumos contains the following components:
 ## Building
 
 ### Requirements
+
 - [Node.js](https://nodejs.org)
 - [Yarn](https://yarnpkg.com/)
 - [node-gyp](https://github.com/nodejs/node-gyp)
@@ -36,26 +37,31 @@ sudo apt install build-essential
 ```
 
 ### Build
+
 ```bash
 yarn run build
 ```
 
 ### Test (ava)
+
 ```bash
 yarn run test
 ```
 
 ### Test Coverage (c8)
+
 ```bash
 yarn run test-coverage
 ```
 
 ### Format & Lint
+
 ```bash
 yarn run lint
 ```
 
 ### Clean
+
 ```bash
 yarn run clean
 ```
