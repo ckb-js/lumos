@@ -137,7 +137,7 @@ export async function transfer(options: Options): Promise<string> {
 
     const messageGroup = commons.createP2PKHMessageGroup(tx, [signLock], {
       update: (message) => hasher.update(message.buffer),
-      digest: () => hasher.digestHex(),
+      digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
     });
 
     return messageGroup[0];
