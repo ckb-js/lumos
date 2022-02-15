@@ -5,8 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "fmt": "echo \"fmt skip in example\"",
-    "lint": "echo \"lint skip in example\""
+    "lint": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
