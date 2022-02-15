@@ -9,6 +9,8 @@ can use MetaMask as a signer. This example will show how to use Lumos to send a 
 > we should [build](..) Lumos project first before we start this example
 
 ```
+yarn run build
+yarn run build-release
 cd examples/omni-lock-metamask
 yarn start
 ```
