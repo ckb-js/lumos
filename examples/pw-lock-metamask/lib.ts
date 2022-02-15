@@ -132,10 +132,10 @@ export async function transfer(options: Options): Promise<string> {
     const keccak = createKeccak("keccak256");
 
     const messageGroup = commons.createP2PKHMessageGroup(tx, [signLock], {
-      update: (message) => {
-        keccak.update(Buffer.from(new Uint8Array(message)));
+      hasher: {
+        update: (message) => keccak.update(Buffer.from(new Uint8Array(message))),
+        digest: () => keccak.digest(),
       },
-      digest: () => keccak.digest(),
     });
 
     return messageGroup[0];
