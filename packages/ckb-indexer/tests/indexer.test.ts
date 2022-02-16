@@ -48,7 +48,6 @@ test("subscribe cells", async (t) => {
     let spy = sinon.spy();
     const eventEmitter = indexer.subscribe(queryCase.queryOption);
     eventEmitter.on("changed", spy);
-
     asyncRetry(
       () => {
         return spy.callCount >= queryCase.expectedResult;

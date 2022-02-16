@@ -57,7 +57,16 @@
     "lint": "run-p lint:* && git diff --exit-code",
     "lint:fmt": "lerna run fmt --parallel",
     "lint:eslint": "lerna run lint --parallel",
-    "clean": "lerna run clean"
+    "clean": "lerna run clean",
+    "versionup": "lerna version --conventional-commits --no-git-tag-version",
+    "versionup:patch": "lerna version patch --conventional-commits --no-git-tag-version",
+    "versionup:minor": "lerna version minor --conventional-commits --no-git-tag-version",
+    "versionup:major": "lerna version major --conventional-commits --no-git-tag-version",
+    "postversionup": "npm run commit-version",
+    "postversionup:patch": "npm run commit-version",
+    "postversionup:minor": "npm run commit-version",
+    "postversionup:major": "npm run commit-version",
+    "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\""
   },
   "husky": {
     "hooks": {
