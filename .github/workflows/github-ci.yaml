@@ -39,8 +39,8 @@ jobs:
       - name: Install project dependencies and build
         run: |
           yarn
-          yarn lint
           yarn build
+          yarn lint
       - name: Start test env
         run: |
           nohup yarn workspace @ckb-lumos/testkit start &
