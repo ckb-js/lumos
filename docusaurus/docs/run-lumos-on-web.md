@@ -6,7 +6,7 @@ sidebar_position: 2
 
 ### TL;NR
 
-lumos在最初的设计比较偏向server端，无法在web端运行。为此在web端运行，我们做了用ckb-indexer替换native indexer，增加大数库BI等一系列升级，使得lumos可以运行在web端.
+lumos 最初运行时只为支持 NodeJS，并没有考虑运行在 web 环境中。为了在 web 端运行，我们用 ckb-indexer 替换了 native indexer，增加大数库 BI 等一系列升级，使 lumos 可以运行在 web 环境下
 
 下面获取余额的示例,将为你展示如何在你的web项目中使用lumos。
 
@@ -27,7 +27,7 @@ async function capacityOf(lock: Script): Promise<BI> {
 
 完整的示例请参考 [ckb-indexer-collector example](https://github.com/nervosnetwork/lumos/blob/develop/examples/ckb-indexer-collector.ts)
 
-### indexer
+### ckb-indexer
 
 因为`@ckb-lumos/indexer` 和 `@ckb-lumos/sql-indexer` 使用时需要在本地启动数据库和编译代码,无法在web端运行,所以我们推出了`@ckb-lumos/ckb-indexer`,并逐步移除了 `@ckb-lumos/indexer` 和 `@ckb-lumos/sql-indexer` . `@ckb-lumos/ckb-indexer` 的使用示例如下.
 
