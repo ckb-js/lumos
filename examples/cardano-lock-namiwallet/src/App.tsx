@@ -4,8 +4,7 @@ import "./App.css";
 import { CIP30FullAPI, detectCardano } from "./lib";
 
 function useCardano() {
-  const [api, setAPI] = useState<CIP30FullAPI>();
-  const [cardanoAddress, setAddress] = useState<Address>();
+  const [cardano, setCardano] = useState<{ api: CIP30FullAPI; address: Address }>();
 
   useEffect(() => {
     (async () => {
@@ -14,13 +13,11 @@ function useCardano() {
 
       const [address] = await api.getUsedAddresses();
 
-      setAPI(api);
-      setAddress(Address.from_bytes(Buffer.from(address, "hex")));
+      setCardano({ api, address: Address.from_bytes(Buffer.from(address, "hex")) });
     })();
   }, []);
 
-  if (!api || !cardanoAddress) return null;
-  return { api, address: cardanoAddress };
+  return cardano;
 }
 
 function App() {
