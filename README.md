@@ -11,7 +11,7 @@ Lumos is a full featured JavaScript/TypeScript based dapp framework for Nervos C
 
 As of now, lumos contains the following components:
 
-- [ckb-indexer](./packages/ckb-indexer): an index base on ckb-indexer and can be used on the web side.
+- [ckb-indexer](./packages/ckb-indexer): an cell/tx indexer base on [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer). 
 - [BI](./packages/bi): a big number library for lumos.
 - [toolkit](./packages/toolkit): JavaScript toolkit for Nervos CKB. It contains a series of independent tools that can aid develoment of CKB dapps. This is different from a normal CKB SDK, since it tries to minimize the work done in an SDK, while providing more utlities that could be handy.
 - [lumos](./packages/lumos): A root package to integrate of common functions from the Lumos sub-package.
@@ -24,12 +24,9 @@ As of now, lumos contains the following components:
 - [hd-cache](./packages/hd-cache): an HD cache manager for CKB. It build a memory cache for derived addresses and live cells of these addresses.
 - [rpc](./packages/rpc): RPC module for CKB RPC. Provide type definations for CKB RPC interface.
 
-examples
+## Examples
 
-- [omni-lock-metamask](./examples/omni-lock-metamask/)
-- [pw-lock-metamask](./examples/pw-lock-metamask/)
-- [secp256k1-multisig-transfer](./examples/secp256k1-multisig-transfer/)
-- [secp256k1-transfer](./examples/secp256k1-transfer/)
+we have provided some use cases for Lumos, such as interactions with MetaMask, transfers CKB, address conversions, etc. which you can find in [examples](./examples)
 
 ## Building
 
