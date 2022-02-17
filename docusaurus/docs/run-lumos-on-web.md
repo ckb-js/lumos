@@ -10,19 +10,28 @@ lumos 最初运行时只为支持 NodeJS，并没有考虑运行在 web 环境�
 
 下面获取余额的示例,将为你展示如何在你的web项目中使用lumos。
 
+```shell
+npm install @ckb-lumos/lumos 
+# yarn add @ckb-lumos/lumos
+```
+
 ```jsx
-import { Script, Indexer as CkbIndexer, BI } from "@ckb-lumos/lumos";
+import { Script, Indexer, BI } from "@ckb-lumos/lumos";
 
-async function capacityOf(lock: Script): Promise<BI> {
+async function main(): Promise<BI> {
+  const lock = { code_hash: '0x...', hash_type: 'type', args: '0x...' }
+  const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
+  const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
+  const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
   const collector = indexer.collector({ lock });
-
   let balance: BI = BI.from(0);
   for await (const cell of collector.collect()) {
     balance = balance.add(cell.cell_output.capacity);
   }
-
   return balance;
 }
+
+main();
 ```
 
 完整的示例请参考 [ckb-indexer-collector example](https://github.com/nervosnetwork/lumos/blob/develop/examples/ckb-indexer-collector.ts)
