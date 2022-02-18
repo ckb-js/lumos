@@ -1,0 +1,65 @@
+name: test and coverage
+on: [push, pull_request]
+#    paths:
+#      - 'packages/**'
+#      - yarn.lock
+#      - package.json
+#      - babel.config.js
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set env to ckb2019
+        run: |
+          echo "CKB_Indexer_Version=0.2.2" >> $GITHUB_ENV
+      - name: Set env to ckb2021
+        if: endsWith(github.ref, '/ckb2021')
+        run: |
+          echo "CKB_Indexer_Version=0.3.2" >> $GITHUB_ENV
+      - uses: actions/checkout@master
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: actions/cache@v1
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install ckb indexer
+        run: |
+          curl -O -L "https://github.com/nervosnetwork/ckb-indexer/releases/download/v$CKB_Indexer_Version/ckb-indexer-$CKB_Indexer_Version-linux.zip"
+          unzip -o ckb-indexer-$CKB_Indexer_Version-linux.zip
+          tar xvzf ckb-indexer-linux-x86_64.tar.gz ckb-indexer
+          chmod +x ./ckb-indexer
+          rm -rf ckb-indexer-linux-x86_64.tar.gz
+          rm ckb-indexer-$CKB_Indexer_Version-linux.zip
+      - name: Install project dependencies and build
+        run: |
+          yarn
+          yarn build
+          yarn lint
+      - name: Start test env
+        run: |
+          nohup yarn workspace @ckb-lumos/testkit start &
+          sleep 5
+          nohup ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp &
+          sleep 5
+          echo '{
+              "id": 2,
+              "jsonrpc": "2.0",
+              "method": "get_tip"
+          }' \
+          | tr -d '\n' \
+          | curl -H 'content-type: application/json' -d @- \
+          http://localhost:8120
+      - name: Test
+        run: yarn test-coverage
+      - uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+          files: ./coverage/cobertura-coverage.xml
+          verbose: true # optional (default = false)
+          threshold: 0.03%

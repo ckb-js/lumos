@@ -6,7 +6,7 @@ const server = createCKBMockRPC({
   blocks: JSON.parse(
     fs
       .readFileSync(
-        path.join(__dirname, "../../indexer/tests/blocks_data.json")
+        path.join(__dirname, "../../ckb-indexer/tests/blocks_data.json")
       )
       .toString()
   ),
