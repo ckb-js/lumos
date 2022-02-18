@@ -7,7 +7,7 @@ on: [push, pull_request]
 #      - babel.config.js
 
 jobs:
-  build-and-deploy:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Set env to ckb2019
