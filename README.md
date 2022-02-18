@@ -1,6 +1,6 @@
 # lumos
 
-![build](https://github.com/nervosnetwork/lumos/actions/workflows/github-ci/badge.svg)
+![build](https://github.com/nervosnetwork/lumos/actions/workflows/github-ci.yaml/badge.svg)
 [![codecov](https://codecov.io/gh/nervosnetwork/lumos/branch/develop/graph/badge.svg?token=6WJJOOMD2F)](https://codecov.io/gh/nervosnetwork/lumos)
 ![license](https://img.shields.io/github/license/nervosnetwork/lumos)
 ![Lumos](./assets/lumos.jpg)
@@ -11,7 +11,7 @@ Lumos is a full featured JavaScript/TypeScript based dapp framework for Nervos C
 
 As of now, lumos contains the following components:
 
-- [ckb-indexer](./packages/ckb-indexer): an cell/tx indexer base on [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer). 
+- [ckb-indexer](./packages/ckb-indexer): an cell/tx indexer base on [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer).
 - [BI](./packages/bi): a big number library for lumos.
 - [toolkit](./packages/toolkit): JavaScript toolkit for Nervos CKB. It contains a series of independent tools that can aid develoment of CKB dapps. This is different from a normal CKB SDK, since it tries to minimize the work done in an SDK, while providing more utlities that could be handy.
 - [lumos](./packages/lumos): A root package to integrate of common functions from the Lumos sub-package.
