@@ -1,6 +1,6 @@
-- --
+---
 sidebar_position: 2
-- --
+---
 
 # Now lumos can run in a web browser
 ### TL;NR
