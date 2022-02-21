@@ -66,7 +66,8 @@
     "postversionup:patch": "npm run commit-version",
     "postversionup:minor": "npm run commit-version",
     "postversionup:major": "npm run commit-version",
-    "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\""
+    "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\"",
+    "release:canary": "lerna publish --canary --preid next --dist-tag next --force-publish='*' --no-push --no-git-tag-version --yes"
   },
   "husky": {
     "hooks": {
