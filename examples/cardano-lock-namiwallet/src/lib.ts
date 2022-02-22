@@ -1,4 +1,18 @@
 import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils } from "@ckb-lumos/lumos";
+import {
+  COSESign1Builder,
+  HeaderMap,
+  Label,
+  AlgorithmId,
+  CBORValue,
+  Headers,
+  ProtectedHeaderMap,
+  COSESign1,
+  COSEKey,
+  BigNum,
+  Int,
+} from "@emurgo/cardano-message-signing-browser";
+import { SerializeCardanoWitnessLock } from "./generated/cardano";
 
 export const CONFIG = config.createConfig({
   PREFIX: "ckt",
@@ -106,34 +120,61 @@ export async function transfer(options: Options): Promise<string> {
     })
   );
 
+  const protectedHeaders = HeaderMap.new();
+  protectedHeaders.set_algorithm_id(Label.from_algorithm_id(AlgorithmId.EdDSA));
+  // protectedHeaders.set_key_id(publicKey.as_bytes());
+  protectedHeaders.set_header(Label.new_text("address"), CBORValue.new_bytes(Buffer.from(options.cardanoAddr, "hex")));
+  const protectedSerialized = ProtectedHeaderMap.new(protectedHeaders);
+  const unprotectedHeaders = HeaderMap.new();
+  const headers = Headers.new(protectedSerialized, unprotectedHeaders);
+
   const payload = "00".repeat(32);
-  let tmpWitness = (await options.api.signData(options.cardanoAddr, payload)).signature;
-  tmpWitness = new toolkit.Reader(
-    core.SerializeWitnessArgs({
-      lock: new toolkit.Reader("0x" + tmpWitness),
-    })
-  ).serializeJson();
+  let builder = COSESign1Builder.new(headers, Buffer.from(payload, "hex"), false);
+  let toSign = builder.make_data_to_sign().to_bytes();
+
+  const placeHolder = new toolkit.Reader(
+    "0x" +
+      "00".repeat(
+        SerializeCardanoWitnessLock({
+          pubkey: new toolkit.Reader("0x" + "00".repeat(32)).toArrayBuffer(),
+          signature: new toolkit.Reader("0x" + "00".repeat(64)).toArrayBuffer(),
+          sig_structure: toSign.buffer,
+        }).byteLength
+      )
+  );
+
+  const tmpWitnessArgs = core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs({ lock: placeHolder }));
 
   const hasher = new utils.CKBHasher();
   const rawTxHash = utils.ckbHash(
     core.SerializeRawTransaction(toolkit.normalizers.NormalizeRawTransaction(helpers.createTransactionFromSkeleton(tx)))
   );
   hasher.update(rawTxHash);
+  hashWitness(hasher, tmpWitnessArgs);
+  const messageForSigning = hasher.digestHex().slice(2);
 
-  const SECP_SIGNATURE_PLACEHOLDER = new toolkit.Reader("0x" + "00".repeat(tmpWitness.length - 20));
-  const newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
-  const witness = core.SerializeWitnessArgs(newWitnessArgs);
+  builder = COSESign1Builder.new(headers, Buffer.from(messageForSigning, "hex"), false);
+  toSign = builder.make_data_to_sign().to_bytes(); // sig_structure
 
-  hashWitness(hasher, witness);
-  const messageForSigning = hasher.digestHex();
+  const signedRes = await options.api.signData(options.cardanoAddr, messageForSigning);
+  const signedSignature = signedRes.signature;
 
-  const signedRes = await options.api.signData(options.cardanoAddr, messageForSigning.slice(2));
-  const signedMessage = signedRes.signature;
+  const COSESignature = COSESign1.from_bytes(Buffer.from(signedSignature, "hex"));
+
+  const signedKey = COSEKey.from_bytes(Buffer.from(signedRes.key, "hex"));
+  const label = Label.new_int(Int.new_negative(BigNum.from_str("2")));
+  const CBORPubkey = signedKey.header(label)!;
+
+  const signedWitnessArgs = new toolkit.Reader(
+    SerializeCardanoWitnessLock({
+      pubkey: CBORPubkey.as_bytes()!.buffer,
+      signature: COSESignature.signature().buffer,
+      sig_structure: toSign.buffer,
+    })
+  );
 
   const signedWitness = new toolkit.Reader(
-    core.SerializeWitnessArgs({
-      lock: new toolkit.Reader("0x" + signedMessage),
-    })
+    core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs({ lock: signedWitnessArgs }))
   ).serializeJson();
 
   tx = tx.update("witnesses", (witnesses) => witnesses.push(signedWitness));
