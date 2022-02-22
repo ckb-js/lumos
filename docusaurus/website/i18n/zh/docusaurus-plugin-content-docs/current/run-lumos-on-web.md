@@ -2,10 +2,10 @@
 sidebar_position: 2
 ---
 
-# Now lumos can run in a web browser
-### TL;NR
+# Now lumos can run on browser
+### TL;DR
 
-lumos was originally run on NodeJS only, and was not designed to run in a web environment. In order to run on web, we replaced native indexer with ckb-indexer, added BI which is a big number library , and a series of other upgrades to make lumos run in web environment
+Lumos was originally run on NodeJS only. To run on browser, we replaced native indexer with ckb-indexer, added BI which is a big number library, and a series of other upgrades.
 
 The following example of getting the balance will show you how to use lumos in your web project.
 
@@ -32,11 +32,11 @@ async function main(): Promise<BI> {
 
 main();
 ```
-please refer to [ckb-indexer-collector example] (https://github.com/nervosnetwork/lumos/blob/develop/examples/ckb-indexer-collector.ts) get  a complete example, 
+please refer to [ckb-indexer-collector example] (https://github.com/nervosnetwork/lumos/blob/develop/examples/ckb-indexer-collector.ts) for a complete example.
 
 ### ckb-indexer
 
-Because `@ckb-lumos/indexer` and `@ckb-lumos/sql-indexer` need to start the database and compile the code locally, cannot be run on the web side, we introduced `@ckb-lumos/ckb-indexer` and gradually removed `@ckb-lumos/indexer` and `@ckb-lumos/sql-indexer`. Examples of how to use`@ckb-lumos/ckb-indexer` are as follows.
+Because `@ckb-lumos/indexer` and `@ckb-lumos/sql-indexer` need to start the database and compile the code locally, cannot be run on the web side, we removed them and introduced `@ckb-lumos/ckb-indexer`. Examples of how to use`@ckb-lumos/ckb-indexer` are as follows.
 
 ```jsx
 const { Indexer } = require("@ckb-lumos/ckb-indexer");
@@ -87,7 +87,7 @@ For more use of the API, please refer to [BI Test Cases].(https://github.com/ner
     
 2. Conversion of new addresses
     
-    ckb2021 upgraded [address](https://github.com/nervosnetwork/rfcs/pull/239/files), lumos also followed up with support for new addresses, adding methods such as `encodeToAddress`, please refer to the [PR](https:/ /github.com/nervosnetwork/lumos/pull/205)
+    Lumos also supports ckb2021 upgraded [address](https://github.com/nervosnetwork/rfcs/pull/239/files), adding methods such as `encodeToAddress`. Refer to this [PR](https:/ /github.com/nervosnetwork/lumos/pull/205) for more.
     
 3. Example code additions
     
@@ -99,7 +99,7 @@ For more use of the API, please refer to [BI Test Cases].(https://github.com/ner
     
 5. [lumos playground](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js)
     
-    We used codesandbox and `@ckb-lumos/lumos` to build the [playground](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js) of `lumos`, which you can use in playground]([https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js)), you can quickly try out the features of `lumos` in [playground](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js). Visit the link [🔗](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js)
+    We used codesandbox and `@ckb-lumos/lumos` to build the [playground](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js) where you can quickly try out the features of lumos.
     
 6. A contract deployment generator is provided in lumos to facilitate the deployment of contracts, visit the link [🔗](https://github.com/nervosnetwork/lumos/tree/develop/packages/common-) scripts#usage)
 
