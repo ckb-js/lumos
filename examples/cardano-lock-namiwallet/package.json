@@ -21,7 +21,6 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
-    "test": "craco test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -43,6 +42,6 @@
     ]
   },
   "devDependencies": {
-    "craco": "^0.0.3"
+    "@craco/craco": "^6.4.3"
   }
 }
