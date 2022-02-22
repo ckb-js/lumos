@@ -1,4 +1,4 @@
-import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils } from "@ckb-lumos/lumos";
+import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils, commons } from "@ckb-lumos/lumos";
 import {
   COSESign1Builder,
   HeaderMap,
@@ -144,14 +144,15 @@ export async function transfer(options: Options): Promise<string> {
   );
 
   const tmpWitnessArgs = core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs({ lock: placeHolder }));
+  const witness = new toolkit.Reader(tmpWitnessArgs).serializeJson();
 
-  const hasher = new utils.CKBHasher();
-  const rawTxHash = utils.ckbHash(
-    core.SerializeRawTransaction(toolkit.normalizers.NormalizeRawTransaction(helpers.createTransactionFromSkeleton(tx)))
-  );
-  hasher.update(rawTxHash);
-  hashWitness(hasher, tmpWitnessArgs);
-  const messageForSigning = hasher.digestHex().slice(2);
+  for (let i = 0; i < tx.inputs.toArray().length; i++) {
+    tx = tx.update("witnesses", (witnesses) => witnesses.push(witness));
+  }
+
+  const signLock = tx.inputs.get(0)?.cell_output.lock!;
+  const messageGroup = commons.createP2PKHMessageGroup(tx, [signLock]);
+  const messageForSigning = messageGroup[0].message.slice(2);
 
   builder = COSESign1Builder.new(headers, Buffer.from(messageForSigning, "hex"), false);
   toSign = builder.make_data_to_sign().to_bytes(); // sig_structure
@@ -176,8 +177,7 @@ export async function transfer(options: Options): Promise<string> {
   const signedWitness = new toolkit.Reader(
     core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs({ lock: signedWitnessArgs }))
   ).serializeJson();
-
-  tx = tx.update("witnesses", (witnesses) => witnesses.push(signedWitness));
+  tx = tx.update("witnesses", (witnesses) => witnesses.set(0, signedWitness));
 
   const signedTx = helpers.createTransactionFromSkeleton(tx);
   const txHash = await rpc.send_transaction(signedTx, "passthrough");
