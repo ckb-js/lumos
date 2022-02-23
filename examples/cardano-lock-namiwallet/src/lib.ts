@@ -185,15 +185,6 @@ export async function transfer(options: Options): Promise<string> {
   return txHash;
 }
 
-function hashWitness(hasher: utils.CKBHasher, witness: ArrayBuffer): void {
-  const lengthBuffer = new ArrayBuffer(8);
-  const view = new DataView(lengthBuffer);
-  view.setBigUint64(0, BigInt(new toolkit.Reader(witness).length()), true);
-
-  hasher.update(lengthBuffer);
-  hasher.update(witness);
-}
-
 export async function capacityOf(address: string): Promise<BI> {
   const collector = indexer.collector({
     lock: helpers.parseAddress(address),
