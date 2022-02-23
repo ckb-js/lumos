@@ -22,7 +22,8 @@ export function createScriptRegistry<T extends ScriptConfigs>(
 
   const newScript = (key: keyof T, args: string | Reader) => {
     const config = map.get(key);
-    if (config === undefined) throw new Error("config doesn't exist");
+    if (config === undefined)
+      throw new Error(`${key} doesn't exist in ScriptRegistry`);
     if (typeof args === "string") {
       return {
         code_hash: config.CODE_HASH,
@@ -40,7 +41,8 @@ export function createScriptRegistry<T extends ScriptConfigs>(
 
   const isScriptOf = (key: keyof T, script: Script) => {
     const config = map.get(key);
-    if (config === undefined) throw new Error("config doesn't exist");
+    if (config === undefined)
+      throw new Error(`${key} doesn't exist in ScriptRegistry`);
     return (
       script.code_hash === config.CODE_HASH &&
       script.hash_type === config.HASH_TYPE
@@ -49,7 +51,8 @@ export function createScriptRegistry<T extends ScriptConfigs>(
 
   const newCellDep = (key: keyof T) => {
     const config = map.get(key);
-    if (config === undefined) throw new Error("config doesn't exist");
+    if (config === undefined)
+      throw new Error(`${key} doesn't exist in ScriptRegistry`);
     return {
       out_point: {
         tx_hash: config.TX_HASH,
