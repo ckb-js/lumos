@@ -7,7 +7,7 @@ interface ScriptRegistry<T extends ScriptConfigs> {
   newScript: (key: keyof T, args: string | Reader) => Script;
   isScriptOf: (key: keyof T, script: Script) => boolean;
   newCellDep: (key: keyof T) => CellDep;
-  nameOfScript: (script: Script) => string | undefined;
+  nameOfScript: (script: Script) => keyof T | undefined;
 }
 
 export function createScriptRegistry<T extends ScriptConfigs>(
