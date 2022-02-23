@@ -7,6 +7,7 @@ interface ScriptRegistry<T extends ScriptConfigs> {
   newScript: (key: keyof T, args: string | Reader) => Script;
   isScriptOf: (key: keyof T, script: Script) => boolean;
   newCellDep: (key: keyof T) => CellDep;
+  nameOfScript: (script: Script) => string | undefined;
 }
 
 export function createScriptRegistry<T extends ScriptConfigs>(
@@ -58,10 +59,24 @@ export function createScriptRegistry<T extends ScriptConfigs>(
     };
   };
 
+  const nameOfScript = (script: Script) => {
+    let name = undefined;
+    map.forEach((value, key) => {
+      if (
+        script.code_hash === value?.CODE_HASH &&
+        script.hash_type === value.HASH_TYPE
+      ) {
+        name = key;
+      }
+    });
+    return name;
+  };
+
   return {
     extend: extend,
     newScript: newScript,
     isScriptOf: isScriptOf,
     newCellDep: newCellDep,
+    nameOfScript: nameOfScript,
   };
 }

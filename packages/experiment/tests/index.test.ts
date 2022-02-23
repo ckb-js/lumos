@@ -2,16 +2,17 @@ import { createScriptRegistry } from "../src";
 import test from "ava";
 import { predefined } from "@ckb-lumos/config-manager";
 import { Reader } from "@ckb-lumos/toolkit";
+import { Script } from "@ckb-lumos/base";
 const { AGGRON4 } = predefined;
 
 test("ScriptRegistry", (t) => {
   const registry = createScriptRegistry(AGGRON4.SCRIPTS);
 
   const secp256k1Script = registry.newScript("SECP256K1_BLAKE160", "0x");
-  const SECP256K1_BLAKE160_SCRIPT = {
+  const SECP256K1_BLAKE160_SCRIPT: Script = {
     code_hash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type" as const,
+    hash_type: "type",
     args: "0x",
   };
   t.deepEqual(secp256k1Script, SECP256K1_BLAKE160_SCRIPT);
@@ -60,4 +61,16 @@ test("ScriptRegistry", (t) => {
     SECP256K1_BLAKE160_SCRIPT
   );
   t.is(isMultiSig, false);
+
+  let scriptName = newRegistry.nameOfScript(SECP256K1_BLAKE160_SCRIPT);
+  t.is(scriptName, "SECP256K1_BLAKE160");
+
+  const noneExistScript: Script = {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce7",
+    hash_type: "type",
+    args: "0x",
+  };
+  scriptName = newRegistry.nameOfScript(noneExistScript);
+  t.is(scriptName, undefined);
 });
