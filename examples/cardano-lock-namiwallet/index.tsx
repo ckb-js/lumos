@@ -1,10 +1,13 @@
-import { Address } from "@emurgo/cardano-serialization-lib-browser";
+import { Address } from "@emurgo/cardano-serialization-lib-asmjs";
 import React, { useState } from "react";
-import "./App.css";
 import { capacityOf, CIP30FullAPI, CONFIG, detectCardano, transfer } from "./lib";
 import { helpers, Script } from "@ckb-lumos/lumos";
+import  ReactDOM from "react-dom"
 
-function App() {
+const app = document.getElementById("root");
+ReactDOM.render(<App />, app);
+
+export function App() {
   const [api, setAPI] = useState<CIP30FullAPI>();
   const [cardanoAddr, setCardanoAddr] = useState("");
 
@@ -49,7 +52,7 @@ function App() {
 
     transfer({ amount: transferAmount, from: ckbAddr, to: transferAddr, api: api!, cardanoAddr: cardanoAddr })
       .then(setTxHash)
-      // .catch((e) => alert(e.message || JSON.stringify(e)))
+      .catch((e) => alert(e.message || JSON.stringify(e)))
       .finally(() => setIsSendingTx(false));
   }
 
@@ -86,5 +89,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

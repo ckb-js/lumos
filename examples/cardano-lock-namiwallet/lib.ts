@@ -11,7 +11,7 @@ import {
   COSEKey,
   BigNum,
   Int,
-} from "@emurgo/cardano-message-signing-browser";
+} from "@emurgo/cardano-message-signing-asmjs";
 import { SerializeCardanoWitnessLock } from "./generated/cardano";
 
 export const CONFIG = config.createConfig({
