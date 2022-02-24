@@ -17,3 +17,13 @@ This is a simple example of how to interactive with CKB via [NamiWallet](https:/
 ## Reference
 
 - [cardano lock spec](https://github.com/XuJiandong/docs-bank/blob/master/cardano_lock.md)
+
+## Online Preview
+
+Using [GitHubBox.com](https://codesandbox.io/docs/importing#using-githubboxcom), you can preview and interact with example code online through codesandbox.
+
+Change the GitHub URL: https://github.com/nervosnetwork/lumos/tree/develop/examples/cardano-lock-namiwallet  
+To: https://githubbox.com/nervosnetwork/lumos/tree/develop/examples/cardano-lock-namiwallet
+
+Note that due to the incompatibility of namiwallet and iframe, you need to open the result in a new window:  
+![codesandbox](./codesandbox.png)
