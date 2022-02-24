@@ -1,6 +1,8 @@
 # Cardano lock NamiWallet
 
-This is a simple example of how to interactive with CKB via [NamiWallet](https://github.com/Berry-Pool/nami-wallet)
+This is a simple example of how to interactive with CKB via [NamiWallet](https://github.com/Berry-Pool/nami-wallet).
+
+The cardano lock is compiled from this [commit](https://github.com/nervosnetwork/ckb-production-scripts/tree/4b6f7ec2c3c29798ad56ed9ed513b9391ff7d60d).
 
 ## Deployment
 
