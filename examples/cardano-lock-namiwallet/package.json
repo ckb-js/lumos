@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "name": "@lumos-examples/cardano-lock-namiwallet",
+  "version": "0.17.0-rc8",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/react": "^17.0.34",
+    "@types/react-dom": "^17.0.11",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "@emurgo/cardano-serialization-lib-asmjs": "^10.0.4",
+    "@emurgo/cardano-message-signing-asmjs": "^1.0.1"
+  }
+}

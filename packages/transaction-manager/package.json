@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "@ckb-lumos/base": "0.18.0-rc5",
-    "@ckb-lumos/indexer": "0.18.0-rc5",
     "@ckb-lumos/toolkit": "0.18.0-rc5",
     "immutable": "^4.0.0-rc.12"
   }

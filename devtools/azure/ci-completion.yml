@@ -1,5 +1,0 @@
-steps:
-- script: |
-    yarn lint
-    git diff --exit-code
-  displayName: 'Completion tests'
