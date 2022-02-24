@@ -1,7 +1,0 @@
-steps:
-  - script: |
-      yarn run build
-      yarn c8 --reporter=cobertura --reporter=html yarn run test --ignore "**/*/*sql-indexer*"
-      yarn lint
-      git diff --exit-code
-    displayName: "Generic tests"

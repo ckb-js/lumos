@@ -51,8 +51,7 @@ function toBigUInt64LECompatible(num) {
 }
 
 function readBigUInt64LE(hex) {
-  const buf = Buffer.from(hex.slice(2), "hex");
-  return buf.readBigUInt64LE();
+  return readBigUInt64LECompatible(hex).toBigInt();
 }
 
 function readBigUInt64LECompatible(hex) {
@@ -92,11 +91,7 @@ function toBigUInt128LECompatible(num) {
 }
 
 function readBigUInt128LE(leHex) {
-  if (leHex.length < 34 || !leHex.startsWith("0x")) {
-    throw new Error(`leHex format error`);
-  }
-  const buf = Buffer.from(leHex.slice(2, 34), "hex");
-  return (buf.readBigUInt64LE(8) << BigInt(64)) + buf.readBigUInt64LE(0);
+  return readBigUInt128LECompatible(leHex).toBigInt();
 }
 
 function readBigUInt128LECompatible(leHex) {

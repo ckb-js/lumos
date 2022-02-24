@@ -1,4 +1,0 @@
-steps:
-  - script: |
-      yarn
-    displayName: "Install npm dependencies"
