@@ -6,8 +6,8 @@ HD Cache manager for lumos.
 
 ```javascript
 const { CacheManager, CellCollector, CellCollectorWithQueryOptions, getBalance } = require("@ckb-lumos/hd-cache")
-const { Indexer } = require("@ckb-lumos/indexer")
-const indexer = new Indexer("http://localhost:8114", "./indexer-data")
+const { Indexer } = require("@ckb-lumos/ckb-indexer")
+const indexer = new Indexer("http://localhost:8114")
 const cacheManger = CacheManager.loadFromKeystore(indexer, "You keystore path", "You password")
 // start to sync cache from indexer
 cacheManager.startForever()

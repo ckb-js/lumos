@@ -8,6 +8,8 @@ Common script implementation for lumos. Includes `secp256k1_blake2b` lock script
 
 `deploy` script provides `generateDeployWithDataTx`, `generateDeployWithTypeIdTx` and `generateUpgradeTypeIdDataTx`, these generators help in the process of deploying contracts.
 
+`p2pkh` scripts generates message for signing P2PKH transaction.
+
 ## Usage
 
 `common` script support new lock scripts provided by user, and [`pw-lock`](./examples/pw_lock/lock.ts) shows how to do it.
@@ -17,10 +19,10 @@ Following script will show how to use `common` script to transfer capacity to an
 ```javascript
 const { common } = require('@ckb-lumos/common-scripts');
 const { sealTransaction } = require("@ckb-lumos/helpers")
-const { Indexer } = require("@ckb-lumos/indexer")
+const { Indexer } = require("@ckb-lumos/ckb-indexer")
 
 // We can use Indexer module as cell provider
-const indexer = new Indexer("http://127.0.0.1:8114", "./indexer-data");
+const indexer = new Indexer("http://127.0.0.1:8114");
 
 const tipHeader = {
   compact_target: '0x20010000',
@@ -208,3 +210,5 @@ const upgradeOptions = {
 // Ganarate txSkeleton for upgrading.
 let upgradeTxSkeleton = await generateUpgradeTypeIdDataTx(upgradeOptions);
 ```
+
+Check [omni lock example](https://github.com/nervosnetwork/lumos/blob/develop/examples/omni-lock-metamask/lib.ts) and [pw lock example](https://github.com/nervosnetwork/lumos/blob/develop/examples/pw-lock-metamask/lib.ts) for how to use `p2pkh` script.

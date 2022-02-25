@@ -7,6 +7,7 @@ import common, { LockScriptInfo } from "./common";
 import sudt from "./sudt";
 import anyoneCanPay from "./anyone_can_pay";
 import { parseFromInfo } from "./from_info";
+import { createP2PKHMessageGroup } from "./p2pkh";
 
 export {
   secp256k1Blake160,
@@ -21,6 +22,7 @@ export {
   anyoneCanPay,
   LockScriptInfo,
   parseFromInfo,
+  createP2PKHMessageGroup,
 };
 
 export default {
