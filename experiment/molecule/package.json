@@ -29,6 +29,9 @@
     "prepublishOnly": "yarn run clean && yarn run build",
     "release": "npm publish"
   },
+  "dependencies": {
+    "@ckb-lumos/bi": "^0.17.0-rc8"
+  },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },

@@ -1,4 +1,4 @@
-import { BI } from "@ckb-lumos/lumos";
+import { BI } from "@ckb-lumos/bi";
 import { BinaryCodec, Codec, FixedBinaryCodec } from "./layout";
 
 // byte
