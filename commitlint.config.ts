@@ -18,6 +18,7 @@ const scopeEnumValues = [
   "transaction-manager",
   "examples",
   "website",
+  "molecule",
 ];
 const Configuration: UserConfig = {
   extends: ["@commitlint/config-conventional"],
