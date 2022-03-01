@@ -1,4 +1,14 @@
-import { Script, CellDep } from "@ckb-lumos/base";
+import {
+  Script,
+  CellDep,
+  HexString,
+  OutPoint,
+  Hash,
+  HexNumber,
+  Cell,
+} from "@ckb-lumos/base";
+import { BI, BIish } from "@ckb-lumos/bi";
+import { minimalCellCapacity } from "@ckb-lumos/helpers";
 import { ScriptConfig, ScriptConfigs } from "@ckb-lumos/config-manager";
 import { Reader } from "@ckb-lumos/toolkit";
 
@@ -82,4 +92,70 @@ export function createScriptRegistry<T extends ScriptConfigs>(
     newCellDep: newCellDep,
     nameOfScript: nameOfScript,
   };
+}
+
+interface Payload {
+  lock: Script;
+  type?: Script;
+  capacity: BIish;
+  data?: HexString;
+  out_point?: OutPoint;
+  block_hash?: Hash;
+  block_number?: HexNumber;
+}
+
+export function createCell(
+  payload: Payload,
+  options?: { skipCheckCapacityIsEnough?: boolean }
+): Cell {
+  const data = payload.data || "0x";
+  let cellOutput = {
+    capacity: BI.from(payload.capacity).toHexString(),
+    lock: payload.lock,
+  };
+  if (payload.type) {
+    cellOutput = Object.assign(cellOutput, { type: payload.type });
+  }
+  let cell = {
+    cell_output: cellOutput,
+    data: data,
+  };
+  if (payload.out_point) {
+    cell = Object.assign(cell, { out_point: payload.out_point });
+  }
+  if (payload.block_hash) {
+    cell = Object.assign(cell, { block_hash: payload.block_hash });
+  }
+  if (payload.block_number) {
+    cell = Object.assign(cell, { block_number: payload.block_number });
+  }
+  if (options?.skipCheckCapacityIsEnough !== false) {
+    const min = minimalCellCapacity(cell);
+    if (BI.from(payload.capacity).lt(min)) {
+      throw new Error("provided capacity is not enough");
+    }
+  }
+  return cell;
+}
+
+export function createCellWithMinimalCapacity(payload: {
+  lock: Script;
+  type?: Script;
+  data?: HexString;
+}): Cell {
+  const data = payload.data || "0x";
+  let cellOutput = {
+    capacity: "0x0",
+    lock: payload.lock,
+  };
+  if (payload.type) {
+    cellOutput = Object.assign(cellOutput, { type: payload.type });
+  }
+  const cell = {
+    cell_output: cellOutput,
+    data: data,
+  };
+  const min = minimalCellCapacity(cell);
+  cell.cell_output.capacity = BI.from(min).toHexString();
+  return cell;
 }
