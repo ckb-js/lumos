@@ -12,11 +12,9 @@ const download = () => {
   shell.chmod("+x", "./ckb-indexer");
   shell.rm("-rf", "ckb-indexer-linux-x86_64.tar.gz");
   shell.rm(`ckb-indexer-${CKB_Indexer_Version}-linux.zip`);
-  shell.exit(0);
 };
-export function downloadCKBIndexer(CKBVersion?: string) {
+export function downloadCKBIndexer() {
   console.log("downloadCKBIndexer");
-  CKB_Indexer_Version = CKBVersion ? CKBVersion : CKB_Indexer_Version;
   if (!shell.test("-e", "./ckb-indexer")) {
     download();
   } else {
@@ -32,10 +30,9 @@ export function downloadCKBIndexer(CKBVersion?: string) {
   }
 }
 
-export function startCKBIndexer() {
-  shell.echo(Date.now().toString());
-  shell.exec("sleep 5");
-  shell.echo(Date.now().toString());
+export function startCKBIndexer(CKBVersion?: string) {
+  CKB_Indexer_Version = CKBVersion ? CKBVersion : CKB_Indexer_Version;
+  downloadCKBIndexer();
   shell.exec(
     `nohup ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp`
   );
@@ -47,5 +44,4 @@ export function startCKBIndexer() {
             | tr -d '\n' \
             | curl -H 'content-type: application/json' -d @- \
             http://localhost:8120`);
-  shell.exit(0);
 }

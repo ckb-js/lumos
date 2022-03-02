@@ -3,13 +3,11 @@ import express, { Express } from "express";
 import bodyParser from "body-parser";
 import { LocalNode, Block, core } from "@ckb-lumos/base";
 import { normalizers, Reader } from "@ckb-lumos/toolkit";
-import { downloadCKBIndexer } from "./ckb-indexer-helper";
 interface Options {
   blocks: Block[];
   localNode: LocalNode;
   // defaults to /rpc
   routePath?: string;
-  CKBVersion?: string;
 }
 
 function assertsParams(param: unknown): asserts param {
@@ -17,8 +15,7 @@ function assertsParams(param: unknown): asserts param {
 }
 
 export function createCKBMockRPC(options: Options): Express {
-  const { routePath = "/rpc", blocks, localNode, CKBVersion } = options;
-  downloadCKBIndexer(CKBVersion);
+  const { routePath = "/rpc", blocks, localNode } = options;
 
   const server = new JSONRPCServer();
 

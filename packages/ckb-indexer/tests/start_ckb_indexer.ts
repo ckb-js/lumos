@@ -1,3 +1,3 @@
 import { startCKBIndexer } from "@ckb-lumos/testkit";
 
-startCKBIndexer();
+startCKBIndexer("0.3.2");
