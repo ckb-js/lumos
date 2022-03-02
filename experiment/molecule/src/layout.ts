@@ -52,6 +52,17 @@ export type UnionCodec<T extends Record<string, BinaryCodec>> = RecordValues<
   }
 >;
 
+export const byte: FixedBinaryCodec<ArrayBuffer> = {
+  __isFixedCodec__: true,
+  byteLength: 1,
+  pack(buf) {
+    return buf;
+  },
+  unpack(buf) {
+    return buf;
+  },
+};
+
 export function array<T extends FixedBinaryCodec>(
   itemCodec: T,
   itemCount: number

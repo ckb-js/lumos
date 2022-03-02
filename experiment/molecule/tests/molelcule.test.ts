@@ -1,26 +1,29 @@
 import test from "ava";
 import { array, struct } from "../src/layout";
-import { byte } from "../src/common";
+import { Uint8 } from "../src/common";
+import { createBuffer } from "../src/utils";
 
 test("test layout-array", (t) => {
-  const codec = array(byte, 4);
-  const buffer = Uint8Array.from([1, 2, 3, 4]).buffer;
+  const codec = array(Uint8, 4);
+  const buffer = createBuffer([1, 2, 3, 4]);
   const unpacked = codec.unpack(buffer);
+  const packed = codec.pack(unpacked);
 
   t.deepEqual(unpacked, [1, 2, 3, 4]);
+  t.deepEqual(packed, buffer);
 });
 
 test("test layout-struct", (t) => {
   const codec = struct(
     {
-      key1: byte,
-      key2: array(byte, 2),
-      key3: array(byte, 3),
+      key1: Uint8,
+      key2: array(Uint8, 2),
+      key3: array(Uint8, 3),
     },
     ["key1", "key2", "key3"]
   );
 
-  const buffer = Uint8Array.from([0x0, 0x1, 0x2, 0x3, 0x4, 0x5]).buffer;
+  const buffer = createBuffer([0x0, 0x1, 0x2, 0x3, 0x4, 0x5]);
   const unpacked = codec.unpack(buffer);
 
   t.deepEqual(unpacked, {
@@ -28,4 +31,6 @@ test("test layout-struct", (t) => {
     key2: [0x1, 0x2],
     key3: [0x3, 0x4, 0x5],
   });
+
+  t.deepEqual(codec.pack(unpacked), buffer);
 });

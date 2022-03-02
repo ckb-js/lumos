@@ -9,14 +9,15 @@ types. This library will help developers to create TypeScript-friendly molecule 
 import { layout, common } from "@ckb-lumos-experiment/molecule";
 
 const { table } = layout;
-const { Uint128, UTF8String, byte } = common;
+const { Uint8, Uint128, UTF8String } = common;
 
 // table UDTInfo {
 //  total_supply: Uint128,
 //  name: UTF8String,
 //  symbol: UTF8String,
-//  decimals: byte,
+//  decimals: Uint8,
 // }
+// array Uint8 [byte; 1];
 // array Uint128 [byte; 16];
 // vector UTF8String <byte>;
 
@@ -26,7 +27,7 @@ const UDTInfo /*: Codec*/ = table(
     totalSupply: Uint128LE,
     name: UTF8String,
     symbol: UTF8String,
-    decimals: byte,
+    decimals: Uint8,
   },
   ["totalSupply", "name", "symbol", "decimals"]
 );

@@ -1,8 +1,19 @@
 import { BI } from "@ckb-lumos/bi";
-import { BinaryCodec, Codec, FixedBinaryCodec } from "./layout";
+import { BinaryCodec, FixedBinaryCodec } from "./layout";
 
 // byte
-export declare const Uint8: FixedBinaryCodec<number>;
+export const Uint8: FixedBinaryCodec<number> = {
+  __isFixedCodec__: true,
+  byteLength: 1,
+  pack(u8) {
+    const buf = new ArrayBuffer(1);
+    new DataView(buf).setUint8(0, u8);
+    return buf;
+  },
+  unpack(buf) {
+    return new DataView(buf).getUint8(0);
+  },
+};
 export declare const HexUint8: FixedBinaryCodec<string>;
 
 // array Uint16 [byte; 2]
@@ -51,21 +62,7 @@ export declare function fixedHexBytes(
 export declare const HexBytes: BinaryCodec<string>;
 export declare const UTF8String: BinaryCodec<string>;
 
-// byte
-export const byte: FixedBinaryCodec<number> = {
-  __isFixedCodec__: true,
-  byteLength: 1,
-  pack(b) {
-    const buf = new ArrayBuffer(1);
-    new DataView(buf).setUint8(0, b);
-    return buf;
-  },
-  unpack(buf) {
-    return new DataView(buf).getUint8(0);
-  },
-};
-
-export declare function createByteCodec(): FixedBinaryCodec<number>;
+export declare function createByteCodec(): FixedBinaryCodec<ArrayBuffer>;
 export declare function createByteCodec<T>(
-  byteCodec: Codec<number, T>
+  byteCodec: BinaryCodec<T>
 ): FixedBinaryCodec<T>;

@@ -6,68 +6,69 @@ import {
   vector,
 } from "@ckb-lumos-experiment/molecule/lib/layout";
 import {
-  byte,
   createByteCodec,
   Uint32LE,
   UTF8String,
 } from "@ckb-lumos-experiment/molecule/lib/common";
+import { byte } from "../src/layout";
+import { Uint8 } from "../src/common";
 
-export const schema = `
-  table Character {
-    main_equip: Equip,
-    sub_equip: EquipOpt,
-  }
-
-  option EquipOpt (Equip);
-
-  union Equip {
-    Sword,
-    Wand,
-    Bow,
-  }
-
-  struct Sword {
-    material: byte,
-  }
-
-  table Wand {
-    gems: GemVec,
-    desc: DescOpt,
-  }
-
-  vector GemVec <Gem>;
-
-  struct Gem {
-    color: byte,
-    shape: byte,
-  }
-
-  table Bow {
-    arrows: Uint32,
-    desc: DescOpt,
-  }
-
-  option DescOpt (UTF8String);
-
-  # convention types
-  array Uint32 [byte; 4];
-  vector UTF8String <byte>;
-`;
+// table Character {
+//   main_equip: Equip,
+//   sub_equip: EquipOpt,
+// }
+//
+// option EquipOpt (Equip);
+//
+// union Equip {
+//   Sword,
+//   Wand,
+//   Bow,
+// }
+//
+// struct Sword {
+//   material: byte,
+// }
+//
+// table Wand {
+//   gems: GemVec,
+//   desc: DescOpt,
+// }
+//
+// vector GemVec <Gem>;
+//
+// struct Gem {
+//   color: byte,
+//   shape: byte,
+// }
+//
+// table Bow {
+//   arrows: Uint32,
+//   desc: DescOpt,
+// }
+//
+// option DescOpt (UTF8String);
+//
+// # convention types
+// array Uint32 [byte; 4];
+// vector UTF8String <byte>;
 
 // custom type
-type SwordMaterial = "wood" | "steel" | "crystal";
-const Material = createByteCodec<SwordMaterial>({
+type Material = "wood" | "steel" | "crystal";
+const SwordMaterial = createByteCodec<Material>({
   pack: (material) => {
-    if (material === "wood") return 0;
-    if (material === "steel") return 1;
-    if (material === "crystal") return 2;
+    if (material === "wood") Uint8.pack(0);
+    if (material === "steel") Uint8.pack(1);
+    if (material === "crystal") Uint8.pack(2);
 
     throw new Error("Unknown material " + material);
   },
   unpack: (bin) => {
-    if (bin === 0) return "wood";
-    if (bin === 1) return "steel";
-    if (bin === 2) return "crystal";
+    const u8 = Uint8.unpack(bin);
+
+    if (u8 === 0) return "wood";
+    if (u8 === 1) return "steel";
+    if (u8 === 2) return "crystal";
 
     throw new Error("Unknown material binary: " + bin);
   },
@@ -82,7 +83,7 @@ const DescOpt = option(UTF8String);
 // }
 const Sword = struct(
   {
-    material: Material,
+    material: SwordMaterial,
   },
   ["material"]
 );

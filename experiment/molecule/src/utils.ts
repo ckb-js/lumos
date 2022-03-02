@@ -11,3 +11,7 @@ export function concatBuffer(...buffers: ArrayBuffer[]): ArrayBuffer {
   }
   return result.buffer;
 }
+
+export function createBuffer(xs: number[]): ArrayBuffer {
+  return new Uint8Array(xs).buffer;
+}
