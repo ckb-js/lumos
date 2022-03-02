@@ -10,6 +10,8 @@
  * | union  | item-type-id                                     | item                              |
  */
 
+import { concatBuffer } from "./utils";
+
 export interface Codec<Packed, Unpacked> {
   pack: (packable: Unpacked) => Packed;
   unpack: (packed: Packed) => Unpacked;
@@ -21,7 +23,7 @@ export type Unpack<T extends Codec<any, any>> = ReturnType<T["unpack"]>;
 export interface BinaryCodec<Unpacked = any>
   extends Codec<ArrayBuffer, Unpacked> {}
 
-type Fixed = { readonly __isFixedCodec__: true };
+type Fixed = { readonly __isFixedCodec__: true; readonly byteLength: number };
 export type FixedBinaryCodec<Unpacked = any> = BinaryCodec<Unpacked> & Fixed;
 
 type NullableKeys<O extends Record<string, any>> = {
@@ -50,15 +52,60 @@ export type UnionCodec<T extends Record<string, BinaryCodec>> = RecordValues<
   }
 >;
 
-export declare function array<T extends FixedBinaryCodec>(
+export function array<T extends FixedBinaryCodec>(
   itemCodec: T,
   itemCount: number
-): ArrayCodec<T> & Fixed;
+): ArrayCodec<T> & Fixed {
+  return Object.freeze({
+    __isFixedCodec__: true,
+    byteLength: itemCodec.byteLength * itemCount,
+    pack(items) {
+      return items.reduce(
+        (buf, item) => concatBuffer(buf, itemCodec.pack(item)),
+        new ArrayBuffer(0)
+      );
+    },
+    unpack(buf) {
+      const itemSize = buf.byteLength / itemCount;
+      const result: Unpack<T>[] = [];
+      for (let i = 0; i < itemCount; i++) {
+        result.push(itemCodec.unpack(buf.slice(i, i + itemSize)));
+      }
+      return result;
+    },
+  });
+}
 
-export declare function struct<T extends Record<string, FixedBinaryCodec>>(
+export function struct<T extends Record<string, FixedBinaryCodec>>(
   shape: T,
   fields: (keyof T)[]
-): ObjectCodec<T> & Fixed;
+): ObjectCodec<T> & Fixed {
+  return {
+    __isFixedCodec__: true,
+    byteLength: fields.reduce((sum, field) => sum + shape[field].byteLength, 0),
+    pack(obj) {
+      return fields.reduce((result, field) => {
+        const itemCodec = shape[field];
+
+        // @ts-ignore
+        const item = obj[field];
+        return concatBuffer(result, itemCodec.pack(item));
+      }, new ArrayBuffer(0));
+    },
+    unpack(buf) {
+      let offset = 0;
+      return fields.reduce((obj, field) => {
+        const itemCodec = shape[field];
+        const itemBuf = buf.slice(offset, offset + itemCodec.byteLength);
+
+        Object.assign(obj, { [field]: itemCodec.unpack(itemBuf) });
+        offset += itemCodec.byteLength;
+
+        return obj;
+      }, {} as PartialNullable<{ [key in keyof T]: Unpack<T[key]> }>);
+    },
+  };
+}
 
 declare function fixvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T>;
 

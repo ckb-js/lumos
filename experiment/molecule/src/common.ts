@@ -6,8 +6,21 @@ export declare const Uint8: FixedBinaryCodec<number>;
 export declare const HexUint8: FixedBinaryCodec<string>;
 
 // array Uint16 [byte; 2]
+/**
+ *
+ * @alias Uint16LE
+ */
+export declare const Uint16: FixedBinaryCodec<number>;
 export declare const Uint16LE: FixedBinaryCodec<number>;
+export declare const Uint16BE: FixedBinaryCodec<number>;
+/**
+ * @alias HexUint16LE
+ */
+export declare const HexUint16: FixedBinaryCodec<string>;
 export declare const HexUint16LE: FixedBinaryCodec<string>;
+export declare const HexUint16BE: FixedBinaryCodec<string>;
+
+// TODO UintNLE and UintNBE
 
 // array Uint32 [byte; 4]
 export declare const Uint32LE: FixedBinaryCodec<number>;
@@ -39,7 +52,19 @@ export declare const HexBytes: BinaryCodec<string>;
 export declare const UTF8String: BinaryCodec<string>;
 
 // byte
-export declare const byte: FixedBinaryCodec<number>;
+export const byte: FixedBinaryCodec<number> = {
+  __isFixedCodec__: true,
+  byteLength: 1,
+  pack(b) {
+    const buf = new ArrayBuffer(1);
+    new DataView(buf).setUint8(0, b);
+    return buf;
+  },
+  unpack(buf) {
+    return new DataView(buf).getUint8(0);
+  },
+};
+
 export declare function createByteCodec(): FixedBinaryCodec<number>;
 export declare function createByteCodec<T>(
   byteCodec: Codec<number, T>
