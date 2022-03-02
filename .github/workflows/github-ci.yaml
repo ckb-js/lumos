@@ -10,13 +10,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Set env to ckb2019
-        run: |
-          echo "CKB_Indexer_Version=0.2.2" >> $GITHUB_ENV
-      - name: Set env to ckb2021
-        if: endsWith(github.ref, '/ckb2021')
-        run: |
-          echo "CKB_Indexer_Version=0.3.2" >> $GITHUB_ENV
       - uses: actions/checkout@master
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
