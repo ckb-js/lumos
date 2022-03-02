@@ -7,7 +7,7 @@ const server = createCKBMockRPC({
     fs.readFileSync(path.join(__dirname, "./blocks_data.json")).toString()
   ),
   localNode: mockData.localNode(),
-  CKBVersion: "0.2.2",
+  CKBVersion: "0.3.2",
 });
 
 server.listen(8118, function () {
