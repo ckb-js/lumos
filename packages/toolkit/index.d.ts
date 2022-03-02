@@ -3,6 +3,8 @@ import JSBI from "jsbi";
 export class Reader {
   constructor(reader: string | ArrayBuffer | Reader);
   static fromRawString(s: string): Reader;
+  static isReader(x: unknown): x is Reader;
+  static from(x: string | ArrayBuffer | Reader | Uint8Array): Reader;
 
   length(): number;
   indexAt(i: number): number;
