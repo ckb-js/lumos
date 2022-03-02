@@ -12,7 +12,6 @@ const download = () => {
   shell.chmod("+x", "./ckb-indexer");
   shell.rm("-rf", "ckb-indexer-linux-x86_64.tar.gz");
   shell.rm(`ckb-indexer-${CKB_Indexer_Version}-linux.zip`);
-  shell.exit(0);
 };
 export function downloadCKBIndexer() {
   if (!shell.test("-e", "./ckb-indexer")) {
@@ -44,5 +43,4 @@ export function startCKBIndexer(CKBVersion?: string) {
             | tr -d '\n' \
             | curl -H 'content-type: application/json' -d @- \
             http://localhost:8120`);
-  shell.exit(0);
 }
