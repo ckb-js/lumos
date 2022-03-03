@@ -10,6 +10,7 @@
  * | union  | item-type-id                                     | item                              |
  */
 
+import { Uint32LE } from "./common";
 import { concatBuffer } from "./utils";
 
 export interface Codec<Packed, Unpacked> {
@@ -118,24 +119,199 @@ export function struct<T extends Record<string, FixedBinaryCodec>>(
   };
 }
 
-declare function fixvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T>;
+export function fixvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
+  return {
+    pack(items) {
+      return concatBuffer(
+        Uint32LE.pack(items.length),
+        items.reduce(
+          (buf, item) => concatBuffer(buf, itemCodec.pack(item)),
+          new ArrayBuffer(0)
+        )
+      );
+    },
+    unpack(buf) {
+      const itemCount = Uint32LE.unpack(buf.slice(0, 4));
+      const itemSize = (buf.byteLength - 4) / itemCount;
+      return array(
+        { ...itemCodec, __isFixedCodec__: true, byteLength: itemSize },
+        itemCount
+      ).unpack(buf.slice(4));
+    },
+  };
+}
 
-declare function dynvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T>;
+export function dynvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
+  return {
+    pack(obj) {
+      const packed = obj.reduce(
+        (result, item) => {
+          const packedItem = itemCodec.pack(item);
+          const packedHeader = Uint32LE.pack(packedItem.byteLength);
+          return [
+            concatBuffer(result[0], packedHeader),
+            concatBuffer(result[1], packedItem),
+          ];
+        },
+        [new ArrayBuffer(0), new ArrayBuffer(0)]
+      );
+      const packedTotalSize = Uint32LE.pack(
+        packed[0].byteLength + packed[1].byteLength + 4
+      );
+      return concatBuffer(packedTotalSize, packed[0], packed[1]);
+    },
+    unpack(buf) {
+      const totalSize = Uint32LE.unpack(buf.slice(0, 4));
+      const result: any = [];
+      if (totalSize <= 4) {
+        return result;
+      } else {
+        const offset0 = Uint32LE.unpack(buf.slice(4, 8));
+        const itemCount = (offset0 - 4) / 4;
+        const offsets = new Array(itemCount)
+          .fill(1)
+          .map((_, index) =>
+            Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
+          );
+        offsets.push(totalSize);
+        const result = [];
+        for (let index = 0; index < offsets.length - 1; index++) {
+          const start = offsets[index];
+          const end = offsets[index + 1];
+          const itemBuf = buf.slice(start, end);
+          result.push(itemCodec.unpack(itemBuf));
+        }
+        return result;
+      }
+    },
+  };
+}
 
-export declare function vector<T extends BinaryCodec>(
-  itemCodec: T
-): ArrayCodec<T>;
+export function vector<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
+  return {
+    pack(items) {
+      const length = items.length;
+      const packedLength = Uint32LE.pack(length);
+      const packedBody = items.reduce(
+        (buf, item) => concatBuffer(buf, itemCodec.pack(item)),
+        new ArrayBuffer(0)
+      );
+      return concatBuffer(packedLength, packedBody);
+    },
+    unpack(buf) {
+      const itemCount = Uint32LE.unpack(buf.slice(0, 4));
+      if (itemCount === 0) {
+        return [];
+      }
+      const itemSize = (buf.byteLength - 4) / itemCount;
+      const result: Unpack<T>[] = [];
+      for (let i = 0; i < itemCount; i++) {
+        result.push(itemCodec.unpack(buf.slice(i, i + itemSize)));
+      }
+      return result;
+    },
+  };
+}
 
-export declare function table<T extends Record<string, BinaryCodec>>(
+export function table<T extends Record<string, BinaryCodec>>(
   shape: T,
   fields: (keyof T)[]
-): ObjectCodec<T>;
+): ObjectCodec<T> {
+  return {
+    pack(obj) {
+      const packed = fields.reduce(
+        (result, field) => {
+          const itemCodec = shape[field];
+          // @ts-ignore
+          const item = obj[field];
+          const packedItem = itemCodec.pack(item);
+          const packedHeader = Uint32LE.pack(packedItem.byteLength);
+          return [
+            concatBuffer(result[0], packedHeader),
+            concatBuffer(result[1], packedItem),
+          ];
+        },
+        [new ArrayBuffer(0), new ArrayBuffer(0)]
+      );
+      const packedTotalSize = Uint32LE.pack(
+        packed[0].byteLength + packed[1].byteLength + 4
+      );
+      return concatBuffer(packedTotalSize, packed[0], packed[1]);
+    },
+    unpack(buf) {
+      const totalSize = Uint32LE.unpack(buf.slice(0, 4));
+      if (totalSize <= 4 || fields.length === 0) {
+        return {} as PartialNullable<{ [key in keyof T]: Unpack<T[key]> }>;
+      } else {
+        const offsets = fields.map((_, index) =>
+          Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
+        );
+        offsets.push(totalSize);
+        const obj = {};
+        for (let index = 0; index < offsets.length - 1; index++) {
+          const start = offsets[index];
+          const end = offsets[index + 1];
+          const field = fields[index];
+          const itemCodec = shape[field];
+          const itemBuf = buf.slice(start, end);
+          Object.assign(obj, { [field]: itemCodec.unpack(itemBuf) });
+        }
+        return obj as PartialNullable<{ [key in keyof T]: Unpack<T[key]> }>;
+      }
+    },
+  };
+}
 
-export declare function union<T extends Record<string, BinaryCodec>>(
+export function union<T extends Record<string, BinaryCodec>>(
   itemCodec: T,
   fields: (keyof T)[]
-): UnionCodec<T>;
+): UnionCodec<T> {
+  return {
+    pack(
+      obj: RecordValues<
+        { [key in keyof T]: { type: key; value: ReturnType<T[key]["unpack"]> } }
+      >
+    ) {
+      const type = (obj as any).type;
+      const fieldIndex = fields.indexOf(type);
+      if (fieldIndex === -1) {
+        throw new Error(`Unknown union type: ${(obj as any).type}`);
+      }
+      const packedFieldIndex = Uint32LE.pack(fieldIndex);
+      const packedBody = itemCodec[type].pack((obj as any).value);
+      return concatBuffer(packedFieldIndex, packedBody);
+    },
+    unpack(buf: ArrayBuffer) {
+      const typeIndex = Uint32LE.unpack(buf.slice(0, 4));
+      const type = fields[typeIndex];
+      return { type, value: itemCodec[type].unpack(buf.slice(4)) };
+    },
+  } as RecordValues<
+    {
+      [key in keyof T]: BinaryCodec<{
+        type: key;
+        value: ReturnType<T[key]["unpack"]>;
+      }>;
+    }
+  >;
+}
 
-export declare function option<T extends BinaryCodec>(
+export function option<T extends BinaryCodec>(
   itemCodec: T
-): OptionCodec<Unpack<T>>;
+): OptionCodec<Unpack<T>> {
+  return {
+    pack(obj?) {
+      if (obj) {
+        return itemCodec.pack(obj);
+      } else {
+        return new ArrayBuffer(0);
+      }
+    },
+    unpack(buf) {
+      if (buf.byteLength === 0) {
+        return null;
+      }
+      return itemCodec.unpack(buf);
+    },
+  };
+}
