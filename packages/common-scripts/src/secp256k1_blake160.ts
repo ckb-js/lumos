@@ -421,6 +421,7 @@ export async function transferCompatible(
     }
     const cellCollector = cellProvider.collector({
       lock: fromScript,
+      type: "empy",
     });
     const changeCell: Cell = {
       cell_output: {
