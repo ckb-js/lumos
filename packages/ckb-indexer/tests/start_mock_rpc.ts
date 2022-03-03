@@ -9,6 +9,13 @@ const server = createCKBMockRPC({
   localNode: mockData.localNode(),
 });
 
-server.listen(8118, function () {
+const app = server.listen(8118, function () {
   console.log("🚀 server listen to 8118");
 });
+
+server.get("/quit", function (req, res) {
+  res.send("closing..");
+  app.close();
+});
+
+export { app };
