@@ -32,15 +32,19 @@
     "events": "^3.3.0"
   },
   "devDependencies": {
-    "@types/sinon": "^10.0.6",
     "@ckb-lumos/testkit": "^0.17.0-rc8",
+    "@types/request": "^2.48.8",
+    "@types/sinon": "^10.0.6",
+    "find-process": "^1.4.7",
+    "request": "^2.88.2",
     "sinon": "^12.0.1",
     "ts-node": "^10.4.0"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "pretest": "nohup ts-node tests/start_mock_rpc.ts & sleep 5 & nohup ts-node tests/start_ckb_indexer.ts & sleep 5",
+    "posttest": "ts-node tests/close-mock-server-and-ckb-indexer.ts",
+    "pretest": "(nohup ts-node tests/start_mock_rpc.ts &) ; (sleep 5) ; (nohup ts-node tests/start_ckb_indexer.ts &) ; (sleep 5)",
     "test": "ava **/*.test.ts --timeout=2m",
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",

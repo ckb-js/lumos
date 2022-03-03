@@ -28,19 +28,11 @@ export function downloadCKBIndexer() {
     }
   }
 }
-
 export function startCKBIndexer(CKBVersion?: string) {
   CKB_Indexer_Version = CKBVersion ? CKBVersion : CKB_Indexer_Version;
   downloadCKBIndexer();
   shell.exec(
-    `nohup ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp`
+    `./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp`,
+    { async: true }
   );
-  shell.exec(`echo '{
-                "id": 2,
-                "jsonrpc": "2.0",
-                "method": "get_tip"
-            }' \
-            | tr -d '\n' \
-            | curl -H 'content-type: application/json' -d @- \
-            http://localhost:8120`);
 }
