@@ -1,6 +1,6 @@
 {
-  "name": "lumos",
-  "version": "1.0.0",
+  "name": "@peersyst/lumos",
+  "version": "0.17.0-rc8",
   "repository": {
     "type": "git",
     "url": "git://github.com/Peersyst/lumos.git"
