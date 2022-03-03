@@ -30,7 +30,7 @@
   "scripts": {
     "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.js\"",
-    "test:unit": "ava **/*.test.js"
+    "test": "ava **/*.test.js"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
