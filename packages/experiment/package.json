@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/experiment",
-  "version": "0.17.0-rc8",
+  "version": "0.17.0",
   "description": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
@@ -23,9 +23,9 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc8",
-    "@ckb-lumos/config-manager": "^0.17.0-rc8",
-    "@ckb-lumos/toolkit": "^0.17.0-rc8"
+    "@ckb-lumos/base": "^0.17.0",
+    "@ckb-lumos/config-manager": "^0.17.0",
+    "@ckb-lumos/toolkit": "^0.17.0"
   },
   "repository": {
     "type": "git",
