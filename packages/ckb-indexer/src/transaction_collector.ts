@@ -14,6 +14,7 @@ import {
   Order,
   TransactionWithIOType,
   GetTransactionRPCResult,
+  JsonRprRequestBody,
 } from "./type";
 import { CkbIndexer } from "./indexer";
 import * as services from "./services";
@@ -49,7 +50,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
    *skip?: filter after get transaction from ckb-indexer;;
    *order?: query by ckb-indexer;
    */
-  private async getTransactions(
+  public async getTransactions(
     lastCursor?: string
   ): Promise<GetTransactionDetailResult> {
     const searchKeyFilter: SearchKeyFilter = {
@@ -86,12 +87,12 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       );
       lastCursor = transactionHashList.lastCursor;
     }
-
     // filter by ScriptWrapper.io_type
     transactionHashList.objects = this.filterByTypeIoTypeAndLockIoType(
       transactionHashList.objects,
       this.queries
     );
+
     // return if transaction hash list if empty
     if (transactionHashList.objects.length === 0) {
       return {
@@ -102,20 +103,25 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     let transactionList: TransactionWithIOType[] = await this.getTransactionListFromRpc(
       transactionHashList
     );
+
     //get input cell transaction batch
-    const txIoTypeInputOutPointList: unknown[] = [];
+    const txIoTypeInputOutPointList: JsonRprRequestBody[] = [];
     transactionList.forEach((transactionWrapper) => {
       if (transactionWrapper.ioType === "input") {
         const targetOutPoint: OutPoint =
           transactionWrapper.transaction.inputs[
             parseInt(transactionWrapper.ioIndex)
           ].previous_output;
-        txIoTypeInputOutPointList.push({
-          id: targetOutPoint.index + "-" + transactionWrapper.transaction.hash,
-          jsonrpc: "2.0",
-          method: "get_transaction",
-          params: [targetOutPoint.tx_hash],
-        });
+        const id =
+          targetOutPoint.index + "-" + transactionWrapper.transaction.hash;
+        if (!txIoTypeInputOutPointList.some((txReq) => txReq.id === id)) {
+          txIoTypeInputOutPointList.push({
+            id,
+            jsonrpc: "2.0",
+            method: "get_transaction",
+            params: [targetOutPoint.tx_hash],
+          });
+        }
       }
     });
     if (txIoTypeInputOutPointList.length > 0) {
@@ -127,12 +133,11 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
             const [cellIndex, transactionHash] = itemId.split("-");
             const output: Output =
               item.result.transaction.outputs[parseInt(cellIndex)];
-            const targetTx = transactionList.find(
-              (tx) => tx.transaction.hash === transactionHash
+            const targetTxs = transactionList.filter(
+              (tx) =>
+                tx.transaction.hash === transactionHash && tx.ioType === "input"
             );
-            if (targetTx) {
-              targetTx.inputCell = output;
-            }
+            targetTxs.forEach((targetTx) => (targetTx.inputCell = output));
           });
         });
     }
