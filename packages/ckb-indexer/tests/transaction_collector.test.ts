@@ -1,6 +1,6 @@
 import test from "ava";
 import { Indexer, TransactionCollector } from "../src";
-import { Order, ScriptType } from "../src/type";
+import { SearchKey } from "../src/type";
 const {
   lock,
   transactionCollectorHashTestCases,
@@ -21,7 +21,7 @@ import {
   multipleInputQuery,
   batchRequest,
 } from "./transaction_collector_special_test_case";
-import { HashType } from "@ckb-lumos/base";
+import { QueryOptions } from "@ckb-lumos/base";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
@@ -132,9 +132,9 @@ test("throw error when pass null lock and empty type to TransactionCollector", (
 test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (t) => {
   let error = t.throws(
     () => {
-      const queryOptions = {
+      const queryOptions: QueryOptions = {
         lock: lock,
-        order: "asc" as Order,
+        order: "asc",
         toBlock: "0x",
       };
       new TransactionCollector(indexer, queryOptions, nodeUri);
@@ -147,28 +147,28 @@ test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (
 test("input cell can be found in transaction detail", async (t) => {
   getTransactionsStub = sinon.stub(indexer, "getTransactions");
   requestBatchStub = sinon.stub(services, "requestBatch");
-  const searchKey1 = {
+  const searchKey1: SearchKey = {
     script: {
       code_hash:
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hash_type: "type" as HashType,
+      hash_type: "type",
       args: "0xbde8b19b4505dd1d1310223edecea20adc4e240e",
     },
-    script_type: "lock" as ScriptType,
+    script_type: "lock",
     filter: {},
   };
   const SearchFilter1 = { sizeLimit: undefined, order: undefined };
   getTransactionsStub
     .withArgs(searchKey1, SearchFilter1)
     .returns(getTransactionFromIndexerResult);
-  const searchKey2 = {
+  const searchKey2: SearchKey = {
     script: {
       code_hash:
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hash_type: "type" as HashType,
+      hash_type: "type",
       args: "0xbde8b19b4505dd1d1310223edecea20adc4e240e",
     },
-    script_type: "lock" as ScriptType,
+    script_type: "lock",
     filter: {},
   };
   const searchKeyFilter2 = {
@@ -198,14 +198,14 @@ test("input cell can be found in transaction detail", async (t) => {
 });
 
 test("should add inputCell to all transaction which txHash and ioType is same as query", async (t) => {
-  const searchKey = {
+  const searchKey: SearchKey = {
     script: {
       code_hash:
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hash_type: "type" as HashType,
+      hash_type: "type",
       args: "0xdfc8ad219178a307ff117ee4e2fe760cd18410a7",
     },
-    script_type: "lock" as ScriptType,
+    script_type: "lock",
     filter: {},
   };
   const SearchFilter = { sizeLimit: undefined, order: undefined };
