@@ -198,7 +198,7 @@ test("input cell can be found in transaction detail", async (t) => {
 });
 
 test("should add inputCell to all transaction which txHash and ioType is same as query", async (t) => {
-  const args5 = {
+  const searchKey = {
     script: {
       code_hash:
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
@@ -208,8 +208,10 @@ test("should add inputCell to all transaction which txHash and ioType is same as
     script_type: "lock" as ScriptType,
     filter: {},
   };
-  const args6 = { sizeLimit: undefined, order: undefined };
-  getTransactionsStub.withArgs(args5, args6).returns(multipleInputCellTx);
+  const SearchFilter = { sizeLimit: undefined, order: undefined };
+  getTransactionsStub
+    .withArgs(searchKey, SearchFilter)
+    .returns(multipleInputCellTx);
   requestBatchStub
     .withArgs(nodeUri, batchForAll)
     .returns(multipleInputCellBatchRequestResult);
