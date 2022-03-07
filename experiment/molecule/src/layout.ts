@@ -203,30 +203,17 @@ export function dynvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
   };
 }
 
+export function isFixedCodec<T>(
+  codec: BinaryCodec<T>
+): codec is FixedBinaryCodec<T> {
+  return !!(codec as FixedBinaryCodec).__isFixedCodec__;
+}
+
 export function vector<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
-  return {
-    pack(items) {
-      const length = items.length;
-      const packedLength = Uint32LE.pack(length);
-      const packedBody = items.reduce(
-        (buf, item) => concatBuffer(buf, itemCodec.pack(item)),
-        new ArrayBuffer(0)
-      );
-      return concatBuffer(packedLength, packedBody);
-    },
-    unpack(buf) {
-      const itemCount = Uint32LE.unpack(buf.slice(0, 4));
-      if (itemCount === 0) {
-        return [];
-      }
-      const itemSize = (buf.byteLength - 4) / itemCount;
-      const result: Unpack<T>[] = [];
-      for (let i = 0; i < itemCount; i++) {
-        result.push(itemCodec.unpack(buf.slice(i, i + itemSize)));
-      }
-      return result;
-    },
-  };
+  if (isFixedCodec(itemCodec)) {
+    return fixvec(itemCodec);
+  }
+  return dynvec(itemCodec);
 }
 
 export function table<T extends Record<string, BinaryCodec>>(

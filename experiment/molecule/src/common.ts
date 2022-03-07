@@ -27,10 +27,6 @@ export const HexUint8: FixedBinaryCodec<string> = {
 };
 
 // array Uint16 [byte; 2]
-/**
- *
- * @alias Uint16LE
- */
 export const Uint16LE: FixedBinaryCodec<number> = {
   __isFixedCodec__: true,
   byteLength: 2,
@@ -43,6 +39,9 @@ export const Uint16LE: FixedBinaryCodec<number> = {
     return new DataView(buf).getUint16(0, true);
   },
 };
+/**
+ * @alias Uint16LE
+ */
 export const Uint16 = Uint16LE;
 export const Uint16BE: FixedBinaryCodec<number> = {
   __isFixedCodec__: true,
@@ -56,9 +55,7 @@ export const Uint16BE: FixedBinaryCodec<number> = {
     return new DataView(buf).getUint16(0);
   },
 };
-/**
- * @alias HexUint16LE
- */
+
 export const HexUint16LE: FixedBinaryCodec<string> = {
   __isFixedCodec__: true,
   byteLength: 2,
@@ -69,6 +66,9 @@ export const HexUint16LE: FixedBinaryCodec<string> = {
     return `0x${Uint16LE.unpack(buf).toString(16)}`;
   },
 };
+/**
+ * @alias HexUint16LE
+ */
 export const HexUint16 = HexUint16LE;
 
 export const HexUint16BE: FixedBinaryCodec<string> = {
@@ -98,6 +98,9 @@ export const Uint32LE: FixedBinaryCodec<number> = {
     return view.getUint32(0, true);
   },
 };
+/**
+ * @alias Uint32LE
+ */
 export const Uint32 = Uint32LE;
 export const Uint32BE: FixedBinaryCodec<number> = {
   __isFixedCodec__: true,
@@ -125,6 +128,9 @@ export const HexUint32LE: FixedBinaryCodec<string> = {
     return BI.from(Uint32LE.unpack(buf)).toHexString();
   },
 };
+/**
+ * @alias HexUint32LE
+ */
 export const HexUint32 = HexUint32LE;
 export const HexUint32BE: FixedBinaryCodec<string> = {
   __isFixedCodec__: true,
@@ -141,14 +147,23 @@ export const HexUint32BE: FixedBinaryCodec<string> = {
 // array Uint64 [byte; 8]
 export const Uint64LE: FixedBinaryCodec<BI> = createBICodec(8);
 export const Uint64BE: FixedBinaryCodec<BI> = createBICodec(8, true);
+/**
+ * @alias Uint64LE
+ */
 export const Uint64 = Uint64LE;
 export const HexUint64LE: FixedBinaryCodec<string> = createBIHexCodec(Uint64LE);
 export const HexUint64BE: FixedBinaryCodec<string> = createBIHexCodec(Uint64BE);
+/**
+ * @alias HexUint64LE
+ */
 export const HexUint64 = HexUint64LE;
 
 // array Uint128 [byte; 16]
 export const Uint128LE: FixedBinaryCodec<BI> = createBICodec(16);
 export const Uint128BE: FixedBinaryCodec<BI> = createBICodec(16, true);
+/**
+ * @alias Uint128LE
+ */
 export const Uint128 = Uint128LE;
 export const HexUint128LE: FixedBinaryCodec<string> = createBIHexCodec(
   Uint128LE
@@ -156,11 +171,17 @@ export const HexUint128LE: FixedBinaryCodec<string> = createBIHexCodec(
 export const HexUint128BE: FixedBinaryCodec<string> = createBIHexCodec(
   Uint128BE
 );
+/**
+ * @alias HexUint128LE
+ */
 export const HexUint128 = HexUint128LE;
 
 // array Uint256 [byte; 32]
 export const Uint256LE: FixedBinaryCodec<BI> = createBICodec(32);
 export const Uint256BE: FixedBinaryCodec<BI> = createBICodec(32, true);
+/**
+ * @alias Uint256LE
+ */
 export const Uint256 = Uint256LE;
 export const HexUint256LE: FixedBinaryCodec<string> = createBIHexCodec(
   Uint256LE
@@ -168,11 +189,17 @@ export const HexUint256LE: FixedBinaryCodec<string> = createBIHexCodec(
 export const HexUint256BE: FixedBinaryCodec<string> = createBIHexCodec(
   Uint256BE
 );
+/**
+ * @alias HexUint256LE
+ */
 export const HexUint256 = HexUint256LE;
 
 // array Uint512 [byte; 64]
 export const Uint512LE: FixedBinaryCodec<BI> = createBICodec(64);
 export const Uint512BE: FixedBinaryCodec<BI> = createBICodec(64, true);
+/**
+ * @alias Uint512LE
+ */
 export const Uint512 = Uint512LE;
 export const HexUint512LE: FixedBinaryCodec<string> = createBIHexCodec(
   Uint512LE
@@ -180,6 +207,9 @@ export const HexUint512LE: FixedBinaryCodec<string> = createBIHexCodec(
 export const HexUint512BE: FixedBinaryCodec<string> = createBIHexCodec(
   Uint512BE
 );
+/**
+ * @alias HexUint512LE
+ */
 export const HexUint512 = HexUint512LE;
 
 // array BytesN [byte; n]

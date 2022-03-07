@@ -19,7 +19,7 @@
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
-    "fmt": "prettier --write \"{src,examples}/**/*.ts\" package.json",
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "ava **/*.test.ts --timeout=2m",
     "build": "npm run build:types && npm run build:js",
