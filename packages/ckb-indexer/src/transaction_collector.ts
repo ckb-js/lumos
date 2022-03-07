@@ -113,31 +113,39 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
             parseInt(transactionWrapper.ioIndex)
           ].previous_output;
         const id =
-          targetOutPoint.index + "-" + transactionWrapper.transaction.hash;
-        if (!txIoTypeInputOutPointList.some((txReq) => txReq.id === id)) {
-          txIoTypeInputOutPointList.push({
-            id,
-            jsonrpc: "2.0",
-            method: "get_transaction",
-            params: [targetOutPoint.tx_hash],
-          });
-        }
+          targetOutPoint.index +
+          "-" +
+          transactionWrapper.transaction.hash +
+          "-" +
+          transactionWrapper.ioIndex;
+
+        txIoTypeInputOutPointList.push({
+          id,
+          jsonrpc: "2.0",
+          method: "get_transaction",
+          params: [targetOutPoint.tx_hash],
+        });
       }
     });
     if (txIoTypeInputOutPointList.length > 0) {
       await services
         .requestBatch(this.CKBRpcUrl, txIoTypeInputOutPointList)
         .then((response: GetTransactionRPCResult[]) => {
+          console.log(response.length);
           response.forEach((item: GetTransactionRPCResult) => {
             const itemId = item.id.toString();
-            const [cellIndex, transactionHash] = itemId.split("-");
+            const [cellIndex, transactionHash, ioIndex] = itemId.split("-");
             const output: Output =
               item.result.transaction.outputs[parseInt(cellIndex)];
-            const targetTxs = transactionList.filter(
+            const targetTx = transactionList.find(
               (tx) =>
-                tx.transaction.hash === transactionHash && tx.ioType === "input"
+                tx.transaction.hash === transactionHash &&
+                tx.ioType === "input" &&
+                tx.ioIndex === ioIndex
             );
-            targetTxs.forEach((targetTx) => (targetTx.inputCell = output));
+            if (targetTx) {
+              targetTx.inputCell = output;
+            }
           });
         });
     }
