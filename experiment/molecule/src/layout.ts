@@ -46,13 +46,9 @@ export interface OptionCodec<T> extends BinaryCodec<T | undefined> {
 
 export type ArrayCodec<T extends BinaryCodec> = BinaryCodec<Array<Unpack<T>>>;
 
-type RecordValues<T> = T extends Record<any, infer V> ? V : never;
-export type UnionCodec<T extends Record<string, BinaryCodec>> = RecordValues<
-  {
-    [key in keyof T]: BinaryCodec<{ type: key; value: Unpack<T[key]> }>;
-  }
+export type UnionCodec<T extends Record<string, BinaryCodec>> = BinaryCodec<
+  { [key in keyof T]: { type: key; value: Unpack<T[key]> } }[keyof T]
 >;
-
 export const byte: FixedBinaryCodec<ArrayBuffer> = {
   __isFixedCodec__: true,
   byteLength: 1,
@@ -281,18 +277,14 @@ export function union<T extends Record<string, BinaryCodec>>(
   fields: (keyof T)[]
 ): UnionCodec<T> {
   return {
-    pack(
-      obj: RecordValues<
-        { [key in keyof T]: { type: key; value: ReturnType<T[key]["unpack"]> } }
-      >
-    ) {
-      const type = (obj as any).type;
+    pack(obj) {
+      const type = obj.type;
       const fieldIndex = fields.indexOf(type);
       if (fieldIndex === -1) {
-        throw new Error(`Unknown union type: ${(obj as any).type}`);
+        throw new Error(`Unknown union type: ${obj.type}`);
       }
       const packedFieldIndex = Uint32LE.pack(fieldIndex);
-      const packedBody = itemCodec[type].pack((obj as any).value);
+      const packedBody = itemCodec[type].pack(obj.value);
       return concatBuffer(packedFieldIndex, packedBody);
     },
     unpack(buf: ArrayBuffer) {
@@ -300,14 +292,7 @@ export function union<T extends Record<string, BinaryCodec>>(
       const type = fields[typeIndex];
       return { type, value: itemCodec[type].unpack(buf.slice(4)) };
     },
-  } as RecordValues<
-    {
-      [key in keyof T]: BinaryCodec<{
-        type: key;
-        value: ReturnType<T[key]["unpack"]>;
-      }>;
-    }
-  >;
+  };
 }
 
 export function option<T extends BinaryCodec>(

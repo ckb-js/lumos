@@ -164,5 +164,5 @@ test("test layout-union", (t) => {
       [0x4, 0x56],
     ],
   });
-  t.deepEqual(codec.pack(unpacked as any), buffer);
+  t.deepEqual(codec.pack(unpacked), buffer);
 });
