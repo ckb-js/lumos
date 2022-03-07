@@ -131,8 +131,14 @@ export function fixvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
       );
     },
     unpack(buf) {
+      if (buf.byteLength < 4) {
+        throw new Error(
+          `fixvec: buffer is too short, expected at least 4 bytes, got ${buf.byteLength}`
+        );
+      }
       const itemCount = Uint32LE.unpack(buf.slice(0, 4));
       const itemSize = (buf.byteLength - 4) / itemCount;
+
       return array(
         { ...itemCodec, __isFixedCodec__: true, byteLength: itemSize },
         itemCount
@@ -147,21 +153,31 @@ export function dynvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
       const packed = obj.reduce(
         (result, item) => {
           const packedItem = itemCodec.pack(item);
-          const packedHeader = Uint32LE.pack(packedItem.byteLength);
-          return [
-            concatBuffer(result[0], packedHeader),
-            concatBuffer(result[1], packedItem),
-          ];
+          const packedHeader = Uint32LE.pack(result.offset);
+          return {
+            header: concatBuffer(result.header, packedHeader),
+            body: concatBuffer(result.body, packedItem),
+            offset: result.offset + packedItem.byteLength,
+          };
         },
-        [new ArrayBuffer(0), new ArrayBuffer(0)]
+        {
+          header: new ArrayBuffer(0),
+          body: new ArrayBuffer(0),
+          offset: 4 + obj.length * 4,
+        }
       );
       const packedTotalSize = Uint32LE.pack(
-        packed[0].byteLength + packed[1].byteLength + 4
+        packed.header.byteLength + packed.body.byteLength + 4
       );
-      return concatBuffer(packedTotalSize, packed[0], packed[1]);
+      return concatBuffer(packedTotalSize, packed.header, packed.body);
     },
     unpack(buf) {
       const totalSize = Uint32LE.unpack(buf.slice(0, 4));
+      if (totalSize !== buf.byteLength) {
+        throw new Error(
+          `Invalid buffer size, read from header: ${totalSize}, actual: ${buf.byteLength}`
+        );
+      }
       const result: any = [];
       if (totalSize <= 4) {
         return result;
@@ -219,27 +235,38 @@ export function table<T extends Record<string, BinaryCodec>>(
 ): ObjectCodec<T> {
   return {
     pack(obj) {
+      const headerLength = 4 + fields.length * 4;
       const packed = fields.reduce(
         (result, field) => {
           const itemCodec = shape[field];
           // @ts-ignore
           const item = obj[field];
           const packedItem = itemCodec.pack(item);
-          const packedHeader = Uint32LE.pack(packedItem.byteLength);
-          return [
-            concatBuffer(result[0], packedHeader),
-            concatBuffer(result[1], packedItem),
-          ];
+          const packedOffset = Uint32LE.pack(result.offset);
+          return {
+            header: concatBuffer(result.header, packedOffset),
+            body: concatBuffer(result.body, packedItem),
+            offset: result.offset + packedItem.byteLength,
+          };
         },
-        [new ArrayBuffer(0), new ArrayBuffer(0)]
+        {
+          header: new ArrayBuffer(0),
+          body: new ArrayBuffer(0),
+          offset: headerLength,
+        }
       );
       const packedTotalSize = Uint32LE.pack(
-        packed[0].byteLength + packed[1].byteLength + 4
+        packed.header.byteLength + packed.body.byteLength + 4
       );
-      return concatBuffer(packedTotalSize, packed[0], packed[1]);
+      return concatBuffer(packedTotalSize, packed.header, packed.body);
     },
     unpack(buf) {
       const totalSize = Uint32LE.unpack(buf.slice(0, 4));
+      if (totalSize !== buf.byteLength) {
+        throw new Error(
+          `Invalid buffer size, read from header: ${totalSize}, actual: ${buf.byteLength}`
+        );
+      }
       if (totalSize <= 4 || fields.length === 0) {
         return {} as PartialNullable<{ [key in keyof T]: Unpack<T[key]> }>;
       } else {
@@ -309,7 +336,7 @@ export function option<T extends BinaryCodec>(
     },
     unpack(buf) {
       if (buf.byteLength === 0) {
-        return null;
+        return undefined;
       }
       return itemCodec.unpack(buf);
     },

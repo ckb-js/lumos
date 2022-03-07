@@ -1,4 +1,4 @@
-import { BI } from "@ckb-lumos/BI";
+import { BI } from "@ckb-lumos/bi";
 import * as toolkit from "@ckb-lumos/toolkit";
 import { BinaryCodec, FixedBinaryCodec } from "./layout";
 
@@ -99,6 +99,20 @@ export const Uint32LE: FixedBinaryCodec<number> = {
   },
 };
 export const Uint32 = Uint32LE;
+export const Uint32BE: FixedBinaryCodec<number> = {
+  __isFixedCodec__: true,
+  byteLength: 4,
+  pack(num: number) {
+    const buffer = new ArrayBuffer(4);
+    const view = new DataView(buffer);
+    view.setUint32(0, num);
+    return buffer;
+  },
+  unpack(buf) {
+    const view = new DataView(buf);
+    return view.getUint32(0);
+  },
+};
 
 export const HexUint32LE: FixedBinaryCodec<string> = {
   __isFixedCodec__: true,
@@ -112,6 +126,17 @@ export const HexUint32LE: FixedBinaryCodec<string> = {
   },
 };
 export const HexUint32 = HexUint32LE;
+export const HexUint32BE: FixedBinaryCodec<string> = {
+  __isFixedCodec__: true,
+  byteLength: 4,
+  pack(numStr: string) {
+    const num = BI.from(numStr).toNumber();
+    return Uint32BE.pack(num);
+  },
+  unpack(buf) {
+    return BI.from(Uint32BE.unpack(buf)).toHexString();
+  },
+};
 
 // array Uint64 [byte; 8]
 export const Uint64LE: FixedBinaryCodec<BI> = createBICodec(8);
@@ -206,22 +231,32 @@ export function createBICodec(
     pack(num: BI) {
       const buffer = new ArrayBuffer(byteLength);
       const view = new DataView(buffer);
-      for (let i = 1; i <= loops; i++) {
-        view.setUint32(
-          byteLength - i * 4,
-          num.and("0xffffffff").toNumber(),
-          !bigEndian
-        );
-        num = num.shr(32);
+      if (!bigEndian) {
+        for (let i = 0; i < loops; i++) {
+          view.setUint32(i * 4, num.and("0xffffffff").toNumber(), true);
+          num = num.shr(32);
+        }
+      } else {
+        for (let i = loops - 1; i >= 0; i--) {
+          view.setUint32(i * 4, num.and("0xffffffff").toNumber());
+          num = num.shr(32);
+        }
       }
       return buffer;
     },
     unpack(buf) {
       const view = new DataView(buf);
-      const num = BI.from(0);
-      for (let i = 0; i < loops; i++) {
-        const part = BI.from(view.getUint32(i * 4, !bigEndian));
-        num.or(part.shl(32 * i));
+      let num = BI.from(0);
+      if (!bigEndian) {
+        for (let i = 0; i < loops; i++) {
+          const part = BI.from(view.getUint32(i * 4, true));
+          num = num.or(part.shl(32 * i));
+        }
+      } else {
+        for (let i = 0; i < loops; i++) {
+          const part = BI.from(view.getUint32((loops - i - 1) * 4));
+          num = num.or(part.shl(32 * i));
+        }
       }
       return num;
     },
