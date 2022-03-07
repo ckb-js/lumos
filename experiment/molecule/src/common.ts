@@ -308,7 +308,6 @@ export function createBIHexCodec(
   };
 }
 
-export declare function createByteCodec(): FixedBinaryCodec<ArrayBuffer>;
-export declare function createByteCodec<T>(
-  byteCodec: BinaryCodec<T>
-): FixedBinaryCodec<T>;
+export function createByteCodec<T>(byteCodec: BinaryCodec<T>): BinaryCodec<T> {
+  return byteCodec;
+}

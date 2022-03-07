@@ -26,9 +26,11 @@ import {
   HexUint512BE,
   Uint8,
   HexUint8,
+  createByteCodec,
 } from "../src/common";
 import { createBuffer } from "../src/utils";
 import { BI } from "@ckb-lumos/bi";
+import { BinaryCodec } from "../src/layout";
 
 test("test Uint8", (t) => {
   const num = 18; // 0x12
@@ -236,4 +238,17 @@ test("test Uint512 hex", (t) => {
   );
   t.truthy(HexUint512.unpack(packedLE) === num);
   t.truthy(HexUint512BE.unpack(packedBE) === num);
+});
+
+test("test createByteCodec", (t) => {
+  const userCodec: BinaryCodec<string> = {
+    pack: (value) => {
+      return Buffer.from(value.toString());
+    },
+    unpack: (buffer) => {
+      return buffer.toString();
+    },
+  };
+  const itemCodec = createByteCodec(userCodec);
+  t.truthy(itemCodec === userCodec);
 });
