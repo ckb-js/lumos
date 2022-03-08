@@ -121,12 +121,6 @@ export interface GetTransactionRPCResult {
   result: TransactionWithStatus;
 }
 
-export interface TransactionWithIOType extends TransactionWithStatus {
-  inputCell?: Output;
-  ioType: IOType;
-  ioIndex: string;
-}
-
 export interface JsonRprRequestBody {
   id: string | number;
   jsonrpc: string;

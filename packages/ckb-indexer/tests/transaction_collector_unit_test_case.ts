@@ -73,14 +73,12 @@ export const ioTypeInputResult = Promise.resolve([
         status: "committed",
       },
     },
-    id:
-      "0x1-0xc8a7917a9b269ca746f49177e75d4f5e7eb7ad20f79f44b079b5caecd4ffe96f-0x0",
+    id: 0,
   },
 ]);
 export const batchRequestIoTypeInput = [
   {
-    id:
-      "0x1-0xc8a7917a9b269ca746f49177e75d4f5e7eb7ad20f79f44b079b5caecd4ffe96f-0x0",
+    id: 0,
     jsonrpc: "2.0",
     method: "get_transaction",
     params: [
@@ -403,8 +401,7 @@ export const batchForAll = [
 ];
 export const batchForInput = [
   {
-    id:
-      "0x1-0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6-0x0",
+    id: 0,
     jsonrpc: "2.0",
     method: "get_transaction",
     params: [
@@ -412,8 +409,7 @@ export const batchForInput = [
     ],
   },
   {
-    id:
-      "0x1-0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6-0x1",
+    id: 1,
     jsonrpc: "2.0",
     method: "get_transaction",
     params: [
@@ -421,8 +417,7 @@ export const batchForInput = [
     ],
   },
   {
-    id:
-      "0x1-0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6-0x2",
+    id: 2,
     jsonrpc: "2.0",
     method: "get_transaction",
     params: [
@@ -516,8 +511,7 @@ export const batchForInputResult = Promise.resolve([
         status: "committed",
       },
     },
-    id:
-      "0x1-0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6-0x0",
+    id: 0,
   },
   {
     jsonrpc: "2.0",
@@ -605,8 +599,7 @@ export const batchForInputResult = Promise.resolve([
         status: "committed",
       },
     },
-    id:
-      "0x1-0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6-0x1",
+    id: 1,
   },
   {
     jsonrpc: "2.0",
@@ -683,8 +676,7 @@ export const batchForInputResult = Promise.resolve([
         status: "committed",
       },
     },
-    id:
-      "0x1-0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6-0x2",
+    id: 2,
   },
 ]);
 
