@@ -144,7 +144,7 @@ test("throw error when pass wrong fromBlock(toBlock) to TransactionCollector", (
   t.is(error.message, "toBlock must be a hexadecimal!");
 });
 
-test("input cell can be found in transaction detail", async (t) => {
+test("transaction which ioType is input can be resolved correct", async (t) => {
   getTransactionsStub = sinon.stub(indexer, "getTransactions");
   requestBatchStub = sinon.stub(services, "requestBatch");
   const searchKey1: SearchKey = {

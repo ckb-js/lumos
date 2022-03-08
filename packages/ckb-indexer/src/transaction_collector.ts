@@ -8,8 +8,8 @@ import {
 import {
   SearchKeyFilter,
   CKBIndexerQueryOptions,
-  GetTransactionsResult,
-  GetTransactionsResults,
+  IndexerTransaction,
+  IndexerTransactionList,
   IOType,
   Order,
   TransactionWithIOType,
@@ -60,7 +60,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     if (lastCursor) {
       searchKeyFilter.lastCursor = lastCursor;
     }
-    let transactionHashList: GetTransactionsResults = {
+    let transactionHashList: IndexerTransactionList = {
       objects: [],
       lastCursor: "",
     };
@@ -181,7 +181,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
 
   private async getTransactionByLockAndTypeIndependent(
     searchKeyFilter: SearchKeyFilter
-  ): Promise<GetTransactionsResults> {
+  ): Promise<IndexerTransactionList> {
     const queryWithTypeAdditionOptions = { ...searchKeyFilter };
     const queryWithLockAdditionOptions = { ...searchKeyFilter };
     if (searchKeyFilter.lastCursor) {
@@ -203,10 +203,10 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     );
 
     const intersection = (
-      transactionList1: GetTransactionsResult[],
-      transactionList2: GetTransactionsResult[]
+      transactionList1: IndexerTransaction[],
+      transactionList2: IndexerTransaction[]
     ) => {
-      const result: GetTransactionsResult[] = [];
+      const result: IndexerTransaction[] = [];
       transactionList1.forEach((tx1) => {
         const tx2 = transactionList2.find(
           (item) => item.tx_hash === tx1.tx_hash
@@ -231,10 +231,10 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   }
 
   private getTransactionListFromRpc = async (
-    transactionHashList: GetTransactionsResults
+    transactionHashList: IndexerTransactionList
   ) => {
     const getDetailRequestData = transactionHashList.objects.map(
-      (hashItem: GetTransactionsResult, index: number) => {
+      (hashItem: IndexerTransaction, index: number) => {
         return {
           id: index,
           jsonrpc: "2.0",
@@ -304,7 +304,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   };
 
   private filterByIoType = (
-    inputResult: GetTransactionsResult[],
+    inputResult: IndexerTransaction[],
     ioType: IOType
   ) => {
     if (ioType === "both") {
@@ -312,7 +312,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
     if (ioType === "input" || ioType === "output") {
       return inputResult.filter(
-        (item: GetTransactionsResult) =>
+        (item: IndexerTransaction) =>
           item.io_type === ioType || item.io_type === "both"
       );
     }
@@ -320,7 +320,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   };
 
   private filterByTypeIoTypeAndLockIoType = (
-    inputResult: GetTransactionsResult[],
+    inputResult: IndexerTransaction[],
     queries: CKBIndexerQueryOptions
   ) => {
     let result = inputResult;
