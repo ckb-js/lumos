@@ -3,7 +3,6 @@ import { encodeToAddress } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 import { Script } from "@ckb-lumos/base";
 
-const LINA = predefined.LINA;
 const AGGRON = predefined.AGGRON4;
 
 test("encode to full address", (t) => {
