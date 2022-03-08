@@ -190,7 +190,7 @@ test("input cell can be found in transaction detail", async (t) => {
     .returns(ioTypeInputResult);
   const cellCollector = new TransactionCollector(indexer, queryOption, nodeUri);
   const count = await cellCollector.count();
-  t.is(count, 2);
+  t.is(count, 1);
   getTransactionsStub.reset();
   requestBatchStub.reset();
   getTransactionsStub.restore();
