@@ -60,7 +60,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     if (lastCursor) {
       searchKeyFilter.lastCursor = lastCursor;
     }
-    let transactionHashList: IndexerTransactionList = {
+    let indexerTransactionList: IndexerTransactionList = {
       objects: [],
       lastCursor: "",
     };
@@ -75,33 +75,33 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       services.instanceOfScriptWrapper(this.queries.lock) &&
       services.instanceOfScriptWrapper(this.queries.type)
     ) {
-      transactionHashList = await this.getTransactionByLockAndTypeIndependent(
+      indexerTransactionList = await this.getTransactionByLockAndTypeIndependent(
         searchKeyFilter
       );
-      lastCursor = transactionHashList.lastCursor;
+      lastCursor = indexerTransactionList.lastCursor;
     } else {
       //query by ScriptWrapper.script,block_range,order
-      transactionHashList = await this.indexer.getTransactions(
+      indexerTransactionList = await this.indexer.getTransactions(
         services.generateSearchKey(this.queries),
         searchKeyFilter
       );
-      lastCursor = transactionHashList.lastCursor;
+      lastCursor = indexerTransactionList.lastCursor;
     }
     // filter by ScriptWrapper.io_type
-    transactionHashList.objects = this.filterByTypeIoTypeAndLockIoType(
-      transactionHashList.objects,
+    indexerTransactionList.objects = this.filterByTypeIoTypeAndLockIoType(
+      indexerTransactionList.objects,
       this.queries
     );
 
     // return if transaction hash list if empty
-    if (transactionHashList.objects.length === 0) {
+    if (indexerTransactionList.objects.length === 0) {
       return {
         objects: [],
         lastCursor: lastCursor,
       };
     }
     let unresolvedTransactionList: TransactionWithIOType[] = await this.getTransactionListFromRpc(
-      transactionHashList
+      indexerTransactionList
     );
 
     //get input cell transaction batch
@@ -231,9 +231,9 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   }
 
   private getTransactionListFromRpc = async (
-    transactionHashList: IndexerTransactionList
+    indexerTransactionList: IndexerTransactionList
   ) => {
-    const getDetailRequestData = transactionHashList.objects.map(
+    const getDetailRequestData = indexerTransactionList.objects.map(
       (hashItem: IndexerTransaction, index: number) => {
         return {
           id: index,
@@ -251,12 +251,12 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
             if (!this.filterOptions.skipMissing && !item.result) {
               throw new Error(
                 `Transaction ${
-                  transactionHashList.objects[item.id].tx_hash
+                  indexerTransactionList.objects[item.id].tx_hash
                 } is missing!`
               );
             }
-            const ioType = transactionHashList.objects[item.id].io_type;
-            const ioIndex = transactionHashList.objects[item.id].io_index;
+            const ioType = indexerTransactionList.objects[item.id].io_type;
+            const ioIndex = indexerTransactionList.objects[item.id].io_index;
             return { ioType, ioIndex, ...item.result };
           }
         );
