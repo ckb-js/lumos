@@ -12,7 +12,6 @@ import {
   IndexerTransactionList,
   IOType,
   Order,
-  TransactionWithIOType,
   GetTransactionRPCResult,
   JsonRprRequestBody,
 } from "./type";
@@ -86,31 +85,29 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   }
 
   public async fetchResolvedTransaction(
-    unresolvedTransactionList: TransactionWithIOType[]
+    unresolvedTransactionList: TransactionWithStatus[],
+    indexerTransactionList: IndexerTransactionList
   ): Promise<GetTransactionRPCResult[]> {
     let resolvedTransaction: GetTransactionRPCResult[] = [];
     const txIoTypeInputOutPointList: JsonRprRequestBody[] = [];
-    unresolvedTransactionList.forEach((unresolvedTransaction) => {
-      if (unresolvedTransaction.ioType === "input") {
-        const unresolvedOutPoint: OutPoint =
-          unresolvedTransaction.transaction.inputs[
-            parseInt(unresolvedTransaction.ioIndex)
-          ].previous_output;
-        const id =
-          unresolvedOutPoint.index +
-          "-" +
-          unresolvedTransaction.transaction.hash +
-          "-" +
-          unresolvedTransaction.ioIndex;
-
-        txIoTypeInputOutPointList.push({
-          id,
-          jsonrpc: "2.0",
-          method: "get_transaction",
-          params: [unresolvedOutPoint.tx_hash],
-        });
+    let resolvedTransactionRequestId: number = 0;
+    unresolvedTransactionList.forEach(
+      (unresolvedTransaction: TransactionWithStatus, index: number) => {
+        const indexerTransaction = indexerTransactionList.objects[index];
+        if (indexerTransaction.io_type === "input") {
+          const unresolvedOutPoint: OutPoint =
+            unresolvedTransaction.transaction.inputs[
+              Number(indexerTransaction.io_index)
+            ].previous_output;
+          txIoTypeInputOutPointList.push({
+            id: resolvedTransactionRequestId++,
+            jsonrpc: "2.0",
+            method: "get_transaction",
+            params: [unresolvedOutPoint.tx_hash],
+          });
+        }
       }
-    });
+    );
     if (txIoTypeInputOutPointList.length <= 0) {
       return resolvedTransaction;
     }
@@ -122,7 +119,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   }
 
   public getResolvedCell(
-    unresolvedTransaction: TransactionWithIOType,
+    unresolvedTransaction: TransactionWithStatus,
     resolvedTransactionList: GetTransactionRPCResult[],
     indexerTransaction: IndexerTransaction
   ): Output {
@@ -151,12 +148,12 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
 
   //filter by ScriptWrapper.argsLen
   public filterTransaction(
-    unresolvedTransactionList: TransactionWithIOType[],
+    unresolvedTransactionList: TransactionWithStatus[],
     resolvedTransactionList: GetTransactionRPCResult[],
     indexerTransactionList: IndexerTransactionList
   ): TransactionWithStatus[] {
     const filteredTransactionList = unresolvedTransactionList.filter(
-      (unresolvedTransaction: TransactionWithIOType, index: number) => {
+      (unresolvedTransaction: TransactionWithStatus, index: number) => {
         const resolvedCell: Output = this.getResolvedCell(
           unresolvedTransaction,
           resolvedTransactionList,
@@ -198,12 +195,13 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         lastCursor: lastCursor,
       };
     }
-    let unresolvedTransactionList: TransactionWithIOType[] = await this.getTransactionListFromRpc(
+    let unresolvedTransactionList: TransactionWithStatus[] = await this.getTransactionListFromRpc(
       indexerTransactionList
     );
 
     const resolvedTransactionList = await this.fetchResolvedTransaction(
-      unresolvedTransactionList
+      unresolvedTransactionList,
+      indexerTransactionList
     );
     const objects = this.filterTransaction(
       unresolvedTransactionList,
@@ -280,11 +278,11 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         };
       }
     );
-    const transactionList: TransactionWithIOType[] = await services
+    const transactionList: TransactionWithStatus[] = await services
       .requestBatch(this.CKBRpcUrl, getDetailRequestData)
       .then((response: GetTransactionRPCResult[]) => {
         return response.map(
-          (item: GetTransactionRPCResult): TransactionWithIOType => {
+          (item: GetTransactionRPCResult): TransactionWithStatus => {
             if (!this.filterOptions.skipMissing && !item.result) {
               throw new Error(
                 `Transaction ${
@@ -292,9 +290,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
                 } is missing!`
               );
             }
-            const ioType = indexerTransactionList.objects[item.id].io_type;
-            const ioIndex = indexerTransactionList.objects[item.id].io_index;
-            return { ioType, ioIndex, ...item.result };
+            return { ...item.result };
           }
         );
       });
