@@ -40,8 +40,9 @@ export type ObjectCodec<T extends Record<string, BinaryCodec>> = BinaryCodec<
   PartialNullable<{ [key in keyof T]: Unpack<T[key]> }>
 >;
 
-export interface OptionCodec<T> extends BinaryCodec<T | undefined> {
-  pack: (packable?: T) => ArrayBuffer;
+export interface OptionCodec<T extends BinaryCodec>
+  extends BinaryCodec<Unpack<T> | undefined> {
+  pack: (packable?: ReturnType<T["unpack"]>) => ArrayBuffer;
 }
 
 export type ArrayCodec<T extends BinaryCodec> = BinaryCodec<Array<Unpack<T>>>;
@@ -295,9 +296,7 @@ export function union<T extends Record<string, BinaryCodec>>(
   };
 }
 
-export function option<T extends BinaryCodec>(
-  itemCodec: T
-): OptionCodec<Unpack<T>> {
+export function option<T extends BinaryCodec>(itemCodec: T): OptionCodec<T> {
   return {
     pack(obj?) {
       if (obj) {

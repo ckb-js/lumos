@@ -23,7 +23,7 @@ export function assertHexString(str: string) {
 }
 
 export function toArrayBuffer(s: string) {
-  const byteLength = (s.length / 2) - 1
+  const byteLength = s.length / 2 - 1;
   const buffer = new ArrayBuffer(byteLength);
   const view = new DataView(buffer);
 
@@ -37,7 +37,7 @@ export function serializeJson(buf: ArrayBuffer) {
   return (
     "0x" +
     Array.prototype.map
-      .call(new Uint8Array(buf), x => x.toString(16).padStart(2, '0'))
+      .call(new Uint8Array(buf), (x) => x.toString(16).padStart(2, "0"))
       .join("")
   );
 }
