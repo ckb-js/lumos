@@ -4,7 +4,7 @@ import {
   shortAddressInfo,
   multisigAddressInfo,
   fullAddressInfo,
-  fullAddressInfoWithData
+  fullAddressInfoWithData,
 } from "./addresses";
 import { predefined } from "@ckb-lumos/config-manager";
 const { LINA, AGGRON4 } = predefined;
@@ -70,7 +70,7 @@ test("full address with data, mainnet", (t) => {
   const script = parseAddress(fullAddressInfoWithData.mainnetAddress);
 
   t.deepEqual(script, fullAddressInfoWithData.script);
-})
+});
 
 test("full address with data, mtestnet", (t) => {
   const script = parseAddress(fullAddressInfoWithData.testnetAddress, {
@@ -78,7 +78,7 @@ test("full address with data, mtestnet", (t) => {
   });
 
   t.deepEqual(script, fullAddressInfoWithData.script);
-})
+});
 
 test("short address, mainnet, addressToScript", (t) => {
   const script = addressToScript(shortAddressInfo.mainnetAddress, {

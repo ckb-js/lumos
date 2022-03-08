@@ -34,5 +34,8 @@ test("encode to full address, data1", (t) => {
     args: "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
   };
   const testnetAddress = encodeToAddress(script, { config: AGGRON });
-  t.is(testnetAddress, "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqkkxdwn");
-})
+  t.is(
+    testnetAddress,
+    "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq4nnw7qkdnnclfkg59uzn8umtfd2kwxceqkkxdwn"
+  );
+});
