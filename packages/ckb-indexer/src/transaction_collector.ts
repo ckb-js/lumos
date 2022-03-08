@@ -131,7 +131,6 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       await services
         .requestBatch(this.CKBRpcUrl, txIoTypeInputOutPointList)
         .then((response: GetTransactionRPCResult[]) => {
-          console.log(response.length);
           response.forEach((item: GetTransactionRPCResult) => {
             const itemId = item.id.toString();
             const [cellIndex, transactionHash, ioIndex] = itemId.split("-");
@@ -141,7 +140,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
               (tx) =>
                 tx.transaction.hash === transactionHash &&
                 tx.ioType === "input" &&
-                tx.ioIndex === ioIndex
+                Number(tx.ioIndex) === Number(ioIndex)
             );
             if (targetTx) {
               targetTx.inputCell = output;
