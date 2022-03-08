@@ -84,12 +84,11 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     return indexerTransactionList;
   }
 
-  public async fetchResolvedTransaction(
+  public getResolvedTransactionRequestPayload(
     unresolvedTransactionList: TransactionWithStatus[],
     indexerTransactionList: IndexerTransactionList
-  ): Promise<GetTransactionRPCResult[]> {
-    let resolvedTransaction: GetTransactionRPCResult[] = [];
-    const txIoTypeInputOutPointList: JsonRprRequestBody[] = [];
+  ): JsonRprRequestBody[] {
+    const requestPayload: JsonRprRequestBody[] = [];
     let resolvedTransactionRequestId: number = 0;
     unresolvedTransactionList.forEach(
       (unresolvedTransaction: TransactionWithStatus, index: number) => {
@@ -99,7 +98,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
             unresolvedTransaction.transaction.inputs[
               Number(indexerTransaction.io_index)
             ].previous_output;
-          txIoTypeInputOutPointList.push({
+          requestPayload.push({
             id: resolvedTransactionRequestId++,
             jsonrpc: "2.0",
             method: "get_transaction",
@@ -108,6 +107,13 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         }
       }
     );
+    return requestPayload;
+  }
+
+  public async fetchResolvedTransaction(
+    txIoTypeInputOutPointList: JsonRprRequestBody[]
+  ): Promise<GetTransactionRPCResult[]> {
+    let resolvedTransaction: GetTransactionRPCResult[] = [];
     if (txIoTypeInputOutPointList.length <= 0) {
       return resolvedTransaction;
     }
@@ -199,9 +205,12 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       indexerTransactionList
     );
 
-    const resolvedTransactionList = await this.fetchResolvedTransaction(
+    const requestPayload = this.getResolvedTransactionRequestPayload(
       unresolvedTransactionList,
       indexerTransactionList
+    );
+    const resolvedTransactionList = await this.fetchResolvedTransaction(
+      requestPayload
     );
     const objects = this.filterTransaction(
       unresolvedTransactionList,
