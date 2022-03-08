@@ -142,7 +142,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
               (tx) =>
                 tx.transaction.hash === transactionHash &&
                 tx.ioType === "input" &&
-                tx.ioIndex === ioIndex
+                Number(tx.ioIndex) === Number(ioIndex)
             );
             if (!unresolvedTransaction) {
               throw new Error(`Impossible: can NOT find resolved transaction!`);
