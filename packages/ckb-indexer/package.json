@@ -32,7 +32,7 @@
     "events": "^3.3.0"
   },
   "devDependencies": {
-    "@ckb-lumos/testkit": "^0.17.0-rc8",
+    "@ckb-lumos/testkit": "0.18.0-rc5",
     "@types/request": "^2.48.8",
     "@types/sinon": "^10.0.6",
     "find-process": "^1.4.7",
