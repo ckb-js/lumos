@@ -220,7 +220,6 @@ export function fixedHexBytes(byteLength: number): FixedBinaryCodec<string> {
     pack(hexStr: string) {
       assertHexString(hexStr);
       const result = toArrayBuffer(hexStr);
-      /* istanbul ignore if */
       if (byteLength > 0 && byteLength !== result.byteLength) {
         throw new Error(`Invalid hex string length: ${result.byteLength}, should be ${byteLength}`);
       }

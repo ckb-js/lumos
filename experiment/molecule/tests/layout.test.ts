@@ -54,6 +54,10 @@ test("test layout-struct", (t) => {
   t.deepEqual(codec.pack(unpacked), buffer);
 });
 
+test("test layout-fixvec", (t) => {
+  t.throws(() => fixvec(Uint8).unpack(new ArrayBuffer(0)))
+})
+
 test("test layout-table", (t) => {
   const codec = table(
     {
@@ -93,6 +97,8 @@ test("test layout-table", (t) => {
   });
 
   t.deepEqual(codec.pack(unpacked), buffer);
+  t.throws(() => codec.unpack(createBuffer([0x00, 0x00, 0x00, 0x00])))
+  t.truthy(JSON.stringify(codec.unpack(createBuffer([0x04, 0x00, 0x00, 0x00]))) === '{}')
 });
 
 test("test layout-dynvec", (t) => {
@@ -123,6 +129,8 @@ test("test layout-dynvec", (t) => {
     [0xab, 0xcd, 0xef],
   ]);
   t.deepEqual(codec.pack(unpacked), buffer);
+  t.truthy(codec.unpack(createBuffer([0x04, 0x00, 0x00, 0x00])).length === 0)
+  t.throws(() => codec.unpack(createBuffer([0x34, 0x00, 0x00, 0x00])))
 });
 test("test layout-option", (t) => {
   const codec = option(dynvec(fixvec(Uint8)));
@@ -177,4 +185,6 @@ test("test layout-union", (t) => {
     ],
   });
   t.deepEqual(codec.pack(unpacked), buffer);
+  // @ts-ignore
+  t.throws(() => codec.pack({ type: "unknown", value: [] }));
 });

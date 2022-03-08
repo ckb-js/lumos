@@ -275,6 +275,7 @@ test("test fixed hex bytes", (t) => {
     createBuffer([ 0x12, 0x34, 0x56 ])
   );
   t.truthy(hexStr === fixedHexBytes(3).unpack(hexBytes));
+  t.throws(() => fixedHexBytes(4).pack(hexStr))
 });
 test("test UTF8String", (t) => {
   const hexStr = "0x123456"
