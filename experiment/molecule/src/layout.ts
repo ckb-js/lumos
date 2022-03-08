@@ -127,6 +127,7 @@ export function fixvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
       );
     },
     unpack(buf) {
+      /* istanbul ignore if */
       if (buf.byteLength < 4) {
         throw new Error(
           `fixvec: buffer is too short, expected at least 4 bytes, got ${buf.byteLength}`
@@ -169,12 +170,14 @@ export function dynvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
     },
     unpack(buf) {
       const totalSize = Uint32LE.unpack(buf.slice(0, 4));
+      /* istanbul ignore if */
       if (totalSize !== buf.byteLength) {
         throw new Error(
           `Invalid buffer size, read from header: ${totalSize}, actual: ${buf.byteLength}`
         );
       }
       const result: any = [];
+      /* istanbul ignore if */
       if (totalSize <= 4) {
         return result;
       } else {
@@ -245,11 +248,13 @@ export function table<T extends Record<string, BinaryCodec>>(
     },
     unpack(buf) {
       const totalSize = Uint32LE.unpack(buf.slice(0, 4));
+      /* istanbul ignore if */
       if (totalSize !== buf.byteLength) {
         throw new Error(
           `Invalid buffer size, read from header: ${totalSize}, actual: ${buf.byteLength}`
         );
       }
+      /* istanbul ignore if */
       if (totalSize <= 4 || fields.length === 0) {
         return {} as PartialNullable<{ [key in keyof T]: Unpack<T[key]> }>;
       } else {
@@ -280,6 +285,7 @@ export function union<T extends Record<string, BinaryCodec>>(
     pack(obj) {
       const type = obj.type;
       const fieldIndex = fields.indexOf(type);
+      /* istanbul ignore if */
       if (fieldIndex === -1) {
         throw new Error(`Unknown union type: ${obj.type}`);
       }

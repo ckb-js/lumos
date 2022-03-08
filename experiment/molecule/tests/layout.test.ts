@@ -1,15 +1,26 @@
 import {
   array,
+  byte,
   dynvec,
   fixvec,
   option,
   struct,
   table,
   union,
+  vector,
 } from "../src/layout";
 import { createBuffer } from "../src/utils";
 import test from "ava";
 import { Uint32, Uint8 } from "../src/common";
+
+test("test layout-byte", (t) => {
+  const buffer = createBuffer([1]);
+  const unpacked = byte.unpack(buffer);
+  const packed = byte.pack(unpacked);
+
+  t.deepEqual(unpacked, buffer);
+  t.deepEqual(packed, buffer);
+});
 
 test("test layout-array", (t) => {
   const codec = array(Uint8, 4);
@@ -83,8 +94,9 @@ test("test layout-table", (t) => {
 
   t.deepEqual(codec.pack(unpacked), buffer);
 });
+
 test("test layout-dynvec", (t) => {
-  const codec = dynvec(fixvec(Uint8));
+  const codec = vector(vector(Uint8));
   // prettier-ignore
   const buffer = createBuffer([
     // header: total length

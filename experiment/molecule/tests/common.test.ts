@@ -27,6 +27,9 @@ import {
   Uint8,
   HexUint8,
   createByteCodec,
+  HexBytes,
+  fixedHexBytes,
+  UTF8String,
 } from "../src/common";
 import { createBuffer } from "../src/utils";
 import { BI } from "@ckb-lumos/bi";
@@ -251,4 +254,35 @@ test("test createByteCodec", (t) => {
   };
   const itemCodec = createByteCodec(userCodec);
   t.truthy(itemCodec === userCodec);
+});
+
+test("test hex bytes", (t) => {
+  const hexStr = "0x123456"
+  const hexBytes = HexBytes.pack(hexStr);
+  t.deepEqual(
+    hexBytes,
+    // prettier-ignore
+    createBuffer([ 0x12, 0x34, 0x56 ])
+  );
+  t.truthy(hexStr === HexBytes.unpack(hexBytes));
+});
+test("test fixed hex bytes", (t) => {
+  const hexStr = "0x123456"
+  const hexBytes = fixedHexBytes(3).pack(hexStr);
+  t.deepEqual(
+    hexBytes,
+    // prettier-ignore
+    createBuffer([ 0x12, 0x34, 0x56 ])
+  );
+  t.truthy(hexStr === fixedHexBytes(3).unpack(hexBytes));
+});
+test("test UTF8String", (t) => {
+  const hexStr = "0x123456"
+  const hexBytes = UTF8String.pack(hexStr);
+  t.deepEqual(
+    hexBytes,
+    // prettier-ignore
+    createBuffer([ 0x12, 0x34, 0x56 ])
+  );
+  t.truthy(hexStr === UTF8String.unpack(hexBytes));
 });

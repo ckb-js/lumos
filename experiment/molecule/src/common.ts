@@ -1,6 +1,6 @@
 import { BI } from "@ckb-lumos/bi";
-import * as toolkit from "@ckb-lumos/toolkit";
 import { BinaryCodec, FixedBinaryCodec } from "./layout";
+import { assertHexString, serializeJson, toArrayBuffer } from "./utils";
 
 // byte
 export const Uint8: FixedBinaryCodec<number> = {
@@ -218,14 +218,16 @@ export function fixedHexBytes(byteLength: number): FixedBinaryCodec<string> {
     __isFixedCodec__: true,
     byteLength,
     pack(hexStr: string) {
-      const result = new toolkit.Reader(hexStr).toArrayBuffer();
+      assertHexString(hexStr);
+      const result = toArrayBuffer(hexStr);
+      /* istanbul ignore if */
       if (byteLength > 0 && byteLength !== result.byteLength) {
-        throw new Error(`invalid hex string length: ${result.byteLength}`);
+        throw new Error(`Invalid hex string length: ${result.byteLength}, should be ${byteLength}`);
       }
       return result;
     },
     unpack(buf) {
-      return new toolkit.Reader(buf).serializeJson();
+      return serializeJson(buf);
     },
   };
 }
@@ -233,20 +235,21 @@ export function fixedHexBytes(byteLength: number): FixedBinaryCodec<string> {
 // vector Bytes <byte>
 export const HexBytes: BinaryCodec<string> = {
   pack(hexStr: string) {
-    const result = new toolkit.Reader(hexStr).toArrayBuffer();
-    return result;
+    assertHexString(hexStr);
+    return toArrayBuffer(hexStr);
   },
   unpack(buf) {
-    return new toolkit.Reader(buf).serializeJson();
+    return serializeJson(buf);
   },
 };
 export const UTF8String: BinaryCodec<string> = {
   pack(hexStr: string) {
-    const result = new toolkit.Reader(hexStr).toArrayBuffer();
+    assertHexString(hexStr);
+    const result = toArrayBuffer(hexStr);
     return result;
   },
   unpack(buf) {
-    return new toolkit.Reader(buf).serializeJson();
+    return serializeJson(buf);
   },
 };
 
