@@ -2,7 +2,7 @@ import { RPC as ToolkitRPC } from "@ckb-lumos/toolkit";
 import { HexString, Tip } from "@ckb-lumos/base";
 import {
   GetCellsResults,
-  GetTransactionsResults,
+  IndexerTransactionList,
   Order,
   SearchKey,
 } from "./type";
@@ -59,7 +59,7 @@ export class RPC {
     order: Order,
     limit: HexString,
     after_cursor?: string
-  ): Promise<GetTransactionsResults> {
+  ): Promise<IndexerTransactionList> {
     return this.rpcProxy.get_transactions(
       searchKey,
       order,
