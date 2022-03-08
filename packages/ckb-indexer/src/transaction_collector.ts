@@ -121,6 +121,52 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     return resolvedTransaction;
   }
 
+  //filter by ScriptWrapper.argsLen
+  public filterTransaction(
+    unresolvedTransactionList: TransactionWithIOType[],
+    resolvedTransaction: GetTransactionRPCResult[]
+  ): TransactionWithStatus[] {
+    resolvedTransaction.forEach(
+      (resolvedTransaction: GetTransactionRPCResult) => {
+        const itemId = resolvedTransaction.id.toString();
+        const [cellIndex, transactionHash, ioIndex] = itemId.split("-");
+        const resolvedCell: Output =
+          resolvedTransaction.result.transaction.outputs[parseInt(cellIndex)];
+        const unresolvedTransaction = unresolvedTransactionList.find(
+          (tx) =>
+            tx.transaction.hash === transactionHash &&
+            tx.ioType === "input" &&
+            Number(tx.ioIndex) === Number(ioIndex)
+        );
+        if (!unresolvedTransaction) {
+          throw new Error(`Impossible: can NOT find resolved transaction!`);
+        }
+        unresolvedTransaction.inputCell = resolvedCell;
+      }
+    );
+    unresolvedTransactionList = unresolvedTransactionList.filter(
+      (transactionWrapper: TransactionWithIOType) => {
+        if (
+          transactionWrapper.ioType === "input" &&
+          transactionWrapper.inputCell
+        ) {
+          return this.isCellScriptArgsValid(transactionWrapper.inputCell);
+        } else {
+          const targetCell: Output =
+            transactionWrapper.transaction.outputs[
+              parseInt(transactionWrapper.ioIndex)
+            ];
+          return this.isCellScriptArgsValid(targetCell);
+        }
+      }
+    );
+    const objects = unresolvedTransactionList.map((tx) => ({
+      transaction: tx.transaction,
+      tx_status: tx.tx_status,
+    }));
+    return objects;
+  }
+
   /*
    *lock?: ScriptWrapper.script query by ckb-indexer,ScriptWrapper.ioType filter after get transaction from indexer, ScriptWrapper.argsLen filter after get transaction from rpc;
    *type?:  ScriptWrapper.script query by ckb-indexer,ScriptWrapper.ioType filter after get transaction from indexer, ScriptWrapper.argsLen filter after get transaction from rpc;
@@ -154,46 +200,10 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     const resolvedTransaction = await this.fetchResolvedTransaction(
       unresolvedTransactionList
     );
-    resolvedTransaction.forEach(
-      (resolvedTransaction: GetTransactionRPCResult) => {
-        const itemId = resolvedTransaction.id.toString();
-        const [cellIndex, transactionHash, ioIndex] = itemId.split("-");
-        const resolvedCell: Output =
-          resolvedTransaction.result.transaction.outputs[parseInt(cellIndex)];
-        const unresolvedTransaction = unresolvedTransactionList.find(
-          (tx) =>
-            tx.transaction.hash === transactionHash &&
-            tx.ioType === "input" &&
-            Number(tx.ioIndex) === Number(ioIndex)
-        );
-        if (!unresolvedTransaction) {
-          throw new Error(`Impossible: can NOT find resolved transaction!`);
-        }
-        unresolvedTransaction.inputCell = resolvedCell;
-      }
+    const objects = this.filterTransaction(
+      unresolvedTransactionList,
+      resolvedTransaction
     );
-    let resolvedTransactionList = unresolvedTransactionList;
-    //filter by ScriptWrapper.argsLen
-    resolvedTransactionList = resolvedTransactionList.filter(
-      (transactionWrapper: TransactionWithIOType) => {
-        if (
-          transactionWrapper.ioType === "input" &&
-          transactionWrapper.inputCell
-        ) {
-          return this.isCellScriptArgsValid(transactionWrapper.inputCell);
-        } else {
-          const targetCell: Output =
-            transactionWrapper.transaction.outputs[
-              parseInt(transactionWrapper.ioIndex)
-            ];
-          return this.isCellScriptArgsValid(targetCell);
-        }
-      }
-    );
-    const objects = resolvedTransactionList.map((tx) => ({
-      transaction: tx.transaction,
-      tx_status: tx.tx_status,
-    }));
     return {
       objects: objects,
       lastCursor: lastCursor,
