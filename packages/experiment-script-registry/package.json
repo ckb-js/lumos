@@ -22,6 +22,9 @@
     "lib",
     "src"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc8",
     "@ckb-lumos/config-manager": "^0.17.0-rc8",
