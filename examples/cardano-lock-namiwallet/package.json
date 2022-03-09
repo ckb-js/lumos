@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@lumos-examples/cardano-lock-namiwallet",
-  "version": "0.17.0-rc8",
+  "version": "0.18.0-rc5",
   "description": "",
   "main": "index.js",
   "scripts": {
