@@ -1,5 +1,5 @@
 {
-  "name": "@ckb-lumos/experiment",
+  "name": "@ckb-lumos/experiment-script-registry",
   "version": "0.17.0-rc8",
   "description": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -22,6 +22,9 @@
     "lib",
     "src"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@ckb-lumos/base": "^0.17.0-rc8",
     "@ckb-lumos/config-manager": "^0.17.0-rc8",
