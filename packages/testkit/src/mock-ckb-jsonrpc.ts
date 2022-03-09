@@ -3,7 +3,6 @@ import express, { Express } from "express";
 import bodyParser from "body-parser";
 import { LocalNode, Block, core } from "@ckb-lumos/base";
 import { normalizers, Reader } from "@ckb-lumos/toolkit";
-
 interface Options {
   blocks: Block[];
   localNode: LocalNode;
