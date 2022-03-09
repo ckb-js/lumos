@@ -126,3 +126,10 @@ export interface TransactionWithIOType extends TransactionWithStatus {
   ioType: IOType;
   ioIndex: string;
 }
+
+export interface JsonRprRequestBody {
+  id: string | number;
+  jsonrpc: string;
+  method: string;
+  params: string[];
+}
