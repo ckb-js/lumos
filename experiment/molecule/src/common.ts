@@ -1,27 +1,42 @@
 import { BI } from "@ckb-lumos/bi";
 import { BinaryCodec, FixedBinaryCodec } from "./layout";
-import { assertHexString, serializeJson, toArrayBuffer } from "./utils";
+import {
+  assertBI,
+  assertBufferLength,
+  assertHexDecimal,
+  assertHexString,
+  assertUint16,
+  assertUint32,
+  assertUint8,
+  serializeJson,
+  toArrayBuffer,
+} from "./utils";
 
 // byte
 export const Uint8: FixedBinaryCodec<number> = {
   __isFixedCodec__: true,
   byteLength: 1,
   pack(u8) {
+    assertUint8(u8);
     const buf = new ArrayBuffer(1);
     new DataView(buf).setUint8(0, u8);
     return buf;
   },
   unpack(buf) {
+    assertBufferLength(buf, 1);
     return new DataView(buf).getUint8(0);
   },
 };
+
 export const HexUint8: FixedBinaryCodec<string> = {
   __isFixedCodec__: true,
   byteLength: 1,
   pack(str) {
+    assertHexDecimal(str, 1);
     return Uint8.pack(parseInt(str, 16));
   },
   unpack(buf) {
+    assertBufferLength(buf, 1);
     return `0x${Uint8.unpack(buf).toString(16)}`;
   },
 };
@@ -30,12 +45,14 @@ export const HexUint8: FixedBinaryCodec<string> = {
 export const Uint16LE: FixedBinaryCodec<number> = {
   __isFixedCodec__: true,
   byteLength: 2,
-  pack(u8) {
+  pack(u16) {
+    assertUint16(u16);
     const buf = new ArrayBuffer(2);
-    new DataView(buf).setUint16(0, u8, true);
+    new DataView(buf).setUint16(0, u16, true);
     return buf;
   },
   unpack(buf) {
+    assertBufferLength(buf, 2);
     return new DataView(buf).getUint16(0, true);
   },
 };
@@ -46,12 +63,14 @@ export const Uint16 = Uint16LE;
 export const Uint16BE: FixedBinaryCodec<number> = {
   __isFixedCodec__: true,
   byteLength: 2,
-  pack(u8) {
+  pack(u16) {
+    assertUint16(u16);
     const buf = new ArrayBuffer(2);
-    new DataView(buf).setUint16(0, u8);
+    new DataView(buf).setUint16(0, u16);
     return buf;
   },
   unpack(buf) {
+    assertBufferLength(buf, 2);
     return new DataView(buf).getUint16(0);
   },
 };
@@ -60,9 +79,11 @@ export const HexUint16LE: FixedBinaryCodec<string> = {
   __isFixedCodec__: true,
   byteLength: 2,
   pack(str) {
+    assertHexDecimal(str, 2);
     return Uint16LE.pack(parseInt(str, 16));
   },
   unpack(buf) {
+    assertBufferLength(buf, 2);
     return `0x${Uint16LE.unpack(buf).toString(16)}`;
   },
 };
@@ -75,9 +96,11 @@ export const HexUint16BE: FixedBinaryCodec<string> = {
   __isFixedCodec__: true,
   byteLength: 2,
   pack(str) {
+    assertHexDecimal(str, 2);
     return Uint16BE.pack(parseInt(str, 16));
   },
   unpack(buf) {
+    assertBufferLength(buf, 2);
     return `0x${Uint16BE.unpack(buf).toString(16)}`;
   },
 };
@@ -88,12 +111,14 @@ export const Uint32LE: FixedBinaryCodec<number> = {
   __isFixedCodec__: true,
   byteLength: 4,
   pack(num: number) {
+    assertUint32(num);
     const buffer = new ArrayBuffer(4);
     const view = new DataView(buffer);
     view.setUint32(0, num, true);
     return buffer;
   },
   unpack(buf) {
+    assertBufferLength(buf, 4);
     const view = new DataView(buf);
     return view.getUint32(0, true);
   },
@@ -106,12 +131,14 @@ export const Uint32BE: FixedBinaryCodec<number> = {
   __isFixedCodec__: true,
   byteLength: 4,
   pack(num: number) {
+    assertUint32(num);
     const buffer = new ArrayBuffer(4);
     const view = new DataView(buffer);
     view.setUint32(0, num);
     return buffer;
   },
   unpack(buf) {
+    assertBufferLength(buf, 4);
     const view = new DataView(buf);
     return view.getUint32(0);
   },
@@ -121,10 +148,12 @@ export const HexUint32LE: FixedBinaryCodec<string> = {
   __isFixedCodec__: true,
   byteLength: 4,
   pack(numStr: string) {
+    assertHexDecimal(numStr, 4);
     const num = BI.from(numStr).toNumber();
     return Uint32LE.pack(num);
   },
   unpack(buf) {
+    assertBufferLength(buf, 4);
     return BI.from(Uint32LE.unpack(buf)).toHexString();
   },
 };
@@ -136,10 +165,12 @@ export const HexUint32BE: FixedBinaryCodec<string> = {
   __isFixedCodec__: true,
   byteLength: 4,
   pack(numStr: string) {
+    assertHexDecimal(numStr, 4);
     const num = BI.from(numStr).toNumber();
     return Uint32BE.pack(num);
   },
   unpack(buf) {
+    assertBufferLength(buf, 4);
     return BI.from(Uint32BE.unpack(buf)).toHexString();
   },
 };
@@ -218,7 +249,7 @@ export function fixedHexBytes(byteLength: number): FixedBinaryCodec<string> {
     __isFixedCodec__: true,
     byteLength,
     pack(hexStr: string) {
-      assertHexString(hexStr);
+      assertHexString(hexStr, byteLength);
       const result = toArrayBuffer(hexStr);
       if (byteLength > 0 && byteLength !== result.byteLength) {
         throw new Error(
@@ -228,6 +259,7 @@ export function fixedHexBytes(byteLength: number): FixedBinaryCodec<string> {
       return result;
     },
     unpack(buf) {
+      assertBufferLength(buf, byteLength);
       return serializeJson(buf);
     },
   };
@@ -263,6 +295,7 @@ export function createBICodec(
     __isFixedCodec__: true,
     byteLength,
     pack(num: BI) {
+      assertBI(num, byteLength);
       const buffer = new ArrayBuffer(byteLength);
       const view = new DataView(buffer);
       if (!bigEndian) {
@@ -279,6 +312,7 @@ export function createBICodec(
       return buffer;
     },
     unpack(buf) {
+      assertBufferLength(buf, byteLength);
       const view = new DataView(buf);
       let num = BI.from(0);
       if (!bigEndian) {
@@ -303,10 +337,12 @@ export function createBIHexCodec(
     __isFixedCodec__: true,
     byteLength: itemCodec.byteLength,
     pack(numStr: string) {
+      assertHexDecimal(numStr, itemCodec.byteLength);
       const num = BI.from(numStr);
       return itemCodec.pack(num);
     },
     unpack(buf) {
+      assertBufferLength(buf, itemCodec.byteLength);
       return BI.from(itemCodec.unpack(buf)).toHexString();
     },
   };
