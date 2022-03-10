@@ -5,8 +5,10 @@ import useBaseUrl from "@docusaurus/useBaseUrl";
 
 export const Sidebar = () => {
   const keyAddressConversion = useBaseUrl("/tools/address-conversion");
+  const contractDeployment = useBaseUrl("/tools/contract-deployment");
 
   return (
+    // TODO: defult sidebar bug
     <Menu
       style={{ width: 256 }}
       defaultSelectedKeys={[keyAddressConversion]}
@@ -14,6 +16,9 @@ export const Sidebar = () => {
     >
       <Menu.Item key={keyAddressConversion}>
         <Link to="/tools/address-conversion">Address Conversion</Link>
+      </Menu.Item>
+      <Menu.Item key={contractDeployment}>
+        <Link to="/tools/contract-deployment">Contract Deployment</Link>
       </Menu.Item>
     </Menu>
   );
