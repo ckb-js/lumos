@@ -19,8 +19,8 @@ import {
   CKBIndexerQueryOptions,
   GetCellsResults,
   GetLiveCellsResult,
-  GetTransactionsResult,
-  GetTransactionsResults,
+  IndexerTransaction,
+  IndexerTransactionList,
   IndexerEmitter,
   OutputToVerify,
   SearchKey,
@@ -139,8 +139,8 @@ export class CkbIndexer implements Indexer {
   public async getTransactions(
     searchKey: SearchKey,
     searchKeyFilter: SearchKeyFilter = {}
-  ): Promise<GetTransactionsResults> {
-    let infos: GetTransactionsResult[] = [];
+  ): Promise<IndexerTransactionList> {
+    let infos: IndexerTransaction[] = [];
     let cursor: string | undefined = searchKeyFilter.lastCursor;
     let sizeLimit = searchKeyFilter.sizeLimit || 100;
     let order = searchKeyFilter.order || "asc";
