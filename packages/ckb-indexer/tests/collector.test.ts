@@ -53,7 +53,7 @@ test("query cells with block hash", async (t) => {
   );
 });
 
-test("query cells with different queryOptions", async (t) => {
+test.skip("query cells with different queryOptions", async (t) => {
   for (const queryCase of cellCollectorTestCases) {
     const cellCollector = new CellCollector(indexer, queryCase.queryOption);
     let cells = [];
