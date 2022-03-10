@@ -1,7 +1,7 @@
 import test from "ava";
 import { Indexer, TransactionCollector } from "../src";
 import { JsonRprRequestBody } from "../src/type";
-import sinon, { SinonSpy } from "sinon";
+import sinon, { SinonStub } from "sinon";
 import * as services from "../src/services";
 
 import {
@@ -10,17 +10,18 @@ import {
   indexerTransactionListThatHaveZeroIoTypeInput,
   unresolvedTransactionList,
   queryOption,
-} from "./transaction_collector_unit_testcase";
+  batchRequestTransaction,
+} from "./transaction_collector_unit_test_case";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);
-let requestBatchSpy: SinonSpy;
+let requestBatchStub: SinonStub;
 test.before(() => {
-  requestBatchSpy = sinon.spy(services, "requestBatch");
+  requestBatchStub = sinon.stub(services, "requestBatch");
 });
 test.afterEach(() => {
-  requestBatchSpy.resetHistory();
+  requestBatchStub.resetHistory();
 });
 test.serial(
   "getResolvedTransactionRequestPayload# should return empty list if no indexerTransaction ioType is input",
@@ -110,7 +111,7 @@ test.serial("fetchResolvedTransaction#", async (t) => {
     emptyPayload
   );
   t.is(
-    requestBatchSpy.called,
+    requestBatchStub.called,
     false,
     "empty request payload should not call batchRequest"
   );
@@ -130,11 +131,12 @@ test.serial("fetchResolvedTransaction#", async (t) => {
       ],
     },
   ];
+  requestBatchStub.resolves(batchRequestTransaction);
   const resolvedTransactionList = await transactionCollector.fetchResolvedTransaction(
     payloadWithData
   );
   t.is(
-    requestBatchSpy.called,
+    requestBatchStub.called,
     true,
     "should call batchRequest if request payload not empty"
   );
