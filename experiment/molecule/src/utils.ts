@@ -25,7 +25,7 @@ export function assertHexDecimal(str: string, byteLength?: number) {
       throw new Error("Invalid hex decimal!");
     }
   } else {
-    if (!/^0x([0-9a-fA-F])*$/.test(str)) {
+    if (!/^0x([0-9a-fA-F])+$/.test(str)) {
       throw new Error("Invalid hex decimal!");
     }
   }

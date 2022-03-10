@@ -43,6 +43,8 @@ test("test Uint8", (t) => {
   t.deepEqual(packed, createBuffer([0x12]));
   t.truthy(num === Uint8.unpack(packed));
   t.truthy(numStr === HexUint8.unpack(strPacked));
+  t.throws(() => Uint8.pack(256));
+  t.throws(() => Uint8.unpack(new ArrayBuffer(2)));
 });
 
 test("test Uint16", (t) => {
@@ -53,6 +55,10 @@ test("test Uint16", (t) => {
   t.deepEqual(packedBE, createBuffer([0x12, 0x34]));
   t.truthy(num === Uint16LE.unpack(packed));
   t.truthy(num === Uint16BE.unpack(packedBE));
+  t.throws(() => Uint16LE.pack(-1));
+  t.throws(() => Uint16LE.unpack(new ArrayBuffer(3)));
+  t.throws(() => Uint16BE.pack(-1));
+  t.throws(() => Uint16BE.unpack(new ArrayBuffer(3)));
 });
 
 test("test Uint16 Hex", (t) => {
@@ -63,6 +69,10 @@ test("test Uint16 Hex", (t) => {
   t.deepEqual(packedBE, createBuffer([0x12, 0x34]));
   t.truthy(num === HexUint16LE.unpack(packed));
   t.truthy(num === HexUint16BE.unpack(packedBE));
+  t.throws(() => HexUint16LE.pack("0x123456789"));
+  t.throws(() => HexUint16LE.unpack(new ArrayBuffer(3)));
+  t.throws(() => HexUint16BE.pack("0x123456789"));
+  t.throws(() => HexUint16BE.unpack(new ArrayBuffer(3)));
 });
 
 test("test Uint32", (t) => {
@@ -73,6 +83,10 @@ test("test Uint32", (t) => {
   t.deepEqual(packedBE, createBuffer([0x12, 0x34, 0x56, 0x78]));
   t.truthy(num === Uint32LE.unpack(packed));
   t.truthy(num === Uint32BE.unpack(packedBE));
+  t.throws(() => Uint32LE.pack(-1));
+  t.throws(() => Uint32LE.unpack(new ArrayBuffer(3)));
+  t.throws(() => Uint32BE.pack(-1));
+  t.throws(() => Uint32BE.unpack(new ArrayBuffer(3)));
 });
 
 test("test Uint32 Hex", (t) => {
@@ -83,6 +97,10 @@ test("test Uint32 Hex", (t) => {
   t.deepEqual(packedBE, createBuffer([0x12, 0x34, 0x56, 0x78]));
   t.truthy(num === HexUint32LE.unpack(packed));
   t.truthy(num === HexUint32BE.unpack(packedBE));
+  t.throws(() => HexUint32LE.pack("0x123456789"));
+  t.throws(() => HexUint32LE.unpack(new ArrayBuffer(3)));
+  t.throws(() => HexUint32BE.pack("0x123456789"));
+  t.throws(() => HexUint32BE.unpack(new ArrayBuffer(3)));
 });
 
 test("test Uint64", (t) => {
@@ -101,6 +119,10 @@ test("test Uint64", (t) => {
   );
   t.truthy(Uint64.unpack(packedLE).eq(num));
   t.truthy(Uint64BE.unpack(packedBE).eq(num));
+  t.throws(() => Uint64.pack(BI.from("0x12345678901234567890")));
+  t.throws(() => Uint64.unpack(new ArrayBuffer(3)));
+  t.throws(() => Uint64BE.pack(BI.from("0x12345678901234567890")));
+  t.throws(() => Uint64BE.unpack(new ArrayBuffer(3)));
 });
 
 test("test Uint64 hex", (t) => {
@@ -117,6 +139,10 @@ test("test Uint64 hex", (t) => {
   );
   t.truthy(HexUint64.unpack(packedLE) === num);
   t.truthy(HexUint64BE.unpack(packedBE) === num);
+  t.throws(() => HexUint64.pack("0x12345678901234567890"));
+  t.throws(() => HexUint64.unpack(new ArrayBuffer(3)));
+  t.throws(() => HexUint64BE.pack("0x12345678901234567890"));
+  t.throws(() => HexUint64BE.unpack(new ArrayBuffer(3)));
 });
 
 test("test Uint128", (t) => {
