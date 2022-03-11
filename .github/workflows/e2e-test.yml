@@ -1,0 +1,30 @@
+name: e2e-test
+on: [push, pull_request]
+#    paths:
+#      - 'packages/**'
+#      - yarn.lock
+#      - package.json
+#      - babel.config.js
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: actions/cache@v1
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install project dependencies and build
+        run: |
+          yarn
+          yarn build
+          yarn lint
+      - name: Test
+        run: yarn e2e-test
