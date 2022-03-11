@@ -4,14 +4,9 @@ import {
   table,
   union,
   vector,
-} from "@ckb-lumos-experiment/molecule/lib/layout";
-import {
-  createByteCodec,
-  Uint32LE,
-  UTF8String,
-} from "@ckb-lumos-experiment/molecule/lib/common";
-import { byte } from "../src/layout";
-import { Uint8 } from "../src/common";
+} from "@ckb-lumos/experiment-molecule/lib/layout";
+import { Uint32, Uint8 } from "@ckb-lumos/experiment-molecule/lib/common";
+import { byteOf, byteVecOf } from "@ckb-lumos/experiment-molecule/lib/base";
 
 // table Character {
 //   main_equip: Equip,
@@ -55,11 +50,11 @@ import { Uint8 } from "../src/common";
 
 // custom type
 type Material = "wood" | "steel" | "crystal";
-const SwordMaterial = createByteCodec<Material>({
+const SwordMaterial = byteOf<Material>({
   pack: (material) => {
-    if (material === "wood") Uint8.pack(0);
-    if (material === "steel") Uint8.pack(1);
-    if (material === "crystal") Uint8.pack(2);
+    if (material === "wood") return Uint8.pack(0);
+    if (material === "steel") return Uint8.pack(1);
+    if (material === "crystal") return Uint8.pack(2);
 
     throw new Error("Unknown material " + material);
   },
@@ -71,6 +66,15 @@ const SwordMaterial = createByteCodec<Material>({
     if (u8 === 2) return "crystal";
 
     throw new Error("Unknown material binary: " + bin);
+  },
+});
+
+const UTF8String = byteVecOf<string>({
+  pack: (str) => {
+    return Uint8Array.from(Buffer.from(str, "utf8")).buffer;
+  },
+  unpack: (buf) => {
+    return Buffer.from(buf).toString("utf8");
   },
 });
 
@@ -94,8 +98,8 @@ const Sword = struct(
 // }
 const Gem = struct(
   {
-    color: byte,
-    shape: byte,
+    color: Uint8,
+    shape: Uint8,
   },
   ["color", "shape"]
 );
@@ -114,7 +118,7 @@ const Wand = table(
 // }
 const Bow = table(
   {
-    arrow: Uint32LE,
+    arrow: Uint32,
     desc: DescOpt,
   },
   ["arrow", "desc"]
@@ -146,24 +150,38 @@ const Character = table({ main_equip: Equip, sub_equip: EquipOpt }, [
   "sub_equip",
 ]);
 
-/* usage */
-const buf = Character.pack({
-  main_equip: {
-    type: "Bow",
-    value: { arrow: 10, desc: "nice bow" },
-  },
-  sub_equip: {
-    type: "Sword",
-    value: { material: "steel" },
-  },
-  // sub_equip: {
-  //   type: "Wand",
-  //   value: { gems: [{ color: 1, shape: 2 }], desc: "utf8 string" },
-  // },
-});
+function main() {
+  /* usage */
+  const buf = Character.pack({
+    main_equip: {
+      type: "Sword",
+      value: { material: "wood" },
+    },
+    // main_equip: {
+    //   type: "Bow",
+    //   value: { arrow: 10, desc: "nice bow" },
+    // },
 
-const archer = Character.unpack(buf);
-const mainEquip = archer.main_equip;
-if (mainEquip.type === "Sword" && mainEquip.value.material === "wood") {
-  console.log("hey, Yuusya, is that a toy in your hand");
+    sub_equip: {
+      type: "Sword",
+      value: { material: "steel" },
+    },
+    // sub_equip: {
+    //   type: "Wand",
+    //   value: { gems: [{ color: 1, shape: 2 }], desc: "utf8 string" },
+    // },
+  });
+
+  const character = Character.unpack(buf);
+  const mainEquip = character.main_equip;
+
+  if (mainEquip.type === "Sword" && mainEquip.value.material === "wood") {
+    console.log("I am Yuusya, ⚔️");
+  }
+
+  if (mainEquip.type === "Bow") {
+    console.log("I am Archer");
+  }
 }
+
+main();

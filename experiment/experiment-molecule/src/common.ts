@@ -1,5 +1,12 @@
 import { BI } from "@ckb-lumos/bi";
-import { BinaryCodec, FixedBinaryCodec } from "./layout";
+import {
+  byteArrayOf,
+  byteVecOf,
+  FixedBinaryCodec,
+  Uint32LE,
+  Unknown,
+} from "./base";
+import { option } from "./layout";
 import {
   assertBI,
   assertBufferLength,
@@ -105,24 +112,8 @@ export const HexUint16BE: FixedBinaryCodec<string> = {
   },
 };
 
-// TODO UintNLE and UintNBE
 // array Uint32 [byte; 4]
-export const Uint32LE: FixedBinaryCodec<number> = {
-  __isFixedCodec__: true,
-  byteLength: 4,
-  pack(num: number) {
-    assertUint32(num);
-    const buffer = new ArrayBuffer(4);
-    const view = new DataView(buffer);
-    view.setUint32(0, num, true);
-    return buffer;
-  },
-  unpack(buf) {
-    assertBufferLength(buf, 4);
-    const view = new DataView(buf);
-    return view.getUint32(0, true);
-  },
-};
+export { Uint32LE };
 /**
  * @alias Uint32LE
  */
@@ -244,7 +235,9 @@ export const HexUint512BE: FixedBinaryCodec<string> = createBIHexCodec(
 export const HexUint512 = HexUint512LE;
 
 // array BytesN [byte; n]
-export function fixedHexBytes(byteLength: number): FixedBinaryCodec<string> {
+export function createFixedHexBytesCodec(
+  byteLength: number
+): FixedBinaryCodec<string> {
   return {
     __isFixedCodec__: true,
     byteLength,
@@ -259,26 +252,39 @@ export function fixedHexBytes(byteLength: number): FixedBinaryCodec<string> {
   };
 }
 
+export const Byte32 = createFixedHexBytesCodec(32);
+
 // vector Bytes <byte>
-export const HexBytes: BinaryCodec<string> = {
-  pack(hexStr: string) {
-    assertHexString(hexStr);
-    return toArrayBuffer(hexStr);
+export const Bytes = byteVecOf<string>({
+  pack(hex) {
+    return toArrayBuffer(hex);
   },
   unpack(buf) {
     return serializeJson(buf);
   },
-};
-export const UTF8String: BinaryCodec<string> = {
-  pack(hexStr: string) {
-    assertHexString(hexStr);
-    const result = toArrayBuffer(hexStr);
-    return result;
-  },
-  unpack(buf) {
-    return serializeJson(buf);
-  },
-};
+});
+
+// The RawString codec is not ready for use yet
+// export const RawString: BinaryCodec<string> = byteVecOf({
+//   pack(str) {
+//     const buffer = new ArrayBuffer(str.length);
+//     const view = new DataView(buffer);
+//
+//     for (let i = 0; i < str.length; i++) {
+//       const c = str.charCodeAt(i);
+//       if (c > 0xff) {
+//         throw new Error(
+//           `invalid character: ${str.charAt(i)}, only support ASCII`
+//         );
+//       }
+//       view.setUint8(i, c);
+//     }
+//     return toArrayBuffer(str);
+//   },
+//   unpack(buf) {
+//     return String.fromCharCode(...new Uint8Array(buf));
+//   },
+// });
 
 export function createBICodec(
   byteLength: number,
@@ -324,24 +330,27 @@ export function createBICodec(
     },
   };
 }
+
 export function createBIHexCodec(
   itemCodec: FixedBinaryCodec<BI>
 ): FixedBinaryCodec<string> {
-  return {
-    __isFixedCodec__: true,
-    byteLength: itemCodec.byteLength,
-    pack(numStr: string) {
-      assertHexDecimal(numStr, itemCodec.byteLength);
-      const num = BI.from(numStr);
-      return itemCodec.pack(num);
+  return byteArrayOf(
+    {
+      pack: (x) => itemCodec.pack(BI.from(x)),
+      unpack: (buf) => BI.from(itemCodec.unpack(buf)).toHexString(),
     },
-    unpack(buf) {
-      assertBufferLength(buf, itemCodec.byteLength);
-      return BI.from(itemCodec.unpack(buf)).toHexString();
-    },
-  };
+    itemCodec.byteLength
+  );
 }
 
-export function createByteCodec<T>(byteCodec: BinaryCodec<T>): BinaryCodec<T> {
-  return byteCodec;
-}
+/**
+ * placeholder codec, generally used as a placeholder
+ * ```
+ * // for example, when some BytesOpt is not used, it will be filled with this codec
+ * // option BytesOpt (Bytes);
+ * const UnusedBytesOpt = UnknownOpt
+ * ```
+ */
+export const UnusedOpt = option(Unknown);
+
+export const BytesOpt = option(Bytes);

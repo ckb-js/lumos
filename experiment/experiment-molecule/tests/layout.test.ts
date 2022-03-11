@@ -9,12 +9,12 @@ import {
   union,
   vector,
 } from "../src/layout";
-import { createBuffer } from "../src/utils";
+import { bytesToArrayBuffer } from "../src/utils";
 import test from "ava";
 import { Uint32, Uint8 } from "../src/common";
 
 test("test layout-byte", (t) => {
-  const buffer = createBuffer([1]);
+  const buffer = bytesToArrayBuffer([1]);
   const unpacked = byte.unpack(buffer);
   const packed = byte.pack(unpacked);
 
@@ -24,7 +24,7 @@ test("test layout-byte", (t) => {
 
 test("test layout-array", (t) => {
   const codec = array(Uint8, 4);
-  const buffer = createBuffer([1, 2, 3, 4]);
+  const buffer = bytesToArrayBuffer([1, 2, 3, 4]);
   const unpacked = codec.unpack(buffer);
   const packed = codec.pack(unpacked);
 
@@ -42,7 +42,7 @@ test("test layout-struct", (t) => {
     ["key1", "key2", "key3"]
   );
 
-  const buffer = createBuffer([0x0, 0x1, 0x2, 0x3, 0x4, 0x5]);
+  const buffer = bytesToArrayBuffer([0x0, 0x1, 0x2, 0x3, 0x4, 0x5]);
   const unpacked = codec.unpack(buffer);
 
   t.deepEqual(unpacked, {
@@ -70,7 +70,7 @@ test("test layout-table", (t) => {
     ["key1", "key2", "key3", "key4", "key5"]
   );
   // prettier-ignore
-  const buffer = createBuffer([
+  const buffer = bytesToArrayBuffer([
     // header: total length
     0x2b, 0x00, 0x00, 0x00,
     // header: items-offsets
@@ -97,9 +97,9 @@ test("test layout-table", (t) => {
   });
 
   t.deepEqual(codec.pack(unpacked), buffer);
-  t.throws(() => codec.unpack(createBuffer([0x00, 0x00, 0x00, 0x00])));
+  t.throws(() => codec.unpack(bytesToArrayBuffer([0x00, 0x00, 0x00, 0x00])));
   t.truthy(
-    JSON.stringify(codec.unpack(createBuffer([0x04, 0x00, 0x00, 0x00]))) ===
+    JSON.stringify(codec.unpack(bytesToArrayBuffer([0x04, 0x00, 0x00, 0x00]))) ===
       "{}"
   );
 });
@@ -107,7 +107,7 @@ test("test layout-table", (t) => {
 test("test layout-dynvec", (t) => {
   const codec = vector(vector(Uint8));
   // prettier-ignore
-  const buffer = createBuffer([
+  const buffer = bytesToArrayBuffer([
     // header: total length
     0x34, 0x00, 0x00, 0x00,
     // header: items-offsets
@@ -132,13 +132,13 @@ test("test layout-dynvec", (t) => {
     [0xab, 0xcd, 0xef],
   ]);
   t.deepEqual(codec.pack(unpacked), buffer);
-  t.truthy(codec.unpack(createBuffer([0x04, 0x00, 0x00, 0x00])).length === 0);
-  t.throws(() => codec.unpack(createBuffer([0x34, 0x00, 0x00, 0x00])));
+  t.truthy(codec.unpack(bytesToArrayBuffer([0x04, 0x00, 0x00, 0x00])).length === 0);
+  t.throws(() => codec.unpack(bytesToArrayBuffer([0x34, 0x00, 0x00, 0x00])));
 });
 test("test layout-option", (t) => {
   const codec = option(dynvec(fixvec(Uint8)));
   // prettier-ignore
-  const buffer = createBuffer([
+  const buffer = bytesToArrayBuffer([
     //header: total length
     0x0c, 0x00, 0x00, 0x00,
     //header: offset
@@ -164,7 +164,7 @@ test("test layout-union", (t) => {
     ["Byte3", "Bytes", "BytesVec", "BytesVecOpt"]
   );
   // prettier-ignore
-  const buffer = createBuffer([
+  const buffer = bytesToArrayBuffer([
     // header: item type
     0x02, 0x00, 0x00, 0x00,
 

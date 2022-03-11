@@ -1,5 +1,5 @@
 {
-  "name": "@ckb-lumos-experiment/molecule",
+  "name": "@ckb-lumos/experiment-molecule",
   "private": true,
   "version": "0.17.0-rc8",
   "description": "Make your own molecule binding in JavaScript(TypeScript)",
