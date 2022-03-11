@@ -4,8 +4,8 @@ import { useFormik } from "formik";
 import "antd/dist/antd.css";
 import styled from "styled-components";
 import { Indexer } from "@site/../../packages/ckb-indexer/lib";
-import { CellProvider } from "@site/../../packages/base";
-import { predefined } from "@site/../../packages/config-manager";
+import { CellProvider, utils } from "@site/../../packages/base";
+import { predefined, ScriptConfig } from "@site/../../packages/config-manager";
 import { key } from "@site/../../packages/hd/lib";
 import {
   generateAddress,
@@ -34,6 +34,7 @@ const StyleWrapper = styled.div`
 interface ModalFormValues {
   network: string;
   rpc: string;
+  indexer: string;
   deploy_type: string;
   contract: Uint8Array;
   priv_key: string;
@@ -52,6 +53,51 @@ async function signAndSendTransaction(
   return hash;
 }
 
+async function loadSecp256k1ScriptDep(rpc: RPC): Promise<ScriptConfig> {
+  const genesisBlock = await rpc.get_block_by_number("0x0");
+
+  if (!genesisBlock) throw new Error("cannot load genesis block");
+
+  const secp256k1DepTxHash = genesisBlock.transactions[1].hash;
+  const typeScript = genesisBlock.transactions[0].outputs[1].type;
+
+  if (!secp256k1DepTxHash) throw new Error("Cannot load secp256k1 transaction");
+  if (!typeScript) throw new Error("cannot load secp256k1 type script");
+
+  const secp256k1TypeHash = utils.computeScriptHash(typeScript);
+
+  return {
+    HASH_TYPE: "type",
+    CODE_HASH: secp256k1TypeHash,
+    INDEX: "0x0",
+    TX_HASH: secp256k1DepTxHash,
+    DEP_TYPE: "dep_group",
+  };
+}
+
+async function loadSecp256k1MultiScriptDep(rpc: RPC): Promise<ScriptConfig> {
+  const genesisBlock = await rpc.get_block_by_number("0x0");
+
+  if (!genesisBlock) throw new Error("cannot load genesis block");
+
+  const secp256k1MultiSigDepTxHash = genesisBlock.transactions[1].hash;
+  const typeScript = genesisBlock.transactions[0].outputs[4].type;
+
+  if (!secp256k1MultiSigDepTxHash)
+    throw new Error("Cannot load secp256k1MultiSig transaction");
+  if (!typeScript) throw new Error("cannot load secp256k1MultiSig type script");
+
+  const secp256k1MultiSigTypeHash = utils.computeScriptHash(typeScript);
+
+  return {
+    HASH_TYPE: "type",
+    CODE_HASH: secp256k1MultiSigTypeHash,
+    INDEX: "0x1",
+    TX_HASH: secp256k1MultiSigDepTxHash,
+    DEP_TYPE: "dep_group",
+  };
+}
+
 export const Deploy = () => {
   const [scriptConfig, setScriptConfig] = useState();
 
@@ -66,7 +112,11 @@ export const Deploy = () => {
     async onSubmit(val, { setFieldError }) {
       setScriptConfig(undefined);
       if (val.network === "rpc" && !val.rpc) {
-        setFieldError("rpc", "rpc entry required");
+        setFieldError("rpc", "rpc port required");
+        return;
+      }
+      if (val.network === "rpc" && !val.indexer) {
+        setFieldError("indexer", "indexer rpc port required");
         return;
       }
       if (!val.contract) {
@@ -78,22 +128,37 @@ export const Deploy = () => {
         return;
       }
       try {
-        let url;
         let config;
+        let indexer;
+        let rpc;
         if (val.network === "lina") {
-          url = "https://mainnet.ckb.dev";
           config = predefined.LINA;
+          const rpcURL = "https://mainnet.ckb.dev/rpc";
+          const indexerURL = "https://mainnet.ckb.dev/indexer";
+          indexer = new Indexer(indexerURL, rpcURL);
+          rpc = new RPC(rpcURL);
         } else if (val.network === "aggron") {
-          url = "https://testnet.ckb.dev";
           config = predefined.AGGRON4;
+          const rpcURL = "https://testnet.ckb.dev/rpc";
+          const indexerURL = "https://testnet.ckb.dev/indexer";
+          indexer = new Indexer(indexerURL, rpcURL);
+          rpc = new RPC(rpcURL);
         } else {
-          url = val.rpc;
-          // TODO: config, check if has secp265k1;
+          const rpcURL = `${val.rpc}/rpc`;
+          const indexerURL = `${val.indexer}/indexer`;
+          indexer = new Indexer(indexerURL, rpcURL);
+          rpc = new RPC(rpcURL);
+
+          const secpScript = await loadSecp256k1ScriptDep(rpc);
+          const multiSigScript = await loadSecp256k1MultiScriptDep(rpc);
+          config = {
+            PREFIX: "ckt",
+            SCRIPTS: {
+              SECP256K1_BLAKE160: secpScript,
+              SECP256K1_BLAKE160_MULTISIG: multiSigScript,
+            },
+          };
         }
-        const rpcURL = `${url}/rpc`;
-        const indexerURL = `${url}/indexer`;
-        const indexer = new Indexer(indexerURL, rpcURL);
-        const rpc = new RPC(rpcURL);
 
         const pubKey = key.privateToPublic(val.priv_key);
         const args = key.publicKeyToBlake160(pubKey);
@@ -135,6 +200,7 @@ export const Deploy = () => {
     initialValues: {
       network: "aggron",
       rpc: "",
+      indexer: "",
       deploy_type: "type",
       contract: undefined,
       priv_key: "",
@@ -160,21 +226,38 @@ export const Deploy = () => {
             <p style={{ color: "red" }}>Be careful when you deploy on LINA</p>
           ) : null}
           {contractDeploymentForm.values.network === "rpc" ? (
-            <Form.Item
-              label="Please enter your RPC entry"
-              validateStatus={
-                contractDeploymentForm.errors.rpc ? "error" : "success"
-              }
-            >
-              <Input
-                name="rpc"
-                onChange={contractDeploymentForm.handleChange}
-                value={contractDeploymentForm.values.rpc}
-              />
-              <span className="errorMessage">
-                {contractDeploymentForm.errors.rpc}
-              </span>
-            </Form.Item>
+            <div>
+              <Form.Item
+                label="RPC Port"
+                validateStatus={
+                  contractDeploymentForm.errors.rpc ? "error" : "success"
+                }
+              >
+                <Input
+                  name="rpc"
+                  onChange={contractDeploymentForm.handleChange}
+                  value={contractDeploymentForm.values.rpc}
+                />
+                <span className="errorMessage">
+                  {contractDeploymentForm.errors.rpc}
+                </span>
+              </Form.Item>
+              <Form.Item
+                label="Indexer RPC Port"
+                validateStatus={
+                  contractDeploymentForm.errors.rpc ? "error" : "success"
+                }
+              >
+                <Input
+                  name="indexer"
+                  onChange={contractDeploymentForm.handleChange}
+                  value={contractDeploymentForm.values.indexer}
+                />
+                <span className="errorMessage">
+                  {contractDeploymentForm.errors.indexer}
+                </span>
+              </Form.Item>
+            </div>
           ) : null}
           <Form.Item label="Deploy type">
             <Radio.Group
