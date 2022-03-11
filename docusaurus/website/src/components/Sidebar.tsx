@@ -3,15 +3,14 @@ import { Menu } from "antd";
 import Link from "@docusaurus/Link";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 
-export const Sidebar = () => {
+export const Sidebar = (props) => {
   const keyAddressConversion = useBaseUrl("/tools/address-conversion");
   const contractDeployment = useBaseUrl("/tools/contract-deployment");
 
   return (
-    // TODO: defult sidebar bug
     <Menu
       style={{ width: 256 }}
-      defaultSelectedKeys={[keyAddressConversion]}
+      defaultSelectedKeys={[useBaseUrl(props.url)]}
       mode="inline"
     >
       <Menu.Item key={keyAddressConversion}>

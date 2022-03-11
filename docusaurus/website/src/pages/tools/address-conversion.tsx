@@ -7,7 +7,7 @@ export default function Tools() {
   return (
     <Layout title="Tools" description="">
       <div style={{ display: "flex" }}>
-        <Sidebar></Sidebar>
+        <Sidebar url="/tools/address-conversion"></Sidebar>
         <Address></Address>
       </div>
     </Layout>
