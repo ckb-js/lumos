@@ -99,8 +99,9 @@ test("test layout-table", (t) => {
   t.deepEqual(codec.pack(unpacked), buffer);
   t.throws(() => codec.unpack(bytesToArrayBuffer([0x00, 0x00, 0x00, 0x00])));
   t.truthy(
-    JSON.stringify(codec.unpack(bytesToArrayBuffer([0x04, 0x00, 0x00, 0x00]))) ===
-      "{}"
+    JSON.stringify(
+      codec.unpack(bytesToArrayBuffer([0x04, 0x00, 0x00, 0x00]))
+    ) === "{}"
   );
 });
 
@@ -132,7 +133,9 @@ test("test layout-dynvec", (t) => {
     [0xab, 0xcd, 0xef],
   ]);
   t.deepEqual(codec.pack(unpacked), buffer);
-  t.truthy(codec.unpack(bytesToArrayBuffer([0x04, 0x00, 0x00, 0x00])).length === 0);
+  t.truthy(
+    codec.unpack(bytesToArrayBuffer([0x04, 0x00, 0x00, 0x00])).length === 0
+  );
   t.throws(() => codec.unpack(bytesToArrayBuffer([0x34, 0x00, 0x00, 0x00])));
 });
 test("test layout-option", (t) => {
