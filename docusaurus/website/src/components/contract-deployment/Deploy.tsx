@@ -12,19 +12,18 @@ import {
   sealTransaction,
   TransactionSkeletonType,
 } from "@site/../../packages/helpers";
-import {
-  deploy,
-  common,
-} from "@site/../../packages/common-scripts";
+import { deploy, common } from "@site/../../packages/common-scripts";
 import { RPC } from "@site/../../packages/rpc";
 
 const StyleWrapper = styled.div`
   padding: 20px;
   display: flex;
   justify-content: center;
+
   .ant-tabs {
     min-width: 900px;
   }
+
   .errorMessage {
     color: #ff4d4f;
   }
