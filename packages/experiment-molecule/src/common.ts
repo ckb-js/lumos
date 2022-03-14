@@ -1,12 +1,13 @@
 import { BI } from "@ckb-lumos/bi";
 import {
   byteArrayOf,
+  byteOf,
   byteVecOf,
   FixedBinaryCodec,
   Uint32LE,
   Unknown,
 } from "./base";
-import { option } from "./layout";
+import { option, vector } from "./layout";
 import {
   assertBI,
   assertBufferLength,
@@ -20,9 +21,7 @@ import {
 } from "./utils";
 
 // byte
-export const Uint8: FixedBinaryCodec<number> = {
-  __isFixedCodec__: true,
-  byteLength: 1,
+export const Uint8: FixedBinaryCodec<number> = byteOf<number>({
   pack(u8) {
     assertUint8(u8);
     const buf = new ArrayBuffer(1);
@@ -33,7 +32,7 @@ export const Uint8: FixedBinaryCodec<number> = {
     assertBufferLength(buf, 1);
     return new DataView(buf).getUint8(0);
   },
-};
+});
 
 export const HexUint8: FixedBinaryCodec<string> = {
   __isFixedCodec__: true,
@@ -252,40 +251,6 @@ export function createFixedHexBytesCodec(
   };
 }
 
-export const Byte32 = createFixedHexBytesCodec(32);
-
-// vector Bytes <byte>
-export const Bytes = byteVecOf<string>({
-  pack(hex) {
-    return toArrayBuffer(hex);
-  },
-  unpack(buf) {
-    return serializeJson(buf);
-  },
-});
-
-// The RawString codec is not ready for use yet
-// export const RawString: BinaryCodec<string> = byteVecOf({
-//   pack(str) {
-//     const buffer = new ArrayBuffer(str.length);
-//     const view = new DataView(buffer);
-//
-//     for (let i = 0; i < str.length; i++) {
-//       const c = str.charCodeAt(i);
-//       if (c > 0xff) {
-//         throw new Error(
-//           `invalid character: ${str.charAt(i)}, only support ASCII`
-//         );
-//       }
-//       view.setUint8(i, c);
-//     }
-//     return toArrayBuffer(str);
-//   },
-//   unpack(buf) {
-//     return String.fromCharCode(...new Uint8Array(buf));
-//   },
-// });
-
 export function createBICodec(
   byteLength: number,
   bigEndian?: boolean
@@ -334,13 +299,11 @@ export function createBICodec(
 export function createBIHexCodec(
   itemCodec: FixedBinaryCodec<BI>
 ): FixedBinaryCodec<string> {
-  return byteArrayOf(
-    {
-      pack: (x) => itemCodec.pack(BI.from(x)),
-      unpack: (buf) => BI.from(itemCodec.unpack(buf)).toHexString(),
-    },
-    itemCodec.byteLength
-  );
+  return byteArrayOf({
+    byteLength: itemCodec.byteLength,
+    pack: (x) => itemCodec.pack(BI.from(x)),
+    unpack: (buf) => BI.from(itemCodec.unpack(buf)).toHexString(),
+  });
 }
 
 /**
@@ -353,4 +316,13 @@ export function createBIHexCodec(
  */
 export const UnusedOpt = option(Unknown);
 
+// vector Bytes <byte>
+export const Bytes = byteVecOf<string>({
+  pack: (hex) => toArrayBuffer(hex),
+  unpack: (buf) => serializeJson(buf),
+});
+
 export const BytesOpt = option(Bytes);
+export const BytesVec = vector(Bytes);
+export const Byte32 = createFixedHexBytesCodec(32);
+export const Byte32Vec = vector(Byte32);

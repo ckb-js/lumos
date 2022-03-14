@@ -304,17 +304,6 @@ test("test fixed hex bytes", (t) => {
   t.throws(() => createFixedHexBytesCodec(4).pack(hexStr));
 });
 
-// test("test UTF8String", (t) => {
-//   const str = "hello_world";
-//   const hexBytes = RawString.pack(str);
-//   t.deepEqual(
-//     hexBytes,
-//     // prettier-ignore      h    e     l    l    o   _   w    o    r    l   d
-//     bytesToArrayBuffer([104, 101, 108, 108, 111, 95, 119, 111, 114, 108, 100])
-//   );
-//   t.truthy(str === RawString.unpack(hexBytes));
-// });
-
 test("a real world Omni Lock witness should work as expected", (t) => {
   const OmniLockWitnessLock = table(
     {

@@ -11,6 +11,12 @@ export interface Codec<Packed, Unpacked> {
 }
 
 export type Pack<T extends Codec<any, any>> = ReturnType<T["pack"]>;
+/**
+ * @example
+ * ```ts
+ * type UnpackedUint32 = Unpacked<typeof Uint32> // number
+ * ```
+ */
 export type Unpack<T extends Codec<any, any>> = ReturnType<T["unpack"]>;
 
 export interface BinaryCodec<Unpacked = any>
@@ -37,12 +43,11 @@ export const Unknown: BinaryCodec<unknown> = {
 /**
  * a helper function to create custom codec of `array SomeType [byte; n]`
  * @param codec
- * @param byteLength
  */
 export function byteArrayOf<T>(
-  codec: BinaryCodec<T>,
-  byteLength: number
+  codec: BinaryCodec<T> & { byteLength: number }
 ): FixedBinaryCodec<T> {
+  const byteLength = codec.byteLength;
   return {
     __isFixedCodec__: true,
     byteLength,
@@ -63,28 +68,26 @@ export function byteArrayOf<T>(
  * @param codec
  */
 export function byteOf<T>(codec: BinaryCodec<T>): FixedBinaryCodec<T> {
-  return byteArrayOf(codec, 1);
+  return byteArrayOf({ ...codec, byteLength: 1 });
 }
 
 /**
  * Uint32 codec
  */
-export const Uint32LE = byteArrayOf<number>(
-  {
-    pack: (num) => {
-      assertUint32(num);
-      const buffer = new ArrayBuffer(4);
-      const view = new DataView(buffer);
-      view.setUint32(0, num, true);
-      return buffer;
-    },
-    unpack: (buf) => {
-      const view = new DataView(buf);
-      return view.getUint32(0, true);
-    },
+export const Uint32LE = byteArrayOf<number>({
+  byteLength: 4,
+  pack: (num) => {
+    assertUint32(num);
+    const buffer = new ArrayBuffer(4);
+    const view = new DataView(buffer);
+    view.setUint32(0, num, true);
+    return buffer;
   },
-  4
-);
+  unpack: (buf) => {
+    const view = new DataView(buf);
+    return view.getUint32(0, true);
+  },
+});
 
 /**
  * a helper function to create custom codec of `vector Bytes <byte>`
