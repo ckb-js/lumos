@@ -1,4 +1,9 @@
-import { assertBufferLength, assertUint32, concatBuffer } from "./utils";
+import {
+  assertBufferLength,
+  assertMinBufferLength,
+  assertUint32,
+  concatBuffer,
+} from "./utils";
 
 export interface Codec<Packed, Unpacked> {
   pack: (unpacked: Unpacked) => Packed;
@@ -94,6 +99,9 @@ export function byteVecOf<T>(codec: BinaryCodec<T>): BinaryCodec<T> {
       return concatBuffer(header, payload);
     },
     unpack(packed) {
+      assertMinBufferLength(packed, 4);
+      const header = Uint32LE.unpack(packed.slice(0, 4));
+      assertBufferLength(packed.slice(4), header);
       return codec.unpack(packed.slice(4));
     },
   };
