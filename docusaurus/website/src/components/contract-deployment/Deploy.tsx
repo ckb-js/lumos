@@ -13,8 +13,7 @@ import {
   TransactionSkeletonType,
 } from "@site/../../packages/helpers";
 import {
-  generateDeployWithTypeIdTx,
-  generateDeployWithDataTx,
+  deploy,
   common,
 } from "@site/../../packages/common-scripts";
 import { RPC } from "@site/../../packages/rpc";
@@ -179,9 +178,9 @@ export const Deploy = () => {
 
         let res;
         if (val.deploy_type === "type") {
-          res = await generateDeployWithTypeIdTx(deployOptions);
+          res = await deploy.generateDeployWithTypeIdTx(deployOptions);
         } else {
-          res = await generateDeployWithDataTx(deployOptions);
+          res = await deploy.generateDeployWithDataTx(deployOptions);
         }
 
         const txHash = await signAndSendTransaction(
