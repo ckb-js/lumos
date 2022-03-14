@@ -15,37 +15,27 @@ graph TD;
 ## Quick Start
 
 ```ts
-import { layout, common } from "@ckb-lumos/experiment-molecule";
-
-const { table } = layout;
-const { Uint8, Uint128, UTF8String } = common;
+import { struct, Uint8, Uint128 } from "@ckb-lumos/experiment-molecule";
 
 // table UDTInfo {
 //  total_supply: Uint128,
-//  name: UTF8String,
-//  symbol: UTF8String,
 //  decimals: Uint8,
 // }
 // array Uint8 [byte; 1];
 // array Uint128 [byte; 16];
-// vector UTF8String <byte>;
 
 // 1. create molecule binding
-const UDTInfo /*: Codec */ = table(
+const UDTInfo /*: Codec */ = struct(
   {
-    totalSupply: Uint128LE,
-    name: UTF8String,
-    symbol: UTF8String,
+    totalSupply: Uint128,
     decimals: Uint8,
   },
-  ["totalSupply", "name", "symbol", "decimals"]
+  ["totalSupply", "decimals"]
 );
 
 // 2. usage
 const buf /*: ArrayBuffer*/ = UDTInfo.pack({
   totalSupply: BI.from(21000000 * 10 ** 8),
-  name: "Fake BitCoin",
-  symbol: "FBTC",
   decimals: 8,
 });
 ```
@@ -71,17 +61,40 @@ For more details, please check the [common mocule](./src/common.ts)
 Uint32.pack(100); // ArrayBuffer([100, 0, 0, 0])
 ```
 
+## Custom Codec
+
+When we encounter molecule layouts like `byte` | `array SomeBytes [byte; n]` | `vector SomeBytes <byte>`, and the common
+codec is not sufficient, we can customize the codec to help us interpret these byte(s)
+
+Let's see an example of how to implement a `UTF8String` codec. If we want to store a UTF8String of indefinite length,
+then the corresponding molecule structure should be a `vector UTF8String <byte>`
+
+```ts
+import { byteVecOf } from "@ckb-lumos/experiment-molecule/lib/base";
+import { Buffer } from "buffer"; // https://github.com/feross/buffer
+
+const UTF8String = byteVecOf<string>({
+  pack: (str) => {
+    return Uint8Array.from(Buffer.from(str, "utf8")).buffer;
+  },
+  unpack: (buf) => {
+    return Buffer.from(buf).toString("utf8");
+  },
+});
+```
+
 ## Why I Need This Module
 
 molecule is flexible in that it is a serialization scheme that focuses only on byte(s) layout. When developers
 encounter `byte` | `array FixedBytes [byte; n]` | `vector DynBytes <byte>`, these byte(s) need to be translated into
 understandable data types, such as `array Uint32 [byte; 4]` is generally translated as `number`.
 
-This package can help us convert bytes to common data types in a simple way. If you have some experience with CKB, you
-will have encountered more complex scripts like Omni Lock, where it is easy to get confused about how to handle bytes
-when we want to sign it, if we can combine `WitnessArgs.lock(BytesOpt)` with `RcLockWitnessLock.signature(BytesOpt)`,
-then it will be easier to do the signing, we can check
-the [test case('a real world Omni Lock witness should work as expected')](./tests/common.test.ts) to see how it works
+This module can help us convert bytes to common data types in a simple way. If you have some experience with CKB, you
+will have encountered more complex scripts
+like [OmniLock](https://github.com/XuJiandong/docs-bank/blob/master/omni_lock.md), where it is easy to get confused
+about how to handle bytes when we want to sign it, if we can combine `WitnessArgs.lock(BytesOpt)`
+with `OmniLockWitnessLock.signature(BytesOpt)`, then it will be easier to do the signing, we can check
+[the real world OmniLock witness case](./tests/common.test.ts) to see how it works
 
 ```mol
 table WitnessArgs {
@@ -90,9 +103,11 @@ table WitnessArgs {
     output_type:            BytesOpt,          // Type args for output
 }
 
-table RcLockWitnessLock {
+table OmniLockWitnessLock {
     signature: BytesOpt,
     rc_identity: RcIdentityOpt,
     preimage: BytesOpt,
 }
 ```
+
+![](./assets/suggest-trigger.gif)

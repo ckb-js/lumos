@@ -1,8 +1,11 @@
-import { common, layout } from "@ckb-lumos/experiment-molecule";
+import {
+  Byte32,
+  struct,
+  Uint128,
+  Uint32,
+  Uint64,
+} from "@ckb-lumos/experiment-molecule";
 import { BI } from "@ckb-lumos/bi";
-
-const { Uint32, Uint64, Uint128, Byte32 } = common;
-const { struct } = layout;
 
 // struct RawWithdrawalRequest {
 //     nonce: Uint32,

@@ -1,12 +1,14 @@
 import {
+  byteOf,
+  byteVecOf,
   option,
   struct,
   table,
+  Uint32,
+  Uint8,
   union,
   vector,
-} from "@ckb-lumos/experiment-molecule/lib/layout";
-import { Uint32, Uint8 } from "@ckb-lumos/experiment-molecule/lib/common";
-import { byteOf, byteVecOf } from "@ckb-lumos/experiment-molecule/lib/base";
+} from "@ckb-lumos/experiment-molecule";
 
 // table Character {
 //   main_equip: Equip,
