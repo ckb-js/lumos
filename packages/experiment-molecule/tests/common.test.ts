@@ -284,7 +284,14 @@ test("test hex bytes", (t) => {
     bytesToArrayBuffer([0x03, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56])
   );
   t.truthy(hexStr === Bytes.unpack(hexBytes));
+
+  t.deepEqual(hexStr, Bytes.unpack(hexBytes));
+  t.throws(() =>
+    Bytes.unpack(bytesToArrayBuffer([0x03, 0x00, 0x00, 0x00, 0x12, 0x34]))
+  );
+  t.throws(() => Bytes.unpack(bytesToArrayBuffer([0x00, 0x00, 0x00])));
 });
+
 test("test fixed hex bytes", (t) => {
   const hexStr = "0x123456";
   const hexBytes = createFixedHexBytesCodec(3).pack(hexStr);
