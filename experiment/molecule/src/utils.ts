@@ -54,6 +54,14 @@ export function assertBufferLength(buf: ArrayBuffer, length: number) {
   }
 }
 
+export function assertMinBufferLength(buf: ArrayBuffer, length: number) {
+  if (buf.byteLength < length) {
+    throw new Error(
+      `Invalid buffer length: ${buf.byteLength}, should be at least ${length}`
+    );
+  }
+}
+
 export function assertUint8(num: number) {
   if (num < 0 || num > 255) {
     throw new Error("Invalid Uint8!");

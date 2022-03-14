@@ -288,9 +288,14 @@ test("test hex bytes", (t) => {
   t.deepEqual(
     hexBytes,
     // prettier-ignore
-    createBuffer([ 0x12, 0x34, 0x56 ])
+    createBuffer([ 0x03, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56 ])
   );
-  t.truthy(hexStr === HexBytes.unpack(hexBytes));
+
+  t.deepEqual(hexStr, HexBytes.unpack(hexBytes));
+  t.throws(() =>
+    HexBytes.unpack(createBuffer([0x03, 0x00, 0x00, 0x00, 0x12, 0x34]))
+  );
+  t.throws(() => HexBytes.unpack(createBuffer([0x00, 0x00, 0x00])));
 });
 test("test fixed hex bytes", (t) => {
   const hexStr = "0x123456";

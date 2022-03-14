@@ -5,9 +5,11 @@ import {
   assertBufferLength,
   assertHexDecimal,
   assertHexString,
+  assertMinBufferLength,
   assertUint16,
   assertUint32,
   assertUint8,
+  concatBuffer,
   serializeJson,
   toArrayBuffer,
 } from "./utils";
@@ -263,10 +265,15 @@ export function fixedHexBytes(byteLength: number): FixedBinaryCodec<string> {
 export const HexBytes: BinaryCodec<string> = {
   pack(hexStr: string) {
     assertHexString(hexStr);
-    return toArrayBuffer(hexStr);
+    const body = toArrayBuffer(hexStr);
+    const header = Uint32LE.pack(body.byteLength);
+    return concatBuffer(header, body);
   },
   unpack(buf) {
-    return serializeJson(buf);
+    assertMinBufferLength(buf, 4);
+    const header = Uint32LE.unpack(buf.slice(0, 4));
+    assertBufferLength(buf, header + 4);
+    return serializeJson(buf.slice(4, 4 + header));
   },
 };
 export const UTF8String: BinaryCodec<string> = {
