@@ -118,3 +118,29 @@ export function initializeConfig(inputConfig?: Config): void {
     config = deepFreeze(inputConfig);
   }
 }
+
+/**
+ * used to generate CKB address, but this will remove in the future, please migrate to {@link encodeToAddress}
+ * @deprecated
+ * @param config
+ * @returns
+ */
+export function CKB2019<Cfg extends Config>(config: Cfg): Cfg {
+  return {
+    ...config,
+    CKB2021: false,
+  };
+}
+
+/**
+ * used to generate CKB address, but this will remove in the future, please migrate to {@link encodeToAddress}
+ * @deprecated
+ * @param config
+ * @returns
+ */
+export function CKB2021<Cfg extends Config>(config: Cfg): Cfg {
+  return {
+    ...config,
+    CKB2021: true,
+  };
+}
