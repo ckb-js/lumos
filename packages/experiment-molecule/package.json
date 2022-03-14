@@ -32,6 +32,9 @@
   "dependencies": {
     "@ckb-lumos/bi": "^0.17.0-rc8"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
