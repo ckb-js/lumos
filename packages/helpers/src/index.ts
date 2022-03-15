@@ -115,21 +115,6 @@ export function generateAddress(
   if (scriptTemplate && scriptTemplate.SHORT_ID !== undefined) {
     data.push(1, scriptTemplate.SHORT_ID);
     data.push(...hexToByteArray(script.args));
-  } else if (config.CKB2021) {
-    const hash_type = (() => {
-      if (script.hash_type === "data") return 0;
-      if (script.hash_type === "type") return 1;
-      if (script.hash_type === "data1") return 2;
-
-      throw new Error(`unknown hash_type ${script.hash_type}`);
-    })();
-
-    data.push(0x00);
-    data.push(...hexToByteArray(script.code_hash));
-    data.push(hash_type);
-    data.push(...hexToByteArray(script.args));
-
-    return bech32m.encode(config.PREFIX, bech32m.toWords(data), BECH32_LIMIT);
   } else {
     data.push(script.hash_type === "type" ? 4 : 2);
     data.push(...hexToByteArray(script.code_hash));

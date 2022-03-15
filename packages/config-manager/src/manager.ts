@@ -29,7 +29,7 @@ function assert(condition: unknown, debugPath = "variable"): asserts condition {
   if (!condition) throw new Error(`${debugPath} is not valid`);
 }
 
-export function validateConfig(config: Config) {
+export function validateConfig(config: Config): void {
   assert(
     typeof config.SCRIPTS === "object" && config.SCRIPTS != null,
     "config.SCRIPT"
@@ -97,6 +97,7 @@ function initializeConfigLegacy() {
   const configFile = env?.LUMOS_CONFIG_FILE;
   const configFilename = configFile || "config.json";
   try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const data = require("fs").readFileSync(configFilename);
     const loadedConfig = JSON.parse(data);
     validateConfig(loadedConfig);
@@ -116,29 +117,4 @@ export function initializeConfig(inputConfig?: Config): void {
     validateConfig(inputConfig);
     config = deepFreeze(inputConfig);
   }
-}
-/**
- * used to generate CKB address, but this will remove in the future, please migrate to {@link encodeToAddress}
- * @deprecated
- * @param config
- * @returns
- */
-export function CKB2019<Cfg extends Config>(config: Cfg): Cfg {
-  return {
-    ...config,
-    CKB2021: false,
-  };
-}
-
-/**
- * used to generate CKB address, but this will remove in the future, please migrate to {@link encodeToAddress}
- * @deprecated
- * @param config
- * @returns
- */
-export function CKB2021<Cfg extends Config>(config: Cfg): Cfg {
-  return {
-    ...config,
-    CKB2021: true,
-  };
 }
