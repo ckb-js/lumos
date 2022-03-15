@@ -17,7 +17,7 @@
     "lint": "echo \"lint skip in example\""
   },
   "dependencies": {
-    "@ckb-lumos/lumos": "0.17.0-rc8",
+    "@ckb-lumos/lumos": "0.18.0-rc5",
     "@docusaurus/core": "^2.0.0-beta.15",
     "@docusaurus/module-type-aliases": "^2.0.0-beta.15",
     "@docusaurus/preset-classic": "^2.0.0-beta.15",

@@ -8,7 +8,6 @@ export type ScriptRecord = Record<string, ScriptConfig>;
  * @param configShape
  */
 export function createConfig<S extends ScriptRecord>(configShape: {
-  CKB2021?: boolean;
   PREFIX: string;
   SCRIPTS: S;
 }): typeof configShape {
