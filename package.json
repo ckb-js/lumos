@@ -37,6 +37,7 @@
     "eslint": "^7.1.0",
     "husky": "^7.0.4",
     "lerna": "^4.0.0",
+    "lint-staged": "^12.3.5",
     "mysql2": "^2.1.0",
     "npm-run-all": "^4.1.5",
     "parcel": "^2.2.1",
@@ -61,6 +62,7 @@
     "lint": "run-p lint:* && git diff --exit-code",
     "lint:fmt": "lerna run fmt --parallel",
     "lint:eslint": "lerna run lint --parallel",
+    "lint-next": "eslint -c .eslintrc.next.js ",
     "clean": "lerna run clean",
     "versionup": "lerna version --conventional-commits --no-git-tag-version",
     "versionup:patch": "lerna version patch --conventional-commits --no-git-tag-version",
@@ -76,5 +78,11 @@
     "hooks": {
       "pre-push": "yarn run lint"
     }
+  },
+  "lint-staged": {
+    "packages/*/{src,tests}/**/*.{js,ts}": [
+      "prettier --write",
+      "eslint -c .eslintrc.next.js --fix"
+    ]
   }
 }

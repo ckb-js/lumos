@@ -28,6 +28,7 @@
   "dependencies": {
     "@ckb-lumos/base": "^0.18.0-rc5",
     "@ckb-lumos/config-manager": "^0.18.0-rc5",
+    "@ckb-lumos/helpers": "^0.18.0-rc5",
     "@ckb-lumos/toolkit": "^0.18.0-rc5"
   },
   "repository": {

@@ -113,7 +113,7 @@ packages/hd/lib
 packages/hd-cache/lib
 packages/rpc/lib
 packages/bi/lib
-packages/experiment/lib
+packages/experiment-tx-assembler/lib
 
 # knex config
 packages/sql-indexer/knexfile.ts

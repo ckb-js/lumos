@@ -1,5 +1,10 @@
-import { createScriptRegistry } from "../src";
+import {
+  createScriptRegistry,
+  createCell,
+  createCellWithMinimalCapacity,
+} from "../src";
 import test from "ava";
+import { BI } from "@ckb-lumos/bi";
 import { predefined } from "@ckb-lumos/config-manager";
 import { Reader } from "@ckb-lumos/toolkit";
 import { Script } from "@ckb-lumos/base";
@@ -73,4 +78,73 @@ test("ScriptRegistry", (t) => {
   };
   scriptName = newRegistry.nameOfScript(noneExistScript);
   t.is(scriptName, undefined);
+});
+
+test("create input cell", (t) => {
+  const lock: Script = {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    args: "0x159890a7cacb44a95bef0743064433d763de229c",
+    hash_type: "type",
+  };
+  const outPoint = {
+    tx_hash:
+      "0x942c23f72f0a2558a0029522b1dea2a7c64ba5196aed829ab6bfe4b6c3270958",
+    index: "0x0",
+  };
+  const cell = createCell({
+    lock: lock,
+    capacity: BI.from("10000000000"),
+    out_point: outPoint,
+  });
+  const expectedCell = {
+    cell_output: {
+      capacity: BI.from("10000000000").toHexString(),
+      lock: lock,
+    },
+    data: "0x",
+    out_point: outPoint,
+  };
+  t.deepEqual(cell, expectedCell);
+});
+
+test("create output cell", (t) => {
+  const lock: Script = {
+    code_hash:
+      "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
+    hash_type: "type",
+    args: "0x01a08bcc398854db4eaffd9c28b881c65f91e3a28b00",
+  };
+  const cell = createCell({ lock: lock, capacity: BI.from("10000000000") });
+  const expectedCell = {
+    cell_output: {
+      capacity: BI.from("10000000000").toHexString(),
+      lock: lock,
+    },
+    data: "0x",
+  };
+  t.deepEqual(cell, expectedCell);
+
+  const error = t.throws(() =>
+    createCell({ lock: lock, capacity: BI.from("6100000000") })
+  );
+  t.is(error.message, "provided capacity is not enough");
+});
+
+test("create minimal cell", (t) => {
+  const lock: Script = {
+    code_hash:
+      "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
+    hash_type: "type",
+    args: "0x01a08bcc398854db4eaffd9c28b881c65f91e3a28b00",
+  };
+  const cell = createCellWithMinimalCapacity({ lock: lock });
+  const expectedCell = {
+    cell_output: {
+      capacity: BI.from("6300000000").toHexString(),
+      lock: lock,
+    },
+    data: "0x",
+  };
+  t.deepEqual(expectedCell, cell);
 });
