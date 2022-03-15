@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/experiment-script-registry",
-  "version": "0.18.0-rc5",
+  "version": "0.18.0-rc6",
   "description": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
@@ -26,10 +26,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.18.0-rc5",
-    "@ckb-lumos/config-manager": "^0.18.0-rc5",
-    "@ckb-lumos/helpers": "^0.18.0-rc5",
-    "@ckb-lumos/toolkit": "^0.18.0-rc5"
+    "@ckb-lumos/base": "0.18.0-rc6",
+    "@ckb-lumos/config-manager": "0.18.0-rc6",
+    "@ckb-lumos/helpers": "0.18.0-rc6",
+    "@ckb-lumos/toolkit": "0.18.0-rc6"
   },
   "repository": {
     "type": "git",

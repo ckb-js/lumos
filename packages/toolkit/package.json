@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/toolkit",
-  "version": "0.18.0-rc5",
+  "version": "0.18.0-rc6",
   "description": "JavaScript toolkits used to build dapps for Nervos CKB",
   "main": "lib/index.js",
   "types": "index.d.ts",
