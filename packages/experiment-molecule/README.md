@@ -7,9 +7,9 @@ molecule bindings in an easy way.
 ```mermaid
 graph TD;
     ArrayBuffer-->Codec;
-    Codec-->JSObject;
+    Codec-->|unpack|JSObject;
     JSObject-->Codec;
-    Codec-->ArrayBuffer
+    Codec-->|pack|ArrayBuffer
 ```
 
 ## Quick Start
@@ -17,6 +17,7 @@ graph TD;
 ```ts
 import { struct, Uint8, Uint128 } from "@ckb-lumos/experiment-molecule";
 
+// udt-info.mol
 // table UDTInfo {
 //  total_supply: Uint128,
 //  decimals: Uint8,
@@ -34,22 +35,72 @@ const UDTInfo /*: Codec */ = struct(
 );
 
 // 2. usage
+// 2.1 pack
 const buf /*: ArrayBuffer*/ = UDTInfo.pack({
   totalSupply: BI.from(21000000 * 10 ** 8),
   decimals: 8,
 });
+// 2.2 unpack
+const udtInfo = UDTInfo.unpack(buf); // { totalSupply: BI(21000000 * 10 ** 8), decimals: 8 }
 ```
 
 ## Layout
 
-`layout` is a set of `Codec` that helps to bind molecule to JavaScript plain object/array
+`layout` is a set of `Codec` that helps to bind molecule to JavaScript plain object/array.
 
 - array: `Array<T>` <=> `ArrayBuffer`
 - vector: `Array<T>` <=> `ArrayBuffer`
 - struct: `{ [key: string]: T }` <=> `ArrayBuffer`
 - table: `{ [key: string]: T }` <=> `ArrayBuffer`
 - option: `T | undefined` <=> `ArrayBuffer`
-- union: `{ type: string, value: T }` <=> `ArrayBuffer
+- union: `{ type: string, value: T }` <=> `ArrayBuffer`
+
+### Example
+
+#### RGB Color
+
+Suppose we want to describe an RGB color, then we can use a tuple3 of uint8 to describe the color
+
+```mol
+# color-by-tuple3.mol
+
+array RGB [Uint8; 3];
+```
+
+```ts
+const RGB = array(Uint8, 3);
+
+const [r, g, b] = RGB.unpack(buffer);
+// const unpacked = RGB.unpack(buffer)
+// const r = unpacked[0];
+// const g = unpacked[1];
+// const b = unpacked[2];
+```
+
+Of course, we could also use a struct to more directly describe rgb separately
+
+```mol
+# color-by-struct.mol
+
+struct RGB {
+  r: Uint8,
+  g: Uint8,
+  b: Uint8,
+}
+```
+
+```ts
+const RGB = struct(
+  { r: Uint8, g: Uint8, b: Uint8 }, 
+  ['r', 'g', 'b'], // order of the keys needs to be consistent with the schema
+)
+
+const { r, g, b } = RGB.unpack(buffer);
+// const unpacked = RGB.unpack(buffer);
+// const r = unpacked.r;
+// const g = unpacked.g;
+// const b = unpacked.b;
+```
 
 ## Common
 
@@ -70,7 +121,7 @@ Let's see an example of how to implement a `UTF8String` codec. If we want to sto
 then the corresponding molecule structure should be a `vector UTF8String <byte>`
 
 ```ts
-import { byteVecOf } from "@ckb-lumos/experiment-molecule/lib/base";
+import { byteVecOf } from "@ckb-lumos/experiment-molecule";
 import { Buffer } from "buffer"; // https://github.com/feross/buffer
 
 const UTF8String = byteVecOf<string>({
