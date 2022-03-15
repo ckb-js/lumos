@@ -1,10 +1,5 @@
 import test from "ava";
-import {
-  encodeToAddress,
-  encodeToSecp256k1Blake160Address,
-  encodeToSecp256k1Blake160MultisigAddress,
-  generateAddress,
-} from "../src";
+import { encodeToAddress, generateAddress } from "../src";
 import { CKB2021, Config, predefined } from "@ckb-lumos/config-manager";
 import { HashType, Script } from "@ckb-lumos/base";
 
@@ -205,41 +200,5 @@ test("[encodeToAddress] default short address (code_hash_index = 0x00)", (t) => 
   t.is(
     encodeToAddress(script.AGGRON4, { config: ConfigFrom("AGGRON4") }),
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqgutnjd"
-  );
-});
-
-test("encode predefined secp256k1 script to address", (t) => {
-  t.is(
-    encodeToSecp256k1Blake160Address(
-      "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
-      { config: ConfigFrom("LINA") }
-    ),
-    "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqxwquc4"
-  );
-
-  t.is(
-    encodeToSecp256k1Blake160Address(
-      "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
-      { config: ConfigFrom("AGGRON4") }
-    ),
-    "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqdnnw7qkdnnclfkg59uzn8umtfd2kwxceqgutnjd"
-  );
-});
-
-test("encode predefined multi_sig secp256k1 script to address", (t) => {
-  t.is(
-    encodeToSecp256k1Blake160MultisigAddress(
-      "0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a",
-      { config: ConfigFrom("LINA") }
-    ),
-    "ckb1qpw9q60tppt7l3j7r09qcp7lxnp3vcanvgha8pmvsa3jplykxn32sq20k2lzuhgvrgacd98cxg6s5v7pdpw5w7s0mu7z2"
-  );
-
-  t.is(
-    encodeToSecp256k1Blake160MultisigAddress(
-      "0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a",
-      { config: ConfigFrom("AGGRON4") }
-    ),
-    "ckt1qpw9q60tppt7l3j7r09qcp7lxnp3vcanvgha8pmvsa3jplykxn32sq20k2lzuhgvrgacd98cxg6s5v7pdpw5w7spfh3gj"
   );
 });
