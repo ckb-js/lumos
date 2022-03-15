@@ -3,7 +3,7 @@ import { Button, Form, Input, Typography } from "antd";
 import { useFormik } from "formik";
 import "antd/dist/antd.css";
 import styled from "styled-components";
-import { toConfigWithoutShortId } from "../helpers/configHelper";
+import {hasShortId, toConfigWithoutShortId} from "../helpers/configHelper";
 import { Address, config, helpers, Script } from "@ckb-lumos/lumos";
 type AddressType = "Mainnet" | "Testnet";
 
@@ -142,8 +142,9 @@ export const AddressToScript = () => {
                     config: configWithoutShortId,
                 });
                 setDeprecateFullAddress(deprecatedFullAddress);
+
                 let deprecatedAddress = helpers.generateAddress(script);
-                if (deprecatedAddress !== newAddress) {
+                if (deprecatedAddress !== newAddress && hasShortId(val.address, configWithShortId)) {
                     setDeprecatedAddress(deprecatedAddress);
                 } else {
                     setDeprecatedAddress(undefined);
