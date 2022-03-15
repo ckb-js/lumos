@@ -15,8 +15,8 @@ export function toConfigWithoutShortId(
       DEP_TYPE: s.DEP_TYPE,
     };
   }
-  return config.CKB2019({
+  return {
     PREFIX: configWithShortId.PREFIX,
     SCRIPTS: newConfigScript,
-  });
+  };
 }

@@ -60,7 +60,6 @@ const LINA_SCRIPTS: config.ScriptConfigs = {
   },
 }
 const LINA_CONFIG = {
-  CKB2021: config.predefined.LINA.CKB2021,
   PREFIX: config.predefined.LINA.PREFIX,
   SCRIPTS: LINA_SCRIPTS
 }
@@ -97,7 +96,6 @@ const AGGRON4_SCRIPTS: config.ScriptConfigs = {
 }
 
 const AGGRON4_CONFIG = {
-  CKB2021: config.predefined.AGGRON4.CKB2021,
   PREFIX: config.predefined.AGGRON4.PREFIX,
   SCRIPTS: AGGRON4_SCRIPTS
 }
