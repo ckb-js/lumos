@@ -15,14 +15,9 @@ export function toConfigWithoutShortId(
       DEP_TYPE: s.DEP_TYPE,
     };
   }
-  const cfg = {
+  return {
     PREFIX: configWithShortId.PREFIX,
     SCRIPTS: newConfigScript,
-  };
-
-  return {
-    ...cfg,
-    CKB2021: false,
   };
 }
 
