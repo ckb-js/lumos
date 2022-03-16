@@ -3,17 +3,8 @@ import { Button, Form, Input, Radio } from "antd";
 import { useFormik } from "formik";
 import "antd/dist/antd.css";
 import styled from "styled-components";
-import { Indexer } from "@site/../../packages/ckb-indexer/lib";
-import { CellProvider, utils } from "@site/../../packages/base";
-import { predefined, ScriptConfig } from "@site/../../packages/config-manager";
-import { key } from "@site/../../packages/hd/lib";
-import {
-  generateAddress,
-  sealTransaction,
-  TransactionSkeletonType,
-} from "@site/../../packages/helpers";
-import { deploy, common } from "@site/../../packages/common-scripts";
-import { RPC } from "@site/../../packages/rpc";
+import { utils, hd, helpers, commons, RPC, config, Indexer } from "@ckb-lumos/lumos";
+import { CellProvider } from "@ckb-lumos/base";
 
 const StyleWrapper = styled.div`
   padding: 20px;
@@ -37,19 +28,19 @@ interface ModalFormValues {
 }
 
 async function signAndSendTransaction(
-  txSkeleton: TransactionSkeletonType,
+  txSkeleton: helpers.TransactionSkeletonType,
   privatekey: string,
   rpc: RPC
 ): Promise<string> {
-  txSkeleton = common.prepareSigningEntries(txSkeleton);
+  txSkeleton = commons.common.prepareSigningEntries(txSkeleton);
   const message = txSkeleton.signingEntries.get(0)?.message;
-  const Sig = key.signRecoverable(message!, privatekey);
-  const tx = sealTransaction(txSkeleton, [Sig]);
+  const Sig = hd.key.signRecoverable(message!, privatekey);
+  const tx = helpers.sealTransaction(txSkeleton, [Sig]);
   const hash = await rpc.send_transaction(tx, "passthrough");
   return hash;
 }
 
-async function loadSecp256k1ScriptDep(rpc: RPC): Promise<ScriptConfig> {
+async function loadSecp256k1ScriptDep(rpc: RPC): Promise<config.ScriptConfig> {
   const genesisBlock = await rpc.get_block_by_number("0x0");
 
   if (!genesisBlock) throw new Error("cannot load genesis block");
@@ -71,7 +62,7 @@ async function loadSecp256k1ScriptDep(rpc: RPC): Promise<ScriptConfig> {
   };
 }
 
-async function loadSecp256k1MultiScriptDep(rpc: RPC): Promise<ScriptConfig> {
+async function loadSecp256k1MultiScriptDep(rpc: RPC): Promise<config.ScriptConfig> {
   const genesisBlock = await rpc.get_block_by_number("0x0");
 
   if (!genesisBlock) throw new Error("cannot load genesis block");
@@ -124,17 +115,17 @@ export const Deploy = () => {
         return;
       }
       try {
-        let config;
+        let cfg;
         let indexer;
         let rpc;
         if (val.network === "lina") {
-          config = predefined.LINA;
+          cfg = config.predefined.LINA;
           const rpcURL = "https://mainnet.ckb.dev/rpc";
           const indexerURL = "https://mainnet.ckb.dev/indexer";
           indexer = new Indexer(indexerURL, rpcURL);
           rpc = new RPC(rpcURL);
         } else if (val.network === "aggron") {
-          config = predefined.AGGRON4;
+          cfg = config.predefined.AGGRON4;
           const rpcURL = "https://testnet.ckb.dev/rpc";
           const indexerURL = "https://testnet.ckb.dev/indexer";
           indexer = new Indexer(indexerURL, rpcURL);
@@ -147,7 +138,7 @@ export const Deploy = () => {
 
           const secpScript = await loadSecp256k1ScriptDep(rpc);
           const multiSigScript = await loadSecp256k1MultiScriptDep(rpc);
-          config = {
+          cfg = {
             PREFIX: "ckt",
             SCRIPTS: {
               SECP256K1_BLAKE160: secpScript,
@@ -156,28 +147,28 @@ export const Deploy = () => {
           };
         }
 
-        const pubKey = key.privateToPublic(val.priv_key);
-        const args = key.publicKeyToBlake160(pubKey);
-        const secp256k1 = config.SCRIPTS["SECP256K1_BLAKE160"]!;
+        const pubKey = hd.key.privateToPublic(val.priv_key);
+        const args = hd.key.publicKeyToBlake160(pubKey);
+        const secp256k1 = cfg.SCRIPTS["SECP256K1_BLAKE160"]!;
         const lockScript = {
           code_hash: secp256k1.CODE_HASH,
           hash_type: secp256k1.HASH_TYPE,
           args: args,
         };
-        const address = generateAddress(lockScript, { config: config });
+        const address = helpers.generateAddress(lockScript, { config: cfg });
 
         const deployOptions = {
           cellProvider: indexer as CellProvider,
           scriptBinary: val.contract,
           fromInfo: address,
-          config: config,
+          config: cfg,
         };
 
         let res;
         if (val.deploy_type === "type") {
-          res = await deploy.generateDeployWithTypeIdTx(deployOptions);
+          res = await commons.deploy.generateDeployWithTypeIdTx(deployOptions);
         } else {
-          res = await deploy.generateDeployWithDataTx(deployOptions);
+          res = await commons.deploy.generateDeployWithDataTx(deployOptions);
         }
 
         const txHash = await signAndSendTransaction(
