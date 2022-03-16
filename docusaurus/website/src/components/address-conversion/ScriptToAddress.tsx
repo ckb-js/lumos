@@ -3,7 +3,7 @@ import { Button, Form, Input, Radio, Typography } from "antd";
 import { useFormik } from "formik";
 import "antd/dist/antd.css";
 import styled from "styled-components";
-import { toConfigWithoutShortId } from "../helpers/configHelper";
+import { toConfigWithoutShortId } from "../../helpers/configHelper";
 import { config, helpers, Script } from "@ckb-lumos/lumos";
 
 const StyleWrapper = styled.div`
