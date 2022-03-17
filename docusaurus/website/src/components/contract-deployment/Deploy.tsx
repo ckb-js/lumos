@@ -3,8 +3,8 @@ import { Button, Form, Input, Radio } from "antd";
 import { useFormik } from "formik";
 import "antd/dist/antd.css";
 import styled from "styled-components";
-import { utils, hd, helpers, commons, RPC, config, Indexer } from "@ckb-lumos/lumos";
-import { CellProvider } from "@ckb-lumos/base";
+import { utils, hd, helpers, commons, RPC, config, Indexer } from "@site/../../packages/lumos/lib";
+import { CellProvider } from "@site/../../packages/base/";
 
 const StyleWrapper = styled.div`
   padding: 20px;

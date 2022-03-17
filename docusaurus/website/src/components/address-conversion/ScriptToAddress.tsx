@@ -4,7 +4,7 @@ import { useFormik } from "formik";
 import "antd/dist/antd.css";
 import styled from "styled-components";
 import { toConfigWithoutShortId } from "../../helpers/configHelper";
-import { config, helpers, Script } from "@ckb-lumos/lumos";
+import { config, helpers, Script } from "@site/../../packages/lumos/lib";
 
 const StyleWrapper = styled.div`
   padding: 20px;
