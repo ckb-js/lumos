@@ -82,25 +82,25 @@ For more use of the API, please refer to [BI Test Cases].(https://github.com/ner
 ### More Updates
 
 1. Migrate ckb-js-toolkit to @ckb-lumos/toolkit
-    
-    [ckb-js-toolkit](https://github.com/nervosnetwork/ckb-js-toolkit) is a tool to help ckb users develop `dapp`. It provides a set of standalone tools such as `reader`, `rpc`, etc., which have now been integrated into the `@ckb-lumos/toolkit` package. It has been maintained as part of `lumos`. 
-    
+
+   [ckb-js-toolkit](https://github.com/nervosnetwork/ckb-js-toolkit) is a tool to help ckb users develop `dapp`. It provides a set of standalone tools such as `reader`, `rpc`, etc., which have now been integrated into the `@ckb-lumos/toolkit` package. It has been maintained as part of `lumos`.
+
 2. Conversion of new addresses
-    
-    Lumos also supports ckb2021 upgraded [address](https://github.com/nervosnetwork/rfcs/pull/239/files), adding methods such as `encodeToAddress`. Refer to this [PR](https:/ /github.com/nervosnetwork/lumos/pull/205) for more.
-    
+
+   Lumos also supports ckb2021 upgraded [address](https://github.com/nervosnetwork/rfcs/pull/239/files), adding methods such as `encodeToAddress`. Refer to this [PR](https:/ /github.com/nervosnetwork/lumos/pull/205) for more.
+
 3. Example code additions
-    
-    Added `secp256k1-transfer`, `secp256k1-multisig-transfer`, `pw-lock-metamask`, `omni-lock-metamask` and other sample code, please refer to [lumos/example](https:// [github.com/nervosnetwork/lumos/tree/develop/examples](http://github.com/nervosnetwork/lumos/tree/develop/examples))
-    
+
+   Added `secp256k1-transfer`, `secp256k1-multisig-transfer`, `pw-lock-metamask`, `omni-lock-metamask` and other sample code, please refer to [lumos/example](https:// [github.com/nervosnetwork/lumos/tree/develop/examples](http://github.com/nervosnetwork/lumos/tree/develop/examples))
+
 4. Online tools
-    
-    The online tool supports interconversion between script and address. Visit the link [🔗](https://nervosnetwork.github.io/lumos/tools/address-conversion)
-    
+
+   The online tool supports interconversion between script and address. Visit the link [🔗](https://nervosnetwork.github.io/lumos/tools/address-conversion)
+
 5. [lumos playground](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js)
-    
-    We used codesandbox and `@ckb-lumos/lumos` to build the [playground](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js) where you can quickly try out the features of lumos.
-    
+
+   We used codesandbox and `@ckb-lumos/lumos` to build the [playground](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js) where you can quickly try out the features of lumos.
+
 6. A contract deployment generator is provided in lumos to facilitate the deployment of contracts, visit the link [🔗](https://github.com/nervosnetwork/lumos/tree/develop/packages/common-) scripts#usage)
 
 ### Follow up plan
