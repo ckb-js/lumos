@@ -59,7 +59,7 @@ const config = {
             },
             { to: "/tools/address-conversion", label: "Tools", position: "left" },
             {
-              href: "https://nervosnetwork.github.io/lumos/api",
+              href: "https://lumos-liubq7.vercel.app/api/index.html",
               label: "API",
               position: "left",
             },

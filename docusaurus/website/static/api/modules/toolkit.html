@@ -1,0 +1,1061 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>toolkit | lumos</title>
+	<meta name="description" content="Documentation for lumos">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="../index.html" class="title">lumos</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../globals.html">Globals</a>
+				</li>
+				<li>
+					<a href="toolkit.html">toolkit</a>
+				</li>
+			</ul>
+			<h1>Package toolkit</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<a href="#ckb-js-toolkit" id="ckb-js-toolkit" style="color: inherit; text-decoration: none;">
+						<h1>ckb-js-toolkit</h1>
+					</a>
+					<p>JavaScript toolkit for Nervos CKB. It contains a series of independent tools that can aid develoment of CKB dapps. This is different from a normal CKB SDK, since it tries to minimize the work done in an SDK, while providing more utlities that could be handy.</p>
+					<a href="#design-goals" id="design-goals" style="color: inherit; text-decoration: none;">
+						<h1>Design Goals</h1>
+					</a>
+					<p>The toolkit here is built with specific design goals, if some of the design feels quirky to you, you might want to revisit this section to see if there is some tradeoff involved.</p>
+					<a href="#version-stability" id="version-stability" style="color: inherit; text-decoration: none;">
+						<h2>Version Stability</h2>
+					</a>
+					<p>One design goal here is the stability of the toolkit, meaning the toolkit version you use can stay unchanged unless one of the following conditions is met:</p>
+					<ul>
+						<li>A security vulnerability occurs</li>
+						<li>A fork happens in CKB</li>
+					</ul>
+					<a href="#code-compatibility" id="code-compatibility" style="color: inherit; text-decoration: none;">
+						<h2>Code Compatibility</h2>
+					</a>
+					<p>In the meantime, we also want to ensure code compatibility: we might upgrade the toolkit from time to time with new features. But when you are upgrading the toolkit version, you shouldn&#39;t expect any code breaks. Sometimes this might be infeasible, such as when security bugs or forks happen, but for the vast majority of the changes, we do want to ensure code compatibility at all costs.</p>
+					<p>And before you ask, personally I don&#39;t trust in <a href="https://semver.org/">Semantic Versioning</a>. I do want to ensure code compatibility with all my efforts regardless of the specific part changed in the version number.</p>
+					<a href="#runtime-type-checking" id="runtime-type-checking" style="color: inherit; text-decoration: none;">
+						<h2>Runtime type checking</h2>
+					</a>
+					<p>This might be a controversial one: with the whole JavaScript world moving into static typed languages such as TypeScript, ReasonML, etc. I&#39;m building the toolkit here with plain JavaScript doing runtime type checking. This is because none of existing static typed languages in the JavaScript world provide decent type checking stories when you are calling the code from JavaScript. I&#39;ve seen too many times that a piece of code runs <code>JSON.parse</code> on some user input data, then cast the resulting object directly to a TypeScript object, ignoring all the interface checks. If all you use in TypeScript in your project, that won&#39;t be a problem, but for a CKB Toolkit built for JavaScript, not TypeScript, nor ReasonML. I want to consider the case that some people would want to use JavaScript directly to call the code in the toolkit. That&#39;s why I&#39;m opting for pure JavaScript in this project with runtime checking code. Speed is not much of a concern here, security is a huge concern.</p>
+					<p>In the future we might certainly provide TypeScript typing files(and maybe also ReasonML definition files), but that is just a different metric. Runtime type checking is still a critical aspect in this project.</p>
+					<a href="#table-of-contents" id="table-of-contents" style="color: inherit; text-decoration: none;">
+						<h1>Table Of Contents</h1>
+					</a>
+					<ul>
+						<li><a href="#rpc">RPC</a></li>
+						<li><a href="#reader">Reader</a></li>
+						<li><a href="#utility-functions">Utility Functions</a><ul>
+								<li><a href="#validators">Validators</a></li>
+								<li><a href="#transformers">Transformers</a></li>
+								<li><a href="#normalizers">Normalizers</a></li>
+							</ul>
+						</li>
+						<li><a href="#cell-collectors">Cell Collectors</a></li>
+					</ul>
+					<a href="#rpc" id="rpc" style="color: inherit; text-decoration: none;">
+						<h1>RPC</h1>
+					</a>
+					<p>RPC class provides a way to make RPC calls directly to CKB. It works by utilizing <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy">Proxy object</a> so the toolkit can cope with new RPCs naturally in CKB. This is an example of <code>Code Compatibility</code> design goal.</p>
+					<pre><code>node --experimental-repl-await
+Welcome to Node.js v13.<span class="hljs-number">9.0</span>.
+Type <span class="hljs-string">&quot;.help&quot;</span> for more information.
+&gt; const toolkit = require(<span class="hljs-string">&quot;ckb-js-toolkit&quot;</span>)
+&gt; const rpc = new toolkit.RPC(<span class="hljs-string">&quot;http://127.0.0.1:9115/rpc&quot;</span>)
+&gt; await rpc.get_blockchain_info()
+{
+  alerts: [],
+  chain: &#x27;ckb&#x27;,
+  difficulty: &#x27;0x5bb<span class="hljs-number">2354</span>8f<span class="hljs-number">6795</span>&#x27;,
+  epoch: &#x27;0x<span class="hljs-number">708047900028</span>b&#x27;,
+  is_initial_block_download: true,
+  median_time: &#x27;0x170aee25ea5&#x27;
+}
+&gt; await rpc.get_tip_header()
+{
+  compact_target: &#x27;0x1a2cab56&#x27;,
+  dao: &#x27;0x1a<span class="hljs-number">7930</span>d<span class="hljs-number">4812</span>eeb308acafdfe3cf<span class="hljs-number">123008</span>8a<span class="hljs-number">770976</span>aef<span class="hljs-number">78000032</span>f12fbd5f<span class="hljs-number">0107</span>&#x27;,
+  epoch: &#x27;0x<span class="hljs-number">708047900028</span>b&#x27;,
+  hash: &#x27;0x1d0c693d8a78c9e<span class="hljs-number">2294</span>ac<span class="hljs-number">730493</span>4c635d7b<span class="hljs-number">6527</span>4fcdf46d5ce3d13ed<span class="hljs-number">6676</span>8cfd&#x27;,
+  nonce: &#x27;0xe2b8ce<span class="hljs-number">40000000000000</span><span class="hljs-number">0194</span>cf<span class="hljs-number">350200</span>&#x27;,
+  number: &#x27;0xfcaf2&#x27;,
+  parent_hash: &#x27;0x9cf27f<span class="hljs-number">050122</span>efb35c362d105d<span class="hljs-number">980062</span>d8ea29a8e0f86ec6a4ea<span class="hljs-number">0617</span>8a5a<span class="hljs-number">0381</span>&#x27;,
+  proposals_hash: &#x27;0x<span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000</span>&#x27;,
+  timestamp: &#x27;0x170aee486ee&#x27;,
+  transactions_root: &#x27;0x16c74b<span class="hljs-number">327243</span>0f1a89bb2fca39a571bf7a1bffecb314de528b6cbe9ba0f5d280&#x27;,
+  uncles_hash: &#x27;0x<span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000</span>&#x27;,
+  version: &#x27;0x0&#x27;
+}
+&gt; await rpc.get_header_by_number(<span class="hljs-string">&quot;0x12&quot;</span>)
+{
+  compact_target: &#x27;0x1a08a97e&#x27;,
+  dao: &#x27;0x18a<span class="hljs-number">6312</span>eb520a12e8e552ee0f<span class="hljs-number">28623002</span>6c<span class="hljs-number">8799</span>e<span class="hljs-number">8500000000</span>bc29f1c9fefe06&#x27;,
+  epoch: &#x27;0x6cf<span class="hljs-number">0012000000</span>&#x27;,
+  hash: &#x27;0xbc00f<span class="hljs-number">44714900</span>4a38a8f<span class="hljs-number">7347</span>dcd0a<span class="hljs-number">2050</span>a2f10f4b<span class="hljs-number">926325</span>d797c0f3e0d10f99b&#x27;,
+  nonce: &#x27;0x<span class="hljs-number">9331</span>7ca<span class="hljs-number">10000055400000</span>000ba7e<span class="hljs-number">0100</span>&#x27;,
+  number: &#x27;0x12&#x27;,
+  parent_hash: &#x27;0x4a191e<span class="hljs-number">12132587</span>e852ddc30c<span class="hljs-number">73008426</span>da<span class="hljs-number">6322</span>a7def06ee<span class="hljs-number">153682</span>afdceab16e7&#x27;,
+  proposals_hash: &#x27;0x<span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000</span>&#x27;,
+  timestamp: &#x27;0x16e<span class="hljs-number">7100</span>2eff&#x27;,
+  transactions_root: &#x27;0xcc05a6b1fc<span class="hljs-number">2046</span>4d4f07a<span class="hljs-number">4061</span>1f2cab<span class="hljs-number">0061</span>8ff66cc271ccee9a9fe5b4ea96a45&#x27;,
+  uncles_hash: &#x27;0x<span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000000000</span><span class="hljs-number">00000000</span>&#x27;,
+  version: &#x27;0x0&#x27;
+}</code></pre><p>Please refer to <a href="https://github.com/nervosnetwork/ckb/tree/develop/rpc">CKB&#39;s RPC documentation</a> for more details on different RPCs. All values accepted by the RPC module has to be JSON ready values(such as hex strings or objects) following CKB&#39;s JSONRPC formatting rules. See <a href="#validators">Validators</a> and <a href="#transformers">Transformers</a> sections below on how the toolkit can aid the conversion work.</p>
+					<a href="#reader" id="reader" style="color: inherit; text-decoration: none;">
+						<h1>Reader</h1>
+					</a>
+					<p>Reader class serves a unique purpose: depending on sources of data, we might get values in different formats:</p>
+					<ul>
+						<li>Hex string might be provided in CKB RPC responses</li>
+						<li>ArrayBuffer might be provided by CKB syscalls</li>
+						<li>Raw string might also be used for coding convenience</li>
+					</ul>
+					<p>One big question, is how we can manage all those different data formats? How can we ensure we can convert them to the correct hex format beforing sending them to CKB&#39;s RPC? Reader class serves this purpose:</p>
+					<pre><code>node --experimental-repl-await
+Welcome to Node.js v13.9.0.
+Type &quot;.help&quot; for more information.
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> toolkit = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;ckb-js-toolkit&quot;</span>);</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> { Reader } = toolkit;</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> reader1 = <span class="hljs-keyword">new</span> Reader(<span class="hljs-string">&quot;0x31323334&quot;</span>)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> arraybuffer = <span class="hljs-keyword">new</span> <span class="hljs-built_in">ArrayBuffer</span>(<span class="hljs-number">4</span>)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> view = <span class="hljs-keyword">new</span> <span class="hljs-built_in">DataView</span>(arraybuffer)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript">view.setUint8(<span class="hljs-number">0</span>, <span class="hljs-number">0x31</span>)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript">view.setUint8(<span class="hljs-number">1</span>, <span class="hljs-number">0x32</span>)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript">view.setUint8(<span class="hljs-number">2</span>, <span class="hljs-number">0x33</span>)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript">view.setUint8(<span class="hljs-number">3</span>, <span class="hljs-number">0x34</span>)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> reader2 = <span class="hljs-keyword">new</span> Reader(arraybuffer)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> reader3 = Reader.fromRawString(<span class="hljs-string">&quot;1234&quot;</span>)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript">reader1.serializeJson()</span>
+&#x27;0x31323334&#x27;
+<span class="hljs-meta">&gt;</span> <span class="javascript">reader2.serializeJson()</span>
+&#x27;0x31323334&#x27;
+<span class="hljs-meta">&gt;</span> <span class="javascript">reader3.serializeJson()</span>
+&#x27;0x31323334&#x27;</code></pre><p>Here we are setting <code>reader1</code>, <code>reader2</code> and <code>reader3</code> using differnet methods, the result here stays the same no matter what format the source data uses. Later in the <a href="#transformers">Transformers</a> section we will see how we can combine Reader with transformers for a unified coding experience.</p>
+					<a href="#utility-functions" id="utility-functions" style="color: inherit; text-decoration: none;">
+						<h1>Utility Functions</h1>
+					</a>
+					<p>The toolkit doesn&#39;t provide pre-defined models on common constructs. Instead, it is defined to let you have your own model, and work with it. For example, typical Web project probably has models defined from an ORM over a SQL database. I don&#39;t want you to have both a cell data structure defined in your ORM, and in the toolkit. We wanta to take a different path here: you only need to define the data structure once, whether it&#39;s defined from an ORM, or defined as an ECMAScript class with methods customed to your project. All you need to do, is to follow rules defined by transformers, you will be able to use the utility functions defined here.</p>
+					<p>The diagram below illustrates the relations between the utility functions:</p>
+					<p><img src="images/toolkit.svg" alt="Utility Function Relations"></p>
+					<p><code>Normalizers</code>, <code>Transformers</code> and <code>Validators</code> are included in this repository. <code>Denormalizers</code> are kept in the more experimental <a href="https://github.com/xxuejie/ckb-js-toolkit-contrib">ckb-js-toolkit-contrib</a> project for now, and might be moved here once it is stablized. <code>Serializers</code> and <code>Deserializers</code> refer to JavaScript source generated by the <a href="https://github.com/xxuejie/moleculec-es">moleculec-es</a> project. In most cases, you don&#39;t have to use <code>moleculec-es</code> directly, a ready-to-use file has been put in <a href="https://github.com/xxuejie/ckb-js-toolkit-contrib/blob/master/src/blockchain.js">ckb-js-toolkit-contrib</a>.</p>
+					<p>There is one exception here: <code>Deserializers</code> are not functions actually, they are <a href="https://github.com/xxuejie/ckb-js-toolkit-contrib/blob/747db7616116a3d5511f633f71b0415b53e83060/src/blockchain.js#L691">classes</a> that is constructed from ArrayBuffer to better leverage molecule&#39;s zero copy design.</p>
+					<p>You might also notice there is no conversions from JSON Ready Object to objects in your own data structures. This part will have to be implemented by yourself if needed.</p>
+					<a href="#validators" id="validators" style="color: inherit; text-decoration: none;">
+						<h2>Validators</h2>
+					</a>
+					<a href="#overview" id="overview" style="color: inherit; text-decoration: none;">
+						<h3>Overview</h3>
+					</a>
+					<p>Validator is an example of the <code>Runtime type checking</code> design goal, it provides a series of functions are provided here to validate that a JSON object follows required format for a CKB data structure, such as script, outpoint, transaction, block, etc. So when you have prepared the values required by the RPC class, you can pass the value through the validators here, to ensure they are of the correct format.</p>
+					<p>First, let&#39;s look at one example:</p>
+					<pre><code>node --experimental-repl-await
+Welcome to Node.js v13.<span class="hljs-number">9.0</span>.
+Type <span class="hljs-string">&quot;.help&quot;</span> <span class="hljs-keyword">for</span> more information.
+&gt; const toolkit = require(<span class="hljs-string">&quot;ckb-js-toolkit&quot;</span>)
+&gt; const rpc = <span class="hljs-keyword">new</span> toolkit.RPC(<span class="hljs-string">&quot;http://127.0.0.1:9115/rpc&quot;</span>)
+&gt; const transaction = (await rpc.get_transaction(<span class="hljs-string">&quot;0x71a7ba8fc96349fea0ed3a5c47992e3b4084b031a42264a018e0072e8172e46c&quot;</span>)).transaction
+&gt; toolkit.validators.ValidateTransaction(transaction)
+Uncaught:
+Error: transaction does not have correct keys! Required keys: [cell_deps, header_deps, inputs, outputs, outputs_data, version, witnesses], optional keys: [], actual keys: [cell_deps, hash, header_deps, inputs, outputs, outputs_data, version, witnesses]
+&gt; <span class="hljs-keyword">delete</span> transaction.hash
+&gt; transaction
+{
+  cell_deps: [
+    { dep_type: <span class="hljs-string">&#x27;code&#x27;</span>, out_point: [Object] },
+    { dep_type: <span class="hljs-string">&#x27;code&#x27;</span>, out_point: [Object] }
+  ],
+  header_deps: [],
+  inputs: [ { previous_output: [Object], since: <span class="hljs-string">&#x27;0x0&#x27;</span> } ],
+  outputs: [
+    { capacity: <span class="hljs-string">&#x27;0x2b95fd500&#x27;</span>, lock: [Object], type: <span class="hljs-keyword">null</span> },
+    { capacity: <span class="hljs-string">&#x27;0x2b95fd500&#x27;</span>, lock: [Object], type: <span class="hljs-keyword">null</span> }
+  ],
+  outputs_data: [
+    <span class="hljs-string">&#x27;0x02000000e2fb199810d49a4d8beec56718ba2593b665db9d52299a0f9e6e75416d73ff5c03000000e2fb199810d49a4d8beec56718ba2593b665db9d52299a0f9e6e75416d73ff5c01000000&#x27;</span>,
+    <span class="hljs-string">&#x27;0x02000000e2fb199810d49a4d8beec56718ba2593b665db9d52299a0f9e6e75416d73ff5c03000000e2fb199810d49a4d8beec56718ba2593b665db9d52299a0f9e6e75416d73ff5c04000000&#x27;</span>
+  ],
+  version: <span class="hljs-string">&#x27;0x0&#x27;</span>,
+  witnesses: [
+    <span class="hljs-string">&#x27;0x3ed693609d3ff7049415d33a2fff8eed581cf2790fae4785e27793330cfd55a6109b84a94494eae64217339bc9aafdf4e6453964c90e6752d96e20d127ca874901&#x27;</span>
+  ]
+}
+&gt; toolkit.validators.ValidateTransaction(transaction)
+undefined
+&gt; transaction.outputs[<span class="hljs-number">1</span>].lock.args = <span class="hljs-number">123</span>
+<span class="hljs-number">123</span>
+&gt; toolkit.validators.ValidateTransaction(transaction)
+Uncaught Error: transaction.outputs[<span class="hljs-number">1</span>].lock.args must be a hex string!
+    at nt (<span class="hljs-regexp">/home/u</span>buntu<span class="hljs-regexp">/code/</span>ckb-js-toolkit<span class="hljs-regexp">/dist/</span>ckb-js-toolkit.node.js:<span class="hljs-number">1</span>:<span class="hljs-number">46599</span>)
+    at st (<span class="hljs-regexp">/home/u</span>buntu<span class="hljs-regexp">/code/</span>ckb-js-toolkit<span class="hljs-regexp">/dist/</span>ckb-js-toolkit.node.js:<span class="hljs-number">1</span>:<span class="hljs-number">47003</span>)
+    at lt (<span class="hljs-regexp">/home/u</span>buntu<span class="hljs-regexp">/code/</span>ckb-js-toolkit<span class="hljs-regexp">/dist/</span>ckb-js-toolkit.node.js:<span class="hljs-number">1</span>:<span class="hljs-number">47614</span>)
+    at <span class="hljs-regexp">/home/u</span>buntu<span class="hljs-regexp">/code/</span>ckb-js-toolkit<span class="hljs-regexp">/dist/</span>ckb-js-toolkit.node.js:<span class="hljs-number">1</span>:<span class="hljs-number">48132</span>
+    at ct (<span class="hljs-regexp">/home/u</span>buntu<span class="hljs-regexp">/code/</span>ckb-js-toolkit<span class="hljs-regexp">/dist/</span>ckb-js-toolkit.node.js:<span class="hljs-number">1</span>:<span class="hljs-number">48073</span>)
+    at ht (<span class="hljs-regexp">/home/u</span>buntu<span class="hljs-regexp">/code/</span>ckb-js-toolkit<span class="hljs-regexp">/dist/</span>ckb-js-toolkit.node.js:<span class="hljs-number">1</span>:<span class="hljs-number">48343</span>)
+    at Object.dt [as ValidateTransaction] (<span class="hljs-regexp">/home/u</span>buntu<span class="hljs-regexp">/code/</span>ckb-js-toolkit<span class="hljs-regexp">/dist/</span>ckb-js-toolkit.node.js:<span class="hljs-number">1</span>:<span class="hljs-number">48755</span>)</code></pre><p>From the example above, we can deduce some insights:</p>
+					<ul>
+						<li>Validator function will check if given object has correct keys for each field required in the object. For example, a transaction object do not need <code>hash</code> field, but CKB&#39;s RPC response contains this field, hence the first validator invocation fails. Later when we delete the <code>hash</code> key, the object passes all validation.</li>
+						<li>By default validator function recursively check all fields to make sure they follow the correct format. In the above example, the validator would signal error when we change <code>args</code> field of one output&#39;s lock script to <code>123</code>, which is an invalid value. You will also notice that the error message generated in this case is: <code>transaction.outputs[1].lock.args must be a hex string!</code>, it contains the full path of the error value: <code>transaction.outputs[1].lock.args</code>.</li>
+					</ul>
+					<p>Notice you are not required to use validator functions in your dapp: if you are familiar with CKB&#39;s data structure, you are perfectly good ignoring all validator functions, and ensure the objects are in correct format yourself. But I personally I believe validators are gonna be a very handy component in your toolbox when you run into formatting errors in your dapp.</p>
+					<a href="#function-prototypes" id="function-prototypes" style="color: inherit; text-decoration: none;">
+						<h3>Function prototypes</h3>
+					</a>
+					<p>For each CKB data structure, we have prepared a validator function, which means right now the following functions are available:</p>
+					<ul>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L65">ValidateScript</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L83">ValidateOutPoint</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L92">ValidateCellInput</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L106">ValidateCellOutput</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L125">ValidateCellDep</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L195">ValidateRawTransaction</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L215">ValidateTransaction</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L255">ValidateRawHeader</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L279">ValidateHeader</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L316">ValidateUncleBlock</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L335">ValidateBlock</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L371">ValidateCellbaseWitness</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/validators.js#L385">ValidateWitnessArgs</a></li>
+					</ul>
+					<p>Each validator function uses exactly the same function prototype as below:</p>
+					<pre><code class="language-js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">validate</span>(<span class="hljs-params">value, { nestedValidation = <span class="hljs-literal">true</span>, debugPath = <span class="hljs-string">&quot;&quot;</span> } = {}</span>)</span></code></pre>
+					<p><code>value</code> here contains the JSON object to check against. <code>nestedValidation</code> controls if nested validation is performed. For example, when you are validating the structure of a transaction, you can use this flag to control whether you want to validate transaction itself, or if you want to do recursive validation on all the included fields, such as inputs, outputs, etc. <code>debugPath</code> here is a value used to generate full value path in error messages, in 99% of the cases, you can safely ignore this value and just use the default ones.</p>
+					<p>The validator functions here would throw errors in case validation fails, otherwise the validation is considered successful. Return values of vaildator functions shall not be used.</p>
+					<a href="#transformers" id="transformers" style="color: inherit; text-decoration: none;">
+						<h2>Transformers</h2>
+					</a>
+					<a href="#overview-1" id="overview-1" style="color: inherit; text-decoration: none;">
+						<h3>Overview</h3>
+					</a>
+					<p>Transformer also provides a series of functions much like validators do, but transformers serve a different purpose: while RPC accepts JSON ready values such as strings or plain objects, you might not want the same thing in your dapps. Chances are you have some custom classes that wrap a CKB cell or even a CKB transaction, and will need separate processing work to transform the values into the final formats. Another case might be that you are leveraging the Reader class introduced above a lot, and you need to transform the very inner <code>args</code> part of cell outputs in your current transaction before you can send it to the RPC. Transformers fill in exactly this role: they help us transform custom data formats following a very single rule to the formats acceptable by CKB RPCs. This might sound quite abstract here, let&#39;s also look at one example. First, let&#39;s prepare a supporting commonjs JavaScript file:</p>
+					<pre><code>$ cat &lt;&lt; EOF &gt; test.js
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Script</span> </span>{
+  <span class="hljs-keyword">constructor</span>(code_hash, args) {
+    <span class="hljs-keyword">this</span>.code_hash = code_hash;
+    <span class="hljs-keyword">this</span>.args = args;
+  }
+
+  serializeJson() {
+    <span class="hljs-keyword">return</span> {
+      code_hash: <span class="hljs-keyword">this</span>.code_hash,
+      hash_type: <span class="hljs-string">&quot;data&quot;</span>,
+      args: <span class="hljs-keyword">this</span>.args
+    };
+  }
+}
+
+module.exports = Script;
+EOF</code></pre><p>Here we are defining a custom class wrapping Script. We can now see how transformers will help us use the wrapper class:</p>
+					<pre><code>node --experimental-repl-await
+Welcome to Node.js v13.9.0.
+Type &quot;.help&quot; for more information.
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> toolkit = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;ckb-js-toolkit&quot;</span>);</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> Script = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;./test.js&quot;</span>);</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> script = <span class="hljs-keyword">new</span> Script(<span class="hljs-keyword">new</span> toolkit.Reader(<span class="hljs-string">&quot;0x71a7ba8fc96349fea0ed3a5c47992e3b4084b031a42264a018e0072e8172e46c&quot;</span>), <span class="hljs-string">&quot;0x&quot;</span>)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript">script</span>
+Script {
+  code_hash: a {
+    string: &#x27;0x71a7ba8fc96349fea0ed3a5c47992e3b4084b031a42264a018e0072e8172e46c&#x27;
+  },
+  args: &#x27;0x&#x27;
+}
+<span class="hljs-meta">&gt;</span> <span class="javascript">toolkit.validators.ValidateScript(script)</span>
+Uncaught:
+Error: script does not have correct keys! Required keys: [args, code_hash, hash_type], optional keys: [], actual keys: [args, code_hash]
+<span class="hljs-meta">&gt;</span> <span class="javascript"><span class="hljs-keyword">const</span> transformedScript = toolkit.transformers.TransformScript(script)</span>
+undefined
+<span class="hljs-meta">&gt;</span> <span class="javascript">transformedScript</span>
+{
+  code_hash: &#x27;0x71a7ba8fc96349fea0ed3a5c47992e3b4084b031a42264a018e0072e8172e46c&#x27;,
+  hash_type: &#x27;data&#x27;,
+  args: &#x27;0x&#x27;
+}
+<span class="hljs-meta">&gt;</span> <span class="javascript">toolkit.validators.ValidateScript(transformedScript)</span>
+undefined</code></pre><p>If we pass objects instantiated from Script class directly, validator functions will fail, and so will CKB RPC(even if we haven&#39;t tested it here). However, if we pass the objects into transformer functions, the transformed value will have the correct format required by CKB&#39;s RPC. This shows that you can use whatever data format you want in your dapp, as long as it can be transformed to correct format by the transformers, you can largely ignore CKB&#39;s format rules in your dapp.</p>
+					<p>Of course, not any format can be transformed by transformer functions here. You might already noticed the <code>serializeJson</code> function included in the <code>Script</code> class, this is exactly how transformer functions work on. What&#39;s not so obvious, here, is that transformer functions will recursively invoke <code>serializeJson</code> on nested entities to make sure all sub-fields are also transformed properly. For example, the <code>code_hash</code> passed to Script object here, is actually a Reader instance, while <code>serializeJson</code> of Script class ignored the type of <code>code_hash</code>, transformer functions also perform the necessary transformation, which converts Reader object into hex strings.</p>
+					<p>Unlike validators, we expect you to heavily rely on transformers in your dapps. These days it will be very unlikely that people use plain old JavaScript objects to store data, we tend to use all kinds of abstractions that help us organize our code better.</p>
+					<a href="#function-prototypes-1" id="function-prototypes-1" style="color: inherit; text-decoration: none;">
+						<h3>Function prototypes</h3>
+					</a>
+					<p>For each CKB data structure, we have prepared a transformer function, which means right now the following functions are available:</p>
+					<ul>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L44">TransformScript</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L62">TransformOutPoint</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L88">TransformCellInput</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L105">TransformCellOutput</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L123">TransformCellDep</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L148">TransformRawTransaction</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L169">TransformTransaction</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L191">TransformRawHeader</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L216">TransformHeader</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L242">TransformUncleBlock</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L259">TransformBlock</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L278">TransformCellbaseWitness</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/48eb43f10da07d30ebc9411c7a0714905ef9164f/src/transformers.js#L295">TransformWitnessArgs</a></li>
+					</ul>
+					<p>Each transformer function uses exactly the same function prototype as below:</p>
+					<pre><code class="language-js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">transform</span>(<span class="hljs-params">value, { validation = <span class="hljs-literal">true</span>, debugPath = <span class="hljs-string">&quot;&quot;</span> } = {}</span>)</span></code></pre>
+					<p><code>value</code> here contains the value to perform transformation(see next section for transformation rules). <code>validation</code> controls if validators should also be called after transformation. <code>debugPath</code> works like the same value in validators, and could safely be ignored in 99% of the cases.</p>
+					<a href="#transformation-rules" id="transformation-rules" style="color: inherit; text-decoration: none;">
+						<h3>Transformation Rules</h3>
+					</a>
+					<p>Transformer functions use the following transformation rules:</p>
+					<ul>
+						<li>If the provide value is an object with method <code>serializeJson</code>, invoke the method and use the return value to replace provided value;</li>
+						<li>Check if the value is an object, throw error if it is not;</li>
+						<li>Remove all extra keys that should not exist for the type of current value object;</li>
+						<li>For each field in the object, apply the transformation rules recursively.</li>
+					</ul>
+					<a href="#note-on-reader-class" id="note-on-reader-class" style="color: inherit; text-decoration: none;">
+						<h3>Note on Reader class</h3>
+					</a>
+					<p>We have already provided <code>serializeJson</code> method for all instances of the Reader class, that means you can freely use Reader class in your code. As long as you apply transformer functions before sending the values to CKB RPC, all the Reader objects will be transformed to correct hex strings.</p>
+					<a href="#normalizers" id="normalizers" style="color: inherit; text-decoration: none;">
+						<h2>Normalizers</h2>
+					</a>
+					<a href="#overview-2" id="overview-2" style="color: inherit; text-decoration: none;">
+						<h3>Overview</h3>
+					</a>
+					<p>Normalizers serve a different purpose: in addition to the molecule serialization format, CKB still encodes certain domain specific knowledge to interpret the data. This brings a gap between the JSON data structure used in CKB RPC, and the molecule serialized formats used internally. If you are only using CKB RPC, you probably will not use this package, but if you need to work with CKB in a deeper level(for example, if you are writing a smart contract in JavaScript), chances are you might need this package.</p>
+					<p>A sample usage for this package can be seen in the included <a href="https://github.com/xxuejie/ckb-js-toolkit/blob/master/tests/serializers.js">tests</a>. A normalizer function takes plain JavaScript object that can be validated by validator function, it then emits another transformed plain JavaScript object which can be serialized by <a href="https://github.com/xxuejie/moleculec-es">moleculec-es</a> into serialized ArrayBuffer data in molecule format.</p>
+					<a href="#function-prototypes-2" id="function-prototypes-2" style="color: inherit; text-decoration: none;">
+						<h3>Function prototypes</h3>
+					</a>
+					<p>For each CKB data structure, we have prepared a normalizer function, which means right now the following functions are available:</p>
+					<ul>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L71">NormalizeScript</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L92">NormalizeOutPoint</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L107">NormalizeCellInput</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L117">NormalizeCellOutput</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L133">NormalizeCellDep</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L161">NormalizeRawTransaction</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L175">NormalizeTransaction</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L189">NormalizeRawHeader</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L207">NormalizeHeader</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L218">NormalizeUncleBlock</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L228">NormalizeBlock</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L237">NormalizeCellbaseWitness</a></li>
+						<li><a href="https://github.com/xxuejie/ckb-js-toolkit/blob/d17eda8dc41689b14913500332085d9a9ae85a01/src/normalizers.js#L247">NormalizeWitnessArgs</a></li>
+					</ul>
+					<p>Each normalizer function uses exactly the same function prototype as below:</p>
+					<pre><code class="language-js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">transform</span>(<span class="hljs-params">value, { debugPath = <span class="hljs-string">&quot;&quot;</span> } = {}</span>)</span></code></pre>
+					<p><code>value</code> here contains the value which can be validated by corresponding validator function. <code>debugPath</code> works like the same value in validators, and could safely be ignored in 99% of the cases.</p>
+					<a href="#cell-collectors" id="cell-collectors" style="color: inherit; text-decoration: none;">
+						<h1>Cell Collectors</h1>
+					</a>
+					<p>One extremely typical tasks in CKB, is to index and query cells with certain properties, such as live cells with the same lock script hash. Cell collectors has been provided in the toolkit to aid this task.</p>
+					<p>As usual, first let&#39;s see an example:</p>
+					<pre><code>node --experimental-repl-await
+Welcome to Node.js v13.<span class="hljs-number">9.0</span>.
+Type <span class="hljs-string">&quot;.help&quot;</span> for more information.
+&gt; const toolkit = require(<span class="hljs-string">&quot;ckb-js-toolkit&quot;</span>);
+undefined
+&gt; const rpc = new toolkit.RPC(<span class="hljs-string">&quot;http://127.0.0.1:9115/rpc&quot;</span>)
+undefined
+&gt; const collector = new toolkit.cell_collectors.RPCCollector(rpc, <span class="hljs-string">&quot;0x7c7232c0af4a7261674a45e14916f926ecec64b911f539e573fb4bb7817d001e&quot;</span>)
+undefined
+&gt; for await (const cell of collector.collect()) { console.<span class="hljs-built_in">log</span>(cell); }
+{
+  cell_output: {
+    capacity: &#x27;0x3faa<span class="hljs-number">25226000</span>0&#x27;,
+    lock: {
+      args: &#x27;0xfa3afa<span class="hljs-number">213431</span>9f<span class="hljs-number">9471</span>cf<span class="hljs-number">2102</span>4f<span class="hljs-number">032831</span>bc<span class="hljs-number">4651</span>ad&#x27;,
+      code_hash: &#x27;0x9bd7e06f3ecf4be0f2fcd<span class="hljs-number">2188</span>b23f1b9fcc88e5d4b65a<span class="hljs-number">8637</span>b<span class="hljs-number">1772</span>3bbda3cce8&#x27;,
+      hash_type: &#x27;type&#x27;
+    },
+    type: <span class="hljs-literal">null</span>
+  },
+  out_point: {
+    index: &#x27;0x7&#x27;,
+    tx_hash: &#x27;0xe2fb<span class="hljs-number">199810</span>d49a4d8beec<span class="hljs-number">5671</span>8ba<span class="hljs-number">2593</span>b665db9d<span class="hljs-number">5229</span>9a0f9e6e<span class="hljs-number">7541</span>6d73ff5c&#x27;
+  },
+  block_hash: &#x27;0x92b197aa1fba0f<span class="hljs-number">63633922</span>c61c<span class="hljs-number">9237</span>5c9c074a93e<span class="hljs-number">85963554</span>f<span class="hljs-number">5499</span>fe<span class="hljs-number">1450</span>d0e5&#x27;,
+  data: <span class="hljs-literal">null</span>,
+  block_number: &#x27;0x0&#x27;
+}</code></pre><p>Here we are using <a href="https://github.com/xxuejie/ckb-js-toolkit/blob/master/src/cell_collectors/rpc_collector.js">RPCCollector</a> to scan CKB via RPCs, and gather all live cells satisfying a given lock script hash. Notice <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator">async iterator</a> is leveraged here to provide a clean API to the end users.</p>
+					<a href="#collector-interface" id="collector-interface" style="color: inherit; text-decoration: none;">
+						<h2>Collector Interface</h2>
+					</a>
+					<p>A cell collector should satisfy the following rules:</p>
+					<ul>
+						<li>It should provide a <code>collect</code> method that returns an async iterator;</li>
+						<li>The async iterator should generate plain JavaScript objects with the following fields:<ul>
+								<li><code>cell_output</code>: CellOutput object that can be validated by <code>ValidateCellOutput</code></li>
+								<li><code>out_point</code>: OutPoint object that can be validated by <code>ValidateOutPoint</code></li>
+								<li><code>block_hash</code>: A 66-byte long hex string containing block header hash</li>
+								<li><code>data</code>: An optional hex string containing cell data, depending on the specific cell collector, this could be omitted, in which case <code>null</code> should be used here.</li>
+							</ul>
+						</li>
+					</ul>
+					<p>In the above example we are only showing RPCCollector, there might be many different implementations of cell collectors, assuming they satisfy the above rules. In the future we might add more cell collector implementations here, and you are also welcome to create your own implementations of cell collectors.</p>
+					<p>One additional note here, is that even though RPCCollector above only gathers cells with the same lock script hash, this is not the case for your custom cell collectors. The only true requirement of a cell collector, is the async iterator interface. You can use any filtering logic in your cell collector, for example, you can gather by type script hash, or by lock script code hash, or you can even call external services, such as <a href="https://github.com/xxuejie/animagus">animagus</a> to provide you with the cells to use.</p>
+					<a href="#collector-index" id="collector-index" style="color: inherit; text-decoration: none;">
+						<h2>Collector Index</h2>
+					</a>
+					<a href="#rpccollector" id="rpccollector" style="color: inherit; text-decoration: none;">
+						<h3>RPCCollector</h3>
+					</a>
+					<p>RPCCollector uses <a href="https://github.com/nervosnetwork/ckb/tree/develop/rpc#get_cells_by_lock_hash">get_cells_by_lock_hash</a> to fetch matched live cells via CKB RPC. It only allows fetching live cells matching provided lock script hash, and can be controlled to either provide or omit cell data.</p>
+					<p>Note RPCCollector is a naive implementation, meaning it would do the full scanning every time you call <code>collect</code>. This means it could be quite slow, and you should never use it in production. It is only used here for demostration purposes.</p>
+				</div>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Namespaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="toolkit.cell_collectors.html" class="tsd-kind-icon">cell_<wbr>collectors</a></li>
+								<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="toolkit.normalizers.html" class="tsd-kind-icon">normalizers</a></li>
+								<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="toolkit.transformers.html" class="tsd-kind-icon">transformers</a></li>
+								<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="toolkit.validators.html" class="tsd-kind-icon">validators</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Classes</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/toolkit.batchrpcmethods.html" class="tsd-kind-icon">BatchRPCMethods</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/toolkit.batchrpcproxy.html" class="tsd-kind-icon">BatchRPCProxy</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/toolkit.rpc.html" class="tsd-kind-icon">RPC</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/toolkit.rpcmethods.html" class="tsd-kind-icon">RPCMethods</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/toolkit.rpcproxy.html" class="tsd-kind-icon">RPCProxy</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/toolkit.reader.html" class="tsd-kind-icon">Reader</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/toolkit.transactiondumper.html" class="tsd-kind-icon">Transaction<wbr>Dumper</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Interfaces</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/toolkit.cell.html" class="tsd-kind-icon">Cell</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/toolkit.cellcollector.html" class="tsd-kind-icon">Cell<wbr>Collector</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/toolkit.cellcollectorresults.html" class="tsd-kind-icon">Cell<wbr>Collector<wbr>Results</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/toolkit.normalizeroptions.html" class="tsd-kind-icon">Normalizer<wbr>Options</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/toolkit.transactiondumperoptions.html" class="tsd-kind-icon">Transaction<wbr>Dumper<wbr>Options</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/toolkit.transformeroptions.html" class="tsd-kind-icon">Transformer<wbr>Options</a></li>
+								<li class="tsd-kind-interface tsd-parent-kind-module"><a href="../interfaces/toolkit.validatoroptions.html" class="tsd-kind-icon">Validator<wbr>Options</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Type aliases</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="toolkit.html#batchrpc" class="tsd-kind-icon">BatchRPC</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="toolkit.html#depgroupunpacker" class="tsd-kind-icon">Dep<wbr>Group<wbr>Unpacker</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="toolkit.html#normalizerfunction" class="tsd-kind-icon">Normalizer<wbr>Function</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="toolkit.html#rpchandler" class="tsd-kind-icon">RPCHandler</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="toolkit.html#rpcsynchandler" class="tsd-kind-icon">RPCSync<wbr>Handler</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="toolkit.html#rpcvalue" class="tsd-kind-icon">RPCValue</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="toolkit.html#transformerfunction" class="tsd-kind-icon">Transformer<wbr>Function</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="toolkit.html#validatorfunction" class="tsd-kind-icon">Validator<wbr>Function</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Variables</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-variable tsd-parent-kind-module"><a href="toolkit.html#version" class="tsd-kind-icon">VERSION</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Functions</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="toolkit.html#biginttohexstring" class="tsd-kind-icon">Big<wbr>Int<wbr>ToHex<wbr>String</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="toolkit.html#hexstringtobigint" class="tsd-kind-icon">Hex<wbr>String<wbr>ToBig<wbr>Int</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Type aliases</h2>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
+					<a name="batchrpc" class="tsd-anchor"></a>
+					<h3>BatchRPC</h3>
+					<div class="tsd-signature tsd-kind-icon">BatchRPC<span class="tsd-signature-symbol">:</span> <a href="../classes/toolkit.batchrpcmethods.html" class="tsd-signature-type">BatchRPCMethods</a><span class="tsd-signature-symbol"> &amp; </span><a href="../classes/toolkit.batchrpcproxy.html" class="tsd-signature-type">BatchRPCProxy</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L27">packages/toolkit/index.d.ts:27</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
+					<a name="depgroupunpacker" class="tsd-anchor"></a>
+					<h3>Dep<wbr>Group<wbr>Unpacker</h3>
+					<div class="tsd-signature tsd-kind-icon">Dep<wbr>Group<wbr>Unpacker<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../classes/toolkit.reader.html" class="tsd-signature-type">Reader</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L152">packages/toolkit/index.d.ts:152</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-signature">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../classes/toolkit.reader.html" class="tsd-signature-type">Reader</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5>data: <a href="../classes/toolkit.reader.html" class="tsd-signature-type">Reader</a></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol">&gt;</span></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
+					<a name="normalizerfunction" class="tsd-anchor"></a>
+					<h3>Normalizer<wbr>Function</h3>
+					<div class="tsd-signature tsd-kind-icon">Normalizer<wbr>Function<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/toolkit.normalizeroptions.html" class="tsd-signature-type">NormalizerOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L102">packages/toolkit/index.d.ts:102</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-signature">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/toolkit.normalizeroptions.html" class="tsd-signature-type">NormalizerOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5>value: <span class="tsd-signature-type">object</span></h5>
+											</li>
+											<li>
+												<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="../interfaces/toolkit.normalizeroptions.html" class="tsd-signature-type">NormalizerOptions</a></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
+					<a name="rpchandler" class="tsd-anchor"></a>
+					<h3>RPCHandler</h3>
+					<div class="tsd-signature tsd-kind-icon">RPCHandler<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a><span class="tsd-signature-symbol">&gt;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L17">packages/toolkit/index.d.ts:17</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-signature">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a><span class="tsd-signature-symbol">&gt;</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>params: <a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a><span class="tsd-signature-symbol">[]</span></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a><span class="tsd-signature-symbol">&gt;</span></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
+					<a name="rpcsynchandler" class="tsd-anchor"></a>
+					<h3>RPCSync<wbr>Handler</h3>
+					<div class="tsd-signature tsd-kind-icon">RPCSync<wbr>Handler<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L16">packages/toolkit/index.d.ts:16</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-signature">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>params<span class="tsd-signature-symbol">: </span><a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>params: <a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a><span class="tsd-signature-symbol">[]</span></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <a href="toolkit.html#rpcvalue" class="tsd-signature-type">RPCValue</a></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
+					<a name="rpcvalue" class="tsd-anchor"></a>
+					<h3>RPCValue</h3>
+					<div class="tsd-signature tsd-kind-icon">RPCValue<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L15">packages/toolkit/index.d.ts:15</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
+					<a name="transformerfunction" class="tsd-anchor"></a>
+					<h3>Transformer<wbr>Function</h3>
+					<div class="tsd-signature tsd-kind-icon">Transformer<wbr>Function<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/toolkit.transformeroptions.html" class="tsd-signature-type">TransformerOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L78">packages/toolkit/index.d.ts:78</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-signature">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/toolkit.transformeroptions.html" class="tsd-signature-type">TransformerOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5>value: <span class="tsd-signature-type">object</span></h5>
+											</li>
+											<li>
+												<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="../interfaces/toolkit.transformeroptions.html" class="tsd-signature-type">TransformerOptions</a></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
+					<a name="validatorfunction" class="tsd-anchor"></a>
+					<h3>Validator<wbr>Function</h3>
+					<div class="tsd-signature tsd-kind-icon">Validator<wbr>Function<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/toolkit.validatoroptions.html" class="tsd-signature-type">ValidatorOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L56">packages/toolkit/index.d.ts:56</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-signature">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/toolkit.validatoroptions.html" class="tsd-signature-type">ValidatorOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5>value: <span class="tsd-signature-type">object</span></h5>
+											</li>
+											<li>
+												<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <a href="../interfaces/toolkit.validatoroptions.html" class="tsd-signature-type">ValidatorOptions</a></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Variables</h2>
+				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
+					<a name="version" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> VERSION</h3>
+					<div class="tsd-signature tsd-kind-icon">VERSION<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L164">packages/toolkit/index.d.ts:164</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Functions</h2>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="biginttohexstring" class="tsd-anchor"></a>
+					<h3>Big<wbr>Int<wbr>ToHex<wbr>String</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">Big<wbr>Int<wbr>ToHex<wbr>String<span class="tsd-signature-symbol">(</span>i<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">JSBI</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L50">packages/toolkit/index.d.ts:50</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>i: <span class="tsd-signature-type">JSBI</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="hexstringtobigint" class="tsd-anchor"></a>
+					<h3>Hex<wbr>String<wbr>ToBig<wbr>Int</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">Hex<wbr>String<wbr>ToBig<wbr>Int<span class="tsd-signature-symbol">(</span>hexString<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">JSBI</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/liubq7/lumos/blob/47d61c9/packages/toolkit/index.d.ts#L49">packages/toolkit/index.d.ts:49</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>hexString: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">JSBI</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="../globals.html"><em>Globals</em></a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="_commitlint_config_.html">&quot;commitlint.config&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="base.html">base</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="bi.html">bi</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="ckb_indexer.html">ckb-<wbr>indexer</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="common_scripts.html">common-<wbr>scripts</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="config_manager.html">config-<wbr>manager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="experiment_tx_assembler.html">experiment-<wbr>tx-<wbr>assembler</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="hd.html">hd</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="hd_cache.html">hd-<wbr>cache</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="helpers.html">helpers</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="lumos.html">lumos</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="rpc.html">rpc</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="testkit.html">testkit</a>
+					</li>
+					<li class="current tsd-kind-module">
+						<a href="toolkit.html">toolkit</a>
+						<ul>
+							<li class=" tsd-kind-namespace tsd-parent-kind-module">
+								<a href="toolkit.cell_collectors.html">cell_<wbr>collectors</a>
+							</li>
+							<li class=" tsd-kind-namespace tsd-parent-kind-module">
+								<a href="toolkit.normalizers.html">normalizers</a>
+							</li>
+							<li class=" tsd-kind-namespace tsd-parent-kind-module">
+								<a href="toolkit.transformers.html">transformers</a>
+							</li>
+							<li class=" tsd-kind-namespace tsd-parent-kind-module">
+								<a href="toolkit.validators.html">validators</a>
+							</li>
+						</ul>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="transaction_manager.html">transaction-<wbr>manager</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-module">
+						<a href="_commitlint_config_.html" class="tsd-kind-icon">&quot;commitlint.config&quot;</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="base.html" class="tsd-kind-icon">base</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="bi.html" class="tsd-kind-icon">bi</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="ckb_indexer.html" class="tsd-kind-icon">ckb-<wbr>indexer</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="common_scripts.html" class="tsd-kind-icon">common-<wbr>scripts</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="config_manager.html" class="tsd-kind-icon">config-<wbr>manager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="experiment_tx_assembler.html" class="tsd-kind-icon">experiment-<wbr>tx-<wbr>assembler</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="hd.html" class="tsd-kind-icon">hd</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="hd_cache.html" class="tsd-kind-icon">hd-<wbr>cache</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="helpers.html" class="tsd-kind-icon">helpers</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="lumos.html" class="tsd-kind-icon">lumos</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="rpc.html" class="tsd-kind-icon">rpc</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="testkit.html" class="tsd-kind-icon">testkit</a>
+					</li>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-module">
+						<a href="toolkit.html" class="tsd-kind-icon">toolkit</a>
+						<ul>
+							<li class=" tsd-kind-namespace tsd-parent-kind-module">
+								<a href="toolkit.cell_collectors.html" class="tsd-kind-icon">cell_<wbr>collectors</a>
+							</li>
+							<li class=" tsd-kind-namespace tsd-parent-kind-module">
+								<a href="toolkit.normalizers.html" class="tsd-kind-icon">normalizers</a>
+							</li>
+							<li class=" tsd-kind-namespace tsd-parent-kind-module">
+								<a href="toolkit.transformers.html" class="tsd-kind-icon">transformers</a>
+							</li>
+							<li class=" tsd-kind-namespace tsd-parent-kind-module">
+								<a href="toolkit.validators.html" class="tsd-kind-icon">validators</a>
+							</li>
+							<li class=" tsd-kind-class tsd-parent-kind-module">
+								<a href="../classes/toolkit.batchrpcmethods.html" class="tsd-kind-icon">BatchRPCMethods</a>
+							</li>
+							<li class=" tsd-kind-class tsd-parent-kind-module">
+								<a href="../classes/toolkit.batchrpcproxy.html" class="tsd-kind-icon">BatchRPCProxy</a>
+							</li>
+							<li class=" tsd-kind-class tsd-parent-kind-module">
+								<a href="../classes/toolkit.rpc.html" class="tsd-kind-icon">RPC</a>
+							</li>
+							<li class=" tsd-kind-class tsd-parent-kind-module">
+								<a href="../classes/toolkit.rpcmethods.html" class="tsd-kind-icon">RPCMethods</a>
+							</li>
+							<li class=" tsd-kind-class tsd-parent-kind-module">
+								<a href="../classes/toolkit.rpcproxy.html" class="tsd-kind-icon">RPCProxy</a>
+							</li>
+							<li class=" tsd-kind-class tsd-parent-kind-module">
+								<a href="../classes/toolkit.reader.html" class="tsd-kind-icon">Reader</a>
+							</li>
+							<li class=" tsd-kind-class tsd-parent-kind-module">
+								<a href="../classes/toolkit.transactiondumper.html" class="tsd-kind-icon">Transaction<wbr>Dumper</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-module">
+								<a href="../interfaces/toolkit.cell.html" class="tsd-kind-icon">Cell</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-module">
+								<a href="../interfaces/toolkit.cellcollector.html" class="tsd-kind-icon">Cell<wbr>Collector</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-module">
+								<a href="../interfaces/toolkit.cellcollectorresults.html" class="tsd-kind-icon">Cell<wbr>Collector<wbr>Results</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-module">
+								<a href="../interfaces/toolkit.normalizeroptions.html" class="tsd-kind-icon">Normalizer<wbr>Options</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-module">
+								<a href="../interfaces/toolkit.transactiondumperoptions.html" class="tsd-kind-icon">Transaction<wbr>Dumper<wbr>Options</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-module">
+								<a href="../interfaces/toolkit.transformeroptions.html" class="tsd-kind-icon">Transformer<wbr>Options</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-module">
+								<a href="../interfaces/toolkit.validatoroptions.html" class="tsd-kind-icon">Validator<wbr>Options</a>
+							</li>
+							<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+								<a href="toolkit.html#batchrpc" class="tsd-kind-icon">BatchRPC</a>
+							</li>
+							<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+								<a href="toolkit.html#depgroupunpacker" class="tsd-kind-icon">Dep<wbr>Group<wbr>Unpacker</a>
+							</li>
+							<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+								<a href="toolkit.html#normalizerfunction" class="tsd-kind-icon">Normalizer<wbr>Function</a>
+							</li>
+							<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+								<a href="toolkit.html#rpchandler" class="tsd-kind-icon">RPCHandler</a>
+							</li>
+							<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+								<a href="toolkit.html#rpcsynchandler" class="tsd-kind-icon">RPCSync<wbr>Handler</a>
+							</li>
+							<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+								<a href="toolkit.html#rpcvalue" class="tsd-kind-icon">RPCValue</a>
+							</li>
+							<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+								<a href="toolkit.html#transformerfunction" class="tsd-kind-icon">Transformer<wbr>Function</a>
+							</li>
+							<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+								<a href="toolkit.html#validatorfunction" class="tsd-kind-icon">Validator<wbr>Function</a>
+							</li>
+							<li class=" tsd-kind-variable tsd-parent-kind-module">
+								<a href="toolkit.html#version" class="tsd-kind-icon">VERSION</a>
+							</li>
+							<li class=" tsd-kind-function tsd-parent-kind-module">
+								<a href="toolkit.html#biginttohexstring" class="tsd-kind-icon">Big<wbr>Int<wbr>ToHex<wbr>String</a>
+							</li>
+							<li class=" tsd-kind-function tsd-parent-kind-module">
+								<a href="toolkit.html#hexstringtobigint" class="tsd-kind-icon">Hex<wbr>String<wbr>ToBig<wbr>Int</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-module">
+						<a href="transaction_manager.html" class="tsd-kind-icon">transaction-<wbr>manager</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-namespace"><span class="tsd-kind-icon">Namespace</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>
