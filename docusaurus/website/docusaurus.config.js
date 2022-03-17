@@ -9,8 +9,8 @@ const config = {
   title: "Lumos Docs",
   tagline:
       "Full featured JavaScript(TypeScript) based dApp library for Nervos CKB",
-  url: "https://nervosnetwork.github.io",
-  baseUrl: "/lumos/",
+  url: "https://lumos-liubq7.vercel.app/",
+  baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/favicon.ico",
