@@ -188,6 +188,7 @@ export const Deploy = () => {
           setScriptConfig(scriptConfig);
         }
       } catch (e) {
+        console.log(e);
         alert(e.message || JSON.stringify(e));
       } finally {
         setIsSendingTx(false);
@@ -224,7 +225,7 @@ export const Deploy = () => {
           {contractDeploymentForm.values.network === "rpc" ? (
             <div>
               <Form.Item
-                label="Indexer RPC URL"
+                label="CKB RPC URL"
                 validateStatus={
                   contractDeploymentForm.errors.rpc ? "error" : "success"
                 }
