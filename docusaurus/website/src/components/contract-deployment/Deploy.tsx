@@ -232,7 +232,7 @@ export const Deploy = () => {
           {contractDeploymentForm.values.network === "rpc" ? (
             <div>
               <Form.Item
-                label="Indexer RPC URL"
+                label="CKB RPC URL"
                 validateStatus={
                   contractDeploymentForm.errors.rpc ? "error" : "success"
                 }
