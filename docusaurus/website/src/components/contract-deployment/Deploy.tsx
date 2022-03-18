@@ -10,9 +10,11 @@ const StyleWrapper = styled.div`
   padding: 20px;
   display: flex;
   justify-content: center;
+
   .ant-tabs {
     min-width: 900px;
   }
+
   .errorMessage {
     color: #ff4d4f;
   }
@@ -62,7 +64,9 @@ async function loadSecp256k1ScriptDep(rpc: RPC): Promise<config.ScriptConfig> {
   };
 }
 
-async function loadSecp256k1MultiScriptDep(rpc: RPC): Promise<config.ScriptConfig> {
+async function loadSecp256k1MultiScriptDep(
+  rpc: RPC
+): Promise<config.ScriptConfig> {
   const genesisBlock = await rpc.get_block_by_number("0x0");
 
   if (!genesisBlock) throw new Error("cannot load genesis block");
@@ -87,6 +91,7 @@ async function loadSecp256k1MultiScriptDep(rpc: RPC): Promise<config.ScriptConfi
 
 export const Deploy = () => {
   const [scriptConfig, setScriptConfig] = useState();
+  const [isSendingTx, setIsSendingTx] = useState(false);
 
   const handleUpload = async (e) => {
     const file = e.currentTarget.files[0];
@@ -114,6 +119,8 @@ export const Deploy = () => {
         setFieldError("priv_key", "private key required");
         return;
       }
+      if (isSendingTx) return;
+      setIsSendingTx(true);
       try {
         let cfg;
         let indexer;
@@ -182,6 +189,8 @@ export const Deploy = () => {
         }
       } catch (e) {
         alert(e.message || JSON.stringify(e));
+      } finally {
+        setIsSendingTx(false);
       }
     },
     initialValues: {
@@ -215,7 +224,7 @@ export const Deploy = () => {
           {contractDeploymentForm.values.network === "rpc" ? (
             <div>
               <Form.Item
-                label="RPC Port"
+                label="Indexer RPC URL"
                 validateStatus={
                   contractDeploymentForm.errors.rpc ? "error" : "success"
                 }
@@ -230,7 +239,7 @@ export const Deploy = () => {
                 </span>
               </Form.Item>
               <Form.Item
-                label="Indexer RPC Port"
+                label="Indexer RPC URL"
                 validateStatus={
                   contractDeploymentForm.errors.rpc ? "error" : "success"
                 }
@@ -287,8 +296,9 @@ export const Deploy = () => {
               type="primary"
               htmlType="submit"
               onClick={() => contractDeploymentForm.submitForm()}
+              disabled={isSendingTx}
             >
-              Deploy
+              {isSendingTx ? "Sending" : "Deploy"}
             </Button>
           </Form.Item>
         </Form>
