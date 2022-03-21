@@ -74,16 +74,16 @@ export declare type Terminator = (
 export type HexNum = string;
 export type IOType = "input" | "output" | "both";
 export type Bytes32 = string;
-export type GetTransactionsResult = {
+export type IndexerTransaction = {
   block_number: HexNum;
   io_index: HexNum;
   io_type: IOType;
   tx_hash: Bytes32;
   tx_index: HexNum;
 };
-export interface GetTransactionsResults {
+export interface IndexerTransactionList {
   lastCursor: string | undefined;
-  objects: GetTransactionsResult[];
+  objects: IndexerTransaction[];
 }
 
 export interface GetCellsResults {
@@ -121,8 +121,9 @@ export interface GetTransactionRPCResult {
   result: TransactionWithStatus;
 }
 
-export interface TransactionWithIOType extends TransactionWithStatus {
-  inputCell?: Output;
-  ioType: IOType;
-  ioIndex: string;
+export interface JsonRprRequestBody {
+  id: string | number;
+  jsonrpc: string;
+  method: string;
+  params: string[];
 }

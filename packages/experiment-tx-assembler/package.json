@@ -1,8 +1,7 @@
 {
-  "name": "@ckb-lumos/hd-cache",
+  "name": "@ckb-lumos/experiment-tx-assembler",
   "version": "0.17.0-rc9",
-  "description": "HD wallet cache in lumos",
-  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "description": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
@@ -23,22 +22,22 @@
     "lib",
     "src"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@ckb-lumos/base": "0.17.0-rc9",
-    "@ckb-lumos/bi": "^0.17.0-rc8",
-    "@ckb-lumos/ckb-indexer": "0.17.0-rc9",
     "@ckb-lumos/config-manager": "0.17.0-rc9",
-    "@ckb-lumos/hd": "0.17.0-rc9",
-    "@ckb-lumos/rpc": "0.17.0-rc9",
-    "immutable": "^4.0.0-rc.12"
+    "@ckb-lumos/helpers": "0.17.0-rc9",
+    "@ckb-lumos/toolkit": "0.17.0-rc9"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
-    "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "ava **/*.test.ts --timeout=2m",
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",

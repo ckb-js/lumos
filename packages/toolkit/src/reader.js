@@ -1,5 +1,29 @@
-class ArrayBufferReader {
+class BaseReader {
+  constructor() {
+    /**
+     * instanceof would be nice here, but when a user use multi version of Reader that may cause problem
+     * @example
+     * const { Reader } = require('ckb-js-toolkit'); // ckb-js-toolkit@0.100.1
+     * const { readSomething } = require('other-serializer-lib'); // dependent on ckb-js-toolkit@0.100.0
+     *
+     * readSomething() instanceof Reader; // false
+     *
+     * @type {boolean}
+     * @protected
+     */
+    this.__isByteLikeReader__ = true;
+  }
+
+  static isReader(x) {
+    if (x == null) return false;
+    if (x instanceof BaseReader) return true;
+    return x.__isByteLikeReader__ === true;
+  }
+}
+
+class ArrayBufferReader extends BaseReader {
   constructor(buffer) {
+    super();
     this.view = new DataView(buffer);
   }
 
@@ -27,8 +51,9 @@ class ArrayBufferReader {
   }
 }
 
-class HexStringReader {
+class HexStringReader extends BaseReader {
   constructor(string) {
+    super();
     this.string = string;
   }
 
@@ -55,8 +80,9 @@ class HexStringReader {
   }
 }
 
-export class Reader {
+export class Reader extends BaseReader {
   constructor(input) {
+    super();
     if (
       input instanceof HexStringReader ||
       input instanceof ArrayBufferReader
@@ -64,7 +90,7 @@ export class Reader {
       return input;
     }
     if (typeof input === "string") {
-      if (!input.startsWith("0x") || input.length % 2 != 0) {
+      if (!input.startsWith("0x") || input.length % 2 !== 0) {
         throw new Error(
           "Hex string must start with 0x, and has even numbered length!"
         );
@@ -74,7 +100,14 @@ export class Reader {
     if (input instanceof ArrayBuffer) {
       return new ArrayBufferReader(input);
     }
+    if (input instanceof Uint8Array) {
+      return new ArrayBufferReader(Uint8Array.from(input).buffer);
+    }
     throw new Error("Reader can only accept hex string or ArrayBuffer!");
+  }
+
+  static from(x) {
+    return new Reader(x);
   }
 
   static fromRawString(string) {
