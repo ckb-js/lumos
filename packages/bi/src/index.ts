@@ -170,7 +170,7 @@ export class BI {
 }
 
 function isBILike(value: unknown): value is Record<string, unknown> {
-  if (!value) return false;
+  if (value == null) return false;
   return typeof value === "object";
 }
 
