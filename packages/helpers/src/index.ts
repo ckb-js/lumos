@@ -1,20 +1,20 @@
 import {
-  core,
-  HexString,
-  Cell,
-  Script,
-  CellDep,
   Address,
+  Cell,
+  CellDep,
   CellProvider,
+  core,
   Hash,
+  HexString,
   PackedSince,
+  Script,
   Transaction,
   WitnessArgs,
 } from "@ckb-lumos/base";
-import * as bech32 from "bech32";
-import { normalizers, validators, Reader } from "@ckb-lumos/toolkit";
-import { List, Record, Map as ImmutableMap } from "immutable";
-import { getConfig, Config } from "@ckb-lumos/config-manager";
+import { bech32, bech32m } from "bech32";
+import { normalizers, Reader, validators } from "@ckb-lumos/toolkit";
+import { List, Map as ImmutableMap, Record } from "immutable";
+import { Config, getConfig } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
 
 export interface Options {
@@ -81,8 +81,9 @@ export function locateCellDep(
   config = config || getConfig();
   const scriptTemplate = Object.values(config.SCRIPTS).find(
     (s) =>
-      s!.CODE_HASH === script.code_hash && s!.HASH_TYPE === script.hash_type
+      s && s.CODE_HASH === script.code_hash && s.HASH_TYPE === script.hash_type
   );
+
   if (scriptTemplate) {
     return {
       dep_type: scriptTemplate.DEP_TYPE,
@@ -102,7 +103,7 @@ export function generateAddress(
   config = config || getConfig();
   const scriptTemplate = Object.values(config.SCRIPTS).find(
     (s) =>
-      s!.CODE_HASH === script.code_hash && s!.HASH_TYPE === script.hash_type
+      s && s.CODE_HASH === script.code_hash && s.HASH_TYPE === script.hash_type
   );
   const data = [];
   if (scriptTemplate && scriptTemplate.SHORT_ID !== undefined) {
@@ -125,7 +126,13 @@ function generatePredefinedAddress(
   { config = undefined }: Options = {}
 ): Address {
   config = config || getConfig();
-  const template = config.SCRIPTS[scriptType]!;
+  const template = config.SCRIPTS[scriptType];
+  if (!template) {
+    const availableKeys = Object.keys(config.SCRIPTS);
+    throw new Error(
+      `Invalid script type: ${scriptType}, only support: ${availableKeys}`
+    );
+  }
   const script: Script = {
     code_hash: template.CODE_HASH,
     hash_type: template.HASH_TYPE,
@@ -151,26 +158,70 @@ export function generateSecp256k1Blake160MultisigAddress(
   });
 }
 
+function trySeries<T extends (...args: unknown[]) => unknown>(
+  ...fns: T[]
+): ReturnType<T> {
+  let latestCatch: unknown;
+  for (const fn of fns) {
+    try {
+      return fn() as ReturnType<T>;
+    } catch (e) {
+      latestCatch = e;
+    }
+  }
+  /* c8 ignore next */
+  throw latestCatch;
+}
+
 export function parseAddress(
   address: Address,
   { config = undefined }: Options = {}
 ): Script {
   config = config || getConfig();
-  const { prefix, words } = bech32.decode(address, BECH32_LIMIT);
+  const { prefix, words } = trySeries(
+    () => bech32m.decode(address, BECH32_LIMIT),
+    () => bech32.decode(address, BECH32_LIMIT)
+  );
   if (prefix !== config.PREFIX) {
     throw Error(
       `Invalid prefix! Expected: ${config.PREFIX}, actual: ${prefix}`
     );
   }
-  const data = bech32.fromWords(words);
+  const data = trySeries(
+    () => bech32m.fromWords(words),
+    () => bech32.fromWords(words)
+  );
   switch (data[0]) {
-    case 1:
+    case 0: {
+      //  1 +   32     +    1
+      // 00  code_hash  hash_type
+      /* c8 ignore next 3 */
+      if (data.length < 34) {
+        throw new Error(`Invalid payload length!`);
+      }
+      const serializedHashType = data.slice(33, 34)[0];
+      return {
+        code_hash: byteArrayToHex(data.slice(1, 33)),
+        hash_type: (() => {
+          if (serializedHashType === 0) return "data" as const;
+          if (serializedHashType === 1) return "type" as const;
+          if (serializedHashType === 2) return "data1" as const;
+
+          /* c8 ignore next */
+          throw new Error(`unknown hash_type ${serializedHashType}`);
+        })(),
+        args: byteArrayToHex(data.slice(34)),
+      };
+    }
+    case 1: {
+      /* c8 ignore next 3 */
       if (data.length < 2) {
         throw Error(`Invalid payload length!`);
       }
       const scriptTemplate = Object.values(config.SCRIPTS).find(
-        (s) => s!.SHORT_ID === data[1]
+        (s) => s && s.SHORT_ID === data[1]
       );
+      /* c8 ignore next 3 */
       if (!scriptTemplate) {
         throw Error(`Invalid code hash index: ${data[1]}!`);
       }
@@ -179,7 +230,9 @@ export function parseAddress(
         hash_type: scriptTemplate.HASH_TYPE,
         args: byteArrayToHex(data.slice(2)),
       };
-    case 2:
+    }
+    case 2: {
+      /* c8 ignore next 3 */
       if (data.length < 33) {
         throw Error(`Invalid payload length!`);
       }
@@ -188,7 +241,9 @@ export function parseAddress(
         hash_type: "data",
         args: byteArrayToHex(data.slice(33)),
       };
-    case 4:
+    }
+    case 4: {
+      /* c8 ignore next 3 */
       if (data.length < 33) {
         throw Error(`Invalid payload length!`);
       }
@@ -197,11 +252,38 @@ export function parseAddress(
         hash_type: "type",
         args: byteArrayToHex(data.slice(33)),
       };
+    }
   }
+  /* c8 ignore next */
   throw Error(`Invalid payload format type: ${data[0]}`);
 }
 
 export const addressToScript = parseAddress;
+
+export function encodeToAddress(
+  script: Script,
+  { config = undefined }: Options = {}
+): Address {
+  config = config || getConfig();
+
+  const data: number[] = [];
+
+  const hash_type = (() => {
+    if (script.hash_type === "data") return 0;
+    if (script.hash_type === "type") return 1;
+    if (script.hash_type === "data1") return 2;
+
+    /* c8 ignore next */
+    throw new Error(`unknown hash_type ${script.hash_type}`);
+  })();
+
+  data.push(0x00);
+  data.push(...hexToByteArray(script.code_hash));
+  data.push(hash_type);
+  data.push(...hexToByteArray(script.args));
+
+  return bech32m.encode(config.PREFIX, bech32m.toWords(data), BECH32_LIMIT);
+}
 
 export interface TransactionSkeletonInterface {
   cellProvider: CellProvider | null;
@@ -241,9 +323,14 @@ export function createTransactionFromSkeleton(
     inputs: txSkeleton
       .get("inputs")
       .map((input, i) => {
+        if (!input.out_point) {
+          throw new Error(
+            `cannot find OutPoint in Inputs[${i}] when createTransactionFromSkeleton`
+          );
+        }
         return {
           since: txSkeleton.get("inputSinces").get(i, "0x0"),
-          previous_output: input.out_point!,
+          previous_output: input.out_point,
         };
       })
       .toArray(),
@@ -277,7 +364,7 @@ export function sealTransaction(
   }
   txSkeleton.get("signingEntries").forEach((e, i) => {
     switch (e.type) {
-      case "witness_args_lock":
+      case "witness_args_lock": {
         const witness = tx.witnesses[e.index];
         const witnessArgs = new core.WitnessArgs(new Reader(witness));
         const newWitnessArgs: WitnessArgs = {
@@ -302,6 +389,7 @@ export function sealTransaction(
           )
         ).serializeJson();
         break;
+      }
       default:
         throw new Error(`Invalid signing entry type: ${e.type}`);
     }

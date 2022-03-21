@@ -1,6 +1,6 @@
 {
-  "name": "@ckb-lumos/experiment-script-registry",
-  "version": "0.17.0-rc8",
+  "name": "@ckb-lumos/experiment-tx-assembler",
+  "version": "0.17.0-rc9",
   "description": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
@@ -26,9 +26,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.17.0-rc8",
-    "@ckb-lumos/config-manager": "^0.17.0-rc8",
-    "@ckb-lumos/toolkit": "^0.17.0-rc8"
+    "@ckb-lumos/base": "0.17.0-rc9",
+    "@ckb-lumos/config-manager": "0.17.0-rc9",
+    "@ckb-lumos/helpers": "0.17.0-rc9",
+    "@ckb-lumos/toolkit": "0.17.0-rc9"
   },
   "repository": {
     "type": "git",
