@@ -134,7 +134,7 @@ async function injectCapacity(
   }: { config?: Config; feeRate?: BIish }
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  let _feeRate = feeRate || 1000;
+  const _feeRate = feeRate || 1000;
   let _amount = BI.from(amount);
   const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
   _amount = _amount.add(BI.from(10).pow(8));
@@ -530,6 +530,7 @@ export async function generateDeployWithTypeIdTx(
   verifyFromInfo(options.fromInfo, { config: options.config });
 
   let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
+  console.log("1", txSkeleton);
   const { fromScript } = parseFromInfo(options.fromInfo, {
     config: options.config,
   });
@@ -551,14 +552,18 @@ export async function generateDeployWithTypeIdTx(
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
+  console.log("2", txSkeleton);
+
   txSkeleton = updateCellDeps(txSkeleton, options.config);
+  console.log("3", txSkeleton);
+
   txSkeleton = await completeTx(
     txSkeleton,
     options.fromInfo,
     options.config,
     options.feeRate
   );
-
+  console.log("4", txSkeleton);
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 
   return {

@@ -124,7 +124,7 @@ function hashCode(buffer) {
 
 function assertHexString(debugPath, str) {
   if (!/^0x([0-9a-fA-F][0-9a-fA-F])*$/.test(str)) {
-    throw new Error(`${debugPath} must be a hex string!`);
+    throw new Error(`${debugPath} ${str} must be a hex string!`);
   }
 }
 
