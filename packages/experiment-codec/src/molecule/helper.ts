@@ -3,22 +3,22 @@ import {
   assertMinBufferLength,
   concatBuffer,
 } from "../utils";
-import { BinaryCodec, FixedBinaryCodec } from "../base";
+import { BytesCodec, FixedBytesCodec } from "../base";
 import { Uint32LE } from "../number";
 
 /**
  * a helper function to create custom codec of `array SomeType [byte; n]`
  * @param codec
  */
-export function byteArrayOf<T>(
-  codec: BinaryCodec<T> & { byteLength: number }
-): FixedBinaryCodec<T> {
+export function byteArrayOf<Packed, Packable = Packed>(
+  codec: BytesCodec<Packed, Packable> & { byteLength: number }
+): FixedBytesCodec<Packed, Packable> {
   const byteLength = codec.byteLength;
   return {
     __isFixedCodec__: true,
     byteLength,
-    pack: (unpacked) => {
-      const buf = codec.pack(unpacked);
+    pack: (packable) => {
+      const buf = codec.pack(packable);
       assertBufferLength(buf, byteLength);
       return buf;
     },
@@ -33,7 +33,7 @@ export function byteArrayOf<T>(
  * a helper function to create custom codec of `byte`
  * @param codec
  */
-export function byteOf<T>(codec: BinaryCodec<T>): FixedBinaryCodec<T> {
+export function byteOf<T>(codec: BytesCodec<T>): FixedBytesCodec<T> {
   return byteArrayOf({ ...codec, byteLength: 1 });
 }
 
@@ -41,7 +41,7 @@ export function byteOf<T>(codec: BinaryCodec<T>): FixedBinaryCodec<T> {
  * a helper function to create custom codec of `vector Bytes <byte>`
  * @param codec
  */
-export function byteVecOf<T>(codec: BinaryCodec<T>): BinaryCodec<T> {
+export function byteVecOf<T>(codec: BytesCodec<T>): BytesCodec<T> {
   return {
     pack(unpacked) {
       const payload = codec.pack(unpacked);

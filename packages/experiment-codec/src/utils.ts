@@ -1,4 +1,5 @@
 import { BI } from "@ckb-lumos/bi";
+import { BytesLike } from "./base";
 
 export function concatBuffer(...buffers: ArrayBuffer[]): ArrayBuffer {
   const totalLength = buffers.reduce(
@@ -102,9 +103,7 @@ export function bytesToArrayBuffer(xs: ArrayLike<number>): ArrayBuffer {
   return new Uint8Array(xs).buffer;
 }
 
-export function toArrayBuffer(
-  s: string | ArrayBuffer | Uint8Array | ArrayLike<number>
-): ArrayBuffer {
+export function toArrayBuffer(s: BytesLike): ArrayBuffer {
   if (s instanceof ArrayBuffer) return s;
   if (s instanceof Uint8Array) return Uint8Array.from(s).buffer;
   if (typeof s === "string") return hexToArrayBuffer(s);
@@ -113,11 +112,13 @@ export function toArrayBuffer(
   throw new Error(`Cannot convert ${s} to ArrayBuffer`);
 }
 
-export function serializeJson(buf: ArrayBuffer): string {
+export function toHex(buf: BytesLike): string {
   return (
     "0x" +
     Array.prototype.map
-      .call(new Uint8Array(buf), (x) => x.toString(16).padStart(2, "0"))
+      .call(new Uint8Array(toArrayBuffer(buf)), (x) =>
+        x.toString(16).padStart(2, "0")
+      )
       .join("")
   );
 }

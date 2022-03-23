@@ -1,4 +1,6 @@
-# @ckb-lumos/molecule
+# @ckb-lumos/codec
+
+This module provides a set of functions to pack(encode) and unpack(decode) data to work with CKB
 
 [Molecule](https://github.com/nervosnetwork/molecule) is a lightweight serialization system that focuses only on the
 layout of byte(s) and not on specific data types. This library will help developers to create TypeScript-friendly
@@ -15,7 +17,7 @@ graph TD;
 ## Quick Start
 
 ```ts
-import { struct, Uint8, Uint128 } from "@ckb-lumos/experiment-molecule";
+import { struct, Uint8, Uint128 } from "@ckb-lumos/experiment-codec";
 
 // udt-info.mol
 // table UDTInfo {
@@ -44,7 +46,7 @@ const buf /*: ArrayBuffer*/ = UDTInfo.pack({
 const udtInfo = UDTInfo.unpack(buf); // { totalSupply: BI(21000000 * 10 ** 8), decimals: 8 }
 ```
 
-## Layout
+## Molecule
 
 `layout` is a set of `Codec` that helps to bind molecule to JavaScript plain object/array.
 
@@ -91,9 +93,9 @@ struct RGB {
 
 ```ts
 const RGB = struct(
-  { r: Uint8, g: Uint8, b: Uint8 }, 
-  ['r', 'g', 'b'], // order of the keys needs to be consistent with the schema
-)
+  { r: Uint8, g: Uint8, b: Uint8 },
+  ["r", "g", "b"] // order of the keys needs to be consistent with the schema
+);
 
 const { r, g, b } = RGB.unpack(buffer);
 // const unpacked = RGB.unpack(buffer);
@@ -102,14 +104,26 @@ const { r, g, b } = RGB.unpack(buffer);
 // const b = unpacked.b;
 ```
 
-## Common
+## Number
 
-`common` is a set of `Codec` that helps to bind molecule to familiar JavaScript data types.
-
-For more details, please check the [common mocule](./src/common.ts)
+`number` is a set of `Codec` that helps to bind molecule to familiar JavaScript data types.
 
 ```ts
-Uint32.pack(100); // ArrayBuffer([100, 0, 0, 0])
+import { Uint32, Uint128 } from "@ckb-lumos/experiment-codec";
+
+const packedU32 = Uint32.pack(100); // == ArrayBuffer([100, 0, 0, 0])
+
+// unpack sUDT amount to a BI(BigInteger)
+const sudtAmount = Uint128.unapck("0x0000e45d76a1f90e0c00000000000000"); // == BI.from('222440000000000000000')
+// Uint8Array or ArrayBuffer are also supported
+// Uint128.unpack(
+//   Uint8Array.from([
+//     0x00, 0x00, 0xe4, 0x5d,
+//     0x76, 0xa1, 0xf9, 0x0e,
+//     0x0c, 0x00, 0x00, 0x00,
+//     0x00, 0x00, 0x00, 0x00,
+//   ])
+// );
 ```
 
 ## Custom Codec
@@ -121,7 +135,7 @@ Let's see an example of how to implement a `UTF8String` codec. If we want to sto
 then the corresponding molecule structure should be a `vector UTF8String <byte>`
 
 ```ts
-import { byteVecOf } from "@ckb-lumos/experiment-molecule";
+import { byteVecOf } from "@ckb-lumos/experiment-codec";
 import { Buffer } from "buffer"; // https://github.com/feross/buffer
 
 const UTF8String = byteVecOf<string>({
@@ -145,7 +159,7 @@ will have encountered more complex scripts
 like [OmniLock](https://github.com/XuJiandong/docs-bank/blob/master/omni_lock.md), where it is easy to get confused
 about how to handle bytes when we want to sign it, if we can combine `WitnessArgs.lock(BytesOpt)`
 with `OmniLockWitnessLock.signature(BytesOpt)`, then it will be easier to do the signing, we can check
-[the real world OmniLock witness case](./tests/common.test.ts) to see how it works
+[the real world OmniLock witness case](./tests/blockchain.test.ts) to see how it works
 
 ```mol
 table WitnessArgs {

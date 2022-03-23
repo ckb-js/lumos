@@ -1,4 +1,5 @@
-import { assertBufferLength, isObjectLike } from "./utils";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { assertBufferLength, isObjectLike, toArrayBuffer } from "./utils";
 
 export interface Codec<
   Packed,
@@ -6,93 +7,91 @@ export interface Codec<
   Packable = Unpacked,
   Unpackable = Packed
 > {
-  pack: (unpacked: Packable) => Packed;
-  unpack: (packed: Unpackable) => Unpacked;
+  pack: (packable: Packable) => Packed;
+  unpack: (unpackable: Unpackable) => Unpacked;
 }
 
-export type Packed<T> = T extends Codec<
-  infer Packed,
-  infer Unpacked,
-  infer Packable,
-  infer Unpackable
->
-  ? Packed
-  : never;
+export type AnyCodec = Codec<any, any>;
 
-export type Packable<T> = T extends Codec<
-  infer Packed,
-  infer Unpacked,
-  infer Packable,
-  infer Unpackable
->
-  ? Packable
-  : never;
+// prettier-ignore
+type CodecDescriptor<T> = T extends Codec<infer PackResult, infer UnpackResult, infer PackParam, infer UnpackParam>
+    ? { PackResult: PackResult; UnpackResult: UnpackResult; PackParam: PackParam; UnpackParam: UnpackParam; }
+    : never;
+
+export type PackResult<T extends AnyCodec> = CodecDescriptor<T>["PackResult"];
+export type PackParam<T extends AnyCodec> = CodecDescriptor<T>["PackParam"];
+// prettier-ignore
+export type UnpackResult<T extends AnyCodec> = CodecDescriptor<T>["UnpackResult"];
+export type UnpackParam<T extends AnyCodec> = CodecDescriptor<T>["UnpackParam"];
+
+export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<
+  ArrayBuffer,
+  Unpacked,
+  Packable
+>;
+
+export type BytesLike = ArrayLike<number> | ArrayBuffer | string;
+
+export type BytesLikeCodec<Unpacked = any, Packable = Unpacked> = Codec<
+  ArrayBuffer,
+  Unpacked,
+  Packable,
+  BytesLike
+>;
 
 /**
- * @example
- * ```ts
- * type UnpackedUint32 = Unpacked<typeof Uint32> // number
- * ```
+ * This function helps to create a codec that can
+ * @param codec
  */
-export type Unpacked<T> = T extends Codec<
-  infer Packed,
-  infer Unpacked,
-  infer Packable,
-  infer Unpackable
->
-  ? Unpacked
-  : never;
-
-export type Unpackable<T> = T extends Codec<
-  infer Packed,
-  infer Unpacked,
-  infer Packable,
-  infer Unpackable
->
-  ? Unpackable
-  : never;
-
-export type BinaryCodec<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Unpacked = any,
-  Packable = Unpacked,
-  Unpackable = ArrayBuffer
-> = Codec<ArrayBuffer, Unpacked, Packable, Unpackable>;
+export function createBytesCodec<Unpacked, Packable = Unpacked>(
+  codec: BytesCodec<Unpacked, Packable>
+): BytesLikeCodec<Unpacked, Packable> {
+  return {
+    pack: (unpacked) => codec.pack(unpacked),
+    unpack: (bytesLike) => codec.unpack(toArrayBuffer(bytesLike)),
+  };
+}
 
 export type Fixed = {
   readonly __isFixedCodec__: true;
   readonly byteLength: number;
 };
 
+export type FixedBytesCodec<Unpacked = any, Packable = Unpacked> = BytesCodec<
+  Unpacked,
+  Packable
+> &
+  Fixed;
+
+export type FixedBytesLikeCodec<
+  Unpacked = any,
+  Packable = Unpacked
+> = BytesLikeCodec<Unpacked, Packable> & Fixed;
+
 export function isFixedCodec<T>(
-  codec: BinaryCodec<T>
-): codec is FixedBinaryCodec<T> {
+  codec: BytesCodec<T>
+): codec is FixedBytesCodec<T> {
   return isObjectLike(codec) && !!codec.__isFixedCodec__;
 }
 
-export type FixedBinaryCodec<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Unpacked = any,
-  Packable = Unpacked,
-  Unpackable = ArrayBuffer
-> = BinaryCodec<Unpacked, Packable, Unpackable> & Fixed;
-
-export function createFixedCodec<C extends BinaryCodec>(
-  payload: C & { byteLength: number }
-): FixedBinaryCodec<Unpacked<C>> {
-  const byteLength = payload.byteLength;
+export function createFixedBytesCodec<Unpacked, Packable = Unpacked>(
+  codec: BytesCodec<Unpacked, Packable> & { byteLength: number }
+): FixedBytesLikeCodec<Unpacked, Packable> {
+  const byteLength = codec.byteLength;
   return {
-    byteLength,
     __isFixedCodec__: true,
-    pack: (u) => {
-      const packed = payload.pack(u);
-      assertBufferLength(packed, byteLength);
-      return packed;
-    },
-    unpack: (buf) => {
-      assertBufferLength(buf, byteLength);
-      return payload.unpack(buf);
-    },
+    byteLength,
+    ...createBytesCodec({
+      pack: (u) => {
+        const packed = codec.pack(u);
+        assertBufferLength(packed, byteLength);
+        return packed;
+      },
+      unpack: (buf) => {
+        assertBufferLength(buf, byteLength);
+        return codec.unpack(buf);
+      },
+    }),
   };
 }
 
@@ -103,7 +102,7 @@ export function unimplemented(message = "unimplemented"): never {
 /**
  * placeholder codec, generally used as a placeholder
  */
-export const Unknown: BinaryCodec<unknown> = {
+export const Unknown: BytesCodec<unknown> = {
   pack: () => unimplemented("Unimplemented pack"),
   unpack: () => unimplemented("Unimplemented unpack"),
 };

@@ -1,11 +1,20 @@
 import { BI, BIish } from "@ckb-lumos/bi";
-import { arrayify, BytesLike } from "@ethersproject/bytes";
-import { FixedBinaryCodec } from "../base";
+import { createFixedBytesCodec, FixedBytesLikeCodec } from "../base";
+
+function assertNumberRange(value: BIish, min: BIish, max: BIish): void {
+  value = BI.from(value);
+
+  if (value.lt(min) || value.gt(max)) {
+    throw new Error(
+      `Value must be between ${min.toString()} and ${max.toString()}, but got ${value.toString()}`
+    );
+  }
+}
 
 function createUintNumberCodec(
   byteLength: number,
   littleEndian = false
-): FixedBinaryCodec<number, BIish, BytesLike | ArrayBuffer> {
+): FixedBytesLikeCodec<number, BIish> {
   const codec = createUintBICodec(byteLength, littleEndian);
   return {
     __isFixedCodec__: true,
@@ -15,25 +24,16 @@ function createUintNumberCodec(
   };
 }
 
-function createUintBICodec(
-  byteLength: number,
-  littleEndian = false
-): FixedBinaryCodec<BI, BIish, BytesLike | ArrayBuffer> {
+const createUintBICodec = (byteLength: number, littleEndian = false) => {
   const max = BI.from(1)
     .shl(byteLength * 8)
     .sub(1);
 
-  return {
-    __isFixedCodec__: true,
+  return createFixedBytesCodec<BI, BIish>({
     byteLength,
-    pack(x) {
-      let num = BI.from(x);
-
-      if (num.lt(0) || num.gt(max)) {
-        throw new Error(
-          `value must be in range [0, ${max.toString()}], ${x} is out of range`
-        );
-      }
+    pack(biIsh) {
+      let num = BI.from(biIsh);
+      assertNumberRange(num, 0, max);
 
       const result = new DataView(new ArrayBuffer(byteLength));
 
@@ -48,10 +48,8 @@ function createUintBICodec(
 
       return result.buffer;
     },
-    unpack(x) {
-      const view = new DataView(
-        x instanceof ArrayBuffer ? x : arrayify(x).buffer
-      );
+    unpack: (buf) => {
+      const view = new DataView(buf);
       if (view.byteLength !== byteLength) {
         throw new Error(
           `byte length must be ${byteLength}, but got ${view.byteLength}`
@@ -70,8 +68,8 @@ function createUintBICodec(
 
       return result;
     },
-  };
-}
+  });
+};
 
 export const Uint8 = createUintNumberCodec(1);
 

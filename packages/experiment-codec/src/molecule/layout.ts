@@ -10,8 +10,8 @@
  * | union  | item-type-id                                     | item                              |
  */
 
-import type { BinaryCodec, Fixed, FixedBinaryCodec, Unpacked } from "../base";
-import { createFixedCodec, isFixedCodec } from "../base";
+import type { BytesCodec, Fixed, FixedBytesCodec, UnpackResult } from "../base";
+import { createFixedBytesCodec, isFixedCodec } from "../base";
 import { Uint32LE } from "../number";
 import { concatBuffer } from "../utils";
 
@@ -22,37 +22,29 @@ type NonNullableKeys<O extends Record<string, unknown>> = {
   [K in keyof O]-?: [O[K] & (undefined | null)] extends [never] ? K : never;
 }[keyof O];
 
-type PartialNullable<O extends Record<string, unknown>> = Partial<
-  Pick<O, NullableKeys<O>>
-> &
-  Pick<O, NonNullableKeys<O>>;
+// prettier-ignore
+type PartialNullable<O extends Record<string, unknown>> =
+    & Partial<Pick<O, NullableKeys<O>>>
+    & Pick<O, NonNullableKeys<O>>;
 
-export type ObjectCodec<T extends Record<string, BinaryCodec>> = BinaryCodec<
-  PartialNullable<{ [key in keyof T]: Unpacked<T[key]> }>
+export type ObjectCodec<T extends Record<string, BytesCodec>> = BytesCodec<
+  PartialNullable<{ [key in keyof T]: UnpackResult<T[key]> }>
 >;
 
-export interface OptionCodec<T extends BinaryCodec>
-  extends BinaryCodec<Unpacked<T> | undefined> {
-  pack: (packable?: ReturnType<T["unpack"]>) => ArrayBuffer;
+export interface OptionCodec<T extends BytesCodec>
+  extends BytesCodec<UnpackResult<T> | undefined> {
+  pack: (packable?: UnpackResult<T>) => ArrayBuffer;
 }
 
-export type ArrayCodec<T extends BinaryCodec> = BinaryCodec<Array<Unpacked<T>>>;
-
-export type UnionCodec<T extends Record<string, BinaryCodec>> = BinaryCodec<
-  { [key in keyof T]: { type: key; value: Unpacked<T[key]> } }[keyof T]
+export type ArrayCodec<T extends BytesCodec> = BytesCodec<
+  Array<UnpackResult<T>>
 >;
-export const byte: FixedBinaryCodec<ArrayBuffer> = {
-  __isFixedCodec__: true,
-  byteLength: 1,
-  pack(buf) {
-    return buf;
-  },
-  unpack(buf) {
-    return buf;
-  },
-};
 
-export function array<T extends FixedBinaryCodec>(
+export type UnionCodec<T extends Record<string, BytesCodec>> = BytesCodec<
+  { [key in keyof T]: { type: key; value: UnpackResult<T[key]> } }[keyof T]
+>;
+
+export function array<T extends FixedBytesCodec>(
   itemCodec: T,
   itemCount: number
 ): ArrayCodec<T> & Fixed {
@@ -64,7 +56,7 @@ export function array<T extends FixedBinaryCodec>(
       return concatBuffer(...itemsBuf);
     },
     unpack(buf) {
-      const result: Unpacked<T>[] = [];
+      const result: UnpackResult<T>[] = [];
       const itemLength = itemCodec.byteLength;
       for (let offset = 0; offset < buf.byteLength; offset += itemLength) {
         result.push(itemCodec.unpack(buf.slice(offset, offset + itemLength)));
@@ -74,11 +66,11 @@ export function array<T extends FixedBinaryCodec>(
   });
 }
 
-export function struct<T extends Record<string, FixedBinaryCodec>>(
+export function struct<T extends Record<string, FixedBytesCodec>>(
   shape: T,
   fields: (keyof T)[]
 ): ObjectCodec<T> & Fixed {
-  return createFixedCodec({
+  return createFixedBytesCodec({
     byteLength: fields.reduce((sum, field) => sum + shape[field].byteLength, 0),
     pack(obj) {
       return fields.reduce((result, field) => {
@@ -92,7 +84,7 @@ export function struct<T extends Record<string, FixedBinaryCodec>>(
     },
     unpack(buf) {
       const result = {} as PartialNullable<
-        { [key in keyof T]: Unpacked<T[key]> }
+        { [key in keyof T]: UnpackResult<T[key]> }
       >;
       let offset = 0;
 
@@ -109,9 +101,7 @@ export function struct<T extends Record<string, FixedBinaryCodec>>(
   });
 }
 
-export function fixvec<T extends FixedBinaryCodec>(
-  itemCodec: T
-): ArrayCodec<T> {
+export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
   return {
     pack(items) {
       return concatBuffer(
@@ -134,7 +124,7 @@ export function fixvec<T extends FixedBinaryCodec>(
   };
 }
 
-export function dynvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
+export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   return {
     pack(obj) {
       const packed = obj.reduce(
@@ -165,7 +155,7 @@ export function dynvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
           `Invalid buffer size, read from header: ${totalSize}, actual: ${buf.byteLength}`
         );
       }
-      const result: Unpacked<T>[] = [];
+      const result: UnpackResult<T>[] = [];
       if (totalSize <= 4) {
         return result;
       } else {
@@ -177,7 +167,7 @@ export function dynvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
             Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
           );
         offsets.push(totalSize);
-        const result: Unpacked<T>[] = [];
+        const result: UnpackResult<T>[] = [];
         for (let index = 0; index < offsets.length - 1; index++) {
           const start = offsets[index];
           const end = offsets[index + 1];
@@ -190,14 +180,14 @@ export function dynvec<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
   };
 }
 
-export function vector<T extends BinaryCodec>(itemCodec: T): ArrayCodec<T> {
+export function vector<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   if (isFixedCodec(itemCodec)) {
     return fixvec(itemCodec);
   }
   return dynvec(itemCodec);
 }
 
-export function table<T extends Record<string, BinaryCodec>>(
+export function table<T extends Record<string, BytesCodec>>(
   shape: T,
   fields: (keyof T)[]
 ): ObjectCodec<T> {
@@ -237,7 +227,9 @@ export function table<T extends Record<string, BinaryCodec>>(
         );
       }
       if (totalSize <= 4 || fields.length === 0) {
-        return {} as PartialNullable<{ [key in keyof T]: Unpacked<T[key]> }>;
+        return {} as PartialNullable<
+          { [key in keyof T]: UnpackResult<T[key]> }
+        >;
       } else {
         const offsets = fields.map((_, index) =>
           Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
@@ -252,13 +244,15 @@ export function table<T extends Record<string, BinaryCodec>>(
           const itemBuf = buf.slice(start, end);
           Object.assign(obj, { [field]: itemCodec.unpack(itemBuf) });
         }
-        return obj as PartialNullable<{ [key in keyof T]: Unpacked<T[key]> }>;
+        return obj as PartialNullable<
+          { [key in keyof T]: UnpackResult<T[key]> }
+        >;
       }
     },
   };
 }
 
-export function union<T extends Record<string, BinaryCodec>>(
+export function union<T extends Record<string, BytesCodec>>(
   itemCodec: T,
   fields: (keyof T)[]
 ): UnionCodec<T> {
@@ -281,7 +275,7 @@ export function union<T extends Record<string, BinaryCodec>>(
   };
 }
 
-export function option<T extends BinaryCodec>(itemCodec: T): OptionCodec<T> {
+export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
   return {
     pack(obj?) {
       if (obj) {

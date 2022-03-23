@@ -1,6 +1,5 @@
 import {
   array,
-  byte,
   dynvec,
   fixvec,
   option,
@@ -9,25 +8,11 @@ import {
   union,
   vector,
 } from "../src/molecule/layout";
-import {
-  Bytes,
-  BytesOpt,
-  createFixedHexBytesCodec,
-  UnusedOpt,
-} from "../src/molecule/common";
-import { bytesToArrayBuffer, toArrayBuffer } from "../src/utils";
+import { Bytes, createFixedHexBytesCodec } from "../src/blockchain";
+import { bytesToArrayBuffer } from "../src/utils";
 import test from "ava";
 import { Uint16, Uint32, Uint8 } from "../src/number";
-import { byteOf, byteVecOf } from "../src";
-
-test("test layout-byte", (t) => {
-  const buffer = bytesToArrayBuffer([1]);
-  const unpacked = byte.unpack(buffer);
-  const packed = byte.pack(unpacked);
-
-  t.deepEqual(unpacked, buffer);
-  t.deepEqual(packed, buffer);
-});
+import { byteOf } from "../src";
 
 test("test layout-array", (t) => {
   const codec = array(Uint8, 4);
@@ -233,43 +218,4 @@ test("test fixed hex bytes", (t) => {
   );
   t.truthy(hexStr === createFixedHexBytesCodec(3).unpack(hexBytes));
   t.throws(() => createFixedHexBytesCodec(4).pack(hexStr));
-});
-
-test("a real world Omni Lock witness should work as expected", (t) => {
-  const OmniLockWitnessLock = table(
-    {
-      signature: BytesOpt,
-      rc_identity: UnusedOpt,
-      preimage: UnusedOpt,
-    },
-    ["signature", "rc_identity", "preimage"]
-  );
-
-  // connect WitnessArgs bytes with OmniLock WitnessWitnessLock
-  const OmniLockWitness = table(
-    {
-      // lock: BytesOpt,
-      lock: byteVecOf(OmniLockWitnessLock),
-      type_input: BytesOpt,
-      type_output: BytesOpt,
-    },
-    ["lock", "type_input", "type_output"]
-  );
-
-  const packedWitness = OmniLockWitness.pack({
-    // secp256k1 signature in CKB is 65 bytes
-    lock: { signature: "0x" + "00".repeat(65) },
-  });
-  const omniLockWitnessPlaceholder = toArrayBuffer(
-    // the hex is calculated by the following code
-    // SerializeWitnessArgs({
-    //   lock: SerializeRcLockWitnessLock({
-    //     signature: toArrayBuffer("0x" + "00".repeat(65)),
-    //   }),
-    // })
-    "0x690000001000000069000000690000005500000055000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-  );
-
-  t.is(omniLockWitnessPlaceholder.byteLength, 105);
-  t.deepEqual(packedWitness, omniLockWitnessPlaceholder);
 });
