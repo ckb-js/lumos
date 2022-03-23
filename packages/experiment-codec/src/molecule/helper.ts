@@ -1,44 +1,10 @@
 import {
   assertBufferLength,
   assertMinBufferLength,
-  assertUint32,
   concatBuffer,
-} from "./utils";
-
-export interface Codec<Packed, Unpacked> {
-  pack: (unpacked: Unpacked) => Packed;
-  unpack: (packed: Packed) => Unpacked;
-}
-
-export type Pack<T extends Codec<any, any>> = ReturnType<T["pack"]>;
-/**
- * @example
- * ```ts
- * type UnpackedUint32 = Unpacked<typeof Uint32> // number
- * ```
- */
-export type Unpack<T extends Codec<any, any>> = ReturnType<T["unpack"]>;
-
-export interface BinaryCodec<Unpacked = any>
-  extends Codec<ArrayBuffer, Unpacked> {}
-
-export type Fixed = {
-  readonly __isFixedCodec__: true;
-  readonly byteLength: number;
-};
-export type FixedBinaryCodec<Unpacked = any> = BinaryCodec<Unpacked> & Fixed;
-
-export function unimplemented(message = "unimplemented"): never {
-  throw new Error(message);
-}
-
-/**
- * placeholder codec, generally used as a placeholder
- */
-export const Unknown: BinaryCodec<unknown> = {
-  pack: () => unimplemented("Unimplemented pack"),
-  unpack: () => unimplemented("Unimplemented unpack"),
-};
+} from "../utils";
+import { BinaryCodec, FixedBinaryCodec } from "../base";
+import { Uint32LE } from "../number";
 
 /**
  * a helper function to create custom codec of `array SomeType [byte; n]`
@@ -70,24 +36,6 @@ export function byteArrayOf<T>(
 export function byteOf<T>(codec: BinaryCodec<T>): FixedBinaryCodec<T> {
   return byteArrayOf({ ...codec, byteLength: 1 });
 }
-
-/**
- * Uint32 codec
- */
-export const Uint32LE = byteArrayOf<number>({
-  byteLength: 4,
-  pack: (num) => {
-    assertUint32(num);
-    const buffer = new ArrayBuffer(4);
-    const view = new DataView(buffer);
-    view.setUint32(0, num, true);
-    return buffer;
-  },
-  unpack: (buf) => {
-    const view = new DataView(buf);
-    return view.getUint32(0, true);
-  },
-});
 
 /**
  * a helper function to create custom codec of `vector Bytes <byte>`

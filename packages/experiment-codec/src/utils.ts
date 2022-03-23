@@ -33,8 +33,9 @@ export function assertHexDecimal(str: string, byteLength?: number): void {
   }
 }
 
-export function assertHexString(str: string, byteLength?: number) {
+export function assertHexString(str: string, byteLength?: number): void {
   if (byteLength) {
+    // TODO cache regex to improve performance
     const regex = RegExp(
       String.raw`^0x([0-9a-fA-F][0-9a-fA-F]){${byteLength}}$`
     );
@@ -56,7 +57,7 @@ export function assertBufferLength(buf: ArrayBuffer, length: number): void {
   }
 }
 
-export function assertMinBufferLength(buf: ArrayBuffer, length: number) {
+export function assertMinBufferLength(buf: ArrayBuffer, length: number): void {
   if (buf.byteLength < length) {
     throw new Error(
       `Invalid buffer length: ${buf.byteLength}, should be at least ${length}`
@@ -119,4 +120,9 @@ export function serializeJson(buf: ArrayBuffer): string {
       .call(new Uint8Array(buf), (x) => x.toString(16).padStart(2, "0"))
       .join("")
   );
+}
+
+export function isObjectLike(x: unknown): x is Record<string, unknown> {
+  if (!x) return false;
+  return typeof x === "object";
 }

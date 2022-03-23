@@ -4,7 +4,7 @@ import {
   option,
   table,
   UnusedOpt,
-} from "@ckb-lumos/experiment-molecule";
+} from "@ckb-lumos/experiment-codec";
 
 const OmniLockWitnessLock = table(
   {
