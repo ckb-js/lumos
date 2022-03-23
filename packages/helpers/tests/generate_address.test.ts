@@ -105,3 +105,19 @@ test("generateSecp256k1Blake160MultisigAddress, mainnet", (t) => {
 
   t.is(address, multisigAddressInfo.mainnetAddress);
 });
+
+test("generateSecp256k1Blake160Address, empty config", (t) => {
+  const emptyConfig = {
+    PREFIX: "ckb",
+    SCRIPTS: {},
+  };
+  const error = t.throws(() =>
+    generateSecp256k1Blake160Address(shortAddressInfo.script.args, {
+      config: emptyConfig,
+    })
+  );
+  t.is(
+    error.message,
+    "Invalid script type: SECP256K1_BLAKE160, only support: "
+  );
+});

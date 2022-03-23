@@ -1,9 +1,12 @@
 import test from "ava";
 import { List, Record, Map as ImmutableMap } from "immutable";
 import {
+  createTransactionFromSkeleton,
   objectToTransactionSkeleton,
   transactionSkeletonToObject,
 } from "../src";
+import { TransactionSkeleton } from "../lib";
+import { Cell } from "@ckb-lumos/base";
 
 test.before(() => {
   // @ts-ignore: Unreachable code error
@@ -63,4 +66,26 @@ test("transactionSkeletonToObject", (t) => {
   });
 
   t.true(obj.inputSinces instanceof Object);
+});
+
+test("createTransactionFromSkeleton, invalid input", (t) => {
+  let txSkeleton = new TransactionSkeleton();
+  const inputCell: Cell = {
+    cell_output: {
+      capacity: "0x0",
+      lock: {
+        code_hash:
+          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        args: "0x159890a7cacb44a95bef0743064433d763de229c",
+        hash_type: "type",
+      },
+    },
+    data: "0x0",
+  };
+  txSkeleton = txSkeleton.update("inputs", (inputs) => inputs.push(inputCell));
+  const error = t.throws(() => createTransactionFromSkeleton(txSkeleton));
+  t.is(
+    error.message,
+    "cannot find OutPoint in Inputs[0] when createTransactionFromSkeleton"
+  );
 });
