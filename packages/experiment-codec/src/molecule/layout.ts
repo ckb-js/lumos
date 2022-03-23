@@ -278,7 +278,7 @@ export function union<T extends Record<string, BytesCodec>>(
 export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
   return {
     pack(obj?) {
-      if (obj) {
+      if (obj !== undefined && obj !== null) {
         return itemCodec.pack(obj);
       } else {
         return new ArrayBuffer(0);
