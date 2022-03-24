@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Now lumos can run on browser
+# Now Lumos Can Run in A Web Browser
 ### TL;DR
 
 Lumos was originally run on NodeJS only. To run on browser, we replaced native indexer with ckb-indexer, added BI which is a big number library, and a series of other upgrades.
