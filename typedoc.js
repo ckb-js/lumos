@@ -1,6 +1,6 @@
 module.exports = {
   mode: "modules",
-  out: "docs",
+  out: "docusaurus/website/static/api",
   exclude: [
     "**/node_modules/**",
     "**/tests/**/*",
