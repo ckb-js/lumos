@@ -11,8 +11,8 @@ import {
   RPC,
   config,
   Indexer,
-} from "@ckb-lumos/lumos";
-import { CellProvider } from "@ckb-lumos/base";
+} from "@site/../../packages/lumos/lib";
+import { CellProvider } from "@site/../../packages/base/";
 
 const StyleWrapper = styled.div`
   padding: 20px;
