@@ -9,8 +9,8 @@ const config = {
   title: "Lumos Docs",
   tagline:
       "Full featured JavaScript(TypeScript) based dApp library for Nervos CKB",
-  url: "https://nervosnetwork.github.io",
-  baseUrl: "/lumos/",
+  url: "https://lumos-website.vercel.app",
+  baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/favicon.ico",
@@ -59,7 +59,7 @@ const config = {
             },
             { to: "/tools/address-conversion", label: "Tools", position: "left" },
             {
-              href: "https://nervosnetwork.github.io/lumos/api",
+              href: "https://lumos-website.vercel.app/api/index.html",
               label: "API",
               position: "left",
             },
