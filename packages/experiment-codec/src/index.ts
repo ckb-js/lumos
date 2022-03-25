@@ -11,11 +11,4 @@ export type {
 export * from "./molecule";
 export * from "./number";
 
-export {
-  UnusedOpt,
-  Bytes,
-  Byte32,
-  Byte32Vec,
-  BytesVec,
-  BytesOpt,
-} from "./blockchain";
+export { Bytes, Byte32, Byte32Vec, BytesVec, BytesOpt } from "./blockchain";
