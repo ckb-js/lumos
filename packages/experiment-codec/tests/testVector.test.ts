@@ -1,6 +1,6 @@
 import test from "ava";
-import * as schema from "./test-vector/schema";
-import * as defaultTestDataMap from "./test-vector/type-defaults";
+import { codecs } from "./test-vector/codecs";
+import { defaultTestDataMap } from "./test-vector/type-defaults";
 import { BytesCodec } from "@ckb-lumos/experiment-codec";
 import { toArrayBuffer, toHex } from "../src/utils";
 const yaml = require("js-yaml");
@@ -75,12 +75,10 @@ function hexStringToHexArray(hexStr: string) {
 }
 
 const simpleTests = loadTests("simple.yaml");
-simpleTests.forEach((testCase, tag) => {
+simpleTests.forEach((testCase, index) => {
   const testName = testCase.name;
-  //  @ts-ignore
-  const codec: BytesCodec = schema[testName];
-  //  @ts-ignore
-  let testData = copyDefaultData(defaultTestDataMap[testName]);
+  const codec: BytesCodec = codecs[testName];
+  let testData = clone(defaultTestDataMap[testName]);
 
   // Byte Codecs
   if (testName.match(/^Byte\d*$|^Word$/)) {
@@ -96,15 +94,12 @@ simpleTests.forEach((testCase, tag) => {
       testData = testCase.data.map(hexStringToHexArray);
     }
   } else if (testName.match(/(Struct[IJKP]|Bytes|Words|ByteOpt)Vec$/)) {
-    //  @ts-ignore
-    const itemCodecName = testName.match(
-      /(Struct[IJKP]|Bytes|Words|ByteOpt)Vec$/
-    )[1];
-    //  @ts-ignore
-    const itemCodec: BytesCodec = schema[itemCodecName];
+    const matches = testName.match(/(Struct[IJKP]|Bytes|Words|ByteOpt)Vec$/);
+    assertNonNull(matches);
+    const itemCodecName = matches[1];
+    const itemCodec: BytesCodec = codecs[itemCodecName];
     if (testCase.data) {
-      //  @ts-ignore
-      testData = testCase.data.map((item) =>
+      testData = testCase.data.map((item: string) =>
         itemCodec.unpack(toArrayBuffer(item))
       );
     }
@@ -116,12 +111,12 @@ simpleTests.forEach((testCase, tag) => {
     //     f4: Bytes,
     //     f5: BytesVec,
     // }
-    const itemCodecTable5Map = {
-      f1: schema.byte,
-      f2: schema.Word2,
-      f3: schema.StructA,
-      f4: schema.Bytes,
-      f5: schema.BytesVec,
+    const itemCodecTable5Map: Record<string, BytesCodec> = {
+      f1: codecs.byte,
+      f2: codecs.Word2,
+      f3: codecs.StructA,
+      f4: codecs.Bytes,
+      f5: codecs.BytesVec,
     };
     //   table TableA {
     //     f1: Word2,
@@ -133,33 +128,31 @@ simpleTests.forEach((testCase, tag) => {
     //     f7: UnionA,
     //     f8: byte,
     // }
-    const itemCodecTableAMap = {
-      f1: schema.Word2,
-      f2: schema.StructA,
-      f3: schema.Bytes,
-      f4: schema.BytesVec,
-      f5: schema.Table1,
-      f6: schema.BytesOpt,
-      f7: schema.UnionA,
-      f8: schema.byte,
+    const itemCodecTableAMap: Record<string, BytesCodec> = {
+      f1: codecs.Word2,
+      f2: codecs.StructA,
+      f3: codecs.Bytes,
+      f4: codecs.BytesVec,
+      f5: codecs.Table1,
+      f6: codecs.BytesOpt,
+      f7: codecs.UnionA,
+      f8: codecs.byte,
     };
 
     if (testCase.data) {
-      //  @ts-ignore
       Object.entries(testCase.data).forEach((testDataEntry) => {
         const [itemCodecName, itemValue] = testDataEntry;
         let itemCodec: BytesCodec;
         if (testName === "Table5") {
-          // @ts-ignore
           itemCodec = itemCodecTable5Map[itemCodecName];
         } else if (testName === "TableA") {
-          // @ts-ignore
           itemCodec = itemCodecTableAMap[itemCodecName];
         } else {
           throw new Error("Not implemented test case.");
         }
-        // @ts-ignore
-        testData[itemCodecName] = itemCodec.unpack(toArrayBuffer(itemValue));
+        (testData as Record<string, object>)[itemCodecName] = itemCodec.unpack(
+          toArrayBuffer(itemValue as string)
+        );
       });
     }
   } else if (testName.match(/Opt$/)) {
@@ -174,22 +167,20 @@ simpleTests.forEach((testCase, tag) => {
     // option Table0Opt (Table0);
     // option Table6Opt (Table6);
     // option Table6OptOpt (Table6Opt);
-    const itemCodecMap = {
-      ByteOpt: schema.byte,
-      WordOpt: schema.Word,
-      StructAOpt: schema.StructA,
-      StructPOpt: schema.StructP,
-      BytesOpt: schema.Bytes,
-      WordsOpt: schema.Words,
-      BytesVecOpt: schema.BytesVec,
-      WordsVecOpt: schema.WordsVec,
-      Table0Opt: schema.Table0,
-      Table6Opt: schema.Table6,
-      Table6OptOpt: schema.Table6Opt,
+    const itemCodecMap: Record<string, BytesCodec> = {
+      ByteOpt: codecs.byte,
+      WordOpt: codecs.Word,
+      StructAOpt: codecs.StructA,
+      StructPOpt: codecs.StructP,
+      BytesOpt: codecs.Bytes,
+      WordsOpt: codecs.Words,
+      BytesVecOpt: codecs.BytesVec,
+      WordsVecOpt: codecs.WordsVec,
+      Table0Opt: codecs.Table0,
+      Table6Opt: codecs.Table6,
+      Table6OptOpt: codecs.Table6Opt,
     };
-    //  @ts-ignore
     const itemCodec = itemCodecMap[testName];
-    //  @ts-ignore
     testData = testCase.item;
     if (testCase.item) {
       testData = itemCodec.unpack(toArrayBuffer(testCase.item));
@@ -205,36 +196,29 @@ simpleTests.forEach((testCase, tag) => {
     //     Table6,
     //     Table6Opt,
     // }
-    const itemCodecMap = {
-      byte: schema.byte,
-      Word: schema.Word,
-      StructA: schema.StructA,
-      Bytes: schema.Bytes,
-      Words: schema.Words,
-      Table0: schema.Table0,
-      Table6: schema.Table6,
-      Table6Opt: schema.Table6Opt,
+    const itemCodecMap: Record<string, BytesCodec> = {
+      byte: codecs.byte,
+      Word: codecs.Word,
+      StructA: codecs.StructA,
+      Bytes: codecs.Bytes,
+      Words: codecs.Words,
+      Table0: codecs.Table0,
+      Table6: codecs.Table6,
+      Table6Opt: codecs.Table6Opt,
     };
-    //  @ts-ignore
     const itemCodec = itemCodecMap[testCase.item.type];
-    //  @ts-ignore
     testData = itemCodec.unpack(toArrayBuffer(testCase.item.data));
     testData = { type: testCase.item.type, value: testData };
   } else {
     console.warn(`WARNING: ${testName} is not tested`);
   }
   const packed = codec.pack(testData);
-  test.serial(
-    `TestName: ${testName}, No.${tag}:\n 
-    Test case is: ${JSON.stringify(testCase)}\n 
-    Unpacked: ${JSON.stringify(testData)}\n`,
-    (t) => {
-      t.deepEqual(toHex(packed), testCase.expected);
-    }
-  );
+  test(`should same with expected when packing No.${index} data in simple.yaml`, (t) => {
+    t.deepEqual(toHex(packed), testCase.expected);
+  });
 });
 
-function copyDefaultData(data: object | Array<any>): object | Array<any> {
+function clone(data: object | Array<any>): object | Array<any> {
   if (Array.isArray(data)) {
     return [...data];
   } else {
@@ -242,10 +226,12 @@ function copyDefaultData(data: object | Array<any>): object | Array<any> {
   }
 }
 
-function fillObjectWithDefault(partialData: object, defaultData: object) {
+function fillObjectWithDefault(
+  partialData: object,
+  defaultData: Record<string, any>
+) {
   const fulfilledData = defaultData;
   Object.entries(partialData).forEach((partialDataEntry) => {
-    // @ts-ignore
     fulfilledData[partialDataEntry[0]] = hexStringToHexArray(
       partialDataEntry[1]
     );
@@ -259,8 +245,13 @@ function fillArrayWithDefault(
 ) {
   const fulfilledData = defaultData;
   Object.entries(partialData).forEach((partialDataEntry) => {
-    // @ts-ignore
-    fulfilledData[partialDataEntry[0]] = partialDataEntry[1];
+    fulfilledData[(partialDataEntry[0] as any) as number] = partialDataEntry[1];
   });
   return fulfilledData;
+}
+
+function assertNonNull<T>(arg: T): asserts arg is NonNullable<T> {
+  if (arg === null) {
+    throw new Error("arg is null");
+  }
 }
