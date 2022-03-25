@@ -1,5 +1,5 @@
 import test from "ava";
-import { BytesOpt, UnusedOpt } from "../src/blockchain";
+import { BytesOpt } from "../src/blockchain";
 import { toArrayBuffer } from "../src/utils";
 import { byteVecOf, table } from "../src/molecule";
 
@@ -7,8 +7,8 @@ test("a real world Omni Lock witness should work as expected", (t) => {
   const OmniLockWitnessLock = table(
     {
       signature: BytesOpt,
-      rc_identity: UnusedOpt,
-      preimage: UnusedOpt,
+      rc_identity: BytesOpt,
+      preimage: BytesOpt,
     },
     ["signature", "rc_identity", "preimage"]
   );

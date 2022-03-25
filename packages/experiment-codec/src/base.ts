@@ -94,15 +94,3 @@ export function createFixedBytesCodec<Unpacked, Packable = Unpacked>(
     }),
   };
 }
-
-export function unimplemented(message = "unimplemented"): never {
-  throw new Error(message);
-}
-
-/**
- * placeholder codec, generally used as a placeholder
- */
-export const Unknown: BytesCodec<unknown> = {
-  pack: () => unimplemented("Unimplemented pack"),
-  unpack: () => unimplemented("Unimplemented unpack"),
-};
