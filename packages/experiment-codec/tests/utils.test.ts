@@ -34,4 +34,5 @@ test("should toArray buffer return expected", (t) => {
 });
 test("should isObjectLike return false", (t) => {
   t.false(isObjectLike(undefined));
+  t.true(isObjectLike({}));
 });

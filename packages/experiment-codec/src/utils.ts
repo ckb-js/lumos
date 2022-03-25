@@ -14,30 +14,45 @@ export function concatBuffer(...buffers: ArrayBuffer[]): ArrayBuffer {
   return result.buffer;
 }
 
+const HEX_DECIMAL_REGEX = /^0x([0-9a-fA-F])+$/;
+const HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();
 export function assertHexDecimal(str: string, byteLength?: number): void {
   if (byteLength) {
-    const regex = RegExp(String.raw`^0x([0-9a-fA-F]){1,${byteLength * 2}}$`);
+    let regex = HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP.get(byteLength);
+    if (!regex) {
+      const newRegex = RegExp(
+        String.raw`^0x([0-9a-fA-F]){1,${byteLength * 2}}$`
+      );
+      HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP.set(byteLength, newRegex);
+      regex = newRegex;
+    }
     if (!regex.test(str)) {
       throw new Error("Invalid hex decimal!");
     }
   } else {
-    if (!/^0x([0-9a-fA-F])+$/.test(str)) {
+    if (!HEX_DECIMAL_REGEX.test(str)) {
       throw new Error("Invalid hex decimal!");
     }
   }
 }
 
+const HEX_STRING_REGEX = /^0x([0-9a-fA-F][0-9a-fA-F])*$/;
+const HEX_STRING_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();
 export function assertHexString(str: string, byteLength?: number): void {
   if (byteLength) {
-    // TODO cache regex to improve performance
-    const regex = RegExp(
-      String.raw`^0x([0-9a-fA-F][0-9a-fA-F]){${byteLength}}$`
-    );
+    let regex = HEX_STRING_WITH_BYTELENGTH_REGEX_MAP.get(byteLength);
+    if (!regex) {
+      const newRegex = RegExp(
+        String.raw`^0x([0-9a-fA-F][0-9a-fA-F]){${byteLength}}$`
+      );
+      HEX_STRING_WITH_BYTELENGTH_REGEX_MAP.set(byteLength, newRegex);
+      regex = newRegex;
+    }
     if (!regex.test(str)) {
       throw new Error("Invalid hex string!");
     }
   } else {
-    if (!/^0x([0-9a-fA-F][0-9a-fA-F])*$/.test(str)) {
+    if (!HEX_STRING_REGEX.test(str)) {
       throw new Error("Invalid hex string!");
     }
   }
