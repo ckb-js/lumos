@@ -13,16 +13,37 @@ export interface Codec<
 
 export type AnyCodec = Codec<any, any>;
 
+export type PackResult<T extends AnyCodec> = T extends Codec<
+  infer Packed,
+  infer Unpacked,
+  infer Packable,
+  infer Unpackable
+>
+  ? Packed
+  : never;
+export type PackParam<T extends AnyCodec> = T extends Codec<
+  infer Packed,
+  infer Unpacked,
+  infer Packable,
+  infer Unpackable
+>
+  ? Packable
+  : never;
 // prettier-ignore
-type CodecDescriptor<T> = T extends Codec<infer PackResult, infer UnpackResult, infer PackParam, infer UnpackParam>
-    ? { PackResult: PackResult; UnpackResult: UnpackResult; PackParam: PackParam; UnpackParam: UnpackParam; }
+export type UnpackResult<T extends AnyCodec> = T extends Codec<infer Packed,
+        infer Unpacked,
+        infer Packable,
+        infer Unpackable>
+    ? Unpacked
     : never;
-
-export type PackResult<T extends AnyCodec> = CodecDescriptor<T>["PackResult"];
-export type PackParam<T extends AnyCodec> = CodecDescriptor<T>["PackParam"];
-// prettier-ignore
-export type UnpackResult<T extends AnyCodec> = CodecDescriptor<T>["UnpackResult"];
-export type UnpackParam<T extends AnyCodec> = CodecDescriptor<T>["UnpackParam"];
+export type UnpackParam<T extends AnyCodec> = T extends Codec<
+  infer Packed,
+  infer Unpacked,
+  infer Packable,
+  infer Unpackable
+>
+  ? Unpackable
+  : never;
 
 export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<
   ArrayBuffer,
