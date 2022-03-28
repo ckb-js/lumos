@@ -52,7 +52,7 @@ test.serial.only(
       hash_type: "type",
       args: "0xbde8b19b4505dd1d1310223edecea20adc4e240e",
     };
-    const outputDataLenRange: HexadecimalRange = ["0x0", "0x5"];
+    const outputDataLenRange: HexadecimalRange = ["0x0", "0x2"];
     const query = {
       lock: lockScript,
       data: "0x",
@@ -60,6 +60,16 @@ test.serial.only(
     };
     const cellCollect = new CellCollector(indexer, query);
     cellCollect.convertParams();
-    t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x5"]);
+    t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x2"]);
+
+    const notMatchQuery = {
+      lock: lockScript,
+      data: "0x664455",
+      outputDataLenRange,
+    };
+    const error = t.throws(() => {
+      new CellCollector(indexer, notMatchQuery);
+    });
+    t.is(error.message, "data length not match outputDataLenRange");
   }
 );
