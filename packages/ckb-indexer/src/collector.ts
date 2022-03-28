@@ -43,11 +43,11 @@ export class CKBCellCollector implements BaseCellCollector {
       bufferSize: undefined,
     };
     this.queries = { ...defaultQuery, ...this.queries };
-    this.validateParams(this.queries);
-    this.convertParams();
+    this.validateQueryOption(this.queries);
+    this.convertQueryOptionToSearchKey();
   }
 
-  public validateParams(queries: CKBIndexerQueryOptions): void {
+  public validateQueryOption(queries: CKBIndexerQueryOptions): void {
     if (!queries.lock && (!queries.type || queries.type === "empty")) {
       throw new Error("Either lock or type script must be provided!");
     }
@@ -124,7 +124,7 @@ export class CKBCellCollector implements BaseCellCollector {
     }
   }
 
-  public convertParams(): void {
+  public convertQueryOptionToSearchKey(): void {
     // unWrap `ScriptWrapper` into `Script`.
     if (this.queries.lock) {
       if (instanceOfScriptWrapper(this.queries.lock)) {

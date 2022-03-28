@@ -20,7 +20,7 @@ test.serial(
       data: "0x",
     };
     const cellCollect = new CellCollector(indexer, query);
-    cellCollect.convertParams();
+    cellCollect.convertQueryOptionToSearchKey();
     t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x1"]);
   }
 );
@@ -38,7 +38,7 @@ test.serial(
       lock: lockScript,
     };
     const cellCollect = new CellCollector(indexer, query);
-    cellCollect.convertParams();
+    cellCollect.convertQueryOptionToSearchKey();
     t.deepEqual(cellCollect.queries.outputDataLenRange, undefined);
   }
 );
@@ -59,7 +59,7 @@ test.serial.only(
       outputDataLenRange,
     };
     const cellCollect = new CellCollector(indexer, query);
-    cellCollect.convertParams();
+    cellCollect.convertQueryOptionToSearchKey();
     t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x2"]);
 
     const notMatchQuery = {
