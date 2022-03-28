@@ -13,52 +13,43 @@ const lockScript: Script = {
   args: "0xbde8b19b4505dd1d1310223edecea20adc4e240e",
 };
 
-test.serial(
-  "convertParams# should set outputDataLenRange according to data",
-  (t) => {
-    const query = {
-      lock: lockScript,
-      data: "0x",
-    };
-    const cellCollect = new CellCollector(indexer, query);
-    cellCollect.convertQueryOptionToSearchKey();
-    t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x1"]);
-  }
-);
+test("convertParams# should set outputDataLenRange according to data", (t) => {
+  const query = {
+    lock: lockScript,
+    data: "0x",
+  };
+  const cellCollect = new CellCollector(indexer, query);
+  cellCollect.convertQueryOptionToSearchKey();
+  t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x1"]);
+});
 
-test.serial(
-  "convertParams# should not set outputDataRange if data is not defined",
-  (t) => {
-    const query = {
-      lock: lockScript,
-    };
-    const cellCollect = new CellCollector(indexer, query);
-    cellCollect.convertQueryOptionToSearchKey();
-    t.deepEqual(cellCollect.queries.outputDataLenRange, undefined);
-  }
-);
+test("convertParams# should not set outputDataRange if data is not defined", (t) => {
+  const query = {
+    lock: lockScript,
+  };
+  const cellCollect = new CellCollector(indexer, query);
+  cellCollect.convertQueryOptionToSearchKey();
+  t.deepEqual(cellCollect.queries.outputDataLenRange, undefined);
+});
 
-test.serial(
-  "convertParams# should match outputDataRange if data and outputData both defined",
-  (t) => {
-    const outputDataLenRange: HexadecimalRange = ["0x0", "0x2"];
-    const query = {
-      lock: lockScript,
-      data: "0x",
-      outputDataLenRange,
-    };
-    const cellCollect = new CellCollector(indexer, query);
-    cellCollect.convertQueryOptionToSearchKey();
-    t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x2"]);
+test("convertParams# should match outputDataRange if data and outputData both defined", (t) => {
+  const outputDataLenRange: HexadecimalRange = ["0x0", "0x2"];
+  const query = {
+    lock: lockScript,
+    data: "0x",
+    outputDataLenRange,
+  };
+  const cellCollect = new CellCollector(indexer, query);
+  cellCollect.convertQueryOptionToSearchKey();
+  t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x2"]);
 
-    const notMatchQuery = {
-      lock: lockScript,
-      data: "0x664455",
-      outputDataLenRange,
-    };
-    const error = t.throws(() => {
-      new CellCollector(indexer, notMatchQuery);
-    });
-    t.is(error.message, "data length not match outputDataLenRange");
-  }
-);
+  const notMatchQuery = {
+    lock: lockScript,
+    data: "0x664455",
+    outputDataLenRange,
+  };
+  const error = t.throws(() => {
+    new CellCollector(indexer, notMatchQuery);
+  });
+  t.is(error.message, "data length not match outputDataLenRange");
+});
