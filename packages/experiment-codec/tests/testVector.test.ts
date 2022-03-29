@@ -1,257 +1,140 @@
 import test from "ava";
-import { codecs } from "./test-vector/codecs";
-import { defaultTestDataMap } from "./test-vector/type-defaults";
 import { BytesCodec } from "@ckb-lumos/experiment-codec";
-import { toArrayBuffer, toHex } from "../src/utils";
-const yaml = require("js-yaml");
-const fs = require("fs");
+import { codecs } from "./test-vector/codecs";
+import { toArrayBuffer } from "../src/utils";
+import {
+  loadTests,
+  generateDefaultCodecData,
+  fullfillPartialCodecData,
+} from "./test-vector/testUtility";
 
-type TestCase = {
-  name: string;
-  data?: any;
-  item?: any;
-  expected: string;
-};
-
-const loadTests = (path: string) => {
-  let cases: Array<TestCase> = [];
-  try {
-    cases = yaml.load(
-      fs.readFileSync(`${process.cwd()}/tests/test-vector/${path}`, "utf8")
-    );
-    console.log(`Read ${cases.length} test cases from file:`, path);
-    cases = cases.map((testCase) => {
-      let data: object | string[] | undefined = undefined;
-      if (Array.isArray(testCase.data)) {
-        data = testCase.data.map((dataItem) => dataItem.replace(/[_/]/gi, ""));
-      } else if (typeof testCase.data === "object") {
-        data = {};
-        Object.entries(testCase.data).forEach((testCaseDataEntry) => {
-          Object.assign(data as object, {
-            [testCaseDataEntry[0]]: (testCaseDataEntry[1] as string).replace(
-              /[_/]/gi,
-              ""
-            ),
-          });
-        });
-      }
-      let caseItem: object | string | undefined = undefined;
-      if (typeof testCase.item === "string") {
-        caseItem = testCase.item.replace(/[_/]/gi, "");
-      } else if (typeof testCase.item === "object") {
-        caseItem = {};
-        Object.entries(testCase.item).forEach((testCaseItemEntry) => {
-          Object.assign(caseItem as object, {
-            [testCaseItemEntry[0]]: (testCaseItemEntry[1] as string).replace(
-              /[_/]/gi,
-              ""
-            ),
-          });
-        });
-      }
-      return {
-        name: testCase.name,
-        data,
-        item: caseItem,
-        expected: testCase.expected.replace(/[_/]/gi, ""),
-      };
-    });
-  } catch (e) {
-    console.log(e);
-  }
-  return cases;
-};
-
-function hexStringToHexArray(hexStr: string) {
-  if (hexStr.length % 2 !== 0 || !hexStr.startsWith("0x")) {
-    throw new Error("hexStr must be a hex string");
-  } else if (hexStr.length === 4) {
-    return hexStr;
-  } else if (hexStr.length > 2) {
-    return (hexStr.substring(2).match(/([0-9a-f][0-9a-f])/gi) as Array<
-      string
-    >).map((x) => `0x${x}`);
-  }
+function codecWithDefaultData(codec: BytesCodec) {
+  return codec.pack(generateDefaultCodecData(codec));
 }
 
-const simpleTests = loadTests("simple.yaml");
-simpleTests.forEach((testCase, index) => {
-  const testName = testCase.name;
-  const codec: BytesCodec = codecs[testName];
-  let testData = clone(defaultTestDataMap[testName]);
+function codecWithPartialData(codec: BytesCodec, data: any, item: any) {
+  return codec.pack(fullfillPartialCodecData(codec, data, item));
+}
 
-  // Byte Codecs
-  if (testName.match(/^Byte\d*$|^Word$/)) {
-    if (testCase.data) {
-      testData = fillArrayWithDefault(testCase.data, testData as Array<any>);
-    }
-  } else if (testName.match(/^Struct\w{1}$|StructIx3/)) {
-    if (testCase.data) {
-      testData = fillObjectWithDefault(testCase.data, testData);
-    }
-  } else if (testName.match(/^Bytes$|^Words$|^Byte3Vec$|^Byte7Vec$/)) {
-    if (testCase.data) {
-      testData = testCase.data.map(hexStringToHexArray);
-    }
-  } else if (testName.match(/(Struct[IJKP]|Bytes|Words|ByteOpt)Vec$/)) {
-    const matches = testName.match(/(Struct[IJKP]|Bytes|Words|ByteOpt)Vec$/);
-    assertNonNull(matches);
-    const itemCodecName = matches[1];
-    const itemCodec: BytesCodec = codecs[itemCodecName];
-    if (testCase.data) {
-      testData = testCase.data.map((item: string) =>
-        itemCodec.unpack(toArrayBuffer(item))
-      );
-    }
-  } else if (testName === "Table5" || testName === "TableA") {
-    // table Table5 {
-    //     f1: byte,
-    //     f2: Word2,
-    //     f3: StructA,
-    //     f4: Bytes,
-    //     f5: BytesVec,
-    // }
-    const itemCodecTable5Map: Record<string, BytesCodec> = {
-      f1: codecs.byte,
-      f2: codecs.Word2,
-      f3: codecs.StructA,
-      f4: codecs.Bytes,
-      f5: codecs.BytesVec,
-    };
-    //   table TableA {
-    //     f1: Word2,
-    //     f2: StructA,
-    //     f3: Bytes,
-    //     f4: BytesVec,
-    //     f5: Table1,
-    //     f6: BytesOpt,
-    //     f7: UnionA,
-    //     f8: byte,
-    // }
-    const itemCodecTableAMap: Record<string, BytesCodec> = {
-      f1: codecs.Word2,
-      f2: codecs.StructA,
-      f3: codecs.Bytes,
-      f4: codecs.BytesVec,
-      f5: codecs.Table1,
-      f6: codecs.BytesOpt,
-      f7: codecs.UnionA,
-      f8: codecs.byte,
-    };
+test("should generateDefaultCodecData work as expected", (t) => {
+  t.deepEqual(generateDefaultCodecData(codecs.Byte2), new Array(2).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte3), new Array(3).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte4), new Array(4).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte5), new Array(5).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte6), new Array(6).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte7), new Array(7).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte8), new Array(8).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte9), new Array(9).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte10), new Array(10).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte11), new Array(11).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte12), new Array(12).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte13), new Array(13).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte14), new Array(14).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte15), new Array(15).fill(0));
+  t.deepEqual(generateDefaultCodecData(codecs.Byte16), new Array(16).fill(0));
 
-    if (testCase.data) {
-      Object.entries(testCase.data).forEach((testDataEntry) => {
-        const [itemCodecName, itemValue] = testDataEntry;
-        let itemCodec: BytesCodec;
-        if (testName === "Table5") {
-          itemCodec = itemCodecTable5Map[itemCodecName];
-        } else if (testName === "TableA") {
-          itemCodec = itemCodecTableAMap[itemCodecName];
-        } else {
-          throw new Error("Not implemented test case.");
-        }
-        (testData as Record<string, object>)[itemCodecName] = itemCodec.unpack(
-          toArrayBuffer(itemValue as string)
-        );
-      });
-    }
-  } else if (testName.match(/Opt$/)) {
-    // option ByteOpt (byte);
-    // option WordOpt (Word);
-    // option StructAOpt (StructA);
-    // option StructPOpt (StructP);
-    // option BytesOpt (Bytes);
-    // option WordsOpt (Words);
-    // option BytesVecOpt (BytesVec);
-    // option WordsVecOpt (WordsVec);
-    // option Table0Opt (Table0);
-    // option Table6Opt (Table6);
-    // option Table6OptOpt (Table6Opt);
-    const itemCodecMap: Record<string, BytesCodec> = {
-      ByteOpt: codecs.byte,
-      WordOpt: codecs.Word,
-      StructAOpt: codecs.StructA,
-      StructPOpt: codecs.StructP,
-      BytesOpt: codecs.Bytes,
-      WordsOpt: codecs.Words,
-      BytesVecOpt: codecs.BytesVec,
-      WordsVecOpt: codecs.WordsVec,
-      Table0Opt: codecs.Table0,
-      Table6Opt: codecs.Table6,
-      Table6OptOpt: codecs.Table6Opt,
-    };
-    const itemCodec = itemCodecMap[testName];
-    testData = testCase.item;
-    if (testCase.item) {
-      testData = itemCodec.unpack(toArrayBuffer(testCase.item));
-    }
-  } else if (testName === "UnionA") {
-    // union UnionA {
-    //     byte,
-    //     Word,
-    //     StructA,
-    //     Bytes,
-    //     Words,
-    //     Table0,
-    //     Table6,
-    //     Table6Opt,
-    // }
-    const itemCodecMap: Record<string, BytesCodec> = {
-      byte: codecs.byte,
-      Word: codecs.Word,
-      StructA: codecs.StructA,
-      Bytes: codecs.Bytes,
-      Words: codecs.Words,
-      Table0: codecs.Table0,
-      Table6: codecs.Table6,
-      Table6Opt: codecs.Table6Opt,
-    };
-    const itemCodec = itemCodecMap[testCase.item.type];
-    testData = itemCodec.unpack(toArrayBuffer(testCase.item.data));
-    testData = { type: testCase.item.type, value: testData };
-  } else {
-    console.warn(`WARNING: ${testName} is not tested`);
-  }
-  const packed = codec.pack(testData);
-  test(`should same with expected when packing No.${index} data in simple.yaml`, (t) => {
-    t.deepEqual(toHex(packed), testCase.expected);
+  t.deepEqual(generateDefaultCodecData(codecs.Word), new Array(2).fill(0));
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Word2),
+    new Array(2).fill(new Array(2).fill(0))
+  );
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Word3),
+    new Array(3).fill(new Array(2).fill(0))
+  );
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Word4),
+    new Array(4).fill(new Array(2).fill(0))
+  );
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Word5),
+    new Array(5).fill(new Array(2).fill(0))
+  );
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Word6),
+    new Array(6).fill(new Array(2).fill(0))
+  );
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Word7),
+    new Array(7).fill(new Array(2).fill(0))
+  );
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Word8),
+    new Array(8).fill(new Array(2).fill(0))
+  );
+
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Byte3x3),
+    new Array(3).fill(new Array(3).fill(0))
+  );
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Byte5x3),
+    new Array(3).fill(new Array(5).fill(0))
+  );
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Byte7x3),
+    new Array(3).fill(new Array(7).fill(0))
+  );
+  t.deepEqual(
+    generateDefaultCodecData(codecs.Byte9x3),
+    new Array(3).fill(new Array(9).fill(0))
+  );
+  // struct StructA {
+  //     f1: byte,
+  //     f2: byte,
+  //     f3: Byte2,
+  //     f4: Byte2,
+  // }
+  t.deepEqual(generateDefaultCodecData(codecs.StructA), {
+    f1: 0,
+    f2: 0,
+    f3: new Array(2).fill(0),
+    f4: new Array(2).fill(0),
+  });
+  // struct StructI {
+  //     f1: Byte3,
+  //     f2: byte,
+  // }
+  t.deepEqual(
+    generateDefaultCodecData(codecs.StructIx3),
+    new Array(3).fill({ f1: new Array(3).fill(0), f2: 0 })
+  );
+  // struct StructJ {
+  //     f1: Byte6,
+  //     f2: byte,
+  // }
+  // struct StructP {
+  //     f1: StructJ,
+  //     f2: byte,
+  // }
+  t.deepEqual(generateDefaultCodecData(codecs.StructP), {
+    f1: { f1: new Array(6).fill(0), f2: 0 },
+    f2: 0,
+  });
+  t.deepEqual(generateDefaultCodecData(codecs.Bytes), []);
+  t.deepEqual(generateDefaultCodecData(codecs.Table0), {});
+  t.deepEqual(generateDefaultCodecData(codecs.ByteOpt), undefined);
+  t.deepEqual(generateDefaultCodecData(codecs.UnionA), {
+    type: "byte",
+    value: 0,
   });
 });
 
-function clone(data: object | Array<any>): object | Array<any> {
-  if (Array.isArray(data)) {
-    return [...data];
-  } else {
-    return { ...data };
-  }
-}
+const defaultTestCases = loadTests("default.yaml");
+test("default.yaml", (t) => {
+  defaultTestCases.forEach(({ name, expected }) => {
+    const codec = codecs[name];
+    t.deepEqual(codecWithDefaultData(codec), toArrayBuffer(expected));
+  });
+});
 
-function fillObjectWithDefault(
-  partialData: object,
-  defaultData: Record<string, any>
-) {
-  const fulfilledData = defaultData;
-  Object.entries(partialData).forEach((partialDataEntry) => {
-    fulfilledData[partialDataEntry[0]] = hexStringToHexArray(
-      partialDataEntry[1]
+const simpleTestCases = loadTests("simple.yaml");
+test("simple.yaml", (t) => {
+  simpleTestCases.forEach(({ name, expected, data, item }) => {
+    const codec = codecs[name];
+    t.deepEqual(
+      codecWithPartialData(codec, data, item),
+      toArrayBuffer(expected)
     );
   });
-  return fulfilledData;
-}
-
-function fillArrayWithDefault(
-  partialData: Array<any>,
-  defaultData: Array<any>
-) {
-  const fulfilledData = defaultData;
-  Object.entries(partialData).forEach((partialDataEntry) => {
-    fulfilledData[(partialDataEntry[0] as any) as number] = partialDataEntry[1];
-  });
-  return fulfilledData;
-}
-
-function assertNonNull<T>(arg: T): asserts arg is NonNullable<T> {
-  if (arg === null) {
-    throw new Error("arg is null");
-  }
-}
+});

@@ -1,15 +1,22 @@
-import { BytesCodec } from "@ckb-lumos/experiment-codec";
+import { FixedBytesCodec } from "./../../src/base";
+import { Uint8 } from "@ckb-lumos/experiment-codec";
 import {
-  array,
-  option,
-  struct,
-  table,
-  union,
-  vector,
-  Uint8,
-} from "@ckb-lumos/experiment-codec";
+  testArray,
+  testOption,
+  testStruct,
+  testTable,
+  testUnion,
+  testVector,
+  TestBytesCodec,
+  TestMetaData,
+} from "./testUtility";
 
-export const byte = Uint8;
+export const byte: FixedBytesCodec & { testMetaData: TestMetaData } = {
+  testMetaData: {
+    type: "byte",
+  },
+  ...Uint8,
+};
 // array Byte2 [byte; 2];
 // array Byte3 [byte; 3];
 // array Byte4 [byte; 4];
@@ -25,21 +32,21 @@ export const byte = Uint8;
 // array Byte14 [byte; 14];
 // array Byte15 [byte; 15];
 // array Byte16 [byte; 16];
-export const Byte2 = array(byte, 2);
-export const Byte3 = array(byte, 3);
-export const Byte4 = array(byte, 4);
-export const Byte5 = array(byte, 5);
-export const Byte6 = array(byte, 6);
-export const Byte7 = array(byte, 7);
-export const Byte8 = array(byte, 8);
-export const Byte9 = array(byte, 9);
-export const Byte10 = array(byte, 10);
-export const Byte11 = array(byte, 11);
-export const Byte12 = array(byte, 12);
-export const Byte13 = array(byte, 13);
-export const Byte14 = array(byte, 14);
-export const Byte15 = array(byte, 15);
-export const Byte16 = array(byte, 16);
+export const Byte2 = testArray(byte, 2);
+export const Byte3 = testArray(byte, 3);
+export const Byte4 = testArray(byte, 4);
+export const Byte5 = testArray(byte, 5);
+export const Byte6 = testArray(byte, 6);
+export const Byte7 = testArray(byte, 7);
+export const Byte8 = testArray(byte, 8);
+export const Byte9 = testArray(byte, 9);
+export const Byte10 = testArray(byte, 10);
+export const Byte11 = testArray(byte, 11);
+export const Byte12 = testArray(byte, 12);
+export const Byte13 = testArray(byte, 13);
+export const Byte14 = testArray(byte, 14);
+export const Byte15 = testArray(byte, 15);
+export const Byte16 = testArray(byte, 16);
 
 // array Word [byte; 2];
 // array Word2 [Word; 2];
@@ -49,23 +56,23 @@ export const Byte16 = array(byte, 16);
 // array Word6 [Word; 6];
 // array Word7 [Word; 7];
 // array Word8 [Word; 8];
-export const Word = array(byte, 2);
-export const Word2 = array(Word, 2);
-export const Word3 = array(Word, 3);
-export const Word4 = array(Word, 4);
-export const Word5 = array(Word, 5);
-export const Word6 = array(Word, 6);
-export const Word7 = array(Word, 7);
-export const Word8 = array(Word, 8);
+export const Word = testArray(byte, 2);
+export const Word2 = testArray(Word, 2);
+export const Word3 = testArray(Word, 3);
+export const Word4 = testArray(Word, 4);
+export const Word5 = testArray(Word, 5);
+export const Word6 = testArray(Word, 6);
+export const Word7 = testArray(Word, 7);
+export const Word8 = testArray(Word, 8);
 
 // array Byte3x3 [Byte3; 3];
 // array Byte5x3 [Byte5; 3];
 // array Byte7x3 [Byte7; 3];
 // array Byte9x3 [Byte9; 3];
-export const Byte3x3 = array(Byte3, 3);
-export const Byte5x3 = array(Byte5, 3);
-export const Byte7x3 = array(Byte7, 3);
-export const Byte9x3 = array(Byte9, 3);
+export const Byte3x3 = testArray(Byte3, 3);
+export const Byte5x3 = testArray(Byte5, 3);
+export const Byte7x3 = testArray(Byte7, 3);
+export const Byte9x3 = testArray(Byte9, 3);
 
 // struct StructA {
 //     f1: byte,
@@ -73,7 +80,7 @@ export const Byte9x3 = array(Byte9, 3);
 //     f3: Byte2,
 //     f4: Byte2,
 // }
-export const StructA = struct(
+export const StructA = testStruct(
   {
     f1: byte,
     f2: byte,
@@ -88,7 +95,7 @@ export const StructA = struct(
 //     f3: Byte2,
 //     f4: Byte3,
 // }
-export const StructB = struct(
+export const StructB = testStruct(
   {
     f1: byte,
     f2: byte,
@@ -97,13 +104,14 @@ export const StructB = struct(
   },
   ["f1", "f2", "f3", "f4"]
 );
+
 // struct StructC {
 //     f1: byte,
 //     f2: byte,
 //     f3: Byte2,
 //     f4: Byte4,
 // }
-export const StructC = struct(
+export const StructC = testStruct(
   {
     f1: byte,
     f2: byte,
@@ -118,7 +126,7 @@ export const StructC = struct(
 //     f3: Byte2,
 //     f4: Byte5,
 // }
-export const StructD = struct(
+export const StructD = testStruct(
   {
     f1: byte,
     f2: byte,
@@ -133,7 +141,7 @@ export const StructD = struct(
 //     f3: byte,
 //     f4: Byte2,
 // }
-export const StructE = struct(
+export const StructE = testStruct(
   {
     f1: byte,
     f2: Byte2,
@@ -147,7 +155,7 @@ export const StructE = struct(
 //     f2: Byte3,
 //     f3: byte,
 // }
-export const StructF = struct(
+export const StructF = testStruct(
   {
     f1: byte,
     f2: Byte3,
@@ -161,7 +169,7 @@ export const StructF = struct(
 //     f3: Byte2,
 //     f4: Word2,
 // }
-export const StructG = struct(
+export const StructG = testStruct(
   {
     f1: Byte3,
     f2: byte,
@@ -176,7 +184,7 @@ export const StructG = struct(
 //     f3: Byte2,
 //     f4: Byte4,
 // }
-export const StructH = struct(
+export const StructH = testStruct(
   {
     f1: Byte3,
     f2: byte,
@@ -189,7 +197,7 @@ export const StructH = struct(
 //     f1: Byte3,
 //     f2: byte,
 // }
-export const StructI = struct(
+export const StructI = testStruct(
   {
     f1: Byte3,
     f2: byte,
@@ -200,7 +208,7 @@ export const StructI = struct(
 //     f1: Byte6,
 //     f2: byte,
 // }
-export const StructJ = struct(
+export const StructJ = testStruct(
   {
     f1: Byte6,
     f2: byte,
@@ -209,13 +217,13 @@ export const StructJ = struct(
 );
 
 // array StructIx3 [StructI; 3];
-export const StructIx3 = array(StructI, 3);
+export const StructIx3 = testArray(StructI, 3);
 
 // struct StructO {
 //     f1: StructIx3,
 //     f2: byte,
 // }
-export const StructO = struct(
+export const StructO = testStruct(
   {
     f1: StructIx3,
     f2: byte,
@@ -226,7 +234,7 @@ export const StructO = struct(
 //     f1: StructJ,
 //     f2: byte,
 // }
-export const StructP = struct(
+export const StructP = testStruct(
   {
     f1: StructJ,
     f2: byte,
@@ -235,34 +243,34 @@ export const StructP = struct(
 );
 
 // vector Bytes <byte>;
-export const Bytes = vector(byte);
+export const Bytes = testVector(byte);
 // vector Words <Word>;
-export const Words = vector(Word);
+export const Words = testVector(Word);
 
 // vector Byte3Vec <Byte3>;
-export const Byte3Vec = vector(Byte3);
+export const Byte3Vec = testVector(Byte3);
 // vector Byte7Vec <Byte7>;
-export const Byte7Vec = vector(Byte7);
+export const Byte7Vec = testVector(Byte7);
 // vector StructIVec <StructI>;
-export const StructIVec = vector(StructI);
+export const StructIVec = testVector(StructI);
 // vector StructJVec <StructJ>;
-export const StructJVec = vector(StructJ);
+export const StructJVec = testVector(StructJ);
 // vector StructPVec <StructP>;
-export const StructPVec = vector(StructP);
+export const StructPVec = testVector(StructP);
 
 // vector BytesVec <Bytes>;
-export const BytesVec = vector(Bytes);
+export const BytesVec = testVector(Bytes);
 // vector WordsVec <Words>;
-export const WordsVec = vector(Words);
+export const WordsVec = testVector(Words);
 
 // table Table0 {
 // }
-export const Table0 = table({}, [] as never[]);
+export const Table0 = testTable({}, [] as never[]);
 
 // table Table1 {
 //     f1: byte,
 // }
-export const Table1 = table(
+export const Table1 = testTable(
   {
     f1: byte,
   },
@@ -272,7 +280,7 @@ export const Table1 = table(
 //     f1: byte,
 //     f2: Word2,
 // }
-export const Table2 = table(
+export const Table2 = testTable(
   {
     f1: byte,
     f2: Word2,
@@ -284,7 +292,7 @@ export const Table2 = table(
 //     f2: Word2,
 //     f3: StructA,
 // }
-export const Table3 = table(
+export const Table3 = testTable(
   {
     f1: byte,
     f2: Word2,
@@ -298,7 +306,7 @@ export const Table3 = table(
 //     f3: StructA,
 //     f4: Bytes,
 // }
-export const Table4 = table(
+export const Table4 = testTable(
   {
     f1: byte,
     f2: Word2,
@@ -314,7 +322,7 @@ export const Table4 = table(
 //     f4: Bytes,
 //     f5: BytesVec,
 // }
-export const Table5 = table(
+export const Table5 = testTable(
   {
     f1: byte,
     f2: Word2,
@@ -332,7 +340,7 @@ export const Table5 = table(
 //     f5: BytesVec,
 //     f6: Table5,
 // }
-export const Table6 = table(
+export const Table6 = testTable(
   {
     f1: byte,
     f2: Word2,
@@ -355,26 +363,26 @@ export const Table6 = table(
 // option Table0Opt (Table0);
 // option Table6Opt (Table6);
 // option Table6OptOpt (Table6Opt);
-export const ByteOpt = option(byte);
-export const WordOpt = option(Word);
-export const StructAOpt = option(StructA);
-export const StructPOpt = option(StructP);
-export const BytesOpt = option(Bytes);
-export const WordsOpt = option(Words);
-export const BytesVecOpt = option(BytesVec);
-export const WordsVecOpt = option(WordsVec);
-export const Table0Opt = option(Table0);
-export const Table6Opt = option(Table6);
-export const Table6OptOpt = option(Table6Opt);
+export const ByteOpt = testOption(byte);
+export const WordOpt = testOption(Word);
+export const StructAOpt = testOption(StructA);
+export const StructPOpt = testOption(StructP);
+export const BytesOpt = testOption(Bytes);
+export const WordsOpt = testOption(Words);
+export const BytesVecOpt = testOption(BytesVec);
+export const WordsVecOpt = testOption(WordsVec);
+export const Table0Opt = testOption(Table0);
+export const Table6Opt = testOption(Table6);
+export const Table6OptOpt = testOption(Table6Opt);
 
 // vector ByteOptVec <ByteOpt>;
 // vector WordOptVec <WordOpt>;
 // vector WordsOptVec <WordsOpt>;
 // vector BytesOptVec <BytesOpt>;
-export const ByteOptVec = vector(ByteOpt);
-export const WordOptVec = vector(WordOpt);
-export const WordsOptVec = vector(WordsOpt);
-export const BytesOptVec = vector(BytesOpt);
+export const ByteOptVec = testVector(ByteOpt);
+export const WordOptVec = testVector(WordOpt);
+export const WordsOptVec = testVector(WordsOpt);
+export const BytesOptVec = testVector(BytesOpt);
 
 // union UnionA {
 //     byte,
@@ -386,7 +394,7 @@ export const BytesOptVec = vector(BytesOpt);
 //     Table6,
 //     Table6Opt,
 // }
-export const UnionA = union(
+export const UnionA = testUnion(
   {
     byte,
     Word,
@@ -409,7 +417,7 @@ export const UnionA = union(
 //     f7: UnionA,
 //     f8: byte,
 // }
-export const TableA = table(
+export const TableA = testTable(
   {
     f1: Word2,
     f2: StructA,
@@ -498,7 +506,7 @@ export const TableA = table(
 //     f72: UnionA,
 //     f73: TableA,
 // }
-export const AllInOne = table(
+export const AllInOne = testTable(
   {
     f0: byte,
     f1: Byte2,
@@ -653,7 +661,7 @@ export const AllInOne = table(
   ]
 );
 
-export const codecs: Record<string, BytesCodec> = {
+export const codecs: Record<string, TestBytesCodec> = {
   byte,
   Byte2,
   Byte3,
