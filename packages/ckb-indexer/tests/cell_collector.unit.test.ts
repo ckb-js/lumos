@@ -134,3 +134,25 @@ test("validateQueryOption#validate toBlock", (t) => {
   new CellCollector(indexer, query);
   t.is(utilsSpy.calledWith("toBlock", "0x3"), true);
 });
+
+test("validateQueryOption#validate outputCapacityRange", (t) => {
+  const outputCapacityRange: HexadecimalRange = ["0x100", "0x200"];
+  const query = {
+    lock: lockScript,
+    outputCapacityRange,
+  };
+  new CellCollector(indexer, query);
+  t.is(utilsSpy.calledWith("outputCapacityRange[0]", "0x100"), true);
+  t.is(utilsSpy.calledWith("outputCapacityRange[1]", "0x200"), true);
+});
+
+test("validateQueryOption#validate outputDataLenRange", (t) => {
+  const outputDataLenRange: HexadecimalRange = ["0x100", "0x200"];
+  const query = {
+    lock: lockScript,
+    outputDataLenRange,
+  };
+  new CellCollector(indexer, query);
+  t.is(utilsSpy.calledWith("outputDataLenRange[0]", "0x100"), true);
+  t.is(utilsSpy.calledWith("outputDataLenRange[1]", "0x200"), true);
+});
