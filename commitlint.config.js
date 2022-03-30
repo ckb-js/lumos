@@ -1,5 +1,3 @@
-import type { UserConfig } from "@commitlint/types";
-
 const scopeEnumValues = [
   "base",
   "bi",
@@ -19,7 +17,7 @@ const scopeEnumValues = [
   "examples",
   "website",
 ];
-const Configuration: UserConfig = {
+const Configuration = {
   extends: ["@commitlint/config-conventional"],
   rules: {
     "scope-enum": [2, "always", scopeEnumValues],
