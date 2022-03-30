@@ -1,5 +1,5 @@
 {
-  "name": "@ckb-lumos/experiment-script-registry",
+  "name": "@ckb-lumos/experiment-tx-assembler",
   "version": "0.18.0-rc6",
   "description": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",

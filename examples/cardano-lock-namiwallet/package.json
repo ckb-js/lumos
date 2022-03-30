@@ -12,6 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@ckb-lumos/lumos": "0.18.0-rc6",
     "@emurgo/cardano-message-signing-asmjs": "^1.0.1",
     "@emurgo/cardano-serialization-lib-asmjs": "^10.0.4",
     "@types/react": "^17.0.34",
