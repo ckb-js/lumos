@@ -1,5 +1,10 @@
-import { AnyCodec, BytesCodec, UnpackResult } from "./base";
-import { createFixedBytesCodec, FixedBytesCodec } from "./base";
+import {
+  AnyCodec,
+  BytesCodec,
+  UnpackResult,
+  createFixedBytesCodec,
+  FixedBytesCodec,
+} from "./base";
 import { toArrayBuffer, toHex } from "./utils";
 import { byteVecOf, option, table, vector } from "./molecule";
 

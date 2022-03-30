@@ -207,7 +207,6 @@ export const loadTests = (path: string) => {
     cases = yaml.load(
       fs.readFileSync(`${process.cwd()}/tests/test-vector/${path}`, "utf8")
     );
-    console.log(`Read ${cases.length} test cases from file:`, path);
     cases = cases.map((testCase) => {
       let data: object | string[] | undefined = undefined;
       if (Array.isArray(testCase.data)) {

@@ -19,7 +19,7 @@ test("should assertHexDecimal fail", (t) => {
   t.notThrows(() => assertHexDecimal("0x0"));
   t.notThrows(() => assertHexDecimal("0x12", 1));
 });
-test("should toArray buffer return expected", (t) => {
+test("should return the expected ArrayBuffer when calling toArrayBuffer()", (t) => {
   const testCase0 = new ArrayBuffer(1);
   const testCase1 = new Uint8Array([1, 2]);
   const testCase2 = "0x0304";
@@ -32,7 +32,7 @@ test("should toArray buffer return expected", (t) => {
   t.deepEqual(toArrayBuffer(testCase3), new Uint8Array([1, 2, 3, 4]).buffer);
   t.throws(() => toArrayBuffer(testCase4));
 });
-test("should isObjectLike return false", (t) => {
+test("should return expected value when calling isObjectLike()", (t) => {
   t.false(isObjectLike(undefined));
   t.true(isObjectLike({}));
 });
