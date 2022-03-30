@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Now lumos can run on browser
+# Now Lumos Can Run in A Web Browser
 ### TL;DR
 
 Lumos was originally run on NodeJS only. To run on browser, we replaced native indexer with ckb-indexer, added BI which is a big number library, and a series of other upgrades.
@@ -32,11 +32,11 @@ async function main(): Promise<BI> {
 
 main();
 ```
-please refer to [ckb-indexer-collector example] (https://github.com/nervosnetwork/lumos/blob/develop/examples/ckb-indexer-collector.ts) for a complete example.
+please refer to [ckb-indexer-collector example](https://github.com/nervosnetwork/lumos/blob/develop/examples/ckb-indexer-collector.ts) for a complete example.
 
 ### ckb-indexer
 
-Because `@ckb-lumos/indexer` and `@ckb-lumos/sql-indexer` need to start the database and compile the code locally, cannot be run on the web side, we removed them and introduced `@ckb-lumos/ckb-indexer`. Examples of how to use`@ckb-lumos/ckb-indexer` are as follows.
+Because `@ckb-lumos/indexer` and `@ckb-lumos/sql-indexer` need to start the database and compile the code locally, cannot be run on the web side, we removed them and introduced `@ckb-lumos/ckb-indexer`. Examples of how to use `@ckb-lumos/ckb-indexer` are as follows.
 
 ```jsx
 const { Indexer } = require("@ckb-lumos/ckb-indexer");
@@ -47,7 +47,7 @@ const indexer = new Indexer(indexUri, nodeUri);
 
 For a detailed tutorial, please refer to the [ckb-indexer User Guide](https://github.com/nervosnetwork/lumos/tree/develop/packages/ckb-indexer).
 
-To migrate from `@ckb-lumos/indexer` to `@ckb-lumos/ckb-indexer`, please refer to the [migration documentation.] ([https://github.com/nervosnetwork/lumos/blob/develop/packages/ckb-indexer/mirgation.md](https://github.com/nervosnetwork/lumos/blob/develop/packages/ckb-indexer/mirgation.md))
+To migrate from `@ckb-lumos/indexer` to `@ckb-lumos/ckb-indexer`, please refer to the [migration documentation](https://github.com/nervosnetwork/lumos/blob/develop/packages/ckb-indexer/mirgation.md).
 
 ### root package
 
@@ -77,7 +77,7 @@ import { BI } from "@ckb-lumos/bi";
 BI.from(1).add(1)
 ```
 
-For more use of the API, please refer to [BI Test Cases].(https://github.com/nervosnetwork/lumos/blob/develop/packages/bi/tests/index.test.ts)
+For more use of the API, please refer to [BI Test Cases](https://github.com/nervosnetwork/lumos/blob/develop/packages/bi/tests/index.test.ts).
 
 ### More Updates
 
@@ -87,11 +87,11 @@ For more use of the API, please refer to [BI Test Cases].(https://github.com/ner
     
 2. Conversion of new addresses
     
-    Lumos also supports ckb2021 upgraded [address](https://github.com/nervosnetwork/rfcs/pull/239/files), adding methods such as `encodeToAddress`. Refer to this [PR](https:/ /github.com/nervosnetwork/lumos/pull/205) for more.
+    Lumos also supports ckb2021 upgraded [address](https://github.com/nervosnetwork/rfcs/pull/239/files), adding methods such as `encodeToAddress`. Refer to this [PR](https://github.com/nervosnetwork/lumos/pull/205) for more.
     
 3. Example code additions
     
-    Added `secp256k1-transfer`, `secp256k1-multisig-transfer`, `pw-lock-metamask`, `omni-lock-metamask` and other sample code, please refer to [lumos/example](https:// [github.com/nervosnetwork/lumos/tree/develop/examples](http://github.com/nervosnetwork/lumos/tree/develop/examples))
+    Added `secp256k1-transfer`, `secp256k1-multisig-transfer`, `pw-lock-metamask`, `omni-lock-metamask` and other sample code, please refer to [lumos/example](https://[github.com/nervosnetwork/lumos/tree/develop/examples)
     
 4. Online tools
     
@@ -101,7 +101,7 @@ For more use of the API, please refer to [BI Test Cases].(https://github.com/ner
     
     We used codesandbox and `@ckb-lumos/lumos` to build the [playground](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js) where you can quickly try out the features of lumos.
     
-6. A contract deployment generator is provided in lumos to facilitate the deployment of contracts, visit the link [🔗](https://github.com/nervosnetwork/lumos/tree/develop/packages/common-) scripts#usage)
+6. A contract deployment generator is provided in lumos to facilitate the deployment of contracts, visit the link [🔗](https://github.com/nervosnetwork/lumos/tree/develop/packages/common-scripts#usage)
 
 ### Follow up plan
 

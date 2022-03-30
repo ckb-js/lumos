@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Now lumos can run in a web browser
+# 在浏览器中运行 Lumos
 
 ### TL;NR
 
