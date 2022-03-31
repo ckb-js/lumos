@@ -1,4 +1,3 @@
-import { BI } from "@ckb-lumos/bi";
 import { BytesLike } from "./base";
 
 export function concatBuffer(...buffers: ArrayBuffer[]): ArrayBuffer {
@@ -15,36 +14,45 @@ export function concatBuffer(...buffers: ArrayBuffer[]): ArrayBuffer {
   return result.buffer;
 }
 
-function asserts(condition: unknown, message = "assertion failed!"): void {
-  if (!condition) {
-    throw new Error(message);
-  }
-}
-
+const HEX_DECIMAL_REGEX = /^0x([0-9a-fA-F])+$/;
+const HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();
 export function assertHexDecimal(str: string, byteLength?: number): void {
   if (byteLength) {
-    const regex = RegExp(String.raw`^0x([0-9a-fA-F]){1,${byteLength * 2}}$`);
+    let regex = HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP.get(byteLength);
+    if (!regex) {
+      const newRegex = RegExp(
+        String.raw`^0x([0-9a-fA-F]){1,${byteLength * 2}}$`
+      );
+      HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP.set(byteLength, newRegex);
+      regex = newRegex;
+    }
     if (!regex.test(str)) {
       throw new Error("Invalid hex decimal!");
     }
   } else {
-    if (!/^0x([0-9a-fA-F])+$/.test(str)) {
+    if (!HEX_DECIMAL_REGEX.test(str)) {
       throw new Error("Invalid hex decimal!");
     }
   }
 }
 
+const HEX_STRING_REGEX = /^0x([0-9a-fA-F][0-9a-fA-F])*$/;
+const HEX_STRING_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();
 export function assertHexString(str: string, byteLength?: number): void {
   if (byteLength) {
-    // TODO cache regex to improve performance
-    const regex = RegExp(
-      String.raw`^0x([0-9a-fA-F][0-9a-fA-F]){${byteLength}}$`
-    );
+    let regex = HEX_STRING_WITH_BYTELENGTH_REGEX_MAP.get(byteLength);
+    if (!regex) {
+      const newRegex = RegExp(
+        String.raw`^0x([0-9a-fA-F][0-9a-fA-F]){${byteLength}}$`
+      );
+      HEX_STRING_WITH_BYTELENGTH_REGEX_MAP.set(byteLength, newRegex);
+      regex = newRegex;
+    }
     if (!regex.test(str)) {
       throw new Error("Invalid hex string!");
     }
   } else {
-    if (!/^0x([0-9a-fA-F][0-9a-fA-F])*$/.test(str)) {
+    if (!HEX_STRING_REGEX.test(str)) {
       throw new Error("Invalid hex string!");
     }
   }
@@ -66,33 +74,11 @@ export function assertMinBufferLength(buf: ArrayBuffer, length: number): void {
   }
 }
 
-export function assertUint8(num: number): void {
-  if (num < 0 || num > 255) {
-    throw new Error("Invalid Uint8!");
-  }
-}
-
-export function assertUint16(num: number): void {
-  asserts(num >= 0 && num <= 65532, `Invalid Uint16: ${num}`);
-}
-
-export function assertUint32(num: number): void {
-  asserts(num >= 0 && num <= 0xffffffff, `Invalid Uint32: ${num}`);
-}
-
-export function assertBI(num: BI, byteLength: number): void {
-  if (!num.and(`0x${"ff".repeat(byteLength)}`).eq(num)) {
-    throw new Error(`Invalid BI with byteLength: ${byteLength}!`);
-  }
-}
-
 function hexToArrayBuffer(hex: string): ArrayBuffer {
   assertHexString(hex);
-
   const byteLength = hex.length / 2 - 1;
   const buffer = new ArrayBuffer(byteLength);
   const view = new DataView(buffer);
-
   for (let i = 0; i < byteLength; i++) {
     view.setUint8(i, parseInt(hex.slice(2 * i + 2, 2 * i + 4), 16));
   }
@@ -108,7 +94,6 @@ export function toArrayBuffer(s: BytesLike): ArrayBuffer {
   if (s instanceof Uint8Array) return Uint8Array.from(s).buffer;
   if (typeof s === "string") return hexToArrayBuffer(s);
   if (Array.isArray(s)) return bytesToArrayBuffer(s);
-
   throw new Error(`Cannot convert ${s} to ArrayBuffer`);
 }
 

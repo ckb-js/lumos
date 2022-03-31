@@ -1,10 +1,9 @@
 import {
   AnyCodec,
   BytesCodec,
+  UnpackResult,
   createFixedBytesCodec,
   FixedBytesCodec,
-  Unknown,
-  UnpackResult,
 } from "./base";
 import { toArrayBuffer, toHex } from "./utils";
 import { byteVecOf, option, table, vector } from "./molecule";
@@ -26,7 +25,7 @@ export const createFixedHexBytesCodec = (
  * const UnusedBytesOpt = UnknownOpt
  * ```
  */
-export const UnusedOpt = option(Unknown);
+// export const UnusedOpt = option(Unknown);
 
 // vector Bytes <byte>
 export const Bytes = byteVecOf<string>({
