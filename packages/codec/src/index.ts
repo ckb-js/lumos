@@ -7,7 +7,9 @@ export type {
   PackParam,
   UnpackParam,
 } from "./base";
+export { createBytesCodec, createFixedBytesCodec } from "./base";
 
+export * from "./high-order";
 export * from "./molecule";
 export * from "./number";
 
