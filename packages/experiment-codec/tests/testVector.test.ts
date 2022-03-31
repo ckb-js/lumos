@@ -122,6 +122,7 @@ test("should generateDefaultCodecData work as expected", (t) => {
 
 const defaultTestCases = loadTests("default.yaml");
 test("default.yaml", (t) => {
+  t.is(defaultTestCases.length, 72);
   defaultTestCases.forEach(({ name, expected }) => {
     const codec = codecs[name];
     t.deepEqual(codecWithDefaultData(codec), toArrayBuffer(expected));
@@ -130,6 +131,7 @@ test("default.yaml", (t) => {
 
 const simpleTestCases = loadTests("simple.yaml");
 test("simple.yaml", (t) => {
+  t.is(simpleTestCases.length, 63);
   simpleTestCases.forEach(({ name, expected, data, item }) => {
     const codec = codecs[name];
     t.deepEqual(

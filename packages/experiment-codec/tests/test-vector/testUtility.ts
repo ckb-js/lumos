@@ -201,50 +201,51 @@ type TestCase = {
   expected: string;
 };
 
-export const loadTests = (path: string) => {
+export const loadTests = (path: string): Array<TestCase> => {
   let cases: Array<TestCase> = [];
   try {
     cases = yaml.load(
       fs.readFileSync(`${process.cwd()}/tests/test-vector/${path}`, "utf8")
     );
-    cases = cases.map((testCase) => {
-      let data: object | string[] | undefined = undefined;
-      if (Array.isArray(testCase.data)) {
-        data = testCase.data.map((dataItem) => dataItem.replace(/[_/]/gi, ""));
-      } else if (typeof testCase.data === "object") {
-        data = {};
-        Object.entries(testCase.data).forEach((testCaseDataEntry) => {
-          Object.assign(data as object, {
-            [testCaseDataEntry[0]]: (testCaseDataEntry[1] as string).replace(
-              /[_/]/gi,
-              ""
-            ),
-          });
-        });
-      }
-      let caseItem: object | string | undefined = undefined;
-      if (typeof testCase.item === "string") {
-        caseItem = testCase.item.replace(/[_/]/gi, "");
-      } else if (typeof testCase.item === "object") {
-        caseItem = {};
-        Object.entries(testCase.item).forEach((testCaseItemEntry) => {
-          Object.assign(caseItem as object, {
-            [testCaseItemEntry[0]]: (testCaseItemEntry[1] as string).replace(
-              /[_/]/gi,
-              ""
-            ),
-          });
-        });
-      }
-      return {
-        name: testCase.name,
-        data,
-        item: caseItem,
-        expected: testCase.expected.replace(/[_/]/gi, ""),
-      };
-    });
   } catch (e) {
     console.log(e);
   }
+  cases = cases.map((testCase) => {
+    let data: object | string[] | undefined = undefined;
+    if (Array.isArray(testCase.data)) {
+      data = testCase.data.map((dataItem) => dataItem.replace(/[_/]/gi, ""));
+    } else if (typeof testCase.data === "object") {
+      data = {};
+      Object.entries(testCase.data).forEach((testCaseDataEntry) => {
+        Object.assign(data as object, {
+          [testCaseDataEntry[0]]: (testCaseDataEntry[1] as string).replace(
+            /[_/]/gi,
+            ""
+          ),
+        });
+      });
+    }
+    let caseItem: object | string | undefined = undefined;
+    if (typeof testCase.item === "string") {
+      caseItem = testCase.item.replace(/[_/]/gi, "");
+    } else if (typeof testCase.item === "object") {
+      caseItem = {};
+      Object.entries(testCase.item).forEach((testCaseItemEntry) => {
+        Object.assign(caseItem as object, {
+          [testCaseItemEntry[0]]: (testCaseItemEntry[1] as string).replace(
+            /[_/]/gi,
+            ""
+          ),
+        });
+      });
+    }
+    return {
+      name: testCase.name,
+      data,
+      item: caseItem,
+      expected: testCase.expected.replace(/[_/]/gi, ""),
+    };
+  });
+
   return cases;
 };
