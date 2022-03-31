@@ -1,10 +1,4 @@
-import {
-  Byte32,
-  struct,
-  Uint128,
-  Uint32,
-  Uint64,
-} from "@ckb-lumos/codec";
+import { Byte32, struct, Uint128, Uint32, Uint64 } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 
 // struct RawWithdrawalRequest {
