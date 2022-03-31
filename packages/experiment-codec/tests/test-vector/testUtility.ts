@@ -12,34 +12,34 @@ import { toArrayBuffer } from "../../src/utils";
 const yaml = require("js-yaml");
 const fs = require("fs");
 
-type ArrayTestMetaData = {
+type ArrayTestMetadata = {
   type: "array";
   itemCount: number;
   itemCodec: FixedBytesCodec;
 };
 
-type ObjectTestMetaData = {
+type ObjectTestMetadata = {
   type: "struct" | "table" | "union";
   itemCodecs: Array<[string, BytesCodec]>;
 };
 
-type VectorOrOptionTestMetaData = {
+type VectorOrOptionTestMetadata = {
   type: "option" | "vector";
   itemCodec: BytesCodec;
 };
 
-type ByteTestMetaData = {
+type ByteTestMetadata = {
   type: "byte";
 };
 
-export type TestMetaData =
-  | ArrayTestMetaData
-  | ObjectTestMetaData
-  | VectorOrOptionTestMetaData
-  | ByteTestMetaData;
-export type TestBytesCodec = BytesCodec & { testMetaData: TestMetaData };
+export type TestMetadata =
+  | ArrayTestMetadata
+  | ObjectTestMetadata
+  | VectorOrOptionTestMetadata
+  | ByteTestMetadata;
+export type TestBytesCodec = BytesCodec & { testMetadata: TestMetadata };
 export type FixedTestBytesCodec = FixedBytesCodec & {
-  testMetaData: TestMetaData;
+  testMetadata: TestMetadata;
 };
 
 export const testArray = (
@@ -48,7 +48,7 @@ export const testArray = (
 ): FixedTestBytesCodec => {
   const codec = array(itemCodec, itemCount);
   return {
-    testMetaData: {
+    testMetadata: {
       type: "array",
       itemCount,
       itemCodec: itemCodec,
@@ -62,7 +62,7 @@ const testObject = (
   shape: Record<string, BytesCodec>
 ): TestBytesCodec => {
   return {
-    testMetaData: {
+    testMetadata: {
       type: name,
       itemCodecs: Object.entries(shape).map(([field, codec]) => [field, codec]),
     },
@@ -93,7 +93,7 @@ export const testTable = (
 export const testVector = (itemCodec: BytesCodec): TestBytesCodec => {
   const codec = vector(itemCodec);
   return {
-    testMetaData: {
+    testMetadata: {
       type: "vector",
       itemCodec,
     },
@@ -103,7 +103,7 @@ export const testVector = (itemCodec: BytesCodec): TestBytesCodec => {
 export const testOption = (itemCodec: BytesCodec): TestBytesCodec => {
   const codec = option(itemCodec);
   return {
-    testMetaData: {
+    testMetadata: {
       type: "option",
       itemCodec,
     },
@@ -112,15 +112,15 @@ export const testOption = (itemCodec: BytesCodec): TestBytesCodec => {
 };
 
 export function generateDefaultCodecData(codec: any): any {
-  const testMetaData = codec.testMetaData;
-  if (testMetaData.type === "array") {
-    return new Array(testMetaData.itemCount).fill(
-      generateDefaultCodecData(testMetaData.itemCodec)
+  const testMetadata = codec.testMetadata;
+  if (testMetadata.type === "array") {
+    return new Array(testMetadata.itemCount).fill(
+      generateDefaultCodecData(testMetadata.itemCodec)
     );
   }
-  if (testMetaData.type === "struct" || testMetaData.type === "table") {
+  if (testMetadata.type === "struct" || testMetadata.type === "table") {
     const defaultValue = {};
-    (testMetaData.itemCodecs as Array<[string, BytesCodec]>).forEach(
+    (testMetadata.itemCodecs as Array<[string, BytesCodec]>).forEach(
       ([field, codec]) => {
         Object.assign(defaultValue, {
           [field]: generateDefaultCodecData(codec),
@@ -129,20 +129,20 @@ export function generateDefaultCodecData(codec: any): any {
     );
     return defaultValue;
   }
-  if (testMetaData.type === "option") {
+  if (testMetadata.type === "option") {
     return undefined;
   }
-  if (testMetaData.type === "union") {
-    const itemCodec = testMetaData.itemCodecs[0];
+  if (testMetadata.type === "union") {
+    const itemCodec = testMetadata.itemCodecs[0];
     return {
       type: itemCodec[0],
       value: generateDefaultCodecData(itemCodec[1]),
     };
   }
-  if (testMetaData.type === "vector") {
+  if (testMetadata.type === "vector") {
     return [];
   }
-  if (testMetaData.type === "byte") {
+  if (testMetadata.type === "byte") {
     return 0;
   }
 }
@@ -153,29 +153,29 @@ export function fullfillPartialCodecData(
   item: any
 ): any {
   const defaultData = generateDefaultCodecData(codec);
-  const testMetaData = codec.testMetaData;
-  if (testMetaData.type === "array") {
+  const testMetadata = codec.testMetadata;
+  if (testMetadata.type === "array") {
     const fulfilledData = defaultData;
     Object.entries(data).forEach(([index, value]) => {
       fulfilledData[(index as any) as number] = value;
     });
     return fulfilledData;
   }
-  if (testMetaData.type === "struct" || testMetaData.type === "table") {
+  if (testMetadata.type === "struct" || testMetadata.type === "table") {
     const fulfilledData = defaultData;
     Object.entries(data).forEach(([key, value]) => {
-      const itemCodec = (testMetaData.itemCodecs as Array<
+      const itemCodec = (testMetadata.itemCodecs as Array<
         [string, BytesCodec]
       >).find(([field]) => field === key)![1];
       fulfilledData[key] = itemCodec.unpack(toArrayBuffer(value as any));
     });
     return fulfilledData;
   }
-  if (testMetaData.type === "option") {
+  if (testMetadata.type === "option") {
     return codec.unpack(toArrayBuffer(item));
   }
-  if (testMetaData.type === "union") {
-    const itemCodec = (testMetaData.itemCodecs as Array<
+  if (testMetadata.type === "union") {
+    const itemCodec = (testMetadata.itemCodecs as Array<
       [string, BytesCodec]
     >).find(([field]) => field === item.type)![1];
     const fulfilledData = itemCodec.unpack(toArrayBuffer(item.data));
@@ -184,12 +184,12 @@ export function fullfillPartialCodecData(
       value: fulfilledData,
     };
   }
-  if (testMetaData.type === "vector") {
+  if (testMetadata.type === "vector") {
     return (data as Array<string>).map((line) =>
-      testMetaData.itemCodec.unpack(toArrayBuffer(line))
+      testMetadata.itemCodec.unpack(toArrayBuffer(line))
     );
   }
-  if (testMetaData.type === "byte") {
+  if (testMetadata.type === "byte") {
     return 0;
   }
 }

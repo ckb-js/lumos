@@ -8,11 +8,11 @@ import {
   testUnion,
   testVector,
   TestBytesCodec,
-  TestMetaData,
+  TestMetadata,
 } from "./testUtility";
 
-export const byte: FixedBytesCodec & { testMetaData: TestMetaData } = {
-  testMetaData: {
+export const byte: FixedBytesCodec & { testMetadata: TestMetadata } = {
+  testMetadata: {
     type: "byte",
   },
   ...Uint8,
