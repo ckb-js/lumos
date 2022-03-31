@@ -1,5 +1,5 @@
 import { FixedBytesCodec } from "./../../src/base";
-import { Uint8 } from "@ckb-lumos/codec";
+import { Uint8 } from "../../src/number";
 import {
   testArray,
   testOption,

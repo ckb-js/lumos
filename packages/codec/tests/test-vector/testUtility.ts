@@ -5,10 +5,10 @@ import {
   table,
   union,
   vector,
-  FixedBytesCodec,
-  BytesCodec,
-} from "@ckb-lumos/codec";
+} from "../../src/molecule";
+import { BytesCodec, FixedBytesCodec } from "../../src/base";
 import { toArrayBuffer } from "../../src/utils";
+
 const yaml = require("js-yaml");
 const fs = require("fs");
 

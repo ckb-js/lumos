@@ -1,11 +1,11 @@
 import test from "ava";
-import { BytesCodec } from "@ckb-lumos/codec";
+import { BytesCodec } from "../src/base";
 import { codecs } from "./test-vector/codecs";
 import { toArrayBuffer } from "../src/utils";
 import {
-  loadTests,
-  generateDefaultCodecData,
   fullfillPartialCodecData,
+  generateDefaultCodecData,
+  loadTests,
 } from "./test-vector/testUtility";
 
 function codecWithDefaultData(codec: BytesCodec) {

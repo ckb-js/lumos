@@ -43,20 +43,6 @@ test("test Uint16", (t) => {
   t.throws(() => Uint16BE.unpack(new ArrayBuffer(3)));
 });
 
-// test("test Uint16 Hex", (t) => {
-// const num = "0x1234";
-// const packed = HexUint16LE.pack(num);
-// const packedBE = HexUint16BE.pack(num);
-// t.deepEqual(packed, bytesToArrayBuffer([0x34, 0x12]));
-// t.deepEqual(packedBE, bytesToArrayBuffer([0x12, 0x34]));
-//   t.truthy(num === HexUint16LE.unpack(packed));
-//   t.truthy(num === HexUint16BE.unpack(packedBE));
-//   t.throws(() => HexUint16LE.pack("0x123456789"));
-//   t.throws(() => HexUint16LE.unpack(new ArrayBuffer(3)));
-//   t.throws(() => HexUint16BE.pack("0x123456789"));
-//   t.throws(() => HexUint16BE.unpack(new ArrayBuffer(3)));
-// });
-
 test("test Uint32", (t) => {
   const num = 305419896; // 0x12345678
   const packed = Uint32LE.pack(num);
@@ -70,20 +56,6 @@ test("test Uint32", (t) => {
   t.throws(() => Uint32BE.pack(-1));
   t.throws(() => Uint32BE.unpack(new ArrayBuffer(3)));
 });
-
-// test("test Uint32 Hex", (t) => {
-//   const num = "0x12345678";
-//   const packed = HexUint32LE.pack(num);
-//   const packedBE = HexUint32BE.pack(num);
-//   t.deepEqual(packed, bytesToArrayBuffer([0x78, 0x56, 0x34, 0x12]));
-//   t.deepEqual(packedBE, bytesToArrayBuffer([0x12, 0x34, 0x56, 0x78]));
-//   t.truthy(num === HexUint32LE.unpack(packed));
-//   t.truthy(num === HexUint32BE.unpack(packedBE));
-//   t.throws(() => HexUint32LE.pack("0x123456789"));
-//   t.throws(() => HexUint32LE.unpack(new ArrayBuffer(3)));
-//   t.throws(() => HexUint32BE.pack("0x123456789"));
-//   t.throws(() => HexUint32BE.unpack(new ArrayBuffer(3)));
-// });
 
 test("test Uint64", (t) => {
   const num = BI.from("0xf1f2f3f4f5f6f7f8");
@@ -107,26 +79,6 @@ test("test Uint64", (t) => {
   t.throws(() => Uint64BE.unpack(new ArrayBuffer(3)));
 });
 
-// test("test Uint64 hex", (t) => {
-//   const num = "0xf1f2f3f4f5f6f7f8";
-//   const packedBE = HexUint64BE.pack(num);
-//   const packedLE = HexUint64.pack(num);
-//   t.deepEqual(
-//     packedBE,
-//     bytesToArrayBuffer([0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8])
-//   );
-//   t.deepEqual(
-//     packedLE,
-//     bytesToArrayBuffer([0xf8, 0xf7, 0xf6, 0xf5, 0xf4, 0xf3, 0xf2, 0xf1])
-//   );
-//   t.truthy(HexUint64.unpack(packedLE) === num);
-//   t.truthy(HexUint64BE.unpack(packedBE) === num);
-//   t.throws(() => HexUint64.pack("0x12345678901234567890"));
-//   t.throws(() => HexUint64.unpack(new ArrayBuffer(3)));
-//   t.throws(() => HexUint64BE.pack("0x12345678901234567890"));
-//   t.throws(() => HexUint64BE.unpack(new ArrayBuffer(3)));
-// });
-
 test("test Uint128", (t) => {
   const num = BI.from("0xf1f2f3f4f5f6f7f8");
   const packedBE = Uint128BE.pack(num);
@@ -144,24 +96,6 @@ test("test Uint128", (t) => {
   t.truthy(Uint128.unpack(packedLE).eq(num));
   t.truthy(Uint128BE.unpack(packedBE).eq(num));
 });
-
-// test("test Uint128 hex", (t) => {
-//   const num = "0xf1f2f3f4f5f6f7f8";
-//   const packedBE = HexUint128BE.pack(num);
-//   const packedLE = HexUint128.pack(num);
-//   t.deepEqual(
-//     packedBE,
-//     // prettier-ignore
-//     bytesToArrayBuffer([0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8])
-//   );
-//   t.deepEqual(
-//     packedLE,
-//     // prettier-ignore
-//     bytesToArrayBuffer([0xf8, 0xf7, 0xf6, 0xf5, 0xf4, 0xf3, 0xf2, 0xf1, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00])
-//   );
-//   t.truthy(HexUint128.unpack(packedLE) === num);
-//   t.truthy(HexUint128BE.unpack(packedBE) === num);
-// });
 
 test("test Uint256", (t) => {
   const num = BI.from("0xf1f2f3f4f5f6f7f8");
@@ -182,26 +116,6 @@ test("test Uint256", (t) => {
   t.truthy(Uint256.unpack(packedLE).eq(num));
   t.truthy(Uint256BE.unpack(packedBE).eq(num));
 });
-
-// test("test Uint256 hex", (t) => {
-//   const num = "0xf1f2f3f4f5f6f7f8";
-//   const packedBE = HexUint256BE.pack(num);
-//   const packedLE = HexUint256.pack(num);
-//   t.deepEqual(
-//     packedBE,
-//     // prettier-ignore
-//     bytesToArrayBuffer([0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00,
-//             0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8])
-//   );
-//   t.deepEqual(
-//     packedLE,
-//     // prettier-ignore
-//     bytesToArrayBuffer([0xf8, 0xf7, 0xf6, 0xf5, 0xf4, 0xf3, 0xf2, 0xf1, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00,
-//             0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00])
-//   );
-//   t.truthy(HexUint256.unpack(packedLE) === num);
-//   t.truthy(HexUint256BE.unpack(packedBE) === num);
-// });
 
 test("test Uint512", (t) => {
   const num = BI.from("0xf1f2f3f4f5f6f7f8");
@@ -226,27 +140,3 @@ test("test Uint512", (t) => {
   t.truthy(Uint512.unpack(packedLE).eq(num));
   t.truthy(Uint512BE.unpack(packedBE).eq(num));
 });
-
-// test("test Uint512 hex", (t) => {
-//   const num = "0xf1f2f3f4f5f6f7f8";
-//   const packedBE = HexUint512BE.pack(num);
-//   const packedLE = HexUint512.pack(num);
-//   t.deepEqual(
-//     packedBE,
-//     // prettier-ignore
-//     bytesToArrayBuffer([0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00,
-//             0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00,
-//             0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00,
-//             0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8])
-//   );
-//   t.deepEqual(
-//     packedLE,
-//     // prettier-ignore
-//     bytesToArrayBuffer([0xf8, 0xf7, 0xf6, 0xf5, 0xf4, 0xf3, 0xf2, 0xf1, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00,
-//             0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0,
-//             0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00,
-//             0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00, 0x00, 0x0, 0x0, 0x00])
-//   );
-//   t.truthy(HexUint512.unpack(packedLE) === num);
-//   t.truthy(HexUint512BE.unpack(packedBE) === num);
-// });
