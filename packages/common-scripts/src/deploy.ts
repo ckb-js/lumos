@@ -27,7 +27,11 @@ import { BI, BIish } from "@ckb-lumos/bi";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
-  return `0x${[...bytes].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+  let res = "0x";
+  for (let i = 0; i < bytes.length; i++) {
+    res += bytes[i].toString(16).padStart(2, "0");
+  }
+  return res;
 }
 
 async function findCellsByLock(
@@ -134,7 +138,7 @@ async function injectCapacity(
   }: { config?: Config; feeRate?: BIish }
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  let _feeRate = feeRate || 1000;
+  const _feeRate = feeRate || 1000;
   let _amount = BI.from(amount);
   const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
   _amount = _amount.add(BI.from(10).pow(8));
