@@ -1,10 +1,6 @@
 # @ckb-lumos/codec
 
-This module provides a set of functions to pack(encode) and unpack(decode) data to work with CKB
-
-[Molecule](https://github.com/nervosnetwork/molecule) is a lightweight serialization system that focuses only on the
-layout of byte(s) and not on specific data types. This library will help developers to create TypeScript-friendly
-molecule bindings in an easy way.
+This module provides a set of functions to pack(encode) and unpack(decode) data.
 
 ```mermaid
 graph TD;
@@ -47,6 +43,10 @@ const udtInfo = UDTInfo.unpack(buf); // { totalSupply: BI(21000000 * 10 ** 8), d
 ```
 
 ## Molecule
+
+[Molecule](https://github.com/nervosnetwork/molecule) is a lightweight serialization system that focuses only on the
+layout of byte(s) and not on specific data types. This library will help developers to create TypeScript-friendly
+molecule bindings in an easy way.
 
 `layout` is a set of `Codec` that helps to bind molecule to JavaScript plain object/array.
 
@@ -106,12 +106,23 @@ const { r, g, b } = RGB.unpack(buffer);
 
 ## Number
 
-`number` is a set of `Codec` that helps to bind molecule to familiar JavaScript data types.
+`number` is a set of `Codec` that helps to encode/decode number to/from `ArrayBuffer`. Because of ckb-vm is a RISCV
+machine, the number is encoded in little-endian by default.
+
+- `Uint8(BE|LE)`: `number` <=> `Uint8`
+- `Uint16(BE|LE)`: `number` <=> `Uint16`
+- `Uint32(BE|LE)`: `number` <=> `Uint32`
+- `Uint64(BE|LE)`: `BI` <=> `Uint64`
+- `Uint128(BE|LE)`: `BI` <=> `Uint128`
+- `Uint256(BE|LE)`: `BI` <=> `Uint256`
+- `Uint512(BE|LE)`: `BI` <=> `Uint512`
 
 ```ts
 import { Uint32, Uint128 } from "@ckb-lumos/codec";
 
-const packedU32 = Uint32.pack(100); // == ArrayBuffer([100, 0, 0, 0])
+const packedU32 = Uint32.pack(100); // == ArrayBuffer([100, 0, 0, 0]) little-endian
+// const packedU32 = Uint32LE.pack(100); // == ArrayBuffer([100, 0, 0, 0]) little-endian
+const packedU32BE = Uint32BE.pack(100); // == ArrayBuffer([0, 0, 0, 100]) big-endian
 
 // unpack sUDT amount to a BI(BigInteger)
 const sudtAmount = Uint128.unapck("0x0000e45d76a1f90e0c00000000000000"); // == BI.from('222440000000000000000')
