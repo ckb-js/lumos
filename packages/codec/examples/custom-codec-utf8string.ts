@@ -1,4 +1,4 @@
-import { byteVecOf } from "@ckb-lumos/experiment-codec";
+import { byteVecOf } from "@ckb-lumos/codec";
 import { Buffer } from "buffer"; // https://github.com/feross/buffer
 
 const UTF8String = byteVecOf<string>({

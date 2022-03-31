@@ -7,7 +7,7 @@ import {
   vector,
   FixedBytesCodec,
   BytesCodec,
-} from "@ckb-lumos/experiment-codec";
+} from "@ckb-lumos/codec";
 import { toArrayBuffer } from "../../src/utils";
 const yaml = require("js-yaml");
 const fs = require("fs");

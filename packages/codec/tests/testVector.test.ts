@@ -1,5 +1,5 @@
 import test from "ava";
-import { BytesCodec } from "@ckb-lumos/experiment-codec";
+import { BytesCodec } from "@ckb-lumos/codec";
 import { codecs } from "./test-vector/codecs";
 import { toArrayBuffer } from "../src/utils";
 import {

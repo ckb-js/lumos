@@ -4,7 +4,7 @@ import {
   Uint128,
   Uint32,
   Uint64,
-} from "@ckb-lumos/experiment-codec";
+} from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 
 // struct RawWithdrawalRequest {

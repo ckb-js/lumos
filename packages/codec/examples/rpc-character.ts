@@ -8,7 +8,7 @@ import {
   Uint8,
   union,
   vector,
-} from "@ckb-lumos/experiment-codec";
+} from "@ckb-lumos/codec";
 
 // table Character {
 //   main_equip: Equip,

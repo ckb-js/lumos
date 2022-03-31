@@ -1,16 +1,10 @@
-import {
-  BytesOpt,
-  byteVecOf,
-  option,
-  table,
-  UnusedOpt,
-} from "@ckb-lumos/experiment-codec";
+import { BytesOpt, byteVecOf, option, table } from "@ckb-lumos/codec";
 
 const OmniLockWitnessLock = table(
   {
     signature: BytesOpt,
-    rcIdentity: UnusedOpt,
-    preimage: UnusedOpt,
+    rcIdentity: BytesOpt,
+    preimage: BytesOpt,
   },
   ["signature", "rcIdentity", "preimage"]
 );

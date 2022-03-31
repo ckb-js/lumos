@@ -17,7 +17,7 @@ graph TD;
 ## Quick Start
 
 ```ts
-import { struct, Uint8, Uint128 } from "@ckb-lumos/experiment-codec";
+import { struct, Uint8, Uint128 } from "@ckb-lumos/codec";
 
 // udt-info.mol
 // table UDTInfo {
@@ -109,7 +109,7 @@ const { r, g, b } = RGB.unpack(buffer);
 `number` is a set of `Codec` that helps to bind molecule to familiar JavaScript data types.
 
 ```ts
-import { Uint32, Uint128 } from "@ckb-lumos/experiment-codec";
+import { Uint32, Uint128 } from "@ckb-lumos/codec";
 
 const packedU32 = Uint32.pack(100); // == ArrayBuffer([100, 0, 0, 0])
 
@@ -135,7 +135,7 @@ Let's see an example of how to implement a `UTF8String` codec. If we want to sto
 then the corresponding molecule structure should be a `vector UTF8String <byte>`
 
 ```ts
-import { byteVecOf } from "@ckb-lumos/experiment-codec";
+import { byteVecOf } from "@ckb-lumos/codec";
 import { Buffer } from "buffer"; // https://github.com/feross/buffer
 
 const UTF8String = byteVecOf<string>({
