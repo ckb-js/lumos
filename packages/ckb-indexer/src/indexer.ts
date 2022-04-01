@@ -43,7 +43,7 @@ export class CkbIndexer implements Indexer {
   uri: string;
   medianTimeEmitters: EventEmitter[] = [];
   emitters: IndexerEmitter[] = [];
-  isSubscribeRunning: boolean = false;
+  isSubscribeRunning = false;
   constructor(public ckbIndexerUrl: string, public ckbRpcUrl: string) {
     this.uri = ckbRpcUrl;
   }
@@ -66,6 +66,7 @@ export class CkbIndexer implements Indexer {
       (await this.getCkbRpc().get_tip_header()).number,
       16
     );
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
       if (indexerTipNumber + blockDifference >= rpcTipNumber) {
@@ -87,8 +88,10 @@ export class CkbIndexer implements Indexer {
 
   private async request(
     method: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     params?: any,
     ckbIndexerUrl: string = this.ckbIndexerUrl
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> {
     return request(ckbIndexerUrl, method, params);
   }
@@ -100,11 +103,11 @@ export class CkbIndexer implements Indexer {
   ): Promise<GetCellsResults> {
     const infos: Cell[] = [];
     let cursor: string | undefined = searchKeyFilter.lastCursor;
-    let sizeLimit = searchKeyFilter.sizeLimit || 100;
-    let order = searchKeyFilter.order || "asc";
+    const sizeLimit = searchKeyFilter.sizeLimit || 100;
+    const order = searchKeyFilter.order || "asc";
     const index = 0;
-    while (true) {
-      let params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
+    for (;;) {
+      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res: GetLiveCellsResult = await this.request("get_cells", params);
       const liveCells = res.objects;
       cursor = res.last_cursor;
@@ -142,8 +145,8 @@ export class CkbIndexer implements Indexer {
   ): Promise<IndexerTransactionList> {
     let infos: IndexerTransaction[] = [];
     let cursor: string | undefined = searchKeyFilter.lastCursor;
-    let sizeLimit = searchKeyFilter.sizeLimit || 100;
-    let order = searchKeyFilter.order || "asc";
+    const sizeLimit = searchKeyFilter.sizeLimit || 100;
+    const order = searchKeyFilter.order || "asc";
     for (;;) {
       const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res = await this.request("get_transactions", params);
@@ -199,7 +202,7 @@ export class CkbIndexer implements Indexer {
         "The passing fields such as toBlock and skip are ignored in subscribe() method."
       );
     }
-    let emitter = new IndexerEmitter();
+    const emitter = new IndexerEmitter();
     emitter.argsLen = queries.argsLen;
     emitter.outputData = queries.data;
     if (queries.fromBlock) {
