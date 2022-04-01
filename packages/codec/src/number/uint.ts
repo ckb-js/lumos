@@ -32,6 +32,10 @@ const createUintBICodec = (byteLength: number, littleEndian = false) => {
   return createFixedBytesCodec<BI, BIish>({
     byteLength,
     pack(biIsh) {
+      if (typeof biIsh === "number" && !Number.isSafeInteger(biIsh)) {
+        throw new Error(`${biIsh} is not a safe integer`);
+      }
+
       let num = BI.from(biIsh);
       assertNumberRange(num, 0, max);
 
@@ -46,16 +50,10 @@ const createUintBICodec = (byteLength: number, littleEndian = false) => {
         num = num.shr(8);
       }
 
-      return result.buffer;
+      return new Uint8Array(result.buffer);
     },
     unpack: (buf) => {
-      const view = new DataView(buf);
-      if (view.byteLength !== byteLength) {
-        throw new Error(
-          `byte length must be ${byteLength}, but got ${view.byteLength}`
-        );
-      }
-
+      const view = new DataView(Uint8Array.from(buf).buffer);
       let result = BI.from(0);
 
       for (let i = 0; i < byteLength; i++) {

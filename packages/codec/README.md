@@ -4,10 +4,10 @@ This module provides a set of functions to pack(encode) and unpack(decode) data.
 
 ```mermaid
 graph TD;
-    ArrayBuffer-->Codec;
+    Uint8Array-->Codec;
     Codec-->|unpack|JSObject;
     JSObject-->Codec;
-    Codec-->|pack|ArrayBuffer
+    Codec-->|pack|Uint8Array
 ```
 
 ## Quick Start
@@ -34,7 +34,7 @@ const UDTInfo /*: Codec */ = struct(
 
 // 2. usage
 // 2.1 pack
-const buf /*: ArrayBuffer*/ = UDTInfo.pack({
+const buf /*: Uint8Array*/ = UDTInfo.pack({
   totalSupply: BI.from(21000000 * 10 ** 8),
   decimals: 8,
 });
@@ -50,12 +50,12 @@ molecule bindings in an easy way.
 
 `layout` is a set of `Codec` that helps to bind molecule to JavaScript plain object/array.
 
-- array: `Array<T>` <=> `ArrayBuffer`
-- vector: `Array<T>` <=> `ArrayBuffer`
-- struct: `{ [key: string]: T }` <=> `ArrayBuffer`
-- table: `{ [key: string]: T }` <=> `ArrayBuffer`
-- option: `T | undefined` <=> `ArrayBuffer`
-- union: `{ type: string, value: T }` <=> `ArrayBuffer`
+- array: `Array<T>` <=> `Uint8Array`
+- vector: `Array<T>` <=> `Uint8Array`
+- struct: `{ [key: string]: T }` <=> `Uint8Array`
+- table: `{ [key: string]: T }` <=> `Uint8Array`
+- option: `T | undefined` <=> `Uint8Array`
+- union: `{ type: string, value: T }` <=> `Uint8Array`
 
 ### Example
 
@@ -106,7 +106,7 @@ const { r, g, b } = RGB.unpack(buffer);
 
 ## Number
 
-`number` is a set of `Codec` that helps to encode/decode number to/from `ArrayBuffer`. Because of ckb-vm is a RISCV
+`number` is a set of `Codec` that helps to encode/decode number to/from `Uint8Array`. Because of ckb-vm is a RISCV
 machine, the number is encoded in little-endian by default.
 
 - `Uint8(BE|LE)`: `number` <=> `Uint8`
@@ -120,13 +120,13 @@ machine, the number is encoded in little-endian by default.
 ```ts
 import { Uint32, Uint128 } from "@ckb-lumos/codec";
 
-const packedU32 = Uint32.pack(100); // == ArrayBuffer([100, 0, 0, 0]) little-endian
-// const packedU32 = Uint32LE.pack(100); // == ArrayBuffer([100, 0, 0, 0]) little-endian
-const packedU32BE = Uint32BE.pack(100); // == ArrayBuffer([0, 0, 0, 100]) big-endian
+const packedU32 = Uint32.pack(100); // == Uint8Array([100, 0, 0, 0]) little-endian
+// const packedU32 = Uint32LE.pack(100); // == Uint8Array([100, 0, 0, 0]) little-endian
+const packedU32BE = Uint32BE.pack(100); // == Uint8Array([0, 0, 0, 100]) big-endian
 
 // unpack sUDT amount to a BI(BigInteger)
 const sudtAmount = Uint128.unapck("0x0000e45d76a1f90e0c00000000000000"); // == BI.from('222440000000000000000')
-// Uint8Array or ArrayBuffer are also supported
+// Uint8Array or Uint8Array are also supported
 // Uint128.unpack(
 //   Uint8Array.from([
 //     0x00, 0x00, 0xe4, 0x5d,

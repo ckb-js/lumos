@@ -1,11 +1,11 @@
 import {
   AnyCodec,
   BytesCodec,
-  UnpackResult,
   createFixedBytesCodec,
   FixedBytesCodec,
+  UnpackResult,
 } from "./base";
-import { toArrayBuffer, toHex } from "./utils";
+import { bytify, hexify } from "./bytes";
 import { byteVecOf, option, table, vector } from "./molecule";
 
 export const createFixedHexBytesCodec = (
@@ -13,8 +13,8 @@ export const createFixedHexBytesCodec = (
 ): FixedBytesCodec<string> =>
   createFixedBytesCodec<string>({
     byteLength,
-    pack: (hex) => toArrayBuffer(hex),
-    unpack: (buf) => toHex(buf),
+    pack: (hex) => bytify(hex),
+    unpack: (buf) => hexify(buf),
   });
 
 /**
@@ -29,8 +29,8 @@ export const createFixedHexBytesCodec = (
 
 // vector Bytes <byte>
 export const Bytes = byteVecOf<string>({
-  pack: (hex) => toArrayBuffer(hex),
-  unpack: (buf) => toHex(buf),
+  pack: (hex) => bytify(hex),
+  unpack: (buf) => hexify(buf),
 });
 
 export const BytesOpt = option(Bytes);

@@ -1,5 +1,9 @@
-import { Byte32, struct, Uint128, Uint32, Uint64 } from "@ckb-lumos/codec";
+import { blockchain, molecule, number } from "../src";
 import { BI } from "@ckb-lumos/bi";
+
+const { struct } = molecule;
+const { Byte32 } = blockchain;
+const { Uint128, Uint32, Uint64 } = number;
 
 // struct RawWithdrawalRequest {
 //     nonce: Uint32,

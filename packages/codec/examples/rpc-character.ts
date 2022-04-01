@@ -1,14 +1,7 @@
-import {
-  byteOf,
-  byteVecOf,
-  option,
-  struct,
-  table,
-  Uint32,
-  Uint8,
-  union,
-  vector,
-} from "@ckb-lumos/codec";
+import { molecule, number } from "../src";
+
+const { byteOf, byteVecOf, option, struct, table, union, vector } = molecule;
+const { Uint32, Uint8 } = number;
 
 // table Character {
 //   main_equip: Equip,
@@ -72,12 +65,8 @@ const SwordMaterial = byteOf<Material>({
 });
 
 const UTF8String = byteVecOf<string>({
-  pack: (str) => {
-    return Uint8Array.from(Buffer.from(str, "utf8")).buffer;
-  },
-  unpack: (buf) => {
-    return Buffer.from(buf).toString("utf8");
-  },
+  pack: (str) => Uint8Array.from(Buffer.from(str, "utf8")),
+  unpack: (buf) => Buffer.from(buf).toString("utf8"),
 });
 
 /***** molecule binding *****/

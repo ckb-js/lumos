@@ -1,6 +1,6 @@
 import test from "ava";
 import { BytesOpt } from "../src/blockchain";
-import { toArrayBuffer } from "../src/utils";
+import { bytify } from "../src/bytes";
 import { byteVecOf, table } from "../src/molecule";
 
 test("a real world Omni Lock witness should work as expected", (t) => {
@@ -28,7 +28,7 @@ test("a real world Omni Lock witness should work as expected", (t) => {
     // secp256k1 signature in CKB is 65 bytes
     lock: { signature: "0x" + "00".repeat(65) },
   });
-  const omniLockWitnessPlaceholder = toArrayBuffer(
+  const omniLockWitnessPlaceholder = bytify(
     // the hex is calculated by the following code
     // SerializeWitnessArgs({
     //   lock: SerializeRcLockWitnessLock({

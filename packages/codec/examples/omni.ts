@@ -1,4 +1,7 @@
-import { BytesOpt, byteVecOf, option, table } from "@ckb-lumos/codec";
+import { blockchain, molecule } from "../src";
+
+const { BytesOpt } = blockchain;
+const { byteVecOf, option, table } = molecule;
 
 const OmniLockWitnessLock = table(
   {

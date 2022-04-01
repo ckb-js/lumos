@@ -7,7 +7,7 @@ import {
   vector,
 } from "../../src/molecule";
 import { BytesCodec, FixedBytesCodec } from "../../src/base";
-import { toArrayBuffer } from "../../src/utils";
+import { bytify } from "../../src/bytes";
 
 const yaml = require("js-yaml");
 const fs = require("fs");
@@ -43,7 +43,7 @@ export type FixedTestBytesCodec = FixedBytesCodec & {
 };
 
 export const testArray = (
-  itemCodec: FixedBytesCodec | FixedBytesCodec,
+  itemCodec: FixedBytesCodec,
   itemCount: number
 ): FixedTestBytesCodec => {
   const codec = array(itemCodec, itemCount);
@@ -167,18 +167,18 @@ export function fullfillPartialCodecData(
       const itemCodec = (testMetadata.itemCodecs as Array<
         [string, BytesCodec]
       >).find(([field]) => field === key)![1];
-      fulfilledData[key] = itemCodec.unpack(toArrayBuffer(value as any));
+      fulfilledData[key] = itemCodec.unpack(bytify(value as any));
     });
     return fulfilledData;
   }
   if (testMetadata.type === "option") {
-    return codec.unpack(toArrayBuffer(item));
+    return codec.unpack(bytify(item));
   }
   if (testMetadata.type === "union") {
     const itemCodec = (testMetadata.itemCodecs as Array<
       [string, BytesCodec]
     >).find(([field]) => field === item.type)![1];
-    const fulfilledData = itemCodec.unpack(toArrayBuffer(item.data));
+    const fulfilledData = itemCodec.unpack(bytify(item.data));
     return {
       type: item.type,
       value: fulfilledData,
@@ -186,7 +186,7 @@ export function fullfillPartialCodecData(
   }
   if (testMetadata.type === "vector") {
     return (data as Array<string>).map((line) =>
-      testMetadata.itemCodec.unpack(toArrayBuffer(line))
+      testMetadata.itemCodec.unpack(bytify(line))
     );
   }
   if (testMetadata.type === "byte") {

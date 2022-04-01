@@ -1,9 +1,6 @@
-import {
-  assertBufferLength,
-  assertMinBufferLength,
-  concatBuffer,
-} from "../utils";
-import { BytesCodec, FixedBytesCodec } from "../base";
+import { assertBufferLength, assertMinBufferLength } from "../utils";
+import { concat } from "../bytes";
+import { BytesCodec, createFixedBytesCodec, FixedBytesCodec } from "../base";
 import { Uint32LE } from "../number";
 
 /**
@@ -14,19 +11,11 @@ export function byteArrayOf<Packed, Packable = Packed>(
   codec: BytesCodec<Packed, Packable> & { byteLength: number }
 ): FixedBytesCodec<Packed, Packable> {
   const byteLength = codec.byteLength;
-  return {
-    __isFixedCodec__: true,
+  return createFixedBytesCodec({
     byteLength,
-    pack: (packable) => {
-      const buf = codec.pack(packable);
-      assertBufferLength(buf, byteLength);
-      return buf;
-    },
-    unpack: (buf) => {
-      assertBufferLength(buf, byteLength);
-      return codec.unpack(buf);
-    },
-  };
+    pack: (packable) => codec.pack(packable),
+    unpack: (buf) => codec.unpack(buf),
+  });
 }
 
 /**
@@ -47,7 +36,7 @@ export function byteVecOf<T>(codec: BytesCodec<T>): BytesCodec<T> {
       const payload = codec.pack(unpacked);
       const header = Uint32LE.pack(payload.byteLength);
 
-      return concatBuffer(header, payload);
+      return concat(header, payload);
     },
     unpack(packed) {
       assertMinBufferLength(packed, 4);

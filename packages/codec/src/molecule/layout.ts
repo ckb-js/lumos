@@ -13,7 +13,7 @@
 import type { BytesCodec, Fixed, FixedBytesCodec, UnpackResult } from "../base";
 import { createFixedBytesCodec, isFixedCodec } from "../base";
 import { Uint32LE } from "../number";
-import { concatBuffer } from "../utils";
+import { concat } from "../bytes";
 
 type NullableKeys<O extends Record<string, unknown>> = {
   [K in keyof O]-?: [O[K] & (undefined | null)] extends [never] ? never : K;
@@ -33,7 +33,7 @@ export type ObjectCodec<T extends Record<string, BytesCodec>> = BytesCodec<
 
 export interface OptionCodec<T extends BytesCodec>
   extends BytesCodec<UnpackResult<T> | undefined> {
-  pack: (packable?: UnpackResult<T>) => ArrayBuffer;
+  pack: (packable?: UnpackResult<T>) => Uint8Array;
 }
 
 export type ArrayCodec<T extends BytesCodec> = BytesCodec<
@@ -53,7 +53,7 @@ export function array<T extends FixedBytesCodec>(
     byteLength: itemCodec.byteLength * itemCount,
     pack(items) {
       const itemsBuf = items.map((item) => itemCodec.pack(item));
-      return concatBuffer(...itemsBuf);
+      return concat(...itemsBuf);
     },
     unpack(buf) {
       const result: UnpackResult<T>[] = [];
@@ -66,10 +66,31 @@ export function array<T extends FixedBytesCodec>(
   });
 }
 
+function diff(x1: unknown[], x2: unknown[]) {
+  return x1.filter((x) => !x2.includes(x));
+}
+
+function checkShape<T>(shape: T, fields: (keyof T)[]) {
+  const shapeKeys = Object.keys(shape) as (keyof T)[];
+
+  const missingFields = diff(shapeKeys, fields);
+  const missingShape = diff(fields, shapeKeys);
+
+  if (missingFields.length > 0 || missingShape.length > 0) {
+    throw new Error(
+      `Invalid shape: missing fields ${missingFields.join(
+        ", "
+      )} or shape ${missingShape.join(", ")}`
+    );
+  }
+}
+
 export function struct<T extends Record<string, FixedBytesCodec>>(
   shape: T,
   fields: (keyof T)[]
 ): ObjectCodec<T> & Fixed {
+  checkShape(shape, fields);
+
   return createFixedBytesCodec({
     byteLength: fields.reduce((sum, field) => sum + shape[field].byteLength, 0),
     pack(obj) {
@@ -79,8 +100,8 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const item = obj[field];
-        return concatBuffer(result, itemCodec.pack(item));
-      }, new ArrayBuffer(0));
+        return concat(result, itemCodec.pack(item));
+      }, Uint8Array.from([]));
     },
     unpack(buf) {
       const result = {} as PartialNullable<
@@ -104,10 +125,10 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
 export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
   return {
     pack(items) {
-      return concatBuffer(
+      return concat(
         Uint32LE.pack(items.length),
         items.reduce(
-          (buf, item) => concatBuffer(buf, itemCodec.pack(item)),
+          (buf, item) => concat(buf, itemCodec.pack(item)),
           new ArrayBuffer(0)
         )
       );
@@ -132,8 +153,8 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
           const packedItem = itemCodec.pack(item);
           const packedHeader = Uint32LE.pack(result.offset);
           return {
-            header: concatBuffer(result.header, packedHeader),
-            body: concatBuffer(result.body, packedItem),
+            header: concat(result.header, packedHeader),
+            body: concat(result.body, packedItem),
             offset: result.offset + packedItem.byteLength,
           };
         },
@@ -146,7 +167,7 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
       const packedTotalSize = Uint32LE.pack(
         packed.header.byteLength + packed.body.byteLength + 4
       );
-      return concatBuffer(packedTotalSize, packed.header, packed.body);
+      return concat(packedTotalSize, packed.header, packed.body);
     },
     unpack(buf) {
       const totalSize = Uint32LE.unpack(buf.slice(0, 4));
@@ -191,6 +212,7 @@ export function table<T extends Record<string, BytesCodec>>(
   shape: T,
   fields: (keyof T)[]
 ): ObjectCodec<T> {
+  checkShape(shape, fields);
   return {
     pack(obj) {
       const headerLength = 4 + fields.length * 4;
@@ -203,8 +225,8 @@ export function table<T extends Record<string, BytesCodec>>(
           const packedItem = itemCodec.pack(item);
           const packedOffset = Uint32LE.pack(result.offset);
           return {
-            header: concatBuffer(result.header, packedOffset),
-            body: concatBuffer(result.body, packedItem),
+            header: concat(result.header, packedOffset),
+            body: concat(result.body, packedItem),
             offset: result.offset + packedItem.byteLength,
           };
         },
@@ -217,7 +239,7 @@ export function table<T extends Record<string, BytesCodec>>(
       const packedTotalSize = Uint32LE.pack(
         packed.header.byteLength + packed.body.byteLength + 4
       );
-      return concatBuffer(packedTotalSize, packed.header, packed.body);
+      return concat(packedTotalSize, packed.header, packed.body);
     },
     unpack(buf) {
       const totalSize = Uint32LE.unpack(buf.slice(0, 4));
@@ -265,9 +287,9 @@ export function union<T extends Record<string, BytesCodec>>(
       }
       const packedFieldIndex = Uint32LE.pack(fieldIndex);
       const packedBody = itemCodec[type].pack(obj.value);
-      return concatBuffer(packedFieldIndex, packedBody);
+      return concat(packedFieldIndex, packedBody);
     },
-    unpack(buf: ArrayBuffer) {
+    unpack(buf) {
       const typeIndex = Uint32LE.unpack(buf.slice(0, 4));
       const type = fields[typeIndex];
       return { type, value: itemCodec[type].unpack(buf.slice(4)) };
@@ -281,7 +303,7 @@ export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
       if (obj !== undefined && obj !== null) {
         return itemCodec.pack(obj);
       } else {
-        return new ArrayBuffer(0);
+        return Uint8Array.from([]);
       }
     },
     unpack(buf) {

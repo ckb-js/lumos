@@ -1,7 +1,7 @@
 import test from "ava";
 import { BytesCodec } from "../src/base";
 import { codecs } from "./test-vector/codecs";
-import { toArrayBuffer } from "../src/utils";
+import { bytify } from "../src/bytes";
 import {
   fullfillPartialCodecData,
   generateDefaultCodecData,
@@ -125,7 +125,7 @@ test("default.yaml", (t) => {
   t.is(defaultTestCases.length, 72);
   defaultTestCases.forEach(({ name, expected }) => {
     const codec = codecs[name];
-    t.deepEqual(codecWithDefaultData(codec), toArrayBuffer(expected));
+    t.deepEqual(codecWithDefaultData(codec), bytify(expected));
   });
 });
 
@@ -134,9 +134,6 @@ test("simple.yaml", (t) => {
   t.is(simpleTestCases.length, 63);
   simpleTestCases.forEach(({ name, expected, data, item }) => {
     const codec = codecs[name];
-    t.deepEqual(
-      codecWithPartialData(codec, data, item),
-      toArrayBuffer(expected)
-    );
+    t.deepEqual(codecWithPartialData(codec, data, item), bytify(expected));
   });
 });

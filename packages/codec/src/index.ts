@@ -1,16 +1,17 @@
 export type {
-  BytesCodec,
-  FixedBytesCodec,
-  Codec,
   PackResult,
   UnpackResult,
   PackParam,
   UnpackParam,
+  BytesLike,
+  AnyCodec,
 } from "./base";
-export { createBytesCodec, createFixedBytesCodec } from "./base";
-
+export { createBytesCodec, createFixedBytesCodec, isFixedCodec } from "./base";
 export * from "./high-order";
-export * from "./molecule";
-export * from "./number";
 
-export { Bytes, Byte32, Byte32Vec, BytesVec, BytesOpt } from "./blockchain";
+export * as bytes from "./bytes";
+
+export * as number from "./number";
+
+export * as molecule from "./molecule";
+export * as blockchain from "./blockchain";

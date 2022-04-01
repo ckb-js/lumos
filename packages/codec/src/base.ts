@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { assertBufferLength, isObjectLike, toArrayBuffer } from "./utils";
+import { assertBufferLength, isObjectLike } from "./utils";
+import { bytify } from "./bytes";
 
 export interface Codec<
   Packed,
@@ -29,13 +30,16 @@ export type PackParam<T extends AnyCodec> = T extends Codec<
 >
   ? Packable
   : never;
-// prettier-ignore
-export type UnpackResult<T extends AnyCodec> = T extends Codec<infer Packed,
-        infer Unpacked,
-        infer Packable,
-        infer Unpackable>
-    ? Unpacked
-    : never;
+
+export type UnpackResult<T extends AnyCodec> = T extends Codec<
+  infer Packed,
+  infer Unpacked,
+  infer Packable,
+  infer Unpackable
+>
+  ? Unpacked
+  : never;
+
 export type UnpackParam<T extends AnyCodec> = T extends Codec<
   infer Packed,
   infer Unpacked,
@@ -46,7 +50,7 @@ export type UnpackParam<T extends AnyCodec> = T extends Codec<
   : never;
 
 export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<
-  ArrayBuffer,
+  Uint8Array,
   Unpacked,
   Packable
 >;
@@ -54,7 +58,7 @@ export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<
 export type BytesLike = ArrayLike<number> | ArrayBuffer | string;
 
 export type BytesLikeCodec<Unpacked = any, Packable = Unpacked> = Codec<
-  ArrayBuffer,
+  Uint8Array,
   Unpacked,
   Packable,
   BytesLike
@@ -69,7 +73,7 @@ export function createBytesCodec<Unpacked, Packable = Unpacked>(
 ): BytesLikeCodec<Unpacked, Packable> {
   return {
     pack: (unpacked) => codec.pack(unpacked),
-    unpack: (bytesLike) => codec.unpack(toArrayBuffer(bytesLike)),
+    unpack: (bytesLike) => codec.unpack(bytify(bytesLike)),
   };
 }
 

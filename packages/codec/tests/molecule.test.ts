@@ -9,14 +9,14 @@ import {
   vector,
 } from "../src/molecule/layout";
 import { Bytes, createFixedHexBytesCodec } from "../src/blockchain";
-import { bytesToArrayBuffer } from "../src/utils";
+import { bytify } from "../src/bytes";
 import test from "ava";
 import { Uint16, Uint32, Uint8 } from "../src/number";
-import { byteOf } from "../src";
+import { byteOf } from "../src/molecule";
 
 test("test layout-array", (t) => {
   const codec = array(Uint8, 4);
-  const buffer = bytesToArrayBuffer([1, 2, 3, 4]);
+  const buffer = bytify([1, 2, 3, 4]);
   const unpacked = codec.unpack(buffer);
   const packed = codec.pack(unpacked);
 
@@ -34,7 +34,7 @@ test("test layout-struct", (t) => {
     ["key1", "key2", "key3"]
   );
 
-  const buffer = bytesToArrayBuffer([0x0, 0x1, 0x2, 0x3, 0x4, 0x5]);
+  const buffer = bytify([0x0, 0x1, 0x2, 0x3, 0x4, 0x5]);
   const unpacked = codec.unpack(buffer);
 
   t.deepEqual(unpacked, {
@@ -44,10 +44,14 @@ test("test layout-struct", (t) => {
   });
 
   t.deepEqual(codec.pack(unpacked), buffer);
+
+  t.throws(() => {
+    struct({ key1: Uint8, key2: Uint8 }, []);
+  });
 });
 
 test("test layout-fixvec", (t) => {
-  t.throws(() => fixvec(Uint8).unpack(new ArrayBuffer(0)));
+  t.throws(() => fixvec(Uint8).unpack(Uint8Array.from([0])));
 });
 
 test("test layout-table", (t) => {
@@ -62,7 +66,7 @@ test("test layout-table", (t) => {
     ["key1", "key2", "key3", "key4", "key5"]
   );
   // prettier-ignore
-  const buffer = bytesToArrayBuffer([
+  const buffer = bytify([
         // header: total length
         0x2b, 0x00, 0x00, 0x00,
         // header: items-offsets
@@ -89,18 +93,20 @@ test("test layout-table", (t) => {
   });
 
   t.deepEqual(codec.pack(unpacked), buffer);
-  t.throws(() => codec.unpack(bytesToArrayBuffer([0x00, 0x00, 0x00, 0x00])));
+  t.throws(() => codec.unpack(bytify([0x00, 0x00, 0x00, 0x00])));
   t.truthy(
-    JSON.stringify(
-      codec.unpack(bytesToArrayBuffer([0x04, 0x00, 0x00, 0x00]))
-    ) === "{}"
+    JSON.stringify(codec.unpack(bytify([0x04, 0x00, 0x00, 0x00]))) === "{}"
   );
+
+  t.throws(() => {
+    table({ key1: Uint8, key2: Uint8 }, []);
+  });
 });
 
 test("test layout-dynvec", (t) => {
   const codec = vector(vector(Uint8));
   // prettier-ignore
-  const buffer = bytesToArrayBuffer([
+  const buffer = bytify([
         // header: total length
         0x34, 0x00, 0x00, 0x00,
         // header: items-offsets
@@ -125,15 +131,13 @@ test("test layout-dynvec", (t) => {
     [0xab, 0xcd, 0xef],
   ]);
   t.deepEqual(codec.pack(unpacked), buffer);
-  t.truthy(
-    codec.unpack(bytesToArrayBuffer([0x04, 0x00, 0x00, 0x00])).length === 0
-  );
-  t.throws(() => codec.unpack(bytesToArrayBuffer([0x34, 0x00, 0x00, 0x00])));
+  t.truthy(codec.unpack(bytify([0x04, 0x00, 0x00, 0x00])).length === 0);
+  t.throws(() => codec.unpack(bytify([0x34, 0x00, 0x00, 0x00])));
 });
 test("test layout-option", (t) => {
   const codec = option(dynvec(fixvec(Uint8)));
   // prettier-ignore
-  const buffer = bytesToArrayBuffer([
+  const buffer = bytify([
         //header: total length
         0x0c, 0x00, 0x00, 0x00,
         //header: offset
@@ -144,9 +148,9 @@ test("test layout-option", (t) => {
   t.deepEqual(unpacked, [[]]);
   t.deepEqual(codec.pack(unpacked), buffer);
 
-  const unpackedEmpty = codec.unpack(new ArrayBuffer(0));
+  const unpackedEmpty = codec.unpack(bytify([]));
   t.deepEqual(unpackedEmpty, undefined);
-  t.deepEqual(codec.pack(undefined), new ArrayBuffer(0));
+  t.deepEqual(codec.pack(undefined), bytify([]));
 });
 test("test layout-union", (t) => {
   const codec = union(
@@ -159,7 +163,7 @@ test("test layout-union", (t) => {
     ["Byte3", "Bytes", "BytesVec", "BytesVecOpt"]
   );
   // prettier-ignore
-  const buffer = bytesToArrayBuffer([
+  const buffer = bytify([
         // header: item type
         0x02, 0x00, 0x00, 0x00,
 
@@ -188,34 +192,25 @@ test("test layout-union", (t) => {
 });
 
 test("test byteOf", (t) => {
-  t.deepEqual(byteOf(Uint8).pack(1), bytesToArrayBuffer([1]));
+  t.deepEqual(byteOf(Uint8).pack(1), bytify([1]));
   t.throws(() => byteOf(Uint16).pack(1));
 });
 
 test("test hex bytes", (t) => {
   const hexStr = "0x123456";
   const hexBytes = Bytes.pack(hexStr);
-  t.deepEqual(
-    hexBytes,
-    bytesToArrayBuffer([0x03, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56])
-  );
+  t.deepEqual(hexBytes, bytify([0x03, 0x00, 0x00, 0x00, 0x12, 0x34, 0x56]));
   t.truthy(hexStr === Bytes.unpack(hexBytes));
 
   t.deepEqual(hexStr, Bytes.unpack(hexBytes));
-  t.throws(() =>
-    Bytes.unpack(bytesToArrayBuffer([0x03, 0x00, 0x00, 0x00, 0x12, 0x34]))
-  );
-  t.throws(() => Bytes.unpack(bytesToArrayBuffer([0x00, 0x00, 0x00])));
+  t.throws(() => Bytes.unpack(bytify([0x03, 0x00, 0x00, 0x00, 0x12, 0x34])));
+  t.throws(() => Bytes.unpack(bytify([0x00, 0x00, 0x00])));
 });
 
 test("test fixed hex bytes", (t) => {
   const hexStr = "0x123456";
   const hexBytes = createFixedHexBytesCodec(3).pack(hexStr);
-  t.deepEqual(
-    hexBytes,
-    // prettier-ignore
-    bytesToArrayBuffer([0x12, 0x34, 0x56])
-  );
+  t.deepEqual(hexBytes, bytify([0x12, 0x34, 0x56]));
   t.truthy(hexStr === createFixedHexBytesCodec(3).unpack(hexBytes));
   t.throws(() => createFixedHexBytesCodec(4).pack(hexStr));
 });
