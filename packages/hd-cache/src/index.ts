@@ -25,6 +25,7 @@ import {
 } from "@ckb-lumos/hd";
 import { assertPublicKey, assertChainCode } from "@ckb-lumos/hd/lib/helper";
 import { BI } from "@ckb-lumos/bi";
+import { CkbIndexer } from "@ckb-lumos/ckb-indexer/lib/indexer";
 const { isCellMatchQueryOptions } = helpers;
 const { publicKeyToBlake160 } = key;
 const { mnemonicToSeedSync } = mnemonic;
@@ -201,16 +202,22 @@ export class HDCache {
   }
 
   getNextReceivingPublicKeyInfo(): PublicKeyInfo {
-    const info: PublicKeyInfo = this.receivingKeys.find(
+    const info: PublicKeyInfo | undefined = this.receivingKeys.find(
       (key) => key.historyTxCount === 0
-    )!;
+    );
+    if (!info) {
+      throw new Error("Impossible: can not find receivingKey");
+    }
     return info;
   }
 
   getNextChangePublicKeyInfo(): PublicKeyInfo {
-    const info: PublicKeyInfo = this.changeKeys.find(
+    const info: PublicKeyInfo | undefined = this.changeKeys.find(
       (key) => key.historyTxCount === 0
-    )!;
+    );
+    if (!info) {
+      throw new Error("Impossible: can not find receivingKey");
+    }
     return info;
   }
 
@@ -294,7 +301,11 @@ export class TransactionCache {
       set.add(value)
     );
 
-    const count: number = this.totalTransactionCountCache.get(key)!.size;
+    const count: number | undefined = this.totalTransactionCountCache.get(key)
+      ?.size;
+    if (count === undefined) {
+      throw new Error("Impossible: Transaction Count is 0");
+    }
     const receivingIndex: number = this.hdCache.receivingKeys.findIndex(
       (k) => k.publicKey === key
     );
@@ -322,8 +333,10 @@ export class TransactionCache {
     blockHash: HexString,
     blockNumber: HexString
   ): void {
-    const txHash: HexString = transaction.hash!;
-
+    const txHash: HexString | undefined = transaction?.hash;
+    if (txHash === undefined) {
+      throw new Error("Impossible: transaction.hash is undefined");
+    }
     const outputs: Cell[] = transaction.outputs
       .map((output, index) => {
         if (!lockScriptMatch(output.lock, lockScript)) {
@@ -352,7 +365,10 @@ export class TransactionCache {
     this.addTransactionCountCache(publicKey, txHash);
 
     outputs.forEach((output) => {
-      const key = serializeOutPoint(output.out_point!);
+      if (output.out_point === undefined) {
+        throw new Error("Impossible: output.out_point is undefined");
+      }
+      const key = serializeOutPoint(output.out_point);
       this.liveCellCache = this.liveCellCache.set(key, output);
     });
     inputOutPoints.forEach((inputOutPoint) => {
@@ -365,15 +381,15 @@ export class TransactionCache {
 export class Cache {
   public readonly hdCache: HDCache;
   public readonly txCache: TransactionCache;
-  private indexer: Indexer;
+  private indexer: CkbIndexer;
 
   private lastTipBlockNumber: BI = BI.from(0);
-  private TransactionCollector: any;
+  private TransactionCollector: typeof TxCollector;
 
   private rpc: RPC;
 
   constructor(
-    indexer: Indexer,
+    indexer: CkbIndexer,
     publicKey: HexString,
     chainCode: HexString,
     infos: LockScriptMappingInfo[],
@@ -382,7 +398,7 @@ export class Cache {
       masterPublicKey = undefined,
       rpc = new RPC(indexer.uri),
     }: {
-      TransactionCollector?: any;
+      TransactionCollector?: typeof TxCollector;
       masterPublicKey?: HexString;
       rpc?: RPC;
     } = {}
@@ -416,6 +432,7 @@ export class Cache {
           toBlock: "0x" + toBlock.toString(16),
           argsLen: "any",
         },
+        this.indexer.uri,
         {
           includeStatus: true,
         }
@@ -423,9 +440,12 @@ export class Cache {
 
       for await (const txWithStatus of transactionCollector.collect()) {
         const tx = txWithStatus.transaction;
-        const blockHash: HexString = txWithStatus.tx_status.block_hash!;
+        const blockHash: HexString = txWithStatus.tx_status.block_hash;
         const tipHeader = await this.rpc.get_header(blockHash);
-        const blockNumber: HexString = tipHeader!.number;
+        const blockNumber: HexString | undefined = tipHeader?.number;
+        if (blockNumber === undefined) {
+          throw new Error("Impossible: tipHeader.number is undefined");
+        }
         this.txCache.parseTransaction(
           tx,
           lockScript,
@@ -448,7 +468,7 @@ export class Cache {
     this.lastTipBlockNumber = tip;
   }
 
-  async loop() {
+  async loop(): Promise<void> {
     const tipBlockNumber: HexString = (await this.indexer.tip()).block_number;
     await this.loopTransactions(tipBlockNumber);
   }
@@ -537,7 +557,7 @@ export class CacheManager {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      TransactionCollector?: any;
+      TransactionCollector?: typeof TxCollector;
       rpc?: RPC;
     } = {}
   ) {
@@ -576,7 +596,7 @@ export class CacheManager {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      TransactionCollector?: any;
+      TransactionCollector?: typeof TxCollector;
       needMasterPublicKey?: boolean;
       rpc?: RPC;
     } = {}
@@ -609,7 +629,7 @@ export class CacheManager {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      TransactionCollector?: any;
+      TransactionCollector?: typeof TxCollector;
       needMasterPublicKey?: boolean;
       rpc?: RPC;
     } = {}
@@ -638,17 +658,17 @@ export class CacheManager {
     return this.isRunning;
   }
 
-  scheduleLoop() {
+  scheduleLoop(): void {
     setTimeout(() => {
       this.loop();
     }, this.pollIntervalSeconds * 1000);
   }
 
-  stop() {
+  stop(): void {
     this.isRunning = false;
   }
 
-  async loop() {
+  async loop(): Promise<void> {
     if (!this.running()) {
       return;
     }
@@ -666,12 +686,12 @@ export class CacheManager {
       });
   }
 
-  start() {
+  start(): void {
     this.isRunning = true;
     this.scheduleLoop();
   }
 
-  startForever() {
+  startForever(): void {
     this.start();
     setInterval(() => {
       if (!this.running()) {
