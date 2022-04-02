@@ -1,6 +1,5 @@
 import test from "ava";
-import { TransactionCollector } from "@ckb-lumos/ckb-indexer";
-import { Indexer } from "@ckb-lumos/base";
+import { TransactionCollector, Indexer } from "@ckb-lumos/ckb-indexer";
 
 import { CacheManager, getBalance } from "../src";
 import {
@@ -17,6 +16,7 @@ import {
   HexString,
 } from "@ckb-lumos/base";
 import { BI } from "@ckb-lumos/bi";
+import sinon from "sinon";
 
 const mockTxs: TransactionWithStatus[] = [
   {
@@ -149,16 +149,6 @@ class MockRpc {
 
 const rpc: any = new MockRpc();
 
-class MockIndexer {
-  async tip() {
-    return {
-      block_hash:
-        "0xb97f00e2d023a9be5b38cc0dabcfdfa149597a3c5f6bc89b013c2cb69e186432",
-      block_number: "0x10",
-    };
-  }
-}
-
 HDCache.receivingKeyInitCount = 3;
 HDCache.changeKeyInitCount = 2;
 HDCache.receivingKeyThreshold = 2;
@@ -207,10 +197,15 @@ class MockTransactionCollector extends TransactionCollector {
   }
 }
 
-const indexer = new MockIndexer();
-
+const indexer = new Indexer("", "");
+const tipStub = sinon.stub(indexer, "tip");
+tipStub.resolves({
+  block_hash:
+    "0xb97f00e2d023a9be5b38cc0dabcfdfa149597a3c5f6bc89b013c2cb69e186432",
+  block_number: "0x10",
+});
 const cacheManager = CacheManager.fromMnemonic(
-  indexer as Indexer,
+  indexer,
   mnemonic,
   getDefaultInfos(),
   {
@@ -228,7 +223,7 @@ test.before(() => {
 
 test("derive threshold", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
-    indexer as Indexer,
+    indexer,
     mnemonic,
     getDefaultInfos(),
     {
@@ -285,7 +280,7 @@ test("getMasterPublicKeyInfo, default", async (t) => {
 
 test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
-    indexer as Indexer,
+    indexer,
     mnemonic,
     getDefaultInfos(),
     {
@@ -306,7 +301,7 @@ test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
 
 test("loadFromKeystore, ckb-cli", async (t) => {
   const cacheManager = CacheManager.loadFromKeystore(
-    indexer as Indexer,
+    indexer,
     __dirname + "/fixtures/ckb_cli_keystore.json",
     "aaaaaa",
     getDefaultInfos(),
@@ -422,7 +417,7 @@ test("getBalance", async (t) => {
 
 test("getBalance, needMasterPublicKey", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
-    indexer as Indexer,
+    indexer,
     mnemonic,
     getDefaultInfos(),
     {
