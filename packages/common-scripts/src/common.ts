@@ -74,16 +74,16 @@ export interface LockScriptInfo {
     ) => Promise<TransactionSkeletonType>;
   };
 }
-
-/**
- * `infos` includes predefined and customized.
- */
-let lockScriptInfos: {
+type LockScriptInfosType = {
   configHashCode: number;
   _predefinedInfos: LockScriptInfo[];
   _customInfos: LockScriptInfo[];
   infos: LockScriptInfo[];
-} = {
+};
+/**
+ * `infos` includes predefined and customized.
+ */
+const lockScriptInfos: LockScriptInfosType = {
   configHashCode: 0,
   _predefinedInfos: [],
   _customInfos: [],
@@ -98,7 +98,7 @@ function resetLockScriptInfos(): void {
   lockScriptInfos._customInfos = [];
 }
 
-function getLockScriptInfos(): void {
+function getLockScriptInfos(): LockScriptInfosType {
   return lockScriptInfos;
 }
 
@@ -200,7 +200,7 @@ export async function transfer(
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  let _amount = BI.from(amount);
+  const _amount = BI.from(amount);
   if (!toAddress) {
     throw new Error("You must provide a to address!");
   }
@@ -278,7 +278,7 @@ export async function injectCapacity(
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  let _amount = BI.from(amount);
+  const _amount = BI.from(amount);
   let deductAmount = _amount;
 
   if (fromInfos.length === 0) {
@@ -705,13 +705,13 @@ async function collectInputCompatible(
 
   let availableCapacity: BI = BI.from(0);
   if (config.SCRIPTS.ANYONE_CAN_PAY && isAcpScript(fromScript, config)) {
-    const destroyable: boolean = !!(
+    const destroyable = !!(
       fromInfo &&
       typeof fromInfo === "object" &&
       "destroyable" in fromInfo &&
       fromInfo.destroyable
     );
-    let _needCapacity = needCapacity
+    const _needCapacity = needCapacity
       ? BI.from(needCapacity)
       : lastOutputCapacity;
 
@@ -832,7 +832,7 @@ export async function payFeeByFeeRate(
     enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
-  let size: number = 0;
+  let size = 0;
   let newTxSkeleton: TransactionSkeletonType = txSkeleton;
 
   /**
