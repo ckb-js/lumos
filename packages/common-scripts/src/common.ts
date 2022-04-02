@@ -13,7 +13,9 @@ import secp256k1Blake160, {
   CellCollector as secp256k1Blake160CellCollector,
 } from "./secp256k1_blake160";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-import locktimePool from "./locktime_pool";
+import locktimePool, {
+  CellCollector as locktimePoolCellCollector,
+} from "./locktime_pool";
 import {
   Address,
   Header,
@@ -40,6 +42,10 @@ function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
 }
 
+type CellCollectorType =
+  | typeof secp256k1Blake160MultisigCellCollector
+  | typeof anyoneCanPayCellCollector
+  | typeof secp256k1Blake160CellCollector;
 /**
  * CellCollector should be a class which implement CellCollectorInterface.
  * If you want to work well with `transfer`, `injectCapacity`, `payFee`, `payFeeByFeeRate`,
@@ -49,10 +55,7 @@ export interface LockScriptInfo {
   code_hash: Hash;
   hash_type: "type" | "data";
   lockScriptInfo: {
-    CellCollector:
-      | typeof secp256k1Blake160MultisigCellCollector
-      | typeof anyoneCanPayCellCollector
-      | typeof secp256k1Blake160CellCollector;
+    CellCollector: CellCollectorType;
     setupInputCell(
       txSkeleton: TransactionSkeletonType,
       inputCell: Cell,
@@ -192,11 +195,11 @@ export async function transfer(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
-    LocktimePoolCellCollector = locktimePool.CellCollector,
+    LocktimePoolCellCollector = locktimePoolCellCollector,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
-    LocktimePoolCellCollector?: typeof locktimePool.CellCollector;
+    LocktimePoolCellCollector?: typeof locktimePoolCellCollector;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -268,12 +271,12 @@ export async function injectCapacity(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
-    LocktimePoolCellCollector = locktimePool.CellCollector,
+    LocktimePoolCellCollector = locktimePoolCellCollector,
     enableDeductCapacity = true,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
-    LocktimePoolCellCollector?: typeof locktimePool.CellCollector;
+    LocktimePoolCellCollector?: typeof locktimePoolCellCollector;
     enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
