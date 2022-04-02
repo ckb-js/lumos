@@ -9,7 +9,7 @@ import {
   CellCollector as CellCollectorInterface,
   helpers,
   utils,
-  Indexer,
+  TransactionWithStatus,
 } from "@ckb-lumos/base";
 import { TransactionCollector as TxCollector } from "@ckb-lumos/ckb-indexer";
 import { Map, Set } from "immutable";
@@ -68,8 +68,8 @@ export class HDCache {
   static receivingKeyThreshold = 20;
   static changeKeyThreshold = 10;
 
-  static receivingKeyInitCount: number = 30;
-  static changeKeyInitCount: number = 20;
+  static receivingKeyInitCount = 30;
+  static changeKeyInitCount = 20;
 
   constructor(
     publicKey: HexString,
@@ -439,8 +439,12 @@ export class Cache {
       );
 
       for await (const txWithStatus of transactionCollector.collect()) {
-        const tx = txWithStatus.transaction;
-        const blockHash: HexString = txWithStatus.tx_status.block_hash;
+        const txWS = txWithStatus as TransactionWithStatus;
+        const tx = txWS.transaction;
+        const blockHash: HexString | undefined = txWS.tx_status.block_hash;
+        if (blockHash === undefined) {
+          throw new Error("Impossible: block hash not found");
+        }
         const tipHeader = await this.rpc.get_header(blockHash);
         const blockNumber: HexString | undefined = tipHeader?.number;
         if (blockNumber === undefined) {
@@ -542,7 +546,7 @@ export class CacheManager {
   private pollIntervalSeconds: number;
 
   constructor(
-    indexer: Indexer,
+    indexer: CkbIndexer,
     publicKey: HexString,
     chainCode: HexString,
     masterPublicKey?: HexString,
@@ -588,7 +592,7 @@ export class CacheManager {
    * @param options
    */
   static loadFromKeystore(
-    indexer: Indexer,
+    indexer: CkbIndexer,
     path: string,
     password: string,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
@@ -622,7 +626,7 @@ export class CacheManager {
   }
 
   static fromMnemonic(
-    indexer: Indexer,
+    indexer: CkbIndexer,
     mnemonic: string,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
     options: {
