@@ -694,7 +694,7 @@ async function collectInputCompatible(
     .get("outputs")
     .get(lastOutputIndex);
   if (!lastOutput) {
-    throw new Error();
+    throw new Error("Impossible: can not find last output");
   }
   const lastOutputCapacity: BI = BI.from(lastOutput.cell_output.capacity);
   const lastOutputFixedEntryIndex: number = txSkeleton
