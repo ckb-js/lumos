@@ -1017,7 +1017,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
   );
 });
 
-test.skip("transfer multisig lock => secp, without deduct capacity", async (t) => {
+test("transfer multisig lock => secp, without deduct capacity", async (t) => {
   const cellProvider = new CellProvider([...bobMultisigInputs]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
