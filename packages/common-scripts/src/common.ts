@@ -5,13 +5,9 @@ import {
   createTransactionFromSkeleton,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
-import secp256k1Blake160Multisig, {
-  CellCollector as secp256k1Blake160MultisigCellCollector,
-} from "./secp256k1_blake160_multisig";
+import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
-import secp256k1Blake160, {
-  CellCollector as secp256k1Blake160CellCollector,
-} from "./secp256k1_blake160";
+import secp256k1Blake160 from "./secp256k1_blake160";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import locktimePool, {
   CellCollector as locktimePoolCellCollector,
@@ -28,24 +24,18 @@ import {
   utils,
   Transaction,
 } from "@ckb-lumos/base";
-import anyoneCanPay, {
-  CellCollector as anyoneCanPayCellCollector,
-} from "./anyone_can_pay";
+import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
 import { Set } from "immutable";
 import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
 import { normalizers } from "@ckb-lumos/toolkit";
 import { isAcpScript } from "./helper";
 import { BI, BIish } from "@ckb-lumos/bi";
+import { CellCollectorConstructor } from "./type";
 
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
 }
-
-type CellCollectorType =
-  | typeof secp256k1Blake160MultisigCellCollector
-  | typeof anyoneCanPayCellCollector
-  | typeof secp256k1Blake160CellCollector;
 /**
  * CellCollector should be a class which implement CellCollectorInterface.
  * If you want to work well with `transfer`, `injectCapacity`, `payFee`, `payFeeByFeeRate`,
@@ -55,7 +45,7 @@ export interface LockScriptInfo {
   code_hash: Hash;
   hash_type: "type" | "data";
   lockScriptInfo: {
-    CellCollector: CellCollectorType;
+    CellCollector: CellCollectorConstructor;
     setupInputCell(
       txSkeleton: TransactionSkeletonType,
       inputCell: Cell,
