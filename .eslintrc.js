@@ -15,6 +15,10 @@ module.exports = {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
   },
+  "extends": [
+    "plugin:import/recommended", 
+    "plugin:import/typescript"
+  ],
   "rules": {
     "no-var": "error",
     "@typescript-eslint/no-unused-vars": [
@@ -22,6 +26,7 @@ module.exports = {
       {
         "varsIgnorePattern": "^_"
       }
-    ]
+    ],
+    "import/no-duplicates": "error"
   }
 };

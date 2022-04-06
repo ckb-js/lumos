@@ -15,7 +15,13 @@ import { CellProvider } from "./cell_provider";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config, predefined } from "@ckb-lumos/config-manager";
-import { Header, Cell, CellCollector, Script } from "@ckb-lumos/base";
+import {
+  Header,
+  Cell,
+  CellCollector,
+  Script,
+  since as SinceUtils,
+} from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 import {
   bobMultisigInputs,
@@ -24,7 +30,6 @@ import {
   tipHeader as inputTipHeader,
 } from "./inputs";
 import { bob } from "./account_info";
-import { since as SinceUtils } from "@ckb-lumos/base";
 import { transferCompatible } from "../lib/locktime_pool";
 import { calculateMaximumWithdrawCompatible } from "../lib/dao";
 import { BI } from "@ckb-lumos/bi";

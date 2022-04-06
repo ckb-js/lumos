@@ -11,7 +11,12 @@ import { calculateMaximumWithdraw } from "../src/dao";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config, predefined } from "@ckb-lumos/config-manager";
-import { Header, Cell, CellCollector } from "@ckb-lumos/base";
+import {
+  Header,
+  Cell,
+  CellCollector,
+  since as SinceUtils,
+} from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 import {
   bobSecpDaoDepositInput,
@@ -19,7 +24,6 @@ import {
   tipHeader as inputTipHeader,
 } from "./inputs";
 import { bob } from "./account_info";
-import { since as SinceUtils } from "@ckb-lumos/base";
 import { BI } from "@ckb-lumos/bi";
 const { AGGRON4 } = predefined;
 
