@@ -1,4 +1,11 @@
 import JSBI from "jsbi";
+console.log("I am not tested");
+console.log("I am not tested");
+console.log("I am not tested");
+console.log("I am not tested");
+console.log("I am not tested");
+console.log("I am not tested");
+console.log("I am not tested");
 export type BIish = number | string | bigint | BI;
 
 export function isBIish(value: unknown): value is BIish {
