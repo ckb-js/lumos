@@ -7,7 +7,23 @@ console.log("I am not tested");
 console.log("I am not tested");
 console.log("I am not tested");
 export type BIish = number | string | bigint | BI;
+export type BIish1 = number | string | bigint | BI;
+export type BIish2 = number | string | bigint | BI;
+export type BIish3 = number | string | bigint | BI;
+export type BIish4 = number | string | bigint | BI;
+export type BIish5 = number | string | bigint | BI;
 
+export function isBIish1(value: unknown): value is BIish {
+  return (
+    value !== null &&
+    ((typeof value === "number" && value % 1 === 0) ||
+      (typeof value === "string" &&
+        (!!value.match(/^0x(0|[0-9a-fA-F]+)$/) ||
+          !!value.match(/^-?[0-9]+$/))) ||
+      typeof value === "bigint" ||
+      BI.isBI(value))
+  );
+}
 export function isBIish(value: unknown): value is BIish {
   return (
     value !== null &&
