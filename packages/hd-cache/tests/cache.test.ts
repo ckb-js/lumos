@@ -1,19 +1,20 @@
 import test from "ava";
-
-import { CacheManager, getBalance } from "../src";
-import {
-  HDCache,
-  getDefaultInfos,
-  CellCollector,
-  CellCollectorWithQueryOptions,
-  publicKeyToMultisigArgs,
-} from "../src/index";
 import {
   Cell,
   QueryOptions,
   TransactionWithStatus,
   Script,
 } from "@ckb-lumos/base";
+
+import {
+  CacheManager,
+  getBalance,
+  HDCache,
+  getDefaultInfos,
+  CellCollector,
+  CellCollectorWithQueryOptions,
+  publicKeyToMultisigArgs,
+} from "../src";
 import { BI } from "@ckb-lumos/bi";
 import sinon from "sinon";
 import { CKBIndexerTransactionCollector } from "@ckb-lumos/ckb-indexer/lib/transaction_collector";

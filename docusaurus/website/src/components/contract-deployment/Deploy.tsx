@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Form, Input, Radio } from "antd";
+import { Button, Form, Input, Radio, Popover } from "antd";
 import { useFormik } from "formik";
 import "antd/dist/antd.css";
 import styled from "styled-components";
@@ -13,6 +13,7 @@ import {
   Indexer,
 } from "@site/../../packages/lumos/lib";
 import { CellProvider } from "@site/../../packages/base/";
+import { InfoCircleOutlined } from "@ant-design/icons";
 
 const StyleWrapper = styled.div`
   padding: 20px;
@@ -295,6 +296,9 @@ export const Deploy = () => {
               onChange={contractDeploymentForm.handleChange}
               value={contractDeploymentForm.values.priv_key}
             />
+            <Popover content="This is a static website, we won't access your private key. You are responsible for using this tool.">
+              <InfoCircleOutlined style={{ color: "#74b9ff" }} />
+            </Popover>
             <span className="errorMessage">
               {contractDeploymentForm.errors.priv_key}
             </span>

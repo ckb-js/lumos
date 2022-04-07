@@ -118,6 +118,8 @@ packages/experiment-tx-assembler/lib
 # knex config
 packages/sql-indexer/knexfile.ts
 
+experiment/*/lib
+
 # IDE or environment specific files
 .idea
 .parcel-cache

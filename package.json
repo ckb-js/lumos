@@ -2,7 +2,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "examples/*"
+    "examples/*",
+    "experiment/*"
   ],
   "engines": {
     "node": ">=12.0.0"
@@ -34,6 +35,8 @@
     "ava": "^3.8.2",
     "c8": "^7.10.0",
     "eslint": "^7.1.0",
+    "eslint-import-resolver-typescript": "^2.7.0",
+    "eslint-plugin-import": "^2.25.4",
     "husky": "^7.0.4",
     "lerna": "^4.0.0",
     "lint-staged": "^12.3.5",
