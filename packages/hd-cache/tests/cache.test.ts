@@ -17,7 +17,7 @@ import {
 import { BI } from "@ckb-lumos/bi";
 import sinon from "sinon";
 import { CKBIndexerTransactionCollector } from "@ckb-lumos/ckb-indexer/lib/transaction_collector";
-import { Indexer as CkbIndexer } from "@ckb-lumos/ckb-indexer/";
+import { Indexer as CkbIndexer } from "@ckb-lumos/ckb-indexer";
 import { RPC } from "@ckb-lumos/rpc";
 
 const mockTxs: TransactionWithStatus[] = [
