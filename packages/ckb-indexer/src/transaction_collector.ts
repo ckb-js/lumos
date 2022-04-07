@@ -4,6 +4,9 @@ import {
   Output,
   OutPoint,
   TransactionWithStatus,
+  TransactionCollector as BaseTransactionCollector,
+  QueryOptions,
+  Transaction,
 } from "@ckb-lumos/base";
 import {
   SearchKeyFilter,
@@ -15,7 +18,7 @@ import {
   GetTransactionRPCResult,
   JsonRprRequestBody,
 } from "./type";
-import { CkbIndexer } from "./indexer";
+import { CKBIndexerInterface } from "./indexer";
 import * as services from "./services";
 
 interface GetTransactionDetailResult {
@@ -26,7 +29,7 @@ interface GetTransactionDetailResult {
 export class CKBIndexerTransactionCollector extends BaseIndexerModule.TransactionCollector {
   filterOptions: TransactionCollectorOptions;
   constructor(
-    public indexer: CkbIndexer,
+    public indexer: CKBIndexerInterface,
     public queries: CKBIndexerQueryOptions,
     public CKBRpcUrl: string,
     public options?: TransactionCollectorOptions
@@ -37,6 +40,26 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       includeStatus: true,
     };
     this.filterOptions = { ...defaultOptions, ...this.options };
+  }
+
+  public static asBaseTransactionCollector(
+    CKBRpcUrl: string
+  ): typeof BaseTransactionCollector {
+    return class extends BaseIndexerModule.TransactionCollector {
+      constructor(
+        indexer: CKBIndexerInterface,
+        queries: QueryOptions,
+        options?: TransactionCollectorOptions
+      ) {
+        super(indexer, queries, options);
+        return new CKBIndexerTransactionCollector(
+          indexer,
+          queries,
+          CKBRpcUrl,
+          options
+        );
+      }
+    };
   }
   public async fetchIndexerTransaction(
     queries: CKBIndexerQueryOptions,
@@ -89,7 +112,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     indexerTransactionList: IndexerTransactionList
   ): JsonRprRequestBody[] {
     const requestPayload: JsonRprRequestBody[] = [];
-    let resolvedTransactionRequestId: number = 0;
+    let resolvedTransactionRequestId = 0;
     unresolvedTransactionList.forEach(
       (unresolvedTransaction: TransactionWithStatus, index: number) => {
         const indexerTransaction = indexerTransactionList.objects[index];
@@ -188,7 +211,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   public async getTransactions(
     lastCursor?: string
   ): Promise<GetTransactionDetailResult> {
-    let indexerTransactionList: IndexerTransactionList = await this.fetchIndexerTransaction(
+    const indexerTransactionList: IndexerTransactionList = await this.fetchIndexerTransaction(
       this.queries,
       lastCursor
     );
@@ -201,7 +224,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         lastCursor: lastCursor,
       };
     }
-    let unresolvedTransactionList: TransactionWithStatus[] = await this.getTransactionListFromRpc(
+    const unresolvedTransactionList: TransactionWithStatus[] = await this.getTransactionListFromRpc(
       indexerTransactionList
     );
 
@@ -264,7 +287,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       });
       return result;
     };
-    let hashList = intersection(
+    const hashList = intersection(
       transactionByType.objects,
       transactionByLock.objects
     );
@@ -319,7 +342,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   // only valid after pass flow three validate
   private isCellScriptArgsValid = (targetCell: Output) => {
     if (this.queries.lock) {
-      let lockArgsLen = services.instanceOfScriptWrapper(this.queries.lock)
+      const lockArgsLen = services.instanceOfScriptWrapper(this.queries.lock)
         ? this.queries.lock.argsLen
         : this.queries.argsLen;
       if (!this.isLockArgsLenMatched(targetCell.lock.args, lockArgsLen)) {
@@ -328,7 +351,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
 
     if (this.queries.type && this.queries.type !== "empty") {
-      let typeArgsLen = services.instanceOfScriptWrapper(this.queries.type)
+      const typeArgsLen = services.instanceOfScriptWrapper(this.queries.type)
         ? this.queries.type.argsLen
         : this.queries.argsLen;
       if (!this.isLockArgsLenMatched(targetCell.type?.args, typeArgsLen)) {
@@ -390,9 +413,9 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       return 0;
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
-    let index: number = 0;
-    let skippedCount: number = 0;
-    while (true) {
+    let index = 0;
+    let skippedCount = 0;
+    for (;;) {
       if (this.queries.skip && skippedCount < this.queries.skip) {
         skippedCount++;
       } else {
@@ -422,16 +445,16 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       return result.objects;
     };
 
-    let transactionHashes: string[] = [];
+    const transactionHashes: string[] = [];
     //skip query result in first query
     let txs: TransactionWithStatus[] = await getTxWithCursor();
     if (txs.length === 0) {
       return [];
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
-    let index: number = 0;
-    let skippedCount: number = 0;
-    while (true) {
+    let index = 0;
+    let skippedCount = 0;
+    for (;;) {
       if (this.queries.skip && skippedCount < this.queries.skip) {
         skippedCount++;
       } else {
@@ -454,7 +477,11 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
     return transactionHashes;
   }
-  async *collect() {
+  async *collect(): AsyncGenerator<
+    TransactionWithStatus | Transaction,
+    undefined,
+    unknown
+  > {
     let lastCursor: undefined | string = undefined;
     const getTxWithCursor = async (): Promise<TransactionWithStatus[]> => {
       const result: GetTransactionDetailResult = await this.getTransactions(
@@ -466,11 +493,11 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     //skip query result in first query
     let txs: TransactionWithStatus[] = await getTxWithCursor();
     if (txs.length === 0) {
-      return 0;
+      return undefined;
     }
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
-    let index: number = 0;
-    let skippedCount: number = 0;
+    let index = 0;
+    let skippedCount = 0;
     while (true) {
       if (this.queries.skip && skippedCount < this.queries.skip) {
         skippedCount++;

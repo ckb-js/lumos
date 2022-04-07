@@ -14,6 +14,7 @@ import {
   QueryOptions,
   TransactionWithStatus,
   HexString,
+  Script,
 } from "@ckb-lumos/base";
 import { BI } from "@ckb-lumos/bi";
 import sinon from "sinon";
@@ -196,8 +197,20 @@ class MockTransactionCollector extends TransactionCollector {
     }
   }
 }
-
+const type: Script = {
+  code_hash:
+    "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+  hash_type: "type",
+  args: "0xa178db16d8228db82911fdb536df1916e761e205",
+};
 const indexer = new Indexer("", "");
+const mockTransactionCollector = new MockTransactionCollector(
+  indexer,
+  {
+    type,
+  },
+  ""
+);
 const tipStub = sinon.stub(indexer, "tip");
 tipStub.resolves({
   block_hash:
@@ -209,7 +222,7 @@ const cacheManager = CacheManager.fromMnemonic(
   mnemonic,
   getDefaultInfos(),
   {
-    TransactionCollector: MockTransactionCollector,
+    transactionCollector: mockTransactionCollector,
     rpc,
   }
 );
@@ -227,7 +240,7 @@ test("derive threshold", async (t) => {
     mnemonic,
     getDefaultInfos(),
     {
-      TransactionCollector: MockTransactionCollector,
+      transactionCollector: mockTransactionCollector,
       rpc,
     }
   );
@@ -284,7 +297,7 @@ test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
     mnemonic,
     getDefaultInfos(),
     {
-      TransactionCollector: MockTransactionCollector,
+      transactionCollector: mockTransactionCollector,
       rpc,
       needMasterPublicKey: true,
     }
@@ -306,7 +319,7 @@ test("loadFromKeystore, ckb-cli", async (t) => {
     "aaaaaa",
     getDefaultInfos(),
     {
-      TransactionCollector: MockTransactionCollector,
+      transactionCollector: mockTransactionCollector,
     }
   );
 
@@ -421,7 +434,7 @@ test("getBalance, needMasterPublicKey", async (t) => {
     mnemonic,
     getDefaultInfos(),
     {
-      TransactionCollector: MockTransactionCollector,
+      transactionCollector: mockTransactionCollector,
       rpc,
       needMasterPublicKey: true,
     }

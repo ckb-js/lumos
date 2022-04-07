@@ -10,8 +10,8 @@ import {
   helpers,
   utils,
   TransactionWithStatus,
+  TransactionCollector as BaseTransactionCollector,
 } from "@ckb-lumos/base";
-import { TransactionCollector as TxCollector } from "@ckb-lumos/ckb-indexer";
 import { Map, Set } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import { RPC } from "@ckb-lumos/rpc";
@@ -384,7 +384,7 @@ export class Cache {
   private indexer: CkbIndexer;
 
   private lastTipBlockNumber: BI = BI.from(0);
-  private TransactionCollector: typeof TxCollector;
+  private transactionCollector: BaseTransactionCollector;
 
   private rpc: RPC;
 
@@ -394,20 +394,20 @@ export class Cache {
     chainCode: HexString,
     infos: LockScriptMappingInfo[],
     {
-      TransactionCollector = TxCollector,
+      transactionCollector,
       masterPublicKey = undefined,
       rpc = new RPC(indexer.uri),
     }: {
-      TransactionCollector?: typeof TxCollector;
+      transactionCollector: BaseTransactionCollector;
       masterPublicKey?: HexString;
       rpc?: RPC;
-    } = {}
+    }
   ) {
     this.indexer = indexer;
     this.hdCache = new HDCache(publicKey, chainCode, infos, masterPublicKey);
     this.txCache = new TransactionCache(this.hdCache);
 
-    this.TransactionCollector = TransactionCollector;
+    this.transactionCollector = transactionCollector;
 
     this.rpc = rpc;
   }
@@ -421,24 +421,11 @@ export class Cache {
     return t.block_number;
   }
 
-  private async innerLoopTransactions(fromBlock: BI, toBlock: BI) {
+  private async innerLoopTransactions() {
     for (const lockScriptInfo of this.hdCache.getLockScriptInfos()) {
       const lockScript: Script = lockScriptInfo.lockScript;
-      const transactionCollector = new this.TransactionCollector(
-        this.indexer,
-        {
-          lock: lockScript,
-          fromBlock: "0x" + fromBlock.toString(16),
-          toBlock: "0x" + toBlock.toString(16),
-          argsLen: "any",
-        },
-        this.indexer.uri,
-        {
-          includeStatus: true,
-        }
-      );
 
-      for await (const txWithStatus of transactionCollector.collect()) {
+      for await (const txWithStatus of this.transactionCollector.collect()) {
         const txWS = txWithStatus as TransactionWithStatus;
         const tx = txWS.transaction;
         const blockHash: HexString | undefined = txWS.tx_status.block_hash;
@@ -468,7 +455,7 @@ export class Cache {
       return;
     }
 
-    await this.innerLoopTransactions(this.lastTipBlockNumber.add(1), tip);
+    await this.innerLoopTransactions();
     this.lastTipBlockNumber = tip;
   }
 
@@ -549,21 +536,21 @@ export class CacheManager {
     indexer: CkbIndexer,
     publicKey: HexString,
     chainCode: HexString,
-    masterPublicKey?: HexString,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
     {
+      transactionCollector,
       logger = defaultLogger,
       pollIntervalSeconds = 2,
       livenessCheckIntervalSeconds = 5,
-      TransactionCollector = TxCollector,
       rpc = new RPC(indexer.uri),
     }: {
+      transactionCollector: BaseTransactionCollector;
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      TransactionCollector?: typeof TxCollector;
       rpc?: RPC;
-    } = {}
+    },
+    masterPublicKey?: HexString
   ) {
     assertPublicKey(publicKey);
     assertChainCode(chainCode);
@@ -572,7 +559,7 @@ export class CacheManager {
     }
     this.logger = logger;
     this.cache = new Cache(indexer, publicKey, chainCode, infos, {
-      TransactionCollector,
+      transactionCollector,
       masterPublicKey,
       rpc,
     });
@@ -600,10 +587,10 @@ export class CacheManager {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      TransactionCollector?: typeof TxCollector;
+      transactionCollector: BaseTransactionCollector;
       needMasterPublicKey?: boolean;
       rpc?: RPC;
-    } = {}
+    }
   ): CacheManager {
     const keystore = Keystore.load(path);
     const extendedPrivateKey = keystore.extendedPrivateKey(password);
@@ -619,9 +606,9 @@ export class CacheManager {
       indexer,
       accountExtendedPublicKey.publicKey,
       accountExtendedPublicKey.chainCode,
-      masterPublicKey,
       infos,
-      options
+      options,
+      masterPublicKey
     );
   }
 
@@ -633,10 +620,10 @@ export class CacheManager {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      TransactionCollector?: typeof TxCollector;
+      transactionCollector: BaseTransactionCollector;
       needMasterPublicKey?: boolean;
       rpc?: RPC;
-    } = {}
+    }
   ): CacheManager {
     const seed = mnemonicToSeedSync(mnemonic);
     const extendedPrivateKey = ExtendedPrivateKey.fromSeed(seed);
@@ -652,9 +639,9 @@ export class CacheManager {
       indexer,
       accountExtendedPublicKey.publicKey,
       accountExtendedPublicKey.chainCode,
-      masterPublicKey,
       infos,
-      options
+      options,
+      masterPublicKey
     );
   }
 
