@@ -1,21 +1,22 @@
 import test from "ava";
 import { TransactionCollector } from "@ckb-lumos/ckb-indexer";
-import { Indexer } from "@ckb-lumos/base";
-
-import { CacheManager, getBalance } from "../src";
 import {
-  HDCache,
-  getDefaultInfos,
-  CellCollector,
-  CellCollectorWithQueryOptions,
-  publicKeyToMultisigArgs,
-} from "../src/index";
-import {
+  Indexer,
   Cell,
   QueryOptions,
   TransactionWithStatus,
   HexString,
 } from "@ckb-lumos/base";
+
+import {
+  CacheManager,
+  getBalance,
+  HDCache,
+  getDefaultInfos,
+  CellCollector,
+  CellCollectorWithQueryOptions,
+  publicKeyToMultisigArgs,
+} from "../src";
 import { BI } from "@ckb-lumos/bi";
 
 const mockTxs: TransactionWithStatus[] = [

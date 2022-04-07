@@ -1,10 +1,9 @@
-import { Cell, core, utils } from "@ckb-lumos/base";
+import { Cell, core, utils, Hash, Script } from "@ckb-lumos/base";
 import {
   TransactionSkeletonType,
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
 import { Reader, normalizers } from "@ckb-lumos/toolkit";
-import { Hash, Script } from "@ckb-lumos/base";
 import { BI } from "@ckb-lumos/bi";
 
 function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
