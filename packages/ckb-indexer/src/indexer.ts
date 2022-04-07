@@ -29,12 +29,6 @@ import {
   OtherQueryOptions,
 } from "./type";
 import { BI } from "@ckb-lumos/bi";
-export interface CKBIndexerInterface extends Indexer {
-  getTransactions(
-    searchKey: SearchKey,
-    searchKeyFilter: SearchKeyFilter
-  ): Promise<IndexerTransactionList>;
-}
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -45,7 +39,7 @@ function defaultLogger(level: string, message: string) {
 }
 
 /** CkbIndexer.collector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
-export class CkbIndexer implements CKBIndexerInterface {
+export class CkbIndexer implements Indexer {
   uri: string;
   medianTimeEmitters: EventEmitter[] = [];
   emitters: IndexerEmitter[] = [];

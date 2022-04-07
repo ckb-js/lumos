@@ -18,7 +18,7 @@ import {
   GetTransactionRPCResult,
   JsonRprRequestBody,
 } from "./type";
-import { CKBIndexerInterface } from "./indexer";
+import { CkbIndexer } from "./indexer";
 import * as services from "./services";
 
 interface GetTransactionDetailResult {
@@ -29,7 +29,7 @@ interface GetTransactionDetailResult {
 export class CKBIndexerTransactionCollector extends BaseIndexerModule.TransactionCollector {
   filterOptions: TransactionCollectorOptions;
   constructor(
-    public indexer: CKBIndexerInterface,
+    public indexer: CkbIndexer,
     public queries: CKBIndexerQueryOptions,
     public CKBRpcUrl: string,
     public options?: TransactionCollectorOptions
@@ -47,7 +47,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   ): typeof BaseTransactionCollector {
     return class extends BaseIndexerModule.TransactionCollector {
       constructor(
-        indexer: CKBIndexerInterface,
+        indexer: CkbIndexer,
         queries: QueryOptions,
         options?: TransactionCollectorOptions
       ) {
