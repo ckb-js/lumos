@@ -9,6 +9,7 @@ import {
   CellCollector as CellCollectorInterface,
   helpers,
   utils,
+  Indexer,
   TransactionWithStatus,
   TransactionCollector as BaseTransactionCollector,
 } from "@ckb-lumos/base";
@@ -25,7 +26,6 @@ import {
 } from "@ckb-lumos/hd";
 import { assertPublicKey, assertChainCode } from "@ckb-lumos/hd/lib/helper";
 import { BI } from "@ckb-lumos/bi";
-import { CkbIndexer } from "@ckb-lumos/ckb-indexer/lib/indexer";
 const { isCellMatchQueryOptions } = helpers;
 const { publicKeyToBlake160 } = key;
 const { mnemonicToSeedSync } = mnemonic;
@@ -381,7 +381,7 @@ export class TransactionCache {
 export class Cache {
   public readonly hdCache: HDCache;
   public readonly txCache: TransactionCache;
-  private indexer: CkbIndexer;
+  private indexer: Indexer;
 
   private lastTipBlockNumber: BI = BI.from(0);
   private transactionCollector: BaseTransactionCollector;
@@ -389,7 +389,7 @@ export class Cache {
   private rpc: RPC;
 
   constructor(
-    indexer: CkbIndexer,
+    indexer: Indexer,
     publicKey: HexString,
     chainCode: HexString,
     infos: LockScriptMappingInfo[],
@@ -533,7 +533,7 @@ export class CacheManager {
   private pollIntervalSeconds: number;
 
   constructor(
-    indexer: CkbIndexer,
+    indexer: Indexer,
     publicKey: HexString,
     chainCode: HexString,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
@@ -579,7 +579,7 @@ export class CacheManager {
    * @param options
    */
   static loadFromKeystore(
-    indexer: CkbIndexer,
+    indexer: Indexer,
     path: string,
     password: string,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
@@ -613,7 +613,7 @@ export class CacheManager {
   }
 
   static fromMnemonic(
-    indexer: CkbIndexer,
+    indexer: Indexer,
     mnemonic: string,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
     options: {
