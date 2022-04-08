@@ -34,3 +34,27 @@ for await (const cell of cellCollector.collect()) {
 // get HD wallet balance
 await getBalance(cellCollector)
 ```
+
+### how to quickly get transactionCollector
+
+`CKBIndexerTransactionCollector.asBaseTransactionCollector` helps you to get a transactionCollector instance.
+
+```ts
+const nodeUri = "htp://127.0.0.1:8118/rpc";
+const indexUri = "ttp://127.0.0.1:8120";
+const indexer = new CkbIndexer(indexUri, nodeUri);
+
+const ExtendCollector = CKBIndexerTransactionCollector.asBaseTransactionCollector(
+  nodeUri
+);
+
+const cacheManager = CacheManager.fromMnemonic(
+  indexer,
+  mnemonic,
+  getDefaultInfos(),
+  {
+    transactionCollector: new ExtendCollector(indexer, query),
+    rpc,
+  }
+);
+```
