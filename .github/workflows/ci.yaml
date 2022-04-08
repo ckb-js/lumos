@@ -34,7 +34,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
           files: ./coverage/cobertura-coverage.xml
           verbose: true # optional (default = false)
-          threshold: 0.03%
 
   test-e2e:
     runs-on: ubuntu-latest
