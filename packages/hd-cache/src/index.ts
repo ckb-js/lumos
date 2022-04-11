@@ -307,7 +307,9 @@ export class TransactionCache {
       ?.size;
     /* c8 ignore next 3 */
     if (count === undefined) {
-      throw new Error("Impossible: Transaction Count is 0");
+      throw new Error(
+        "Impossible: transaction count cache of key is undefined"
+      );
     }
     const receivingIndex: number = this.hdCache.receivingKeys.findIndex(
       (k) => k.publicKey === key
