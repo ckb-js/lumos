@@ -683,6 +683,7 @@ async function collectInputCompatible(
   const lastOutput: Cell | undefined = txSkeleton
     .get("outputs")
     .get(lastOutputIndex);
+  /* c8 ignore next 3 */
   if (!lastOutput) {
     throw new Error("Impossible: can not find last output");
   }

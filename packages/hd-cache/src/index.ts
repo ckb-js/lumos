@@ -205,6 +205,7 @@ export class HDCache {
     const info: PublicKeyInfo | undefined = this.receivingKeys.find(
       (key) => key.historyTxCount === 0
     );
+    /* c8 ignore next 3 */
     if (!info) {
       throw new Error("Impossible: can not find receivingKey");
     }
@@ -215,6 +216,7 @@ export class HDCache {
     const info: PublicKeyInfo | undefined = this.changeKeys.find(
       (key) => key.historyTxCount === 0
     );
+    /* c8 ignore next 3 */
     if (!info) {
       throw new Error("Impossible: can not find receivingKey");
     }
@@ -303,6 +305,7 @@ export class TransactionCache {
 
     const count: number | undefined = this.totalTransactionCountCache.get(key)
       ?.size;
+    /* c8 ignore next 3 */
     if (count === undefined) {
       throw new Error("Impossible: Transaction Count is 0");
     }
@@ -334,6 +337,7 @@ export class TransactionCache {
     blockNumber: HexString
   ): void {
     const txHash: HexString | undefined = transaction?.hash;
+    /* c8 ignore next 3 */
     if (txHash === undefined) {
       throw new Error("Impossible: transaction.hash is undefined");
     }
@@ -365,6 +369,7 @@ export class TransactionCache {
     this.addTransactionCountCache(publicKey, txHash);
 
     outputs.forEach((output) => {
+      /* c8 ignore next 3 */
       if (output.out_point === undefined) {
         throw new Error("Impossible: output.out_point is undefined");
       }
@@ -429,11 +434,13 @@ export class Cache {
         const txWS = txWithStatus as TransactionWithStatus;
         const tx = txWS.transaction;
         const blockHash: HexString | undefined = txWS.tx_status.block_hash;
+        /* c8 ignore next 3 */
         if (blockHash === undefined) {
           throw new Error("Impossible: block hash not found");
         }
         const tipHeader = await this.rpc.get_header(blockHash);
         const blockNumber: HexString | undefined = tipHeader?.number;
+        /* c8 ignore next 3 */
         if (blockNumber === undefined) {
           throw new Error("Impossible: tipHeader.number is undefined");
         }
