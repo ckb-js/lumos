@@ -53,7 +53,7 @@ const cacheManager = CacheManager.fromMnemonic(
   mnemonic,
   getDefaultInfos(),
   {
-    transactionCollector: new ExtendCollector(indexer, query),
+    TransactionCollector: ExtendCollector,
     rpc,
   }
 );

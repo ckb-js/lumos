@@ -1,10 +1,5 @@
 import test from "ava";
-import {
-  Cell,
-  QueryOptions,
-  TransactionWithStatus,
-  Script,
-} from "@ckb-lumos/base";
+import { Cell, QueryOptions, TransactionWithStatus } from "@ckb-lumos/base";
 
 import {
   CacheManager,
@@ -16,7 +11,7 @@ import {
   publicKeyToMultisigArgs,
 } from "../src";
 import { BI } from "@ckb-lumos/bi";
-import sinon from "sinon";
+import { stub } from "sinon";
 import { CKBIndexerTransactionCollector } from "@ckb-lumos/ckb-indexer/lib/transaction_collector";
 import { Indexer as CkbIndexer } from "@ckb-lumos/ckb-indexer";
 import { RPC } from "@ckb-lumos/rpc";
@@ -177,12 +172,6 @@ const mnemonic =
  * 3: 0x57a81755c7229decb0f21f93d73c1c7e1c0afe95
  */
 
-const type: Script = {
-  code_hash:
-    "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-  hash_type: "type",
-  args: "0xa178db16d8228db82911fdb536df1916e761e205",
-};
 const nodeUri = "htp://127.0.0.1:8118/rpc";
 const indexUri = "ttp://127.0.0.1:8120";
 const indexer = new CkbIndexer(indexUri, nodeUri);
@@ -190,19 +179,18 @@ const indexer = new CkbIndexer(indexUri, nodeUri);
 const ExtendCollector = CKBIndexerTransactionCollector.asBaseTransactionCollector(
   nodeUri
 );
-sinon
-  .stub(CKBIndexerTransactionCollector.prototype, "collect")
+stub(CKBIndexerTransactionCollector.prototype, "collect")
   // @ts-ignore
   .callsFake(async function* () {
     yield mockTxs[1];
   });
 
-sinon
-  .stub(RPC.prototype, "get_header")
-  .callsFake(async function (block_hash: string) {
-    return { ...headerData, ...{ hash: block_hash } };
-  });
-const tipStub = sinon.stub(indexer, "tip");
+stub(RPC.prototype, "get_header").callsFake(async function (
+  block_hash: string
+) {
+  return { ...headerData, ...{ hash: block_hash } };
+});
+const tipStub = stub(indexer, "tip");
 tipStub.resolves({
   block_hash:
     "0xb97f00e2d023a9be5b38cc0dabcfdfa149597a3c5f6bc89b013c2cb69e186432",
@@ -213,7 +201,7 @@ const cacheManager = CacheManager.fromMnemonic(
   mnemonic,
   getDefaultInfos(),
   {
-    transactionCollector: new ExtendCollector(indexer, { type }),
+    TransactionCollector: ExtendCollector,
     rpc,
   }
 );
@@ -231,7 +219,7 @@ test("derive threshold", async (t) => {
     mnemonic,
     getDefaultInfos(),
     {
-      transactionCollector: new ExtendCollector(indexer, { type }),
+      TransactionCollector: ExtendCollector,
       rpc,
     }
   );
@@ -290,7 +278,7 @@ test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
     mnemonic,
     getDefaultInfos(),
     {
-      transactionCollector: new ExtendCollector(indexer, { type }),
+      TransactionCollector: ExtendCollector,
       rpc,
       needMasterPublicKey: true,
     }
@@ -312,7 +300,7 @@ test("loadFromKeystore, ckb-cli", async (t) => {
     "aaaaaa",
     getDefaultInfos(),
     {
-      transactionCollector: new ExtendCollector(indexer, { type }),
+      TransactionCollector: ExtendCollector,
     }
   );
 
@@ -427,7 +415,7 @@ test("getBalance, needMasterPublicKey", async (t) => {
     mnemonic,
     getDefaultInfos(),
     {
-      transactionCollector: new ExtendCollector(indexer, { type }),
+      TransactionCollector: ExtendCollector,
       rpc,
       needMasterPublicKey: true,
     }

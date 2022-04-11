@@ -389,7 +389,7 @@ export class Cache {
   private indexer: Indexer;
 
   private lastTipBlockNumber: BI = BI.from(0);
-  private transactionCollector: BaseTransactionCollector;
+  private TransactionCollector: typeof BaseTransactionCollector;
 
   private rpc: RPC;
 
@@ -399,11 +399,11 @@ export class Cache {
     chainCode: HexString,
     infos: LockScriptMappingInfo[],
     {
-      transactionCollector,
+      TransactionCollector,
       masterPublicKey = undefined,
       rpc = new RPC(indexer.uri),
     }: {
-      transactionCollector: BaseTransactionCollector;
+      TransactionCollector: typeof BaseTransactionCollector;
       masterPublicKey?: HexString;
       rpc?: RPC;
     }
@@ -412,7 +412,7 @@ export class Cache {
     this.hdCache = new HDCache(publicKey, chainCode, infos, masterPublicKey);
     this.txCache = new TransactionCache(this.hdCache);
 
-    this.transactionCollector = transactionCollector;
+    this.TransactionCollector = TransactionCollector;
 
     this.rpc = rpc;
   }
@@ -426,11 +426,22 @@ export class Cache {
     return t.block_number;
   }
 
-  private async innerLoopTransactions() {
+  private async innerLoopTransactions(fromBlock: BI, toBlock: BI) {
     for (const lockScriptInfo of this.hdCache.getLockScriptInfos()) {
       const lockScript: Script = lockScriptInfo.lockScript;
-
-      for await (const txWithStatus of this.transactionCollector.collect()) {
+      const transactionCollector = new this.TransactionCollector(
+        this.indexer,
+        {
+          lock: lockScript,
+          fromBlock: "0x" + fromBlock.toString(16),
+          toBlock: "0x" + toBlock.toString(16),
+          argsLen: "any",
+        },
+        {
+          includeStatus: true,
+        }
+      );
+      for await (const txWithStatus of transactionCollector.collect()) {
         const txWS = txWithStatus as TransactionWithStatus;
         const tx = txWS.transaction;
         const blockHash: HexString | undefined = txWS.tx_status.block_hash;
@@ -462,7 +473,7 @@ export class Cache {
       return;
     }
 
-    await this.innerLoopTransactions();
+    await this.innerLoopTransactions(this.lastTipBlockNumber.add(1), tip);
     this.lastTipBlockNumber = tip;
   }
 
@@ -545,13 +556,13 @@ export class CacheManager {
     chainCode: HexString,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
     {
-      transactionCollector,
+      TransactionCollector,
       logger = defaultLogger,
       pollIntervalSeconds = 2,
       livenessCheckIntervalSeconds = 5,
       rpc = new RPC(indexer.uri),
     }: {
-      transactionCollector: BaseTransactionCollector;
+      TransactionCollector: typeof BaseTransactionCollector;
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
@@ -566,7 +577,7 @@ export class CacheManager {
     }
     this.logger = logger;
     this.cache = new Cache(indexer, publicKey, chainCode, infos, {
-      transactionCollector,
+      TransactionCollector,
       masterPublicKey,
       rpc,
     });
@@ -594,7 +605,7 @@ export class CacheManager {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      transactionCollector: BaseTransactionCollector;
+      TransactionCollector: typeof BaseTransactionCollector;
       needMasterPublicKey?: boolean;
       rpc?: RPC;
     }
@@ -627,7 +638,7 @@ export class CacheManager {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      transactionCollector: BaseTransactionCollector;
+      TransactionCollector: typeof BaseTransactionCollector;
       needMasterPublicKey?: boolean;
       rpc?: RPC;
     }
