@@ -1,5 +1,11 @@
 import test from "ava";
-import { Cell, QueryOptions, TransactionWithStatus } from "@ckb-lumos/base";
+
+import {
+  Cell,
+  QueryOptions,
+  TransactionWithStatus,
+  indexer as BaseIndexerModule,
+} from "@ckb-lumos/base";
 
 import {
   CacheManager,
@@ -12,7 +18,6 @@ import {
 } from "../src";
 import { BI } from "@ckb-lumos/bi";
 import { stub } from "sinon";
-import { CKBIndexerTransactionCollector } from "@ckb-lumos/ckb-indexer/lib/transaction_collector";
 import { Indexer as CkbIndexer } from "@ckb-lumos/ckb-indexer";
 import { RPC } from "@ckb-lumos/rpc";
 
@@ -176,14 +181,27 @@ const nodeUri = "htp://127.0.0.1:8118/rpc";
 const indexUri = "ttp://127.0.0.1:8120";
 const indexer = new CkbIndexer(indexUri, nodeUri);
 
-const ExtendCollector = CKBIndexerTransactionCollector.asBaseTransactionCollector(
-  nodeUri
-);
-stub(CKBIndexerTransactionCollector.prototype, "collect")
-  // @ts-ignore
-  .callsFake(async function* () {
-    yield mockTxs[1];
-  });
+class MockTransactionCollector extends BaseIndexerModule.TransactionCollector {
+  async *collect(): any {
+    const lock = (this as any).lock.script;
+    const args = lock.args;
+    if (args === "0x89cba48c68b3978f185df19f31634bb870e94639") {
+      yield mockTxs[0];
+    }
+    if (
+      [
+        "0x89cba48c68b3978f185df19f31634bb870e94639",
+        "0x0ce445e32d7f91c9392485ddb9bc6885ce46ad64",
+        "0xaa5aa575dedb6f5d7a5c835428c3b4a3ea7ba1eb",
+        "0xfa7b46aa28cb233db373e5712e16edcaaa4c4999",
+        // master key
+        "0xa6ee79109863906e75668acd75d6c6adbd56469c",
+      ].includes(args)
+    ) {
+      yield mockTxs[1];
+    }
+  }
+}
 
 stub(RPC.prototype, "get_header").callsFake(async function (
   block_hash: string
@@ -201,7 +219,7 @@ const cacheManager = CacheManager.fromMnemonic(
   mnemonic,
   getDefaultInfos(),
   {
-    TransactionCollector: ExtendCollector,
+    TransactionCollector: MockTransactionCollector,
     rpc,
   }
 );
@@ -219,7 +237,7 @@ test("derive threshold", async (t) => {
     mnemonic,
     getDefaultInfos(),
     {
-      TransactionCollector: ExtendCollector,
+      TransactionCollector: MockTransactionCollector,
       rpc,
     }
   );
@@ -243,16 +261,13 @@ test("derive threshold", async (t) => {
   );
 });
 
-// cause stub.callsFake can not get value from this,so when we call stubbed transactionCollector.collect().
-// we can not get different result according to queries, so this function can not be tested, so we always return value when collector,
-// next receiving public key should equal receivingKeys[HDCache.receivingKeyInitCount] -> 0xd9a188cc1985a7d4a31f141f4ebb61f241aec182
 test("getNextReceivingPublicKeyInfo", async (t) => {
   // @ts-ignore
   await cacheManager.cache.loop();
 
   t.is(
     cacheManager.getNextReceivingPublicKeyInfo().blake160,
-    "0xd9a188cc1985a7d4a31f141f4ebb61f241aec182"
+    "0xc337da539e4d0b89daad1370b945f7210fad4c43"
   );
 });
 
@@ -279,7 +294,7 @@ test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
     mnemonic,
     getDefaultInfos(),
     {
-      TransactionCollector: ExtendCollector,
+      TransactionCollector: MockTransactionCollector,
       rpc,
       needMasterPublicKey: true,
     }
@@ -301,7 +316,7 @@ test("loadFromKeystore, ckb-cli", async (t) => {
     "aaaaaa",
     getDefaultInfos(),
     {
-      TransactionCollector: ExtendCollector,
+      TransactionCollector: MockTransactionCollector,
     }
   );
 
@@ -416,7 +431,7 @@ test("getBalance, needMasterPublicKey", async (t) => {
     mnemonic,
     getDefaultInfos(),
     {
-      TransactionCollector: ExtendCollector,
+      TransactionCollector: MockTransactionCollector,
       rpc,
       needMasterPublicKey: true,
     }
