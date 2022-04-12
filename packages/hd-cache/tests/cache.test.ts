@@ -244,14 +244,15 @@ test("derive threshold", async (t) => {
 });
 
 // cause stub.callsFake can not get value from this,so when we call stubbed transactionCollector.collect().
-// we can not get different result according to queries, so this function can not be tested
-test.skip("getNextReceivingPublicKeyInfo", async (t) => {
+// we can not get different result according to queries, so this function can not be tested, so we always return value when collector,
+// next receiving public key should equal receivingKeys[HDCache.receivingKeyInitCount] -> 0xd9a188cc1985a7d4a31f141f4ebb61f241aec182
+test("getNextReceivingPublicKeyInfo", async (t) => {
   // @ts-ignore
   await cacheManager.cache.loop();
 
   t.is(
     cacheManager.getNextReceivingPublicKeyInfo().blake160,
-    "0xc337da539e4d0b89daad1370b945f7210fad4c43"
+    "0xd9a188cc1985a7d4a31f141f4ebb61f241aec182"
   );
 });
 
