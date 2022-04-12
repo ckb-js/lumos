@@ -177,9 +177,9 @@ const mnemonic =
  * 3: 0x57a81755c7229decb0f21f93d73c1c7e1c0afe95
  */
 
-const nodeUri = "htp://127.0.0.1:8118/rpc";
-const indexUri = "ttp://127.0.0.1:8120";
-const indexer = new CkbIndexer(indexUri, nodeUri);
+const NODE_URI = "http://127.0.0.1:8118/rpc";
+const INDEX_URI = "ttp://127.0.0.1:8120";
+const indexer = new CkbIndexer(INDEX_URI, NODE_URI);
 
 class MockTransactionCollector extends BaseIndexerModule.TransactionCollector {
   async *collect(): any {
