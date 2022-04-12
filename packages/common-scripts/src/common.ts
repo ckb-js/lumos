@@ -189,7 +189,7 @@ export async function transfer(
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
-    LocktimePoolCellCollector?: typeof locktimePoolCellCollector;
+    LocktimePoolCellCollector?: CellCollectorConstructor;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
@@ -266,7 +266,7 @@ export async function injectCapacity(
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
-    LocktimePoolCellCollector?: typeof locktimePoolCellCollector;
+    LocktimePoolCellCollector?: CellCollectorConstructor;
     enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {

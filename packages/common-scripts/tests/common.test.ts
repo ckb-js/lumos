@@ -7,7 +7,13 @@ import {
   TransactionSkeleton,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { Cell, Transaction, values, Script } from "@ckb-lumos/base";
+import {
+  Cell,
+  Transaction,
+  values,
+  Script,
+  CellCollector as BaseCellCollector,
+} from "@ckb-lumos/base";
 import { anyoneCanPay, parseFromInfo } from "../src";
 import { Config, predefined } from "@ckb-lumos/config-manager";
 import { CellCollector } from "../src/locktime_pool";
@@ -24,7 +30,7 @@ import {
 import { bob, alice } from "./account_info";
 import { List } from "immutable";
 import { BI } from "@ckb-lumos/bi";
-import sinon from "sinon";
+import { CellCollectorConstructor } from "../src/type";
 
 const aliceAddress = "ckt1qyqwyxfa75whssgkq9ukkdd30d8c7txct0gqfvmy2v";
 
@@ -33,29 +39,6 @@ test.before(() => {
   BigInt = () => {
     throw new Error("can not find bigint");
   };
-});
-let callCount = 0;
-sinon.stub(CellCollector.prototype, "collect").callsFake(async function* () {
-  callCount++;
-  if (callCount === 1) {
-    yield {
-      ...bobMultisigLockInputs[0],
-      since: "0x0",
-      depositBlockHash: undefined,
-      withdrawBlockHash: undefined,
-      sinceBaseValue: undefined,
-    };
-  } else {
-    for (const cell of bobMultisigInputs) {
-      yield {
-        ...cell,
-        since: "0x0",
-        depositBlockHash: undefined,
-        withdrawBlockHash: undefined,
-        sinceBaseValue: undefined,
-      };
-    }
-  }
 });
 
 test("transfer, acp => acp", async (t) => {
@@ -248,6 +231,26 @@ test("transfer multisig lock => secp", async (t) => {
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
+  const LocktimePoolCellCollector: CellCollectorConstructor = class LocktimePoolCellCollector
+    implements BaseCellCollector {
+    readonly fromScript: Script;
+    constructor() {
+      this.fromScript = {
+        code_hash: "",
+        hash_type: "data",
+        args: "",
+      };
+    }
+    async *collect() {
+      yield {
+        ...bobMultisigLockInputs[0],
+        since: "0x0",
+        depositBlockHash: undefined,
+        withdrawBlockHash: undefined,
+        sinceBaseValue: undefined,
+      };
+    }
+  };
 
   const amount = BI.from(600 * 10 ** 8);
   txSkeleton = await common.transfer(
@@ -259,7 +262,7 @@ test("transfer multisig lock => secp", async (t) => {
     tipHeader,
     {
       config: AGGRON4,
-      LocktimePoolCellCollector: CellCollector,
+      LocktimePoolCellCollector: LocktimePoolCellCollector,
     }
   );
 
@@ -1022,7 +1025,28 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
-
+  const LocktimePoolCellCollector: CellCollectorConstructor = class LocktimePoolCellCollector
+    implements BaseCellCollector {
+    readonly fromScript: Script;
+    constructor() {
+      this.fromScript = {
+        code_hash: "",
+        hash_type: "data",
+        args: "",
+      };
+    }
+    async *collect() {
+      for (const cell of bobMultisigInputs) {
+        yield {
+          ...cell,
+          since: "0x0",
+          depositBlockHash: undefined,
+          withdrawBlockHash: undefined,
+          sinceBaseValue: undefined,
+        };
+      }
+    }
+  };
   const amount = BI.from(600 * 10 ** 8);
   txSkeleton = await common.transfer(
     txSkeleton,
@@ -1033,7 +1057,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     tipHeader,
     {
       config: AGGRON4,
-      LocktimePoolCellCollector: CellCollector,
+      LocktimePoolCellCollector: LocktimePoolCellCollector,
     }
   );
 

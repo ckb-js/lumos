@@ -50,6 +50,7 @@ import { RPC } from "@ckb-lumos/rpc";
 import { secp256k1Blake160Multisig } from ".";
 import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
 import { BI, BIish } from "@ckb-lumos/bi";
+import { CellCollectorConstructor } from "./type";
 
 export interface LocktimeCell extends Cell {
   since: PackedSince;
@@ -58,7 +59,8 @@ export interface LocktimeCell extends Cell {
   sinceValidationInfo?: SinceValidationInfo;
 }
 
-export class CellCollector implements CellCollectorType {
+export const CellCollector: CellCollectorConstructor = class CellCollector
+  implements CellCollectorType {
   private cellCollectors: List<CellCollectorType>;
   private config: Config;
   private rpc: RPC;
@@ -66,7 +68,6 @@ export class CellCollector implements CellCollectorType {
   private tipSinceValidationInfo?: SinceValidationInfo;
   public readonly fromScript: Script;
   public readonly multisigScript?: HexString;
-
   constructor(
     fromInfo: FromInfo,
     cellProvider: CellProvider,
@@ -288,7 +289,7 @@ export class CellCollector implements CellCollectorType {
       }
     }
   }
-}
+};
 
 export async function transfer(
   txSkeleton: TransactionSkeletonType,
