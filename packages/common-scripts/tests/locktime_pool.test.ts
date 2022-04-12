@@ -142,6 +142,7 @@ const withdrawDao =
 class LocktimeCellCollector {
   private fromInfo: FromInfo;
   private config: Config;
+  readonly fromScript: Script;
 
   constructor(
     fromInfo: FromInfo,
@@ -150,6 +151,11 @@ class LocktimeCellCollector {
   ) {
     this.fromInfo = fromInfo;
     this.config = config!;
+    this.fromScript = {
+      code_hash: "",
+      hash_type: "data",
+      args: "",
+    };
   }
 
   async *collect() {

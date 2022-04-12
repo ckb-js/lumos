@@ -16,6 +16,7 @@ import {
   Cell,
   CellCollector,
   since as SinceUtils,
+  Script,
 } from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 import {
@@ -134,6 +135,7 @@ const withdrawDao =
 class LocktimeCellCollector {
   private fromInfo: FromInfo;
   private config: Config;
+  readonly fromScript: Script;
 
   constructor(
     fromInfo: FromInfo,
@@ -142,6 +144,11 @@ class LocktimeCellCollector {
   ) {
     this.fromInfo = fromInfo;
     this.config = config!;
+    this.fromScript = {
+      code_hash: "",
+      hash_type: "data",
+      args: "",
+    };
   }
 
   async *collect() {
@@ -388,7 +395,7 @@ test("BigInt:Don't update capacity directly when deduct", async (t) => {
   class LocktimeCellCollector {
     private fromInfo: FromInfo;
     private config: Config;
-
+    readonly fromScript: Script;
     constructor(
       fromInfo: FromInfo,
       _: any,
@@ -396,6 +403,11 @@ test("BigInt:Don't update capacity directly when deduct", async (t) => {
     ) {
       this.fromInfo = fromInfo;
       this.config = config!;
+      this.fromScript = {
+        code_hash: "",
+        hash_type: "data",
+        args: "",
+      };
     }
 
     async *collect() {
