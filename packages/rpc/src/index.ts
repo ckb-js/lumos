@@ -89,7 +89,8 @@ class RpcProxy {
     }
     const header: Header = await this.rpc.get_tip_header();
     const blockNumber = BI.from(header.number);
-    for (;;) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
       const tip = await this.indexer.tip();
       if (tip) {
         if (blockNumber.sub(tip.block_number).lte(this.blockDifference)) {
