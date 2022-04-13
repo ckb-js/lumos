@@ -58,7 +58,7 @@ export async function transfer(options: Options): Promise<string> {
   // additional 0.001 ckb for tx fee
   // the tx fee could calculated by tx size
   // this is just a simple example
-  const neededCapacity = BI.from(options.amount).add(100000n);
+  const neededCapacity = BI.from(options.amount).add(100000);
   let collectedSum = BI.from(0);
   const collectedCells: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });
@@ -168,15 +168,6 @@ export async function transfer(options: Options): Promise<string> {
   const txHash = await rpc.send_transaction(signedTx, "passthrough");
 
   return txHash;
-}
-
-function hashWitness(hasher: utils.CKBHasher, witness: ArrayBuffer): void {
-  const lengthBuffer = new ArrayBuffer(8);
-  const view = new DataView(lengthBuffer);
-  view.setBigUint64(0, BigInt(new toolkit.Reader(witness).length()), true);
-
-  hasher.update(lengthBuffer);
-  hasher.update(witness);
 }
 
 export async function capacityOf(address: string): Promise<BI> {

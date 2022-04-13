@@ -59,7 +59,7 @@ export async function transfer(options: Options): Promise<string> {
   // additional 0.001 ckb for tx fee
   // the tx fee could calculated by tx size
   // this is just a simple example
-  const neededCapacity = BI.from(options.amount).add(100000n);
+  const neededCapacity = BI.from(options.amount).add(100000);
   let collectedSum = BI.from(0);
   const collectedCells: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });

@@ -1,7 +1,9 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "lib": ["dom"],
-    "jsx": "react"
+    "jsx": "react",
+    "module": "CommonJS",
+    "skipLibCheck": true,
+    "esModuleInterop": true
   }
 }
