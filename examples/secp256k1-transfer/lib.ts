@@ -11,6 +11,7 @@ import {
   core,
   WitnessArgs,
   toolkit,
+  BI,
 } from "@ckb-lumos/lumos";
 import { values } from "@ckb-lumos/base";
 const { ScriptValue } = values;
@@ -44,14 +45,14 @@ export const generateAccountFromPrivateKey = (privKey: string): Account => {
   };
 };
 
-export async function capacityOf(address: string): Promise<bigint> {
+export async function capacityOf(address: string): Promise<BI> {
   const collector = indexer.collector({
     lock: helpers.parseAddress(address, { config: AGGRON4 }),
   });
 
-  let balance = 0n;
+  let balance = BI.from(0);
   for await (const cell of collector.collect()) {
-    balance += BigInt(cell.cell_output.capacity);
+    balance = balance.add(cell.cell_output.capacity);
   }
 
   return balance;
@@ -72,12 +73,12 @@ export async function transfer(options: Options): Promise<string> {
   // additional 0.001 ckb for tx fee
   // the tx fee could calculated by tx size
   // this is just a simple example
-  const neededCapacity = BigInt(options.amount) + 100000n;
-  let collectedSum = 0n;
+  const neededCapacity = BI.from(options.amount).add(100000);
+  let collectedSum = BI.from(0);
   const collected: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });
   for await (const cell of collector.collect()) {
-    collectedSum += BigInt(cell.cell_output.capacity);
+    collectedSum = collectedSum.add(cell.cell_output.capacity);
     collected.push(cell);
     if (collectedSum >= neededCapacity) break;
   }
@@ -88,7 +89,7 @@ export async function transfer(options: Options): Promise<string> {
 
   const transferOutput: Cell = {
     cell_output: {
-      capacity: "0x" + BigInt(options.amount).toString(16),
+      capacity: BI.from(options.amount).toHexString(),
       lock: toScript,
     },
     data: "0x",
@@ -96,18 +97,14 @@ export async function transfer(options: Options): Promise<string> {
 
   const changeOutput: Cell = {
     cell_output: {
-      capacity: "0x" + BigInt(collectedSum - neededCapacity).toString(16),
+      capacity: collectedSum.sub(neededCapacity).toHexString(),
       lock: fromScript,
     },
     data: "0x",
   };
 
-  txSkeleton = txSkeleton.update("inputs", (inputs) =>
-    inputs.push(...collected)
-  );
-  txSkeleton = txSkeleton.update("outputs", (outputs) =>
-    outputs.push(transferOutput, changeOutput)
-  );
+  txSkeleton = txSkeleton.update("inputs", (inputs) => inputs.push(...collected));
+  txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(transferOutput, changeOutput));
   txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
     cellDeps.push({
       out_point: {
@@ -127,9 +124,7 @@ export async function transfer(options: Options): Promise<string> {
     );
   if (firstIndex !== -1) {
     while (firstIndex >= txSkeleton.get("witnesses").size) {
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-        witnesses.push("0x")
-      );
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
     }
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
     const newWitnessArgs: WitnessArgs = {
@@ -140,36 +135,22 @@ export async function transfer(options: Options): Promise<string> {
     if (witness !== "0x") {
       const witnessArgs = new core.WitnessArgs(new toolkit.Reader(witness));
       const lock = witnessArgs.getLock();
-      if (
-        lock.hasValue() &&
-        new toolkit.Reader(lock.value().raw()).serializeJson() !==
-          newWitnessArgs.lock
-      ) {
-        throw new Error(
-          "Lock field in first witness is set aside for signature!"
-        );
+      if (lock.hasValue() && new toolkit.Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock) {
+        throw new Error("Lock field in first witness is set aside for signature!");
       }
       const inputType = witnessArgs.getInputType();
       if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new toolkit.Reader(
-          inputType.value().raw()
-        ).serializeJson();
+        newWitnessArgs.input_type = new toolkit.Reader(inputType.value().raw()).serializeJson();
       }
       const outputType = witnessArgs.getOutputType();
       if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new toolkit.Reader(
-          outputType.value().raw()
-        ).serializeJson();
+        newWitnessArgs.output_type = new toolkit.Reader(outputType.value().raw()).serializeJson();
       }
     }
     witness = new toolkit.Reader(
-      core.SerializeWitnessArgs(
-        toolkit.normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
+      core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs(newWitnessArgs))
     ).serializeJson();
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-      witnesses.set(firstIndex, witness)
-    );
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
   }
 
   txSkeleton = commons.common.prepareSigningEntries(txSkeleton);
