@@ -1,5 +1,13 @@
 import test from "ava";
-import common from "../src/common";
+import common, {
+  transfer,
+  prepareSigningEntries,
+  registerCustomLockScriptInfos,
+  setupInputCell,
+  payFeeByFeeRate,
+  payFee,
+  injectCapacity,
+} from "../src/common";
 const { __tests__ } = common;
 import { CellProvider } from "./cell_provider";
 import {
@@ -7,9 +15,16 @@ import {
   TransactionSkeleton,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { Cell, Transaction, values, Script } from "@ckb-lumos/base";
+import {
+  Cell,
+  Transaction,
+  values,
+  Script,
+  CellCollector as BaseCellCollector,
+} from "@ckb-lumos/base";
 import { anyoneCanPay, parseFromInfo } from "../src";
 import { Config, predefined } from "@ckb-lumos/config-manager";
+import { CellCollector } from "../src/locktime_pool";
 const { AGGRON4, LINA } = predefined;
 
 import {
@@ -23,6 +38,7 @@ import {
 import { bob, alice } from "./account_info";
 import { List } from "immutable";
 import { BI } from "@ckb-lumos/bi";
+import { CellCollectorConstructor } from "../src/type";
 
 const aliceAddress = "ckt1qyqwyxfa75whssgkq9ukkdd30d8c7txct0gqfvmy2v";
 
@@ -40,7 +56,7 @@ test("transfer, acp => acp", async (t) => {
   });
 
   const amount = BI.from(500 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.acpTestnetAddress],
     alice.acpTestnetAddress,
@@ -69,7 +85,7 @@ test("transfer, acp => acp", async (t) => {
   const expectedMessage =
     "0x5acf7d234fc5c9adbc9b01f4938a5efdf6efde2b0a836f4740e6a79f81b64d65";
 
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.is(txSkeleton.get("signingEntries").size, 1);
 
@@ -77,33 +93,33 @@ test("transfer, acp => acp", async (t) => {
 });
 
 test("lockScriptInfos", (t) => {
-  common.__tests__.resetLockScriptInfos();
-  t.is(common.__tests__.getLockScriptInfos().infos.length, 0);
-  common.registerCustomLockScriptInfos([
+  __tests__.resetLockScriptInfos();
+  t.is(__tests__.getLockScriptInfos().infos.length, 0);
+  registerCustomLockScriptInfos([
     {
       code_hash: "",
       hash_type: "type",
       lockScriptInfo: anyoneCanPay,
     },
   ]);
-  t.is(common.__tests__.getLockScriptInfos().infos.length, 1);
+  t.is(__tests__.getLockScriptInfos().infos.length, 1);
 
-  common.__tests__.resetLockScriptInfos();
-  t.is(common.__tests__.getLockScriptInfos().infos.length, 0);
-  common.__tests__.generateLockScriptInfos({ config: AGGRON4 });
-  t.is(common.__tests__.getLockScriptInfos().infos.length, 3);
-  const configCodeHash = common.__tests__.getLockScriptInfos().configHashCode;
+  __tests__.resetLockScriptInfos();
+  t.is(__tests__.getLockScriptInfos().infos.length, 0);
+  __tests__.generateLockScriptInfos({ config: AGGRON4 });
+  t.is(__tests__.getLockScriptInfos().infos.length, 3);
+  const configCodeHash = __tests__.getLockScriptInfos().configHashCode;
   t.not(configCodeHash, 0);
 
   // run again, won't change
-  common.__tests__.generateLockScriptInfos({ config: AGGRON4 });
-  t.is(common.__tests__.getLockScriptInfos().infos.length, 3);
-  t.is(common.__tests__.getLockScriptInfos().configHashCode, configCodeHash);
+  __tests__.generateLockScriptInfos({ config: AGGRON4 });
+  t.is(__tests__.getLockScriptInfos().infos.length, 3);
+  t.is(__tests__.getLockScriptInfos().configHashCode, configCodeHash);
 
   // using LINA
-  common.__tests__.generateLockScriptInfos({ config: LINA });
-  t.is(common.__tests__.getLockScriptInfos().infos.length, 3);
-  t.not(common.__tests__.getLockScriptInfos().configHashCode, configCodeHash);
+  __tests__.generateLockScriptInfos({ config: LINA });
+  t.is(__tests__.getLockScriptInfos().infos.length, 3);
+  t.not(__tests__.getLockScriptInfos().configHashCode, configCodeHash);
 });
 
 test("transfer secp => secp", async (t) => {
@@ -113,7 +129,7 @@ test("transfer secp => secp", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
@@ -148,7 +164,7 @@ test("transfer secp => secp", async (t) => {
     "0x997f7d53307a114104b37c0fcdef97240d250d468189e71632d79e1c3b20a4f9",
   ];
 
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.deepEqual(
     txSkeleton
@@ -170,7 +186,7 @@ test("transfer secp & multisig => secp", async (t) => {
   });
 
   const amount = BI.from(1500 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress, bob.fromInfo],
     aliceAddress,
@@ -206,7 +222,7 @@ test("transfer secp & multisig => secp", async (t) => {
     "0x051a18a11dacfd6573a689328ea7ee0cc3f2533de9c15e4f9e12f0e4a6e9691c",
   ];
 
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.deepEqual(
     txSkeleton
@@ -223,8 +239,16 @@ test("transfer multisig lock => secp", async (t) => {
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
-
-  class LocktimePoolCellCollector {
+  const LocktimePoolCellCollector: CellCollectorConstructor = class LocktimePoolCellCollector
+    implements BaseCellCollector {
+    readonly fromScript: Script;
+    constructor() {
+      this.fromScript = {
+        code_hash: "",
+        hash_type: "data",
+        args: "",
+      };
+    }
     async *collect() {
       yield {
         ...bobMultisigLockInputs[0],
@@ -234,10 +258,10 @@ test("transfer multisig lock => secp", async (t) => {
         sinceBaseValue: undefined,
       };
     }
-  }
+  };
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.fromInfo],
     alice.testnetAddress,
@@ -246,7 +270,7 @@ test("transfer multisig lock => secp", async (t) => {
     tipHeader,
     {
       config: AGGRON4,
-      LocktimePoolCellCollector,
+      LocktimePoolCellCollector: LocktimePoolCellCollector,
     }
   );
 
@@ -275,7 +299,7 @@ test("transfer multisig lock => secp", async (t) => {
     "0x54f766189f91dcf10a23833c5b1f0d318044c7237a2a703ad77ea46990190b8b",
   ];
 
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.deepEqual(
     txSkeleton
@@ -294,7 +318,7 @@ test("transfer secp => acp", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     alice.acpTestnetAddress,
@@ -335,7 +359,7 @@ test("transfer secp => acp", async (t) => {
     "0x7449d526fa5fbaf942cbf29f833d89026b6f28322d0bd4725eb8c0b921b3b275",
   ];
 
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.deepEqual(
     txSkeleton
@@ -354,7 +378,7 @@ test("transfer secp => acp, no acp previous input", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     alice.acpTestnetAddress,
@@ -394,7 +418,7 @@ test("transfer secp => acp, no acp previous input", async (t) => {
     "0x68a543a1ef68667281609d9331f3587f4bfac16002f0fbac72e3774de80f45fb",
   ];
 
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.deepEqual(
     txSkeleton
@@ -413,7 +437,7 @@ test("transfer acp => secp, destroy", async (t) => {
   });
 
   const amount = BI.from(1000 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [
       {
@@ -453,7 +477,7 @@ test("transfer acp => secp, destroy", async (t) => {
     "0x3196d29d3365c1d3d599be55e80e4addd631acb6605646329eb39a1b9264ab89",
   ];
 
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.deepEqual(
     txSkeleton
@@ -472,7 +496,7 @@ test("Don't update capacity directly when deduct", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
@@ -491,7 +515,7 @@ test("Don't update capacity directly when deduct", async (t) => {
 
   let errFlag = false;
   try {
-    await common.transfer(
+    await transfer(
       txSkeleton,
       [bob.testnetAddress],
       aliceAddress,
@@ -520,14 +544,9 @@ test("setupInputCell secp", async (t) => {
 
   const inputCell: Cell = bobSecpInputs[0];
 
-  txSkeleton = await common.setupInputCell(
-    txSkeleton,
-    inputCell,
-    bob.testnetAddress,
-    {
-      config: AGGRON4,
-    }
-  );
+  txSkeleton = await setupInputCell(txSkeleton, inputCell, bob.testnetAddress, {
+    config: AGGRON4,
+  });
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 1);
@@ -672,7 +691,7 @@ test("payFeeByFeeRate 1 in 1 out, add 1 in 1 out", async (t) => {
   });
 
   const amount = BI.from(1000 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
@@ -683,7 +702,7 @@ test("payFeeByFeeRate 1 in 1 out, add 1 in 1 out", async (t) => {
   );
 
   const feeRate = BI.from(1 * 10 ** 8 * 1000);
-  txSkeleton = await common.payFeeByFeeRate(
+  txSkeleton = await payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
     BI.from(feeRate),
@@ -708,7 +727,7 @@ test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
@@ -719,7 +738,7 @@ test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
   );
 
   const feeRate = BI.from(1 * 10 ** 8);
-  txSkeleton = await common.payFeeByFeeRate(
+  txSkeleton = await payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
     BI.from(feeRate),
@@ -744,7 +763,7 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
   });
 
   const amount = BI.from(536 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
@@ -755,7 +774,7 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
   );
 
   const feeRate = BI.from(1 * 10 ** 8 * 1000);
-  txSkeleton = await common.payFeeByFeeRate(
+  txSkeleton = await payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
     BI.from(feeRate),
@@ -785,7 +804,7 @@ test("payFeeByFeeRate 1 in 2 out, add 1 in", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
@@ -796,7 +815,7 @@ test("payFeeByFeeRate 1 in 2 out, add 1 in", async (t) => {
   );
 
   const feeRate = BI.from(1 * 10 ** 8 * 1000);
-  txSkeleton = await common.payFeeByFeeRate(
+  txSkeleton = await payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
     BI.from(feeRate),
@@ -821,7 +840,7 @@ test("payFeeByFeeRate, capacity 500", async (t) => {
   });
 
   const amount = BI.from(500 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
@@ -832,7 +851,7 @@ test("payFeeByFeeRate, capacity 500", async (t) => {
   );
 
   const feeRate = BI.from(1000);
-  txSkeleton = await common.payFeeByFeeRate(
+  txSkeleton = await payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
     BI.from(feeRate),
@@ -854,7 +873,7 @@ test("payFeeByFeeRate, capacity 1000", async (t) => {
   });
 
   const amount = BI.from(1000 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     aliceAddress,
@@ -865,7 +884,7 @@ test("payFeeByFeeRate, capacity 1000", async (t) => {
   );
 
   const feeRate = BI.from(1000);
-  txSkeleton = await common.payFeeByFeeRate(
+  txSkeleton = await payFeeByFeeRate(
     txSkeleton,
     [bob.testnetAddress],
     BI.from(feeRate),
@@ -898,7 +917,7 @@ test("Should not throw if anyone-can-pay config not provided", async (t) => {
 
   const amount = BI.from(600 * 10 ** 8);
   await t.notThrowsAsync(async () => {
-    await common.transfer(
+    await transfer(
       txSkeleton,
       [bob.testnetAddress],
       aliceAddress,
@@ -918,7 +937,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.testnetAddress],
     alice.testnetAddress,
@@ -933,7 +952,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
   t.is(txSkeleton.get("outputs").size, 2);
 
   const fee: BI = BI.from(1000);
-  txSkeleton = await common.payFee(
+  txSkeleton = await payFee(
     txSkeleton,
     [bob.testnetAddress],
     BI.from(fee),
@@ -992,7 +1011,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
     "0x7bf7f9183d54e3a69d80c1d049d0b1cda7005341f428b70b22abc356286dbf70",
   ];
 
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.deepEqual(
     txSkeleton
@@ -1009,8 +1028,16 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
-
-  class LocktimePoolCellCollector {
+  const LocktimePoolCellCollector: CellCollectorConstructor = class LocktimePoolCellCollector
+    implements BaseCellCollector {
+    readonly fromScript: Script;
+    constructor() {
+      this.fromScript = {
+        code_hash: "",
+        hash_type: "data",
+        args: "",
+      };
+    }
     async *collect() {
       for (const cell of bobMultisigInputs) {
         yield {
@@ -1022,10 +1049,9 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
         };
       }
     }
-  }
-
+  };
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await common.transfer(
+  txSkeleton = await transfer(
     txSkeleton,
     [bob.fromInfo],
     alice.testnetAddress,
@@ -1034,7 +1060,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     tipHeader,
     {
       config: AGGRON4,
-      LocktimePoolCellCollector,
+      LocktimePoolCellCollector: LocktimePoolCellCollector,
     }
   );
 
@@ -1042,7 +1068,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
   t.is(txSkeleton.get("outputs").size, 2);
 
   const fee = BI.from(1000);
-  txSkeleton = await common.injectCapacity(
+  txSkeleton = await injectCapacity(
     txSkeleton,
     [bob.fromInfo],
     BI.from(fee),
@@ -1050,7 +1076,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     tipHeader,
     {
       config: AGGRON4,
-      LocktimePoolCellCollector,
+      LocktimePoolCellCollector: CellCollector,
       enableDeductCapacity: false,
     }
   );
@@ -1102,8 +1128,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     "0x01fc08c48a5cab51686b808e65d041966a460a17cfa82bb77cbd270fff4634c0",
   ];
 
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
-
+  txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
   t.deepEqual(
     txSkeleton
       .get("signingEntries")

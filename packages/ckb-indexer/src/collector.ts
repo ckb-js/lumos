@@ -204,7 +204,6 @@ export class CKBCellCollector implements BaseCellCollector {
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index = 0;
     let skippedCount = 0;
-    /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
     while (true) {
       if (!this.shouldSkipped(cells[index], skippedCount)) {
         counter += 1;

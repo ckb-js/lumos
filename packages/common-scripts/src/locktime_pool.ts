@@ -50,6 +50,7 @@ import { RPC } from "@ckb-lumos/rpc";
 import { secp256k1Blake160Multisig } from ".";
 import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
 import { BI, BIish } from "@ckb-lumos/bi";
+import { CellCollectorConstructor } from "./type";
 
 export interface LocktimeCell extends Cell {
   since: PackedSince;
@@ -58,7 +59,8 @@ export interface LocktimeCell extends Cell {
   sinceValidationInfo?: SinceValidationInfo;
 }
 
-export class CellCollector implements CellCollectorType {
+export const CellCollector: CellCollectorConstructor = class CellCollector
+  implements CellCollectorType {
   private cellCollectors: List<CellCollectorType>;
   private config: Config;
   private rpc: RPC;
@@ -66,7 +68,6 @@ export class CellCollector implements CellCollectorType {
   private tipSinceValidationInfo?: SinceValidationInfo;
   public readonly fromScript: Script;
   public readonly multisigScript?: HexString;
-
   constructor(
     fromInfo: FromInfo,
     cellProvider: CellProvider,
@@ -288,7 +289,7 @@ export class CellCollector implements CellCollectorType {
       }
     }
   }
-}
+};
 
 export async function transfer(
   txSkeleton: TransactionSkeletonType,
@@ -305,7 +306,7 @@ export async function transfer(
     config?: Config;
     requireToAddress?: boolean;
     assertAmountEnough?: true;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
   }
 ): Promise<TransactionSkeletonType>;
 
@@ -324,7 +325,7 @@ export async function transfer(
     config?: Config;
     requireToAddress?: boolean;
     assertAmountEnough: false;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
   }
 ): Promise<[TransactionSkeletonType, bigint]>;
 
@@ -343,7 +344,7 @@ export async function transfer(
     config?: Config;
     requireToAddress?: boolean;
     assertAmountEnough?: boolean;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
   } = {}
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
   const result = await transferCompatible(
@@ -386,7 +387,7 @@ export async function transferCompatible(
     config?: Config;
     requireToAddress?: boolean;
     assertAmountEnough?: true;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
   }
 ): Promise<TransactionSkeletonType>;
 
@@ -405,7 +406,7 @@ export async function transferCompatible(
     config?: Config;
     requireToAddress?: boolean;
     assertAmountEnough: false;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
   }
 ): Promise<[TransactionSkeletonType, BI]>;
 export async function transferCompatible(
@@ -423,7 +424,7 @@ export async function transferCompatible(
     config?: Config;
     requireToAddress?: boolean;
     assertAmountEnough?: boolean;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
   } = {}
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, BI]> {
   let _amount = BI.from(amount);
@@ -475,7 +476,7 @@ async function _transferCompatible(
     config?: Config;
     requireToAddress?: boolean;
     assertAmountEnough?: boolean;
-    LocktimeCellCollector: any;
+    LocktimeCellCollector: CellCollectorConstructor;
     changeAddress?: Address;
   }
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, BI]> {
@@ -587,7 +588,8 @@ async function _transferCompatible(
       config,
       tipHeader,
     });
-    for await (const inputCell of cellCollector.collect()) {
+    for await (const cell of cellCollector.collect()) {
+      const inputCell = cell as LocktimeCell;
       // skip inputs already exists in txSkeleton.inputs
       if (
         previousInputs.has(
@@ -709,7 +711,7 @@ async function injectCapacityWithoutChangeCompatible(
     enableDeductCapacity = true,
   }: {
     config?: Config;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
     enableDeductCapacity?: boolean;
   }
 ): Promise<{
@@ -799,7 +801,8 @@ async function injectCapacityWithoutChangeCompatible(
         config,
         tipHeader,
       });
-      for await (const inputCell of cellCollector.collect()) {
+      for await (const cell of cellCollector.collect()) {
+        const inputCell = cell as LocktimeCell;
         // skip inputs already exists in txSkeleton.inputs
         if (previousInputs.has(getInputKey(inputCell))) {
           continue;
@@ -908,7 +911,7 @@ async function injectCapacityWithoutChange(
     enableDeductCapacity = true,
   }: {
     config?: Config;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
     enableDeductCapacity?: boolean;
   }
 ): Promise<{
@@ -946,7 +949,7 @@ export async function payFee(
     LocktimeCellCollector = CellCollector,
   }: {
     config?: Config;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
   } = {}
 ): Promise<TransactionSkeletonType> {
   return transferCompatible(
@@ -986,8 +989,9 @@ export async function injectCapacity(
     config = undefined,
     LocktimeCellCollector = CellCollector,
   }: Options & {
+    // eslint-disable-next-line
     cellCollector?: (...params: any[]) => AsyncIterable<LocktimeCell>;
-    LocktimeCellCollector?: any;
+    LocktimeCellCollector?: CellCollectorConstructor;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();

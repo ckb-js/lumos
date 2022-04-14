@@ -1,11 +1,10 @@
 import test from "ava";
-import { TransactionCollector } from "@ckb-lumos/ckb-indexer";
+
 import {
-  Indexer,
   Cell,
   QueryOptions,
   TransactionWithStatus,
-  HexString,
+  indexer as BaseIndexerModule,
 } from "@ckb-lumos/base";
 
 import {
@@ -18,6 +17,9 @@ import {
   publicKeyToMultisigArgs,
 } from "../src";
 import { BI } from "@ckb-lumos/bi";
+import { stub } from "sinon";
+import { Indexer as CkbIndexer } from "@ckb-lumos/ckb-indexer";
+import { RPC } from "@ckb-lumos/rpc";
 
 const mockTxs: TransactionWithStatus[] = [
   {
@@ -122,43 +124,32 @@ const mockTxs: TransactionWithStatus[] = [
     },
   },
 ];
-
+const headerData = {
+  compact_target: "0x1e083126",
+  dao: "0xb5a3e047474401001bc476b9ee573000c0c387962a38000000febffacf030000",
+  epoch: "0x7080018000001",
+  hash: "blockHash",
+  nonce: "0x0",
+  number: "0x400",
+  parent_hash:
+    "0xae003585fa15309b30b31aed3dcf385e9472c3c3e93746a6c4540629a6a1ed2d",
+  proposals_hash:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  timestamp: "0x5cd2b117",
+  transactions_root:
+    "0xc47d5b78b3c4c4c853e2a32810818940d0ee403423bea9ec7b8e566d9595206c",
+  uncles_hash:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  version: "0x0",
+};
 class MockRpc {
   constructor() {}
-
-  async get_header(blockHash: HexString) {
-    return {
-      compact_target: "0x1e083126",
-      dao: "0xb5a3e047474401001bc476b9ee573000c0c387962a38000000febffacf030000",
-      epoch: "0x7080018000001",
-      hash: blockHash,
-      nonce: "0x0",
-      number: "0x400",
-      parent_hash:
-        "0xae003585fa15309b30b31aed3dcf385e9472c3c3e93746a6c4540629a6a1ed2d",
-      proposals_hash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-      timestamp: "0x5cd2b117",
-      transactions_root:
-        "0xc47d5b78b3c4c4c853e2a32810818940d0ee403423bea9ec7b8e566d9595206c",
-      uncles_hash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-      version: "0x0",
-    };
+  async get_header(blockHash: string) {
+    return { ...headerData, ...{ hash: blockHash } };
   }
 }
 
 const rpc: any = new MockRpc();
-
-class MockIndexer {
-  async tip() {
-    return {
-      block_hash:
-        "0xb97f00e2d023a9be5b38cc0dabcfdfa149597a3c5f6bc89b013c2cb69e186432",
-      block_number: "0x10",
-    };
-  }
-}
 
 HDCache.receivingKeyInitCount = 3;
 HDCache.changeKeyInitCount = 2;
@@ -186,7 +177,11 @@ const mnemonic =
  * 3: 0x57a81755c7229decb0f21f93d73c1c7e1c0afe95
  */
 
-class MockTransactionCollector extends TransactionCollector {
+const NODE_URI = "http://127.0.0.1:8118/rpc";
+const INDEX_URI = "ttp://127.0.0.1:8120";
+const indexer = new CkbIndexer(INDEX_URI, NODE_URI);
+
+class MockTransactionCollector extends BaseIndexerModule.TransactionCollector {
   async *collect(): any {
     const lock = (this as any).lock.script;
     const args = lock.args;
@@ -208,10 +203,19 @@ class MockTransactionCollector extends TransactionCollector {
   }
 }
 
-const indexer = new MockIndexer();
-
+stub(RPC.prototype, "get_header").callsFake(async function (
+  block_hash: string
+) {
+  return { ...headerData, ...{ hash: block_hash } };
+});
+const tipStub = stub(indexer, "tip");
+tipStub.resolves({
+  block_hash:
+    "0xb97f00e2d023a9be5b38cc0dabcfdfa149597a3c5f6bc89b013c2cb69e186432",
+  block_number: "0x10",
+});
 const cacheManager = CacheManager.fromMnemonic(
-  indexer as Indexer,
+  indexer,
   mnemonic,
   getDefaultInfos(),
   {
@@ -229,7 +233,7 @@ test.before(() => {
 
 test("derive threshold", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
-    indexer as Indexer,
+    indexer,
     mnemonic,
     getDefaultInfos(),
     {
@@ -286,7 +290,7 @@ test("getMasterPublicKeyInfo, default", async (t) => {
 
 test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
-    indexer as Indexer,
+    indexer,
     mnemonic,
     getDefaultInfos(),
     {
@@ -307,7 +311,7 @@ test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
 
 test("loadFromKeystore, ckb-cli", async (t) => {
   const cacheManager = CacheManager.loadFromKeystore(
-    indexer as Indexer,
+    indexer,
     __dirname + "/fixtures/ckb_cli_keystore.json",
     "aaaaaa",
     getDefaultInfos(),
@@ -423,7 +427,7 @@ test("getBalance", async (t) => {
 
 test("getBalance, needMasterPublicKey", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
-    indexer as Indexer,
+    indexer,
     mnemonic,
     getDefaultInfos(),
     {
@@ -436,7 +440,6 @@ test("getBalance, needMasterPublicKey", async (t) => {
   await cacheManager.cache.loop();
 
   const balance = await getBalance(new CellCollector(cacheManager));
-
   t.is(
     BI.from(balance).toString(),
     BI.from(950).mul(BI.from(10).pow(8)).toString()
