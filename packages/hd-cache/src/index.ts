@@ -34,6 +34,14 @@ export function serializeOutPoint(outPoint: OutPoint): string {
   return `${outPoint.tx_hash}_${outPoint.index}`;
 }
 
+function assertsNonNil<T>(
+  value: T,
+  name: string
+): asserts value is NonNullable<T> {
+  if (value === undefined || value === null)
+    throw new Error("Impossible: can not find " + name);
+}
+
 export interface PublicKeyInfo {
   publicKey: HexString;
   path: string;
@@ -205,10 +213,7 @@ export class HDCache {
     const info: PublicKeyInfo | undefined = this.receivingKeys.find(
       (key) => key.historyTxCount === 0
     );
-    /* c8 ignore next 3 */
-    if (!info) {
-      throw new Error("Impossible: can not find receivingKey");
-    }
+    assertsNonNil(info, "next receiving public key");
     return info;
   }
 
@@ -216,10 +221,7 @@ export class HDCache {
     const info: PublicKeyInfo | undefined = this.changeKeys.find(
       (key) => key.historyTxCount === 0
     );
-    /* c8 ignore next 3 */
-    if (!info) {
-      throw new Error("Impossible: can not find receivingKey");
-    }
+    assertsNonNil(info, "next change public key");
     return info;
   }
 
@@ -339,10 +341,7 @@ export class TransactionCache {
     blockNumber: HexString
   ): void {
     const txHash: HexString | undefined = transaction?.hash;
-    /* c8 ignore next 3 */
-    if (txHash === undefined) {
-      throw new Error("Impossible: transaction.hash is undefined");
-    }
+    assertsNonNil(txHash, "transaction.hash");
     const outputs: Cell[] = transaction.outputs
       .map((output, index) => {
         if (!lockScriptMatch(output.lock, lockScript)) {
@@ -371,10 +370,7 @@ export class TransactionCache {
     this.addTransactionCountCache(publicKey, txHash);
 
     outputs.forEach((output) => {
-      /* c8 ignore next 3 */
-      if (output.out_point === undefined) {
-        throw new Error("Impossible: output.out_point is undefined");
-      }
+      assertsNonNil(output.out_point, "output.out_point");
       const key = serializeOutPoint(output.out_point);
       this.liveCellCache = this.liveCellCache.set(key, output);
     });
@@ -447,16 +443,11 @@ export class Cache {
         const txWS = txWithStatus as TransactionWithStatus;
         const tx = txWS.transaction;
         const blockHash: HexString | undefined = txWS.tx_status.block_hash;
-        /* c8 ignore next 3 */
-        if (blockHash === undefined) {
-          throw new Error("Impossible: block hash not found");
-        }
+        assertsNonNil(blockHash, "block hash");
         const tipHeader = await this.rpc.get_header(blockHash);
         const blockNumber: HexString | undefined = tipHeader?.number;
-        /* c8 ignore next 3 */
-        if (blockNumber === undefined) {
-          throw new Error("Impossible: tipHeader.number is undefined");
-        }
+        assertsNonNil(blockNumber, "tipHeader.number");
+
         this.txCache.parseTransaction(
           tx,
           lockScript,
