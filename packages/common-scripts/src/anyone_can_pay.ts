@@ -1,7 +1,7 @@
 import {
   Address,
   Cell,
-  CellCollector as CellCollectorType,
+  CellCollector as BaseCellCollectorType,
   CellProvider,
   core,
   HexString,
@@ -32,11 +32,13 @@ import {
   isAcpScript,
   SECP_SIGNATURE_PLACEHOLDER,
 } from "./helper";
+import { CellCollectorConstructor, CellCollectorType } from "./type";
 const { ScriptValue } = values;
 const { CKBHasher, ckbHash, readBigUInt128LECompatible } = utils;
 
-export class CellCollector implements CellCollectorType {
-  private cellCollector: CellCollectorType;
+export const CellCollector: CellCollectorConstructor = class CellCollector
+  implements CellCollectorType {
+  private cellCollector: BaseCellCollectorType;
   private config: Config;
   public readonly fromScript: Script;
 
@@ -75,7 +77,7 @@ export class CellCollector implements CellCollectorType {
       yield inputCell;
     }
   }
-}
+};
 
 export async function setupInputCell(
   txSkeleton: TransactionSkeletonType,
@@ -204,7 +206,7 @@ export async function setupInputCell(
 
 // export for tests
 export function checkLimit(acpArgs: HexString, capacity: BIish): void {
-  let _capacity = BI.from(capacity);
+  const _capacity = BI.from(capacity);
   let minimalAmount: BI | undefined;
   let minimalCapacity: BI | undefined;
   if (acpArgs.length >= 46) {
@@ -299,7 +301,7 @@ export async function setupOutputCell(
 }
 
 export async function injectCapacity(
-  cellCollector: CellCollector,
+  cellCollector: CellCollectorType,
   txSkeleton: TransactionSkeletonType,
   outputIndex: number,
   capacity: BIish,
@@ -564,7 +566,7 @@ export async function withdraw(
   }
 
   // check capacity
-  let _capacity = BI.from(capacity);
+  const _capacity = BI.from(capacity);
   const fromInputCapacity: BI = BI.from(fromInput.cell_output.capacity);
   const inputMinimalCellCapacity: BI = BI.from(
     minimalCellCapacityCompatible(fromInput)

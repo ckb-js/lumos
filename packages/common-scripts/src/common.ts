@@ -9,7 +9,9 @@ import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-import locktimePool from "./locktime_pool";
+import locktimePool, {
+  CellCollector as LocktimePoolCellCollectorClass,
+} from "./locktime_pool";
 import {
   Address,
   Header,
@@ -30,11 +32,11 @@ import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
 import { normalizers } from "@ckb-lumos/toolkit";
 import { isAcpScript } from "./helper";
 import { BI, BIish } from "@ckb-lumos/bi";
+import { CellCollectorConstructor } from "./type";
 
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
 }
-
 /**
  * CellCollector should be a class which implement CellCollectorInterface.
  * If you want to work well with `transfer`, `injectCapacity`, `payFee`, `payFeeByFeeRate`,
@@ -44,7 +46,7 @@ export interface LockScriptInfo {
   code_hash: Hash;
   hash_type: HashType;
   lockScriptInfo: {
-    CellCollector: any;
+    CellCollector: CellCollectorConstructor;
     setupInputCell(
       txSkeleton: TransactionSkeletonType,
       inputCell: Cell,
@@ -66,16 +68,16 @@ export interface LockScriptInfo {
     ) => Promise<TransactionSkeletonType>;
   };
 }
-
-/**
- * `infos` includes predefined and customized.
- */
-let lockScriptInfos: {
+type LockScriptInfosType = {
   configHashCode: number;
   _predefinedInfos: LockScriptInfo[];
   _customInfos: LockScriptInfo[];
   infos: LockScriptInfo[];
-} = {
+};
+/**
+ * `infos` includes predefined and customized.
+ */
+const lockScriptInfos: LockScriptInfosType = {
   configHashCode: 0,
   _predefinedInfos: [],
   _customInfos: [],
@@ -90,7 +92,7 @@ function resetLockScriptInfos(): void {
   lockScriptInfos._customInfos = [];
 }
 
-function getLockScriptInfos() {
+function getLockScriptInfos(): LockScriptInfosType {
   return lockScriptInfos;
 }
 
@@ -103,9 +105,9 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
 
   // lazy load
   const getPredefinedInfos = () => {
-    const secpTemplate = config!.SCRIPTS.SECP256K1_BLAKE160;
-    const multisigTemplate = config!.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
-    const acpTemplate = config!.SCRIPTS.ANYONE_CAN_PAY;
+    const secpTemplate = config?.SCRIPTS.SECP256K1_BLAKE160;
+    const multisigTemplate = config?.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
+    const acpTemplate = config?.SCRIPTS.ANYONE_CAN_PAY;
 
     const predefinedInfos: LockScriptInfo[] = [];
 
@@ -149,7 +151,7 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
   };
 
   const configHashCode: number = utils.hashCode(
-    Buffer.from(JSON.stringify(config!))
+    Buffer.from(JSON.stringify(config))
   );
 
   if (lockScriptInfos.infos.length === 0) {
@@ -184,15 +186,15 @@ export async function transfer(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
-    LocktimePoolCellCollector = locktimePool.CellCollector,
+    LocktimePoolCellCollector = LocktimePoolCellCollectorClass,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
-    LocktimePoolCellCollector?: any;
+    LocktimePoolCellCollector?: CellCollectorConstructor;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  let _amount = BI.from(amount);
+  const _amount = BI.from(amount);
   if (!toAddress) {
     throw new Error("You must provide a to address!");
   }
@@ -220,9 +222,9 @@ export async function transfer(
 
   if (
     targetLockScriptInfo &&
-    "setupOutputCell" in targetLockScriptInfo.lockScriptInfo
+    targetLockScriptInfo.lockScriptInfo?.setupOutputCell
   ) {
-    txSkeleton = await targetLockScriptInfo.lockScriptInfo.setupOutputCell!(
+    txSkeleton = await targetLockScriptInfo.lockScriptInfo.setupOutputCell(
       txSkeleton,
       targetOutput,
       {
@@ -260,17 +262,17 @@ export async function injectCapacity(
   {
     config = undefined,
     useLocktimeCellsFirst = true,
-    LocktimePoolCellCollector = locktimePool.CellCollector,
+    LocktimePoolCellCollector = LocktimePoolCellCollectorClass,
     enableDeductCapacity = true,
   }: {
     config?: Config;
     useLocktimeCellsFirst?: boolean;
-    LocktimePoolCellCollector?: any;
+    LocktimePoolCellCollector?: CellCollectorConstructor;
     enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  let _amount = BI.from(amount);
+  const _amount = BI.from(amount);
   let deductAmount = _amount;
 
   if (fromInfos.length === 0) {
@@ -278,7 +280,7 @@ export async function injectCapacity(
   }
 
   const changeLockScript: Script = parseFromInfo(
-    changeAddress || fromInfos[0]!,
+    changeAddress || fromInfos[0],
     { config }
   ).fromScript;
   const changeCell: Cell = {
@@ -506,7 +508,7 @@ async function _commonTransferCompatible(
   }
 
   const getInputKey = (input: Cell) =>
-    `${input.out_point!.tx_hash}_${input.out_point!.index}`;
+    `${input.out_point?.tx_hash}_${input.out_point?.index}`;
   let previousInputs = Set<string>();
   for (const input of txSkeleton.get("inputs")) {
     previousInputs = previousInputs.add(getInputKey(input));
@@ -609,8 +611,9 @@ function _deductCapacityCompatible(
     .maxBy(({ index }) => index);
   let i = lastFreezedOutput ? lastFreezedOutput.index + 1 : 0;
   for (; i < txSkeleton.get("outputs").size && _capacity.gt(0); i++) {
-    const output = txSkeleton.get("outputs").get(i)!;
+    const output = txSkeleton.get("outputs").get(i);
     if (
+      output &&
       new ScriptValue(output.cell_output.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
@@ -678,7 +681,13 @@ async function collectInputCompatible(
   });
 
   const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
-  const lastOutput: Cell = txSkeleton.get("outputs").get(lastOutputIndex)!;
+  const lastOutput: Cell | undefined = txSkeleton
+    .get("outputs")
+    .get(lastOutputIndex);
+  /* c8 ignore next 3 */
+  if (!lastOutput) {
+    throw new Error("Impossible: can not find last output");
+  }
   const lastOutputCapacity: BI = BI.from(lastOutput.cell_output.capacity);
   const lastOutputFixedEntryIndex: number = txSkeleton
     .get("fixedEntries")
@@ -691,13 +700,13 @@ async function collectInputCompatible(
 
   let availableCapacity: BI = BI.from(0);
   if (config.SCRIPTS.ANYONE_CAN_PAY && isAcpScript(fromScript, config)) {
-    const destroyable: boolean = !!(
+    const destroyable = !!(
       fromInfo &&
       typeof fromInfo === "object" &&
       "destroyable" in fromInfo &&
       fromInfo.destroyable
     );
-    let _needCapacity = needCapacity
+    const _needCapacity = needCapacity
       ? BI.from(needCapacity)
       : lastOutputCapacity;
 
@@ -736,7 +745,7 @@ async function collectInputCompatible(
     if (lastOutputFixedEntryIndex < 0) {
       // Remove last output
       availableCapacity = BI.from(
-        txSkeleton.get("outputs").get(lastOutputIndex)!.cell_output.capacity
+        txSkeleton.get("outputs").get(lastOutputIndex)?.cell_output.capacity
       );
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.remove(lastOutputIndex);
@@ -818,7 +827,7 @@ export async function payFeeByFeeRate(
     enableDeductCapacity?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType> {
-  let size: number = 0;
+  let size = 0;
   let newTxSkeleton: TransactionSkeletonType = txSkeleton;
 
   /**

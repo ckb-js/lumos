@@ -15,7 +15,13 @@ import { CellProvider } from "./cell_provider";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config, predefined } from "@ckb-lumos/config-manager";
-import { Header, Cell, CellCollector, Script } from "@ckb-lumos/base";
+import {
+  Header,
+  Cell,
+  CellCollector,
+  Script,
+  since as SinceUtils,
+} from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 import {
   bobMultisigInputs,
@@ -24,7 +30,6 @@ import {
   tipHeader as inputTipHeader,
 } from "./inputs";
 import { bob } from "./account_info";
-import { since as SinceUtils } from "@ckb-lumos/base";
 import { transferCompatible } from "../lib/locktime_pool";
 import { calculateMaximumWithdrawCompatible } from "../lib/dao";
 import { BI } from "@ckb-lumos/bi";
@@ -137,6 +142,7 @@ const withdrawDao =
 class LocktimeCellCollector {
   private fromInfo: FromInfo;
   private config: Config;
+  readonly fromScript: Script;
 
   constructor(
     fromInfo: FromInfo,
@@ -145,6 +151,11 @@ class LocktimeCellCollector {
   ) {
     this.fromInfo = fromInfo;
     this.config = config!;
+    this.fromScript = {
+      code_hash: "",
+      hash_type: "data",
+      args: "",
+    };
   }
 
   async *collect() {
@@ -399,6 +410,7 @@ test("JSBI:Don't update capacity directly when deduct", async (t) => {
   class LocktimeCellCollector {
     private fromInfo: FromInfo;
     private config: Config;
+    readonly fromScript: Script;
 
     constructor(
       fromInfo: FromInfo,
@@ -407,6 +419,11 @@ test("JSBI:Don't update capacity directly when deduct", async (t) => {
     ) {
       this.fromInfo = fromInfo;
       this.config = config!;
+      this.fromScript = {
+        code_hash: "",
+        hash_type: "data",
+        args: "",
+      };
     }
 
     async *collect() {

@@ -1,0 +1,266 @@
+#
+# Array
+#
+-
+  name: Byte2
+  expected: "0x0000"
+-
+  name: Byte3
+  expected: "0x000000"
+-
+  name: Byte4
+  expected: "0x00000000"
+-
+  name: Byte5
+  expected: "0x00000000_00"
+-
+  name: Byte6
+  expected: "0x00000000_0000"
+-
+  name: Byte7
+  expected: "0x00000000_000000"
+-
+  name: Byte8
+  expected: "0x00000000_00000000"
+-
+  name: Byte9
+  expected: "0x00000000_00000000_00"
+-
+  name: Byte10
+  expected: "0x00000000_00000000_0000"
+-
+  name: Byte11
+  expected: "0x00000000_00000000_000000"
+-
+  name: Byte12
+  expected: "0x00000000_00000000_00000000"
+-
+  name: Byte13
+  expected: "0x00000000_00000000_00000000_00"
+-
+  name: Byte14
+  expected: "0x00000000_00000000_00000000_0000"
+-
+  name: Byte15
+  expected: "0x00000000_00000000_00000000_000000"
+-
+  name: Byte16
+  expected: "0x00000000_00000000_00000000_00000000"
+-
+  name: Word
+  expected: "0x0000"
+-
+  name: Word2
+  expected: "0x00000000"
+-
+  name: Word3
+  expected: "0x00000000_0000"
+-
+  name: Word4
+  expected: "0x00000000_00000000"
+-
+  name: Word5
+  expected: "0x00000000_00000000_0000"
+-
+  name: Word6
+  expected: "0x00000000_00000000_00000000"
+-
+  name: Word7
+  expected: "0x00000000_00000000_00000000_0000"
+-
+  name: Word8
+  expected: "0x00000000_00000000_00000000_00000000"
+-
+  name: Byte3x3
+  expected: "0x000000/000000/000000"
+-
+  name: Byte5x3
+  expected: "0x_00000000_00/00000000_00/00000000_00"
+-
+  name: Byte7x3
+  expected: "0x00000000_000000/00000000_000000/00000000_000000"
+-
+  name: Byte9x3
+  expected: "0x00000000_00000000_00/\
+               00000000_00000000_00/\
+               00000000_00000000_00"
+-
+  name: StructIx3
+  expected: "0x00000000/00000000/00000000"
+#
+# Struct
+#
+-
+  name: StructA
+  expected: "0x00/00/0000/0000"
+-
+  name: StructB
+  expected: "0x00/00/0000/000000"
+-
+  name: StructC
+  expected: "0x00/00/0000/00000000"
+-
+  name: StructD
+  expected: "0x00/00/0000/00000000_00"
+-
+  name: StructE
+  expected: "0x00/0000/00/0000"
+-
+  name: StructF
+  expected: "0x00/000000/00"
+-
+  name: StructG
+  expected: "0x000000/00/0000/00000000"
+-
+  name: StructH
+  expected: "0x000000/00/0000/00000000"
+-
+  name: StructI
+  expected: "0x000000/00"
+-
+  name: StructJ
+  expected: "0x00000000_0000/00"
+-
+  name: StructO
+  expected: "0x00000000_00000000_00000000/00"
+-
+  name: StructP
+  expected: "0x00000000_000000/00"
+#
+# Vector
+#
+-
+  name: Bytes
+  expected: "0x00000000"
+-
+  name: Words
+  expected: "0x00000000"
+-
+  name: Byte3Vec
+  expected: "0x00000000"
+-
+  name: Byte7Vec
+  expected: "0x00000000"
+-
+  name: StructJVec
+  expected: "0x00000000"
+-
+  name: StructPVec
+  expected: "0x00000000"
+-
+  name: BytesVec
+  expected: "0x04000000"
+-
+  name: WordsVec
+  expected: "0x04000000"
+-
+  name: ByteOptVec
+  expected: "0x04000000"
+-
+  name: WordOptVec
+  expected: "0x04000000"
+-
+  name: WordsOptVec
+  expected: "0x04000000"
+-
+  name: BytesOptVec
+  expected: "0x04000000"
+#
+# Table
+#
+-
+  name: Table0
+  expected: "0x04000000"
+-
+  name: Table1
+  expected: "0x09000000//08000000//00"
+-
+  name: Table2
+  expected: "0x11000000//0c000000_0d000000//00/00000000"
+-
+  name: Table3
+  expected: "0x1b000000//\
+               10000000_11000000_15000000//\
+               00/00000000/00000000/0000"
+-
+  name: Table4
+  expected: "0x23000000//\
+               14000000_15000000_19000000_1f000000//\
+               00/00000000/00000000_0000/00000000"
+-
+  name: Table5
+  expected: "0x2b000000//\
+               18000000_19000000_1d000000_23000000_27000000//\
+               00/00000000/00000000_0000/00000000/04000000"
+-
+  name: Table6
+  expected: "0x5a000000//\
+               1c000000_1d000000_21000000_27000000_2b000000_2f000000//\
+               \
+               00/00000000/00000000_0000/00000000/04000000/\
+               \
+               2b000000\
+               18000000_19000000_1d000000_23000000_27000000\
+               00\
+               00000000\
+               00000000_0000\
+               00000000\
+               04000000"
+-
+  name: TableA
+  expected: "0x45000000//\
+               24000000_28000000_2e000000_32000000_\
+               36000000_3f000000_3f000000_44000000//\
+               \
+               00000000/00000000_0000/00000000/04000000/\
+               \
+               09000000\
+               08000000\
+               00\
+               \
+               00000000\
+               00\
+               \
+               00"
+#
+# Option
+#
+-
+  name: ByteOpt
+  expected: "0x"
+-
+  name: WordOpt
+  expected: "0x"
+-
+  name: StructAOpt
+  expected: "0x"
+-
+  name: StructPOpt
+  expected: "0x"
+-
+  name: BytesOpt
+  expected: "0x"
+-
+  name: WordsOpt
+  expected: "0x"
+-
+  name: BytesVecOpt
+  expected: "0x"
+-
+  name: WordsVecOpt
+  expected: "0x"
+-
+  name: Table0Opt
+  expected: "0x"
+-
+  name: Table6Opt
+  expected: "0x"
+-
+  name: Table6OptOpt
+  expected: "0x"
+#
+# Union
+#
+-
+  name: UnionA
+  expected: "0x00000000//00"

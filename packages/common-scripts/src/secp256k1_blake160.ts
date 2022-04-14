@@ -3,6 +3,8 @@ import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import {
   parseAddress,
   minimalCellCapacityCompatible,
+  TransactionSkeletonType,
+  Options,
 } from "@ckb-lumos/helpers";
 import {
   core,
@@ -19,7 +21,6 @@ import {
   PackedSince,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-import { TransactionSkeletonType, Options } from "@ckb-lumos/helpers";
 import {
   addCellDep,
   ensureScript,
@@ -30,9 +31,11 @@ import {
 import { FromInfo } from ".";
 import { parseFromInfo } from "./from_info";
 import { BI, BIish } from "@ckb-lumos/bi";
+import { CellCollectorConstructor } from "./type";
 const { ScriptValue } = values;
 
-export class CellCollector implements CellCollectorType {
+export const CellCollector: CellCollectorConstructor = class CellCollector
+  implements CellCollectorType {
   private cellCollector: CellCollectorType;
   private config: Config;
   public readonly fromScript: Script;
@@ -73,7 +76,7 @@ export class CellCollector implements CellCollectorType {
       yield inputCell;
     }
   }
-}
+};
 
 /**
  * Setup input cell infos, such as cell deps and witnesses.

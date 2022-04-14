@@ -11,8 +11,9 @@ import {
   helpers,
   utils,
   Indexer,
+  TransactionWithStatus,
+  TransactionCollector as BaseTransactionCollector,
 } from "@ckb-lumos/base";
-import { TransactionCollector as TxCollector } from "@ckb-lumos/ckb-indexer";
 import { Map, Set } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import { RPC } from "@ckb-lumos/rpc";
@@ -32,6 +33,14 @@ const { mnemonicToSeedSync } = mnemonic;
 
 export function serializeOutPoint(outPoint: OutPoint): string {
   return `${outPoint.tx_hash}_${outPoint.index}`;
+}
+
+function assertsNonNil<T>(
+  value: T,
+  name: string
+): asserts value is NonNullable<T> {
+  if (value === undefined || value === null)
+    throw new Error("Impossible: can not find " + name);
 }
 
 export interface PublicKeyInfo {
@@ -68,8 +77,8 @@ export class HDCache {
   static receivingKeyThreshold = 20;
   static changeKeyThreshold = 10;
 
-  static receivingKeyInitCount: number = 30;
-  static changeKeyInitCount: number = 20;
+  static receivingKeyInitCount = 30;
+  static changeKeyInitCount = 20;
 
   constructor(
     publicKey: HexString,
@@ -202,16 +211,18 @@ export class HDCache {
   }
 
   getNextReceivingPublicKeyInfo(): PublicKeyInfo {
-    const info: PublicKeyInfo = this.receivingKeys.find(
+    const info: PublicKeyInfo | undefined = this.receivingKeys.find(
       (key) => key.historyTxCount === 0
-    )!;
+    );
+    assertsNonNil(info, "next receiving public key");
     return info;
   }
 
   getNextChangePublicKeyInfo(): PublicKeyInfo {
-    const info: PublicKeyInfo = this.changeKeys.find(
+    const info: PublicKeyInfo | undefined = this.changeKeys.find(
       (key) => key.historyTxCount === 0
-    )!;
+    );
+    assertsNonNil(info, "next change public key");
     return info;
   }
 
@@ -295,7 +306,14 @@ export class TransactionCache {
       set.add(value)
     );
 
-    const count: number = this.totalTransactionCountCache.get(key)!.size;
+    const count: number | undefined = this.totalTransactionCountCache.get(key)
+      ?.size;
+    /* c8 ignore next 3 */
+    if (count === undefined) {
+      throw new Error(
+        "Impossible: transaction count cache of key is undefined"
+      );
+    }
     const receivingIndex: number = this.hdCache.receivingKeys.findIndex(
       (k) => k.publicKey === key
     );
@@ -323,8 +341,8 @@ export class TransactionCache {
     blockHash: HexString,
     blockNumber: HexString
   ): void {
-    const txHash: HexString = transaction.hash!;
-
+    const txHash: HexString | undefined = transaction?.hash;
+    assertsNonNil(txHash, "transaction.hash");
     const outputs: Cell[] = transaction.outputs
       .map((output, index) => {
         if (!lockScriptMatch(output.lock, lockScript)) {
@@ -353,7 +371,8 @@ export class TransactionCache {
     this.addTransactionCountCache(publicKey, txHash);
 
     outputs.forEach((output) => {
-      const key = serializeOutPoint(output.out_point!);
+      assertsNonNil(output.out_point, "output.out_point");
+      const key = serializeOutPoint(output.out_point);
       this.liveCellCache = this.liveCellCache.set(key, output);
     });
     inputOutPoints.forEach((inputOutPoint) => {
@@ -369,7 +388,7 @@ export class Cache {
   private indexer: Indexer;
 
   private lastTipBlockNumber: BI = BI.from(0);
-  private TransactionCollector: any;
+  private TransactionCollector: typeof BaseTransactionCollector;
 
   private rpc: RPC;
 
@@ -379,14 +398,14 @@ export class Cache {
     chainCode: HexString,
     infos: LockScriptMappingInfo[],
     {
-      TransactionCollector = TxCollector,
+      TransactionCollector,
       masterPublicKey = undefined,
       rpc = new RPC(indexer.uri),
     }: {
-      TransactionCollector?: any;
+      TransactionCollector: typeof BaseTransactionCollector;
       masterPublicKey?: HexString;
       rpc?: RPC;
-    } = {}
+    }
   ) {
     this.indexer = indexer;
     this.hdCache = new HDCache(publicKey, chainCode, infos, masterPublicKey);
@@ -421,12 +440,15 @@ export class Cache {
           includeStatus: true,
         }
       );
-
       for await (const txWithStatus of transactionCollector.collect()) {
-        const tx = txWithStatus.transaction;
-        const blockHash: HexString = txWithStatus.tx_status.block_hash!;
+        const txWS = txWithStatus as TransactionWithStatus;
+        const tx = txWS.transaction;
+        const blockHash: HexString | undefined = txWS.tx_status.block_hash;
+        assertsNonNil(blockHash, "block hash");
         const tipHeader = await this.rpc.get_header(blockHash);
-        const blockNumber: HexString = tipHeader!.number;
+        const blockNumber: HexString | undefined = tipHeader?.number;
+        assertsNonNil(blockNumber, "tipHeader.number");
+
         this.txCache.parseTransaction(
           tx,
           lockScript,
@@ -449,7 +471,7 @@ export class Cache {
     this.lastTipBlockNumber = tip;
   }
 
-  async loop() {
+  async loop(): Promise<void> {
     const tipBlockNumber: HexString = (await this.indexer.tip()).block_number;
     await this.loopTransactions(tipBlockNumber);
   }
@@ -526,21 +548,21 @@ export class CacheManager {
     indexer: Indexer,
     publicKey: HexString,
     chainCode: HexString,
-    masterPublicKey?: HexString,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
     {
+      TransactionCollector,
       logger = defaultLogger,
       pollIntervalSeconds = 2,
       livenessCheckIntervalSeconds = 5,
-      TransactionCollector = TxCollector,
       rpc = new RPC(indexer.uri),
     }: {
+      TransactionCollector: typeof BaseTransactionCollector;
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      TransactionCollector?: any;
       rpc?: RPC;
-    } = {}
+    },
+    masterPublicKey?: HexString
   ) {
     assertPublicKey(publicKey);
     assertChainCode(chainCode);
@@ -577,10 +599,10 @@ export class CacheManager {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      TransactionCollector?: any;
+      TransactionCollector: typeof BaseTransactionCollector;
       needMasterPublicKey?: boolean;
       rpc?: RPC;
-    } = {}
+    }
   ): CacheManager {
     const keystore = Keystore.load(path);
     const extendedPrivateKey = keystore.extendedPrivateKey(password);
@@ -596,9 +618,9 @@ export class CacheManager {
       indexer,
       accountExtendedPublicKey.publicKey,
       accountExtendedPublicKey.chainCode,
-      masterPublicKey,
       infos,
-      options
+      options,
+      masterPublicKey
     );
   }
 
@@ -610,10 +632,10 @@ export class CacheManager {
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      TransactionCollector?: any;
+      TransactionCollector: typeof BaseTransactionCollector;
       needMasterPublicKey?: boolean;
       rpc?: RPC;
-    } = {}
+    }
   ): CacheManager {
     const seed = mnemonicToSeedSync(mnemonic);
     const extendedPrivateKey = ExtendedPrivateKey.fromSeed(seed);
@@ -629,9 +651,9 @@ export class CacheManager {
       indexer,
       accountExtendedPublicKey.publicKey,
       accountExtendedPublicKey.chainCode,
-      masterPublicKey,
       infos,
-      options
+      options,
+      masterPublicKey
     );
   }
 
@@ -639,17 +661,17 @@ export class CacheManager {
     return this.isRunning;
   }
 
-  scheduleLoop() {
+  scheduleLoop(): void {
     setTimeout(() => {
       this.loop();
     }, this.pollIntervalSeconds * 1000);
   }
 
-  stop() {
+  stop(): void {
     this.isRunning = false;
   }
 
-  async loop() {
+  async loop(): Promise<void> {
     if (!this.running()) {
       return;
     }
@@ -667,12 +689,12 @@ export class CacheManager {
       });
   }
 
-  start() {
+  start(): void {
     this.isRunning = true;
     this.scheduleLoop();
   }
 
-  startForever() {
+  startForever(): void {
     this.start();
     setInterval(() => {
       if (!this.running()) {

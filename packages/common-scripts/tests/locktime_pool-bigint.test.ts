@@ -11,7 +11,13 @@ import { calculateMaximumWithdraw } from "../src/dao";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config, predefined } from "@ckb-lumos/config-manager";
-import { Header, Cell, CellCollector } from "@ckb-lumos/base";
+import {
+  Header,
+  Cell,
+  CellCollector,
+  since as SinceUtils,
+  Script,
+} from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 import {
   bobSecpDaoDepositInput,
@@ -19,7 +25,6 @@ import {
   tipHeader as inputTipHeader,
 } from "./inputs";
 import { bob } from "./account_info";
-import { since as SinceUtils } from "@ckb-lumos/base";
 import { BI } from "@ckb-lumos/bi";
 const { AGGRON4 } = predefined;
 
@@ -130,6 +135,7 @@ const withdrawDao =
 class LocktimeCellCollector {
   private fromInfo: FromInfo;
   private config: Config;
+  readonly fromScript: Script;
 
   constructor(
     fromInfo: FromInfo,
@@ -138,6 +144,11 @@ class LocktimeCellCollector {
   ) {
     this.fromInfo = fromInfo;
     this.config = config!;
+    this.fromScript = {
+      code_hash: "",
+      hash_type: "data",
+      args: "",
+    };
   }
 
   async *collect() {
@@ -384,7 +395,7 @@ test("BigInt:Don't update capacity directly when deduct", async (t) => {
   class LocktimeCellCollector {
     private fromInfo: FromInfo;
     private config: Config;
-
+    readonly fromScript: Script;
     constructor(
       fromInfo: FromInfo,
       _: any,
@@ -392,6 +403,11 @@ test("BigInt:Don't update capacity directly when deduct", async (t) => {
     ) {
       this.fromInfo = fromInfo;
       this.config = config!;
+      this.fromScript = {
+        code_hash: "",
+        hash_type: "data",
+        args: "",
+      };
     }
 
     async *collect() {

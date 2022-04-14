@@ -10,12 +10,12 @@ import {
   core,
   WitnessArgs,
   toolkit,
+  BI,
 } from "@ckb-lumos/lumos";
 import { values } from "@ckb-lumos/base";
-import {
-  parseFromInfo,
-  MultisigScript,
-} from "@ckb-lumos/common-scripts/lib/from_info";
+import { parseFromInfo, MultisigScript } from "@ckb-lumos/common-scripts/lib/from_info";
+import { BIish } from "@ckb-lumos/bi";
+
 const { ScriptValue } = values;
 
 const { AGGRON4 } = config.predefined;
@@ -26,20 +26,17 @@ const rpc = new RPC(CKB_RPC_URL);
 const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
 const ALICE = {
-  PRIVATE_KEY:
-    "0x2c56a92a03d767542222432e4f2a0584f01e516311f705041d86b1af7573751f",
+  PRIVATE_KEY: "0x2c56a92a03d767542222432e4f2a0584f01e516311f705041d86b1af7573751f",
   ARGS: "0x3d35d87fac0008ba5b12ee1c599b102fc8f5fdf8",
 };
 
 const BOB = {
-  PRIVATE_KEY:
-    "0x3bc65932a75f76c5b6a04660e4d0b85c2d9b5114efa78e6e5cf7ad0588ca09c8",
+  PRIVATE_KEY: "0x3bc65932a75f76c5b6a04660e4d0b85c2d9b5114efa78e6e5cf7ad0588ca09c8",
   ARGS: "0x99dbe610c43186696e1f88cb7b59252d4c92afda",
 };
 
 const CHARLES = {
-  PRIVATE_KEY:
-    "0xbe06025fbd8c74f65a513a28e62ac56f3227fcb307307a0f2a0ef34d4a66e81f",
+  PRIVATE_KEY: "0xbe06025fbd8c74f65a513a28e62ac56f3227fcb307307a0f2a0ef34d4a66e81f",
   ARGS: "0xc055df68fdd47c6a5965b9ab21cd6825d8696a76",
 };
 
@@ -55,11 +52,7 @@ const TO_ADDRESS = "ckt1qyqptxys5l9vk39ft0hswscxgseawc77y2wqlr558h";
  * R, M are single byte unsigned integers that ranges from 0 to 255.
  * R must no more than M.
  */
-function generateMofNMultisigInfo(
-  R: number,
-  M: number,
-  publicKeyHashes: string[]
-): MultisigScript {
+function generateMofNMultisigInfo(R: number, M: number, publicKeyHashes: string[]): MultisigScript {
   return {
     R,
     M,
@@ -85,27 +78,25 @@ function generateAccountFromMultisigInfo(fromInfo: MultisigScript): Account {
 interface Options {
   fromInfo: MultisigScript;
   toAddress: string;
-  amount: bigint;
+  amount: BIish;
   privKeys: string[];
 }
 
 export async function transfer(options: Options): Promise<string> {
   let txSkeleton = helpers.TransactionSkeleton({});
 
-  const { fromScript, multisigScript } = generateAccountFromMultisigInfo(
-    options.fromInfo
-  );
+  const { fromScript, multisigScript } = generateAccountFromMultisigInfo(options.fromInfo);
   const toScript = helpers.parseAddress(options.toAddress, { config: AGGRON4 });
 
   // additional 0.001 ckb for tx fee
   // the tx fee could calculated by tx size
   // this is just a simple example
-  const neededCapacity = BigInt(options.amount) + 100000n;
-  let collectedSum = 0n;
+  const neededCapacity = BI.from(options.amount).add(100000);
+  let collectedSum = BI.from(0);
   const collected: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });
   for await (const cell of collector.collect()) {
-    collectedSum += BigInt(cell.cell_output.capacity);
+    collectedSum = collectedSum.add(cell.cell_output.capacity);
     collected.push(cell);
     if (collectedSum >= neededCapacity) break;
   }
@@ -116,7 +107,7 @@ export async function transfer(options: Options): Promise<string> {
 
   const transferOutput: Cell = {
     cell_output: {
-      capacity: "0x" + BigInt(options.amount).toString(16),
+      capacity: BI.from(options.amount).toHexString(),
       lock: toScript,
     },
     data: "0x",
@@ -124,18 +115,14 @@ export async function transfer(options: Options): Promise<string> {
 
   const changeOutput: Cell = {
     cell_output: {
-      capacity: "0x" + BigInt(collectedSum - neededCapacity).toString(16),
+      capacity: collectedSum.sub(neededCapacity).toHexString(),
       lock: fromScript,
     },
     data: "0x",
   };
 
-  txSkeleton = txSkeleton.update("inputs", (inputs) =>
-    inputs.push(...collected)
-  );
-  txSkeleton = txSkeleton.update("outputs", (outputs) =>
-    outputs.push(transferOutput, changeOutput)
-  );
+  txSkeleton = txSkeleton.update("inputs", (inputs) => inputs.push(...collected));
+  txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(transferOutput, changeOutput));
   txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
     cellDeps.push({
       out_point: {
@@ -155,9 +142,7 @@ export async function transfer(options: Options): Promise<string> {
     );
   if (firstIndex !== -1) {
     while (firstIndex >= txSkeleton.get("witnesses").size) {
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-        witnesses.push("0x")
-      );
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
     }
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
     let newWitnessArgs: WitnessArgs;
@@ -165,45 +150,28 @@ export async function transfer(options: Options): Promise<string> {
       "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
     newWitnessArgs = {
-      lock:
-        "0x" +
-        multisigScript!.slice(2) +
-        SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat(options.fromInfo.M),
+      lock: "0x" + multisigScript!.slice(2) + SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat(options.fromInfo.M),
     };
 
     if (witness !== "0x") {
       const witnessArgs = new core.WitnessArgs(new toolkit.Reader(witness));
       const lock = witnessArgs.getLock();
-      if (
-        lock.hasValue() &&
-        new toolkit.Reader(lock.value().raw()).serializeJson() !==
-          newWitnessArgs.lock
-      ) {
-        throw new Error(
-          "Lock field in first witness is set aside for signature!"
-        );
+      if (lock.hasValue() && new toolkit.Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock) {
+        throw new Error("Lock field in first witness is set aside for signature!");
       }
       const inputType = witnessArgs.getInputType();
       if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new toolkit.Reader(
-          inputType.value().raw()
-        ).serializeJson();
+        newWitnessArgs.input_type = new toolkit.Reader(inputType.value().raw()).serializeJson();
       }
       const outputType = witnessArgs.getOutputType();
       if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new toolkit.Reader(
-          outputType.value().raw()
-        ).serializeJson();
+        newWitnessArgs.output_type = new toolkit.Reader(outputType.value().raw()).serializeJson();
       }
     }
     witness = new toolkit.Reader(
-      core.SerializeWitnessArgs(
-        toolkit.normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
+      core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs(newWitnessArgs))
     ).serializeJson();
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-      witnesses.set(firstIndex, witness)
-    );
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
   }
 
   txSkeleton = commons.common.prepareSigningEntries(txSkeleton);
@@ -240,12 +208,9 @@ export async function transfer(options: Options): Promise<string> {
 
 // Multisig transfer example
 function main() {
-  const fromInfo = generateMofNMultisigInfo(2, 2, [
-    ALICE.ARGS,
-    BOB.ARGS,
-    CHARLES.ARGS,
-  ]);
+  const fromInfo = generateMofNMultisigInfo(2, 2, [ALICE.ARGS, BOB.ARGS, CHARLES.ARGS]);
   const privKeys = [ALICE.PRIVATE_KEY, BOB.PRIVATE_KEY];
-  transfer({ fromInfo, toAddress: TO_ADDRESS, amount: 8800000000n, privKeys });
+  transfer({ fromInfo, toAddress: TO_ADDRESS, amount: BI.from(8800000000), privKeys });
 }
+
 main();

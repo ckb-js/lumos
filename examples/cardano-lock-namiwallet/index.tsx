@@ -1,8 +1,8 @@
 import { Address } from "@emurgo/cardano-serialization-lib-asmjs";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { capacityOf, CIP30FullAPI, CONFIG, detectCardano, transfer } from "./lib";
 import { helpers, Script } from "@ckb-lumos/lumos";
-import  ReactDOM from "react-dom"
+import ReactDOM from "react-dom";
 
 const app = document.getElementById("root");
 ReactDOM.render(<App />, app);
@@ -20,6 +20,12 @@ export function App() {
 
   const [isSendingTx, setIsSendingTx] = useState(false);
   const [txHash, setTxHash] = useState("");
+
+  useEffect(() => {
+    if (window.location !== window.parent.location) {
+      alert("Please open this example in a new window, as it does not support running in an iframe");
+    }
+  }, []);
 
   async function connectToNami() {
     const cardano = await detectCardano();

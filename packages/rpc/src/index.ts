@@ -37,7 +37,9 @@ function asyncSleep(ms = 0) {
 }
 
 const handler = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get: (target: any, method: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return async (...params: any) => {
       const result = await target.rpc[method](...params);
       if (target.indexer) {
@@ -64,7 +66,7 @@ class RpcProxy {
     }: {
       waitForSyncCheckIntervalSeconds?: number;
       blockDifference?: number;
-      rpcOptions?: object;
+      rpcOptions?: Record<string, unknown>;
     } = {}
   ) {
     this.rpc = new ToolkitRPC(uri, rpcOptions);
@@ -101,6 +103,7 @@ class RpcProxy {
 }
 
 export class RPC {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private rpcProxy: any;
 
   /**
@@ -119,7 +122,7 @@ export class RPC {
     }: {
       waitForSyncCheckIntervalSeconds?: number;
       blockDifference?: number;
-      rpcOptions?: object;
+      rpcOptions?: Record<string, unknown>;
     } = {}
   ) {
     this.rpcProxy = new RpcProxy(uri, indexer, {
