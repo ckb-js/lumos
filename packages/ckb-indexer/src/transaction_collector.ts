@@ -415,7 +415,6 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index = 0;
     let skippedCount = 0;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       if (this.queries.skip && skippedCount < this.queries.skip) {
         skippedCount++;
@@ -455,7 +454,6 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     let buffer: Promise<TransactionWithStatus[]> = getTxWithCursor();
     let index = 0;
     let skippedCount = 0;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       if (this.queries.skip && skippedCount < this.queries.skip) {
         skippedCount++;

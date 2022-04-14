@@ -66,7 +66,6 @@ export class CkbIndexer implements Indexer {
       (await this.getCkbRpc().get_tip_header()).number,
       16
     );
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
       if (indexerTipNumber + blockDifference >= rpcTipNumber) {
@@ -106,7 +105,6 @@ export class CkbIndexer implements Indexer {
     const sizeLimit = searchKeyFilter.sizeLimit || 100;
     const order = searchKeyFilter.order || "asc";
     const index = 0;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res: GetLiveCellsResult = await this.request("get_cells", params);
@@ -148,7 +146,6 @@ export class CkbIndexer implements Indexer {
     let cursor: string | undefined = searchKeyFilter.lastCursor;
     const sizeLimit = searchKeyFilter.sizeLimit || 100;
     const order = searchKeyFilter.order || "asc";
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
       const res = await this.request("get_transactions", params);
