@@ -1,7 +1,6 @@
 {
   "name": "@ckb-lumos/testkit",
   "version": "0.17.0-rc9",
-  "private": false,
   "description": "Test toolkit for CKB",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
