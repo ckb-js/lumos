@@ -56,5 +56,8 @@
   "devDependencies": {
     "@types/keccak": "^3.0.1",
     "keccak": "^3.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

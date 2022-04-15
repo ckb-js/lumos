@@ -40,5 +40,8 @@
     "@ckb-lumos/bi": "^0.17.0-rc8",
     "@types/deep-freeze-strict": "^1.1.0",
     "deep-freeze-strict": "^1.1.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
