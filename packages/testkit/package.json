@@ -14,7 +14,8 @@
     "test": "tests"
   },
   "files": [
-    "lib"
+    "lib",
+    "src"
   ],
   "dependencies": {
     "@ckb-lumos/base": "0.17.0-rc9",

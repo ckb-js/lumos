@@ -15,7 +15,8 @@
     "test": "tests"
   },
   "files": [
-    "lib"
+    "lib",
+    "src"
   ],
   "dependencies": {
     "jsbi": "^4.1.0"
