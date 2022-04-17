@@ -10,11 +10,6 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "os": [
-    "win32",
-    "darwin",
-    "linux"
-  ],
   "directories": {
     "lib": "lib",
     "test": "tests"
@@ -40,5 +35,8 @@
     "@ckb-lumos/ckb-indexer": "0.18.0-rc6",
     "@ckb-lumos/toolkit": "0.18.0-rc6",
     "immutable": "^4.0.0-rc.12"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

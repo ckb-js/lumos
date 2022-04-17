@@ -10,11 +10,6 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "os": [
-    "win32",
-    "darwin",
-    "linux"
-  ],
   "directories": {
     "lib": "lib",
     "test": "tests"
@@ -53,5 +48,8 @@
     "require": [
       "ts-node/register"
     ]
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

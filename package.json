@@ -9,11 +9,6 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "os": [
-    "win32",
-    "darwin",
-    "linux"
-  ],
   "resolutions": {
     "lerna/**/json-schema": "^0.4.0",
     "@strictsoftware/typedoc-plugin-monorepo/highlight.js": "^10.4.1",
