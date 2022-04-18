@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/rpc",
-  "version": "0.17.0-rc9",
+  "version": "0.17.0-rc10",
   "description": "RPC module for CKB",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -37,9 +37,9 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.17.0-rc9",
-    "@ckb-lumos/bi": "^0.17.0-rc8",
-    "@ckb-lumos/toolkit": "0.17.0-rc9"
+    "@ckb-lumos/base": "0.17.0-rc10",
+    "@ckb-lumos/bi": "0.17.0-rc10",
+    "@ckb-lumos/toolkit": "0.17.0-rc10"
   },
   "ava": {
     "extensions": [

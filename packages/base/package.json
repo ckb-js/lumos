@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/base",
-  "version": "0.17.0-rc9",
+  "version": "0.17.0-rc10",
   "description": "Base data structures and utilities used in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -31,8 +31,8 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/bi": "^0.17.0-rc8",
-    "@ckb-lumos/toolkit": "0.17.0-rc9",
+    "@ckb-lumos/bi": "0.17.0-rc10",
+    "@ckb-lumos/toolkit": "0.17.0-rc10",
     "@types/lodash.isequal": "^4.5.5",
     "blake2b": "^2.1.3",
     "js-xxhash": "^1.0.4",
