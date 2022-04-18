@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/lumos",
-  "version": "0.18.0-rc6",
+  "version": "0.18.0-rc7",
   "description": "A root package for Lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -37,15 +37,15 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.18.0-rc6",
-    "@ckb-lumos/bi": "0.18.0-rc6",
-    "@ckb-lumos/ckb-indexer": "0.18.0-rc6",
-    "@ckb-lumos/common-scripts": "0.18.0-rc6",
-    "@ckb-lumos/config-manager": "0.18.0-rc6",
-    "@ckb-lumos/hd": "0.18.0-rc6",
-    "@ckb-lumos/helpers": "0.18.0-rc6",
-    "@ckb-lumos/rpc": "0.18.0-rc6",
-    "@ckb-lumos/toolkit": "0.18.0-rc6"
+    "@ckb-lumos/base": "0.18.0-rc7",
+    "@ckb-lumos/bi": "0.18.0-rc7",
+    "@ckb-lumos/ckb-indexer": "0.18.0-rc7",
+    "@ckb-lumos/common-scripts": "0.18.0-rc7",
+    "@ckb-lumos/config-manager": "0.18.0-rc7",
+    "@ckb-lumos/hd": "0.18.0-rc7",
+    "@ckb-lumos/helpers": "0.18.0-rc7",
+    "@ckb-lumos/rpc": "0.18.0-rc7",
+    "@ckb-lumos/toolkit": "0.18.0-rc7"
   },
   "devDependencies": {
     "buffer": "^6.0.3",
