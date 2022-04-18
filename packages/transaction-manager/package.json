@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/transaction-manager",
-  "version": "0.17.0-rc9",
+  "version": "0.17.0-rc10",
   "description": "Pending Transaction Manager for lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -31,9 +31,9 @@
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.17.0-rc9",
-    "@ckb-lumos/ckb-indexer": "0.17.0-rc9",
-    "@ckb-lumos/toolkit": "0.17.0-rc9",
+    "@ckb-lumos/base": "0.17.0-rc10",
+    "@ckb-lumos/ckb-indexer": "0.17.0-rc10",
+    "@ckb-lumos/toolkit": "0.17.0-rc10",
     "immutable": "^4.0.0-rc.12"
   },
   "publishConfig": {
