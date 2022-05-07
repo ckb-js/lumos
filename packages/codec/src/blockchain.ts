@@ -1,6 +1,7 @@
 import {
   AnyCodec,
   BytesCodec,
+  createBytesCodec,
   createFixedBytesCodec,
   FixedBytesCodec,
   UnpackResult,
@@ -61,6 +62,8 @@ export function WitnessArgsOf<
   );
 }
 
+const HexifyCodec = createBytesCodec<string>({ pack: bytify, unpack: hexify });
+
 /**
  *
  * @example
@@ -70,7 +73,7 @@ export function WitnessArgsOf<
  * ```
  */
 export const WitnessArgs = WitnessArgsOf({
-  lock: BytesOpt,
-  input_type: BytesOpt,
-  output_type: BytesOpt,
+  lock: HexifyCodec,
+  input_type: HexifyCodec,
+  output_type: HexifyCodec,
 });
