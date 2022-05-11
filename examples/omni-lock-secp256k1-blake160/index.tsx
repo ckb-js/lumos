@@ -17,7 +17,7 @@ interface ConnectProps {
 export function Connect({ onConnect }: ConnectProps) {
   const [privateKey, setPrivateKey] = useState("0x96150d7ce108a2dab7c7689d773422fa1a272f85f0ddf4c5a3d807b2b145d3ba");
 
-  const genAddress = () => {
+  const genRandomKeyPair = () => {
     const key = ec.genKeyPair();
     setPrivateKey(`0x${key.getPrivate().toString("hex")}`);
   };
@@ -27,7 +27,7 @@ export function Connect({ onConnect }: ConnectProps) {
       <input value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} placeholder="0x..." />
 
       <button 
-        onClick={genAddress} 
+        onClick={genRandomKeyPair} 
         style={{ marginLeft: 8 }}
       >
         generatePrivateKey
@@ -56,7 +56,7 @@ export function App() {
   const [txHash, setTxHash] = useState("");
 
   function connectByPrivateKey(pk: string) {
-    const publicKey = key.privateKeyToBlake160(pk);
+    const pubkeyHash = key.privateKeyToBlake160(pk);
 
     const omniLock: Script = {
       code_hash: CONFIG.SCRIPTS.OMNI_LOCK.CODE_HASH,
@@ -66,7 +66,7 @@ export function App() {
       // 00: Nervos       👇            00: owner
       // 01: Ethereum     👇            01: administrator
       //      👇          👇            👇
-      args: `0x00${publicKey.substring(2)}00`,
+      args: `0x00${pubkeyHash.substring(2)}00`,
     };
 
     const omniAddr = helpers.generateAddress(omniLock);

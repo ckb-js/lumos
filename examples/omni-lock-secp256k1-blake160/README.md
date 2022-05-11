@@ -1,4 +1,4 @@
-# Lumos Works with private key
+# Lumos & Omnilock secp256k1_blake160
 
 Nervos maintains a powerful lock
 called [Omni Lock](https://github.com/XuJiandong/docs-bank/blob/master/omni_lock.md) (previously named RC lock), which
