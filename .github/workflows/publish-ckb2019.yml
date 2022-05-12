@@ -1,9 +1,9 @@
-name: publish ckb2021
+name: publish ckb2019
 on:
   # When Release Pull Request is merged
   pull_request:
     branches:
-      - ckb2021
+      - ckb2019
     types: [closed]
 
 permissions:
@@ -78,7 +78,7 @@ jobs:
         run: |
           yarn run build
           yarn run build-release
-          yarn lerna publish  --dist-tag next from-package --yes
+          yarn lerna publish  --dist-tag ckb2019 from-package --yes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
