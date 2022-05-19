@@ -7,6 +7,8 @@ import {
   fullAddressInfoWithData,
 } from "./addresses";
 import { predefined } from "@ckb-lumos/config-manager";
+import { bech32, bech32m } from "bech32";
+import { hexToByteArray } from "../src/utils";
 const { LINA, AGGRON4 } = predefined;
 
 test.before(() => {
@@ -86,4 +88,54 @@ test("short address, mainnet, addressToScript", (t) => {
   });
 
   t.deepEqual(script, shortAddressInfo.script);
+});
+
+test("invalid short address with bech32m", (t) => {
+  const args = hexToByteArray("0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a");
+  const wrongAddress = bech32m.encode(
+    LINA.PREFIX,
+    bech32m.toWords([0x01, 0x0].concat(args))
+  );
+
+  t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
+    message: /Invalid checksum/,
+  });
+});
+
+test("invalid short address with wrong args length", (t) => {
+  /* 21 bytes */
+  const args = hexToByteArray("0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a33");
+  const wrongAddress = bech32.encode(
+    LINA.PREFIX,
+    bech32m.toWords([0x01, 0x0].concat(args))
+  );
+
+  t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
+    message: /Invalid payload length/,
+  });
+});
+
+test("invalid address with wrong prefix", (t) => {
+  /* 21 bytes */
+  const args = hexToByteArray("0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a");
+  const wrongAddress = bech32.encode(
+    AGGRON4.PREFIX,
+    bech32.toWords([0x01, 0x0].concat(args))
+  );
+
+  t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
+    message: /Invalid prefix/,
+  });
+});
+
+test("invalid address with too short payload", (t) => {
+  const args = hexToByteArray("0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a");
+  const wrongAddress = bech32.encode(
+    AGGRON4.PREFIX,
+    bech32.toWords([0x01, 0x0].concat(args))
+  );
+
+  t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
+    message: /Invalid prefix/,
+  });
 });
