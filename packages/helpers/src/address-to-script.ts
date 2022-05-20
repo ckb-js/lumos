@@ -70,7 +70,7 @@ export function parseFullFormatAddress(
     if (serializedHashType === 1) return "type";
     if (serializedHashType === 2) return "data1";
 
-    throw new Error(`unknown hash_type ${serializedHashType}`);
+    throw new Error(`Invalid hash_type ${serializedHashType}`);
   })();
   const args = byteArrayToHex(body.slice(33));
 

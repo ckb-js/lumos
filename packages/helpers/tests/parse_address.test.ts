@@ -9,6 +9,7 @@ import {
 import { predefined } from "@ckb-lumos/config-manager";
 import { bech32, bech32m } from "bech32";
 import { hexToByteArray } from "../src/utils";
+import { ADDRESS_FORMAT_SHORT } from "../src/address-to-script";
 const { LINA, AGGRON4 } = predefined;
 
 test.before(() => {
@@ -109,7 +110,7 @@ test("invalid short address with wrong args length", (t) => {
     LINA.PREFIX,
     bech32m.toWords([0x01, 0x0].concat(args))
   );
-
+  t.is(wrongAddress, "ckb1qyqylv479ewscx3ms620sv34pgeuz6zagaarxdzvx03");
   t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
     message: /Invalid payload length/,
   });
@@ -120,11 +121,24 @@ test("invalid address with wrong prefix", (t) => {
   const args = hexToByteArray("0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a");
   const wrongAddress = bech32.encode(
     AGGRON4.PREFIX,
-    bech32.toWords([0x01, 0x0].concat(args))
+    bech32.toWords([ADDRESS_FORMAT_SHORT, 0x0].concat(args))
   );
 
   t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
     message: /Invalid prefix/,
+  });
+});
+
+test("invalid code hash index ", (t) => {
+  const args = hexToByteArray("0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a");
+  const wrongAddress = bech32.encode(
+    LINA.PREFIX,
+    bech32.toWords([ADDRESS_FORMAT_SHORT, 17].concat(args))
+  );
+
+  t.is(wrongAddress, "ckb1qyg5lv479ewscx3ms620sv34pgeuz6zagaaqajch0c");
+  t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
+    message: /Invalid code hash index: 17/,
   });
 });
 

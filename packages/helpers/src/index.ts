@@ -193,7 +193,7 @@ export function encodeToAddress(
     if (script.hash_type === "data1") return 2;
 
     /* c8 ignore next */
-    throw new Error(`unknown hash_type ${script.hash_type}`);
+    throw new Error(`Invalid hash_type ${script.hash_type}`);
   })();
 
   data.push(0x00);
