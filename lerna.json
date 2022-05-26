@@ -1,11 +1,8 @@
 {
-  "packages": [
-    "packages/*",
-    "experiment/*"
-  ],
+  "packages": ["packages/*", "experiment/*"],
   "npmClient": "yarn",
   "useWorkspaces": true,
-  "version": "0.17.0-rc10",
+  "version": "0.17.0",
   "command": {
     "publish": {
       "access": "public"
