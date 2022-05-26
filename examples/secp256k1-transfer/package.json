@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@lumos-examples/secp256k1-transfer",
-  "version": "0.17.0-rc10",
+  "version": "0.17.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/lumos": "0.17.0-rc10",
+    "@ckb-lumos/lumos": "0.17.0",
     "@types/react": "^17.0.34",
     "@types/react-dom": "^17.0.11",
     "react": "^17.0.2",

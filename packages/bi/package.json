@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/bi",
-  "version": "0.17.0-rc10",
+  "version": "0.17.0",
   "description": "Bigint support in lumos",
   "author": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
