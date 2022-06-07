@@ -41,15 +41,6 @@
     "@types/deep-freeze-strict": "^1.1.0",
     "deep-freeze-strict": "^1.1.1"
   },
-  "ava": {
-    "extensions": [
-      "ts",
-      "js"
-    ],
-    "require": [
-      "ts-node/register"
-    ]
-  },
   "publishConfig": {
     "access": "public"
   }

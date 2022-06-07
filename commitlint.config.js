@@ -6,7 +6,7 @@ const scopeEnumValues = [
   "config-manager",
   "hd",
   "hd-cache",
-  "helper",
+  "helpers",
   "indexer",
   "lumos",
   "rpc",
