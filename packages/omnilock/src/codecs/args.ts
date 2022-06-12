@@ -2,9 +2,9 @@ import { HexString } from "@ckb-lumos/base";
 import { BytesLikeCodec } from "@ckb-lumos/codec/lib/base";
 import { createBytesCodec } from "@ckb-lumos/codec";
 import { Uint8 } from "@ckb-lumos/codec/lib/number";
-import { invertKV, isKeyOf } from "./utils";
 import { concat } from "@ckb-lumos/codec/lib/bytes";
 import { createFixedHexBytesCodec } from "@ckb-lumos/codec/lib/blockchain";
+import { invertKV, isKeyOf } from "../utils";
 
 export const AUTH_FLAG = {
   SECP256K1_BLAKE160: 0x00,
@@ -12,7 +12,7 @@ export const AUTH_FLAG = {
   ETHEREUM: 0x01,
   EOS: 0x02,
   TRON: 0x03,
-  BITCON: 0x04,
+  BITCOIN: 0x04,
   DEGE: 0x05,
 
   /**

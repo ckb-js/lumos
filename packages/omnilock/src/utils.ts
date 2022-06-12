@@ -21,3 +21,7 @@ export function isKeyOf<O>(obj: O, key: PropertyKey): key is keyof O {
   if (obj == null) return false;
   return key in obj;
 }
+
+export function unimplemented(): never {
+  throw new Error("unimplemented");
+}
