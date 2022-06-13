@@ -62,10 +62,10 @@ export type FeaturePart = {
 
 export type OmnilockInfo = {
   auth: AuthPart;
-  feature: FeaturePart;
+  feature?: FeaturePart;
 };
 
-export type SigningPoint = {
+export type SigningHint = {
   script: Script;
   // index of witnesses
   // also represents the index of inputs or outputs
@@ -84,23 +84,39 @@ export type SigningPoint = {
  * but typed messages may be supported in the future,
  * so preserve scalability first
  */
-export type SigningEntry<UnsignedMsg = HexString> = SigningPoint & {
+export type SigningEntry<UnsignedMsg = HexString> = SigningHint & {
   // message for signing
   message: UnsignedMsg;
 };
 
+export type AdjustedSkeleton = {
+  adjusted: TransactionSkeletonType;
+  signingHints: SigningHint[];
+};
+
 export interface OmnilockSuite {
+  readonly scriptConfig: ScriptConfig;
+  /**
+   * helps Omnilock suite to handle the {@link LockArgs.authContent authContent}
+   */
+  readonly authHints: AuthPart[];
+
   createOmnilockScript(options: OmnilockInfo): Script;
 
   /**
-   * auto prefill Omnilock witness in the skeleton
+   * this method helps to
+   * 1. inject the cellDeps if not exists
+   * 2. inject omnilock witness placeholder if not exists
    * @param txSkeleton
-   * @param authInfos
    */
-  adjustWitness(
+  adjust(txSkeleton: TransactionSkeletonType): Promise<AdjustedSkeleton>;
+
+  seal(
     txSkeleton: TransactionSkeletonType,
-    authInfos: AuthPart[]
-  ): Promise<[TransactionSkeletonType, SigningPoint[]]>;
+    sign: (
+      entry: SigningEntry & { authHint: AuthPart }
+    ) => HexString | Promise<HexString>
+  ): Promise<TransactionSkeletonType>;
 }
 
 export * from "./CommonAdapter";
