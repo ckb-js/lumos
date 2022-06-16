@@ -20,19 +20,6 @@ test("p2pkh#isP2PKHHint", (t) => {
 });
 
 test("p2pkh#p2pkh", (t) => {
-  t.true(
-    isP2PKHHint({
-      authFlag: "SECP256K1_BLAKE160",
-      options: { pubkeyHash: "0x" },
-    })
-  );
-  t.false(
-    isP2PKHHint({
-      authFlag: "MULTISIG",
-      options: { R: 1, M: 2, publicKeyHashes: ["0x", "0x"] },
-    })
-  );
-
   let txSkeleton = TransactionSkeleton({});
   const omniLockScriptConfig: ScriptConfig = {
     CODE_HASH:
