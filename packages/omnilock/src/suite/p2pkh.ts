@@ -38,11 +38,11 @@ export function p2pkh(
     OmnilockWitnessLock.pack({ signature: `0x${"00".repeat(65)}` })
   );
   const groups = createP2PKHMessageGroup(txSkeleton, scripts);
-  let adjustedSkeon = txSkeleton;
+  let adjustedSkeleton = txSkeleton;
   groups.forEach((group) => {
     if (!txSkeleton.witnesses.get(group.index)) {
       // initilize witness with placeholder if not exist
-      adjustedSkeon = txSkeleton.update("witnesses", (witnesses) =>
+      adjustedSkeleton = txSkeleton.update("witnesses", (witnesses) =>
         witnesses.set(group.index, witnessPlaceholder)
       );
     }
@@ -57,7 +57,7 @@ export function p2pkh(
     };
   });
   return {
-    adjusted: adjustedSkeon,
+    adjusted: adjustedSkeleton,
     signingHints,
   };
 }
