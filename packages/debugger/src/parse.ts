@@ -8,10 +8,12 @@ import { bytify } from "@ckb-lumos/codec/lib/bytes";
 import { OutPointVec } from "./codecs";
 
 export function parseDebuggerMessage(message: string): ExecuteResult {
-  const codeMatch = message.match(/Run result: (\d+)/);
+  const codeMatch = message.match(/Run result: (-?\d+)/);
   const cycleMatch = message.match(/Total cycles consumed: (\d+)/);
 
-  if (!codeMatch || !cycleMatch) throw new Error("Invalid debugger result");
+  if (!codeMatch || !cycleMatch) {
+    throw new Error("Invalid debugger result: " + message);
+  }
 
   const code = Number(codeMatch[1]);
   const cycles = Number(cycleMatch[1]);
