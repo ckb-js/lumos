@@ -6,16 +6,31 @@ import {
 import * as path from "path";
 import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
 import { HexString } from "@ckb-lumos/base";
-import { CKBDebugger, CKBDebuggerDownloader } from "../src";
+import { CKBDebugger, CKBDebuggerDownloader, DataLoader } from "../src";
 import { TransactionSkeleton } from "@ckb-lumos/helpers";
 import { createTestContext, mockOutPoint } from "../src/context";
-import { DataLoader } from "../src/types";
+import { randomBytes } from "crypto";
+import { privateKeyToBlake160, signRecoverable } from "@ckb-lumos/hd/lib/key";
+import { hexify } from "@ckb-lumos/codec/lib/bytes";
+import { createP2PKHMessageGroup } from "@ckb-lumos/common-scripts";
+import { WitnessArgs } from "@ckb-lumos/codec/lib/blockchain";
 
 const downloader = new CKBDebuggerDownloader();
 const context = createTestContext({
   deps: {
-    ALWAYS_SUCCESS: { path: path.join(__dirname, "deps/always_success") },
-    ALWAYS_FAILURE: { path: path.join(__dirname, "deps/always_failure") },
+    ALWAYS_SUCCESS: {
+      dep_type: "code",
+      path: path.join(__dirname, "deps/always_success"),
+    },
+    ALWAYS_FAILURE: {
+      dep_type: "code",
+      path: path.join(__dirname, "deps/always_failure"),
+    },
+    SECP256K1_BLAKE160: {
+      dep_type: "group",
+      path: path.join(__dirname, "deps/secp256k1_blake160"),
+      includes: [path.join(__dirname, "deps/secp256k1_data_info")],
+    },
   },
 });
 
@@ -35,7 +50,7 @@ test.before(async () => {
   await downloader.downloadIfNotExists();
 });
 
-test("debugger#CKBDebugger without debugger path", (t) => {
+test("context#CKBDebugger without debugger path", (t) => {
   const origin = process.env.CKB_DEBUGGER_PATH;
   delete process.env.CKB_DEBUGGER_PATH;
 
@@ -45,7 +60,7 @@ test("debugger#CKBDebugger without debugger path", (t) => {
 });
 
 // TODO uncomment the skip when ci is ready
-test("debugger#CKBDebugger with always_success", async (t) => {
+test("context#CKBDebugger with always_success", async (t) => {
   let txSkeleton = TransactionSkeleton({});
   const alwaysSuccessLock = registry.newScript("ALWAYS_SUCCESS", "0x");
 
@@ -72,7 +87,7 @@ test("debugger#CKBDebugger with always_success", async (t) => {
   t.regex(result.message, /Total cycles consumed: 539/);
 });
 
-test("debugger#CKBDebugger with always_fail", async (t) => {
+test("context#CKBDebugger with always_fail", async (t) => {
   let txSkeleton = TransactionSkeleton({});
   const alwaysFailureLock = registry.newScript("ALWAYS_FAILURE", "0x");
 
@@ -98,6 +113,42 @@ test("debugger#CKBDebugger with always_fail", async (t) => {
   t.regex(result.message, /Run result: -1/);
 });
 
-test.todo("debugger#CKBDebugger with secp256k1 with correct signature");
-test.todo("debugger#CKBDebugger with secp256k1 with wrong signature");
-test.todo("debugger#CKBDebugger with transfer sUDT");
+test("context#CKBDebugger with secp256k1 with correct signature", async (t) => {
+  let txSkeleton = TransactionSkeleton({});
+  const pk = hexify(randomBytes(32));
+  const blake160 = privateKeyToBlake160(pk);
+
+  const secp256k1Lock = registry.newScript("SECP256K1_BLAKE160", blake160);
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) =>
+    inputs.push({
+      out_point: mockOutPoint(),
+      ...createCellWithMinimalCapacity({ lock: secp256k1Lock }),
+    })
+  );
+  txSkeleton.update("outputs", (outputs) =>
+    outputs.push(createCellWithMinimalCapacity({ lock: secp256k1Lock }))
+  );
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160"))
+  );
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+    witnesses.push(hexify(WitnessArgs.pack({ lock: "0x" + "00".repeat(65) })))
+  );
+  const signingGroup = createP2PKHMessageGroup(txSkeleton, [secp256k1Lock]);
+  const signedMessage = signRecoverable(signingGroup[0].message, pk);
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+    witnesses.set(0, hexify(WitnessArgs.pack({ lock: signedMessage })))
+  );
+
+  const result = await context.executor.execute(txSkeleton, {
+    scriptGroupType: "lock",
+    scriptHash: computeScriptHash(secp256k1Lock),
+  });
+
+  t.is(result.code, 0);
+  t.true(result.cycles > 0);
+});
+
+test.todo("context#CKBDebugger with secp256k1 with wrong signature");
+test.todo("context#CKBDebugger with transfer sUDT");
