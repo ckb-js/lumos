@@ -27,7 +27,7 @@ const context = createTestContext({
       path: path.join(__dirname, "deps/always_failure"),
     },
     SECP256K1_BLAKE160: {
-      dep_type: "group",
+      dep_type: "dep_group",
       path: path.join(__dirname, "deps/secp256k1_blake160"),
       includes: [path.join(__dirname, "deps/secp256k1_data_info")],
     },

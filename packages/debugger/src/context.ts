@@ -17,7 +17,7 @@ export function mockOutPoint(): OutPoint {
 }
 
 type DepCodePath = { dep_type?: "code"; path: string };
-type DepGroupPath = { dep_type: "group"; path: string; includes: string[] };
+type DepGroupPath = { dep_type: "dep_group"; path: string; includes: string[] };
 type LocaleConfig = DepCodePath | DepGroupPath;
 
 function isDepCode(obj: LocaleConfig): obj is DepCodePath {
@@ -28,7 +28,7 @@ function isDepCode(obj: LocaleConfig): obj is DepCodePath {
 }
 
 function isDepGroup(obj: LocaleConfig): obj is DepGroupPath {
-  return obj.dep_type === "group";
+  return obj.dep_type === "dep_group";
 }
 
 export type LocaleCode = { [key: string]: LocaleConfig };
