@@ -23,15 +23,16 @@ export function groupBy<V, GetK extends (val: V) => any>(
   const hashKeys: string[] = [];
 
   list.forEach((val) => {
-    const key = hashCode(keyGetter(val));
+    const hashKey = hashCode(keyGetter(val));
 
-    if (!map.has(key)) {
+    if (!map.has(hashKey)) {
       originKeys.push(keyGetter(val));
+      hashKeys.push(hashKey);
     }
 
-    const group = map.get(key) || [];
+    const group = map.get(hashKey) || [];
     group.push(val);
-    map.set(key, group);
+    map.set(hashKey, group);
   });
 
   return {

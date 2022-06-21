@@ -20,6 +20,11 @@ test("utils#groupBy", (t) => {
   ]);
 
   t.deepEqual(grouped.get({ val: 3 }), []);
+
+  t.is(grouped.hashKeys()[0], JSON.stringify({ val: 1 }));
+  t.is(grouped.hashKeys()[1], JSON.stringify({ val: 2 }));
+  t.deepEqual(grouped.listKeys()[0], { val: 1 });
+  t.deepEqual(grouped.listKeys()[1], { val: 2 });
 });
 
 test("utils#groupBy with custom hashCode", (t) => {
