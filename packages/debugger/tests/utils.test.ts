@@ -1,5 +1,6 @@
 import test from "ava";
-import { groupBy } from "../src/utils";
+import { groupBy, identity } from "../src/utils";
+import { mapObj } from "../src/utils/mapObj";
 
 test("utils#groupBy", (t) => {
   const list = [
@@ -48,4 +49,18 @@ test("utils#groupBy with custom hashCode", (t) => {
   ]);
 
   t.deepEqual(grouped.get({ val: 3 }), []);
+});
+
+test("uitls#mapObj", (t) => {
+  const mapped1 = mapObj({ key1: "1", key2: "2" }, Number);
+  t.deepEqual(mapped1, { key1: 1, key2: 2 });
+
+  const mappedNil = mapObj(undefined as any, identity);
+  t.deepEqual(mappedNil, {});
+
+  const mappedArr = mapObj([1, 2, 3, 4] as any, String);
+  t.deepEqual(mappedArr, { 0: "1", 1: "2", 2: "3", 3: "4" });
+
+  const mappedEmpty = mapObj({}, identity);
+  t.deepEqual(mappedEmpty, {});
 });
