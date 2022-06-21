@@ -26,9 +26,11 @@
     "@ckb-lumos/config-manager": "*",
     "@ckb-lumos/helpers": "*",
     "@types/download": "^8.0.1",
+    "@types/object-hash": "^2.2.1",
     "debug": "^4.3.4",
     "download": "^8.0.0",
-    "env-paths": "^2.2.1"
+    "env-paths": "^2.2.1",
+    "object-hash": "^3.0.0"
   },
   "devDependencies": {
     "@ckb-lumos/experiment-tx-assembler": "*"

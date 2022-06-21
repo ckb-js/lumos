@@ -1,3 +1,5 @@
+import objectHash from "object-hash";
+
 export interface Grouped<K, V> {
   get(key: K): V[];
   listKeys(): K[];
@@ -17,7 +19,7 @@ export function groupBy<V, GetK extends (val: V) => any>(
   }
 ): Grouped<ReturnType<GetK>, V> {
   const map = new Map<string, V[]>();
-  const { hashCode = JSON.stringify } = options || {};
+  const { hashCode = objectHash } = options || {};
 
   const originKeys: ReturnType<GetK>[] = [];
   const hashKeys: string[] = [];

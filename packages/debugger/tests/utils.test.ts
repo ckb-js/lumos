@@ -9,7 +9,7 @@ test("utils#groupBy", (t) => {
     { key: { val: 1 }, name: "group1", payload: "payload3" },
   ];
 
-  const grouped = groupBy(list, (val) => val.key);
+  const grouped = groupBy(list, (val) => val.key, { hashCode: JSON.stringify });
 
   t.deepEqual(grouped.get({ val: 1 }), [
     { key: { val: 1 }, name: "group1", payload: "payload1" },
@@ -49,6 +49,11 @@ test("utils#groupBy with custom hashCode", (t) => {
   ]);
 
   t.deepEqual(grouped.get({ val: 3 }), []);
+
+  t.is(grouped.hashKeys().length, 2);
+  t.is(grouped.listKeys().length, 2);
+  t.deepEqual(grouped.listKeys()[0], { val: 1 });
+  t.deepEqual(grouped.listKeys()[1], { val: 2 });
 });
 
 test("uitls#mapObj", (t) => {
