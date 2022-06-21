@@ -74,16 +74,16 @@ test("debugger#CKBDebugger with always_success", async (t) => {
 
 test("debugger#CKBDebugger with always_fail", async (t) => {
   let txSkeleton = TransactionSkeleton({});
-  const alwaysSuccessLock = registry.newScript("ALWAYS_FAILURE", "0x");
+  const alwaysFailureLock = registry.newScript("ALWAYS_FAILURE", "0x");
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
       out_point: mockOutPoint(),
-      ...createCellWithMinimalCapacity({ lock: alwaysSuccessLock }),
+      ...createCellWithMinimalCapacity({ lock: alwaysFailureLock }),
     })
   );
   txSkeleton = txSkeleton.update("outputs", (outputs) =>
-    outputs.push(createCellWithMinimalCapacity({ lock: alwaysSuccessLock }))
+    outputs.push(createCellWithMinimalCapacity({ lock: alwaysFailureLock }))
   );
   txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
     cellDeps.push(registry.newCellDep("ALWAYS_FAILURE"))
@@ -91,7 +91,7 @@ test("debugger#CKBDebugger with always_fail", async (t) => {
 
   const result = await context.executor.execute(txSkeleton, {
     scriptGroupType: "lock",
-    scriptHash: computeScriptHash(alwaysSuccessLock),
+    scriptHash: computeScriptHash(alwaysFailureLock),
   });
 
   t.is(result.code, -1);
