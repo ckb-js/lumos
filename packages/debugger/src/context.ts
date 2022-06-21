@@ -1,18 +1,19 @@
 import { Header, OutPoint } from "@ckb-lumos/base";
-import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import * as crypto from "crypto";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { loadCode, LoadedCode } from "./loader";
-import { DataLoader } from "./types";
+import { DataLoader, TestContext } from "./types";
 import { OutPointValue } from "@ckb-lumos/base/lib/values";
 import { CKBDebuggerDownloader } from "./download";
-import { CKBDebugger } from "./debugger";
+import { CKBDebugger } from "./executor";
 import * as fs from "fs";
+import { hexify } from "@ckb-lumos/codec/lib/bytes";
+import { Uint32 } from "@ckb-lumos/codec/lib/number";
 
 export function mockOutPoint(): OutPoint {
   return {
     tx_hash: hexify(crypto.randomBytes(32)),
-    index: "0x" + crypto.randomBytes(4).toString("hex"),
+    index: "0x" + Uint32.unpack(crypto.randomBytes(4)).toString(16),
   };
 }
 
@@ -22,11 +23,6 @@ export type LocaleCode = { [key: string]: LocaleConfig };
 
 export type CreateContextOptions = {
   codeLocale: LocaleCode;
-};
-
-export type TestContext<T extends LocaleCode> = {
-  scriptConfigs: Record<keyof T, ScriptConfig>;
-  executor: CKBDebugger;
 };
 
 function createCKBDebugger(loader: DataLoader): CKBDebugger {

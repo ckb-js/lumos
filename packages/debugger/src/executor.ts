@@ -1,4 +1,4 @@
-import { DataLoader, Debugger, ExecuteResult } from "./types";
+import { DataLoader, Executor, ExecuteResult } from "./types";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { execSync } from "child_process";
 import { Hash } from "@ckb-lumos/base";
@@ -13,7 +13,7 @@ interface DebuggerOptions {
 }
 
 // TODO maybe we can compile the ckb-debugger to a wasm or a node module
-export class CKBDebugger implements Debugger {
+export class CKBDebugger implements Executor {
   loader: DataLoader;
   debuggerPath: string;
 

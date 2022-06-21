@@ -1,4 +1,4 @@
-import { Config, ScriptConfig } from "@ckb-lumos/config-manager";
+import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 import {
   CellDep,
@@ -10,19 +10,13 @@ import {
   Output,
   Transaction,
 } from "@ckb-lumos/base";
+import { CKBDebugger } from "./executor";
+import { LocaleCode } from "./context";
 
 export interface ExecuteResult {
   code: number;
   cycles: number;
   message: string;
-}
-
-interface DebuggerScript extends ScriptConfig {
-  HASH_TYPE: "data";
-}
-
-export interface DebuggerConfig extends Config {
-  SCRIPTS: { [field: string]: DebuggerScript };
 }
 
 export interface DataLoader {
@@ -45,7 +39,7 @@ export interface DebuggerData {
   tx: Transaction;
 }
 
-export interface Debugger {
+export interface Executor {
   execute(
     tx: TransactionSkeletonType,
     options: {
@@ -54,3 +48,8 @@ export interface Debugger {
     }
   ): Promise<ExecuteResult>;
 }
+
+export type TestContext<T extends LocaleCode> = {
+  readonly scriptConfigs: Record<keyof T, ScriptConfig>;
+  readonly executor: CKBDebugger;
+};
