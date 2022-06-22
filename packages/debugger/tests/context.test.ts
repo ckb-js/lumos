@@ -31,6 +31,12 @@ const context = createTestContext({
       path: path.join(__dirname, "deps/secp256k1_blake160"),
       includes: [path.join(__dirname, "deps/secp256k1_data_info")],
     },
+    // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c
+    DEBUGGER: {
+      // the dep_type is defaults to "code"
+      // dep_type: "code",
+      path: path.join(__dirname, "deps/debugger"),
+    },
   },
 });
 
@@ -189,4 +195,28 @@ test("context#CKBDebugger with secp256k1 with wrong signature", async (t) => {
   t.is(result.code, -31);
   t.true(result.cycles > 0);
 });
+
+test("context#CKBDebugger with printf debug message", async (t) => {
+  let txSkeleton = TransactionSkeleton({});
+  const debugScript = registry.newScript("DEBUGGER", "0x");
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) =>
+    inputs.push({
+      out_point: mockOutPoint(),
+      ...createCellWithMinimalCapacity({ lock: debugScript }),
+    })
+  );
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("DEBUGGER"))
+  );
+
+  const result = await context.executor.execute(txSkeleton, {
+    scriptGroupType: "lock",
+    scriptHash: computeScriptHash(debugScript),
+  });
+
+  t.regex(result.debugMessage, /debugger print utf-8 string/);
+  t.is(result.code, 0);
+});
+
 test.todo("context#CKBDebugger with transfer sUDT");
