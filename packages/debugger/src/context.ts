@@ -1,9 +1,8 @@
 import { Header, OutPoint } from "@ckb-lumos/base";
 import * as crypto from "crypto";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
-import { loadCode, LoadedCode } from "./loader";
+import { OutputDataLoader } from "./loader";
 import { DataLoader, TestContext } from "./types";
-import { OutPointValue } from "@ckb-lumos/base/lib/values";
 import { CKBDebuggerDownloader } from "./download";
 import { CKBDebugger } from "./executor";
 import * as fs from "fs";
@@ -17,8 +16,21 @@ export function mockOutPoint(): OutPoint {
   };
 }
 
-// TODO implement dep_group
-type LocaleConfig = { path: string } /*| { group: string[] }*/;
+type DepCodePath = { dep_type?: "code"; path: string };
+type DepGroupPath = { dep_type: "dep_group"; path: string; includes: string[] };
+type LocaleConfig = DepCodePath | DepGroupPath;
+
+function isDepCode(obj: LocaleConfig): obj is DepCodePath {
+  return (
+    obj.dep_type === "code" ||
+    (typeof obj.dep_type === "undefined" && typeof obj.path === "string")
+  );
+}
+
+function isDepGroup(obj: LocaleConfig): obj is DepGroupPath {
+  return obj.dep_type === "dep_group";
+}
+
 export type LocaleCode = { [key: string]: LocaleConfig };
 
 export type CreateContextOptions = {
@@ -48,53 +60,65 @@ function createCKBDebugger(loader: DataLoader): CKBDebugger {
   });
 }
 
-// TODO support load dep_group
 export function createTestContext<Code extends LocaleCode>(config: {
   deps: Code;
 }): TestContext<Code> {
   const { deps } = config;
 
-  const loadedCodes: Record<keyof Code, LoadedCode> = Object.entries(
-    deps
-  ).reduce(
-    (scriptConfigs, [key, configItem]) =>
-      Object.assign(scriptConfigs, { [key]: loadCode(configItem.path) }),
-    {} as Record<keyof Code, LoadedCode>
-  );
+  const scriptConfigs = {} as Record<keyof Code, ScriptConfig>;
+  const outputDataLoader = new OutputDataLoader();
 
-  const scriptConfigs: Record<keyof Code, ScriptConfig> = Object.entries(
-    loadedCodes
-  ).reduce((scriptConfigs, [key, loaded]) => {
-    const { index, tx_hash } = mockOutPoint();
+  Object.entries(deps).forEach(([key, depConfig]) => {
+    const entryCodeOutPoint = mockOutPoint();
+    const entryCode = outputDataLoader.setCode(
+      entryCodeOutPoint,
+      depConfig.path
+    );
 
-    const configItem: ScriptConfig = {
-      CODE_HASH: loaded.codeHash,
-      DEP_TYPE: "code",
-      TX_HASH: tx_hash,
-      INDEX: index,
-      HASH_TYPE: "data",
-    };
+    outputDataLoader.setCode(entryCodeOutPoint, depConfig.path);
 
-    return Object.assign(scriptConfigs, { [key]: configItem });
-  }, {} as Record<keyof Code, ScriptConfig>);
-
-  const scriptConfigEntries = Object.entries(scriptConfigs);
-  const getCellData: DataLoader["getCellData"] = (outPoint) => {
-    const found = scriptConfigEntries.find(([, configItem]) => {
-      const configOutPoint = {
-        index: configItem.INDEX,
-        tx_hash: configItem.TX_HASH,
+    if (isDepCode(depConfig)) {
+      const entryScriptConfig: ScriptConfig = {
+        CODE_HASH: entryCode.codeHash,
+        DEP_TYPE: "code",
+        INDEX: entryCodeOutPoint.index,
+        HASH_TYPE: "data",
+        TX_HASH: entryCodeOutPoint.tx_hash,
       };
 
-      const actual = new OutPointValue(configOutPoint, {});
-      const expected = new OutPointValue(outPoint, {});
+      Object.assign(scriptConfigs, { [key]: entryScriptConfig });
+    }
 
-      return actual.equals(expected);
-    });
+    if (isDepGroup(depConfig)) {
+      const depGroupOutPoint = mockOutPoint();
 
-    if (!found) throw new Error("OutPoint cannot be found");
-    const [key] = found;
-    return loadedCodes[key].binary;
+      const includedOutPoints = Array.from({
+        length: depConfig.includes.length,
+      }).map(mockOutPoint);
+      outputDataLoader.setOutpointVec(depGroupOutPoint, [
+        entryCodeOutPoint,
+        ...includedOutPoints,
+      ]);
+
+      includedOutPoints.forEach((includedOutPoint, i) =>
+        outputDataLoader.setCode(includedOutPoint, depConfig.includes[i])
+      );
+
+      const depGroupScriptConfig: ScriptConfig = {
+        CODE_HASH: entryCode.codeHash,
+        DEP_TYPE: "dep_group",
+        TX_HASH: depGroupOutPoint.tx_hash,
+        INDEX: depGroupOutPoint.index,
+        HASH_TYPE: "data",
+      };
+      Object.assign(scriptConfigs, { [key]: depGroupScriptConfig });
+    }
+  });
+
+  const getCellData: DataLoader["getCellData"] = (outPoint) => {
+    const foundData = outputDataLoader.getOutputData(outPoint);
+    if (!foundData) throw new Error(`Unknown OutPoint(${outPoint})`);
+    return foundData;
   };
 
   const executor = createCKBDebugger({

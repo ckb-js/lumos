@@ -9,8 +9,8 @@ helping you to debug your transaction without lunching a full node
 import { createTestContext } from "@ckb-lumos/debugger";
 
 const { executor, scriptConfigs } = createTestContext({
-  contract1: path.join("path/to/contracts", "contract1"),
-  contract2: path.join("path/to/contracts", "contract2"),
+  contract1: { path: path.join("path/to/contracts", "contract1") },
+  contract2: { path: path.join("path/to/contracts", "contract2") },
 });
 
 // ...
