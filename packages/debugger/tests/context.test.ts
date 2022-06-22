@@ -31,6 +31,12 @@ const context = createTestContext({
       path: path.join(__dirname, "deps/secp256k1_blake160"),
       includes: [path.join(__dirname, "deps/secp256k1_data_info")],
     },
+    // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c
+    DEBUGGER: {
+      // the dep_type is defaults to "code"
+      // dep_type: "code",
+      path: path.join(__dirname, "deps/debugger"),
+    },
   },
 });
 
@@ -150,5 +156,67 @@ test("context#CKBDebugger with secp256k1 with correct signature", async (t) => {
   t.true(result.cycles > 0);
 });
 
-test.todo("context#CKBDebugger with secp256k1 with wrong signature");
+test("context#CKBDebugger with secp256k1 with wrong signature", async (t) => {
+  let txSkeleton = TransactionSkeleton({});
+  const pk = hexify(randomBytes(32));
+  const blake160 = privateKeyToBlake160(pk);
+
+  const secp256k1Lock = registry.newScript("SECP256K1_BLAKE160", blake160);
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) =>
+    inputs.push({
+      out_point: mockOutPoint(),
+      ...createCellWithMinimalCapacity({ lock: secp256k1Lock }),
+    })
+  );
+  txSkeleton.update("outputs", (outputs) =>
+    outputs.push(createCellWithMinimalCapacity({ lock: secp256k1Lock }))
+  );
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160"))
+  );
+
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+    witnesses.push(hexify(WitnessArgs.pack({ lock: "0x" + "00".repeat(65) })))
+  );
+  const signingGroup = createP2PKHMessageGroup(txSkeleton, [secp256k1Lock]);
+  const wrongPK = hexify(randomBytes(32));
+  const signedMessage = signRecoverable(signingGroup[0].message, wrongPK);
+
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+    witnesses.set(0, hexify(WitnessArgs.pack({ lock: signedMessage })))
+  );
+
+  const result = await context.executor.execute(txSkeleton, {
+    scriptGroupType: "lock",
+    scriptHash: computeScriptHash(secp256k1Lock),
+  });
+
+  t.is(result.code, -31);
+  t.true(result.cycles > 0);
+});
+
+test("context#CKBDebugger with printf debug message", async (t) => {
+  let txSkeleton = TransactionSkeleton({});
+  const debugScript = registry.newScript("DEBUGGER", "0x");
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) =>
+    inputs.push({
+      out_point: mockOutPoint(),
+      ...createCellWithMinimalCapacity({ lock: debugScript }),
+    })
+  );
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("DEBUGGER"))
+  );
+
+  const result = await context.executor.execute(txSkeleton, {
+    scriptGroupType: "lock",
+    scriptHash: computeScriptHash(debugScript),
+  });
+
+  t.regex(result.debugMessage, /debugger print utf-8 string/);
+  t.is(result.code, 0);
+});
+
 test.todo("context#CKBDebugger with transfer sUDT");

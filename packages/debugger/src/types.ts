@@ -17,6 +17,7 @@ export interface ExecuteResult {
   code: number;
   cycles: number;
   message: string;
+  debugMessage: string;
 }
 
 export interface DataLoader {
