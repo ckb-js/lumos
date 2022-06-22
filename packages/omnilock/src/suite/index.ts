@@ -1,11 +1,13 @@
-import { Script } from "@ckb-lumos/base";
+import { predefined } from "./../../../config-manager/src/predefined";
+import { utils } from "@ckb-lumos/lumos";
+import { HexString } from "./../../../base/lib/primitive.d";
+import { core, Script } from "@ckb-lumos/base";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { AuthPart, OmnilockInfo, OmnilockSuite } from "../types";
-import { LockArgsCodec } from "../codecs";
+import { LockArgsCodec, OmnilockWitnessLock } from "../codecs";
 import { unimplemented } from "../utils";
 import { isP2PKHHint, p2pkh } from "./p2pkh";
-import { adjustMultisig, isMultisigHint } from "./multisig";
 import { createP2PKHMessageGroup } from "@ckb-lumos/common-scripts";
 
 export interface DefaultOmnilockSuiteConfig {
@@ -57,29 +59,81 @@ export function createDefaultOmnilockSuite(
     },
 
     async adjust(txSkeleton) {
-      let adjustedSkeleton = p2pkh(txSkeleton, {
+      const adjustedSkeleton = p2pkh(txSkeleton, {
         config: scriptConfig,
         hints: authHints.filter(isP2PKHHint),
       });
 
-      adjustedSkeleton = adjustMultisig(txSkeleton, {
-        config: scriptConfig,
-        hints: authHints.filter(isMultisigHint),
-      });
+      adjustedSkeleton.adjusted = adjustedSkeleton.adjusted.update(
+        "cellDeps",
+        (cellDeps) =>
+          cellDeps.push({
+            out_point: {
+              tx_hash: scriptConfig.TX_HASH,
+              index: scriptConfig.INDEX,
+            },
+            dep_type: scriptConfig.DEP_TYPE,
+          })
+      );
+      adjustedSkeleton.adjusted = adjustedSkeleton.adjusted.update(
+        "cellDeps",
+        (cellDeps) =>
+          cellDeps.push({
+            out_point: {
+              tx_hash: predefined.AGGRON4.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
+              index: predefined.AGGRON4.SCRIPTS.SECP256K1_BLAKE160.INDEX,
+            },
+            dep_type: predefined.AGGRON4.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+          })
+      );
+
+      // adjustedSkeleton = adjustMultisig(txSkeleton, {
+      //   config: scriptConfig,
+      //   hints: authHints.filter(isMultisigHint),
+      // });
 
       return adjustedSkeleton;
     },
 
     async seal(txSkeleton, sign) {
-      const group = createP2PKHMessageGroup(txSkeleton, [
-        /*hint to script*/
-      ]);
+      console.log("txskeleton before seal:", JSON.stringify(txSkeleton.toJS()));
+      const scriptHashToAuthMap: Record<HexString, AuthPart> = {};
+      const scripts: Script[] = authHints.map((auth) => {
+        const omniLockScript = this.createOmnilockScript({ auth });
+        scriptHashToAuthMap[utils.computeScriptHash(omniLockScript)] = auth;
+        return omniLockScript;
+      });
+      const groups = createP2PKHMessageGroup(txSkeleton, scripts);
+      await groups.forEach(async (group) => {
+        const signingEntryWithAuthHint = {
+          script: group.lock,
+          index: group.index,
+          witnessArgItem: txSkeleton.get("witnesses").get(group.index)!,
+          signatureOffset: 0,
+          signatureLength: 65,
+          message: group.message,
+          authHint: scriptHashToAuthMap[utils.computeScriptHash(group.lock)],
+        };
+        const signedMessage = await sign(signingEntryWithAuthHint);
 
-      // TODO inject signed message to txSkeleton witness
-      console.log(group);
-      console.log(sign);
+        // let v = Number.parseInt(signedMessage.slice(-2), 16);
+        // if (v >= 27) v -= 27;
+        // signedMessage = "0x" + signedMessage.slice(2, -2) + v.toString(16).padStart(2, "0");
+        console.log("unsigned message is:", group.message);
+        console.log("signed message is:", signedMessage);
 
-      unimplemented();
+        const signedWitness = hexify(
+          core.SerializeWitnessArgs({
+            lock: OmnilockWitnessLock.pack({ signature: signedMessage }).buffer,
+          })
+        );
+
+        txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+          witnesses.set(signingEntryWithAuthHint.index, signedWitness)
+        );
+      });
+
+      return txSkeleton;
     },
   };
 }

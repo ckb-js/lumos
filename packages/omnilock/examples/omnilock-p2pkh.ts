@@ -1,13 +1,15 @@
+import { predefined } from "./../../config-manager/src/predefined";
 import { createDefaultOmnilockSuite } from "../src/suite";
 import { key } from "@ckb-lumos/hd";
-import { predefined, ScriptConfig } from "@ckb-lumos/config-manager";
+import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { Indexer } from "@ckb-lumos/ckb-indexer";
+import { Wallet } from "ethers";
 import {
   createTransactionFromSkeleton,
   TransactionSkeleton,
 } from "@ckb-lumos/helpers";
 import { AuthByP2PKH } from "../src/types";
-import { BI, Cell, commons, RPC } from "@ckb-lumos/lumos";
+import { BI, Cell, helpers, RPC } from "@ckb-lumos/lumos";
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckbapp.dev/indexer";
@@ -23,17 +25,19 @@ const OMNILOCK_CONFIG: ScriptConfig = {
   INDEX: "0x0",
   DEP_TYPE: "code",
 };
-
-const pubkeyHash = key.privateKeyToBlake160(ALICE_PRIVKEY);
+const aliceWallet = new Wallet(ALICE_PRIVKEY);
 
 const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
 const rpc = new RPC(CKB_RPC_URL);
 
-// transfer 100 CKB from Alice to Bob
+// transfer 65 CKB from Alice to Bob
 async function main() {
+  const aliceAddress = await aliceWallet.getAddress();
+  console.log("alice eth address is:", aliceAddress);
+
   const auth: AuthByP2PKH = {
-    authFlag: "SECP256K1_BLAKE160",
-    options: { pubkeyHash: pubkeyHash },
+    authFlag: "ETHEREUM",
+    options: { pubkeyHash: aliceAddress },
   };
   const suite = createDefaultOmnilockSuite({
     authHints: [auth],
@@ -41,6 +45,12 @@ async function main() {
   });
 
   const aliceLock = suite.createOmnilockScript({ auth });
+  console.log("alice lock is:", aliceLock);
+  console.log(
+    "alice ckb address is:",
+    helpers.encodeToAddress(aliceLock, { config: predefined.AGGRON4 })
+  );
+
   const bobLock = suite.createOmnilockScript({
     auth: {
       authFlag: "SECP256K1_BLAKE160",
@@ -64,7 +74,7 @@ async function main() {
     collectedCells.push(cell);
     collectedSum = collectedSum.add(BI.from(cell.cell_output.capacity));
 
-    if (collectedSum.gt(200_00000000)) break;
+    if (collectedSum.gt(130_00000000)) break;
   }
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
@@ -72,30 +82,38 @@ async function main() {
   );
   txSkeleton = txSkeleton.update("outputs", (outputs) =>
     // Alice's cells + Bob's cell
-    outputs.push(...collectedCells, {
-      data: "0x",
-      cell_output: {
-        lock: bobLock,
-        capacity: BI.from(100_00000000).toHexString(),
+    outputs.push(
+      {
+        data: "0x",
+        cell_output: {
+          lock: aliceLock,
+          capacity: collectedSum.sub(65_00000000).sub(1000000).toHexString(),
+        },
       },
-    })
+      {
+        data: "0x",
+        cell_output: {
+          lock: bobLock,
+          capacity: BI.from(65_00000000).toHexString(),
+        },
+      }
+    )
   );
 
   const { adjusted } = await suite.adjust(txSkeleton);
   txSkeleton = adjusted;
 
-  // txSkeleton = await commons.common.payFeeByFeeRate(
-  //   txSkeleton,
-  //   [{ script: aliceLock, customData: "0x" }],
-  //   1000,
-  //   undefined,
-  //   {
-  //     config: predefined.AGGRON4,
-  //   }
-  // );
+  console.log("adjusted txSkeleton:", txSkeleton.get("witnesses").toJS());
+
   txSkeleton = await suite.seal(txSkeleton, (entry) =>
     key.signRecoverable(entry.message, ALICE_PRIVKEY)
   );
+
+  console.log(
+    "sealed txSkeleton inputs:",
+    JSON.stringify(txSkeleton.get("inputs").toJS())
+  );
+  console.log("sealed txSkeleton witness:", txSkeleton.get("witnesses").toJS());
 
   // for a mixed case
   // txSkeleton = await suite.seal(txSkeleton, (entry) => {

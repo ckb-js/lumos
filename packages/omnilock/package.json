@@ -21,7 +21,8 @@
   "dependencies": {
     "@ckb-lumos/base": "*",
     "@ckb-lumos/codec": "*",
-    "@ckb-lumos/common-scripts": "*"
+    "@ckb-lumos/common-scripts": "*",
+    "ethers": "^5.6.9"
   },
   "repository": {
     "type": "git",
