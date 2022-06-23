@@ -1,13 +1,13 @@
 import { createDefaultOmnilockSuite } from "../src/suite";
 import { key } from "@ckb-lumos/hd";
-import { predefined, ScriptConfig } from "@ckb-lumos/config-manager";
+import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { Indexer } from "@ckb-lumos/ckb-indexer";
 import {
   createTransactionFromSkeleton,
   TransactionSkeleton,
 } from "@ckb-lumos/helpers";
 import { AuthByP2PKH } from "../src/types";
-import { BI, Cell, commons, RPC } from "@ckb-lumos/lumos";
+import { BI, Cell, RPC } from "@ckb-lumos/lumos";
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckbapp.dev/indexer";
@@ -50,7 +50,7 @@ async function main() {
     },
   });
 
-  let txSkeleton = TransactionSkeleton({});
+  let txSkeleton = new TransactionSkeleton({});
 
   let collectedSum = BI.from(0);
   const collectedCells: Cell[] = [];
@@ -81,7 +81,7 @@ async function main() {
     })
   );
 
-  const { adjusted } = await suite.adjust(txSkeleton);
+  const adjusted = await suite.adjust(txSkeleton);
   txSkeleton = adjusted;
 
   // txSkeleton = await commons.common.payFeeByFeeRate(

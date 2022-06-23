@@ -1,11 +1,12 @@
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
-import { createP2PKHMessageGroup } from "@ckb-lumos/common-scripts";
-import { AdjustedSkeleton, AuthByP2PKH, AuthPart, SigningHint } from "../types";
+import { AdjustedSkeleton, AuthByP2PKH, AuthPart } from "../types";
 import { OmnilockWitnessLock } from "../codecs/witnesses";
 import { LockArgsCodec } from "../codecs/args";
 import { core, Script } from "@ckb-lumos/base";
+import { toolkit } from "@ckb-lumos/lumos";
+import { groupInputs } from "../utils";
 
 export function isP2PKHHint(x: AuthPart): x is AuthByP2PKH {
   return (
@@ -36,51 +37,29 @@ export function p2pkh(
   });
   const witnessPlaceholder = hexify(
     core.SerializeWitnessArgs({
-      lock: OmnilockWitnessLock.pack({ signature: `0x${"00".repeat(65)}` })
-        .buffer,
+      lock: new toolkit.Reader(
+        `0x${"00".repeat(
+          OmnilockWitnessLock.pack({ signature: `0x${"00".repeat(65)}` })
+            .byteLength
+        )}`
+      ),
     })
   );
-  let adjustedSkeleton = txSkeleton;
-  const inputCount = txSkeleton.get("inputs").size;
-  console.log("input count:", inputCount);
-  console.log("inputs:", JSON.stringify(txSkeleton.get("inputs").toJS()));
-
-  for (let index = 0; index < inputCount; index++) {
-    adjustedSkeleton = adjustedSkeleton.update("witnesses", (witnesses) =>
-      witnesses.set(index, witnessPlaceholder)
-    );
-  }
-  console.log(
-    "before p2pkh create message group",
-    adjustedSkeleton.get("witnesses").toJS()
-  );
-  const groups = createP2PKHMessageGroup(adjustedSkeleton, scripts);
-  for (let index = 0; index < inputCount; index++) {
-    adjustedSkeleton = adjustedSkeleton.update("witnesses", (witnesses) =>
-      witnesses.set(index, "0x")
-    );
-  }
-  groups.forEach((group) => {
-    if (!txSkeleton.witnesses.get(group.index)) {
-      // initilize witness with placeholder if not exist
-      adjustedSkeleton = adjustedSkeleton.update("witnesses", (witnesses) =>
-        witnesses.set(group.index, witnessPlaceholder)
-      );
+  const scriptGroupMap = groupInputs(txSkeleton.inputs.toArray(), scripts);
+  for (const record of scriptGroupMap) {
+    const [_, scriptIndexes] = record;
+    for (let index = 0; index < scriptIndexes.length; index++) {
+      const currentScriptIndex = scriptIndexes[index];
+      if (index === 0) {
+        txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+          witnesses.set(currentScriptIndex, witnessPlaceholder)
+        );
+      } else {
+        txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+          witnesses.set(currentScriptIndex, "0x")
+        );
+      }
     }
-  });
-  const signingHints: SigningHint[] = groups.map((group) => {
-    return {
-      script: group.lock,
-      index: group.index,
-      witnessArgItem: witnessPlaceholder,
-      signatureOffset: 0,
-      signatureLength: 65,
-    };
-  });
-  console.log("p2pkh adjusted:", adjustedSkeleton.get("witnesses").toJS());
-
-  return {
-    adjusted: adjustedSkeleton,
-    signingHints,
-  };
+  }
+  return txSkeleton;
 }

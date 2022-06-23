@@ -89,10 +89,7 @@ export type SigningEntry<UnsignedMsg = HexString> = SigningHint & {
   message: UnsignedMsg;
 };
 
-export type AdjustedSkeleton = {
-  adjusted: TransactionSkeletonType;
-  signingHints: SigningHint[];
-};
+export type AdjustedSkeleton = TransactionSkeletonType;
 
 export interface OmnilockSuite {
   readonly scriptConfig: ScriptConfig;

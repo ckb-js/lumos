@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { Cell, Script, utils } from "@ckb-lumos/lumos";
+
 type KeyFromValue<V, T extends Record<PropertyKey, PropertyKey>> = {
   [K in keyof T]: V extends T[K] ? K : never;
 }[keyof T];
@@ -20,6 +22,27 @@ export function invertKV<O extends Record<string | number, string | number>>(
 export function isKeyOf<O>(obj: O, key: PropertyKey): key is keyof O {
   if (obj == null) return false;
   return key in obj;
+}
+
+export function groupInputs(
+  inputs: Cell[],
+  locks: Script[]
+): Map<string, number[]> {
+  const lockSet = new Set<string>();
+  for (const lock of locks) {
+    const scriptHash = utils.computeScriptHash(lock);
+    lockSet.add(scriptHash);
+  }
+
+  const groups = new Map<string, number[]>();
+  for (let i = 0; i < inputs.length; i++) {
+    const scriptHash = utils.computeScriptHash(inputs[i].cell_output.lock);
+    if (lockSet.has(scriptHash)) {
+      if (groups.get(scriptHash) === undefined) groups.set(scriptHash, []);
+      groups.get(scriptHash)!.push(i);
+    }
+  }
+  return groups;
 }
 
 export function unimplemented(): never {
