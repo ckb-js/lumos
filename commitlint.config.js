@@ -17,6 +17,7 @@ const scopeEnumValues = [
   "examples",
   "website",
   "codec",
+  "debugger",
   "omnilock",
 ];
 const Configuration = {
