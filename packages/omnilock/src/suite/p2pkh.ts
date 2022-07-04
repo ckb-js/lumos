@@ -1,11 +1,11 @@
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
-import { AdjustedSkeleton, AuthByP2PKH, AuthPart } from "../types";
+import { AdjustedSkeleton, AuthByP2PKH, AuthPart, SigningInfo } from "../types";
 import { OmnilockWitnessLock } from "../codecs/witnesses";
 import { LockArgsCodec } from "../codecs/args";
 import { core, Script } from "@ckb-lumos/base";
-import { toolkit } from "@ckb-lumos/lumos";
+import { toolkit, utils, commons } from "@ckb-lumos/lumos";
 import { groupInputs } from "../utils";
 
 export function isP2PKHHint(x: AuthPart): x is AuthByP2PKH {
@@ -20,9 +20,14 @@ export function p2pkh(
   txSkeleton: TransactionSkeletonType,
   options: { config: ScriptConfig; hints: AuthByP2PKH[] }
 ): AdjustedSkeleton {
+  const signingEntries: Array<SigningInfo> = [];
+  // key is script hash, value is Script
+  const scriptMap = new Map<string, Script>();
+  // key is script hash, value is AuthPart
+  const authMap = new Map<string, AuthPart>();
   const scripts: Script[] = options.hints.map((hint) => {
     const { CODE_HASH, HASH_TYPE } = options.config;
-    return {
+    const script: Script = {
       code_hash: CODE_HASH,
       hash_type: HASH_TYPE,
       args: hexify(
@@ -34,7 +39,11 @@ export function p2pkh(
         })
       ),
     };
+    scriptMap.set(utils.computeScriptHash(script), script);
+    authMap.set(utils.computeScriptHash(script), hint);
+    return script;
   });
+
   const witnessPlaceholder = hexify(
     core.SerializeWitnessArgs({
       lock: new toolkit.Reader(
@@ -47,19 +56,33 @@ export function p2pkh(
   );
   const scriptGroupMap = groupInputs(txSkeleton.inputs.toArray(), scripts);
   for (const record of scriptGroupMap) {
-    const [_, scriptIndexes] = record;
-    for (let index = 0; index < scriptIndexes.length; index++) {
-      const currentScriptIndex = scriptIndexes[index];
+    const [_, cellIndexes] = record;
+    for (let index = 0; index < cellIndexes.length; index++) {
+      const cellIndex = cellIndexes[index];
       if (index === 0) {
         txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-          witnesses.set(currentScriptIndex, witnessPlaceholder)
+          witnesses.set(cellIndex, witnessPlaceholder)
         );
       } else {
         txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-          witnesses.set(currentScriptIndex, "0x")
+          witnesses.set(cellIndex, "0x")
         );
       }
     }
   }
-  return txSkeleton;
+
+  const messageGroups = commons.createP2PKHMessageGroup(txSkeleton, scripts);
+  messageGroups.forEach((messageGroup) => {
+    signingEntries.push({
+      script: messageGroup.lock,
+      index: messageGroup.index,
+      witnessArgItem: witnessPlaceholder,
+      signatureOffset: 0,
+      signatureLength: 65,
+      message: messageGroup.message,
+      authHint: authMap.get(utils.computeScriptHash(messageGroup.lock))!,
+    });
+  });
+
+  return { adjusted: txSkeleton, signingEntries };
 }

@@ -24,6 +24,12 @@ export function isKeyOf<O>(obj: O, key: PropertyKey): key is keyof O {
   return key in obj;
 }
 
+/**
+ *
+ * @param inputs cells
+ * @param locks scripts
+ * @returns Map<string, number[]>, a map , key is script hash, values are indexes of cells which has a lock that matches script hash in key.
+ */
 export function groupInputs(
   inputs: Cell[],
   locks: Script[]

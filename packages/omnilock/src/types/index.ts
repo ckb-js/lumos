@@ -1,3 +1,4 @@
+import { SigningEntry } from "./index";
 import { Address, Hash, HexString, Script } from "@ckb-lumos/base";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { BIish } from "@ckb-lumos/bi";
@@ -89,7 +90,14 @@ export type SigningEntry<UnsignedMsg = HexString> = SigningHint & {
   message: UnsignedMsg;
 };
 
-export type AdjustedSkeleton = TransactionSkeletonType;
+export type AdjustedSkeleton<UnsignedMsg = HexString> = {
+  adjusted: TransactionSkeletonType;
+  signingEntries: SigningInfo<UnsignedMsg>[];
+};
+
+export type SigningInfo<UnsignedMsg = HexString> = SigningEntry<UnsignedMsg> & {
+  authHint: AuthPart;
+};
 
 export interface OmnilockSuite {
   readonly scriptConfig: ScriptConfig;
@@ -110,9 +118,7 @@ export interface OmnilockSuite {
 
   seal(
     txSkeleton: TransactionSkeletonType,
-    sign: (
-      entry: SigningEntry & { authHint: AuthPart }
-    ) => HexString | Promise<HexString>
+    sign: (entry: SigningInfo) => HexString | Promise<HexString>
   ): Promise<TransactionSkeletonType>;
 }
 
