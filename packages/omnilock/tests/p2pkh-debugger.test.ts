@@ -8,6 +8,9 @@ import {
 } from "@ckb-lumos/experiment-tx-assembler";
 import { mockOutPoint } from "@ckb-lumos/debugger/lib/context";
 import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
+import { createDefaultOmnilockSuite } from "../src/suite";
+import { key } from "@ckb-lumos/hd";
+import { AuthByP2PKH } from "../src/types";
 const downloader = new CKBDebuggerDownloader();
 const context = createTestContext({
   deps: {
@@ -18,7 +21,7 @@ const context = createTestContext({
     },
     OMNI_LOCK: {
       dep_type: "code",
-      path: path.join(__dirname, "deps/always_success"),
+      path: path.join(__dirname, "deps/rc_lock"),
     },
     // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c
     DEBUGGER: {
@@ -37,7 +40,23 @@ test.before(async () => {
 
 test("p2pkh#CKBDebugger with omnilock", async (t) => {
   let txSkeleton = TransactionSkeleton({});
-  const omniLock = registry.newScript("OMNI_LOCK", "0x");
+  const ALICE_PRIVKEY =
+    "0x1234567812345678123456781234567812345678123456781234567812345678";
+  const aliceAddress = key.privateKeyToBlake160(ALICE_PRIVKEY);
+  console.log("alice eth address is:", aliceAddress);
+
+  const auth: AuthByP2PKH = {
+    authFlag: "SECP256K1_BLAKE160",
+    options: { pubkeyHash: aliceAddress },
+  };
+  const suite = createDefaultOmnilockSuite({
+    authHints: [auth],
+    scriptConfig: context.scriptConfigs.OMNI_LOCK,
+  });
+
+  const aliceLock = suite.createOmnilockScript({ auth });
+
+  const omniLock = registry.newScript("OMNI_LOCK", aliceLock.args);
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
@@ -55,6 +74,16 @@ test("p2pkh#CKBDebugger with omnilock", async (t) => {
     cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160"))
   );
 
+  txSkeleton = (
+    await suite.adjust(txSkeleton, {
+      config: { PREFIX: "ckt", SCRIPTS: context.scriptConfigs },
+    })
+  ).adjusted;
+
+  txSkeleton = await suite.seal(txSkeleton, (entry) =>
+    key.signRecoverable(entry.message, ALICE_PRIVKEY)
+  );
+
   const result = await context.executor.execute(txSkeleton, {
     scriptGroupType: "lock",
     scriptHash: computeScriptHash(omniLock),
@@ -62,5 +91,6 @@ test("p2pkh#CKBDebugger with omnilock", async (t) => {
 
   t.is(result.code, 0);
   t.regex(result.message, /Run result: 0/);
-  t.regex(result.message, /Total cycles consumed: 539/);
+
+  t.regex(result.message, /Total cycles consumed: 14[\d5]/);
 });

@@ -1,6 +1,5 @@
-import { predefined } from "./../../../config-manager/src/predefined";
 import { core, Script } from "@ckb-lumos/base";
-import { ScriptConfig } from "@ckb-lumos/config-manager";
+import { Config, getConfig, ScriptConfig } from "@ckb-lumos/config-manager";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { AuthPart, OmnilockInfo, OmnilockSuite, SigningInfo } from "../types";
 import { LockArgsCodec, OmnilockWitnessLock } from "../codecs";
@@ -54,7 +53,8 @@ export function createDefaultOmnilockSuite(
       return { code_hash: CODE_HASH, hash_type: HASH_TYPE, args: args };
     },
 
-    async adjust(txSkeleton) {
+    async adjust(txSkeleton, options?: { config: Config }) {
+      const config = options?.config || getConfig();
       let adjustedTxSkeleton = txSkeleton;
       adjustedTxSkeleton = adjustedTxSkeleton.update("cellDeps", (cellDeps) =>
         cellDeps.push({
@@ -68,10 +68,10 @@ export function createDefaultOmnilockSuite(
       adjustedTxSkeleton = adjustedTxSkeleton.update("cellDeps", (cellDeps) =>
         cellDeps.push({
           out_point: {
-            tx_hash: predefined.AGGRON4.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
-            index: predefined.AGGRON4.SCRIPTS.SECP256K1_BLAKE160.INDEX,
+            tx_hash: config.SCRIPTS.SECP256K1_BLAKE160!.TX_HASH,
+            index: config.SCRIPTS.SECP256K1_BLAKE160!.INDEX,
           },
-          dep_type: predefined.AGGRON4.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+          dep_type: config.SCRIPTS.SECP256K1_BLAKE160!.DEP_TYPE,
         })
       );
 

@@ -1,7 +1,7 @@
 import { predefined } from "./../../config-manager/src/predefined";
 import { createDefaultOmnilockSuite } from "../src/suite";
 import { key } from "@ckb-lumos/hd";
-import { ScriptConfig } from "@ckb-lumos/config-manager";
+import { initializeConfig, ScriptConfig } from "@ckb-lumos/config-manager";
 import { Indexer } from "@ckb-lumos/ckb-indexer";
 import {
   createTransactionFromSkeleton,
@@ -30,6 +30,7 @@ const rpc = new RPC(CKB_RPC_URL);
 
 // transfer 65 CKB from Alice to Bob
 async function main() {
+  initializeConfig(predefined.AGGRON4);
   const aliceAddress = key.privateKeyToBlake160(ALICE_PRIVKEY);
   console.log("alice eth address is:", aliceAddress);
 

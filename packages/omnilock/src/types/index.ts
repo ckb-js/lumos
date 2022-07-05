@@ -1,5 +1,5 @@
 import { Address, Hash, HexString, Script } from "@ckb-lumos/base";
-import { ScriptConfig } from "@ckb-lumos/config-manager";
+import { Config, ScriptConfig } from "@ckb-lumos/config-manager";
 import { BIish } from "@ckb-lumos/bi";
 import { AuthType, OmnilockArgs, OmnilockFlags } from "../codecs";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
@@ -113,7 +113,10 @@ export interface OmnilockSuite {
    * 2. inject omnilock witness placeholder if not exists
    * @param txSkeleton
    */
-  adjust(txSkeleton: TransactionSkeletonType): Promise<AdjustedSkeleton>;
+  adjust(
+    txSkeleton: TransactionSkeletonType,
+    options?: { config: Config }
+  ): Promise<AdjustedSkeleton>;
 
   seal(
     txSkeleton: TransactionSkeletonType,
