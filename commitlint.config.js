@@ -18,6 +18,7 @@ const scopeEnumValues = [
   "website",
   "codec",
   "omnilock",
+  "debugger",
 ];
 const Configuration = {
   extends: ["@commitlint/config-conventional"],
