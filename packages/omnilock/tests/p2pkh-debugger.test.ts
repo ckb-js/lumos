@@ -11,6 +11,7 @@ import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
 import { createDefaultOmnilockSuite } from "../src/suite";
 import { key } from "@ckb-lumos/hd";
 import { AuthByP2PKH } from "../src/types";
+import { initializeConfig } from "@ckb-lumos/config-manager/lib";
 const downloader = new CKBDebuggerDownloader();
 const context = createTestContext({
   deps: {
@@ -40,6 +41,7 @@ test.before(async () => {
 
 test("p2pkh#CKBDebugger with omnilock", async (t) => {
   let txSkeleton = TransactionSkeleton({});
+  initializeConfig({ PREFIX: "ckt", SCRIPTS: context.scriptConfigs });
   const ALICE_PRIVKEY =
     "0x1234567812345678123456781234567812345678123456781234567812345678";
   const aliceAddress = key.privateKeyToBlake160(ALICE_PRIVKEY);
@@ -74,11 +76,7 @@ test("p2pkh#CKBDebugger with omnilock", async (t) => {
     cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160"))
   );
 
-  txSkeleton = (
-    await suite.adjust(txSkeleton, {
-      config: { PREFIX: "ckt", SCRIPTS: context.scriptConfigs },
-    })
-  ).adjusted;
+  txSkeleton = (await suite.adjust(txSkeleton)).adjusted;
 
   txSkeleton = await suite.seal(txSkeleton, (entry) =>
     key.signRecoverable(entry.message, ALICE_PRIVKEY)

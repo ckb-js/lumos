@@ -5,8 +5,10 @@ import { AdjustedSkeleton, AuthByP2PKH, AuthPart, SigningInfo } from "../types";
 import { OmnilockWitnessLock } from "../codecs/witnesses";
 import { LockArgsCodec } from "../codecs/args";
 import { core, Script } from "@ckb-lumos/base";
-import { toolkit, utils, commons } from "@ckb-lumos/lumos";
 import { groupInputs } from "../utils";
+import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
+import { createP2PKHMessageGroup } from "@ckb-lumos/common-scripts";
+import { Reader } from "@ckb-lumos/toolkit";
 
 export function isP2PKHHint(x: AuthPart): x is AuthByP2PKH {
   return (
@@ -39,14 +41,14 @@ export function p2pkh(
         })
       ),
     };
-    scriptMap.set(utils.computeScriptHash(script), script);
-    authMap.set(utils.computeScriptHash(script), hint);
+    scriptMap.set(computeScriptHash(script), script);
+    authMap.set(computeScriptHash(script), hint);
     return script;
   });
 
   const witnessPlaceholder = hexify(
     core.SerializeWitnessArgs({
-      lock: new toolkit.Reader(
+      lock: new Reader(
         `0x${"00".repeat(
           OmnilockWitnessLock.pack({ signature: `0x${"00".repeat(65)}` })
             .byteLength
@@ -71,7 +73,7 @@ export function p2pkh(
     }
   }
 
-  const messageGroups = commons.createP2PKHMessageGroup(txSkeleton, scripts);
+  const messageGroups = createP2PKHMessageGroup(txSkeleton, scripts);
   messageGroups.forEach((messageGroup) => {
     signingEntries.push({
       script: messageGroup.lock,
@@ -80,7 +82,7 @@ export function p2pkh(
       signatureOffset: 0,
       signatureLength: 65,
       message: messageGroup.message,
-      authHint: authMap.get(utils.computeScriptHash(messageGroup.lock))!,
+      authHint: authMap.get(computeScriptHash(messageGroup.lock))!,
     });
   });
 

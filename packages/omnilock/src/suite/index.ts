@@ -1,5 +1,5 @@
 import { core, Script } from "@ckb-lumos/base";
-import { Config, getConfig, ScriptConfig } from "@ckb-lumos/config-manager";
+import { getConfig, ScriptConfig } from "@ckb-lumos/config-manager";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { AuthPart, OmnilockInfo, OmnilockSuite, SigningInfo } from "../types";
 import { LockArgsCodec, OmnilockWitnessLock } from "../codecs";
@@ -53,8 +53,8 @@ export function createDefaultOmnilockSuite(
       return { code_hash: CODE_HASH, hash_type: HASH_TYPE, args: args };
     },
 
-    async adjust(txSkeleton, options?: { config: Config }) {
-      const config = options?.config || getConfig();
+    async adjust(txSkeleton) {
+      const config = getConfig();
       let adjustedTxSkeleton = txSkeleton;
       adjustedTxSkeleton = adjustedTxSkeleton.update("cellDeps", (cellDeps) =>
         cellDeps.push({
