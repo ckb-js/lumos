@@ -6,6 +6,7 @@ import { DataLoader, TestContext } from "./types";
 import { CKBDebuggerDownloader } from "./download";
 import { CKBDebugger } from "./executor";
 import * as fs from "fs";
+import * as path from "path";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { Uint32 } from "@ckb-lumos/codec/lib/number";
 
@@ -129,4 +130,44 @@ export function createTestContext<Code extends LocaleCode>(config: {
   });
 
   return { scriptConfigs, executor };
+}
+
+export function getDefaultConfig(): {
+  deps: LocaleCode;
+} {
+  return {
+    deps: {
+      ALWAYS_SUCCESS: {
+        dep_type: "code",
+        path: path.join(__dirname, "../bin/always_success"),
+      },
+      ALWAYS_FAILURE: {
+        dep_type: "code",
+        path: path.join(__dirname, "../bin/always_failure"),
+      },
+      ANYONE_CAN_PAY: {
+        dep_type: "code",
+        path: path.join(__dirname, "../bin/anyone_can_pay"),
+      },
+      SUDT: {
+        dep_type: "code",
+        path: path.join(__dirname, "../bin/sudt"),
+      },
+      OMNI_LOCK: {
+        dep_type: "code",
+        path: path.join(__dirname, "../bin/omni_lock"),
+      },
+      SECP256K1_BLAKE160: {
+        dep_type: "dep_group",
+        path: path.join(__dirname, "../bin/secp256k1_blake160"),
+        includes: [path.join(__dirname, "../bin/secp256k1_data_info")],
+      },
+      // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c
+      DEBUGGER: {
+        // the dep_type is defaults to "code"
+        // dep_type: "code",
+        path: path.join(__dirname, "../bin/debugger"),
+      },
+    },
+  };
 }

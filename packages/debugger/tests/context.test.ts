@@ -3,12 +3,15 @@ import {
   createCellWithMinimalCapacity,
   createScriptRegistry,
 } from "@ckb-lumos/experiment-tx-assembler";
-import * as path from "path";
 import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
 import { HexString } from "@ckb-lumos/base";
 import { CKBDebugger, CKBDebuggerDownloader, DataLoader } from "../src";
 import { TransactionSkeleton } from "@ckb-lumos/helpers";
-import { createTestContext, mockOutPoint } from "../src/context";
+import {
+  createTestContext,
+  getDefaultConfig,
+  mockOutPoint,
+} from "../src/context";
 import { randomBytes } from "crypto";
 import { privateKeyToBlake160, signRecoverable } from "@ckb-lumos/hd/lib/key";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
@@ -16,29 +19,7 @@ import { createP2PKHMessageGroup } from "@ckb-lumos/common-scripts";
 import { WitnessArgs } from "@ckb-lumos/codec/lib/blockchain";
 
 const downloader = new CKBDebuggerDownloader();
-const context = createTestContext({
-  deps: {
-    ALWAYS_SUCCESS: {
-      dep_type: "code",
-      path: path.join(__dirname, "deps/always_success"),
-    },
-    ALWAYS_FAILURE: {
-      dep_type: "code",
-      path: path.join(__dirname, "deps/always_failure"),
-    },
-    SECP256K1_BLAKE160: {
-      dep_type: "dep_group",
-      path: path.join(__dirname, "deps/secp256k1_blake160"),
-      includes: [path.join(__dirname, "deps/secp256k1_data_info")],
-    },
-    // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c
-    DEBUGGER: {
-      // the dep_type is defaults to "code"
-      // dep_type: "code",
-      path: path.join(__dirname, "deps/debugger"),
-    },
-  },
-});
+const context = createTestContext(getDefaultConfig());
 
 const registry = createScriptRegistry(context.scriptConfigs);
 
