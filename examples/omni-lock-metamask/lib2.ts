@@ -1,8 +1,8 @@
-import { BI, Cell, config, helpers, Indexer, RPC } from "@ckb-lumos/lumos";
+import { BI, Cell, config, helpers, HexString, Indexer, RPC, Script } from "@ckb-lumos/lumos";
 import { createDefaultOmnilockSuite, signViaEthereum } from "@ckb-lumos/omnilock";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { parseAddress, TransactionSkeleton } from "@ckb-lumos/helpers";
-import { AuthByP2PKH } from "@ckb-lumos/omnilock/lib/types";
+import { AuthByP2PKH, OmnilockSuite } from "@ckb-lumos/omnilock/lib/types";
 
 const OMNILOCK_SCRIPT_CONFIG: ScriptConfig = {
   CODE_HASH: "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
@@ -32,9 +32,7 @@ export function asyncSleep(ms: number): Promise<void> {
 }
 
 interface Options {
-  // from eth address
   from: string;
-  // to ckb address
   to: string;
   amount: string;
 }
@@ -42,18 +40,22 @@ interface Options {
 // @ts-ignore
 export const ethereum = window.ethereum as EthereumProvider;
 
-export async function transfer(options: Options): Promise<string> {
-  const auth: AuthByP2PKH = {
-    authFlag: "ETHEREUM",
-    options: { pubkeyHash: options.from },
-  };
-  const suite = createDefaultOmnilockSuite({
-    authHints: [auth],
+export function genOmnilockSuite(ethAddress: HexString): OmnilockSuite {
+  return createDefaultOmnilockSuite({
+    authHints: [{
+      authFlag: "ETHEREUM",
+      options: { pubkeyHash: ethAddress },
+    }],
     scriptConfig: OMNILOCK_SCRIPT_CONFIG,
   });
+}
 
-  const fromLock = suite.createOmnilockScript({ auth });
+export function genOmnilockScript(suite: OmnilockSuite): Script {
+  return suite.createOmnilockScript({ auth: suite.authHints[0]})
+}
 
+export async function transfer(suite: OmnilockSuite, options: Options): Promise<string> {
+  const fromLock = parseAddress(options.from)
   const toLock = parseAddress(options.to)
 
   const amountInShannons = BI.from(options.amount)
@@ -110,19 +112,8 @@ export async function transfer(options: Options): Promise<string> {
 }
 
 export async function capacityOf(address: string): Promise<BI> {
-  const auth: AuthByP2PKH = {
-    authFlag: "ETHEREUM",
-    options: { pubkeyHash: address },
-  };
-  const suite = createDefaultOmnilockSuite({
-    authHints: [auth],
-    scriptConfig: OMNILOCK_SCRIPT_CONFIG,
-  });
-
-  const userOmniLock = suite.createOmnilockScript({ auth });
-
   const collector = indexer.collector({
-    lock: userOmniLock,
+    lock: parseAddress(address),
   });
 
   let balance = BI.from(0);
