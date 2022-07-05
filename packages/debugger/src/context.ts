@@ -157,9 +157,18 @@ export function getDefaultConfig(): {
         dep_type: "code",
         path: path.join(__dirname, "../bin/omni_lock"),
       },
+      DAO: {
+        dep_type: "code",
+        path: path.join(__dirname, "../bin/dao"),
+      },
       SECP256K1_BLAKE160: {
         dep_type: "dep_group",
         path: path.join(__dirname, "../bin/secp256k1_blake160"),
+        includes: [path.join(__dirname, "../bin/secp256k1_data_info")],
+      },
+      SECP256K1_BLAKE160_MULTISIG: {
+        dep_type: "dep_group",
+        path: path.join(__dirname, "../bin/secp256k1_blake160_multisig_all"),
         includes: [path.join(__dirname, "../bin/secp256k1_data_info")],
       },
       // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c
