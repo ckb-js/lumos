@@ -106,6 +106,6 @@ test("p2pkh#p2pkh", (t) => {
       },
     ],
   });
-  t.deepEqual(adjustedSkeleton.signingHints.length, 1);
-  t.truthy(adjustedSkeleton.signingHints[0].index === 1);
+  t.deepEqual(adjustedSkeleton.signingEntries.length, 1);
+  t.truthy(adjustedSkeleton.signingEntries[0].index === 1);
 });

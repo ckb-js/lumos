@@ -81,7 +81,7 @@ async function main() {
     })
   );
 
-  const adjusted = await suite.adjust(txSkeleton);
+  const { adjusted } = await suite.adjust(txSkeleton);
   txSkeleton = adjusted;
 
   // txSkeleton = await commons.common.payFeeByFeeRate(

@@ -1,4 +1,3 @@
-import { SigningEntry } from "./index";
 import { Address, Hash, HexString, Script } from "@ckb-lumos/base";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { BIish } from "@ckb-lumos/bi";
