@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { helpers, Script } from "@ckb-lumos/lumos";
 import ReactDOM from "react-dom";
-import { asyncSleep, capacityOf, CONFIG, ethereum, transfer } from "./lib";
+import { asyncSleep, capacityOf, CONFIG, ethereum, transfer } from "./lib2";
 
 const app = document.getElementById("root");
 ReactDOM.render(<App />, app);
@@ -46,9 +46,9 @@ export function App() {
         setOmniAddr(omniAddr);
         setOmniLock(omniLock);
 
-        return omniAddr;
+        return ethAddr;
       })
-      .then((omniAddr) => capacityOf(omniAddr))
+      .then((ethAddr) => capacityOf(ethAddr))
       .then((balance) => setBalance(balance.div(10 ** 8).toString() + " CKB"));
   }
 
@@ -56,7 +56,7 @@ export function App() {
     if (isSendingTx) return;
     setIsSendingTx(true);
 
-    transfer({ amount: transferAmount, from: omniAddr, to: transferAddr })
+    transfer({ amount: transferAmount, from: ethAddr, to: transferAddr })
       .then(setTxHash)
       .catch((e) => alert(e.message || JSON.stringify(e)))
       .finally(() => setIsSendingTx(false));

@@ -1,10 +1,8 @@
-import { BI, commons, config, helpers, Indexer, RPC } from "@ckb-lumos/lumos";
-import { OmnilockWitnessLock, signViaEthereum } from "@ckb-lumos/omnilock";
+import { BI, Cell, config, helpers, Indexer, RPC } from "@ckb-lumos/lumos";
+import { createDefaultOmnilockSuite, signViaEthereum } from "@ckb-lumos/omnilock";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
-import { sealTransaction } from "@ckb-lumos/helpers";
-import { hexify } from "@ckb-lumos/codec/lib/bytes";
-
-const { common } = commons;
+import { parseAddress, TransactionSkeleton } from "@ckb-lumos/helpers";
+import { AuthByP2PKH } from "@ckb-lumos/omnilock/lib/types";
 
 const OMNILOCK_SCRIPT_CONFIG: ScriptConfig = {
   CODE_HASH: "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
@@ -24,9 +22,6 @@ export const CONFIG = config.createConfig({
 
 config.initializeConfig(CONFIG);
 
-// const adapter = createCommonAdapter({ scriptConfig: OMNILOCK_SCRIPT_CONFIG });
-// common.registerCustomLockScriptInfos([adapter.adapt()]);
-
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
@@ -37,42 +32,97 @@ export function asyncSleep(ms: number): Promise<void> {
 }
 
 interface Options {
+  // from eth address
   from: string;
+  // to ckb address
   to: string;
   amount: string;
 }
 
+// @ts-ignore
+export const ethereum = window.ethereum as EthereumProvider;
+
 export async function transfer(options: Options): Promise<string> {
-  let txSkeleton = helpers.TransactionSkeleton({
-    cellProvider: {
-      collector(options) {
-        return indexer.collector(options);
+  const auth: AuthByP2PKH = {
+    authFlag: "ETHEREUM",
+    options: { pubkeyHash: options.from },
+  };
+  const suite = createDefaultOmnilockSuite({
+    authHints: [auth],
+    scriptConfig: OMNILOCK_SCRIPT_CONFIG,
+  });
+
+  const fromLock = suite.createOmnilockScript({ auth });
+
+  const toLock = parseAddress(options.to)
+
+  const amountInShannons = BI.from(options.amount)
+  let txSkeleton = TransactionSkeleton({});
+
+  let collectedSum = BI.from(0);
+  const collectedCells: Cell[] = [];
+  for await (let cell of indexer
+    .collector({
+      lock: fromLock,
+      type: "empty",
+      data: "0x",
+    })
+    .collect()) {
+    collectedCells.push(cell);
+    collectedSum = collectedSum.add(BI.from(cell.cell_output.capacity));
+    if (collectedSum.gt(amountInShannons)) break;
+  }
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) =>
+    inputs.push(...collectedCells)
+  );
+  txSkeleton = txSkeleton.update("outputs", (outputs) =>
+    outputs.push(
+      {
+        data: "0x",
+        cell_output: {
+          lock: fromLock,
+          capacity: collectedSum.sub(amountInShannons).sub(100000).toHexString(),
+        },
       },
-    },
-  });
-
-  txSkeleton = await common.transfer(txSkeleton, [options.from], options.to, options.amount, undefined, undefined, {
-    config: CONFIG,
-  });
-  txSkeleton = await common.payFeeByFeeRate(txSkeleton, [options.from], 1000, undefined, { config: CONFIG });
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: CONFIG });
-
-  const signedMessage = await Promise.all(
-    txSkeleton
-      .get("signingEntries")
-      .map((entry) => signViaEthereum(entry.message))
-      .toArray()
+      {
+        data: "0x",
+        cell_output: {
+          lock: toLock,
+          capacity: BI.from(amountInShannons).toHexString(),
+        },
+      }
+    )
   );
 
-  const seal = hexify(OmnilockWitnessLock.pack({ signature: signedMessage[0] }));
+  const { adjusted } = await suite.adjust(txSkeleton);
+  txSkeleton = adjusted;
 
-  const tx = sealTransaction(txSkeleton, [seal]);
-  return rpc.send_transaction(tx, "passthrough");
+  txSkeleton = await suite.seal(txSkeleton, (entry) =>
+    signViaEthereum(entry.message)
+  );
+
+  const txHash = await rpc.send_transaction(
+    helpers.createTransactionFromSkeleton(txSkeleton),  "passthrough"
+  );
+  
+  return txHash
 }
 
 export async function capacityOf(address: string): Promise<BI> {
+  const auth: AuthByP2PKH = {
+    authFlag: "ETHEREUM",
+    options: { pubkeyHash: address },
+  };
+  const suite = createDefaultOmnilockSuite({
+    authHints: [auth],
+    scriptConfig: OMNILOCK_SCRIPT_CONFIG,
+  });
+
+  const userOmniLock = suite.createOmnilockScript({ auth });
+
   const collector = indexer.collector({
-    lock: helpers.parseAddress(address),
+    lock: userOmniLock,
   });
 
   let balance = BI.from(0);
