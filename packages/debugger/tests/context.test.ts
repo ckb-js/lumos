@@ -15,7 +15,10 @@ import {
 import { randomBytes } from "crypto";
 import { privateKeyToBlake160, signRecoverable } from "@ckb-lumos/hd/lib/key";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
-import { createP2PKHMessageGroup } from "@ckb-lumos/common-scripts";
+import {
+  createP2PKHMessageGroup,
+  parseFromInfo,
+} from "@ckb-lumos/common-scripts";
 import { WitnessArgs } from "@ckb-lumos/codec/lib/blockchain";
 
 const downloader = new CKBDebuggerDownloader();
@@ -198,6 +201,150 @@ test("context#CKBDebugger with printf debug message", async (t) => {
 
   t.regex(result.debugMessage, /debugger print utf-8 string/);
   t.is(result.code, 0);
+});
+
+test("context#CKBDebugger with secp256k1 multisig with correct signature", async (t) => {
+  let txSkeleton = TransactionSkeleton({});
+  const alicePk = hexify(randomBytes(32));
+  const bobPk = hexify(randomBytes(32));
+  const charlesPk = hexify(randomBytes(32));
+  const alicePubkey = privateKeyToBlake160(alicePk);
+  const bobPubkey = privateKeyToBlake160(bobPk);
+  const charlesPubkey = privateKeyToBlake160(charlesPk);
+
+  const { fromScript, multisigScript } = parseFromInfo(
+    {
+      R: 2,
+      M: 2,
+      publicKeyHashes: [alicePubkey, bobPubkey, charlesPubkey],
+    },
+    {
+      config: {
+        PREFIX: "ckt",
+        SCRIPTS: context.scriptConfigs,
+      },
+    }
+  );
+
+  const multisigLock = registry.newScript(
+    "SECP256K1_BLAKE160_MULTISIG",
+    fromScript.args
+  );
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) =>
+    inputs.push({
+      out_point: mockOutPoint(),
+      ...createCellWithMinimalCapacity({ lock: multisigLock }),
+    })
+  );
+  txSkeleton.update("outputs", (outputs) =>
+    outputs.push(createCellWithMinimalCapacity({ lock: multisigLock }))
+  );
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160_MULTISIG"))
+  );
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+    witnesses.push(
+      hexify(
+        WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })
+      )
+    )
+  );
+  const signingGroup = createP2PKHMessageGroup(txSkeleton, [multisigLock]);
+  const aliceSignedMessage = signRecoverable(signingGroup[0].message, alicePk);
+  const bobSignedMessage = signRecoverable(signingGroup[0].message, bobPk);
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+    witnesses.set(
+      0,
+      hexify(
+        WitnessArgs.pack({
+          lock: `${multisigScript}${aliceSignedMessage.slice(
+            2
+          )}${bobSignedMessage.slice(2)}`,
+        })
+      )
+    )
+  );
+
+  const result = await context.executor.execute(txSkeleton, {
+    scriptGroupType: "lock",
+    scriptHash: computeScriptHash(multisigLock),
+  });
+
+  t.is(result.code, 0);
+  t.true(result.cycles > 0);
+});
+
+test("context#CKBDebugger with secp256k1 multisig with wrong signature", async (t) => {
+  let txSkeleton = TransactionSkeleton({});
+  const alicePk = hexify(randomBytes(32));
+  const bobPk = hexify(randomBytes(32));
+  const charlesPk = hexify(randomBytes(32));
+  const alicePubkey = privateKeyToBlake160(alicePk);
+  const bobPubkey = privateKeyToBlake160(bobPk);
+  const charlesPubkey = privateKeyToBlake160(charlesPk);
+
+  const { fromScript, multisigScript } = parseFromInfo(
+    {
+      R: 2,
+      M: 2,
+      publicKeyHashes: [alicePubkey, bobPubkey, charlesPubkey],
+    },
+    {
+      config: {
+        PREFIX: "ckt",
+        SCRIPTS: context.scriptConfigs,
+      },
+    }
+  );
+
+  const multisigLock = registry.newScript(
+    "SECP256K1_BLAKE160_MULTISIG",
+    fromScript.args
+  );
+
+  txSkeleton = txSkeleton.update("inputs", (inputs) =>
+    inputs.push({
+      out_point: mockOutPoint(),
+      ...createCellWithMinimalCapacity({ lock: multisigLock }),
+    })
+  );
+  txSkeleton.update("outputs", (outputs) =>
+    outputs.push(createCellWithMinimalCapacity({ lock: multisigLock }))
+  );
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160_MULTISIG"))
+  );
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+    witnesses.push(
+      hexify(
+        WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })
+      )
+    )
+  );
+  const signingGroup = createP2PKHMessageGroup(txSkeleton, [multisigLock]);
+  const aliceSignedMessage = signRecoverable(signingGroup[0].message, alicePk);
+  // use charles private key to sign
+  const bobSignedMessage = signRecoverable(signingGroup[0].message, charlesPk);
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+    witnesses.set(
+      0,
+      hexify(
+        WitnessArgs.pack({
+          lock: `${multisigScript}${aliceSignedMessage.slice(
+            2
+          )}${bobSignedMessage.slice(2)}`,
+        })
+      )
+    )
+  );
+
+  const result = await context.executor.execute(txSkeleton, {
+    scriptGroupType: "lock",
+    scriptHash: computeScriptHash(multisigLock),
+  });
+
+  t.is(result.code, -52);
 });
 
 test.todo("context#CKBDebugger with transfer sUDT");
