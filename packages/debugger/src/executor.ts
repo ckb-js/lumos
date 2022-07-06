@@ -1,6 +1,6 @@
-import { DataLoader, Executor, ExecuteResult } from "./types";
+import { DataLoader, ExecuteResult, Executor } from "./types";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
-import { execSync } from "child_process";
+import { spawnSync } from "child_process";
 import { Hash } from "@ckb-lumos/base";
 import * as fs from "fs";
 import * as os from "os";
@@ -54,9 +54,24 @@ export class CKBDebugger implements Executor {
   ): Promise<ExecuteResult> {
     const tmpTxPath = this.saveTmpTxFile(txSkeleton);
 
-    const buf = execSync(
-      `${this.debuggerPath} --mode full --tx-file ${tmpTxPath} --script-hash ${options.scriptHash} --script-group-type ${options.scriptGroupType}`
+    const buf = spawnSync(
+      this.debuggerPath,
+      [
+        "--tx-file",
+        tmpTxPath,
+        "--script-hash",
+        options.scriptHash,
+        "--script-group-type",
+        options.scriptGroupType,
+      ],
+      {
+        env: { RUST_LOG: "debug" },
+      }
     );
-    return parseDebuggerMessage(buf.toString("utf-8"));
+
+    return parseDebuggerMessage(
+      buf.stdout.toString("utf-8"),
+      buf.stderr.toString("utf-8")
+    );
   }
 }

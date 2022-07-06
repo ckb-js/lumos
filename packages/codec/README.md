@@ -16,7 +16,7 @@ graph TD;
 import { struct, Uint8, Uint128 } from "@ckb-lumos/codec";
 
 // udt-info.mol
-// table UDTInfo {
+// struct UDTInfo {
 //  total_supply: Uint128,
 //  decimals: Uint8,
 // }
@@ -187,3 +187,23 @@ table OmniLockWitnessLock {
 ```
 
 ![](./assets/suggest-trigger.gif)
+
+## Works with TypeScript
+
+### Get Type Definition from Value
+
+```ts
+import { molecule } from "@ckb-lumos/codec";
+import type { UnpackResult } from "@ckb-lumos/codec";
+
+const { struct } = molecule;
+
+const RGB = struct(
+  { r: Uint8, g: Uint8, b: Uint8 },
+  ["r", "g", "b"] // order of the keys needs to be consistent with the schema
+);
+
+// We don't need to repeat the definition like this
+// type UnpackedRGB = { r: number; g: number; b: number };
+type UnpackedRGB = UnpackResult<typeof RGB>;
+```

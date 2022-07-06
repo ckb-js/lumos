@@ -5,6 +5,10 @@ import path from "path";
 import * as fs from "fs";
 import { CKB_DEBUGGER_VERSION } from "./constants";
 
+export const DEFAULT_CKB_DEBUGGER_DIRECTORY_PATH = envPaths("ckb-debugger", {
+  suffix: CKB_DEBUGGER_VERSION,
+}).cache;
+
 export interface DownloadDebuggerOptions {
   version?: string;
   dir?: string;
@@ -16,8 +20,7 @@ export class CKBDebuggerDownloader {
   constructor(options?: DownloadDebuggerOptions) {
     const version = options?.version || CKB_DEBUGGER_VERSION;
 
-    const saveToPath =
-      options?.dir || envPaths("ckb-debugger", { suffix: version }).cache;
+    const saveToPath = options?.dir || DEFAULT_CKB_DEBUGGER_DIRECTORY_PATH;
 
     this.config = { dir: saveToPath, version };
   }
