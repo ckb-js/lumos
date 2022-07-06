@@ -18,8 +18,10 @@ test("omni lock [g1]", (t) => {
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     hasher: {
-      update: (message) => hasher.update(message.buffer),
-      digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+      hasherInstance: hasher,
+      reset: () => new utils.CKBHasher(),
+      update: (hasher, message) => hasher.update(message.buffer),
+      digest: (hasher) => new Uint8Array(hasher.digestReader().toArrayBuffer()),
     },
   });
   t.is(messageGroup.length, 1);
@@ -40,10 +42,12 @@ test("pw lock [g1]", (t) => {
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     hasher: {
-      update: (message) => {
+      hasherInstance: keccak,
+      update: (keccak, message) => {
         keccak.update(Buffer.from(new Uint8Array(message)));
       },
-      digest: () => keccak.digest(),
+      digest: (keccak) => keccak.digest(),
+      reset: () => createKeccak("keccak256"),
     },
   });
   t.is(messageGroup.length, 1);
@@ -82,6 +86,24 @@ test("seck256k1 [g1, g1]", (t) => {
   t.is(messageGroup[0].index, 0);
   t.deepEqual(messageGroup[0].lock, signLock);
   t.is(messageGroup[0].message, p2pkhJson["SECP256K1_[G1_G1]"].MESSAGE);
+});
+
+test("seck256k1 [g1, g2], test createP2PKHMessageGroup by multiple locks", (t) => {
+  const SIGNATURE_PLACEHOLDER = "0x" + "00".repeat(65);
+  let tx = txSkeletonFromJson(
+    p2pkhJson["SECP256K1_[G1_G2]"].tx as txObject,
+    SIGNATURE_PLACEHOLDER
+  );
+
+  const signLock = p2pkhJson["SECP256K1_[G1_G2]"].SIGN_LOCK as Script;
+  const signLock2 = p2pkhJson["SECP256K1_[G1_G2]"].SIGN_LOCK_2 as Script;
+
+  const messageGroup = createP2PKHMessageGroup(tx, [signLock, signLock2]);
+  t.is(messageGroup.length, 2);
+  t.is(messageGroup[0].index, 0);
+  t.is(messageGroup[1].index, 1);
+  t.deepEqual(messageGroup[0].lock, signLock);
+  t.deepEqual(messageGroup[1].lock, signLock2);
 });
 
 test("doesn't fill witnesses beforehand", (t) => {

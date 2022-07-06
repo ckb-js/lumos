@@ -40,9 +40,28 @@ function calcRawTxHash(tx: TransactionSkeletonType): Reader {
   );
 }
 
-export interface Hasher {
-  update(message: Uint8Array): void;
-  digest(): Uint8Array;
+export interface Hasher<T> {
+  hasherInstance: T;
+  update(hasherInstance: T, message: Uint8Array): void;
+  digest(hasherInstance: T): Uint8Array;
+  reset(): T;
+}
+
+class MessageHasher<T> {
+  update: (message: Uint8Array) => void;
+  digest: () => Uint8Array;
+  reset: () => void;
+  hasherInstance: T;
+  constructor(options: Hasher<T>) {
+    this.update = (message: Uint8Array) =>
+      options.update(this.hasherInstance, message);
+    this.digest = () => options.digest(this.hasherInstance);
+    this.hasherInstance = options.hasherInstance;
+    this.reset = () => {
+      const newHasherInstance = options.reset();
+      this.hasherInstance = newHasherInstance;
+    };
+  }
 }
 
 type Group = {
@@ -51,8 +70,8 @@ type Group = {
   message: Hash;
 };
 
-interface Options {
-  hasher?: Hasher;
+interface Options<T> {
+  hasher?: Hasher<T>;
 }
 
 /**
@@ -66,19 +85,27 @@ interface Options {
  * https://github.com/nervosnetwork/ckb-system-scripts/blob/e975e8b7d5231fdb1c537b830dd934b305492417/c/secp256k1_blake160_sighash_all.c#L22-L28 for more.
  * @returns An array of Group containing: lock of the input cell you need to sign, message for signing, witness index of this message (first index of the input cell with this lock).
  */
-export function createP2PKHMessageGroup(
+export function createP2PKHMessageGroup<T = utils.CKBHasher>(
   tx: TransactionSkeletonType,
   locks: Script[],
-  { hasher = undefined }: Options = {}
+  { hasher = undefined }: Options<T> = {}
 ): Group[] {
   const groups = groupInputs(tx.inputs.toArray(), locks);
   const rawTxHash = calcRawTxHash(tx);
 
-  const defaultHasher = new utils.CKBHasher();
-  hasher = hasher || {
-    update: (message) => defaultHasher.update(message.buffer),
-    digest: () => new Uint8Array(defaultHasher.digestReader().toArrayBuffer()),
-  };
+  let messageHasher;
+  if (hasher) {
+    messageHasher = new MessageHasher(hasher);
+  } else {
+    const defaultHasher = new utils.CKBHasher();
+    messageHasher = new MessageHasher({
+      hasherInstance: defaultHasher,
+      update: (defaultHasher, message) => defaultHasher.update(message.buffer),
+      digest: (defaultHasher) =>
+        new Uint8Array(defaultHasher.digestReader().toArrayBuffer()),
+      reset: () => new utils.CKBHasher(),
+    });
+  }
 
   const messageGroup: Group[] = [];
 
@@ -89,8 +116,7 @@ export function createP2PKHMessageGroup(
     if (firstWitness === undefined) {
       throw new Error("Please fill witnesses with 0 first!");
     }
-
-    hasher.update(new Uint8Array(rawTxHash.toArrayBuffer()));
+    messageHasher.update(new Uint8Array(rawTxHash.toArrayBuffer()));
 
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
@@ -107,13 +133,15 @@ export function createP2PKHMessageGroup(
       view.setUint32(4, Number("0x" + witnessHexString.slice(0, -8)), true);
     }
 
-    hasher.update(new Uint8Array(lengthBuffer));
-    hasher.update(new Uint8Array(new Reader(firstWitness).toArrayBuffer()));
+    messageHasher.update(new Uint8Array(lengthBuffer));
+    messageHasher.update(
+      new Uint8Array(new Reader(firstWitness).toArrayBuffer())
+    );
 
     for (let i = 1; i < indexes.length; i++) {
       const witness = tx.witnesses.get(indexes[i])!;
-      hasher.update(new Uint8Array(lengthBuffer));
-      hasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
+      messageHasher.update(new Uint8Array(lengthBuffer));
+      messageHasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
     }
 
     for (
@@ -122,21 +150,23 @@ export function createP2PKHMessageGroup(
       i++
     ) {
       const witness = tx.witnesses.get(i)!;
-      hasher.update(new Uint8Array(lengthBuffer));
-      hasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
+      messageHasher.update(new Uint8Array(lengthBuffer));
+      messageHasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
     }
 
+    const digested = messageHasher.digest();
     const g: Group = {
       index: firstIndex,
       lock: tx.inputs.get(firstIndex)!.cell_output.lock,
       message:
         "0x" +
         Array.prototype.map
-          .call(hasher.digest(), (x) => ("00" + x.toString(16)).slice(-2))
+          .call(digested, (x) => ("00" + x.toString(16)).slice(-2))
           .join(""),
     };
 
     messageGroup.push(g);
+    messageHasher.reset();
   }
 
   return messageGroup;
