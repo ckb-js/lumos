@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { helpers, Script } from "@ckb-lumos/lumos";
 import ReactDOM from "react-dom";
-import { asyncSleep, capacityOf, CONFIG, ethereum, transfer } from "./lib";
+import { asyncSleep, capacityOf, ethereum, genOmnilockScript, genOmnilockSuite, transfer } from "./lib2";
+import { OmnilockSuite } from "@ckb-lumos/omnilock/lib/types";
+
 
 const app = document.getElementById("root");
 ReactDOM.render(<App />, app);
@@ -10,6 +12,7 @@ export function App() {
   const [ethAddr, setEthAddr] = useState("");
   const [omniAddr, setOmniAddr] = useState("");
   const [omniLock, setOmniLock] = useState<Script>();
+  const [suite, setSuite] = useState<OmnilockSuite>();
   const [balance, setBalance] = useState("-");
 
   const [transferAddr, setTransferAddress] = useState("");
@@ -29,23 +32,14 @@ export function App() {
     ethereum
       .enable()
       .then(([ethAddr]: string[]) => {
-        const omniLock: Script = {
-          code_hash: CONFIG.SCRIPTS.OMNI_LOCK.CODE_HASH,
-          hash_type: CONFIG.SCRIPTS.OMNI_LOCK.HASH_TYPE,
-          // omni flag       pubkey hash   omni lock flags
-          // chain identity   eth addr      function flag()
-          // 00: Nervos       👇            00: owner
-          // 01: Ethereum     👇            01: administrator
-          //      👇          👇            👇
-          args: `0x01${ethAddr.substring(2)}00`,
-        };
-
+        const suite = genOmnilockSuite(ethAddr)
+        const omniLock: Script = genOmnilockScript(suite)
         const omniAddr = helpers.generateAddress(omniLock);
-
+        
+        setSuite(suite)
         setEthAddr(ethAddr);
         setOmniAddr(omniAddr);
         setOmniLock(omniLock);
-
         return omniAddr;
       })
       .then((omniAddr) => capacityOf(omniAddr))
@@ -56,7 +50,7 @@ export function App() {
     if (isSendingTx) return;
     setIsSendingTx(true);
 
-    transfer({ amount: transferAmount, from: omniAddr, to: transferAddr })
+    transfer(suite, { amount: transferAmount, from: omniAddr, to: transferAddr })
       .then(setTxHash)
       .catch((e) => alert(e.message || JSON.stringify(e)))
       .finally(() => setIsSendingTx(false));
