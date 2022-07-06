@@ -1,5 +1,10 @@
 import { BI, commons, config, helpers, Indexer, RPC } from "@ckb-lumos/lumos";
-import { createCommonAdapter, OmnilockWitnessLock, signViaEthereum } from "@ckb-lumos/omnilock";
+import {
+  createCommonAdapter,
+  createDefaultOmnilockSuite,
+  OmnilockWitnessLock,
+  signViaEthereum,
+} from "@ckb-lumos/omnilock";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { sealTransaction } from "@ckb-lumos/helpers";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
@@ -24,7 +29,10 @@ export const CONFIG = config.createConfig({
 
 config.initializeConfig(CONFIG);
 
-const adapter = createCommonAdapter({ scriptConfig: OMNILOCK_SCRIPT_CONFIG });
+// TODO update after adapter is ready
+const adapter = createCommonAdapter(
+  createDefaultOmnilockSuite({ authHints: [], scriptConfig: OMNILOCK_SCRIPT_CONFIG })
+);
 common.registerCustomLockScriptInfos([adapter.adapt()]);
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
