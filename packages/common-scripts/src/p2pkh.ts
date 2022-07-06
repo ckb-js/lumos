@@ -40,28 +40,9 @@ function calcRawTxHash(tx: TransactionSkeletonType): Reader {
   );
 }
 
-export interface Hasher<T> {
-  hasherInstance: T;
-  update(hasherInstance: T, message: Uint8Array): void;
-  digest(hasherInstance: T): Uint8Array;
-  reset(): T;
-}
-
-class MessageHasher<T> {
-  update: (message: Uint8Array) => void;
-  digest: () => Uint8Array;
-  reset: () => void;
-  hasherInstance: T;
-  constructor(options: Hasher<T>) {
-    this.update = (message: Uint8Array) =>
-      options.update(this.hasherInstance, message);
-    this.digest = () => options.digest(this.hasherInstance);
-    this.hasherInstance = options.hasherInstance;
-    this.reset = () => {
-      const newHasherInstance = options.reset();
-      this.hasherInstance = newHasherInstance;
-    };
-  }
+export interface Hasher {
+  update(message: Uint8Array): void;
+  digest(): Uint8Array;
 }
 
 type Group = {
@@ -70,8 +51,19 @@ type Group = {
   message: Hash;
 };
 
-interface Options<T> {
-  hasher?: Hasher<T>;
+type ThunkbaleHasher = Hasher | (() => Hasher);
+
+interface Options {
+  hasher?: ThunkbaleHasher;
+}
+
+function isThunkHasher(
+  thunkableHasher: ThunkbaleHasher
+): thunkableHasher is () => Hasher {
+  if ((thunkableHasher as Hasher).update !== undefined) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -85,31 +77,39 @@ interface Options<T> {
  * https://github.com/nervosnetwork/ckb-system-scripts/blob/e975e8b7d5231fdb1c537b830dd934b305492417/c/secp256k1_blake160_sighash_all.c#L22-L28 for more.
  * @returns An array of Group containing: lock of the input cell you need to sign, message for signing, witness index of this message (first index of the input cell with this lock).
  */
-export function createP2PKHMessageGroup<T = utils.CKBHasher>(
+export function createP2PKHMessageGroup(
   tx: TransactionSkeletonType,
   locks: Script[],
-  { hasher = undefined }: Options<T> = {}
+  { hasher = undefined }: Options = {}
 ): Group[] {
   const groups = groupInputs(tx.inputs.toArray(), locks);
   const rawTxHash = calcRawTxHash(tx);
 
-  let messageHasher;
-  if (hasher) {
-    messageHasher = new MessageHasher(hasher);
-  } else {
-    const defaultHasher = new utils.CKBHasher();
-    messageHasher = new MessageHasher({
-      hasherInstance: defaultHasher,
-      update: (defaultHasher, message) => defaultHasher.update(message.buffer),
-      digest: (defaultHasher) =>
-        new Uint8Array(defaultHasher.digestReader().toArrayBuffer()),
-      reset: () => new utils.CKBHasher(),
-    });
+  let messageHasher: Hasher;
+  if (locks.length > 1 && !!hasher && !isThunkHasher(hasher)) {
+    // If we have multiple locks to group, we need the hasher to be thunk so that in the second group we can get another new hasher.
+    throw new Error(
+      "Must provide hasher producer when you have multiple locks to group."
+    );
   }
 
   const messageGroup: Group[] = [];
 
   for (const group of groups.keys()) {
+    if (hasher) {
+      if (isThunkHasher(hasher)) {
+        messageHasher = hasher();
+      } else {
+        messageHasher = hasher;
+      }
+    } else {
+      const defaultHasher = new utils.CKBHasher();
+      messageHasher = {
+        update: (message) => defaultHasher.update(message.buffer),
+        digest: () =>
+          new Uint8Array(defaultHasher.digestReader().toArrayBuffer()),
+      };
+    }
     const indexes = groups.get(group)!;
     const firstIndex = indexes[0];
     const firstWitness = tx.witnesses.get(firstIndex);
@@ -166,7 +166,6 @@ export function createP2PKHMessageGroup<T = utils.CKBHasher>(
     };
 
     messageGroup.push(g);
-    messageHasher.reset();
   }
 
   return messageGroup;

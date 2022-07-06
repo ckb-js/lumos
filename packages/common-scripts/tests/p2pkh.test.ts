@@ -18,10 +18,8 @@ test("omni lock [g1]", (t) => {
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     hasher: {
-      hasherInstance: hasher,
-      reset: () => new utils.CKBHasher(),
-      update: (hasher, message) => hasher.update(message.buffer),
-      digest: (hasher) => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+      update: (message) => hasher.update(message.buffer),
+      digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
     },
   });
   t.is(messageGroup.length, 1);
@@ -42,12 +40,10 @@ test("pw lock [g1]", (t) => {
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     hasher: {
-      hasherInstance: keccak,
-      update: (keccak, message) => {
+      update: (message) => {
         keccak.update(Buffer.from(new Uint8Array(message)));
       },
-      digest: (keccak) => keccak.digest(),
-      reset: () => createKeccak("keccak256"),
+      digest: () => keccak.digest(),
     },
   });
   t.is(messageGroup.length, 1);
@@ -104,6 +100,37 @@ test("seck256k1 [g1, g2], test createP2PKHMessageGroup by multiple locks", (t) =
   t.is(messageGroup[1].index, 1);
   t.deepEqual(messageGroup[0].lock, signLock);
   t.deepEqual(messageGroup[1].lock, signLock2);
+
+  const hasher = new utils.CKBHasher();
+
+  const error = t.throws(() =>
+    createP2PKHMessageGroup(tx, [signLock, signLock2], {
+      hasher: {
+        update: (message) => hasher.update(message.buffer),
+        digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+      },
+    })
+  );
+
+  t.is(
+    error.message,
+    "Must provide hasher producer when you have multiple locks to group."
+  );
+
+  const messageGroupWithThunk = createP2PKHMessageGroup(
+    tx,
+    [signLock, signLock2],
+    {
+      hasher: () => {
+        const hasher = new utils.CKBHasher();
+        return {
+          update: (message) => hasher.update(message.buffer),
+          digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+        };
+      },
+    }
+  );
+  t.is(messageGroupWithThunk.length, 2);
 });
 
 test("doesn't fill witnesses beforehand", (t) => {
