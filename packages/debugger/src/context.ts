@@ -139,43 +139,46 @@ export function getDefaultConfig(): {
     deps: {
       ALWAYS_SUCCESS: {
         dep_type: "code",
-        path: path.join(__dirname, "../bin/always_success"),
+        path: path.join(__dirname, "../contracts/always_success"),
       },
       ALWAYS_FAILURE: {
         dep_type: "code",
-        path: path.join(__dirname, "../bin/always_failure"),
+        path: path.join(__dirname, "../contracts/always_failure"),
       },
       ANYONE_CAN_PAY: {
         dep_type: "code",
-        path: path.join(__dirname, "../bin/anyone_can_pay"),
+        path: path.join(__dirname, "../contracts/anyone_can_pay"),
       },
       SUDT: {
         dep_type: "code",
-        path: path.join(__dirname, "../bin/sudt"),
+        path: path.join(__dirname, "../contracts/sudt"),
       },
-      OMNI_LOCK: {
+      OMNILOCK: {
         dep_type: "code",
-        path: path.join(__dirname, "../bin/omni_lock"),
+        path: path.join(__dirname, "../contracts/omni_lock"),
       },
       DAO: {
         dep_type: "code",
-        path: path.join(__dirname, "../bin/dao"),
+        path: path.join(__dirname, "../contracts/dao"),
       },
       SECP256K1_BLAKE160: {
         dep_type: "dep_group",
-        path: path.join(__dirname, "../bin/secp256k1_blake160"),
-        includes: [path.join(__dirname, "../bin/secp256k1_data_info")],
+        path: path.join(__dirname, "../contracts/secp256k1_blake160"),
+        includes: [path.join(__dirname, "../contracts/secp256k1_data_info")],
       },
       SECP256K1_BLAKE160_MULTISIG: {
         dep_type: "dep_group",
-        path: path.join(__dirname, "../bin/secp256k1_blake160_multisig_all"),
-        includes: [path.join(__dirname, "../bin/secp256k1_data_info")],
+        path: path.join(
+          __dirname,
+          "../contracts/secp256k1_blake160_multisig_all"
+        ),
+        includes: [path.join(__dirname, "../contracts/secp256k1_data_info")],
       },
       // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c
       DEBUGGER: {
         // the dep_type is defaults to "code"
         // dep_type: "code",
-        path: path.join(__dirname, "../bin/debugger"),
+        path: path.join(__dirname, "../contracts/debugger"),
       },
     },
   };

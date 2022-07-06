@@ -17,7 +17,8 @@
   },
   "files": [
     "lib",
-    "src"
+    "src",
+    "contracts"
   ],
   "dependencies": {
     "@ckb-lumos/base": "*",
