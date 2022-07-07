@@ -60,8 +60,21 @@ interface Options {
 function isThunkHasher(
   thunkableHasher: ThunkbaleHasher
 ): thunkableHasher is () => Hasher {
-  if ((thunkableHasher as Hasher).update !== undefined) {
+  if (isShapeOf(thunkableHasher, ["update", "digest"])) {
     return false;
+  }
+  return true;
+}
+
+function isShapeOf<T extends string | number | symbol>(
+  x: unknown,
+  keys: T[]
+): x is Record<T, unknown> {
+  for (let index = 0; index < keys.length; index++) {
+    const key = keys[index];
+    if ((x as Record<T, unknown>)[key] === undefined) {
+      return false;
+    }
   }
   return true;
 }
