@@ -51,32 +51,23 @@ type Group = {
   message: Hash;
 };
 
-type ThunkbaleHasher = Hasher | (() => Hasher);
+type ThunkOrValue<T> = T | (() => T);
 
 interface Options {
-  hasher?: ThunkbaleHasher;
+  hasher?: ThunkOrValue<Hasher>;
 }
 
-function isThunkHasher(
-  thunkableHasher: ThunkbaleHasher
-): thunkableHasher is () => Hasher {
-  if (isShapeOf(thunkableHasher, ["update", "digest"])) {
-    return false;
-  }
-  return true;
-}
+const defaultCkbHasher: ThunkOrValue<Hasher> = () => {
+  const hasher = new utils.CKBHasher();
+  return {
+    update: (message) => hasher.update(message.buffer),
+    digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+  };
+};
 
-function isShapeOf<T extends string | number | symbol>(
-  x: unknown,
-  keys: T[]
-): x is Record<T, unknown> {
-  for (let index = 0; index < keys.length; index++) {
-    const key = keys[index];
-    if ((x as Record<T, unknown>)[key] === undefined) {
-      return false;
-    }
-  }
-  return true;
+function resolveThunk<T>(thunkOrValue: ThunkOrValue<T>): T {
+  if (thunkOrValue instanceof Function) return thunkOrValue();
+  return thunkOrValue;
 }
 
 /**
@@ -86,20 +77,20 @@ function isShapeOf<T extends string | number | symbol>(
  *
  * @param tx TxSkeleton with all input cells' witnessArgs.lock filled with 0.
  * @param locks Locks you want to sign, e.g. you don't need to sign ACP cells.
- * @param hasher Message hasher, defaults to CKB blake2b hasher. Check
+ * @param options Message hasher, defaults to CKB blake2b hasher. Check
  * https://github.com/nervosnetwork/ckb-system-scripts/blob/e975e8b7d5231fdb1c537b830dd934b305492417/c/secp256k1_blake160_sighash_all.c#L22-L28 for more.
  * @returns An array of Group containing: lock of the input cell you need to sign, message for signing, witness index of this message (first index of the input cell with this lock).
  */
 export function createP2PKHMessageGroup(
   tx: TransactionSkeletonType,
   locks: Script[],
-  { hasher = undefined }: Options = {}
+  options: Options = {}
 ): Group[] {
+  const { hasher: _hasher = defaultCkbHasher } = options;
   const groups = groupInputs(tx.inputs.toArray(), locks);
   const rawTxHash = calcRawTxHash(tx);
 
-  let messageHasher: Hasher;
-  if (locks.length > 1 && !!hasher && !isThunkHasher(hasher)) {
+  if (locks.length > 1 && !(_hasher instanceof Function)) {
     // If we have multiple locks to group, we need the hasher to be thunk so that in the second group we can get another new hasher.
     throw new Error(
       "Must provide hasher producer when you have multiple locks to group."
@@ -109,20 +100,7 @@ export function createP2PKHMessageGroup(
   const messageGroup: Group[] = [];
 
   for (const group of groups.keys()) {
-    if (hasher) {
-      if (isThunkHasher(hasher)) {
-        messageHasher = hasher();
-      } else {
-        messageHasher = hasher;
-      }
-    } else {
-      const defaultHasher = new utils.CKBHasher();
-      messageHasher = {
-        update: (message) => defaultHasher.update(message.buffer),
-        digest: () =>
-          new Uint8Array(defaultHasher.digestReader().toArrayBuffer()),
-      };
-    }
+    const messageHasher = resolveThunk(_hasher);
     const indexes = groups.get(group)!;
     const firstIndex = indexes[0];
     const firstWitness = tx.witnesses.get(firstIndex);
