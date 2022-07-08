@@ -51,32 +51,23 @@ type Group = {
   message: Hash;
 };
 
-type ThunkbaleHasher = Hasher | (() => Hasher);
+type ThunkOrValue<T> = T | (() => T);
 
 interface Options {
-  hasher?: ThunkbaleHasher;
+  hasher?: ThunkOrValue<Hasher>;
 }
 
-function isThunkHasher(
-  thunkableHasher: ThunkbaleHasher
-): thunkableHasher is () => Hasher {
-  if (isShapeOf(thunkableHasher, ["update", "digest"])) {
-    return false;
-  }
-  return true;
-}
+const defaultCkbHasher: ThunkOrValue<Hasher> = () => {
+  const hasher = new utils.CKBHasher();
+  return {
+    update: (message) => hasher.update(message.buffer),
+    digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+  };
+};
 
-function isShapeOf<T extends string | number | symbol>(
-  x: unknown,
-  keys: T[]
-): x is Record<T, unknown> {
-  for (let index = 0; index < keys.length; index++) {
-    const key = keys[index];
-    if ((x as Record<T, unknown>)[key] === undefined) {
-      return false;
-    }
-  }
-  return true;
+function resolveThunk<T>(thunkOrValue: ThunkOrValue<T>): T {
+  if (thunkOrValue instanceof Function) return thunkOrValue();
+  return thunkOrValue;
 }
 
 /**
@@ -93,13 +84,12 @@ function isShapeOf<T extends string | number | symbol>(
 export function createP2PKHMessageGroup(
   tx: TransactionSkeletonType,
   locks: Script[],
-  { hasher = undefined }: Options = {}
+  { hasher: thunkableHasher = defaultCkbHasher }: Options = {}
 ): Group[] {
   const groups = groupInputs(tx.inputs.toArray(), locks);
   const rawTxHash = calcRawTxHash(tx);
 
-  let messageHasher: Hasher;
-  if (locks.length > 1 && !!hasher && !isThunkHasher(hasher)) {
+  if (locks.length > 1 && !(thunkableHasher instanceof Function)) {
     // If we have multiple locks to group, we need the hasher to be thunk so that in the second group we can get another new hasher.
     throw new Error(
       "Must provide hasher producer when you have multiple locks to group."
@@ -109,20 +99,7 @@ export function createP2PKHMessageGroup(
   const messageGroup: Group[] = [];
 
   for (const group of groups.keys()) {
-    if (hasher) {
-      if (isThunkHasher(hasher)) {
-        messageHasher = hasher();
-      } else {
-        messageHasher = hasher;
-      }
-    } else {
-      const defaultHasher = new utils.CKBHasher();
-      messageHasher = {
-        update: (message) => defaultHasher.update(message.buffer),
-        digest: () =>
-          new Uint8Array(defaultHasher.digestReader().toArrayBuffer()),
-      };
-    }
+    const messageHasher = resolveThunk(thunkableHasher);
     const indexes = groups.get(group)!;
     const firstIndex = indexes[0];
     const firstWitness = tx.witnesses.get(firstIndex);
