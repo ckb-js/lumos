@@ -295,5 +295,87 @@
       "args": "0x92764594e255afbb89cd9486b0035c393b2c5323"
     },
     "MESSAGE": "0xae04988711de62dca841cb09d78ef182dc3c2c9cc107626d5ccedae75eaf7033"
+  },
+  "SECP256K1_[G1_G2]": {
+    "tx": {
+      "inputs": [
+        {
+          "cell_output": {
+            "capacity": "0x2540be400",
+            "lock": {
+              "args": "0x92764594e255afbb89cd9486b0035c393b2c5323",
+              "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+              "hash_type": "type"
+            }
+          },
+          "data": "0x",
+          "out_point": {
+            "index": "0x0",
+            "tx_hash": "0x45def2fa2371895941e9e0b26ef9c27dca3ab446238548a472fed3b8ccc799f6"
+          },
+          "block_number": "0x426d67"
+        },
+        {
+          "cell_output": {
+            "capacity": "0x2540be400",
+            "lock": {
+              "args": "0x92764594e255afbb89cd9486b0035c393b2c5324",
+              "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+              "hash_type": "type"
+            }
+          },
+          "data": "0x",
+          "out_point": {
+            "index": "0x0",
+            "tx_hash": "0x9fb88345432208ea1182987ff62b7911de877e74c8016cf4af5168815ce30480"
+          },
+          "block_number": "0x426d87"
+        }
+      ],
+      "outputs": [
+        {
+          "cell_output": {
+            "capacity": "0x28fa6ae00",
+            "lock": {
+              "args": "0xed20af7322823d0dc33bfb215486a05082669905",
+              "code_hash": "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+              "hash_type": "type"
+            }
+          },
+          "data": "0x"
+        },
+        {
+          "cell_output": {
+            "capacity": "0x2186f9360",
+            "lock": {
+              "args": "0x92764594e255afbb89cd9486b0035c393b2c5323",
+              "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+              "hash_type": "type"
+            }
+          },
+          "data": "0x"
+        }
+      ],
+      "cellDeps": [
+        {
+          "out_point": {
+            "tx_hash": "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
+            "index": "0x0"
+          },
+          "dep_type": "dep_group"
+        }
+      ]
+    },
+    "SIGN_LOCK": {
+      "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      "hash_type": "type",
+      "args": "0x92764594e255afbb89cd9486b0035c393b2c5323"
+    },
+    "SIGN_LOCK_2": {
+      "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      "hash_type": "type",
+      "args": "0x92764594e255afbb89cd9486b0035c393b2c5324"
+    },
+    "MESSAGE": "0xae04988711de62dca841cb09d78ef182dc3c2c9cc107626d5ccedae75eaf7033"
   }
 }
