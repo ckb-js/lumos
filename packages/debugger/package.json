@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@ckb-lumos/debugger",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "ckb-standard-debugger wrapper for lumos, check tx without launching a full node",
   "author": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
