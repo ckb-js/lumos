@@ -2,9 +2,7 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "examples/*",
-    "experiment/*",
-    "docusaurus/website"
+    "examples/*"
   ],
   "engines": {
     "node": ">=12.0.0"
