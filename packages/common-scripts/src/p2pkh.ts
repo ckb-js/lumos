@@ -51,8 +51,23 @@ type Group = {
   message: Hash;
 };
 
+type ThunkOrValue<T> = T | (() => T);
+
 interface Options {
-  hasher?: Hasher;
+  hasher?: ThunkOrValue<Hasher>;
+}
+
+const defaultCkbHasher: ThunkOrValue<Hasher> = () => {
+  const hasher = new utils.CKBHasher();
+  return {
+    update: (message) => hasher.update(message.buffer),
+    digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+  };
+};
+
+function resolveThunk<T>(thunkOrValue: ThunkOrValue<T>): T {
+  if (thunkOrValue instanceof Function) return thunkOrValue();
+  return thunkOrValue;
 }
 
 /**
@@ -69,28 +84,29 @@ interface Options {
 export function createP2PKHMessageGroup(
   tx: TransactionSkeletonType,
   locks: Script[],
-  { hasher = undefined }: Options = {}
+  { hasher: thunkableHasher = defaultCkbHasher }: Options = {}
 ): Group[] {
   const groups = groupInputs(tx.inputs.toArray(), locks);
   const rawTxHash = calcRawTxHash(tx);
 
-  const defaultHasher = new utils.CKBHasher();
-  hasher = hasher || {
-    update: (message) => defaultHasher.update(message.buffer),
-    digest: () => new Uint8Array(defaultHasher.digestReader().toArrayBuffer()),
-  };
+  if (locks.length > 1 && !(thunkableHasher instanceof Function)) {
+    // If we have multiple locks to group, we need the hasher to be thunk so that in the second group we can get another new hasher.
+    throw new Error(
+      "Must provide hasher producer when you have multiple locks to group."
+    );
+  }
 
   const messageGroup: Group[] = [];
 
   for (const group of groups.keys()) {
+    const messageHasher = resolveThunk(thunkableHasher);
     const indexes = groups.get(group)!;
     const firstIndex = indexes[0];
     const firstWitness = tx.witnesses.get(firstIndex);
     if (firstWitness === undefined) {
       throw new Error("Please fill witnesses with 0 first!");
     }
-
-    hasher.update(new Uint8Array(rawTxHash.toArrayBuffer()));
+    messageHasher.update(new Uint8Array(rawTxHash.toArrayBuffer()));
 
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
@@ -107,13 +123,15 @@ export function createP2PKHMessageGroup(
       view.setUint32(4, Number("0x" + witnessHexString.slice(0, -8)), true);
     }
 
-    hasher.update(new Uint8Array(lengthBuffer));
-    hasher.update(new Uint8Array(new Reader(firstWitness).toArrayBuffer()));
+    messageHasher.update(new Uint8Array(lengthBuffer));
+    messageHasher.update(
+      new Uint8Array(new Reader(firstWitness).toArrayBuffer())
+    );
 
     for (let i = 1; i < indexes.length; i++) {
       const witness = tx.witnesses.get(indexes[i])!;
-      hasher.update(new Uint8Array(lengthBuffer));
-      hasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
+      messageHasher.update(new Uint8Array(lengthBuffer));
+      messageHasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
     }
 
     for (
@@ -122,17 +140,18 @@ export function createP2PKHMessageGroup(
       i++
     ) {
       const witness = tx.witnesses.get(i)!;
-      hasher.update(new Uint8Array(lengthBuffer));
-      hasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
+      messageHasher.update(new Uint8Array(lengthBuffer));
+      messageHasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
     }
 
+    const digested = messageHasher.digest();
     const g: Group = {
       index: firstIndex,
       lock: tx.inputs.get(firstIndex)!.cell_output.lock,
       message:
         "0x" +
         Array.prototype.map
-          .call(hasher.digest(), (x) => ("00" + x.toString(16)).slice(-2))
+          .call(digested, (x) => ("00" + x.toString(16)).slice(-2))
           .join(""),
     };
 

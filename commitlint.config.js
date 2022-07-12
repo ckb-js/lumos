@@ -17,6 +17,7 @@ const scopeEnumValues = [
   "examples",
   "website",
   "codec",
+  "debugger",
 ];
 const Configuration = {
   extends: ["@commitlint/config-conventional"],

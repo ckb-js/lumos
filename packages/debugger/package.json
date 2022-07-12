@@ -1,0 +1,68 @@
+{
+  "private": true,
+  "name": "@ckb-lumos/debugger",
+  "version": "0.17.0",
+  "description": "ckb-standard-debugger wrapper for lumos, check tx without launching a full node",
+  "author": "",
+  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib",
+    "src",
+    "contracts"
+  ],
+  "dependencies": {
+    "@ckb-lumos/base": "*",
+    "@ckb-lumos/bi": "*",
+    "@ckb-lumos/codec": "*",
+    "@ckb-lumos/config-manager": "*",
+    "@ckb-lumos/helpers": "*",
+    "@types/download": "^8.0.1",
+    "@types/object-hash": "^2.2.1",
+    "debug": "^4.3.4",
+    "download": "^8.0.0",
+    "env-paths": "^2.2.1",
+    "object-hash": "^3.0.0"
+  },
+  "devDependencies": {
+    "@ckb-lumos/experiment-tx-assembler": "*"
+  },
+  "bin": {
+    "download-ckb-debugger": "bin/download-ckb-debugger.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "test": "ava **/*.test.ts --timeout=2m",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
+  },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  }
+}
