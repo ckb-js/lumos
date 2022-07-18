@@ -1,5 +1,5 @@
 import { BI, BIish } from "@ckb-lumos/bi";
-import { createFixedBytesCodec, FixedBytesLikeCodec } from "../base";
+import { createFixedBytesCodec, FixedBytesCodec } from "../base";
 
 function assertNumberRange(value: BIish, min: BIish, max: BIish): void {
   value = BI.from(value);
@@ -14,7 +14,7 @@ function assertNumberRange(value: BIish, min: BIish, max: BIish): void {
 function createUintNumberCodec(
   byteLength: number,
   littleEndian = false
-): FixedBytesLikeCodec<number, BIish> {
+): FixedBytesCodec<number, BIish> {
   const codec = createUintBICodec(byteLength, littleEndian);
   return {
     __isFixedCodec__: true,

@@ -1,9 +1,11 @@
 import {
   AnyCodec,
   BytesCodec,
+  BytesLike,
   createBytesCodec,
   createFixedBytesCodec,
   FixedBytesCodec,
+  PackParam,
   UnpackResult,
 } from "./base";
 import { bytify, hexify } from "./bytes";
@@ -47,11 +49,18 @@ export function WitnessArgsOf<
   lock: LockCodec;
   input_type: InputTypeCodec;
   output_type: OutputTypeCodec;
-}): BytesCodec<{
-  lock?: UnpackResult<LockCodec>;
-  input_type?: UnpackResult<InputTypeCodec>;
-  output_type?: UnpackResult<OutputTypeCodec>;
-}> {
+}): BytesCodec<
+  {
+    lock?: UnpackResult<LockCodec>;
+    input_type?: UnpackResult<InputTypeCodec>;
+    output_type?: UnpackResult<OutputTypeCodec>;
+  },
+  {
+    lock?: PackParam<LockCodec>;
+    input_type?: PackParam<InputTypeCodec>;
+    output_type?: PackParam<OutputTypeCodec>;
+  }
+> {
   return table(
     {
       lock: option(byteVecOf(payload.lock)),
@@ -62,7 +71,10 @@ export function WitnessArgsOf<
   );
 }
 
-const HexifyCodec = createBytesCodec<string>({ pack: bytify, unpack: hexify });
+const HexifyCodec = createBytesCodec<string, BytesLike>({
+  pack: bytify,
+  unpack: hexify,
+});
 
 /**
  *

@@ -11,7 +11,7 @@
  */
 
 import type { BytesCodec, Fixed, FixedBytesCodec, UnpackResult } from "../base";
-import { createFixedBytesCodec, isFixedCodec } from "../base";
+import { createBytesCodec, createFixedBytesCodec, isFixedCodec } from "../base";
 import { Uint32LE } from "../number";
 import { concat } from "../bytes";
 
@@ -48,8 +48,7 @@ export function array<T extends FixedBytesCodec>(
   itemCodec: T,
   itemCount: number
 ): ArrayCodec<T> & Fixed {
-  return Object.freeze({
-    __isFixedCodec__: true,
+  return createFixedBytesCodec({
     byteLength: itemCodec.byteLength * itemCount,
     pack(items) {
       const itemsBuf = items.map((item) => itemCodec.pack(item));
@@ -123,7 +122,7 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
 }
 
 export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
-  return {
+  return createBytesCodec({
     pack(items) {
       return concat(
         Uint32LE.pack(items.length),
@@ -142,11 +141,11 @@ export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
       const itemCount = Uint32LE.unpack(buf.slice(0, 4));
       return array(itemCodec, itemCount).unpack(buf.slice(4));
     },
-  };
+  });
 }
 
 export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
-  return {
+  return createBytesCodec({
     pack(obj) {
       const packed = obj.reduce(
         (result, item) => {
@@ -198,7 +197,7 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
         return result;
       }
     },
-  };
+  });
 }
 
 export function vector<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
@@ -213,7 +212,7 @@ export function table<T extends Record<string, BytesCodec>>(
   fields: (keyof T)[]
 ): ObjectCodec<T> {
   checkShape(shape, fields);
-  return {
+  return createBytesCodec({
     pack(obj) {
       const headerLength = 4 + fields.length * 4;
       const packed = fields.reduce(
@@ -271,14 +270,14 @@ export function table<T extends Record<string, BytesCodec>>(
         >;
       }
     },
-  };
+  });
 }
 
 export function union<T extends Record<string, BytesCodec>>(
   itemCodec: T,
   fields: (keyof T)[]
 ): UnionCodec<T> {
-  return {
+  return createBytesCodec({
     pack(obj) {
       const type = obj.type;
       const fieldIndex = fields.indexOf(type);
@@ -294,11 +293,11 @@ export function union<T extends Record<string, BytesCodec>>(
       const type = fields[typeIndex];
       return { type, value: itemCodec[type].unpack(buf.slice(4)) };
     },
-  };
+  });
 }
 
 export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
-  return {
+  return createBytesCodec({
     pack(obj?) {
       if (obj !== undefined && obj !== null) {
         return itemCodec.pack(obj);
@@ -312,5 +311,5 @@ export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
       }
       return itemCodec.unpack(buf);
     },
-  };
+  });
 }
