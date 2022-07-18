@@ -1,4 +1,5 @@
-import { Uint128LE } from "./number/uint";
+import { DepType as _DepType, HashType as _HashType } from "@ckb-lumos/base";
+import { Uint128LE, Uint8 } from "./number/uint";
 import {
   AnyCodec,
   BytesCodec,
@@ -84,57 +85,35 @@ export const WitnessArgs = WitnessArgsOf({
  * Implementation of blockchain.mol
  * https://github.com/nervosnetwork/ckb/blob/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol
  */
-export const HashType = createFixedBytesCodec<string>({
+export const HashType = createFixedBytesCodec<_HashType>({
   byteLength: 1,
   pack: (type) => {
-    const data = new DataView(new ArrayBuffer(1));
-    if (type === "data") {
-      data.setUint8(0, 0);
-    } else if (type === "type") {
-      data.setUint8(0, 1);
-    } else if (type === "data1") {
-      data.setUint8(0, 2);
-    } else {
-      throw new Error(`invalid hash type: ${type}`);
-    }
-    return new Uint8Array(data.buffer);
+    if (type === "data") return Uint8.pack(0);
+    if (type === "type") return Uint8.pack(1);
+    if (type === "data1") return Uint8.pack(2);
+    throw new Error(`Invalid hash type: ${type}`);
   },
   unpack: (buf) => {
-    const data = new DataView(buf.buffer).getUint8(0);
-    if (data === 0) {
-      return "data";
-    } else if (data === 1) {
-      return "type";
-    } else if (data === 2) {
-      return "data1";
-    } else {
-      throw new Error("invalid data");
-    }
+    const hashTypeBuf = Uint8.unpack(buf);
+    if (hashTypeBuf === 0) return "data";
+    if (hashTypeBuf === 1) return "type";
+    if (hashTypeBuf === 2) return "data1";
+    throw new Error(`Invalid hash type: ${hashTypeBuf}`);
   },
 });
 
-export const DepType = createFixedBytesCodec<string>({
+export const DepType = createFixedBytesCodec<_DepType>({
   byteLength: 1,
   pack: (type) => {
-    const data = new DataView(new ArrayBuffer(1));
-    if (type === "code") {
-      data.setUint8(0, 0);
-    } else if (type === "dep_group") {
-      data.setUint8(0, 1);
-    } else {
-      throw new Error(`invalid hash type: ${type}`);
-    }
-    return new Uint8Array(data.buffer);
+    if (type === "code") return Uint8.pack(0);
+    if (type === "dep_group") return Uint8.pack(1);
+    throw new Error(`Invalid dep type: ${type}`);
   },
   unpack: (buf) => {
-    const data = new DataView(buf.buffer).getUint8(0);
-    if (data === 0) {
-      return "code";
-    } else if (data === 1) {
-      return "dep_group";
-    } else {
-      throw new Error("invalid data");
-    }
+    const depTypeBuf = Uint8.unpack(buf);
+    if (depTypeBuf === 0) return "code";
+    if (depTypeBuf === 1) return "dep_group";
+    throw new Error(`Invalid dep type: ${depTypeBuf}`);
   },
 });
 
