@@ -1,6 +1,11 @@
 import { assertBufferLength, assertMinBufferLength } from "../utils";
 import { concat } from "../bytes";
-import { BytesCodec, createFixedBytesCodec, FixedBytesCodec } from "../base";
+import {
+  BytesCodec,
+  createBytesCodec,
+  createFixedBytesCodec,
+  FixedBytesCodec,
+} from "../base";
 import { Uint32LE } from "../number";
 
 /**
@@ -30,8 +35,8 @@ export function byteOf<T>(codec: BytesCodec<T>): FixedBytesCodec<T> {
  * a helper function to create custom codec of `vector Bytes <byte>`
  * @param codec
  */
-export function byteVecOf<T>(codec: BytesCodec<T>): BytesCodec<T> {
-  return {
+export const byteVecOf = <T>(codec: BytesCodec<T>): BytesCodec<T> => {
+  return createBytesCodec({
     pack(unpacked) {
       const payload = codec.pack(unpacked);
       const header = Uint32LE.pack(payload.byteLength);
@@ -44,5 +49,5 @@ export function byteVecOf<T>(codec: BytesCodec<T>): BytesCodec<T> {
       assertBufferLength(packed.slice(4), header);
       return codec.unpack(packed.slice(4));
     },
-  };
-}
+  });
+};
