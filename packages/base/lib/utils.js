@@ -100,9 +100,7 @@ function readBigUInt128LECompatible(leHex) {
 }
 
 function computeScriptHash(script) {
-  return ckbHash(
-    blockchain.Script.pack(script)
-  );
+  return ckbHash(blockchain.Script.pack(script));
 }
 
 function hashCode(buffer) {
@@ -138,7 +136,7 @@ function generateTypeIdArgs(input, outputIndex) {
 }
 
 function generateTypeIdScript(input, outputIndex = "0x0") {
-  blockchain.CellInput.pack(input)
+  blockchain.CellInput.pack(input);
   assertHexadecimal("outputIndex", outputIndex);
 
   const args = generateTypeIdArgs(input, outputIndex);

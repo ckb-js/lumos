@@ -25,7 +25,6 @@ class Value {
 
 class ScriptValue extends Value {
   constructor(script) {
-
     super(blockchain.Script.pack(script));
   }
 }

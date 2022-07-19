@@ -1,8 +1,9 @@
 import { JSONRPCResponse, JSONRPCServer } from "json-rpc-2.0";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
-import { LocalNode, Block, core } from "@ckb-lumos/base";
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
+import { LocalNode, Block } from "@ckb-lumos/base";
+import { Block as BlockCodec } from "@ckb-lumos/codec/lib/blockchain";
+import { hexify } from "@ckb-lumos/codec/lib/bytes";
 interface Options {
   blocks: Block[];
   localNode: LocalNode;
@@ -34,10 +35,9 @@ export function createCKBMockRPC(options: Options): Express {
     );
     if (!block) return null;
 
-    if (Number(verbosity) === 0)
-      return new Reader(
-        core.SerializeBlock(normalizers.NormalizeBlock(block))
-      ).serializeJson();
+    // if (Number(verbosity) === 0)
+    //   return hexify(BlockCodec.pack(block))
+
     return block;
   });
 
@@ -68,7 +68,7 @@ export function createCKBMockRPC(options: Options): Express {
     const hash = hashes[0];
     let result;
     let blockHash;
-    for (let block of blocks) {
+    for (const block of blocks) {
       const tx = block.transactions.find((tx) => tx.hash === hash);
       if (tx) {
         result = tx;
