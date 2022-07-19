@@ -1,68 +1,24 @@
-import { Reader } from "@ckb-lumos/toolkit";
-import { HexNumber } from "..";
-import { BI, BIish } from "@ckb-lumos/bi";
-import { Script, Input } from "./api";
-import { Hash, HexString } from "./primitive";
-
 export class CKBHasher {
-  update(data: string | Reader | ArrayBuffer): this;
-
-  digestReader(): Reader;
-
-  digestHex(): Hash;
+    hasher: any;
+    update(data: any): CKBHasher;
+    digestHex(): string;
 }
-
-export function ckbHash(buffer: ArrayBuffer): Reader;
-
-/**
- * convert bigint to BigUInt64 little-endian hex string
- *
- * @param num
- */
-export function toBigUInt64LE(num: BIish): HexString;
-
-/**
- * convert BigUInt64 little-endian hex string to bigint
- *
- * @param hex BigUInt64 little-endian hex string
- */
-export function readBigUInt64LE(hex: HexString): bigint;
-export function readBigUInt64LECompatible(hex: HexString): BI;
-
-/**
- * convert bigint to BigUInt128 little-endian hex string
- *
- * @param u128
- */
-export function toBigUInt128LE(u128: BIish): string;
-
-/**
- * convert BigUInt64 little-endian hex string to bigint
- *
- * @param leHex BigUInt128 little-endian hex string
- */
-export function readBigUInt128LE(leHex: HexString): bigint;
-export function readBigUInt128LECompatible(leHex: HexString): BI;
-
-/**
- * compute lock/type hash
- *
- * @param script
- * @param options
- */
-export function computeScriptHash(
-  script: Script,
-  options?: { validate?: boolean }
-): Hash;
-
-export function hashCode(buffer: Buffer): number;
-
-export function assertHexString(debugPath: string, str: string): void;
-
-export function assertHexadecimal(debugPath: string, str: string): void;
-
-export function isDeepEqual(a: unknown, b: unknown): boolean;
-export function generateTypeIdScript(
-  input: Input,
-  outputIndex?: HexNumber
-): Script;
+export function ckbHash(buffer: any): string;
+export function toBigUInt64LE(num: any): string;
+export function toBigUInt64LECompatible(num: any): string;
+export function readBigUInt64LE(hex: any): bigint;
+export function readBigUInt64LECompatible(hex: any): import("@ckb-lumos/bi").BI;
+export function toBigUInt128LE(u128: any): string;
+export function toBigUInt128LECompatible(num: any): string;
+export function readBigUInt128LE(leHex: any): bigint;
+export function readBigUInt128LECompatible(leHex: any): import("@ckb-lumos/bi").BI;
+export function computeScriptHash(script: any): string;
+export function hashCode(buffer: any): number;
+export function assertHexString(debugPath: any, str: any): void;
+export function assertHexadecimal(debugPath: any, str: any): void;
+export function isDeepEqual(a: any, b: any): boolean;
+export function generateTypeIdScript(input: any, outputIndex?: string): {
+    code_hash: string;
+    hash_type: string;
+    args: string;
+};

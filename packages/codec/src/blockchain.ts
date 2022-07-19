@@ -121,29 +121,29 @@ export const DepType = createFixedBytesCodec<_DepType>({
 
 export const Script = table(
   {
-    codeHash: Byte32,
-    hashType: HashType,
+    code_hash: Byte32,
+    hash_type: HashType,
     args: Bytes,
   },
-  ["codeHash", "hashType", "args"]
+  ["code_hash", "hash_type", "args"]
 );
 
 export const ScriptOpt = option(Script);
 
 export const OutPoint = struct(
   {
-    txHash: Byte32,
+    tx_hash: Byte32,
     index: Uint32LE,
   },
-  ["txHash", "index"]
+  ["tx_hash", "index"]
 );
 
 export const CellInput = struct(
   {
     since: Uint64LE,
-    previousOutput: OutPoint,
+    previous_output: OutPoint,
   },
-  ["since", "previousOutput"]
+  ["since", "previous_output"]
 );
 
 export const CellInputVec = vector(CellInput);
@@ -161,10 +161,10 @@ export const CellOutputVec = vector(CellOutput);
 
 export const CellDep = struct(
   {
-    outPoint: OutPoint,
-    depType: DepType,
+    out_point: OutPoint,
+    dep_type: DepType,
   },
-  ["outPoint", "depType"]
+  ["out_point", "dep_type"]
 );
 
 export const DeCellDepVec = vector(CellDep);
@@ -172,13 +172,13 @@ export const DeCellDepVec = vector(CellDep);
 export const RawTransaction = table(
   {
     version: Uint32LE,
-    cellDeps: DeCellDepVec,
-    headerDeps: Byte32Vec,
+    cell_deps: DeCellDepVec,
+    header_deps: Byte32Vec,
     inputs: CellInputVec,
     outputs: CellOutputVec,
-    outputsData: BytesVec,
+    outputs_data: BytesVec,
   },
-  ["version", "cellDeps", "headerDeps", "inputs", "outputs", "outputsData"]
+  ["version", "cell_deps", "header_deps", "inputs", "outputs", "outputs_data"]
 );
 
 export const Transaction = table(
@@ -194,26 +194,26 @@ export const TransactionVec = vector(Transaction);
 export const RawHeader = struct(
   {
     version: Uint32LE,
-    compactTarget: Uint32LE,
+    compact_target: Uint32LE,
     timestamp: Uint64LE,
     number: Uint64LE,
     epoch: Uint64LE,
-    parentHash: Byte32,
-    transactionsRoot: Byte32,
-    proposalsHash: Byte32,
-    extraHash: Byte32,
+    parent_hash: Byte32,
+    transactions_root: Byte32,
+    proposals_hash: Byte32,
+    extra_hash: Byte32,
     dao: Byte32,
   },
   [
     "version",
-    "compactTarget",
+    "compact_target",
     "timestamp",
     "number",
     "epoch",
-    "parentHash",
-    "transactionsRoot",
-    "proposalsHash",
-    "extraHash",
+    "parent_hash",
+    "transactions_root",
+    "proposals_hash",
+    "extra_hash",
     "dao",
   ]
 );

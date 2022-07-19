@@ -1,5 +1,4 @@
 const test = require("ava");
-const { Reader } = require("@ckb-lumos/toolkit");
 const { BI } = require("@ckb-lumos/bi");
 
 const {
@@ -32,14 +31,13 @@ test("CKBHasher, hex", (t) => {
 });
 
 test("CKBHasher, reader", (t) => {
-  const result = new CKBHasher().update(new Reader(message)).digestHex();
+  const result = new CKBHasher().update(message).digestHex();
   t.is(result, messageDigest);
 });
 
 test("ckbHash", (t) => {
-  const arrayBuffer = new Reader(message).toArrayBuffer();
-  const result = ckbHash(arrayBuffer);
-  t.is(result.serializeJson(), messageDigest);
+  const result = ckbHash(message);
+  t.is(result, messageDigest);
 });
 
 const uint64Compatible = BI.from(1965338);

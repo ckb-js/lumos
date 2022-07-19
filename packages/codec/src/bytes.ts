@@ -1,5 +1,18 @@
 import { BytesLike } from "./base";
-import { assertHexString } from "./utils";
+import { assertHexString, assertUtf8String } from "./utils";
+
+export function bytifyRawString(rawString: string): Uint8Array {
+  assertUtf8String(rawString);
+
+  const buffer = new ArrayBuffer(rawString.length);
+  const view = new DataView(buffer);
+
+  for (let i = 0; i < rawString.length; i++) {
+    const c = rawString.charCodeAt(i);
+    view.setUint8(i, c);
+  }
+  return new Uint8Array(buffer);
+}
 
 function bytifyHex(hex: string): Uint8Array {
   assertHexString(hex);

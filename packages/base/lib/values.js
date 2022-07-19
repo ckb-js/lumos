@@ -1,21 +1,17 @@
 // This module provides a ValueObject implementation for CKB related data
 // structures to allow seamless immutable.js integration.
-const { validators, normalizers, Reader } = require("@ckb-lumos/toolkit");
 const { xxHash32 } = require("js-xxhash");
-const core = require("./core");
 const { ckbHash } = require("./utils");
+const { bytes, blockchain } = require("@ckb-lumos/codec");
 
+const { hexify } = bytes;
 class Value {
-  constructor(buffer, value) {
+  constructor(buffer) {
     this.buffer = buffer;
-    this.value = value;
   }
 
   equals(other) {
-    return (
-      new Reader(this.buffer).serializeJson() ===
-      new Reader(other.buffer).serializeJson()
-    );
+    return hexify(this.buffer) === hexify(other.buffer);
   }
 
   hashCode() {
@@ -23,54 +19,32 @@ class Value {
   }
 
   hash() {
-    return ckbHash(this.buffer).serializeJson();
+    return ckbHash(this.buffer);
   }
 }
 
 class ScriptValue extends Value {
-  constructor(script, { validate = true } = {}) {
-    if (validate) {
-      validators.ValidateScript(script);
-    }
-    super(core.SerializeScript(normalizers.NormalizeScript(script)), script);
+  constructor(script) {
+
+    super(blockchain.Script.pack(script));
   }
 }
 
 class OutPointValue extends Value {
-  constructor(outPoint, { validate = true } = {}) {
-    if (validate) {
-      validators.ValidateOutPoint(outPoint);
-    }
-    super(
-      core.SerializeOutPoint(normalizers.NormalizeOutPoint(outPoint)),
-      outPoint
-    );
+  constructor(outPoint) {
+    super(blockchain.OutPoint.pack(outPoint));
   }
 }
 
 class RawTransactionValue extends Value {
-  constructor(rawTransaction, { validate = true } = {}) {
-    if (validate) {
-      validators.ValidateRawTransaction(rawTransaction);
-    }
-    super(
-      core.SerializeRawTransaction(
-        normalizers.NormalizeRawTransaction(rawTransaction)
-      ),
-      rawTransaction
-    );
+  constructor(rawTransaction) {
+    super(blockchain.RawTransaction.pack(rawTransaction));
   }
 }
 
 class TransactionValue extends Value {
-  constructor(transaction, { validate = true } = {}) {
-    if (validate) {
-      validators.ValidateTransaction(transaction);
-    }
-    super(
-      core.SerializeTransaction(normalizers.NormalizeTransaction(transaction)),
-      transaction
-    );
+  constructor(transaction) {
+    super(blockchain.Transaction.pack(transaction));
   }
 }
 

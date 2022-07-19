@@ -1,40 +1,31 @@
 const blake2b = require("blake2b");
-const { validators, normalizers, Reader } = require("@ckb-lumos/toolkit");
 const isEqual = require("lodash.isequal");
-const { SerializeScript, SerializeCellInput } = require("./core");
 const { xxHash32 } = require("js-xxhash");
 const { BI } = require("@ckb-lumos/bi");
+const { bytes, blockchain } = require("@ckb-lumos/codec");
 
+const { bytify, hexify, bytifyRawString } = bytes;
 class CKBHasher {
   constructor() {
-    this.hasher = blake2b(
-      32,
-      null,
-      null,
-      new Uint8Array(Reader.fromRawString("ckb-default-hash").toArrayBuffer())
-    );
+    this.hasher = blake2b(32, null, null, bytifyRawString("ckb-default-hash"));
   }
 
   update(data) {
-    this.hasher.update(new Uint8Array(new Reader(data).toArrayBuffer()));
+    this.hasher.update(bytify(data));
     return this;
   }
 
-  digestReader() {
+  digestHex() {
     const out = new Uint8Array(32);
     this.hasher.digest(out);
-    return new Reader(out.buffer);
-  }
-
-  digestHex() {
-    return this.digestReader().serializeJson();
+    return hexify(out.buffer);
   }
 }
 
 function ckbHash(buffer) {
   const hasher = new CKBHasher();
   hasher.update(buffer);
-  return hasher.digestReader();
+  return hasher.digestHex();
 }
 
 function toBigUInt64LE(num) {
@@ -108,14 +99,10 @@ function readBigUInt128LECompatible(leHex) {
     .add(BI.from(buf.readUInt32LE(12)).shl(96));
 }
 
-function computeScriptHash(script, { validate = true } = {}) {
-  if (validate) {
-    validators.ValidateScript(script);
-  }
-
+function computeScriptHash(script) {
   return ckbHash(
-    new Reader(SerializeScript(normalizers.NormalizeScript(script)))
-  ).serializeJson();
+    blockchain.Script.pack(script)
+  );
 }
 
 function hashCode(buffer) {
@@ -142,7 +129,7 @@ const TYPE_ID_CODE_HASH =
   "0x00000000000000000000000000000000000000000000000000545950455f4944";
 
 function generateTypeIdArgs(input, outputIndex) {
-  const outPointBuf = SerializeCellInput(normalizers.NormalizeCellInput(input));
+  const outPointBuf = blockchain.CellInput.pack(input);
   const outputIndexBuf = toBigUInt64LE(outputIndex);
   const ckbHasher = new CKBHasher();
   ckbHasher.update(outPointBuf);
@@ -151,7 +138,7 @@ function generateTypeIdArgs(input, outputIndex) {
 }
 
 function generateTypeIdScript(input, outputIndex = "0x0") {
-  validators.ValidateCellInput(input);
+  blockchain.CellInput.pack(input)
   assertHexadecimal("outputIndex", outputIndex);
 
   const args = generateTypeIdArgs(input, outputIndex);

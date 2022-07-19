@@ -1,5 +1,5 @@
 import test from "ava";
-import { BytesOpt, WitnessArgs } from "../src/blockchain";
+import { BytesOpt, WitnessArgs, Script, _HashType } from "../src/blockchain";
 import { bytify, hexify } from "../src/bytes";
 import { byteVecOf, table } from "../src/molecule";
 import { randomBytes } from "crypto";
@@ -71,4 +71,17 @@ test("a real world Omni Lock witness should work as expected", (t) => {
 
   t.is(omniLockWitnessPlaceholder.byteLength, 105);
   t.deepEqual(packedWitness, omniLockWitnessPlaceholder);
+});
+
+test("Script codec", (t) => {
+  const script = {
+    code_hash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hash_type: "type" as _HashType,
+    args: "0x0000",
+  };
+  t.deepEqual(
+    hexify(Script.pack(script)),
+    "0x370000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce801020000000000"
+  );
 });
