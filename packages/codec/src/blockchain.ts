@@ -1,4 +1,3 @@
-import { DepType as _DepType, HashType as _HashType } from "@ckb-lumos/base";
 import { Uint128LE, Uint8 } from "./number/uint";
 import {
   AnyCodec,
@@ -11,6 +10,9 @@ import {
 import { bytify, hexify } from "./bytes";
 import { byteVecOf, option, table, vector, struct } from "./molecule";
 import { Uint32LE, Uint64LE } from "./number";
+
+export type _HashType = "type" | "data" | "data1";
+export type _DepType = "dep_group" | "code";
 
 export const createFixedHexBytesCodec = (
   byteLength: number
