@@ -1,5 +1,5 @@
 const test = require("ava");
-const { helpers } = require("../lib");
+const { helpers } = require("../lib/index.ts");
 const { isCellMatchQueryOptions } = helpers;
 
 const cells = [

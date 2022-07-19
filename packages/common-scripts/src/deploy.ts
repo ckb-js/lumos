@@ -5,11 +5,11 @@ import {
   Cell,
   utils,
   values,
-  core,
   WitnessArgs,
   Transaction,
+  apiUtils,
 } from "@ckb-lumos/base";
-import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
@@ -19,8 +19,6 @@ import {
   parseAddress,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
-import { Reader, normalizers } from "@ckb-lumos/toolkit";
-import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
 import { BI, BIish } from "@ckb-lumos/bi";
@@ -249,34 +247,23 @@ async function injectCapacity(
     }
 
     if (witness !== "0x") {
-      const witnessArgs = new core.WitnessArgs(new Reader(witness));
-      const lock = witnessArgs.getLock();
-      if (
-        lock.hasValue() &&
-        new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
-      ) {
+      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
+      const lock = witnessArgs.lock;
+      if (!!lock && lock !== newWitnessArgs.lock) {
         throw new Error(
           "Lock field in first witness is set aside for signature!"
         );
       }
-      const inputType = witnessArgs.getInputType();
-      if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new Reader(
-          inputType.value().raw()
-        ).serializeJson();
+      const inputType = witnessArgs.input_type;
+      if (!!inputType) {
+        newWitnessArgs.input_type = inputType;
       }
-      const outputType = witnessArgs.getOutputType();
-      if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new Reader(
-          outputType.value().raw()
-        ).serializeJson();
+      const outputType = witnessArgs.output_type;
+      if (!!outputType) {
+        newWitnessArgs.output_type = outputType;
       }
     }
-    witness = new Reader(
-      core.SerializeWitnessArgs(
-        normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
-    ).serializeJson();
+    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.set(firstIndex, witness)
     );
@@ -304,8 +291,8 @@ function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
 }
 
 function getTransactionSizeByTx(tx: Transaction): number {
-  const serializedTx = SerializeTransaction(
-    normalizers.NormalizeTransaction(tx)
+  const serializedTx = blockchain.Transaction.pack(
+    apiUtils.transformTransactionCodecType(tx)
   );
   // 4 is serialized offset bytesize
   const size = serializedTx.byteLength + 4;
@@ -338,17 +325,18 @@ function calculateCodeHashByBin(scriptBin: Uint8Array): string {
     .digestHex();
 }
 
-async function getDataHash(outPoint: OutPoint, rpc: RPC): Promise<string> {
+async function getDataHash(outPoint: OutPoint): Promise<string> {
   const txHash = outPoint.tx_hash;
   const index = parseInt(outPoint.index, 10);
-  const tx = await rpc.get_transaction(txHash);
+  // TODO const tx = await rpc.get_transaction(txHash);
+  const tx = {} as { transaction: Transaction };
 
   if (!tx) throw new Error(`TxHash(${txHash}) is not found`);
 
   const outputData = tx.transaction.outputs_data[index];
   if (!outputData) throw new Error(`cannot find output data`);
 
-  return new utils.CKBHasher().update(new Reader(outputData)).digestHex();
+  return new utils.CKBHasher().update(bytes.bytify(outputData)).digestHex();
 }
 
 interface ScriptConfig {
@@ -371,11 +359,9 @@ interface ScriptConfig {
 
 function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
   const tx = createTransactionFromSkeleton(txSkeleton);
-  const txHash = utils
-    .ckbHash(
-      core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))
-    )
-    .serializeJson();
+  const txHash = utils.ckbHash(
+    blockchain.Transaction.pack(apiUtils.transformTransactionCodecType(tx))
+  );
   return txHash;
 }
 
@@ -384,9 +370,7 @@ function getScriptConfigByDataHash(
   outputIndex: number
 ): ScriptConfig {
   const data = txSkeleton.outputs.get(outputIndex)!.data;
-  const codeHash = utils
-    .ckbHash(new Reader(data).toArrayBuffer())
-    .serializeJson();
+  const codeHash = utils.ckbHash(bytes.bytify(data));
   const txHash = calculateTxHash(txSkeleton);
   const scriptConfig: ScriptConfig = {
     CODE_HASH: codeHash,
@@ -622,11 +606,11 @@ export async function generateUpgradeTypeIdDataTx(
 
 export async function compareScriptBinaryWithOnChainData(
   scriptBinary: Uint8Array,
-  outPoint: OutPoint,
-  rpc: RPC
+  outPoint: OutPoint
+  // TODO rpc: RPC
 ): Promise<boolean> {
   const localHash = calculateCodeHashByBin(scriptBinary);
-  const onChainHash = await getDataHash(outPoint, rpc);
+  const onChainHash = await getDataHash(outPoint);
   return localHash === onChainHash;
 }
 

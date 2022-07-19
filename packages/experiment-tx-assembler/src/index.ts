@@ -10,11 +10,10 @@ import {
 import { BI, BIish } from "@ckb-lumos/bi";
 import { minimalCellCapacity } from "@ckb-lumos/helpers";
 import { ScriptConfig, ScriptConfigs } from "@ckb-lumos/config-manager";
-import { Reader } from "@ckb-lumos/toolkit";
 
 interface ScriptRegistry<T extends ScriptConfigs> {
   extend: <T1 extends ScriptConfigs>(newPayload: T1) => ScriptRegistry<T & T1>;
-  newScript: (key: keyof T, args: string | Reader) => Script;
+  newScript: (key: keyof T, args: string) => Script;
   isScriptOf: (key: keyof T, script: Script) => boolean;
   newCellDep: (key: keyof T) => CellDep;
   nameOfScript: (script: Script) => keyof T | undefined;
@@ -30,10 +29,10 @@ export function createScriptRegistry<T extends ScriptConfigs>(
     return createScriptRegistry({ ...payload, ...newPayload });
   };
 
-  const newScript = (key: keyof T, args: string | Reader) => {
+  const newScript = (key: keyof T, args: string) => {
     const config = map.get(key);
     if (config === undefined)
-      throw new Error(`${key} doesn't exist in ScriptRegistry`);
+      throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
     if (typeof args === "string") {
       return {
         code_hash: config.CODE_HASH,
@@ -44,7 +43,7 @@ export function createScriptRegistry<T extends ScriptConfigs>(
       return {
         code_hash: config.CODE_HASH,
         hash_type: config.HASH_TYPE,
-        args: args.serializeJson(),
+        args: args,
       };
     }
   };
@@ -52,7 +51,7 @@ export function createScriptRegistry<T extends ScriptConfigs>(
   const isScriptOf = (key: keyof T, script: Script) => {
     const config = map.get(key);
     if (config === undefined)
-      throw new Error(`${key} doesn't exist in ScriptRegistry`);
+      throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
     return (
       script.code_hash === config.CODE_HASH &&
       script.hash_type === config.HASH_TYPE
@@ -62,7 +61,7 @@ export function createScriptRegistry<T extends ScriptConfigs>(
   const newCellDep = (key: keyof T) => {
     const config = map.get(key);
     if (config === undefined)
-      throw new Error(`${key} doesn't exist in ScriptRegistry`);
+      throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
     return {
       out_point: {
         tx_hash: config.TX_HASH,

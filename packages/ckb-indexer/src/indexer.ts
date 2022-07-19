@@ -9,9 +9,8 @@ import {
   utils,
   Block,
 } from "@ckb-lumos/base";
-import { validators } from "@ckb-lumos/toolkit";
-import { RPC } from "@ckb-lumos/rpc";
-import { request, requestBatch } from "./services";
+import { blockchain } from "@ckb-lumos/codec";
+import { instanceOfScriptWrapper, request, requestBatch } from "./services";
 import { CKBCellCollector } from "./collector";
 import { EventEmitter } from "events";
 import {
@@ -48,9 +47,9 @@ export class CkbIndexer implements Indexer {
     this.uri = ckbRpcUrl;
   }
 
-  private getCkbRpc(): RPC {
-    return new RPC(this.ckbRpcUrl);
-  }
+  // private getCkbRpc(): RPC {
+  //   return new RPC(this.ckbRpcUrl);
+  // }
 
   async tip(): Promise<Tip> {
     const res = await request(this.ckbIndexerUrl, "get_tip");
@@ -62,17 +61,20 @@ export class CkbIndexer implements Indexer {
   }
 
   async waitForSync(blockDifference = 0): Promise<void> {
-    const rpcTipNumber = parseInt(
-      (await this.getCkbRpc().get_tip_header()).number,
-      16
-    );
-    while (true) {
-      const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
-      if (indexerTipNumber + blockDifference >= rpcTipNumber) {
-        return;
-      }
-      await this.asyncSleep(1000);
-    }
+    console.log(blockDifference);
+    // TODO replace RPC
+
+    // const rpcTipNumber = parseInt(
+    //   (await this.getCkbRpc().get_tip_header()).number,
+    //   16
+    // );
+    // while (true) {
+    //   const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
+    //   if (indexerTipNumber + blockDifference >= rpcTipNumber) {
+    //     return;
+    //   }
+    //   await this.asyncSleep(1000);
+    // }
   }
 
   /** collector cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
@@ -211,10 +213,18 @@ export class CkbIndexer implements Indexer {
       ? BI.from(0)
       : BI.from(queries.fromBlock);
     if (queries.lock) {
-      validators.ValidateScript(queries.lock);
+      if (!instanceOfScriptWrapper(queries.lock)) {
+        blockchain.Script.pack(queries.lock);
+      } else if (instanceOfScriptWrapper(queries.lock)) {
+        blockchain.Script.pack(queries.lock.script);
+      }
       emitter.lock = queries.lock as Script;
     } else if (queries.type && queries.type !== "empty") {
-      validators.ValidateScript(queries.type);
+      if (!instanceOfScriptWrapper(queries.type)) {
+        blockchain.Script.pack(queries.type);
+      } else if (instanceOfScriptWrapper(queries.type)) {
+        blockchain.Script.pack(queries.type.script);
+      }
       emitter.type = queries.type as Script;
     } else {
       throw new Error("Either lock or type script must be provided!");

@@ -1,3 +1,5 @@
+import { Script } from "./api";
+
 export class CKBHasher {
     hasher: any;
     update(data: any): CKBHasher;
@@ -17,8 +19,4 @@ export function hashCode(buffer: any): number;
 export function assertHexString(debugPath: any, str: any): void;
 export function assertHexadecimal(debugPath: any, str: any): void;
 export function isDeepEqual(a: any, b: any): boolean;
-export function generateTypeIdScript(input: any, outputIndex?: string): {
-    code_hash: string;
-    hash_type: string;
-    args: string;
-};
+export function generateTypeIdScript(input: any, outputIndex?: string): Script;

@@ -10,7 +10,12 @@
  * | union  | item-type-id                                     | item                              |
  */
 
-import type { BytesCodec, Fixed, FixedBytesCodec, UnpackResult } from "../base";
+import type {
+  BytesCodec,
+  BaseHeader,
+  FixedBytesCodec,
+  UnpackResult,
+} from "../base";
 import { createFixedBytesCodec, isFixedCodec } from "../base";
 import { Uint32LE } from "../number";
 import { concat } from "../bytes";
@@ -47,7 +52,7 @@ export type UnionCodec<T extends Record<string, BytesCodec>> = BytesCodec<
 export function array<T extends FixedBytesCodec>(
   itemCodec: T,
   itemCount: number
-): ArrayCodec<T> & Fixed {
+): ArrayCodec<T> & BaseHeader {
   return Object.freeze({
     __isFixedCodec__: true,
     byteLength: itemCodec.byteLength * itemCount,
@@ -88,7 +93,7 @@ function checkShape<T>(shape: T, fields: (keyof T)[]) {
 export function struct<T extends Record<string, FixedBytesCodec>>(
   shape: T,
   fields: (keyof T)[]
-): ObjectCodec<T> & Fixed {
+): ObjectCodec<T> & BaseHeader {
   checkShape(shape, fields);
 
   return createFixedBytesCodec({

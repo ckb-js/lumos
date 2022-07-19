@@ -23,12 +23,12 @@ import {
   PackedSince,
   utils,
   Transaction,
+  apiUtils,
 } from "@ckb-lumos/base";
+import { blockchain } from "@ckb-lumos/codec";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
 import { Set } from "immutable";
-import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
-import { normalizers } from "@ckb-lumos/toolkit";
 import { isAcpScript } from "./helper";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { CellCollectorConstructor } from "./type";
@@ -871,8 +871,8 @@ function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
 }
 
 function getTransactionSizeByTx(tx: Transaction): number {
-  const serializedTx = SerializeTransaction(
-    normalizers.NormalizeTransaction(tx)
+  const serializedTx = blockchain.Transaction.pack(
+    apiUtils.transformTransactionCodecType(tx)
   );
   // 4 is serialized offset bytesize
   const size = serializedTx.byteLength + 4;

@@ -4,17 +4,17 @@ import {
   parseAddress,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import {
-  core,
   values,
   utils,
   CellDep,
   Script,
   Address,
   HexString,
+  apiUtils,
 } from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import { Config } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
 
@@ -144,7 +144,7 @@ export function isAcpAddress(address: Address, config: Config): boolean {
 export function hashWitness(hasher: any, witness: HexString): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
-  const witnessHexString = BI.from(new Reader(witness).length()).toString(16);
+  const witnessHexString = BI.from(bytes.bytify(witness).length).toString(16);
   if (witnessHexString.length <= 8) {
     view.setUint32(0, Number("0x" + witnessHexString), true);
     view.setUint32(4, Number("0x" + "00000000"), true);
@@ -172,8 +172,10 @@ export function prepareSigningEntries(
   let processedArgs = Set<string>();
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = ckbHash(
-    core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))
-  ).serializeJson();
+    blockchain.RawTransaction.pack(
+      apiUtils.transformRawTransactionCodecType(tx)
+    )
+  );
   const inputs = txSkeleton.get("inputs");
   const witnesses = txSkeleton.get("witnesses");
   let signingEntries = txSkeleton.get("signingEntries");

@@ -1,29 +1,30 @@
-import { Cell, core, utils, Hash, Script } from "@ckb-lumos/base";
+import {
+  Cell,
+  utils,
+  Hash,
+  Script,
+  apiUtils,
+  HexString,
+} from "@ckb-lumos/base";
 import {
   TransactionSkeletonType,
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
-import { Reader, normalizers } from "@ckb-lumos/toolkit";
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 
 function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
   const lockSet = new Set<string>();
   for (const lock of locks) {
-    const scriptHash = utils
-      .ckbHash(core.SerializeScript(normalizers.NormalizeScript(lock)))
-      .serializeJson();
+    const scriptHash = utils.ckbHash(blockchain.Script.pack(lock));
     lockSet.add(scriptHash);
   }
 
   const groups = new Map<string, number[]>();
   for (let i = 0; i < inputs.length; i++) {
-    const scriptHash = utils
-      .ckbHash(
-        core.SerializeScript(
-          normalizers.NormalizeScript(inputs[i].cell_output.lock)
-        )
-      )
-      .serializeJson();
+    const scriptHash = utils.ckbHash(
+      blockchain.Script.pack(inputs[i].cell_output.lock)
+    );
     if (lockSet.has(scriptHash)) {
       if (groups.get(scriptHash) === undefined) groups.set(scriptHash, []);
       groups.get(scriptHash)!.push(i);
@@ -32,10 +33,12 @@ function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
   return groups;
 }
 
-function calcRawTxHash(tx: TransactionSkeletonType): Reader {
+function calcRawTxHash(tx: TransactionSkeletonType): HexString {
   return utils.ckbHash(
-    core.SerializeRawTransaction(
-      normalizers.NormalizeRawTransaction(createTransactionFromSkeleton(tx))
+    blockchain.RawTransaction.pack(
+      apiUtils.transformRawTransactionCodecType(
+        createTransactionFromSkeleton(tx)
+      )
     )
   );
 }
@@ -61,7 +64,7 @@ const defaultCkbHasher: ThunkOrValue<Hasher> = () => {
   const hasher = new utils.CKBHasher();
   return {
     update: (message) => hasher.update(message.buffer),
-    digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+    digest: () => bytes.bytify(hasher.digestHex()),
   };
 };
 
@@ -106,12 +109,12 @@ export function createP2PKHMessageGroup(
     if (firstWitness === undefined) {
       throw new Error("Please fill witnesses with 0 first!");
     }
-    messageHasher.update(new Uint8Array(rawTxHash.toArrayBuffer()));
+    messageHasher.update(bytes.bytify(rawTxHash));
 
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
     const witnessHexString = BI.from(
-      new Reader(firstWitness).length()
+      bytes.bytify(firstWitness).length
     ).toString(16);
     if (witnessHexString.length <= 8) {
       view.setUint32(0, Number("0x" + witnessHexString), true);
@@ -124,14 +127,12 @@ export function createP2PKHMessageGroup(
     }
 
     messageHasher.update(new Uint8Array(lengthBuffer));
-    messageHasher.update(
-      new Uint8Array(new Reader(firstWitness).toArrayBuffer())
-    );
+    messageHasher.update(bytes.bytify(firstWitness));
 
     for (let i = 1; i < indexes.length; i++) {
       const witness = tx.witnesses.get(indexes[i])!;
       messageHasher.update(new Uint8Array(lengthBuffer));
-      messageHasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
+      messageHasher.update(bytes.bytify(witness));
     }
 
     for (
@@ -141,7 +142,7 @@ export function createP2PKHMessageGroup(
     ) {
       const witness = tx.witnesses.get(i)!;
       messageHasher.update(new Uint8Array(lengthBuffer));
-      messageHasher.update(new Uint8Array(new Reader(witness).toArrayBuffer()));
+      messageHasher.update(bytes.bytify(witness));
     }
 
     const digested = messageHasher.digest();

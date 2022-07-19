@@ -4,6 +4,7 @@ import {
   TransactionSkeletonType,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import {
@@ -11,7 +12,6 @@ import {
   calculateDaoEarliestSinceCompatible,
 } from "./dao";
 import {
-  core,
   values,
   utils,
   since as sinceUtils,
@@ -26,10 +26,10 @@ import {
   QueryOptions,
   CellCollector as CellCollectorType,
   SinceValidationInfo,
+  TransactionWithStatus,
 } from "@ckb-lumos/base";
 const { toBigUInt64LE, readBigUInt64LECompatible, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import {
   generateDaoScript,
   isSecp256k1Blake160MultisigScript,
@@ -46,7 +46,6 @@ const {
 } = sinceUtils;
 import { List, Set } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-import { RPC } from "@ckb-lumos/rpc";
 import { secp256k1Blake160Multisig } from ".";
 import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
 import { BI, BIish } from "@ckb-lumos/bi";
@@ -63,7 +62,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
   implements CellCollectorType {
   private cellCollectors: List<CellCollectorType>;
   private config: Config;
-  private rpc: RPC;
+  // TODO private rpc: RPC;
   private tipHeader?: Header;
   private tipSinceValidationInfo?: SinceValidationInfo;
   public readonly fromScript: Script;
@@ -75,11 +74,11 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
       config = undefined,
       queryOptions = {},
       tipHeader = undefined,
-      NodeRPC = RPC,
-    }: Options & {
+    }: // NodeRPC = RPC,
+    Options & {
       queryOptions?: QueryOptions;
       tipHeader?: Header;
-      NodeRPC?: typeof RPC;
+      // NodeRPC?: typeof RPC;
     } = {}
   ) {
     if (!cellProvider) {
@@ -103,7 +102,8 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
       };
     }
 
-    this.rpc = new NodeRPC(cellProvider.uri!);
+    // TODO
+    // this.rpc = new NodeRPC(cellProvider.uri!);
 
     queryOptions = {
       ...queryOptions,
@@ -180,7 +180,8 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
 
         // multisig
         if (lock.args.length === 58) {
-          const header = (await this.rpc.get_header(inputCell.block_hash!))!;
+          // TODO const header = (await this.rpc.get_header(inputCell.block_hash!))!;
+          const header = {} as Header;
           since =
             "0x" + _parseMultisigArgsSinceCompatible(lock.args).toString(16);
           // TODO: `median_timestamp` not provided now!
@@ -196,22 +197,27 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
           if (inputCell.data === "0x0000000000000000") {
             continue;
           }
-          const transactionWithStatus = (await this.rpc.get_transaction(
-            inputCell.out_point!.tx_hash
-          ))!;
+          // TODO const transactionWithStatus = (await this.rpc.get_transaction(
+          //   inputCell.out_point!.tx_hash
+          // ))!;
+          const transactionWithStatus = {} as TransactionWithStatus;
           withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
           const transaction = transactionWithStatus.transaction;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const depositOutPoint =
             transaction.inputs[+inputCell.out_point!.index].previous_output;
-          depositBlockHash = (await this.rpc.get_transaction(
-            depositOutPoint.tx_hash
-          ))!.tx_status.block_hash!;
-          const depositBlockHeader = await this.rpc.get_header(
-            depositBlockHash
-          );
-          const withdrawBlockHeader = await this.rpc.get_header(
-            withdrawBlockHash!
-          );
+          // depositBlockHash = (await this.rpc.get_transaction(
+          //   depositOutPoint.tx_hash
+          // ))!.tx_status.block_hash!;
+          // const depositBlockHeader = await this.rpc.get_header(
+          //   depositBlockHash
+          // );
+          // const withdrawBlockHeader = await this.rpc.get_header(
+          //   withdrawBlockHash!
+          // );
+          depositBlockHash = "0x00" as Hash;
+          const depositBlockHeader = {} as Header;
+          const withdrawBlockHeader = {} as Header;
           let daoSince: PackedSince =
             "0x" +
             calculateDaoEarliestSinceCompatible(
@@ -630,11 +636,7 @@ async function _transferCompatible(
         const witnessArgs = {
           input_type: toBigUInt64LE(depositHeaderDepIndex),
         };
-        witness = new Reader(
-          core.SerializeWitnessArgs(
-            normalizers.NormalizeWitnessArgs(witnessArgs)
-          )
-        ).serializeJson();
+        witness = bytes.hexify(blockchain.WitnessArgs.pack(witnessArgs));
       }
 
       txSkeleton = await collectInput(
@@ -832,11 +834,7 @@ async function injectCapacityWithoutChangeCompatible(
               BI.from(depositHeaderDepIndex).toString()
             ),
           };
-          witness = new Reader(
-            core.SerializeWitnessArgs(
-              normalizers.NormalizeWitnessArgs(witnessArgs)
-            )
-          ).serializeJson();
+          witness = bytes.hexify(blockchain.WitnessArgs.pack(witnessArgs));
         }
         let multisigSince: BI | undefined;
         if (isSecp256k1Blake160MultisigScript(fromScript, config)) {

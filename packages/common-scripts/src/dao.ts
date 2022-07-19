@@ -6,7 +6,6 @@ import {
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
 import {
-  core,
   utils,
   since as sinceUtils,
   HexString,
@@ -17,11 +16,12 @@ import {
   PackedDao,
   PackedSince,
   CellCollector as CellCollectorInterface,
+  Header,
 } from "@ckb-lumos/base";
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { parseSince } = sinceUtils;
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
@@ -31,7 +31,6 @@ import {
   isSecp256k1Blake160MultisigScript,
   generateDaoScript,
 } from "./helper";
-import { RPC } from "@ckb-lumos/rpc";
 import { readBigUInt64LECompatible } from "@ckb-lumos/base/lib/utils";
 import { BI, BIish } from "@ckb-lumos/bi";
 
@@ -362,8 +361,8 @@ export async function unlock(
   fromInfo: FromInfo,
   {
     config = undefined,
-    RpcClient = RPC,
-  }: Options & { RpcClient?: typeof RPC } = {}
+  }: // TODO RpcClient = RPC,
+  Options = {}
 ) {
   config = config || getConfig();
   _checkDaoScript(config);
@@ -377,7 +376,8 @@ export async function unlock(
   if (!cellProvider) {
     throw new Error("Cell provider is missing!");
   }
-  const rpc = new RpcClient(cellProvider.uri!);
+  // TODO rpc
+  // const rpc = new RpcClient(cellProvider.uri!);
 
   const typeScript = depositInput.cell_output.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
@@ -401,11 +401,13 @@ export async function unlock(
   }
 
   // calculate since & capacity (interest)
-  const depositBlockHeader = await rpc.get_header(depositInput.block_hash!);
+  // TODO const depositBlockHeader = await rpc.get_header(depositInput.block_hash!);
+  const depositBlockHeader = {} as Header;
   const depositEpoch = parseEpochCompatible(depositBlockHeader!.epoch);
   // const depositCapacity = BigInt(depositInput.cell_output.capacity)
 
-  const withdrawBlockHeader = await rpc.get_header(withdrawInput.block_hash!);
+  // TODO const withdrawBlockHeader = await rpc.get_header(withdrawInput.block_hash!);
+  const withdrawBlockHeader = {} as Header;
   const withdrawEpoch = parseEpochCompatible(withdrawBlockHeader!.epoch);
 
   const withdrawFraction = withdrawEpoch.index.mul(depositEpoch.length);
@@ -469,11 +471,9 @@ export async function unlock(
   const defaultWitnessArgs: WitnessArgs = {
     input_type: toBigUInt64LE(depositHeaderDepIndex),
   };
-  const defaultWitness: HexString = new Reader(
-    core.SerializeWitnessArgs(
-      normalizers.NormalizeWitnessArgs(defaultWitnessArgs)
-    )
-  ).serializeJson();
+  const defaultWitness: HexString = bytes.hexify(
+    blockchain.WitnessArgs.pack(defaultWitnessArgs)
+  );
   const fromLockScript = withdrawInput.cell_output.lock;
   if (isSecp256k1Blake160Script(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160.setupInputCell(

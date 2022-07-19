@@ -1,12 +1,3 @@
-import {
-  Reader,
-  validators,
-  normalizers,
-  transformers,
-} from "@ckb-lumos/toolkit";
-
-export const toolkit = { Reader, validators, normalizers, transformers };
-
 export type {
   Cell,
   RawTransaction,
@@ -34,12 +25,12 @@ export type {
   PackedSince,
 } from "@ckb-lumos/base/lib/primitive";
 
-export { core, since, utils } from "@ckb-lumos/base";
+export { since, utils, apiUtils } from "@ckb-lumos/base";
 export * as config from "@ckb-lumos/config-manager";
 
-export { RPC } from "@ckb-lumos/rpc";
+// TODO export { RPC } from "@ckb-lumos/rpc";
 export * as hd from "@ckb-lumos/hd";
-export { Indexer, CellCollector } from "@ckb-lumos/ckb-indexer";
+export * as indexer from "@ckb-lumos/ckb-indexer";
 export * as helpers from "@ckb-lumos/helpers";
 export * as commons from "@ckb-lumos/common-scripts";
 export { BI } from "@ckb-lumos/bi";

@@ -77,7 +77,7 @@ export function createBytesCodec<Unpacked, Packable = Unpacked>(
   };
 }
 
-export type Fixed = {
+export type BaseHeader = {
   readonly __isFixedCodec__: true;
   readonly byteLength: number;
 };
@@ -86,12 +86,12 @@ export type FixedBytesCodec<Unpacked = any, Packable = Unpacked> = BytesCodec<
   Unpacked,
   Packable
 > &
-  Fixed;
+  BaseHeader;
 
 export type FixedBytesLikeCodec<
   Unpacked = any,
   Packable = Unpacked
-> = BytesLikeCodec<Unpacked, Packable> & Fixed;
+> = BytesLikeCodec<Unpacked, Packable> & BaseHeader;
 
 export function isFixedCodec<T>(
   codec: BytesCodec<T>

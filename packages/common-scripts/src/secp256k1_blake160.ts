@@ -1,13 +1,12 @@
 import { Set } from "immutable";
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import {
   parseAddress,
   minimalCellCapacityCompatible,
   TransactionSkeletonType,
   Options,
 } from "@ckb-lumos/helpers";
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import {
-  core,
   values,
   Address,
   Cell,
@@ -175,34 +174,23 @@ export async function setupInputCell(
       lock: SECP_SIGNATURE_PLACEHOLDER,
     };
     if (witness !== "0x") {
-      const witnessArgs = new core.WitnessArgs(new Reader(witness));
-      const lock = witnessArgs.getLock();
-      if (
-        lock.hasValue() &&
-        new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
-      ) {
+      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
+      const lock = witnessArgs.lock;
+      if (!!lock && lock !== newWitnessArgs.lock) {
         throw new Error(
           "Lock field in first witness is set aside for signature!"
         );
       }
-      const inputType = witnessArgs.getInputType();
-      if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new Reader(
-          inputType.value().raw()
-        ).serializeJson();
+      const inputType = witnessArgs.input_type;
+      if (!!inputType) {
+        newWitnessArgs.input_type = inputType;
       }
-      const outputType = witnessArgs.getOutputType();
-      if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new Reader(
-          outputType.value().raw()
-        ).serializeJson();
+      const outputType = witnessArgs.output_type;
+      if (!!outputType) {
+        newWitnessArgs.output_type = outputType;
       }
     }
-    witness = new Reader(
-      core.SerializeWitnessArgs(
-        normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
-    ).serializeJson();
+    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.set(firstIndex, witness)
     );
@@ -506,34 +494,23 @@ export async function transferCompatible(
       lock: SECP_SIGNATURE_PLACEHOLDER,
     };
     if (witness !== "0x") {
-      const witnessArgs = new core.WitnessArgs(new Reader(witness));
-      const lock = witnessArgs.getLock();
-      if (
-        lock.hasValue() &&
-        new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
-      ) {
+      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
+      const lock = witnessArgs.lock;
+      if (!!lock && lock !== newWitnessArgs.lock) {
         throw new Error(
           "Lock field in first witness is set aside for signature!"
         );
       }
-      const inputType = witnessArgs.getInputType();
-      if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new Reader(
-          inputType.value().raw()
-        ).serializeJson();
+      const inputType = witnessArgs.input_type;
+      if (!!inputType) {
+        newWitnessArgs.input_type = inputType;
       }
-      const outputType = witnessArgs.getOutputType();
-      if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new Reader(
-          outputType.value().raw()
-        ).serializeJson();
+      const outputType = witnessArgs.output_type;
+      if (!!outputType) {
+        newWitnessArgs.output_type = outputType;
       }
     }
-    witness = new Reader(
-      core.SerializeWitnessArgs(
-        normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
-    ).serializeJson();
+    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.set(firstIndex, witness)
     );

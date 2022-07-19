@@ -1,9 +1,9 @@
 import {
   Address,
+  apiUtils,
   Cell,
   CellCollector as BaseCellCollectorType,
   CellProvider,
-  core,
   HexString,
   OutPoint,
   PackedSince,
@@ -13,6 +13,7 @@ import {
   values,
   WitnessArgs,
 } from "@ckb-lumos/base";
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import {
   createTransactionFromSkeleton,
@@ -22,7 +23,6 @@ import {
   parseAddress,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import { List, Set } from "immutable";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { FromInfo, parseFromInfo } from "./from_info";
@@ -168,34 +168,23 @@ export async function setupInputCell(
       lock: SECP_SIGNATURE_PLACEHOLDER,
     };
     if (witness !== "0x") {
-      const witnessArgs = new core.WitnessArgs(new Reader(witness));
-      const lock = witnessArgs.getLock();
-      if (
-        lock.hasValue() &&
-        new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
-      ) {
+      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
+      const lock = witnessArgs.lock;
+      if (!!lock && lock !== newWitnessArgs.lock) {
         throw new Error(
           "Lock field in first witness is set aside for signature!"
         );
       }
-      const inputType = witnessArgs.getInputType();
-      if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new Reader(
-          inputType.value().raw()
-        ).serializeJson();
+      const inputType = witnessArgs.input_type;
+      if (!!inputType) {
+        newWitnessArgs.input_type = inputType;
       }
-      const outputType = witnessArgs.getOutputType();
-      if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new Reader(
-          outputType.value().raw()
-        ).serializeJson();
+      const outputType = witnessArgs.output_type;
+      if (!!outputType) {
+        newWitnessArgs.output_type = outputType;
       }
     }
-    witness = new Reader(
-      core.SerializeWitnessArgs(
-        normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
-    ).serializeJson();
+    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
     txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
       return witnesses.set(firstIndex, witness);
     });
@@ -461,8 +450,10 @@ export function prepareSigningEntries(
   let processedArgs = Set<string>();
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = ckbHash(
-    core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))
-  ).serializeJson();
+    blockchain.RawTransaction.pack(
+      apiUtils.transformRawTransactionCodecType(tx)
+    )
+  );
   const inputs = txSkeleton.get("inputs");
   const witnesses = txSkeleton.get("witnesses");
   let signingEntries = txSkeleton.get("signingEntries");

@@ -1,5 +1,4 @@
 import { Hash, HexNumber, HexString, PackedSince } from "./primitive";
-
 export interface Header {
   timestamp: HexNumber;
   number: HexNumber;

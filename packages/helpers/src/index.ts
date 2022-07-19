@@ -1,18 +1,18 @@
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import {
   Address,
   Cell,
   CellDep,
   CellProvider,
-  core,
   Hash,
   HexString,
   PackedSince,
   Script,
   Transaction,
   WitnessArgs,
+  apiUtils,
 } from "@ckb-lumos/base";
 import { bech32, bech32m } from "bech32";
-import { normalizers, Reader, validators } from "@ckb-lumos/toolkit";
 import { List, Map as ImmutableMap, Record } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
@@ -22,6 +22,7 @@ import {
 } from "./address-to-script";
 import { hexToByteArray } from "./utils";
 
+const { bytify, hexify } = bytes;
 export interface Options {
   config?: Config;
 }
@@ -41,21 +42,23 @@ export function minimalCellCapacityCompatible(
   { validate = true }: { validate?: boolean } = {}
 ): BI {
   if (validate) {
-    validators.ValidateCellOutput(fullCell.cell_output);
+    blockchain.CellOutput.pack(
+      apiUtils.transformCellOutputCodecType(fullCell.cell_output)
+    );
   }
   // Capacity field itself
   let bytes = 8;
-  bytes += new Reader(fullCell.cell_output.lock.code_hash).length();
-  bytes += new Reader(fullCell.cell_output.lock.args).length();
+  bytes += bytify(fullCell.cell_output.lock.code_hash).length;
+  bytes += bytify(fullCell.cell_output.lock.args).length;
   // hash_type field
   bytes += 1;
   if (fullCell.cell_output.type) {
-    bytes += new Reader(fullCell.cell_output.type.code_hash).length();
-    bytes += new Reader(fullCell.cell_output.type.args).length();
+    bytes += bytify(fullCell.cell_output.type.code_hash).length;
+    bytes += bytify(fullCell.cell_output.type.args).length;
     bytes += 1;
   }
   if (fullCell.data) {
-    bytes += new Reader(fullCell.data).length();
+    bytes += bytify(fullCell.data).length;
   }
   return BI.from(bytes).mul(100000000);
 }
@@ -264,7 +267,7 @@ export function createTransactionFromSkeleton(
     witnesses: txSkeleton.get("witnesses").toArray(),
   };
   if (validate) {
-    validators.ValidateTransaction(tx);
+    blockchain.Transaction.pack(apiUtils.transformTransactionCodecType(tx));
   }
   return tx;
 }
@@ -285,28 +288,22 @@ export function sealTransaction(
     switch (e.type) {
       case "witness_args_lock": {
         const witness = tx.witnesses[e.index];
-        const witnessArgs = new core.WitnessArgs(new Reader(witness));
+        const witnessArgs = blockchain.WitnessArgs.unpack(bytify(witness));
         const newWitnessArgs: WitnessArgs = {
           lock: sealingContents[i],
         };
-        const inputType = witnessArgs.getInputType();
-        if (inputType.hasValue()) {
-          newWitnessArgs.input_type = new Reader(
-            inputType.value().raw()
-          ).serializeJson();
+        const inputType = witnessArgs.input_type;
+        if (!!inputType) {
+          newWitnessArgs.input_type = inputType;
         }
-        const outputType = witnessArgs.getOutputType();
-        if (outputType.hasValue()) {
-          newWitnessArgs.output_type = new Reader(
-            outputType.value().raw()
-          ).serializeJson();
+        const outputType = witnessArgs.output_type;
+        if (!!outputType) {
+          newWitnessArgs.output_type = outputType;
         }
-        validators.ValidateWitnessArgs(newWitnessArgs);
-        tx.witnesses[e.index] = new Reader(
-          core.SerializeWitnessArgs(
-            normalizers.NormalizeWitnessArgs(newWitnessArgs)
-          )
-        ).serializeJson();
+
+        tx.witnesses[e.index] = hexify(
+          blockchain.WitnessArgs.pack(newWitnessArgs)
+        );
         break;
       }
       default:
