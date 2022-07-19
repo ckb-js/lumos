@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "name": "@lumos-examples/omni-lock-administrator",
+  "version": "0.17.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@ckb-lumos/lumos": "0.17.0",
+    "sparse-merkle-tree-ts": "^0.2.3"
+  }
+}
