@@ -207,7 +207,7 @@ export function TransformRawHeader(
     parent_hash: invokeSerializeJson,
     transactions_root: invokeSerializeJson,
     proposals_hash: invokeSerializeJson,
-    uncles_hash: invokeSerializeJson,
+    extra_hash: invokeSerializeJson,
     dao: invokeSerializeJson,
   });
 
@@ -232,7 +232,7 @@ export function TransformHeader(
     parent_hash: invokeSerializeJson,
     transactions_root: invokeSerializeJson,
     proposals_hash: invokeSerializeJson,
-    uncles_hash: invokeSerializeJson,
+    extra_hash: invokeSerializeJson,
     dao: invokeSerializeJson,
     nonce: invokeSerializeJson,
   });

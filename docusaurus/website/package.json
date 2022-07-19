@@ -1,6 +1,6 @@
 {
   "name": "docusaurus",
-  "version": "0.17.0-rc8",
+  "version": "0.18.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
@@ -18,9 +18,9 @@
   },
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
-    "@docusaurus/core": "^2.0.0-beta.15",
-    "@docusaurus/module-type-aliases": "^2.0.0-beta.15",
-    "@docusaurus/preset-classic": "^2.0.0-beta.15",
+    "@docusaurus/core": "2.0.0-beta.15",
+    "@docusaurus/module-type-aliases": "2.0.0-beta.15",
+    "@docusaurus/preset-classic": "2.0.0-beta.15",
     "@mdx-js/react": "^1.6.21",
     "antd": "^4.18.3",
     "clsx": "^1.1.1",

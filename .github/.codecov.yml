@@ -11,7 +11,7 @@ coverage:
         # basic settings
         target: auto
         threshold: 1%
-        base: auto 
+        base: auto
 
 parsers:
   gcov:
@@ -25,3 +25,7 @@ comment:
   layout: "reach,diff,flags,files,footer"
   behavior: default
   require_changes: no
+
+ignore:
+  - "packages/base/lib/core.js"
+  - "**/blockchain.umd.js"

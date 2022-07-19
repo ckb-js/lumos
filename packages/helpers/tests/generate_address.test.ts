@@ -6,7 +6,10 @@ import {
   scriptToAddress,
 } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
-const { LINA, AGGRON4 } = predefined;
+
+const LINA = predefined.LINA;
+const AGGRON4 = predefined.AGGRON4;
+
 import {
   shortAddressInfo,
   multisigAddressInfo,

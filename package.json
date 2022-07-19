@@ -1,9 +1,7 @@
 {
   "private": true,
   "workspaces": [
-    "packages/*",
-    "examples/*",
-    "experiment/*"
+    "packages/*"
   ],
   "engines": {
     "node": ">=12.0.0"

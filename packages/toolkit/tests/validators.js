@@ -11,6 +11,17 @@ test("correct script should pass validation", (t) => {
   t.pass();
 });
 
+test("concorect ckb2021 script should pass validation", (t) => {
+  validators.ValidateScript({
+    code_hash:
+      "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da",
+    args: "0x1234",
+    hash_type: "data1",
+  });
+
+  t.pass();
+});
+
 test("correct script with empty args", (t) => {
   validators.ValidateScript({
     code_hash:
@@ -393,7 +404,7 @@ test("correct header", (t) => {
       "0x68a83c880eb942396d22020aa83343906986f66418e9b8a4488f2866ecc4e86a",
     proposals_hash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
-    uncles_hash:
+    extra_hash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
     epoch: "0x7080612000287",
@@ -415,7 +426,7 @@ test("invalid header", (t) => {
         "0x68a83c880eb942396d22020aa83343906986f66418e9b8a4488f2866ecc4e86a",
       proposals_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
-      uncles_hash:
+      extra_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",
@@ -437,7 +448,7 @@ test("invalid raw header", (t) => {
         "0x68a83c880eb942396d22020aa83343906986f66418e9b8a4488f2866ecc4e86a",
       proposals_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
-      uncles_hash:
+      extra_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",
@@ -459,7 +470,7 @@ test("validate uncle block", (t) => {
         "0x68a83c880eb942396d22020aa83343906986f66418e9b8a4488f2866ecc4e86a",
       proposals_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
-      uncles_hash:
+      extra_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",
@@ -484,7 +495,7 @@ test("validate invalid uncle block", (t) => {
           "0x68a83c880eb942396d22020aa83343906986f66418e9b8a4488f2866ecc4e86a",
         proposals_hash:
           "0x0000000000000000000000000000000000000000000000000000000000000000",
-        uncles_hash:
+        extra_hash:
           "0x0000000000000000000000000000000000000000000000000000000000000000",
         version: "0x0",
         epoch: "0x7080612000287",
@@ -520,7 +531,7 @@ test("validate block", (t) => {
         "0x68a83c880eb942396d22020aa83343906986f66418e9b8a4488f2866ecc4e86a",
       proposals_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
-      uncles_hash:
+      extra_hash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       version: "0x0",
       epoch: "0x7080612000287",
