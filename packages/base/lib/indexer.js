@@ -1,5 +1,5 @@
 const utils = require("./utils");
-const { blockchain } =  require('@ckb-lumos/codec')
+const { blockchain } = require("@ckb-lumos/codec");
 // Notice this TransactionCollector implementation only uses indexer
 // here. Since the indexer we use doesn't store full transaction data,
 // we will have to run CKB RPC queries on each tx hash to fetch transaction
@@ -24,10 +24,10 @@ class TransactionCollector {
     }
     // Wrap the plain `Script` into `ScriptWrapper`.
     if (lock && !lock.script) {
-      blockchain.Script.pack(lock)
+      blockchain.Script.pack(lock);
       this.lock = { script: lock, ioType: "both", argsLen: argsLen };
     } else if (lock && lock.script) {
-      blockchain.Script.pack(lock.script)
+      blockchain.Script.pack(lock.script);
       this.lock = lock;
       // check ioType, argsLen
       if (!lock.argsLen) {

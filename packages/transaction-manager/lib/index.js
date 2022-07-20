@@ -1,8 +1,10 @@
 const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
-const { apiUtils } = require("@ckb-lumos/base/lib"); 
+const { apiUtils } = require("@ckb-lumos/base/lib");
 const { blockchain } = require("@ckb-lumos/codec");
-const { CKBIndexerTransactionCollector: TransactionCollector } = require("@ckb-lumos/ckb-indexer");
+const {
+  CKBIndexerTransactionCollector: TransactionCollector,
+} = require("@ckb-lumos/ckb-indexer");
 const { isCellMatchQueryOptions } = helpers;
 
 function defaultLogger(level, message) {
@@ -62,8 +64,8 @@ class TransactionManager {
       /* First, remove all transactions that use already spent cells */
       for (const input of tx.inputs) {
         // TODO const cell = await this.rpc.get_live_cell(input.previous_output, false);
-        console.log(input)
-        const cell = {}
+        console.log(input);
+        const cell = {};
         if (!cell) {
           continue;
         }
@@ -107,7 +109,7 @@ class TransactionManager {
   }
 
   async send_transaction(tx) {
-    blockchain.Transaction.pack(apiUtils.transformTransactionCodecType(tx))
+    blockchain.Transaction.pack(apiUtils.transformTransactionCodecType(tx));
     tx.inputs.forEach((input) => {
       if (
         this.spentCells.includes(
@@ -120,7 +122,7 @@ class TransactionManager {
       }
     });
     // TODO const txHash = await this.rpc.send_transaction(tx);
-    const txHash = `0x${'00'.repeat(32)}`
+    const txHash = `0x${"00".repeat(32)}`;
     tx.hash = txHash;
     this.transactions = this.transactions.add(
       new values.TransactionValue(tx, { validate: false })
