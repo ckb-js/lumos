@@ -6,7 +6,6 @@ import {
 import test from "ava";
 import { BI } from "@ckb-lumos/bi";
 import { predefined } from "@ckb-lumos/config-manager";
-import { Reader } from "@ckb-lumos/toolkit";
 import { Script } from "@ckb-lumos/base";
 const { AGGRON4 } = predefined;
 
@@ -24,13 +23,13 @@ test("ScriptRegistry", (t) => {
 
   const multiSigScript = registry.newScript(
     "SECP256K1_BLAKE160_MULTISIG",
-    new Reader("0x")
+    "0x"
   );
   const SECP256K1_BLAKE160_MULTISIG_SCRIPT = {
     code_hash:
       "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
     hash_type: "type",
-    args: new Reader("0x").serializeJson(),
+    args: "0x",
   };
   t.deepEqual(multiSigScript, SECP256K1_BLAKE160_MULTISIG_SCRIPT);
 

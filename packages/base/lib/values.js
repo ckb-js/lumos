@@ -3,6 +3,7 @@
 const { xxHash32 } = require("js-xxhash");
 const { ckbHash } = require("./utils");
 const { bytes, blockchain } = require("@ckb-lumos/codec");
+const apiUtils = require("./apiUtils");
 
 const { hexify } = bytes;
 class Value {
@@ -31,19 +32,19 @@ class ScriptValue extends Value {
 
 class OutPointValue extends Value {
   constructor(outPoint) {
-    super(blockchain.OutPoint.pack(outPoint));
+    super(blockchain.OutPoint.pack(apiUtils.transformOutPointCodecType(outPoint)));
   }
 }
 
 class RawTransactionValue extends Value {
   constructor(rawTransaction) {
-    super(blockchain.RawTransaction.pack(rawTransaction));
+    super(blockchain.RawTransaction.pack(apiUtils.transformRawTransactionCodecType(rawTransaction)));
   }
 }
 
 class TransactionValue extends Value {
   constructor(transaction) {
-    super(blockchain.Transaction.pack(transaction));
+    super(blockchain.Transaction.pack(apiUtils.transformTransactionCodecType(transaction)));
   }
 }
 

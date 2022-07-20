@@ -1,7 +1,8 @@
-const { validators, RPC } = require("@ckb-lumos/toolkit");
 const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
-const { TransactionCollector } = require("@ckb-lumos/ckb-indexer");
+const { apiUtils } = require("@ckb-lumos/base/lib"); 
+const { blockchain } = require("@ckb-lumos/codec");
+const { CKBIndexerTransactionCollector: TransactionCollector } = require("@ckb-lumos/ckb-indexer");
 const { isCellMatchQueryOptions } = helpers;
 
 function defaultLogger(level, message) {
@@ -14,11 +15,12 @@ class TransactionManager {
     {
       logger = defaultLogger,
       pollIntervalSeconds = 30,
-      rpc = new RPC(indexer.uri),
+      // TODO
+      // rpc = new RPC(indexer.uri),
     } = {}
   ) {
     this.indexer = indexer;
-    this.rpc = rpc;
+    // this.rpc = rpc;
     this.transactions = Set();
     this.spentCells = Set();
     this.createdCells = List();
@@ -59,7 +61,9 @@ class TransactionManager {
       let tx = transactionValue.value;
       /* First, remove all transactions that use already spent cells */
       for (const input of tx.inputs) {
-        const cell = await this.rpc.get_live_cell(input.previous_output, false);
+        // TODO const cell = await this.rpc.get_live_cell(input.previous_output, false);
+        console.log(input)
+        const cell = {}
         if (!cell) {
           continue;
         }
@@ -103,7 +107,7 @@ class TransactionManager {
   }
 
   async send_transaction(tx) {
-    validators.ValidateTransaction(tx);
+    blockchain.Transaction.pack(apiUtils.transformTransactionCodecType(tx))
     tx.inputs.forEach((input) => {
       if (
         this.spentCells.includes(
@@ -115,7 +119,8 @@ class TransactionManager {
         );
       }
     });
-    const txHash = await this.rpc.send_transaction(tx);
+    // TODO const txHash = await this.rpc.send_transaction(tx);
+    const txHash = `0x${'00'.repeat(32)}`
     tx.hash = txHash;
     this.transactions = this.transactions.add(
       new values.TransactionValue(tx, { validate: false })

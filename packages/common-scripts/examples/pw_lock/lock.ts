@@ -10,7 +10,6 @@ import {
   OutPoint,
   values,
   WitnessArgs,
-  core,
   utils,
   CellDep,
 } from "@ckb-lumos/base";
@@ -20,7 +19,6 @@ import {
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
 import { getConfig, Config, initializeConfig } from "@ckb-lumos/config-manager";
-import { Reader, normalizers } from "@ckb-lumos/toolkit";
 import { Set } from "immutable";
 import keccak, { Keccak } from "keccak";
 

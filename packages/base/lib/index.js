@@ -1,6 +1,6 @@
 module.exports = {
   values: require("./values"),
-  apiUtils: require("./apiUtils.ts"),
+  apiUtils: require("./apiUtils"),
   utils: require("./utils"),
   since: require("./since"),
   helpers: require("./helpers"),
