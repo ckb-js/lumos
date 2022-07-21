@@ -40,7 +40,8 @@ const config = {
           routeBasePath: "/",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/nervosnetwork/lumos/tree/develop/website",
+          editUrl:
+            "https://github.com/nervosnetwork/lumos/tree/develop/website",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -81,9 +82,10 @@ const config = {
           },
           // { to: "/blog", label: "Blog", position: "left" },
           {
-            href: "https://lumos-website.vercel.app/api/index.html",
+            href: "/api/",
             label: "API",
             position: "left",
+            target: "_blank",
           },
           {
             href: "https://github.com/nervosnetwork/lumos",
