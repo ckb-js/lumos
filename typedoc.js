@@ -5,7 +5,7 @@ module.exports = {
     "**/node_modules/**",
     "**/tests/**/*",
     "**/examples/**/*",
-    "**/docusaurus/**/*",
+    "**/website/**/*",
     "**/examples/**/*",
   ],
   name: "lumos",
