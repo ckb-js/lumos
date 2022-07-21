@@ -1,0 +1,20 @@
+---
+title: Address Conversion
+---
+
+import { AddressToScript, ScriptToAddress } from "./AddressConvertor";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+The CKB2021 address format has [changed from bech32 to bech32m](https://github.com/nervosnetwork/rfcs/pull/239),
+we recommend developers to use the new format in your dApps.
+This tool will help you determine if an address is deprecated or new.
+
+<Tabs>
+  <TabItem value="address2script" label="Address to Script" default>
+    <AddressToScript />
+  </TabItem>
+  <TabItem value="script2address" label="Script to Address">
+    <ScriptToAddress />
+  </TabItem>
+</Tabs>
