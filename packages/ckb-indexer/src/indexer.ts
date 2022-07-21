@@ -28,6 +28,7 @@ import {
   OtherQueryOptions,
 } from "./type";
 import { BI } from "@ckb-lumos/bi";
+import RPC from '@ckb-lumos/rpc'
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -47,9 +48,9 @@ export class CkbIndexer implements Indexer {
     this.uri = ckbRpcUrl;
   }
 
-  // private getCkbRpc(): RPC {
-  //   return new RPC(this.ckbRpcUrl);
-  // }
+  private getCkbRpc(): RPC {
+    return new RPC(this.ckbRpcUrl);
+  }
 
   async tip(): Promise<Tip> {
     const res = await request(this.ckbIndexerUrl, "get_tip");
@@ -62,19 +63,18 @@ export class CkbIndexer implements Indexer {
 
   async waitForSync(blockDifference = 0): Promise<void> {
     console.log(blockDifference);
-    // TODO replace RPC
 
-    // const rpcTipNumber = parseInt(
-    //   (await this.getCkbRpc().get_tip_header()).number,
-    //   16
-    // );
-    // while (true) {
-    //   const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
-    //   if (indexerTipNumber + blockDifference >= rpcTipNumber) {
-    //     return;
-    //   }
-    //   await this.asyncSleep(1000);
-    // }
+    const rpcTipNumber = parseInt(
+      (await this.getCkbRpc().getTipHeader()).number,
+      16
+    );
+    while (true) {
+      const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
+      if (indexerTipNumber + blockDifference >= rpcTipNumber) {
+        return;
+      }
+      await this.asyncSleep(1000);
+    }
   }
 
   /** collector cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
