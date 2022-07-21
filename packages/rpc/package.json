@@ -1,0 +1,39 @@
+{
+  "name": "@ckb-lumos/rpc",
+  "version": "0.103.1",
+  "description": "RPC module of @ckb-lumos/lumos",
+  "homepage": "https://github.com/nervosnetwork/ckb-sdk-js/packages/ckb-rpc#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib",
+    "types"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nervosnetwork/lumos.git"
+  },
+  "scripts": {
+    "doc": "../../node_modules/.bin/typedoc --out docs --mode modules --includeDeclarations --excludeExternals --ignoreCompilerErrors --theme default",
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.js\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.js\"",
+    "test": "../../node_modules/.bin/jest",
+    "build": "tsc",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
+  },
+  "dependencies": {
+    "axios": "0.21.4",
+    "tslib": "2.3.1"
+  }
+}

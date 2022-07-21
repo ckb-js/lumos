@@ -12,11 +12,10 @@ import {
   Indexer,
   TransactionWithStatus,
   TransactionCollector as BaseTransactionCollector,
-  Header,
 } from "@ckb-lumos/base";
 import { Map, Set } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
-// TODO import { RPC } from "@ckb-lumos/rpc";
+import RPC from "@ckb-lumos/rpc";
 import {
   AccountExtendedPublicKey,
   AddressType,
@@ -390,7 +389,7 @@ export class Cache {
   private lastTipBlockNumber: BI = BI.from(0);
   private TransactionCollector: typeof BaseTransactionCollector;
 
-  // private rpc: RPC;
+  private rpc: RPC;
 
   constructor(
     indexer: Indexer,
@@ -400,11 +399,12 @@ export class Cache {
     {
       TransactionCollector,
       masterPublicKey = undefined,
-    }: // rpc = new RPC(indexer.uri),
+      rpc = new RPC(indexer.uri),
+    }: 
     {
       TransactionCollector: typeof BaseTransactionCollector;
       masterPublicKey?: HexString;
-      // rpc?: RPC;
+      rpc?: RPC;
     }
   ) {
     this.indexer = indexer;
@@ -413,7 +413,7 @@ export class Cache {
 
     this.TransactionCollector = TransactionCollector;
 
-    // this.rpc = rpc;
+    this.rpc = rpc;
   }
 
   getLastTipBlockNumber(): HexString {
@@ -445,8 +445,7 @@ export class Cache {
         const tx = txWS.transaction;
         const blockHash: HexString | undefined = txWS.tx_status.block_hash;
         assertsNonNil(blockHash, "block hash");
-        // const tipHeader = await this.rpc.get_header(blockHash);
-        const tipHeader = {} as Header;
+        const tipHeader = await this.rpc.getHeader(blockHash);
         const blockNumber: HexString | undefined = tipHeader?.number;
         assertsNonNil(blockNumber, "tipHeader.number");
 
@@ -555,13 +554,14 @@ export class CacheManager {
       logger = defaultLogger,
       pollIntervalSeconds = 2,
       livenessCheckIntervalSeconds = 5,
-    }: // rpc = new RPC(indexer.uri),
+      rpc = new RPC(indexer.uri),
+    }: 
     {
       TransactionCollector: typeof BaseTransactionCollector;
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;
       livenessCheckIntervalSeconds?: number;
-      // rpc?: RPC;
+      rpc?: RPC;
     },
     masterPublicKey?: HexString
   ) {
@@ -574,7 +574,7 @@ export class CacheManager {
     this.cache = new Cache(indexer, publicKey, chainCode, infos, {
       TransactionCollector,
       masterPublicKey,
-      // rpc,
+      rpc,
     });
     this.isRunning = false;
     this.pollIntervalSeconds = pollIntervalSeconds;
@@ -602,7 +602,7 @@ export class CacheManager {
       livenessCheckIntervalSeconds?: number;
       TransactionCollector: typeof BaseTransactionCollector;
       needMasterPublicKey?: boolean;
-      // rpc?: RPC;
+      rpc?: RPC;
     }
   ): CacheManager {
     const keystore = Keystore.load(path);
@@ -635,7 +635,7 @@ export class CacheManager {
       livenessCheckIntervalSeconds?: number;
       TransactionCollector: typeof BaseTransactionCollector;
       needMasterPublicKey?: boolean;
-      // rpc?: RPC;
+      rpc?: RPC;
     }
   ): CacheManager {
     const seed = mnemonicToSeedSync(mnemonic);
