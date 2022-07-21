@@ -6,6 +6,9 @@ import {
   StringHashTypeException,
   HexStringWithout0xException,
 } from './exceptions'
+import {BI} from '@ckb-lumos/bi'
+import { RPC } from '../types/rpc'
+import { CKBComponents } from '../types/api'
 
 /* eslint-disable camelcase */
 const formatter = {
@@ -118,11 +121,11 @@ const formatter = {
   },
   toPageNumber: (pageNo: string | bigint = '0x1') => formatter.toNumber(pageNo),
   toPageSize: (pageSize: string | bigint = '0x32') => {
-    const size = JSBI.BigInt(`${pageSize}`)
+    const size = BI.from(pageSize)
     const MAX_SIZE = 50
     const MIN_SIZE = 0
-    if (JSBI.greaterThan(size, JSBI.BigInt(MAX_SIZE))) throw new PageSizeTooLargeException(pageSize, MAX_SIZE)
-    if (JSBI.lessThan(size, JSBI.BigInt(MIN_SIZE))) throw new PageSizeTooSmallException(pageSize, MIN_SIZE)
+    if (BI.from(size).gt(MAX_SIZE)) throw new PageSizeTooLargeException(pageSize, MAX_SIZE)
+    if (BI.from(size).lt(MIN_SIZE)) throw new PageSizeTooSmallException(pageSize, MIN_SIZE)
     return formatter.toNumber(`0x${size.toString(16)}`)
   },
   toReverseOrder: (reverse: boolean = false) => !!reverse,

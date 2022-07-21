@@ -2,7 +2,7 @@
  * @see https://github.com/nervosnetwork/ckb/blob/develop/protocol/src/protocol.fbs for more infGomation
  */
 
- declare namespace CKBComponents {
+ export namespace CKBComponents {
   export type DAO = string
   export type Hash = string
   export type Number = string
@@ -224,7 +224,7 @@
    * @property proposals
    */
 
-  interface UncleBlock {
+  export interface UncleBlock {
     header: BlockHeader
     proposals: ProposalShortId[]
   }

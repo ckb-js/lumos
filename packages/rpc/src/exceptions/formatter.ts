@@ -41,10 +41,19 @@ export class StringHashTypeException extends TypeError {
   }
 }
 
+export class HexStringWithout0xException extends Error {
+  code = ErrorCode.ParameterInvalid
+
+  constructor(hex: string) {
+    super(`Hex string ${hex} should start with 0x`)
+  }
+}
+
 export default {
   PageSizeTooLargeException,
   PageSizeTooSmallException,
   OutputsValidatorTypeException,
   BigintOrHexStringTypeException,
   StringHashTypeException,
+  HexStringWithout0xException,
 }

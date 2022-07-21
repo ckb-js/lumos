@@ -1,3 +1,6 @@
+import { CKBComponents } from '../types/api'
+import { RPC } from '../types/rpc'
+
 const isTxPoolIds = (rawTxPool: RPC.RawTxPool): rawTxPool is RPC.TxPoolIds => {
   return Array.isArray(rawTxPool.pending)
 }

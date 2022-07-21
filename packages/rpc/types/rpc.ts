@@ -1,9 +1,10 @@
 /**
  * @see https://github.com/nervosnetwork/ckb/blob/develop/util/jsonrpc-types/src/blockchain.rs
  */
+import { CKBComponents } from './api'
 
 /* eslint-disable camelcase */
-declare module RPC {
+export namespace RPC {
   export type ProposalShortId = CKBComponents.ProposalShortId
   export type Number = CKBComponents.Number
   export type UInt32 = CKBComponents.UInt32
@@ -28,7 +29,7 @@ declare module RPC {
   export type EpochNumberWithFraction = CKBComponents.EpochNumberWithFraction
   export type JsonBytes = CKBComponents.JsonBytes
 
-  enum TransactionStatus {
+  export enum TransactionStatus {
     Pending = 'pending',
     Proposed = 'proposed',
     Committed = 'committed',
