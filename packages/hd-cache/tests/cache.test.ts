@@ -18,7 +18,7 @@ import {
 import { BI } from "@ckb-lumos/bi";
 import { stub } from "sinon";
 import { CkbIndexer } from "@ckb-lumos/ckb-indexer";
-// TODO import { RPC } from "@ckb-lumos/rpc";
+import RPC from "@ckb-lumos/rpc";
 
 const mockTxs: TransactionWithStatus[] = [
   {
@@ -144,12 +144,12 @@ const headerData = {
 // TODO eslint-disable-next-line @typescript-eslint/no-unused-vars
 class MockRpc {
   constructor() {}
-  async get_header(blockHash: string) {
+  async getHeader(blockHash: string) {
     return { ...headerData, ...{ hash: blockHash } };
   }
 }
 
-// const rpc: any = new MockRpc();
+const rpc: any = new MockRpc();
 
 HDCache.receivingKeyInitCount = 3;
 HDCache.changeKeyInitCount = 2;
@@ -203,11 +203,11 @@ class MockTransactionCollector extends BaseIndexerModule.TransactionCollector {
   }
 }
 
-// stub(RPC.prototype, "get_header").callsFake(async function (
-//   block_hash: string
-// ) {
-//   return { ...headerData, ...{ hash: block_hash } };
-// });
+stub(rpc, "getHeader").callsFake(async function (
+  block_hash: string
+) {
+  return { ...headerData, ...{ hash: block_hash } };
+});
 const tipStub = stub(indexer, "tip");
 tipStub.resolves({
   block_hash:
@@ -220,7 +220,7 @@ const cacheManager = CacheManager.fromMnemonic(
   getDefaultInfos(),
   {
     TransactionCollector: MockTransactionCollector,
-    // rpc,
+    rpc,
   }
 );
 
@@ -238,7 +238,7 @@ test("derive threshold", async (t) => {
     getDefaultInfos(),
     {
       TransactionCollector: MockTransactionCollector,
-      // rpc,
+      rpc,
     }
   );
 
@@ -295,7 +295,7 @@ test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
     getDefaultInfos(),
     {
       TransactionCollector: MockTransactionCollector,
-      // rpc,
+      rpc,
       needMasterPublicKey: true,
     }
   );
@@ -432,7 +432,7 @@ test("getBalance, needMasterPublicKey", async (t) => {
     getDefaultInfos(),
     {
       TransactionCollector: MockTransactionCollector,
-      // rpc,
+      rpc,
       needMasterPublicKey: true,
     }
   );
