@@ -51,14 +51,14 @@ export namespace RPC {
   }
 
   export interface CellInput {
-    previous_output: OutPoint | null
+    previous_output: OutPoint | undefined
     since: Since
   }
 
   export interface CellOutput {
     capacity: Capacity
     lock: Script
-    type?: Script | null
+    type?: Script | undefined
   }
 
   export type Cell = CellOutput
@@ -72,7 +72,7 @@ export namespace RPC {
   }
 
   export interface CellDep {
-    out_point: OutPoint | null
+    out_point: OutPoint | undefined
     dep_type: DepType
   }
 
@@ -80,7 +80,7 @@ export namespace RPC {
     block_hash: Hash256
     capacity: Capacity
     lock: Script
-    out_point: OutPoint | null
+    out_point: OutPoint | undefined
     cellbase: boolean
     output_data_len: string
   }
@@ -107,7 +107,7 @@ export namespace RPC {
           status: TransactionStatus.Committed
         }
       | {
-          block_hash: null
+          block_hash: undefined
           status: TransactionStatus.Pending | TransactionStatus.Proposed
         }
   }
@@ -119,7 +119,7 @@ export namespace RPC {
   }
 
   export interface TransactionByLockHash {
-    consumed_by: null | TransactionPoint
+    consumed_by: undefined | TransactionPoint
     created_by: TransactionPoint
   }
   export type TransactionsByLockHash = TransactionByLockHash[]
@@ -157,7 +157,7 @@ export namespace RPC {
     uncles: UncleBlock[]
     transactions: Transaction[]
     proposals: ProposalShortId[]
-    extension?: JsonBytes | null
+    extension?: JsonBytes | undefined
   }
 
   export interface AlertMessage {
@@ -200,7 +200,7 @@ export namespace RPC {
       | 'last_common_header_hash'
       | 'last_common_header_number'
       | 'unknown_header_list_size',
-      string | null
+      string | undefined
     >
     version: string
   }
@@ -317,10 +317,10 @@ export namespace RPC {
   export interface Consensus {
     id: string
     genesis_hash: Hash256
-    hardfork_features: Array<{ rfc: string; epoch_number: string | null }>
-    dao_type_hash: Hash256 | null
-    secp256k1_blake160_sighash_all_type_hash: Hash256 | null
-    secp256k1_blake160_multisig_all_type_hash: Hash256 | null
+    hardfork_features: Array<{ rfc: string; epoch_number: string | undefined }>
+    dao_type_hash: Hash256 | undefined
+    secp256k1_blake160_sighash_all_type_hash: Hash256 | undefined
+    secp256k1_blake160_multisig_all_type_hash: Hash256 | undefined
     initial_primary_epoch_reward: Capacity
     secondary_epoch_reward: Capacity
     max_uncles_num: string

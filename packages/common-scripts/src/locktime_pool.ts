@@ -26,7 +26,6 @@ import {
   QueryOptions,
   CellCollector as CellCollectorType,
   SinceValidationInfo,
-  TransactionWithStatus,
 } from "@ckb-lumos/base";
 const { toBigUInt64LE, readBigUInt64LECompatible, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
@@ -50,6 +49,7 @@ import { secp256k1Blake160Multisig } from ".";
 import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { CellCollectorConstructor } from "./type";
+import RPC from '@ckb-lumos/rpc'
 
 export interface LocktimeCell extends Cell {
   since: PackedSince;
@@ -62,7 +62,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
   implements CellCollectorType {
   private cellCollectors: List<CellCollectorType>;
   private config: Config;
-  // TODO private rpc: RPC;
+  private rpc: RPC;
   private tipHeader?: Header;
   private tipSinceValidationInfo?: SinceValidationInfo;
   public readonly fromScript: Script;
@@ -74,11 +74,12 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
       config = undefined,
       queryOptions = {},
       tipHeader = undefined,
-    }: // NodeRPC = RPC,
+      NodeRPC = RPC,
+    }: 
     Options & {
       queryOptions?: QueryOptions;
       tipHeader?: Header;
-      // NodeRPC?: typeof RPC;
+      NodeRPC?: typeof RPC;
     } = {}
   ) {
     if (!cellProvider) {
@@ -102,8 +103,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
       };
     }
 
-    // TODO
-    // this.rpc = new NodeRPC(cellProvider.uri!);
+    this.rpc = new NodeRPC(cellProvider.uri!);
 
     queryOptions = {
       ...queryOptions,
@@ -180,8 +180,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
 
         // multisig
         if (lock.args.length === 58) {
-          // TODO const header = (await this.rpc.get_header(inputCell.block_hash!))!;
-          const header = {} as Header;
+          const header = (await this.rpc.getHeader(inputCell.block_hash!))!;
           since =
             "0x" + _parseMultisigArgsSinceCompatible(lock.args).toString(16);
           // TODO: `median_timestamp` not provided now!
@@ -197,27 +196,23 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
           if (inputCell.data === "0x0000000000000000") {
             continue;
           }
-          // TODO const transactionWithStatus = (await this.rpc.get_transaction(
-          //   inputCell.out_point!.tx_hash
-          // ))!;
-          const transactionWithStatus = {} as TransactionWithStatus;
-          withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
+          const transactionWithStatus = (await this.rpc.getTransaction(
+            inputCell.out_point!.tx_hash
+          ))!;
+          withdrawBlockHash = transactionWithStatus.txStatus.blockHash;
           const transaction = transactionWithStatus.transaction;
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const depositOutPoint =
-            transaction.inputs[+inputCell.out_point!.index].previous_output;
-          // depositBlockHash = (await this.rpc.get_transaction(
-          //   depositOutPoint.tx_hash
-          // ))!.tx_status.block_hash!;
-          // const depositBlockHeader = await this.rpc.get_header(
-          //   depositBlockHash
-          // );
-          // const withdrawBlockHeader = await this.rpc.get_header(
-          //   withdrawBlockHash!
-          // );
-          depositBlockHash = "0x00" as Hash;
-          const depositBlockHeader = {} as Header;
-          const withdrawBlockHeader = {} as Header;
+            transaction.inputs[+inputCell.out_point!.index].previousOutput;
+          depositBlockHash = (await this.rpc.getTransaction(
+            depositOutPoint!.txHash
+          ))!.txStatus.blockHash!;
+          const depositBlockHeader = await this.rpc.getHeader(
+            depositBlockHash
+          );
+          const withdrawBlockHeader = await this.rpc.getHeader(
+            withdrawBlockHash!
+          );
           let daoSince: PackedSince =
             "0x" +
             calculateDaoEarliestSinceCompatible(

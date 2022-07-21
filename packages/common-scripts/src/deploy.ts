@@ -22,6 +22,7 @@ import {
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
 import { BI, BIish } from "@ckb-lumos/bi";
+import RPC from '@ckb-lumos/rpc'
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -325,15 +326,14 @@ function calculateCodeHashByBin(scriptBin: Uint8Array): string {
     .digestHex();
 }
 
-async function getDataHash(outPoint: OutPoint): Promise<string> {
+async function getDataHash(outPoint: OutPoint, rpc: RPC): Promise<string> {
   const txHash = outPoint.tx_hash;
   const index = parseInt(outPoint.index, 10);
-  // TODO const tx = await rpc.get_transaction(txHash);
-  const tx = {} as { transaction: Transaction };
+  const tx = await rpc.getTransaction(txHash);
 
   if (!tx) throw new Error(`TxHash(${txHash}) is not found`);
 
-  const outputData = tx.transaction.outputs_data[index];
+  const outputData = tx.transaction.outputsData[index];
   if (!outputData) throw new Error(`cannot find output data`);
 
   return new utils.CKBHasher().update(bytes.bytify(outputData)).digestHex();
@@ -606,11 +606,11 @@ export async function generateUpgradeTypeIdDataTx(
 
 export async function compareScriptBinaryWithOnChainData(
   scriptBinary: Uint8Array,
-  outPoint: OutPoint
-  // TODO rpc: RPC
+  outPoint: OutPoint,
+  rpc: RPC
 ): Promise<boolean> {
   const localHash = calculateCodeHashByBin(scriptBinary);
-  const onChainHash = await getDataHash(outPoint);
+  const onChainHash = await getDataHash(outPoint, rpc);
   return localHash === onChainHash;
 }
 

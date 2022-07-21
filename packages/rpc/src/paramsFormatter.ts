@@ -13,7 +13,7 @@ import { CKBComponents } from '../types/api'
 /* eslint-disable camelcase */
 const formatter = {
   toOptional: (format?: Function) => (arg: any) => {
-    if (!format || arg === undefined || arg === null) {
+    if (!format || arg === undefined || arg === undefined) {
       return arg
     }
     return format(arg)
@@ -51,7 +51,7 @@ const formatter = {
       ...rest,
     }
   },
-  toOutPoint: (outPoint: CKBComponents.OutPoint | null): RPC.OutPoint | null => {
+  toOutPoint: (outPoint: CKBComponents.OutPoint | undefined): RPC.OutPoint | undefined => {
     if (!outPoint) return outPoint
     const { txHash, index, ...rest } = outPoint
     return {
@@ -71,7 +71,7 @@ const formatter = {
   },
   toOutput: (output: CKBComponents.CellOutput): RPC.CellOutput => {
     if (!output) return output
-    const { capacity, lock, type = null, ...rest } = output
+    const { capacity, lock, type = undefined, ...rest } = output
     return {
       capacity: formatter.toNumber(capacity),
       lock: formatter.toScript(lock),
@@ -87,7 +87,7 @@ const formatter = {
   },
   toCellDep: (cellDep: CKBComponents.CellDep): RPC.CellDep => {
     if (!cellDep) return cellDep
-    const { outPoint = null, depType = 'code', ...rest } = cellDep
+    const { outPoint = undefined, depType = 'code', ...rest } = cellDep
     return {
       out_point: formatter.toOutPoint(outPoint),
       dep_type: formatter.toDepType(depType),

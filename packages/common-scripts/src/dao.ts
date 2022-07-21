@@ -16,7 +16,6 @@ import {
   PackedDao,
   PackedSince,
   CellCollector as CellCollectorInterface,
-  Header,
 } from "@ckb-lumos/base";
 import { blockchain, bytes } from "@ckb-lumos/codec";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
@@ -33,6 +32,7 @@ import {
 } from "./helper";
 import { readBigUInt64LECompatible } from "@ckb-lumos/base/lib/utils";
 import { BI, BIish } from "@ckb-lumos/bi";
+import RPC from '@ckb-lumos/rpc'
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE = BI.from(180);
@@ -361,8 +361,7 @@ export async function unlock(
   fromInfo: FromInfo,
   {
     config = undefined,
-  }: // TODO RpcClient = RPC,
-  Options = {}
+  }: Options = {}
 ) {
   config = config || getConfig();
   _checkDaoScript(config);
@@ -376,8 +375,7 @@ export async function unlock(
   if (!cellProvider) {
     throw new Error("Cell provider is missing!");
   }
-  // TODO rpc
-  // const rpc = new RpcClient(cellProvider.uri!);
+  const rpc = new RPC(cellProvider.uri!);
 
   const typeScript = depositInput.cell_output.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
@@ -401,13 +399,11 @@ export async function unlock(
   }
 
   // calculate since & capacity (interest)
-  // TODO const depositBlockHeader = await rpc.get_header(depositInput.block_hash!);
-  const depositBlockHeader = {} as Header;
+  const depositBlockHeader = await rpc.getHeader(depositInput.block_hash!);
   const depositEpoch = parseEpochCompatible(depositBlockHeader!.epoch);
   // const depositCapacity = BigInt(depositInput.cell_output.capacity)
 
-  // TODO const withdrawBlockHeader = await rpc.get_header(withdrawInput.block_hash!);
-  const withdrawBlockHeader = {} as Header;
+  const withdrawBlockHeader = await rpc.getHeader(withdrawInput.block_hash!);
   const withdrawEpoch = parseEpochCompatible(withdrawBlockHeader!.epoch);
 
   const withdrawFraction = withdrawEpoch.index.mul(depositEpoch.length);

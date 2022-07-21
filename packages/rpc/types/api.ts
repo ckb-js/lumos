@@ -24,7 +24,8 @@
   export type RationalU256 = Record<'denom' | 'numer', string>
   export type ProposalWindow = Record<'closest' | 'farthest', BlockNumber>
   export type EpochNumberWithFraction = string
-  export enum TransactionStatus {
+  export enum 
+  TransactionStatus {
     Pending = 'pending',
     Proposed = 'proposed',
     Committed = 'committed',
@@ -84,7 +85,7 @@
    *           [RFC](https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0017-tx-valid-since/0017-tx-valid-since.md)
    */
   export interface CellInput {
-    previousOutput: OutPoint | null
+    previousOutput: OutPoint | undefined
     since: Since
   }
 
@@ -97,7 +98,7 @@
   export interface CellOutput {
     capacity: Capacity
     lock: Script
-    type?: Script | null
+    type?: Script | undefined
   }
 
   /**
@@ -116,7 +117,7 @@
    * @property depType, indicate if the data of the cell containing a group of dependencies
    */
   export interface CellDep {
-    outPoint: OutPoint | null
+    outPoint: OutPoint | undefined
     depType: DepType
   }
 
@@ -159,7 +160,7 @@
           status: TransactionStatus.Committed
         }
       | {
-          blockHash: null
+          blockHash: undefined
           status: TransactionStatus.Pending | TransactionStatus.Proposed
         }
   }
@@ -182,7 +183,7 @@
    * @property createdBy
    */
   export interface TransactionByLockHash {
-    consumedBy: null | TransactionPoint
+    consumedBy: undefined | TransactionPoint
     createdBy: TransactionPoint
   }
 
@@ -242,7 +243,7 @@
     uncles: UncleBlock[]
     transactions: Transaction[]
     proposals: ProposalShortId[]
-    extension?: JsonBytes | null
+    extension?: JsonBytes | undefined
   }
 
   /**
@@ -277,7 +278,7 @@
     blockHash: Hash256
     capacity: Capacity
     lock: Script
-    outPoint: OutPoint | null
+    outPoint: OutPoint | undefined
     cellbase: boolean
     outputDataLen: string
   }
@@ -338,7 +339,7 @@
       | 'lastCommonHeaderHash'
       | 'lastCommonHeaderNumber'
       | 'unknownHeaderListSize',
-      string | null
+      string | undefined
     >
     version: string
   }
@@ -477,10 +478,10 @@
   export interface Consensus {
     id: string
     genesisHash: Hash256
-    hardforkFeatures: Array<{ rfc: string; epochNumber: string | null }>
-    daoTypeHash: Hash256 | null
-    secp256k1Blake160SighashAllTypeHash: Hash256 | null
-    secp256k1Blake160MultisigAllTypeHash: Hash256 | null
+    hardforkFeatures: Array<{ rfc: string; epochNumber: string | undefined }>
+    daoTypeHash: Hash256 | undefined
+    secp256k1Blake160SighashAllTypeHash: Hash256 | undefined
+    secp256k1Blake160MultisigAllTypeHash: Hash256 | undefined
     initialPrimaryEpochReward: Capacity
     secondaryEpochReward: Capacity
     maxUnclesNum: string
