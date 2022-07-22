@@ -1,0 +1,8 @@
+node_modules/
+build/
+lib/
+
+# ignore ide configurations
+.idea
+.vscode
+dist/

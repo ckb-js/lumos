@@ -1,0 +1,36 @@
+import JSBI from "jsbi";
+export declare type BIish = number | string | bigint | BI;
+export declare function isBIish(value: unknown): value is BIish;
+export declare class BI {
+    private readonly jsbi;
+    readonly _isBI: boolean;
+    constructor(value: JSBI);
+    add(other: BIish): BI;
+    sub(other: BIish): BI;
+    div(other: BIish): BI;
+    mul(other: BIish): BI;
+    mod(other: BIish): BI;
+    abs(): BI;
+    pow(other: BIish): BI;
+    and(other: BIish): BI;
+    or(other: BIish): BI;
+    xor(other: BIish): BI;
+    not(): BI;
+    mask(other: BIish): BI;
+    shl(other: BIish): BI;
+    shr(other: BIish): BI;
+    eq(other: BIish): boolean;
+    lt(other: BIish): boolean;
+    lte(other: BIish): boolean;
+    gt(other: BIish): boolean;
+    gte(other: BIish): boolean;
+    isNegative(): boolean;
+    isZero(): boolean;
+    toNumber(): number;
+    toBigInt(): bigint;
+    toString(radix?: number): string;
+    toHexString(): string;
+    static from(value: unknown): BI;
+    static isBI(value: unknown): value is BI;
+}
+export declare function toJSBI(value: BIish): JSBI;
