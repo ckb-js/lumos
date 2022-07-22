@@ -1,9 +1,13 @@
 {
   "name": "@ckb-lumos/rpc",
-  "version": "0.103.1",
+  "version": "0.17.0",
   "description": "RPC module of lumos",
+  "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/src/index.js",
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -12,19 +16,23 @@
     "lib"
   ],
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
   "scripts": {
     "doc": "../../node_modules/.bin/typedoc --out docs --mode modules --includeDeclarations --excludeExternals --ignoreCompilerErrors --theme default",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.js\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.js\"",
     "test": "../../node_modules/.bin/jest",
-    "build": "tsc",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "tsc",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
     "release": "npm publish"

@@ -28,7 +28,7 @@ export type {
 export { since, utils, apiUtils } from "@ckb-lumos/base";
 export * as config from "@ckb-lumos/config-manager";
 
-// TODO export { RPC } from "@ckb-lumos/rpc";
+export * as RPC from "@ckb-lumos/rpc";
 export * as hd from "@ckb-lumos/hd";
 export * as indexer from "@ckb-lumos/ckb-indexer";
 export * as helpers from "@ckb-lumos/helpers";

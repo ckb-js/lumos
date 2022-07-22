@@ -1,4 +1,5 @@
-import { blockchain, UnpackResult } from "@ckb-lumos/codec";
+import { UnpackResult } from "@ckb-lumos/codec/lib/base";
+import * as blockchain from "@ckb-lumos/codec/lib/blockchain";
 import { CellDep, Input, OutPoint, Output, Transaction } from './api';
 declare type HeaderCodecType = UnpackResult<typeof blockchain.Header>
 declare type CellOutputCodecType = UnpackResult<typeof blockchain.CellOutput>;
