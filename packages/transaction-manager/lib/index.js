@@ -63,7 +63,7 @@ class TransactionManager {
       let tx = transactionValue.value;
       /* First, remove all transactions that use already spent cells */
       for (const input of tx.inputs) {
-        // TODO const cell = await this.rpc.get_live_cell(input.previous_output, false);
+        // TODO const cell = await this.rpc.get_live_cell(input.previousOutput, false);
         console.log(input);
         const cell = {};
         if (!cell) {
@@ -77,7 +77,7 @@ class TransactionManager {
           lock: output.lock,
         });
         const txHashes = await transactionCollector.getTransactionHashes();
-        // remove witnesses property because it's redundant for calculating tx_hash
+        // remove witnesses property because it's redundant for calculating txHash
         delete tx.witnesses;
         const targetTxHash = new values.RawTransactionValue(tx, {
           validate: false,
@@ -93,15 +93,15 @@ class TransactionManager {
     this.transactions.forEach((transactionValue) => {
       const tx = transactionValue.value;
       tx.outputs.forEach((output, i) => {
-        const out_point = {
-          tx_hash: tx.hash,
+        const outPoint = {
+          txHash: tx.hash,
           index: "0x" + i.toString(16),
         };
         createdCells = createdCells.push({
-          out_point,
-          cell_output: output,
-          data: tx.outputs_data[i],
-          block_hash: null,
+          outPoint,
+          cellOutput: output,
+          data: tx.outputsData[i],
+          blockHash: null,
         });
       });
     });
@@ -113,11 +113,11 @@ class TransactionManager {
     tx.inputs.forEach((input) => {
       if (
         this.spentCells.includes(
-          new values.OutPointValue(input.previous_output, { validate: false })
+          new values.OutPointValue(input.previousOutput, { validate: false })
         )
       ) {
         throw new Error(
-          `OutPoint ${input.previous_output.tx_hash}@${input.previous_output.index} has already been spent!`
+          `OutPoint ${input.previousOutput.txHash}@${input.previousOutput.index} has already been spent!`
         );
       }
     });
@@ -129,19 +129,19 @@ class TransactionManager {
     );
     tx.inputs.forEach((input) => {
       this.spentCells = this.spentCells.add(
-        new values.OutPointValue(input.previous_output, { validate: false })
+        new values.OutPointValue(input.previousOutput, { validate: false })
       );
     });
     for (let i = 0; i < tx.outputs.length; i++) {
       const op = {
-        tx_hash: txHash,
+        txHash: txHash,
         index: `0x${i.toString(16)}`,
       };
       this.createdCells = this.createdCells.push({
-        out_point: op,
-        cell_output: tx.outputs[i],
-        data: tx.outputs_data[i],
-        block_hash: null,
+        outPoint: op,
+        cellOutput: tx.outputs[i],
+        data: tx.outputsData[i],
+        blockHash: null,
       });
     }
     return txHash;
@@ -250,7 +250,7 @@ class TransactionManagerCellCollector {
 
   async *collect() {
     for await (const cell of this.collector.collect()) {
-      if (!this.spentCells.has(new values.OutPointValue(cell.out_point))) {
+      if (!this.spentCells.has(new values.OutPointValue(cell.outPoint))) {
         yield cell;
       }
     }

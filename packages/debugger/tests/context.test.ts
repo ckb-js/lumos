@@ -56,7 +56,7 @@ test("context#CKBDebugger with always_success", async (t) => {
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
-      out_point: mockOutPoint(),
+      outPoint: mockOutPoint(),
       ...createCellWithMinimalCapacity({ lock: alwaysSuccessLock }),
     })
   );
@@ -83,7 +83,7 @@ test("context#CKBDebugger with always_fail", async (t) => {
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
-      out_point: mockOutPoint(),
+      outPoint: mockOutPoint(),
       ...createCellWithMinimalCapacity({ lock: alwaysFailureLock }),
     })
   );
@@ -112,7 +112,7 @@ test("context#CKBDebugger with secp256k1 with correct signature", async (t) => {
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
-      out_point: mockOutPoint(),
+      outPoint: mockOutPoint(),
       ...createCellWithMinimalCapacity({ lock: secp256k1Lock }),
     })
   );
@@ -149,7 +149,7 @@ test("context#CKBDebugger with secp256k1 with wrong signature", async (t) => {
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
-      out_point: mockOutPoint(),
+      outPoint: mockOutPoint(),
       ...createCellWithMinimalCapacity({ lock: secp256k1Lock }),
     })
   );
@@ -186,7 +186,7 @@ test("context#CKBDebugger with printf debug message", async (t) => {
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
-      out_point: mockOutPoint(),
+      outPoint: mockOutPoint(),
       ...createCellWithMinimalCapacity({ lock: debugScript }),
     })
   );
@@ -233,7 +233,7 @@ test("context#CKBDebugger with secp256k1 multisig with correct signature", async
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
-      out_point: mockOutPoint(),
+      outPoint: mockOutPoint(),
       ...createCellWithMinimalCapacity({ lock: multisigLock }),
     })
   );
@@ -305,7 +305,7 @@ test("context#CKBDebugger with secp256k1 multisig with wrong signature", async (
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
-      out_point: mockOutPoint(),
+      outPoint: mockOutPoint(),
       ...createCellWithMinimalCapacity({ lock: multisigLock }),
     })
   );

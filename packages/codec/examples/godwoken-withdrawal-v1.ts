@@ -37,11 +37,11 @@ const WithdrawalLockArgs = struct(
 
 const Script = table(
   {
-    code_hash: Byte32,
-    hash_type: Uint8,
+    codeHash: Byte32,
+    hashType: Uint8,
     args: Bytes,
   },
-  ["code_hash", "hash_type", "args"]
+  ["codeHash", "hashType", "args"]
 );
 
 const FullWithdrawalWithdrawalObjectArgsCodec = createObjectCodec({

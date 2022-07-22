@@ -36,17 +36,17 @@ test("withdraw, acp to acp, all", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
   t.is(
-    txSkeleton.get("cellDeps").get(0)!.out_point.tx_hash,
+    txSkeleton.get("cellDeps").get(0)!.outPoint.txHash,
     AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH
   );
 
@@ -58,7 +58,7 @@ test("withdraw, acp to acp, all", async (t) => {
   t.deepEqual(
     txSkeleton
       .get("inputs")
-      .map((i) => i.cell_output.lock.args)
+      .map((i) => i.cellOutput.lock.args)
       .toArray(),
     [alice.blake160, bob.blake160]
   );
@@ -66,7 +66,7 @@ test("withdraw, acp to acp, all", async (t) => {
   t.deepEqual(
     txSkeleton
       .get("outputs")
-      .map((o) => o.cell_output.lock.args)
+      .map((o) => o.cellOutput.lock.args)
       .toArray(),
     [alice.blake160]
   );
@@ -103,17 +103,17 @@ test("withdraw, acp to acp, half", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
   t.is(
-    txSkeleton.get("cellDeps").get(0)!.out_point.tx_hash,
+    txSkeleton.get("cellDeps").get(0)!.outPoint.txHash,
     AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH
   );
 
@@ -125,7 +125,7 @@ test("withdraw, acp to acp, half", async (t) => {
   t.deepEqual(
     txSkeleton
       .get("inputs")
-      .map((i) => i.cell_output.lock.args)
+      .map((i) => i.cellOutput.lock.args)
       .toArray(),
     [alice.blake160, bob.blake160]
   );
@@ -133,14 +133,14 @@ test("withdraw, acp to acp, half", async (t) => {
   t.deepEqual(
     txSkeleton
       .get("outputs")
-      .map((o) => o.cell_output.lock.args)
+      .map((o) => o.cellOutput.lock.args)
       .toArray(),
     [alice.blake160, bob.blake160]
   );
 
   const aliceReceiveCapacity: BI = BI.from(
-    txSkeleton.get("outputs").get(0)!.cell_output.capacity
-  ).sub(BI.from(txSkeleton.get("inputs").get(0)!.cell_output.capacity));
+    txSkeleton.get("outputs").get(0)!.cellOutput.capacity
+  ).sub(BI.from(txSkeleton.get("inputs").get(0)!.cellOutput.capacity));
 
   t.is(aliceReceiveCapacity.toString(), capacity.toString());
 
@@ -176,17 +176,17 @@ test("withdraw, acp to secp, half", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
   t.is(
-    txSkeleton.get("cellDeps").get(0)!.out_point.tx_hash,
+    txSkeleton.get("cellDeps").get(0)!.outPoint.txHash,
     AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH
   );
 
@@ -198,7 +198,7 @@ test("withdraw, acp to secp, half", async (t) => {
   t.deepEqual(
     txSkeleton
       .get("inputs")
-      .map((i) => i.cell_output.lock.args)
+      .map((i) => i.cellOutput.lock.args)
       .toArray(),
     [bob.blake160]
   );
@@ -206,13 +206,13 @@ test("withdraw, acp to secp, half", async (t) => {
   t.deepEqual(
     txSkeleton
       .get("outputs")
-      .map((o) => o.cell_output.lock.args)
+      .map((o) => o.cellOutput.lock.args)
       .toArray(),
     [alice.blake160, bob.blake160]
   );
 
   const aliceReceiveCapacity: BI = BI.from(
-    txSkeleton.get("outputs").get(0)!.cell_output.capacity
+    txSkeleton.get("outputs").get(0)!.cellOutput.capacity
   );
 
   t.is(aliceReceiveCapacity.toString(), capacity.toString());
@@ -252,17 +252,17 @@ test("withdraw, acp to secp, all", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
   t.is(
-    txSkeleton.get("cellDeps").get(0)!.out_point.tx_hash,
+    txSkeleton.get("cellDeps").get(0)!.outPoint.txHash,
     AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH
   );
 
@@ -274,7 +274,7 @@ test("withdraw, acp to secp, all", async (t) => {
   t.deepEqual(
     txSkeleton
       .get("inputs")
-      .map((i) => i.cell_output.lock.args)
+      .map((i) => i.cellOutput.lock.args)
       .toArray(),
     [bob.blake160]
   );
@@ -282,13 +282,13 @@ test("withdraw, acp to secp, all", async (t) => {
   t.deepEqual(
     txSkeleton
       .get("outputs")
-      .map((o) => o.cell_output.lock.args)
+      .map((o) => o.cellOutput.lock.args)
       .toArray(),
     [alice.blake160]
   );
 
   const aliceReceiveCapacity: BI = BI.from(
-    txSkeleton.get("outputs").get(0)!.cell_output.capacity
+    txSkeleton.get("outputs").get(0)!.cellOutput.capacity
   );
 
   t.is(aliceReceiveCapacity.toString(), capacity.toString());
@@ -318,7 +318,7 @@ test("withdraw, acp to secp, greater than capacity - minimal", async (t) => {
 
   const bobCell = bobAcpCells[0]!;
 
-  const capacity = BI.from(bobCell.cell_output.capacity)
+  const capacity = BI.from(bobCell.cellOutput.capacity)
     .sub(minimalCellCapacityCompatible(bobCell))
     .add(1);
 
@@ -360,19 +360,19 @@ test("setupInputCell", async (t) => {
   const input: Cell = txSkeleton.get("inputs").get(0)!;
   const output: Cell = txSkeleton.get("outputs").get(0)!;
 
-  t.is(input.cell_output.capacity, output.cell_output.capacity);
+  t.is(input.cellOutput.capacity, output.cellOutput.capacity);
   t.is(input.data, output.data);
   t.true(
-    new values.ScriptValue(input.cell_output.lock, { validate: false }).equals(
-      new values.ScriptValue(output.cell_output.lock, { validate: false })
+    new values.ScriptValue(input.cellOutput.lock, { validate: false }).equals(
+      new values.ScriptValue(output.cellOutput.lock, { validate: false })
     )
   );
   t.true(
-    (!input.cell_output.type && !output.cell_output.type) ||
-      new values.ScriptValue(input.cell_output.type!, {
+    (!input.cellOutput.type && !output.cellOutput.type) ||
+      new values.ScriptValue(input.cellOutput.type!, {
         validate: false,
       }).equals(
-        new values.ScriptValue(output.cell_output.type!, { validate: false })
+        new values.ScriptValue(output.cellOutput.type!, { validate: false })
       )
   );
 });

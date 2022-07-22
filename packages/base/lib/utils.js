@@ -141,8 +141,8 @@ function generateTypeIdScript(input, outputIndex = "0x0") {
 
   const args = generateTypeIdArgs(input, outputIndex);
   return {
-    code_hash: TYPE_ID_CODE_HASH,
-    hash_type: "type",
+    codeHash: TYPE_ID_CODE_HASH,
+    hashType: "type",
     args,
   };
 }

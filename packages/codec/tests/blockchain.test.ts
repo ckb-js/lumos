@@ -75,9 +75,9 @@ test("a real world Omni Lock witness should work as expected", (t) => {
 
 test("Script codec", (t) => {
   const script = {
-    code_hash:
+    codeHash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type" as _HashType,
+    hashType: "type" as _HashType,
     args: "0x0000",
   };
   t.deepEqual(

@@ -120,12 +120,12 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
           const unresolvedOutPoint: OutPoint =
             unresolvedTransaction.transaction.inputs[
               Number(indexerTransaction.io_index)
-            ].previous_output;
+            ].previousOutput;
           requestPayload.push({
             id: resolvedTransactionRequestId++,
             jsonrpc: "2.0",
             method: "get_transaction",
-            params: [unresolvedOutPoint.tx_hash],
+            params: [unresolvedOutPoint.txHash],
           });
         }
       }
@@ -160,9 +160,9 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       const unresolvedOutPoint =
         unresolvedTransaction.transaction.inputs[
           Number(indexerTransaction.io_index)
-        ].previous_output;
+        ].previousOutput;
       const resolvedTransaction = resolvedTransactionList.find((tx) => {
-        return tx.result.transaction.hash === unresolvedOutPoint.tx_hash;
+        return tx.result.transaction.hash === unresolvedOutPoint.txHash;
       });
       if (!resolvedTransaction) {
         throw new Error(`Impossible: can NOT find resolved transaction!`);
@@ -193,7 +193,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     );
     const objects = filteredTransactionList.map((tx) => ({
       transaction: tx.transaction,
-      tx_status: tx.tx_status,
+      txStatus: tx.txStatus,
     }));
     return objects;
   }
@@ -276,7 +276,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       const result: IndexerTransaction[] = [];
       transactionList1.forEach((tx1) => {
         const tx2 = transactionList2.find(
-          (item) => item.tx_hash === tx1.tx_hash
+          (item) => item.txHash === tx1.txHash
         );
         if (tx2) {
           // put the output io_type to intersection result, cause output have cells
@@ -306,7 +306,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
           id: index,
           jsonrpc: "2.0",
           method: "get_transaction",
-          params: [hashItem.tx_hash],
+          params: [hashItem.txHash],
         };
       }
     );
@@ -318,7 +318,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
             if (!this.filterOptions.skipMissing && !item.result) {
               throw new Error(
                 `Transaction ${
-                  indexerTransactionList.objects[item.id].tx_hash
+                  indexerTransactionList.objects[item.id].txHash
                 } is missing!`
               );
             }

@@ -94,7 +94,7 @@ export async function setupInputCell(
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
 
-  const inputLock: Script = inputCell.cell_output.lock;
+  const inputLock: Script = inputCell.cellOutput.lock;
   if (!isAcpScript(inputLock, config)) {
     throw new Error("Not anyone-can-pay input!");
   }
@@ -115,10 +115,10 @@ export async function setupInputCell(
   });
 
   const outputCell: Cell = {
-    cell_output: {
-      capacity: inputCell.cell_output.capacity,
-      lock: inputCell.cell_output.lock,
-      type: inputCell.cell_output.type,
+    cellOutput: {
+      capacity: inputCell.cellOutput.capacity,
+      lock: inputCell.cellOutput.lock,
+      type: inputCell.cellOutput.type,
     },
     data: inputCell.data,
   };
@@ -140,19 +140,19 @@ export async function setupInputCell(
   }
 
   const scriptOutPoint: OutPoint = {
-    tx_hash: template.TX_HASH,
+    txHash: template.TX_HASH,
     index: template.INDEX,
   };
 
   // add cell_dep
   txSkeleton = addCellDep(txSkeleton, {
-    out_point: scriptOutPoint,
-    dep_type: template.DEP_TYPE,
+    outPoint: scriptOutPoint,
+    depType: template.DEP_TYPE,
   });
 
   // add witness
   const firstIndex = txSkeleton.get("inputs").findIndex((input) => {
-    return new ScriptValue(input.cell_output.lock, { validate: false }).equals(
+    return new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
       new ScriptValue(inputLock, { validate: false })
     );
   });
@@ -175,13 +175,13 @@ export async function setupInputCell(
           "Lock field in first witness is set aside for signature!"
         );
       }
-      const inputType = witnessArgs.input_type;
+      const inputType = witnessArgs.inputType;
       if (!!inputType) {
-        newWitnessArgs.input_type = inputType;
+        newWitnessArgs.inputType = inputType;
       }
-      const outputType = witnessArgs.output_type;
+      const outputType = witnessArgs.outputType;
       if (!!outputType) {
-        newWitnessArgs.output_type = outputType;
+        newWitnessArgs.outputType = outputType;
       }
     }
     witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
@@ -232,9 +232,9 @@ export async function setupOutputCell(
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
 
-  const toScript: Script = outputCell.cell_output.lock;
+  const toScript: Script = outputCell.cellOutput.lock;
 
-  const capacity: BI = BI.from(outputCell.cell_output.capacity);
+  const capacity: BI = BI.from(outputCell.cellOutput.capacity);
 
   checkLimit(toScript.args, capacity.toString());
 
@@ -254,7 +254,7 @@ export async function setupOutputCell(
 
   let outputCapacity: BI = capacity;
   if (toAddressInput) {
-    outputCapacity = capacity.add(toAddressInput.cell_output.capacity);
+    outputCapacity = capacity.add(toAddressInput.cellOutput.capacity);
 
     txSkeleton = txSkeleton.update("inputs", (inputs) => {
       return inputs.push(toAddressInput);
@@ -264,7 +264,7 @@ export async function setupOutputCell(
     });
   }
 
-  outputCell.cell_output.capacity = "0x" + outputCapacity.toString(16);
+  outputCell.cellOutput.capacity = "0x" + outputCapacity.toString(16);
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push(outputCell);
   });
@@ -275,14 +275,14 @@ export async function setupOutputCell(
       throw new Error(`ANYONE_CAN_PAY script not defined in config!`);
     }
     const scriptOutPoint: OutPoint = {
-      tx_hash: template.TX_HASH,
+      txHash: template.TX_HASH,
       index: template.INDEX,
     };
 
     // add cell_dep
     txSkeleton = addCellDep(txSkeleton, {
-      out_point: scriptOutPoint,
-      dep_type: template.DEP_TYPE,
+      outPoint: scriptOutPoint,
+      depType: template.DEP_TYPE,
     });
   }
 
@@ -329,11 +329,11 @@ export async function injectCapacity(
   for (; i < txSkeleton.get("outputs").size && _capacity.gt(0); i++) {
     const output = txSkeleton.get("outputs").get(i)!;
     if (
-      new ScriptValue(output.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(output.cellOutput.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
     ) {
-      const cellCapacity: BI = BI.from(output.cell_output.capacity);
+      const cellCapacity: BI = BI.from(output.cellOutput.capacity);
       const availableCapacity: BI = cellCapacity.sub(
         minimalCellCapacityCompatible(output)
       );
@@ -342,29 +342,29 @@ export async function injectCapacity(
         ? availableCapacity
         : _capacity;
       _capacity = _capacity.sub(deductCapacity);
-      output.cell_output.capacity =
+      output.cellOutput.capacity =
         "0x" + cellCapacity.sub(deductCapacity).toString(16);
     }
   }
   // Remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.filter(
-      (output) => !BI.from(output.cell_output.capacity).eq(0)
+      (output) => !BI.from(output.cellOutput.capacity).eq(0)
     );
   });
 
   const getInputKey = (input: Cell) =>
-    `${input.out_point!.tx_hash}_${input.out_point!.index}`;
+    `${input.outPoint!.txHash}_${input.outPoint!.index}`;
   if (_capacity.gt(0)) {
     const changeCell: Cell = {
-      cell_output: {
+      cellOutput: {
         capacity: "0x0",
         lock: fromScript,
         type: undefined,
       },
       data: "0x",
-      out_point: undefined,
-      block_hash: undefined,
+      outPoint: undefined,
+      blockHash: undefined,
     };
     let changeCapacity = BI.from(0);
     const minimalChangeCapacity: BI = BI.from(
@@ -403,7 +403,7 @@ export async function injectCapacity(
         });
       }
 
-      const inputCapacity = BI.from(inputCell.cell_output.capacity);
+      const inputCapacity = BI.from(inputCell.cellOutput.capacity);
       let deductCapacity = inputCapacity;
       if (deductCapacity.gt(_capacity)) {
         deductCapacity = _capacity;
@@ -414,7 +414,7 @@ export async function injectCapacity(
         break;
       }
 
-      changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+      changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.push(changeCell);
       });
@@ -424,7 +424,7 @@ export async function injectCapacity(
       throw new Error(`Not enough capacity in from address!`);
     }
 
-    changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+    changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push(changeCell);
     });
@@ -460,21 +460,21 @@ export function prepareSigningEntries(
   for (let i = 0; i < inputs.size; i++) {
     const input = inputs.get(i)!;
     if (
-      template.CODE_HASH === input.cell_output.lock.code_hash &&
-      template.HASH_TYPE === input.cell_output.lock.hash_type &&
-      !processedArgs.has(input.cell_output.lock.args)
+      template.CODE_HASH === input.cellOutput.lock.codeHash &&
+      template.HASH_TYPE === input.cellOutput.lock.hashType &&
+      !processedArgs.has(input.cellOutput.lock.args)
     ) {
-      processedArgs = processedArgs.add(input.cell_output.lock.args);
+      processedArgs = processedArgs.add(input.cellOutput.lock.args);
 
       // skip if input sum capcity <= output sum capacity
       // and input sum amount <= output sum amount
       const outputs: List<Cell> = txSkeleton.get("outputs").filter((output) => {
-        return new ScriptValue(output.cell_output.lock, {
+        return new ScriptValue(output.cellOutput.lock, {
           validate: false,
-        }).equals(new ScriptValue(input.cell_output.lock, { validate: false }));
+        }).equals(new ScriptValue(input.cellOutput.lock, { validate: false }));
       });
       const sumOfOutputCapacity: BI = outputs
-        .map((output) => BI.from(output.cell_output.capacity))
+        .map((output) => BI.from(output.cellOutput.capacity))
         .reduce((result, c) => result.add(c), BI.from(0));
 
       const sumOfOutputAmount: BI = outputs
@@ -483,13 +483,13 @@ export function prepareSigningEntries(
         .reduce((result, c) => result.add(c), BI.from(0));
 
       const fInputs: List<Cell> = inputs.filter((i) => {
-        return new ScriptValue(i.cell_output.lock, { validate: false }).equals(
-          new ScriptValue(input.cell_output.lock, { validate: false })
+        return new ScriptValue(i.cellOutput.lock, { validate: false }).equals(
+          new ScriptValue(input.cellOutput.lock, { validate: false })
         );
       });
 
       const sumOfInputCapacity: BI = fInputs
-        .map((i) => BI.from(i.cell_output.capacity))
+        .map((i) => BI.from(i.cellOutput.capacity))
         .reduce((result, c) => result.add(c), BI.from(0));
 
       const sumOfInputAmount: BI = fInputs
@@ -504,7 +504,7 @@ export function prepareSigningEntries(
         continue;
       }
 
-      const lockValue = new values.ScriptValue(input.cell_output.lock, {
+      const lockValue = new values.ScriptValue(input.cellOutput.lock, {
         validate: false,
       });
       const hasher = new CKBHasher();
@@ -519,7 +519,7 @@ export function prepareSigningEntries(
         const otherInput = inputs.get(j)!;
         if (
           lockValue.equals(
-            new values.ScriptValue(otherInput.cell_output.lock, {
+            new values.ScriptValue(otherInput.cellOutput.lock, {
               validate: false,
             })
           )
@@ -552,13 +552,13 @@ export async function withdraw(
   config = config || getConfig();
 
   // from input must be a anyone-can-pay script
-  if (!isAcpScript(fromInput.cell_output.lock, config)) {
+  if (!isAcpScript(fromInput.cellOutput.lock, config)) {
     throw new Error(`fromInput is not a ANYONE_CAN_PAY cell!`);
   }
 
   // check capacity
   const _capacity = BI.from(capacity);
-  const fromInputCapacity: BI = BI.from(fromInput.cell_output.capacity);
+  const fromInputCapacity: BI = BI.from(fromInput.cellOutput.capacity);
   const inputMinimalCellCapacity: BI = BI.from(
     minimalCellCapacityCompatible(fromInput)
   );
@@ -579,14 +579,14 @@ export async function withdraw(
   const toScript = parseAddress(toAddress, { config });
 
   const targetOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x" + capacity.toString(16),
       lock: toScript,
       type: undefined,
     },
     data: "0x",
-    out_point: undefined,
-    block_hash: undefined,
+    outPoint: undefined,
+    blockHash: undefined,
   };
 
   if (isAcpScript(toScript, config)) {
@@ -609,9 +609,9 @@ export async function withdraw(
     }
 
     const outputCapacity: BI = _capacity.add(
-      toAddressInput.cell_output.capacity
+      toAddressInput.cellOutput.capacity
     );
-    targetOutput.cell_output.capacity = "0x" + outputCapacity.toString(16);
+    targetOutput.cellOutput.capacity = "0x" + outputCapacity.toString(16);
 
     txSkeleton = txSkeleton.update("inputs", (inputs) => {
       return inputs.push(toAddressInput);
@@ -628,7 +628,7 @@ export async function withdraw(
   txSkeleton = await setupInputCell(
     txSkeleton,
     fromInput,
-    generateAddress(fromInput.cell_output.lock, { config }),
+    generateAddress(fromInput.cellOutput.lock, { config }),
     { config }
   );
   // remove output and fixedEntry added by `setupInputCell`
@@ -652,10 +652,10 @@ export async function withdraw(
   if (!_capacity.eq(fromInputCapacity)) {
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
-        cell_output: {
+        cellOutput: {
           capacity: "0x" + fromInputCapacity.sub(capacity).toString(16),
-          lock: fromInput.cell_output.lock,
-          type: fromInput.cell_output.type,
+          lock: fromInput.cellOutput.lock,
+          type: fromInput.cellOutput.type,
         },
         data: fromInput.data,
       });

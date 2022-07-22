@@ -25,17 +25,17 @@ const { Indexer } = require("@ckb-lumos/ckb-indexer")
 const indexer = new Indexer("http://127.0.0.1:8114");
 
 const tipHeader = {
-  compact_target: '0x20010000',
+  compactTarget: '0x20010000',
   dao: '0x49bfb20771031d556c8480d47f2a290059f0ac7e383b6509006f4a772ed50200',
   epoch: '0xa0006002b18',
   hash: '0x432451e23c26f45eaceeedcc261764d6485ea5c9a204ac55ad755bb8dec9a079',
   nonce: '0x8199548f8a5ac7a0f0caef1620f37b79',
   number: '0x1aef6',
-  parent_hash: '0x63594a64108f19f6aed53d0dca9ab4075aac4379cb80b2097b0deac8fc16fd3b',
-  proposals_hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  parentHash: '0x63594a64108f19f6aed53d0dca9ab4075aac4379cb80b2097b0deac8fc16fd3b',
+  proposalsHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
   timestamp: '0x172f6b9a4cf',
-  transactions_root: '0x282dbadcd49f3e229d997875f37f4e4f19cb4f04fcf762e9639145aaa667b6f8',
-  uncles_hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  transactionsRoot: '0x282dbadcd49f3e229d997875f37f4e4f19cb4f04fcf762e9639145aaa667b6f8',
+  unclesHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
   version: '0x0'
 }
 
@@ -197,8 +197,8 @@ txSkeleton = await payFee(txSkeleton, address, txFee);
 
 // To upgrade a contract with Type ID, add its Type ID to deployOptions.
 const typeId = {
-  code_hash: '0x00000000000000000000000000000000000000000000000000545950455f4944',
-  hash_type: 'type',
+  codeHash: '0x00000000000000000000000000000000000000000000000000545950455f4944',
+  hashType: 'type',
   args: '0x7abcd9f949a16b40ff5b50b56e62d2a6a007e544d8491bb56476693b6c45fd27'
 }
 const upgradeOptions = {

@@ -148,7 +148,7 @@ test("validateSince, absolute blockNumber", (t) => {
     validateSince(
       since,
       {
-        block_number: "0x" + BI.from(12345).toString(16),
+        blockNumber: "0x" + BI.from(12345).toString(16),
       },
       cellSinceValidationInfo
     )
@@ -157,7 +157,7 @@ test("validateSince, absolute blockNumber", (t) => {
     validateSince(
       since,
       {
-        block_number: "0x" + BI.from(12345 - 1).toString(16),
+        blockNumber: "0x" + BI.from(12345 - 1).toString(16),
       },
       cellSinceValidationInfo
     )
@@ -172,14 +172,14 @@ test("validateSince, relative blockNumber", (t) => {
   });
 
   const cellSinceValidationInfo = {
-    block_number: "0x" + BI.from(11).toString(16),
+    blockNumber: "0x" + BI.from(11).toString(16),
   };
 
   t.true(
     validateSince(
       since,
       {
-        block_number: "0x" + BI.from(11 + 12345).toString(16),
+        blockNumber: "0x" + BI.from(11 + 12345).toString(16),
       },
       cellSinceValidationInfo
     )
@@ -188,7 +188,7 @@ test("validateSince, relative blockNumber", (t) => {
     validateSince(
       since,
       {
-        block_number: "0x" + BI.from(11 + 12345 - 1).toString(16),
+        blockNumber: "0x" + BI.from(11 + 12345 - 1).toString(16),
       },
       cellSinceValidationInfo
     )

@@ -24,9 +24,9 @@ export function addCellDep(
 ): TransactionSkeletonType {
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
-      cellDep.dep_type === newCellDep.dep_type &&
-      new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
-        new values.OutPointValue(newCellDep.out_point, { validate: false })
+      cellDep.depType === newCellDep.depType &&
+      new values.OutPointValue(cellDep.outPoint, { validate: false }).equals(
+        new values.OutPointValue(newCellDep.outPoint, { validate: false })
       )
     );
   });
@@ -34,8 +34,8 @@ export function addCellDep(
   if (!cellDep) {
     txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
       return cellDeps.push({
-        out_point: newCellDep.out_point,
-        dep_type: newCellDep.dep_type,
+        outPoint: newCellDep.outPoint,
+        depType: newCellDep.depType,
       });
     });
   }
@@ -47,8 +47,8 @@ export function generateDaoScript(config: Config): Script {
   const template = config.SCRIPTS.DAO!;
 
   return {
-    code_hash: template.CODE_HASH,
-    hash_type: template.HASH_TYPE,
+    codeHash: template.CODE_HASH,
+    hashType: template.HASH_TYPE,
     args: "0x",
   };
 }
@@ -59,8 +59,8 @@ export function isSecp256k1Blake160Script(
 ): boolean {
   const template = config.SCRIPTS.SECP256K1_BLAKE160!;
   return (
-    script.code_hash === template.CODE_HASH &&
-    script.hash_type === template.HASH_TYPE
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
   );
 }
 
@@ -78,8 +78,8 @@ export function isSecp256k1Blake160MultisigScript(
 ): boolean {
   const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
   return (
-    script.code_hash === template.CODE_HASH &&
-    script.hash_type === template.HASH_TYPE
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
   );
 }
 
@@ -99,8 +99,8 @@ export function isDaoScript(
 
   return (
     !!script &&
-    script.code_hash === template.CODE_HASH &&
-    script.hash_type === template.HASH_TYPE
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
   );
 }
 
@@ -116,8 +116,8 @@ export function isSudtScript(
 
   return (
     !!script &&
-    script.code_hash === template.CODE_HASH &&
-    script.hash_type === template.HASH_TYPE
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
   );
 }
 
@@ -130,8 +130,8 @@ export function isAcpScript(script: Script, config: Config): boolean {
 
   return (
     !!script &&
-    script.code_hash === template.CODE_HASH &&
-    script.hash_type === template.HASH_TYPE
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
   );
 }
 
@@ -182,12 +182,12 @@ export function prepareSigningEntries(
   for (let i = 0; i < inputs.size; i++) {
     const input = inputs.get(i)!;
     if (
-      template.CODE_HASH === input.cell_output.lock.code_hash &&
-      template.HASH_TYPE === input.cell_output.lock.hash_type &&
-      !processedArgs.has(input.cell_output.lock.args)
+      template.CODE_HASH === input.cellOutput.lock.codeHash &&
+      template.HASH_TYPE === input.cellOutput.lock.hashType &&
+      !processedArgs.has(input.cellOutput.lock.args)
     ) {
-      processedArgs = processedArgs.add(input.cell_output.lock.args);
-      const lockValue = new values.ScriptValue(input.cell_output.lock, {
+      processedArgs = processedArgs.add(input.cellOutput.lock.args);
+      const lockValue = new values.ScriptValue(input.cellOutput.lock, {
         validate: false,
       });
       const hasher = new CKBHasher();
@@ -202,7 +202,7 @@ export function prepareSigningEntries(
         const otherInput = inputs.get(j)!;
         if (
           lockValue.equals(
-            new values.ScriptValue(otherInput.cell_output.lock, {
+            new values.ScriptValue(otherInput.cellOutput.lock, {
               validate: false,
             })
           )
@@ -237,8 +237,8 @@ export function ensureScript(
     );
   }
   if (
-    template.CODE_HASH !== script.code_hash ||
-    template.HASH_TYPE !== script.hash_type
+    template.CODE_HASH !== script.codeHash ||
+    template.HASH_TYPE !== script.hashType
   ) {
     throw new Error(`Provided script is not ${scriptType} script!`);
   }

@@ -48,11 +48,11 @@ test("issueToken", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
@@ -65,7 +65,7 @@ test("issueToken", async (t) => {
   );
 
   t.true(
-    isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
   );
 });
 
@@ -90,23 +90,23 @@ test("transfer secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
@@ -121,7 +121,7 @@ test("transfer secp", async (t) => {
   );
 
   t.true(
-    isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
   );
 });
 
@@ -162,23 +162,23 @@ test("transfer locktime pool multisig & secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
@@ -194,12 +194,12 @@ test("transfer locktime pool multisig & secp", async (t) => {
     readBigUInt128LECompatible(targetOutput!.data).toString(),
     amount.toString()
   );
-  t.true(isSudtScript(targetOutput.cell_output.type!, AGGRON4));
+  t.true(isSudtScript(targetOutput.cellOutput.type!, AGGRON4));
   t.is(changeOutput!.data, "0x");
-  t.is(changeOutput.cell_output.type, undefined);
+  t.is(changeOutput.cellOutput.type, undefined);
 
   t.true(
-    isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
   );
 });
 
@@ -246,23 +246,23 @@ test("transfer acp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
@@ -279,7 +279,7 @@ test("transfer acp", async (t) => {
   );
 
   t.true(
-    isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
   );
 
   const expectedMessage =
@@ -321,23 +321,23 @@ test("transfer acp => secp, destroyable", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
@@ -352,7 +352,7 @@ test("transfer acp => secp, destroyable", async (t) => {
   );
 
   t.true(
-    isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
   );
 
   const expectedMessage =
@@ -374,15 +374,15 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
   });
 
   const sudtTypeScript: Script = {
-    code_hash: AGGRON4.SCRIPTS.SUDT!.CODE_HASH,
-    hash_type: AGGRON4.SCRIPTS.SUDT!.HASH_TYPE,
+    codeHash: AGGRON4.SCRIPTS.SUDT!.CODE_HASH,
+    hashType: AGGRON4.SCRIPTS.SUDT!.HASH_TYPE,
     args: bob.secpLockHash,
   };
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push({
-      cell_output: {
-        capacity: firstBobSecpInput.cell_output.capacity,
+      cellOutput: {
+        capacity: firstBobSecpInput.cellOutput.capacity,
         lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
         type: sudtTypeScript,
       },
@@ -413,23 +413,23 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
@@ -456,7 +456,7 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
   );
 
   t.true(
-    isSudtScript(txSkeleton.get("outputs").get(1)!.cell_output.type, AGGRON4)
+    isSudtScript(txSkeleton.get("outputs").get(1)!.cellOutput.type, AGGRON4)
   );
 
   t.is(txSkeleton.get("inputs").size, 2);
@@ -464,7 +464,7 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
   t.is(txSkeleton.get("fixedEntries").size, 3);
 
   const lastOutput = txSkeleton.get("outputs").get(-1)!;
-  t.true(isSudtScript(lastOutput.cell_output.type, AGGRON4));
+  t.true(isSudtScript(lastOutput.cellOutput.type, AGGRON4));
 });
 
 test("transfer secp, split change cell", async (t) => {
@@ -489,23 +489,23 @@ test("transfer secp, split change cell", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
@@ -520,7 +520,7 @@ test("transfer secp, split change cell", async (t) => {
   );
 
   t.true(
-    isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
   );
 
   t.is(txSkeleton.get("inputs").size, 1);
@@ -528,7 +528,7 @@ test("transfer secp, split change cell", async (t) => {
   t.is(txSkeleton.get("fixedEntries").size, 2);
 
   const lastOutput = txSkeleton.get("outputs").get(-1)!;
-  t.is(lastOutput.cell_output.type, undefined);
+  t.is(lastOutput.cellOutput.type, undefined);
 });
 
 test("transfer secp, split change cell, not enough for two minimals", async (t) => {
@@ -553,23 +553,23 @@ test("transfer secp, split change cell, not enough for two minimals", async (t) 
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
@@ -584,7 +584,7 @@ test("transfer secp, split change cell, not enough for two minimals", async (t) 
   );
 
   t.true(
-    isSudtScript(txSkeleton.get("outputs").get(0)!.cell_output.type, AGGRON4)
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
   );
 
   t.is(txSkeleton.get("inputs").size, 1);
@@ -592,7 +592,7 @@ test("transfer secp, split change cell, not enough for two minimals", async (t) 
   t.is(txSkeleton.get("fixedEntries").size, 2);
 
   const lastOutput = txSkeleton.get("outputs").get(-1)!;
-  t.not(lastOutput.cell_output.type, undefined);
+  t.not(lastOutput.cellOutput.type, undefined);
 });
 
 test("transfer secp => secp, change to acp and has previous output, split change cell", async (t) => {
@@ -608,15 +608,15 @@ test("transfer secp => secp, change to acp and has previous output, split change
   });
 
   const sudtTypeScript: Script = {
-    code_hash: AGGRON4.SCRIPTS.SUDT!.CODE_HASH,
-    hash_type: AGGRON4.SCRIPTS.SUDT!.HASH_TYPE,
+    codeHash: AGGRON4.SCRIPTS.SUDT!.CODE_HASH,
+    hashType: AGGRON4.SCRIPTS.SUDT!.HASH_TYPE,
     args: bob.secpLockHash,
   };
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push({
-      cell_output: {
-        capacity: firstBobSecpInput.cell_output.capacity,
+      cellOutput: {
+        capacity: firstBobSecpInput.cellOutput.capacity,
         lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
         type: sudtTypeScript,
       },
@@ -640,23 +640,23 @@ test("transfer secp => secp, change to acp and has previous output, split change
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
-    .filter((i) => i.cell_output.type)
+    .filter((i) => i.cellOutput.type)
     .map((i) => readBigUInt128LECompatible(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
@@ -677,7 +677,7 @@ test("transfer secp => secp, change to acp and has previous output, split change
   );
 
   t.true(
-    isSudtScript(txSkeleton.get("outputs").get(1)!.cell_output.type, AGGRON4)
+    isSudtScript(txSkeleton.get("outputs").get(1)!.cellOutput.type, AGGRON4)
   );
 
   t.is(txSkeleton.get("inputs").size, 2);
@@ -685,5 +685,5 @@ test("transfer secp => secp, change to acp and has previous output, split change
   t.is(txSkeleton.get("fixedEntries").size, 1);
 
   const lastOutput = txSkeleton.get("outputs").get(-1)!;
-  t.is(lastOutput.cell_output.type, undefined);
+  t.is(lastOutput.cellOutput.type, undefined);
 });

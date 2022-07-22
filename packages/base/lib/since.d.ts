@@ -10,7 +10,7 @@ export interface EpochSinceValue {
 export type SinceType = "epochNumber" | "blockNumber" | "blockTimestamp";
 
 export interface SinceValidationInfo {
-  block_number: HexNumber;
+  blockNumber: HexNumber;
   epoch: HexNumber;
   median_timestamp: HexNumber;
 }

@@ -51,20 +51,20 @@ export function WitnessArgsOf<
   OutputTypeCodec extends AnyCodec
 >(payload: {
   lock: LockCodec;
-  input_type: InputTypeCodec;
-  output_type: OutputTypeCodec;
+  inputType: InputTypeCodec;
+  outputType: OutputTypeCodec;
 }): BytesCodec<{
   lock?: UnpackResult<LockCodec>;
-  input_type?: UnpackResult<InputTypeCodec>;
-  output_type?: UnpackResult<OutputTypeCodec>;
+  inputType?: UnpackResult<InputTypeCodec>;
+  outputType?: UnpackResult<OutputTypeCodec>;
 }> {
   return table(
     {
       lock: option(byteVecOf(payload.lock)),
-      input_type: option(byteVecOf(payload.input_type)),
-      output_type: option(byteVecOf(payload.output_type)),
+      inputType: option(byteVecOf(payload.inputType)),
+      outputType: option(byteVecOf(payload.outputType)),
     },
-    ["lock", "input_type", "output_type"]
+    ["lock", "inputType", "outputType"]
   );
 }
 
@@ -80,8 +80,8 @@ const HexifyCodec = createBytesCodec<string>({ pack: bytify, unpack: hexify });
  */
 export const WitnessArgs = WitnessArgsOf({
   lock: HexifyCodec,
-  input_type: HexifyCodec,
-  output_type: HexifyCodec,
+  inputType: HexifyCodec,
+  outputType: HexifyCodec,
 });
 
 /**
@@ -122,29 +122,29 @@ export const DepType = createFixedBytesCodec<_DepType>({
 
 export const Script = table(
   {
-    code_hash: Byte32,
-    hash_type: HashType,
+    codeHash: Byte32,
+    hashType: HashType,
     args: Bytes,
   },
-  ["code_hash", "hash_type", "args"]
+  ["codeHash", "hashType", "args"]
 );
 
 export const ScriptOpt = option(Script);
 
 export const OutPoint = struct(
   {
-    tx_hash: Byte32,
+    txHash: Byte32,
     index: Uint32LE,
   },
-  ["tx_hash", "index"]
+  ["txHash", "index"]
 );
 
 export const CellInput = struct(
   {
     since: Uint64LE,
-    previous_output: OutPoint,
+    previousOutput: OutPoint,
   },
-  ["since", "previous_output"]
+  ["since", "previousOutput"]
 );
 
 export const CellInputVec = vector(CellInput);
@@ -162,10 +162,10 @@ export const CellOutputVec = vector(CellOutput);
 
 export const CellDep = struct(
   {
-    out_point: OutPoint,
-    dep_type: DepType,
+    outPoint: OutPoint,
+    depType: DepType,
   },
-  ["out_point", "dep_type"]
+  ["outPoint", "depType"]
 );
 
 export const DeCellDepVec = vector(CellDep);
@@ -173,13 +173,13 @@ export const DeCellDepVec = vector(CellDep);
 export const RawTransaction = table(
   {
     version: Uint32LE,
-    cell_deps: DeCellDepVec,
-    header_deps: Byte32Vec,
+    cellDeps: DeCellDepVec,
+    headerDeps: Byte32Vec,
     inputs: CellInputVec,
     outputs: CellOutputVec,
-    outputs_data: BytesVec,
+    outputsData: BytesVec,
   },
-  ["version", "cell_deps", "header_deps", "inputs", "outputs", "outputs_data"]
+  ["version", "cellDeps", "headerDeps", "inputs", "outputs", "outputsData"]
 );
 
 export const Transaction = table(
@@ -195,25 +195,25 @@ export const TransactionVec = vector(Transaction);
 export const RawHeader = struct(
   {
     version: Uint32LE,
-    compact_target: Uint32LE,
+    compactTarget: Uint32LE,
     timestamp: Uint64LE,
     number: Uint64LE,
     epoch: Uint64LE,
-    parent_hash: Byte32,
-    transactions_root: Byte32,
-    proposals_hash: Byte32,
+    parentHash: Byte32,
+    transactionsRoot: Byte32,
+    proposalsHash: Byte32,
     extra_hash: Byte32,
     dao: Byte32,
   },
   [
     "version",
-    "compact_target",
+    "compactTarget",
     "timestamp",
     "number",
     "epoch",
-    "parent_hash",
-    "transactions_root",
-    "proposals_hash",
+    "parentHash",
+    "transactionsRoot",
+    "proposalsHash",
     "extra_hash",
     "dao",
   ]
@@ -229,15 +229,15 @@ export const BaseHeader = struct(
 
 export interface _HeaderType {
   version: number;
-  compact_target: number;
+  compactTarget: number;
   timestamp: BI;
   number: BI;
   epoch: BI;
   dao: string;
-  parent_hash: string;
-  proposals_hash: string;
-  transactions_root: string;
-  uncles_hash: string;
+  parentHash: string;
+  proposalsHash: string;
+  transactionsRoot: string;
+  unclesHash: string;
   nonce: BI;
 }
 
@@ -249,12 +249,12 @@ export const Header = createFixedBytesCodec<_HeaderType>({
         timestamp: header.timestamp,
         number: header.number,
         epoch: header.epoch,
-        compact_target: header.compact_target,
+        compactTarget: header.compactTarget,
         dao: header.dao,
-        parent_hash: header.parent_hash,
-        proposals_hash: header.proposals_hash,
-        transactions_root: header.transactions_root,
-        extra_hash: header.uncles_hash,
+        parentHash: header.parentHash,
+        proposalsHash: header.proposalsHash,
+        transactionsRoot: header.transactionsRoot,
+        extra_hash: header.unclesHash,
         version: header.version,
       },
       nonce: header.nonce,
@@ -267,12 +267,12 @@ export const Header = createFixedBytesCodec<_HeaderType>({
       timestamp: header.raw.timestamp,
       number: header.raw.number,
       epoch: header.raw.epoch,
-      compact_target: header.raw.compact_target,
+      compactTarget: header.raw.compactTarget,
       dao: header.raw.dao,
-      parent_hash: header.raw.parent_hash,
-      proposals_hash: header.raw.proposals_hash,
-      transactions_root: header.raw.transactions_root,
-      uncles_hash: header.raw.extra_hash,
+      parentHash: header.raw.parentHash,
+      proposalsHash: header.raw.proposalsHash,
+      transactionsRoot: header.raw.transactionsRoot,
+      unclesHash: header.raw.extra_hash,
       version: header.raw.version,
       nonce: header.nonce,
     };

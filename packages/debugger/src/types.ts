@@ -29,13 +29,13 @@ export interface DataLoader {
 export interface DebuggerData {
   mock_info: {
     inputs: { input: Input; output: Output; data: HexString; header?: Hash }[];
-    cell_deps: {
+    cellDeps: {
       cell_dep: CellDep;
       output: Output;
       data: HexString;
       header?: Hash;
     }[];
-    header_deps: Header[];
+    headerDeps: Header[];
   };
   tx: Transaction;
 }

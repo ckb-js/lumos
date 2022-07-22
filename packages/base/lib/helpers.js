@@ -38,7 +38,7 @@ function isCellMatchQueryOptions(
 
   if (wrappedLock && wrappedLock.script && wrappedLock.argsLen === -1) {
     if (
-      !new ScriptValue(cell.cell_output.lock, {
+      !new ScriptValue(cell.cellOutput.lock, {
         validate: false,
       }).equals(new ScriptValue(wrappedLock.script, { validate: false }))
     ) {
@@ -47,10 +47,10 @@ function isCellMatchQueryOptions(
   }
 
   if (wrappedLock && wrappedLock.script && wrappedLock.argsLen === "any") {
-    const cellLock = cell.cell_output.lock;
+    const cellLock = cell.cellOutput.lock;
     if (
-      cellLock.code_hash !== wrappedLock.script.code_hash ||
-      cellLock.hash_type !== wrappedLock.script.hash_type ||
+      cellLock.codeHash !== wrappedLock.script.codeHash ||
+      cellLock.hashType !== wrappedLock.script.hashType ||
       !cellLock.args.startsWith(wrappedLock.script.args)
     ) {
       return false;
@@ -67,14 +67,14 @@ function isCellMatchQueryOptions(
     const lockArgsLength = wrappedLock.script.args.length;
     const minLength = Math.min(length, lockArgsLength);
 
-    const cellLock = cell.cell_output.lock;
+    const cellLock = cell.cellOutput.lock;
     if (cellLock.args.length !== length) {
       return false;
     }
     if (
       !(
-        cellLock.code_hash === wrappedLock.script.code_hash &&
-        cellLock.hash_type === wrappedLock.script.hash_type &&
+        cellLock.codeHash === wrappedLock.script.codeHash &&
+        cellLock.hashType === wrappedLock.script.hashType &&
         cellLock.args.slice(0, minLength) ===
           wrappedLock.script.args.slice(0, minLength)
       )
@@ -83,13 +83,13 @@ function isCellMatchQueryOptions(
     }
   }
 
-  if (wrappedType && wrappedType === "empty" && cell.cell_output.type) {
+  if (wrappedType && wrappedType === "empty" && cell.cellOutput.type) {
     return false;
   }
   if (wrappedType && typeof wrappedType === "object") {
     if (
-      !cell.cell_output.type ||
-      !new ScriptValue(cell.cell_output.type, {
+      !cell.cellOutput.type ||
+      !new ScriptValue(cell.cellOutput.type, {
         validate: false,
       }).equals(new ScriptValue(wrappedType.script, { validate: false }))
     ) {
@@ -101,15 +101,15 @@ function isCellMatchQueryOptions(
   }
   if (
     fromBlock &&
-    cell.block_number &&
-    BI.from(cell.block_number).lt(BI.from(fromBlock))
+    cell.blockNumber &&
+    BI.from(cell.blockNumber).lt(BI.from(fromBlock))
   ) {
     return false;
   }
   if (
     toBlock &&
-    cell.block_number &&
-    BI.from(cell.block_number).gt(BI.from(toBlock))
+    cell.blockNumber &&
+    BI.from(cell.blockNumber).gt(BI.from(toBlock))
   ) {
     return false;
   }

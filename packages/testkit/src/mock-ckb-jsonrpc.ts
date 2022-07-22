@@ -78,7 +78,7 @@ export function createCKBMockRPC(options: Options): Express {
     }
     return {
       transaction: result,
-      tx_status: { status: "padding", block_hash: blockHash },
+      txStatus: { status: "padding", blockHash: blockHash },
     };
   });
 
@@ -88,8 +88,8 @@ export function createCKBMockRPC(options: Options): Express {
       chain: "ckb_testnet",
       difficulty: "0x1b6f506b",
       epoch: "0x708069a000cc5",
-      is_initial_block_download: false,
-      median_time: "0x17d3723d27d",
+      isInitialBlockDownload: false,
+      medianTime: "0x17d3723d27d",
     };
   });
 

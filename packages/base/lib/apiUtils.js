@@ -2,20 +2,20 @@ const { BI } = require("@ckb-lumos/bi");
 
 function transformCellInputCodecType(data) {
   return {
-    previous_output: transformOutPointCodecType(data.previous_output),
+    previousOutput: transformOutPointCodecType(data.previousOutput),
     since: BI.from(data.since),
   };
 }
 function transformOutPointCodecType(data) {
   return {
-    tx_hash: data.tx_hash,
+    txHash: data.txHash,
     index: BI.from(data.index).toNumber(),
   };
 }
 function transformCellDepCodecType(data) {
   return {
-    out_point: transformOutPointCodecType(data.out_point),
-    dep_type: data.dep_type,
+    outPoint: transformOutPointCodecType(data.outPoint),
+    depType: data.depType,
   };
 }
 function transformCellOutputCodecType(data) {
@@ -28,11 +28,11 @@ function transformCellOutputCodecType(data) {
 function transformRawTransactionCodecType(data) {
   return {
     version: BI.from(data.version).toNumber(),
-    cell_deps: data.cell_deps.map(transformCellDepCodecType),
-    header_deps: data.header_deps,
+    cellDeps: data.cellDeps.map(transformCellDepCodecType),
+    headerDeps: data.headerDeps,
     inputs: data.inputs.map(transformCellInputCodecType),
     outputs: data.outputs.map(transformCellOutputCodecType),
-    outputs_data: data.outputs_data,
+    outputsData: data.outputsData,
   };
 }
 function transformTransactionCodecType(data) {

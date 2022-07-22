@@ -43,18 +43,18 @@ export function minimalCellCapacityCompatible(
 ): BI {
   if (validate) {
     blockchain.CellOutput.pack(
-      apiUtils.transformCellOutputCodecType(fullCell.cell_output)
+      apiUtils.transformCellOutputCodecType(fullCell.cellOutput)
     );
   }
   // Capacity field itself
   let bytes = 8;
-  bytes += bytify(fullCell.cell_output.lock.code_hash).length;
-  bytes += bytify(fullCell.cell_output.lock.args).length;
-  // hash_type field
+  bytes += bytify(fullCell.cellOutput.lock.codeHash).length;
+  bytes += bytify(fullCell.cellOutput.lock.args).length;
+  // hashType field
   bytes += 1;
-  if (fullCell.cell_output.type) {
-    bytes += bytify(fullCell.cell_output.type.code_hash).length;
-    bytes += bytify(fullCell.cell_output.type.args).length;
+  if (fullCell.cellOutput.type) {
+    bytes += bytify(fullCell.cellOutput.type.codeHash).length;
+    bytes += bytify(fullCell.cellOutput.type.args).length;
     bytes += 1;
   }
   if (fullCell.data) {
@@ -70,14 +70,14 @@ export function locateCellDep(
   config = config || getConfig();
   const scriptTemplate = Object.values(config.SCRIPTS).find(
     (s) =>
-      s && s.CODE_HASH === script.code_hash && s.HASH_TYPE === script.hash_type
+      s && s.CODE_HASH === script.codeHash && s.HASH_TYPE === script.hashType
   );
 
   if (scriptTemplate) {
     return {
-      dep_type: scriptTemplate.DEP_TYPE,
-      out_point: {
-        tx_hash: scriptTemplate.TX_HASH,
+      depType: scriptTemplate.DEP_TYPE,
+      outPoint: {
+        txHash: scriptTemplate.TX_HASH,
         index: scriptTemplate.INDEX,
       },
     };
@@ -107,18 +107,18 @@ export function generateAddress(
 
   const scriptTemplate = Object.values(config.SCRIPTS).find(
     (s) =>
-      s && s.CODE_HASH === script.code_hash && s.HASH_TYPE === script.hash_type
+      s && s.CODE_HASH === script.codeHash && s.HASH_TYPE === script.hashType
   );
   const data = [];
   if (scriptTemplate && scriptTemplate.SHORT_ID !== undefined) {
     data.push(1, scriptTemplate.SHORT_ID);
     data.push(...hexToByteArray(script.args));
   } else {
-    if (script.hash_type === "type") data.push(0x04);
-    else if (script.hash_type === "data") data.push(0x02);
-    else throw new Error(`Invalid hash_type ${script.hash_type}`);
+    if (script.hashType === "type") data.push(0x04);
+    else if (script.hashType === "data") data.push(0x02);
+    else throw new Error(`Invalid hashType ${script.hashType}`);
 
-    data.push(...hexToByteArray(script.code_hash));
+    data.push(...hexToByteArray(script.codeHash));
     data.push(...hexToByteArray(script.args));
   }
   const words = bech32.toWords(data);
@@ -143,8 +143,8 @@ function generatePredefinedAddress(
     );
   }
   const script: Script = {
-    code_hash: template.CODE_HASH,
-    hash_type: template.HASH_TYPE,
+    codeHash: template.CODE_HASH,
+    hashType: template.HASH_TYPE,
     args,
   };
 
@@ -190,18 +190,18 @@ export function encodeToAddress(
 
   const data: number[] = [];
 
-  const hash_type = (() => {
-    if (script.hash_type === "data") return 0;
-    if (script.hash_type === "type") return 1;
-    if (script.hash_type === "data1") return 2;
+  const hashType = (() => {
+    if (script.hashType === "data") return 0;
+    if (script.hashType === "type") return 1;
+    if (script.hashType === "data1") return 2;
 
     /* c8 ignore next */
-    throw new Error(`Invalid hash_type ${script.hash_type}`);
+    throw new Error(`Invalid hashType ${script.hashType}`);
   })();
 
   data.push(0x00);
-  data.push(...hexToByteArray(script.code_hash));
-  data.push(hash_type);
+  data.push(...hexToByteArray(script.codeHash));
+  data.push(hashType);
   data.push(...hexToByteArray(script.args));
 
   return bech32m.encode(config.PREFIX, bech32m.toWords(data), BECH32_LIMIT);
@@ -240,27 +240,27 @@ export function createTransactionFromSkeleton(
 ): Transaction {
   const tx: Transaction = {
     version: "0x0",
-    cell_deps: txSkeleton.get("cellDeps").toArray(),
-    header_deps: txSkeleton.get("headerDeps").toArray(),
+    cellDeps: txSkeleton.get("cellDeps").toArray(),
+    headerDeps: txSkeleton.get("headerDeps").toArray(),
     inputs: txSkeleton
       .get("inputs")
       .map((input, i) => {
-        if (!input.out_point) {
+        if (!input.outPoint) {
           throw new Error(
             `cannot find OutPoint in Inputs[${i}] when createTransactionFromSkeleton`
           );
         }
         return {
           since: txSkeleton.get("inputSinces").get(i, "0x0"),
-          previous_output: input.out_point,
+          previousOutput: input.outPoint,
         };
       })
       .toArray(),
     outputs: txSkeleton
       .get("outputs")
-      .map((output) => output.cell_output)
+      .map((output) => output.cellOutput)
       .toArray(),
-    outputs_data: txSkeleton
+    outputsData: txSkeleton
       .get("outputs")
       .map((output) => output.data || "0x0")
       .toArray(),
@@ -292,13 +292,13 @@ export function sealTransaction(
         const newWitnessArgs: WitnessArgs = {
           lock: sealingContents[i],
         };
-        const inputType = witnessArgs.input_type;
+        const inputType = witnessArgs.inputType;
         if (!!inputType) {
-          newWitnessArgs.input_type = inputType;
+          newWitnessArgs.inputType = inputType;
         }
-        const outputType = witnessArgs.output_type;
+        const outputType = witnessArgs.outputType;
         if (!!outputType) {
-          newWitnessArgs.output_type = outputType;
+          newWitnessArgs.outputType = outputType;
         }
 
         tx.witnesses[e.index] = hexify(

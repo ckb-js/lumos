@@ -42,19 +42,19 @@ test("setupInputCell", async (t) => {
   const input: Cell = txSkeleton.get("inputs").get(0)!;
   const output: Cell = txSkeleton.get("outputs").get(0)!;
 
-  t.is(input.cell_output.capacity, output.cell_output.capacity);
+  t.is(input.cellOutput.capacity, output.cellOutput.capacity);
   t.is(input.data, output.data);
   t.true(
-    new values.ScriptValue(input.cell_output.lock, { validate: false }).equals(
-      new values.ScriptValue(output.cell_output.lock, { validate: false })
+    new values.ScriptValue(input.cellOutput.lock, { validate: false }).equals(
+      new values.ScriptValue(output.cellOutput.lock, { validate: false })
     )
   );
   t.true(
-    (!input.cell_output.type && !output.cell_output.type) ||
-      new values.ScriptValue(input.cell_output.type!, {
+    (!input.cellOutput.type && !output.cellOutput.type) ||
+      new values.ScriptValue(input.cellOutput.type!, {
         validate: false,
       }).equals(
-        new values.ScriptValue(output.cell_output.type!, { validate: false })
+        new values.ScriptValue(output.cellOutput.type!, { validate: false })
       )
   );
 });
@@ -77,11 +77,11 @@ test("JSBI:transfer success", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
@@ -100,7 +100,7 @@ test("JSBI:transfer success", async (t) => {
 test("injectCapacity", async (t) => {
   const amount = BI.from(500 * 10 ** 8);
   const output: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x" + amount.toString(16),
       lock: parseAddress(alice.testnetAddress, { config: AGGRON4 }),
       type: undefined,
@@ -126,11 +126,11 @@ test("injectCapacity", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 

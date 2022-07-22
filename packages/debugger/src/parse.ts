@@ -37,26 +37,26 @@ function resolveCellDeps(
   cellDep: CellDep,
   loader: DataLoader
 ): ResolvedCellDep[] {
-  const cellData = loader.getCellData(cellDep.out_point);
+  const cellData = loader.getCellData(cellDep.outPoint);
 
-  if (cellDep.dep_type === "dep_group") {
+  if (cellDep.depType === "dep_group") {
     const outPoints = OutPointVec.unpack(bytify(cellData));
 
     return [{ data: cellData, cell_dep: cellDep }].concat(
       outPoints.map((outPoint) => {
         return {
-          cell_dep: { dep_type: "code", out_point: outPoint },
+          cell_dep: { depType: "code", outPoint: outPoint },
           data: loader.getCellData(outPoint),
         };
       })
     );
   }
 
-  if (cellDep.dep_type === "code") {
+  if (cellDep.depType === "code") {
     return [{ cell_dep: cellDep, data: cellData }];
   }
 
-  throw new Error(`Invalid dep type ${cellDep.dep_type}`);
+  throw new Error(`Invalid dep type ${cellDep.depType}`);
 }
 
 export function parseDebuggerData(
@@ -69,10 +69,10 @@ export function parseDebuggerData(
     mock_info: {
       inputs: txSkeleton.inputs.toArray().map((cell, i) => ({
         input: tx.inputs[i],
-        output: cell.cell_output,
+        output: cell.cellOutput,
         data: cell.data,
       })),
-      cell_deps: txSkeleton
+      cellDeps: txSkeleton
         .get("cellDeps")
         .toArray()
         .flatMap((cellDep) =>
@@ -82,14 +82,14 @@ export function parseDebuggerData(
             output: {
               capacity: "0x0",
               lock: {
-                code_hash: "0x" + "00".repeat(32),
+                codeHash: "0x" + "00".repeat(32),
                 args: "0x",
-                hash_type: "data",
+                hashType: "data",
               },
             },
           }))
         ),
-      header_deps: txSkeleton.get("headerDeps").toArray().map(loader.getHeader),
+      headerDeps: txSkeleton.get("headerDeps").toArray().map(loader.getHeader),
     },
     tx,
   };

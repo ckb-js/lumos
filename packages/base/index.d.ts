@@ -13,6 +13,6 @@ export { utils, apiUtils, helpers, since, values, logger };
 export { SinceValidationInfo } from "./lib/since";
 
 export interface Tip {
-  block_number: string;
-  block_hash: string;
+  blockNumber: string;
+  blockHash: string;
 }

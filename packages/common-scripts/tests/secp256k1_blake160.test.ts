@@ -35,11 +35,11 @@ test("JSBI:transfer success", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 });
@@ -55,25 +55,25 @@ test("JSBI:transfer to non secp256k1_blake160 address", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("outputs").size, 2);
   const targetOutput = txSkeleton.get("outputs").get(0)!;
-  t.deepEqual(targetOutput.cell_output!.lock, fullAddressInfo.lock);
+  t.deepEqual(targetOutput.cellOutput!.lock, fullAddressInfo.lock);
   const changeOutput = txSkeleton.get("outputs").get(1)!;
   const template = LINA.SCRIPTS.SECP256K1_BLAKE160!;
   const expectedChangeLockScript = {
-    code_hash: template.CODE_HASH,
-    hash_type: template.HASH_TYPE,
+    codeHash: template.CODE_HASH,
+    hashType: template.HASH_TYPE,
     args: bob.blake160,
   };
-  t.deepEqual(changeOutput.cell_output!.lock, expectedChangeLockScript);
+  t.deepEqual(changeOutput.cellOutput!.lock, expectedChangeLockScript);
 });
 
 test("JSBI:payFee", async (t) => {
@@ -94,11 +94,11 @@ test("JSBI:payFee", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.add(fee).toString(), sumOfInputCapacity.toString());
 
@@ -128,11 +128,11 @@ test("JSBI:prepareSigningEntries", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.add(fee).toString(), sumOfInputCapacity.toString());
 
@@ -150,10 +150,10 @@ test.skip("JSBI:transferCompatible, skip duplicated input", async (t) => {
   });
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push({
-      cell_output: firstInput.cell_output,
+      cellOutput: firstInput.cellOutput,
       data: "0x",
-      out_point: undefined,
-      block_hash: undefined,
+      outPoint: undefined,
+      blockHash: undefined,
     });
   });
   txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
@@ -173,19 +173,19 @@ test.skip("JSBI:transferCompatible, skip duplicated input", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 3);
   t.notDeepEqual(
-    txSkeleton.get("inputs").get(0)!.out_point,
-    txSkeleton.get("inputs").get(1)!.out_point
+    txSkeleton.get("inputs").get(0)!.outPoint,
+    txSkeleton.get("inputs").get(1)!.outPoint
   );
 });
 
@@ -211,19 +211,19 @@ test("setupInputCell", async (t) => {
   const input: Cell = txSkeleton.get("inputs").get(0)!;
   const output: Cell = txSkeleton.get("outputs").get(0)!;
 
-  t.is(input.cell_output.capacity, output.cell_output.capacity);
+  t.is(input.cellOutput.capacity, output.cellOutput.capacity);
   t.is(input.data, output.data);
   t.true(
-    new values.ScriptValue(input.cell_output.lock, { validate: false }).equals(
-      new values.ScriptValue(output.cell_output.lock, { validate: false })
+    new values.ScriptValue(input.cellOutput.lock, { validate: false }).equals(
+      new values.ScriptValue(output.cellOutput.lock, { validate: false })
     )
   );
   t.true(
-    (!input.cell_output.type && !output.cell_output.type) ||
-      new values.ScriptValue(input.cell_output.type!, {
+    (!input.cellOutput.type && !output.cellOutput.type) ||
+      new values.ScriptValue(input.cellOutput.type!, {
         validate: false,
       }).equals(
-        new values.ScriptValue(output.cell_output.type!, { validate: false })
+        new values.ScriptValue(output.cellOutput.type!, { validate: false })
       )
   );
 });
@@ -234,7 +234,7 @@ test("injectCapacity", async (t) => {
 
   const amount = BI.from(500 * 10 ** 8);
   const output: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x" + amount.toString(16),
       lock: parseAddress(alice.testnetAddress, { config: AGGRON4 }),
       type: undefined,
@@ -259,11 +259,11 @@ test("injectCapacity", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BI.from(o.cell_output.capacity))
+    .map((o) => BI.from(o.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 

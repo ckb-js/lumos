@@ -38,7 +38,7 @@ function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
 }
 
-/** CkbIndexer.collector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
+/** CkbIndexer.collector will not get cell with blockHash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get blockHash if you need. */
 export class CkbIndexer implements Indexer {
   uri: string;
   medianTimeEmitters: EventEmitter[] = [];
@@ -69,7 +69,7 @@ export class CkbIndexer implements Indexer {
       16
     );
     while (true) {
-      const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
+      const indexerTipNumber = parseInt((await this.tip()).blockNumber, 16);
       if (indexerTipNumber + blockDifference >= rpcTipNumber) {
         return;
       }
@@ -77,8 +77,8 @@ export class CkbIndexer implements Indexer {
     }
   }
 
-  /** collector cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
-   * don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
+  /** collector cells without blockHash by default.if you need blockHash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
+   * don't use OtherQueryOption if you don't need blockHash,cause it will slowly your collect.
    */
   collector(
     queries: CKBIndexerQueryOptions,
@@ -114,10 +114,10 @@ export class CkbIndexer implements Indexer {
       cursor = res.last_cursor;
       for (const liveCell of liveCells) {
         const cell: Cell = {
-          cell_output: liveCell.output,
+          cellOutput: liveCell.output,
           data: liveCell.output_data,
-          out_point: liveCell.out_point,
-          block_number: liveCell.block_number,
+          outPoint: liveCell.outPoint,
+          blockNumber: liveCell.blockNumber,
         };
         const { stop, push } = terminator(index, cell);
         if (push) {
@@ -259,28 +259,28 @@ export class CkbIndexer implements Indexer {
   private async poll() {
     let timeout = 1;
     const tip = await this.tip();
-    const { block_number, block_hash } = tip;
-    if (block_number === "0x0") {
+    const { blockNumber, blockHash } = tip;
+    if (blockNumber === "0x0") {
       const block: Block = await this.request(
         "get_block_by_number",
-        [block_number],
+        [blockNumber],
         this.ckbRpcUrl
       );
       await this.publishAppendBlockEvents(block);
     }
-    const nextBlockNumber = BI.from(block_number).add(1);
+    const nextBlockNumber = BI.from(blockNumber).add(1);
     const block = await this.request(
       "get_block_by_number",
       [`0x${nextBlockNumber.toString(16)}`],
       this.ckbRpcUrl
     );
     if (block) {
-      if (block.header.parent_hash === block_hash) {
+      if (block.header.parentHash === blockHash) {
         await this.publishAppendBlockEvents(block);
       } else {
         const block: Block = await this.request(
           "get_block_by_number",
-          [block_number],
+          [blockNumber],
           this.ckbRpcUrl
         );
         await this.publishAppendBlockEvents(block);
@@ -288,7 +288,7 @@ export class CkbIndexer implements Indexer {
     } else {
       const block = await this.request(
         "get_block_by_number",
-        [block_number],
+        [blockNumber],
         this.ckbRpcUrl
       );
       await this.publishAppendBlockEvents(block);
@@ -307,7 +307,7 @@ export class CkbIndexer implements Indexer {
             id: index,
             jsonrpc: "2.0",
             method: "get_transaction",
-            params: [input.previous_output.tx_hash],
+            params: [input.previousOutput.txHash],
           };
         });
 
@@ -318,11 +318,11 @@ export class CkbIndexer implements Indexer {
         ).then((response: GetTransactionRPCResult[]) => {
           return response.map(
             (item: GetTransactionRPCResult, index: number) => {
-              const cellIndex = tx.inputs[index].previous_output.index;
+              const cellIndex = tx.inputs[index].previousOutput.index;
               const outputCell =
                 item.result.transaction.outputs[parseInt(cellIndex)];
               const outputData =
-                item.result.transaction.outputs_data[parseInt(cellIndex)];
+                item.result.transaction.outputsData[parseInt(cellIndex)];
               return { output: outputCell, outputData } as OutputToVerify;
             }
           );
@@ -333,7 +333,7 @@ export class CkbIndexer implements Indexer {
       }
       // publish changed events if subscribed script exists in output cells.
       for (const [outputIndex, output] of tx.outputs.entries()) {
-        const outputData = tx.outputs_data[outputIndex];
+        const outputData = tx.outputsData[outputIndex];
         this.filterEvents(output, blockNumber, outputData);
       }
     }
@@ -393,8 +393,8 @@ export class CkbIndexer implements Indexer {
         : emitter.outputData === outputData;
     const checkScript = !script
       ? true
-      : emitterScript.code_hash === script.code_hash &&
-        emitterScript.hash_type === script.hash_type &&
+      : emitterScript.codeHash === script.codeHash &&
+        emitterScript.hashType === script.hashType &&
         this.checkArgs(emitter.argsLen, emitterScript.args, script.args);
     return checkBlockNumber && checkOutputData && checkScript;
   }
@@ -420,7 +420,7 @@ export class CkbIndexer implements Indexer {
       return;
     }
     const info = await request(this.ckbRpcUrl, "get_blockchain_info");
-    const medianTime = info.median_time;
+    const medianTime = info.medianTime;
     for (const medianTimeEmitter of this.medianTimeEmitters) {
       medianTimeEmitter.emit("changed", medianTime);
     }

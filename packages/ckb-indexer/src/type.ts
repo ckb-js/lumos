@@ -50,8 +50,8 @@ export interface rpcResponseData {
 }
 
 export interface IndexerCell {
-  block_number: Hexadecimal;
-  out_point: OutPoint;
+  blockNumber: Hexadecimal;
+  outPoint: OutPoint;
   output: {
     capacity: HexNumber;
     lock: Script;
@@ -75,10 +75,10 @@ export type HexNum = string;
 export type IOType = "input" | "output" | "both";
 export type Bytes32 = string;
 export type IndexerTransaction = {
-  block_number: HexNum;
+  blockNumber: HexNum;
   io_index: HexNum;
   io_type: IOType;
-  tx_hash: Bytes32;
+  txHash: Bytes32;
   tx_index: HexNum;
 };
 export interface IndexerTransactionList {

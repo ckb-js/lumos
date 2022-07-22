@@ -23,7 +23,7 @@ function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
   const groups = new Map<string, number[]>();
   for (let i = 0; i < inputs.length; i++) {
     const scriptHash = utils.ckbHash(
-      blockchain.Script.pack(inputs[i].cell_output.lock)
+      blockchain.Script.pack(inputs[i].cellOutput.lock)
     );
     if (lockSet.has(scriptHash)) {
       if (groups.get(scriptHash) === undefined) groups.set(scriptHash, []);
@@ -148,7 +148,7 @@ export function createP2PKHMessageGroup(
     const digested = messageHasher.digest();
     const g: Group = {
       index: firstIndex,
-      lock: tx.inputs.get(firstIndex)!.cell_output.lock,
+      lock: tx.inputs.get(firstIndex)!.cellOutput.lock,
       message:
         "0x" +
         Array.prototype.map

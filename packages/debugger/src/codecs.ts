@@ -6,14 +6,14 @@ import { BI } from "@ckb-lumos/bi";
 
 export const OutPoint = struct(
   {
-    tx_hash: Byte32,
+    txHash: Byte32,
     index: createFixedBytesCodec({
       byteLength: 4,
       pack: (hex) => Uint32.pack(hex),
       unpack: (buf) => BI.from(Uint32.unpack(buf)).toHexString(),
     }),
   },
-  ["tx_hash", "index"]
+  ["txHash", "index"]
 );
 
 export const OutPointVec = vector(OutPoint);

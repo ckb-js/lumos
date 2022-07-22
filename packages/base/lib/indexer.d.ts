@@ -3,8 +3,8 @@ import { Hexadecimal, HexString } from "./primitive";
 import { Logger } from "./logger";
 
 /**
- * argsLen: if argsLen = 20, it means collected cells cell.cell_output.lock.args should be 20-byte length, and prefix match to lock.args.
- * And if argsLen = -1 (default), means cell.cell_output.lock.args should equals to lock.args.
+ * argsLen: if argsLen = 20, it means collected cells cell.cellOutput.lock.args should be 20-byte length, and prefix match to lock.args.
+ * And if argsLen = -1 (default), means cell.cellOutput.lock.args should equals to lock.args.
  */
 export interface QueryOptions {
   lock?: Script | ScriptWrapper;
@@ -40,8 +40,8 @@ export interface CellProvider {
 }
 
 export interface Tip {
-  block_number: string;
-  block_hash: string;
+  blockNumber: string;
+  blockHash: string;
 }
 
 export interface IndexerOptions {

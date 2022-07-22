@@ -11,10 +11,10 @@ test.before(() => {
 });
 test("get tip", async (t) => {
   const expectTip: Tip = {
-    block_hash:
+    blockHash:
       "0x4d0913d3d9330b1f2acf70d1b38baffa1d0588a92b006be3c5a0ca031e9841c7",
-    block_number: "0x63",
+    blockNumber: "0x63",
   };
   const tip = await rpc.getTipBlockNumber();
-  t.deepEqual(tip, expectTip.block_number);
+  t.deepEqual(tip, expectTip.blockNumber);
 });

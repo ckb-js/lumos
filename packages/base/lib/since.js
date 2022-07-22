@@ -134,7 +134,7 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
     }
 
     if (type === "blockNumber") {
-      return BI.from(value).lte(tipSinceValidationInfo.block_number);
+      return BI.from(value).lte(tipSinceValidationInfo.blockNumber);
     }
 
     if (type === "blockTimestamp") {
@@ -184,8 +184,8 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
 
     if (type === "blockNumber") {
       return BI.from(value)
-        .add(cellSinceValidationInfo.block_number)
-        .lte(tipSinceValidationInfo.block_number);
+        .add(cellSinceValidationInfo.blockNumber)
+        .lte(tipSinceValidationInfo.blockNumber);
     }
 
     if (type === "blockTimestamp") {

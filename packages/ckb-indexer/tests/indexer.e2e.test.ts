@@ -39,8 +39,8 @@ test("subscribe cells", async (t) => {
       blockIndex = blockIndex + 1;
     }
     return Promise.resolve({
-      block_hash: block.header.hash,
-      block_number: block.header.number,
+      blockHash: block.header.hash,
+      blockNumber: block.header.number,
     });
   });
 

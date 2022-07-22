@@ -68,12 +68,12 @@ test("transfer, acp => acp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
@@ -97,8 +97,8 @@ test("lockScriptInfos", (t) => {
   t.is(__tests__.getLockScriptInfos().infos.length, 0);
   registerCustomLockScriptInfos([
     {
-      code_hash: "",
-      hash_type: "type",
+      codeHash: "",
+      hashType: "type",
       lockScriptInfo: anyoneCanPay,
     },
   ]);
@@ -141,12 +141,12 @@ test("transfer secp => secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
@@ -154,7 +154,7 @@ test("transfer secp => secp", async (t) => {
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
   t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cell_output.capacity).toString(),
+    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
     amount.toString()
   );
 
@@ -198,12 +198,12 @@ test("transfer secp & multisig => secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
@@ -211,7 +211,7 @@ test("transfer secp & multisig => secp", async (t) => {
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 2);
   t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cell_output.capacity).toString(),
+    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
     amount.toString()
   );
 
@@ -244,8 +244,8 @@ test("transfer multisig lock => secp", async (t) => {
     readonly fromScript: Script;
     constructor() {
       this.fromScript = {
-        code_hash: "",
-        hash_type: "data",
+        codeHash: "",
+        hashType: "data",
         args: "",
       };
     }
@@ -276,12 +276,12 @@ test("transfer multisig lock => secp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
@@ -289,7 +289,7 @@ test("transfer multisig lock => secp", async (t) => {
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
   t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cell_output.capacity).toString(),
+    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
     amount.toString()
   );
 
@@ -330,12 +330,12 @@ test("transfer secp => acp", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
@@ -343,8 +343,8 @@ test("transfer secp => acp", async (t) => {
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 2);
   t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cell_output.capacity)
-      .sub(BI.from(aliceAcpCells[0]!.cell_output.capacity))
+    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity)
+      .sub(BI.from(aliceAcpCells[0]!.cellOutput.capacity))
       .toString(),
     amount.toString()
   );
@@ -390,12 +390,12 @@ test("transfer secp => acp, no acp previous input", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
@@ -405,7 +405,7 @@ test("transfer secp => acp, no acp previous input", async (t) => {
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
   t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cell_output.capacity).toString(),
+    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
     amount.toString()
   );
 
@@ -454,12 +454,12 @@ test("transfer acp => secp, destroy", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputCapacity.toString(), sumOfOutputCapcity.toString());
@@ -467,7 +467,7 @@ test("transfer acp => secp, destroy", async (t) => {
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 1);
   t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cell_output.capacity).toString(),
+    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
     amount.toString()
   );
 
@@ -507,7 +507,7 @@ test("Don't update capacity directly when deduct", async (t) => {
   );
 
   const getCapacities = (cells: List<Cell>): string[] => {
-    return cells.map((c) => c.cell_output.capacity).toJS();
+    return cells.map((c) => c.cellOutput.capacity).toJS();
   };
 
   const inputCapacitiesBefore = getCapacities(txSkeleton.get("inputs"));
@@ -555,48 +555,48 @@ test("setupInputCell secp", async (t) => {
   const input: Cell = txSkeleton.get("inputs").get(0)!;
   const output: Cell = txSkeleton.get("outputs").get(0)!;
 
-  t.is(input.cell_output.capacity, output.cell_output.capacity);
+  t.is(input.cellOutput.capacity, output.cellOutput.capacity);
   t.is(input.data, output.data);
   t.true(
-    new values.ScriptValue(input.cell_output.lock, { validate: false }).equals(
-      new values.ScriptValue(output.cell_output.lock, { validate: false })
+    new values.ScriptValue(input.cellOutput.lock, { validate: false }).equals(
+      new values.ScriptValue(output.cellOutput.lock, { validate: false })
     )
   );
   t.true(
-    (!input.cell_output.type && !output.cell_output.type) ||
-      new values.ScriptValue(input.cell_output.type!, {
+    (!input.cellOutput.type && !output.cellOutput.type) ||
+      new values.ScriptValue(input.cellOutput.type!, {
         validate: false,
       }).equals(
-        new values.ScriptValue(output.cell_output.type!, { validate: false })
+        new values.ScriptValue(output.cellOutput.type!, { validate: false })
       )
   );
 });
 
 const testTx: Transaction = {
   version: "0x0",
-  cell_deps: [
+  cellDeps: [
     {
-      out_point: {
-        tx_hash:
+      outPoint: {
+        txHash:
           "0xc12386705b5cbb312b693874f3edf45c43a274482e27b8df0fd80c8d3f5feb8b",
         index: "0x0",
       },
-      dep_type: "dep_group",
+      depType: "dep_group",
     },
     {
-      out_point: {
-        tx_hash:
+      outPoint: {
+        txHash:
           "0x0fb4945d52baf91e0dee2a686cdd9d84cad95b566a1d7409b970ee0a0f364f60",
         index: "0x2",
       },
-      dep_type: "code",
+      depType: "code",
     },
   ],
-  header_deps: [],
+  headerDeps: [],
   inputs: [
     {
-      previous_output: {
-        tx_hash:
+      previousOutput: {
+        txHash:
           "0x31f695263423a4b05045dd25ce6692bb55d7bba2965d8be16b036e138e72cc65",
         index: "0x1",
       },
@@ -607,30 +607,30 @@ const testTx: Transaction = {
     {
       capacity: "0x174876e800",
       lock: {
-        code_hash:
+        codeHash:
           "0x68d5438ac952d2f584abf879527946a537e82c7f3c1cbf6d8ebf9767437d8e88",
         args: "0x59a27ef3ba84f061517d13f42cf44ed020610061",
-        hash_type: "type",
+        hashType: "type",
       },
       type: {
-        code_hash:
+        codeHash:
           "0xece45e0979030e2f8909f76258631c42333b1e906fd9701ec3600a464a90b8f6",
         args: "0x",
-        hash_type: "data",
+        hashType: "data",
       },
     },
     {
       capacity: "0x59e1416a5000",
       lock: {
-        code_hash:
+        codeHash:
           "0x68d5438ac952d2f584abf879527946a537e82c7f3c1cbf6d8ebf9767437d8e88",
         args: "0x59a27ef3ba84f061517d13f42cf44ed020610061",
-        hash_type: "type",
+        hashType: "type",
       },
       type: undefined,
     },
   ],
-  outputs_data: ["0x1234", "0x"],
+  outputsData: ["0x1234", "0x"],
   witnesses: [
     "0x82df73581bcd08cb9aa270128d15e79996229ce8ea9e4f985b49fbf36762c5c37936caf3ea3784ee326f60b8992924fcf496f9503c907982525a3436f01ab32900",
   ],
@@ -667,12 +667,12 @@ function getExpectedFee(txSkeleton: TransactionSkeletonType, feeRate: BI): BI {
 function getFee(txSkeleton: TransactionSkeletonType): BI {
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   return sumOfInputCapacity.sub(sumOfOutputCapcity);
@@ -968,27 +968,27 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputCapacity.sub(sumOfOutputCapcity).toString(), fee.toString());
 
   t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cell_output.capacity).toString(),
+    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
     amount.toString()
   );
   t.is(
-    BI.from(txSkeleton.get("outputs").get(1)!.cell_output.capacity).toString(),
-    BI.from(bobSecpInputs[0].cell_output.capacity).sub(amount).toString()
+    BI.from(txSkeleton.get("outputs").get(1)!.cellOutput.capacity).toString(),
+    BI.from(bobSecpInputs[0].cellOutput.capacity).sub(amount).toString()
   );
   t.is(
-    BI.from(txSkeleton.get("outputs").get(2)!.cell_output.capacity).toString(),
-    BI.from(bobSecpInputs[1].cell_output.capacity).sub(fee).toString()
+    BI.from(txSkeleton.get("outputs").get(2)!.cellOutput.capacity).toString(),
+    BI.from(bobSecpInputs[1].cellOutput.capacity).sub(fee).toString()
   );
 
   const changeLockScript: Script = parseAddress(bob.testnetAddress, {
@@ -996,12 +996,12 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
   });
 
   t.true(
-    new values.ScriptValue(txSkeleton.get("outputs").get(1)!.cell_output.lock, {
+    new values.ScriptValue(txSkeleton.get("outputs").get(1)!.cellOutput.lock, {
       validate: false,
     }).equals(new values.ScriptValue(changeLockScript, { validate: false }))
   );
   t.true(
-    new values.ScriptValue(txSkeleton.get("outputs").get(2)!.cell_output.lock, {
+    new values.ScriptValue(txSkeleton.get("outputs").get(2)!.cellOutput.lock, {
       validate: false,
     }).equals(new values.ScriptValue(changeLockScript, { validate: false }))
   );
@@ -1033,8 +1033,8 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     readonly fromScript: Script;
     constructor() {
       this.fromScript = {
-        code_hash: "",
-        hash_type: "data",
+        codeHash: "",
+        hashType: "data",
         args: "",
       };
     }
@@ -1086,39 +1086,39 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputCapcity = txSkeleton
     .get("outputs")
-    .map((i) => BI.from(i.cell_output.capacity))
+    .map((i) => BI.from(i.cellOutput.capacity))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputCapacity.sub(sumOfOutputCapcity).toString(), fee.toString());
 
   t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cell_output.capacity).toString(),
+    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
     amount.toString()
   );
   t.is(
-    BI.from(txSkeleton.get("outputs").get(1)!.cell_output.capacity).toString(),
-    BI.from(bobMultisigInputs[0].cell_output.capacity).sub(amount).toString()
+    BI.from(txSkeleton.get("outputs").get(1)!.cellOutput.capacity).toString(),
+    BI.from(bobMultisigInputs[0].cellOutput.capacity).sub(amount).toString()
   );
   t.is(
-    BI.from(txSkeleton.get("outputs").get(2)!.cell_output.capacity).toString(),
-    BI.from(bobMultisigInputs[1].cell_output.capacity).sub(fee).toString()
+    BI.from(txSkeleton.get("outputs").get(2)!.cellOutput.capacity).toString(),
+    BI.from(bobMultisigInputs[1].cellOutput.capacity).sub(fee).toString()
   );
 
   const changeLockScript: Script = parseFromInfo(bob.fromInfo, {
     config: AGGRON4,
   }).fromScript;
   t.true(
-    new values.ScriptValue(txSkeleton.get("outputs").get(1)!.cell_output.lock, {
+    new values.ScriptValue(txSkeleton.get("outputs").get(1)!.cellOutput.lock, {
       validate: false,
     }).equals(new values.ScriptValue(changeLockScript, { validate: false }))
   );
   t.true(
-    new values.ScriptValue(txSkeleton.get("outputs").get(2)!.cell_output.lock, {
+    new values.ScriptValue(txSkeleton.get("outputs").get(2)!.cellOutput.lock, {
       validate: false,
     }).equals(new values.ScriptValue(changeLockScript, { validate: false }))
   );

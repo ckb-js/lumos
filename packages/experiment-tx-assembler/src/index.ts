@@ -35,14 +35,14 @@ export function createScriptRegistry<T extends ScriptConfigs>(
       throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
     if (typeof args === "string") {
       return {
-        code_hash: config.CODE_HASH,
-        hash_type: config.HASH_TYPE,
+        codeHash: config.CODE_HASH,
+        hashType: config.HASH_TYPE,
         args: args,
       };
     } else {
       return {
-        code_hash: config.CODE_HASH,
-        hash_type: config.HASH_TYPE,
+        codeHash: config.CODE_HASH,
+        hashType: config.HASH_TYPE,
         args: args,
       };
     }
@@ -53,8 +53,8 @@ export function createScriptRegistry<T extends ScriptConfigs>(
     if (config === undefined)
       throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
     return (
-      script.code_hash === config.CODE_HASH &&
-      script.hash_type === config.HASH_TYPE
+      script.codeHash === config.CODE_HASH &&
+      script.hashType === config.HASH_TYPE
     );
   };
 
@@ -63,11 +63,11 @@ export function createScriptRegistry<T extends ScriptConfigs>(
     if (config === undefined)
       throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
     return {
-      out_point: {
-        tx_hash: config.TX_HASH,
+      outPoint: {
+        txHash: config.TX_HASH,
         index: config.INDEX,
       },
-      dep_type: config.DEP_TYPE,
+      depType: config.DEP_TYPE,
     };
   };
 
@@ -75,8 +75,8 @@ export function createScriptRegistry<T extends ScriptConfigs>(
     let name = undefined;
     map.forEach((value, key) => {
       if (
-        script.code_hash === value?.CODE_HASH &&
-        script.hash_type === value.HASH_TYPE
+        script.codeHash === value?.CODE_HASH &&
+        script.hashType === value.HASH_TYPE
       ) {
         name = key;
       }
@@ -98,9 +98,9 @@ interface Payload {
   type?: Script;
   capacity: BIish;
   data?: HexString;
-  out_point?: OutPoint;
-  block_hash?: Hash;
-  block_number?: HexNumber;
+  outPoint?: OutPoint;
+  blockHash?: Hash;
+  blockNumber?: HexNumber;
 }
 
 export function createCell(
@@ -116,17 +116,17 @@ export function createCell(
     cellOutput = Object.assign(cellOutput, { type: payload.type });
   }
   let cell = {
-    cell_output: cellOutput,
+    cellOutput: cellOutput,
     data: data,
   };
-  if (payload.out_point) {
-    cell = Object.assign(cell, { out_point: payload.out_point });
+  if (payload.outPoint) {
+    cell = Object.assign(cell, { outPoint: payload.outPoint });
   }
-  if (payload.block_hash) {
-    cell = Object.assign(cell, { block_hash: payload.block_hash });
+  if (payload.blockHash) {
+    cell = Object.assign(cell, { blockHash: payload.blockHash });
   }
-  if (payload.block_number) {
-    cell = Object.assign(cell, { block_number: payload.block_number });
+  if (payload.blockNumber) {
+    cell = Object.assign(cell, { blockNumber: payload.blockNumber });
   }
   if (options?.skipCheckCapacityIsEnough !== false) {
     const min = minimalCellCapacity(cell);
@@ -151,10 +151,10 @@ export function createCellWithMinimalCapacity(payload: {
     cellOutput = Object.assign(cellOutput, { type: payload.type });
   }
   const cell = {
-    cell_output: cellOutput,
+    cellOutput: cellOutput,
     data: data,
   };
   const min = minimalCellCapacity(cell);
-  cell.cell_output.capacity = BI.from(min).toHexString();
+  cell.cellOutput.capacity = BI.from(min).toHexString();
   return cell;
 }
