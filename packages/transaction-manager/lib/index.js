@@ -2,6 +2,7 @@ const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
 const { apiUtils } = require("@ckb-lumos/base/lib");
 const { blockchain } = require("@ckb-lumos/codec");
+const RPC = require('@ckb-lumos/rpc')
 const {
   CKBIndexerTransactionCollector: TransactionCollector,
 } = require("@ckb-lumos/ckb-indexer");
@@ -17,12 +18,11 @@ class TransactionManager {
     {
       logger = defaultLogger,
       pollIntervalSeconds = 30,
-      // TODO
-      // rpc = new RPC(indexer.uri),
+      rpc = new RPC.default(indexer.uri),
     } = {}
   ) {
     this.indexer = indexer;
-    // this.rpc = rpc;
+    this.rpc = rpc;
     this.transactions = Set();
     this.spentCells = Set();
     this.createdCells = List();
@@ -58,14 +58,15 @@ class TransactionManager {
 
   async _checkTransactions() {
     let filteredTransactions = Set();
+    console.error('transactions', this.transactions);
+
     for await (let transactionValue of this.transactions) {
       /* Extract tx value from TransactionValue wrapper */
-      let tx = transactionValue.value;
+      let tx = transactionValue;
+      console.error('transactionValue.value', transactionValue, tx);
       /* First, remove all transactions that use already spent cells */
       for (const input of tx.inputs) {
-        // TODO const cell = await this.rpc.get_live_cell(input.previousOutput, false);
-        console.log(input);
-        const cell = {};
+        const cell = await this.rpc.getLiveCell(input.previousOutput, false);
         if (!cell) {
           continue;
         }
@@ -91,7 +92,7 @@ class TransactionManager {
     this.transactions = filteredTransactions;
     let createdCells = List();
     this.transactions.forEach((transactionValue) => {
-      const tx = transactionValue.value;
+      const tx = transactionValue;
       tx.outputs.forEach((output, i) => {
         const outPoint = {
           txHash: tx.hash,
@@ -108,7 +109,7 @@ class TransactionManager {
     this.createdCells = createdCells;
   }
 
-  async send_transaction(tx) {
+  async sendTransaction(tx) {
     blockchain.Transaction.pack(apiUtils.transformTransactionCodecType(tx));
     tx.inputs.forEach((input) => {
       if (
@@ -121,12 +122,9 @@ class TransactionManager {
         );
       }
     });
-    // TODO const txHash = await this.rpc.send_transaction(tx);
-    const txHash = `0x${"00".repeat(32)}`;
+    const txHash = await this.rpc.sendTransaction(tx);
     tx.hash = txHash;
-    this.transactions = this.transactions.add(
-      new values.TransactionValue(tx, { validate: false })
-    );
+    this.transactions = this.transactions.add(tx);
     tx.inputs.forEach((input) => {
       this.spentCells = this.spentCells.add(
         new values.OutPointValue(input.previousOutput, { validate: false })

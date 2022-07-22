@@ -33,6 +33,7 @@
   "dependencies": {
     "@ckb-lumos/base": "0.17.0",
     "@ckb-lumos/ckb-indexer": "0.17.0",
+    "@ckb-lumos/rpc": "0.17.0",
     "immutable": "^4.0.0-rc.12"
   },
   "publishConfig": {
