@@ -13,7 +13,7 @@ import { Uint32LE, Uint64LE } from "./number";
 import { BI } from "@ckb-lumos/bi";
 
 export type _HashType = "type" | "data" | "data1";
-export type _DepType = "dep_group" | "code";
+export type _DepType = "depGroup" | "code";
 
 export const createFixedHexBytesCodec = (
   byteLength: number
@@ -109,13 +109,13 @@ export const DepType = createFixedBytesCodec<_DepType>({
   byteLength: 1,
   pack: (type) => {
     if (type === "code") return Uint8.pack(0);
-    if (type === "dep_group") return Uint8.pack(1);
+    if (type === "depGroup") return Uint8.pack(1);
     throw new Error(`Invalid dep type: ${type}`);
   },
   unpack: (buf) => {
     const depTypeBuf = Uint8.unpack(buf);
     if (depTypeBuf === 0) return "code";
-    if (depTypeBuf === 1) return "dep_group";
+    if (depTypeBuf === 1) return "depGroup";
     throw new Error(`Invalid dep type: ${depTypeBuf}`);
   },
 });

@@ -9,6 +9,9 @@ import { IdNotMatchedInBatchException, MethodInBatchNotFoundException, PayloadIn
 import axios from 'axios'
 // import { MethodInBatchNotFoundException, PayloadInBatchException, IdNotMatchedInBatchException } from './exceptions'
 
+export const ParamsFormatter = paramsFormatter
+export const ResultFormatter = resultFormatter
+
 class CKBRPC extends Base {
   #node: CKBComponents.Node = {
     url: '',

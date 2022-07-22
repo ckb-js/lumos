@@ -130,7 +130,8 @@ test("context#CKBDebugger with secp256k1 with correct signature", async (t) => {
   txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
     witnesses.set(0, hexify(WitnessArgs.pack({ lock: signedMessage })))
   );
-
+  console.log('txSkeleton', JSON.stringify(txSkeleton.toJS()));
+    
   const result = await context.executor.execute(txSkeleton, {
     scriptGroupType: "lock",
     scriptHash: computeScriptHash(secp256k1Lock),

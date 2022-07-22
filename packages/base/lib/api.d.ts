@@ -26,7 +26,7 @@ export interface OutPoint {
   index: HexNumber;
 }
 
-export type DepType = "dep_group" | "code";
+export type DepType = "depGroup" | "code";
 export interface CellDep {
   outPoint: OutPoint;
   depType: DepType;
