@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { IdNotMatchException, ResponseException } from './exceptions'
-import { CKBComponents } from '../types/api'
+import { CKBComponents } from './types/api'
 
 class Method {
   #name: string

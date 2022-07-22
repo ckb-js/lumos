@@ -361,7 +361,8 @@ export async function unlock(
   fromInfo: FromInfo,
   {
     config = undefined,
-  }: Options = {}
+    RpcClient = RPC,
+  }: Options & { RpcClient?: typeof RPC } = {}
 ) {
   config = config || getConfig();
   _checkDaoScript(config);
@@ -375,7 +376,7 @@ export async function unlock(
   if (!cellProvider) {
     throw new Error("Cell provider is missing!");
   }
-  const rpc = new RPC(cellProvider.uri!);
+  const rpc = new RpcClient(cellProvider.uri!);
 
   const typeScript = depositInput.cellOutput.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;

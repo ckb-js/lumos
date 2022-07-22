@@ -7,13 +7,13 @@ import {
   HexStringWithout0xException,
 } from './exceptions'
 import {BI} from '@ckb-lumos/bi'
-import { RPC } from '../types/rpc'
-import { CKBComponents } from '../types/api'
+import { RPC } from './types/rpc'
+import { CKBComponents } from './types/api'
 
 /* eslint-disable camelcase */
 const formatter = {
   toOptional: (format?: Function) => (arg: any) => {
-    if (!format || arg === undefined || arg === undefined) {
+    if (!format || arg === undefined || arg === null) {
       return arg
     }
     return format(arg)

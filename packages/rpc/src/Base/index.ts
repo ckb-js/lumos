@@ -3,7 +3,7 @@ import experimentalRpc from './experimental'
 import netRpc from './net'
 import poolRpc from './pool'
 import statsRpc from './stats'
-import { CKBComponents } from '../../types/api'
+import { CKBComponents } from '../types/api'
 
 
 export interface RpcPropertes {

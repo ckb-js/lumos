@@ -71,7 +71,6 @@
         "depType": "depGroup"
       },
       "expected": {
-        "out_point": null,
         "dep_type": "dep_group"
       }
     },
@@ -188,8 +187,7 @@
           "args": "0x",
           "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
           "hash_type": "data"
-        },
-        "type": null
+        }
       }
     },
     {

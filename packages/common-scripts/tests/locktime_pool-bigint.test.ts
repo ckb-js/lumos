@@ -505,7 +505,7 @@ const withdrawHeader = {
 class RpcMocker {
   constructor() {}
 
-  async get_header(hash: string) {
+  async getHeader(hash: string) {
     if (hash === depositHeader.hash) {
       return depositHeader;
     }
@@ -516,7 +516,7 @@ class RpcMocker {
     throw new Error(`Error header hash!`);
   }
 
-  async get_transaction(hash: string): Promise<any> {
+  async getTransaction(hash: string): Promise<any> {
     if (hash === bobSecpDaoWithdrawInput.outPoint!.txHash) {
       return {
         txStatus: {
@@ -549,7 +549,7 @@ function cloneObject<T>(obj: T): T {
 }
 
 async function collectAllCells(collector: CellCollector): Promise<Cell[]> {
-  const cells = [];
+  const cells: Cell[] = [];
   for await (const cell of collector.collect()) {
     cells.push(cell);
   }

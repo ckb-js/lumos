@@ -499,7 +499,7 @@ test("unlock", async (t) => {
     bob.testnetAddress,
     {
       config: AGGRON4,
-      RpcClient: RpcMocker as any,
+      RpcClient: RpcMocker as any
     }
   );
 

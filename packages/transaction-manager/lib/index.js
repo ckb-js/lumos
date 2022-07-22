@@ -58,12 +58,9 @@ class TransactionManager {
 
   async _checkTransactions() {
     let filteredTransactions = Set();
-    console.error('transactions', this.transactions);
-
     for await (let transactionValue of this.transactions) {
       /* Extract tx value from TransactionValue wrapper */
       let tx = transactionValue;
-      console.error('transactionValue.value', transactionValue, tx);
       /* First, remove all transactions that use already spent cells */
       for (const input of tx.inputs) {
         const cell = await this.rpc.getLiveCell(input.previousOutput, false);
