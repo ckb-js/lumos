@@ -351,7 +351,7 @@ interface ScriptConfig {
   INDEX: string;
 
   // now deployWithX only supportted `code `
-  DEP_TYPE: "dep_group" | "code";
+  DEP_TYPE: "depGroup" | "code";
 
   // empty
   SHORT_ID?: number;

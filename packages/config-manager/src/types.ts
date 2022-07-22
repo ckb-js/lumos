@@ -4,7 +4,7 @@ export interface ScriptConfig {
   HASH_TYPE: "type" | "data";
   TX_HASH: string;
   INDEX: string;
-  DEP_TYPE: "dep_group" | "code";
+  DEP_TYPE: "depGroup" | "code";
   /** Short ID for creating CKB address, not all scripts have short IDs. */
   SHORT_ID?: number;
 }

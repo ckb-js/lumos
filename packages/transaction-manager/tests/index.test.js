@@ -38,7 +38,7 @@ const tx = {
           "0x785aa819c8f9f8565a62f744685f8637c1b34886e57154e4e5a2ac7f225c7bf5",
         index: "0x0",
       },
-      depType: "dep_group",
+      depType: "depGroup",
     },
   ],
   headerDeps: [],

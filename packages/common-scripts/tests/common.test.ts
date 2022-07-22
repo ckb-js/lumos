@@ -581,7 +581,7 @@ const testTx: Transaction = {
           "0xc12386705b5cbb312b693874f3edf45c43a274482e27b8df0fd80c8d3f5feb8b",
         index: "0x0",
       },
-      depType: "dep_group",
+      depType: "depGroup",
     },
     {
       outPoint: {

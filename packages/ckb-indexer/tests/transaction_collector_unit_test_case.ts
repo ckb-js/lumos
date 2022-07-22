@@ -85,7 +85,7 @@ export const unresolvedTransaction: TransactionWithStatus = {
         },
       },
       {
-        depType: "dep_group",
+        depType: "depGroup",
         outPoint: {
           index: "0x0",
           txHash:
@@ -179,7 +179,7 @@ export const resolvedTransaction: TransactionWithStatus = {
         },
       },
       {
-        depType: "dep_group",
+        depType: "depGroup",
         outPoint: {
           index: "0x0",
           txHash:
@@ -263,7 +263,7 @@ export const batchRequestTransaction = [
             },
           },
           {
-            depType: "dep_group",
+            depType: "depGroup",
             outPoint: {
               index: "0x0",
               txHash:

@@ -5,7 +5,7 @@
       "HASH_TYPE": "type",
       "TX_HASH": "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
       "INDEX": "0x0",
-      "DEP_TYPE": "dep_group"
+      "DEP_TYPE": "depGroup"
     },
     "OMNI_LOCK": {
       "CODE_HASH": "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
@@ -79,7 +79,7 @@
             "txHash": "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
             "index": "0x0"
           },
-          "depType": "dep_group"
+          "depType": "depGroup"
         }
       ]
     },
@@ -147,7 +147,7 @@
             "txHash": "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
             "index": "0x0"
           },
-          "depType": "dep_group"
+          "depType": "depGroup"
         }
       ]
     },
@@ -208,7 +208,7 @@
             "txHash": "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
             "index": "0x0"
           },
-          "depType": "dep_group"
+          "depType": "depGroup"
         }
       ]
     },
@@ -285,7 +285,7 @@
             "txHash": "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
             "index": "0x0"
           },
-          "depType": "dep_group"
+          "depType": "depGroup"
         }
       ]
     },
@@ -362,7 +362,7 @@
             "txHash": "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
             "index": "0x0"
           },
-          "depType": "dep_group"
+          "depType": "depGroup"
         }
       ]
     },

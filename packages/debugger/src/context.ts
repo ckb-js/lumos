@@ -18,7 +18,7 @@ export function mockOutPoint(): OutPoint {
 }
 
 type DepCodePath = { depType?: "code"; path: string };
-type DepGroupPath = { depType: "dep_group"; path: string; includes: string[] };
+type DepGroupPath = { depType: "depGroup"; path: string; includes: string[] };
 type LocaleConfig = DepCodePath | DepGroupPath;
 
 function isDepCode(obj: LocaleConfig): obj is DepCodePath {
@@ -29,7 +29,7 @@ function isDepCode(obj: LocaleConfig): obj is DepCodePath {
 }
 
 function isDepGroup(obj: LocaleConfig): obj is DepGroupPath {
-  return obj.depType === "dep_group";
+  return obj.depType === "depGroup";
 }
 
 export type LocaleCode = { [key: string]: LocaleConfig };
@@ -107,7 +107,7 @@ export function createTestContext<Code extends LocaleCode>(config: {
 
       const depGroupScriptConfig: ScriptConfig = {
         CODE_HASH: entryCode.codeHash,
-        DEP_TYPE: "dep_group",
+        DEP_TYPE: "depGroup",
         TX_HASH: depGroupOutPoint.txHash,
         INDEX: depGroupOutPoint.index,
         HASH_TYPE: "data",
@@ -162,12 +162,12 @@ export function getDefaultConfig(): {
         path: path.join(__dirname, "../contracts/dao"),
       },
       SECP256K1_BLAKE160: {
-        depType: "dep_group",
+        depType: "depGroup",
         path: path.join(__dirname, "../contracts/secp256k1_blake160"),
         includes: [path.join(__dirname, "../contracts/secp256k1_data_info")],
       },
       SECP256K1_BLAKE160_MULTISIG: {
-        depType: "dep_group",
+        depType: "depGroup",
         path: path.join(
           __dirname,
           "../contracts/secp256k1_blake160_multisig_all"
