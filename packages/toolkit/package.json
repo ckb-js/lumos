@@ -18,7 +18,6 @@
   "scripts": {
     "build": "yarn run build:js",
     "build:js": "babel -s --plugins @babel/plugin-proposal-export-namespace-from --plugins @babel/plugin-transform-modules-commonjs src --out-dir lib",
-    "build:types": "tsc --declaration --emitDeclarationOnly",
     "clean": "rm -rf lib",
     "test": "ava",
     "fmt": "prettier --write \"{src,tests}/**/*.js\" index.d.ts",
