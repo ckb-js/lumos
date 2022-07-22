@@ -10,7 +10,6 @@ import {
 import { bytify, hexify } from "./bytes";
 import { byteVecOf, option, table, vector, struct } from "./molecule";
 import { Uint32LE, Uint64LE } from "./number";
-import { BI } from "@ckb-lumos/bi";
 
 export type _HashType = "type" | "data" | "data1";
 export type _DepType = "depGroup" | "code";
@@ -219,7 +218,7 @@ export const RawHeader = struct(
   ]
 );
 
-export const BaseHeader = struct(
+export const Header = struct(
   {
     raw: RawHeader,
     nonce: Uint128LE,
@@ -227,65 +226,13 @@ export const BaseHeader = struct(
   ["raw", "nonce"]
 );
 
-export interface _HeaderType {
-  version: number;
-  compactTarget: number;
-  timestamp: BI;
-  number: BI;
-  epoch: BI;
-  dao: string;
-  parentHash: string;
-  proposalsHash: string;
-  transactionsRoot: string;
-  unclesHash: string;
-  nonce: BI;
-}
-
-export const Header = createFixedBytesCodec<_HeaderType>({
-  byteLength: 1,
-  pack: (header) => {
-    const normalizedHeader = {
-      raw: {
-        timestamp: header.timestamp,
-        number: header.number,
-        epoch: header.epoch,
-        compactTarget: header.compactTarget,
-        dao: header.dao,
-        parentHash: header.parentHash,
-        proposalsHash: header.proposalsHash,
-        transactionsRoot: header.transactionsRoot,
-        extra_hash: header.unclesHash,
-        version: header.version,
-      },
-      nonce: header.nonce,
-    };
-    return BaseHeader.pack(normalizedHeader);
-  },
-  unpack: (buf) => {
-    const header = BaseHeader.unpack(buf);
-    return {
-      timestamp: header.raw.timestamp,
-      number: header.raw.number,
-      epoch: header.raw.epoch,
-      compactTarget: header.raw.compactTarget,
-      dao: header.raw.dao,
-      parentHash: header.raw.parentHash,
-      proposalsHash: header.raw.proposalsHash,
-      transactionsRoot: header.raw.transactionsRoot,
-      unclesHash: header.raw.extra_hash,
-      version: header.raw.version,
-      nonce: header.nonce,
-    };
-  },
-});
-
 export const ProposalShortId = createFixedHexBytesCodec(10);
 
 export const ProposalShortIdVec = vector(ProposalShortId);
 
 export const UncleBlock = table(
   {
-    header: BaseHeader,
+    header: Header,
     proposals: ProposalShortIdVec,
   },
   ["header", "proposals"]
@@ -295,7 +242,7 @@ export const UncleBlockVec = vector(UncleBlock);
 
 export const Block = table(
   {
-    header: BaseHeader,
+    header: Header,
     uncles: UncleBlockVec,
     transactions: TransactionVec,
     proposals: ProposalShortIdVec,
@@ -305,7 +252,7 @@ export const Block = table(
 
 export const BlockV1 = table(
   {
-    header: BaseHeader,
+    header: Header,
     uncles: UncleBlockVec,
     transactions: TransactionVec,
     proposals: ProposalShortIdVec,

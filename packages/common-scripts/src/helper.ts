@@ -4,7 +4,7 @@ import {
   parseAddress,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
 import {
   values,
   utils,
@@ -12,7 +12,6 @@ import {
   Script,
   Address,
   HexString,
-  apiUtils,
 } from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
 import { Config } from "@ckb-lumos/config-manager";
@@ -173,7 +172,7 @@ export function prepareSigningEntries(
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = ckbHash(
     blockchain.RawTransaction.pack(
-      apiUtils.transformRawTransactionCodecType(tx)
+      blockchainUtils.transformRawTransactionCodecType(tx)
     )
   );
   const inputs = txSkeleton.get("inputs");

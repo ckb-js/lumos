@@ -30,7 +30,8 @@
     "release": "npm publish"
   },
   "dependencies": {
-    "@ckb-lumos/bi": "0.17.0"
+    "@ckb-lumos/bi": "0.17.0",
+    "@ckb-lumos/toolkit": "0.17.0"
   },
   "publishConfig": {
     "access": "public"

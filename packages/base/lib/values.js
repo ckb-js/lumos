@@ -2,8 +2,7 @@
 // structures to allow seamless immutable.js integration.
 const { xxHash32 } = require("js-xxhash");
 const { ckbHash } = require("./utils");
-const { bytes, blockchain } = require("@ckb-lumos/codec");
-const apiUtils = require("./apiUtils");
+const { bytes, blockchain, blockchainUtils } = require("@ckb-lumos/codec");
 
 const { hexify } = bytes;
 class Value {
@@ -33,7 +32,7 @@ class ScriptValue extends Value {
 class OutPointValue extends Value {
   constructor(outPoint) {
     super(
-      blockchain.OutPoint.pack(apiUtils.transformOutPointCodecType(outPoint))
+      blockchain.OutPoint.pack(blockchainUtils.transformOutPointCodecType(outPoint))
     );
   }
 }
@@ -42,7 +41,7 @@ class RawTransactionValue extends Value {
   constructor(rawTransaction) {
     super(
       blockchain.RawTransaction.pack(
-        apiUtils.transformRawTransactionCodecType(rawTransaction)
+        blockchainUtils.transformRawTransactionCodecType(rawTransaction)
       )
     );
   }
@@ -52,7 +51,7 @@ class TransactionValue extends Value {
   constructor(transaction) {
     super(
       blockchain.Transaction.pack(
-        apiUtils.transformTransactionCodecType(transaction)
+        blockchainUtils.transformTransactionCodecType(transaction)
       )
     );
   }

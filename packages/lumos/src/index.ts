@@ -25,7 +25,7 @@ export type {
   PackedSince,
 } from "@ckb-lumos/base/lib/primitive";
 
-export { since, utils, apiUtils } from "@ckb-lumos/base";
+export { since, utils } from "@ckb-lumos/base";
 export * as config from "@ckb-lumos/config-manager";
 
 export * as RPC from "@ckb-lumos/rpc";

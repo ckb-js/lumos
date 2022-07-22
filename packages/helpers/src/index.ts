@@ -1,4 +1,4 @@
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
 import {
   Address,
   Cell,
@@ -10,7 +10,6 @@ import {
   Script,
   Transaction,
   WitnessArgs,
-  apiUtils,
 } from "@ckb-lumos/base";
 import { bech32, bech32m } from "bech32";
 import { List, Map as ImmutableMap, Record } from "immutable";
@@ -44,7 +43,7 @@ export function minimalCellCapacityCompatible(
 ): BI {
   if (validate) {
     blockchain.CellOutput.pack(
-      apiUtils.transformCellOutputCodecType(fullCell.cellOutput)
+      blockchainUtils.transformCellOutputCodecType(fullCell.cellOutput)
     );
   }
   // Capacity field itself

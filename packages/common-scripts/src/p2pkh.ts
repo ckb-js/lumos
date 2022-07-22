@@ -3,14 +3,14 @@ import {
   utils,
   Hash,
   Script,
-  apiUtils,
   HexString,
+  RawTransaction,
 } from "@ckb-lumos/base";
 import {
   TransactionSkeletonType,
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 
 function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
@@ -34,10 +34,19 @@ function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
 }
 
 function calcRawTxHash(tx: TransactionSkeletonType): HexString {
+  const createdTx = createTransactionFromSkeleton(tx)
+  const rawTx: RawTransaction = {  
+    cellDeps: createdTx.cellDeps,
+    headerDeps: createdTx.headerDeps,
+    inputs: createdTx.inputs,
+    outputs: createdTx.outputs,
+    outputsData: createdTx.outputsData,
+    version: createdTx.version,
+  }
   return utils.ckbHash(
     blockchain.RawTransaction.pack(
-      apiUtils.transformRawTransactionCodecType(
-        createTransactionFromSkeleton(tx)
+      blockchainUtils.transformRawTransactionCodecType(
+        rawTx
       )
     )
   );

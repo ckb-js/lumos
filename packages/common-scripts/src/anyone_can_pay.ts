@@ -1,6 +1,5 @@
 import {
   Address,
-  apiUtils,
   Cell,
   CellCollector as BaseCellCollectorType,
   CellProvider,
@@ -13,7 +12,7 @@ import {
   values,
   WitnessArgs,
 } from "@ckb-lumos/base";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { blockchain, bytes, blockchainUtils } from "@ckb-lumos/codec";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import {
   createTransactionFromSkeleton,
@@ -451,7 +450,7 @@ export function prepareSigningEntries(
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = ckbHash(
     blockchain.RawTransaction.pack(
-      apiUtils.transformRawTransactionCodecType(tx)
+      blockchainUtils.transformRawTransactionCodecType(tx)
     )
   );
   const inputs = txSkeleton.get("inputs");

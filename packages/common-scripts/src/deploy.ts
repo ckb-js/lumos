@@ -7,9 +7,8 @@ import {
   values,
   WitnessArgs,
   Transaction,
-  apiUtils,
 } from "@ckb-lumos/base";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
 import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
@@ -293,7 +292,7 @@ function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
 
 function getTransactionSizeByTx(tx: Transaction): number {
   const serializedTx = blockchain.Transaction.pack(
-    apiUtils.transformTransactionCodecType(tx)
+    blockchainUtils.transformTransactionCodecType(tx)
   );
   // 4 is serialized offset bytesize
   const size = serializedTx.byteLength + 4;
@@ -360,7 +359,7 @@ interface ScriptConfig {
 function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = utils.ckbHash(
-    blockchain.Transaction.pack(apiUtils.transformTransactionCodecType(tx))
+    blockchain.Transaction.pack(blockchainUtils.transformTransactionCodecType(tx))
   );
   return txHash;
 }

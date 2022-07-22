@@ -15,3 +15,4 @@ export * as number from "./number";
 
 export * as molecule from "./molecule";
 export * as blockchain from "./blockchain";
+export * as blockchainUtils from "./blockchainUtils";
