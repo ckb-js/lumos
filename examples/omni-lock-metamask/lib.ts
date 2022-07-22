@@ -1,4 +1,5 @@
-import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils, commons } from "@ckb-lumos/lumos";
+import { blockchain, bytes } from '@ckb-lumos/codec';
+import { BI, Cell, config, helpers, indexer as CKBIndexer, RPC, utils, commons } from "@ckb-lumos/lumos";
 import { SerializeRcLockWitnessLock } from "./generated/omni";
 
 export const CONFIG = config.createConfig({
@@ -20,8 +21,8 @@ config.initializeConfig(CONFIG);
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
-const rpc = new RPC(CKB_RPC_URL);
-const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const rpc = new RPC.default(CKB_RPC_URL);
+const indexer = new CKBIndexer.Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
 // prettier-ignore
 interface EthereumRpc {
@@ -63,7 +64,7 @@ export async function transfer(options: Options): Promise<string> {
   const collectedCells: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });
   for await (const cell of collector.collect()) {
-    collectedSum = collectedSum.add(cell.cell_output.capacity);
+    collectedSum = collectedSum.add(cell.cellOutput.capacity);
     collectedCells.push(cell);
     if (BI.from(collectedSum).gte(neededCapacity)) break;
   }
@@ -73,7 +74,7 @@ export async function transfer(options: Options): Promise<string> {
   }
 
   const transferOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: BI.from(options.amount).toHexString(),
       lock: toScript,
     },
@@ -81,7 +82,7 @@ export async function transfer(options: Options): Promise<string> {
   };
 
   const changeOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: collectedSum.sub(neededCapacity).toHexString(),
       lock: fromScript,
     },
@@ -94,19 +95,19 @@ export async function transfer(options: Options): Promise<string> {
     cellDeps.push(
       // omni lock dep
       {
-        out_point: {
-          tx_hash: CONFIG.SCRIPTS.OMNI_LOCK.TX_HASH,
+        outPoint: {
+          txHash: CONFIG.SCRIPTS.OMNI_LOCK.TX_HASH,
           index: CONFIG.SCRIPTS.OMNI_LOCK.INDEX,
         },
-        dep_type: CONFIG.SCRIPTS.OMNI_LOCK.DEP_TYPE,
+        depType: CONFIG.SCRIPTS.OMNI_LOCK.DEP_TYPE,
       },
       // SECP256K1 lock is depended by omni lock
       {
-        out_point: {
-          tx_hash: CONFIG.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
+        outPoint: {
+          txHash: CONFIG.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
           index: CONFIG.SCRIPTS.SECP256K1_BLAKE160.INDEX,
         },
-        dep_type: CONFIG.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+        depType: CONFIG.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
       }
     )
   );
@@ -114,18 +115,16 @@ export async function transfer(options: Options): Promise<string> {
   const messageForSigning = (() => {
     const hasher = new utils.CKBHasher();
 
-    const SECP_SIGNATURE_PLACEHOLDER = new toolkit.Reader(
+    const SECP_SIGNATURE_PLACEHOLDER = (
       "0x" +
         "00".repeat(
           SerializeRcLockWitnessLock({
-            signature: new toolkit.Reader("0x" + "00".repeat(65)),
+            signature: bytes.bytify("0x" + "00".repeat(65)),
           }).byteLength
         )
     );
     const newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
-    const witness = new toolkit.Reader(
-      core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs(newWitnessArgs))
-    ).serializeJson();
+    const witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs))
 
     // fill txSkeleton's witness with 0
     for (let i = 0; i < tx.inputs.toArray().length; i++) {
@@ -133,12 +132,12 @@ export async function transfer(options: Options): Promise<string> {
     }
 
     // locks you want to sign
-    const signLock = tx.inputs.get(0)?.cell_output.lock!;
+    const signLock = tx.inputs.get(0)?.cellOutput.lock!;
 
     const messageGroup = commons.createP2PKHMessageGroup(tx, [signLock], {
       hasher: {
         update: (message) => hasher.update(message.buffer),
-        digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+        digest: () => new Uint8Array(bytes.bytify(hasher.digestHex())),
       },
     });
 
@@ -154,18 +153,16 @@ export async function transfer(options: Options): Promise<string> {
   if (v >= 27) v -= 27;
   signedMessage = "0x" + signedMessage.slice(2, -2) + v.toString(16).padStart(2, "0");
 
-  const signedWitness = new toolkit.Reader(
-    core.SerializeWitnessArgs({
-      lock: SerializeRcLockWitnessLock({
-        signature: new toolkit.Reader(signedMessage),
-      }),
-    })
-  ).serializeJson();
+  const signedWitness = bytes.hexify(blockchain.WitnessArgs.pack({
+    lock: bytes.hexify( SerializeRcLockWitnessLock({
+      signature: bytes.bytify(signedMessage),
+    })),
+  }))
 
   tx = tx.update("witnesses", (witnesses) => witnesses.set(0, signedWitness));
 
   const signedTx = helpers.createTransactionFromSkeleton(tx);
-  const txHash = await rpc.send_transaction(signedTx, "passthrough");
+  const txHash = await rpc.sendTransaction(signedTx, "passthrough");
 
   return txHash;
 }
@@ -177,7 +174,7 @@ export async function capacityOf(address: string): Promise<BI> {
 
   let balance = BI.from(0);
   for await (const cell of collector.collect()) {
-    balance = balance.add(cell.cell_output.capacity);
+    balance = balance.add(cell.cellOutput.capacity);
   }
 
   return balance;

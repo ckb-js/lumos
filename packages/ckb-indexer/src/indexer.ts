@@ -9,7 +9,6 @@ import {
   utils,
   Block,
 } from "@ckb-lumos/base";
-import { blockchain } from "@ckb-lumos/codec";
 import { instanceOfScriptWrapper, request, requestBatch } from "./services";
 import { CKBCellCollector } from "./collector";
 import { EventEmitter } from "events";

@@ -1,12 +1,6 @@
 import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
-import {
-  Hash,
-  Header,
-  HexString,
-  OutPoint,
-  Transaction,
-} from "@ckb-lumos/base";
+import { Hash, Header, HexString, OutPoint } from "@ckb-lumos/base";
 import { CKBDebugger } from "./executor";
 import { LocaleCode } from "./context";
 import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";

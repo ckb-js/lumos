@@ -18,7 +18,6 @@ import {
 import { BI } from "@ckb-lumos/bi";
 import { stub } from "sinon";
 import { CkbIndexer } from "@ckb-lumos/ckb-indexer";
-import RPC from "@ckb-lumos/rpc";
 
 const mockTxs: TransactionWithStatus[] = [
   {

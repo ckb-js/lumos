@@ -1,4 +1,5 @@
-import { BI, Cell, config, core, helpers, Indexer, RPC, toolkit, utils, commons } from "@ckb-lumos/lumos";
+import { blockchain, bytes } from '@ckb-lumos/codec';
+import { BI, Cell, config, helpers, RPC, commons, indexer as CKBIndexer } from "@ckb-lumos/lumos";
 import {
   COSESign1Builder,
   HeaderMap,
@@ -32,8 +33,8 @@ config.initializeConfig(CONFIG);
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
-const rpc = new RPC(CKB_RPC_URL);
-const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const rpc = new RPC.default(CKB_RPC_URL);
+const indexer = new CKBIndexer.Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
 export interface Cardano {
   nami: {
@@ -83,7 +84,7 @@ export async function transfer(options: Options): Promise<string> {
   const collectedCells: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });
   for await (const cell of collector.collect()) {
-    collectedSum = collectedSum.add(cell.cell_output.capacity);
+    collectedSum = collectedSum.add(cell.cellOutput.capacity);
     collectedCells.push(cell);
     if (BI.from(collectedSum).gte(neededCapacity)) break;
   }
@@ -93,7 +94,7 @@ export async function transfer(options: Options): Promise<string> {
   }
 
   const transferOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: BI.from(options.amount).toHexString(),
       lock: toScript,
     },
@@ -101,7 +102,7 @@ export async function transfer(options: Options): Promise<string> {
   };
 
   const changeOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: collectedSum.sub(neededCapacity).toHexString(),
       lock: fromScript,
     },
@@ -112,11 +113,11 @@ export async function transfer(options: Options): Promise<string> {
   tx = tx.update("outputs", (outputs) => outputs.push(transferOutput, changeOutput));
   tx = tx.update("cellDeps", (cellDeps) =>
     cellDeps.push({
-      out_point: {
-        tx_hash: CONFIG.SCRIPTS.CARDANO_LOCK.TX_HASH,
+      outPoint: {
+        txHash: CONFIG.SCRIPTS.CARDANO_LOCK.TX_HASH,
         index: CONFIG.SCRIPTS.CARDANO_LOCK.INDEX,
       },
-      dep_type: CONFIG.SCRIPTS.CARDANO_LOCK.DEP_TYPE,
+      depType: CONFIG.SCRIPTS.CARDANO_LOCK.DEP_TYPE,
     })
   );
 
@@ -132,25 +133,25 @@ export async function transfer(options: Options): Promise<string> {
   let builder = COSESign1Builder.new(headers, Buffer.from(payload, "hex"), false);
   let toSign = builder.make_data_to_sign().to_bytes();
 
-  const placeHolder = new toolkit.Reader(
+  const placeHolder = (
     "0x" +
       "00".repeat(
         SerializeCardanoWitnessLock({
-          pubkey: new toolkit.Reader("0x" + "00".repeat(32)).toArrayBuffer(),
-          signature: new toolkit.Reader("0x" + "00".repeat(64)).toArrayBuffer(),
+          pubkey: bytes.bytify("0x" + "00".repeat(32)),
+          signature: bytes.bytify("0x" + "00".repeat(64)),
           sig_structure: toSign.buffer,
         }).byteLength
       )
   );
 
-  const tmpWitnessArgs = core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs({ lock: placeHolder }));
-  const witness = new toolkit.Reader(tmpWitnessArgs).serializeJson();
+  const tmpWitnessArgs = blockchain.WitnessArgs.pack({ lock: placeHolder });
+  const witness = bytes.hexify(tmpWitnessArgs);
 
   for (let i = 0; i < tx.inputs.toArray().length; i++) {
     tx = tx.update("witnesses", (witnesses) => witnesses.push(witness));
   }
 
-  const signLock = tx.inputs.get(0)?.cell_output.lock!;
+  const signLock = tx.inputs.get(0)?.cellOutput.lock!;
   const messageGroup = commons.createP2PKHMessageGroup(tx, [signLock]);
   const messageForSigning = messageGroup[0].message.slice(2);
 
@@ -166,7 +167,7 @@ export async function transfer(options: Options): Promise<string> {
   const label = Label.new_int(Int.new_negative(BigNum.from_str("2")));
   const CBORPubkey = signedKey.header(label)!;
 
-  const signedWitnessArgs = new toolkit.Reader(
+  const signedWitnessArgs = bytes.hexify(
     SerializeCardanoWitnessLock({
       pubkey: CBORPubkey.as_bytes()!.buffer,
       signature: COSESignature.signature().buffer,
@@ -174,13 +175,11 @@ export async function transfer(options: Options): Promise<string> {
     })
   );
 
-  const signedWitness = new toolkit.Reader(
-    core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs({ lock: signedWitnessArgs }))
-  ).serializeJson();
+  const signedWitness = bytes.hexify(blockchain.WitnessArgs.pack({ lock: signedWitnessArgs }))
   tx = tx.update("witnesses", (witnesses) => witnesses.set(0, signedWitness));
 
   const signedTx = helpers.createTransactionFromSkeleton(tx);
-  const txHash = await rpc.send_transaction(signedTx, "passthrough");
+  const txHash = await rpc.sendTransaction(signedTx, "passthrough");
 
   return txHash;
 }
@@ -192,7 +191,7 @@ export async function capacityOf(address: string): Promise<BI> {
 
   let balance = BI.from(0);
   for await (const cell of collector.collect()) {
-    balance = balance.add(cell.cell_output.capacity);
+    balance = balance.add(cell.cellOutput.capacity);
   }
 
   return balance;
