@@ -21,6 +21,7 @@ import {
   parseFullFormatAddress,
 } from "./address-to-script";
 import { hexToByteArray } from "./utils";
+import { validators } from "@ckb-lumos/toolkit";
 
 const { bytify, hexify } = bytes;
 export interface Options {
@@ -267,7 +268,7 @@ export function createTransactionFromSkeleton(
     witnesses: txSkeleton.get("witnesses").toArray(),
   };
   if (validate) {
-    blockchain.Transaction.pack(apiUtils.transformTransactionCodecType(tx));
+    validators.ValidateTransaction(tx)
   }
   return tx;
 }

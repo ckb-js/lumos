@@ -12,3 +12,5 @@ export const Indexer = CkbIndexer;
 
 export { CKBIndexerTransactionCollector } from "./transaction_collector";
 export const TransactionCollector = CKBIndexerTransactionCollector;
+
+export { RPC } from "./rpc";
