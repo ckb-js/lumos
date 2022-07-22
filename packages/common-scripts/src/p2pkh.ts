@@ -34,20 +34,18 @@ function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
 }
 
 function calcRawTxHash(tx: TransactionSkeletonType): HexString {
-  const createdTx = createTransactionFromSkeleton(tx)
-  const rawTx: RawTransaction = {  
+  const createdTx = createTransactionFromSkeleton(tx);
+  const rawTx: RawTransaction = {
     cellDeps: createdTx.cellDeps,
     headerDeps: createdTx.headerDeps,
     inputs: createdTx.inputs,
     outputs: createdTx.outputs,
     outputsData: createdTx.outputsData,
     version: createdTx.version,
-  }
+  };
   return utils.ckbHash(
     blockchain.RawTransaction.pack(
-      blockchainUtils.transformRawTransactionCodecType(
-        rawTx
-      )
+      blockchainUtils.transformRawTransactionCodecType(rawTx)
     )
   );
 }

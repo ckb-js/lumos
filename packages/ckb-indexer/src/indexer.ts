@@ -28,7 +28,7 @@ import {
   OtherQueryOptions,
 } from "./type";
 import { BI } from "@ckb-lumos/bi";
-import RPC from '@ckb-lumos/rpc'
+import RPC from "@ckb-lumos/rpc";
 import { validators } from "@ckb-lumos/toolkit";
 
 const DefaultTerminator: Terminator = () => {
@@ -215,16 +215,16 @@ export class CkbIndexer implements Indexer {
       : BI.from(queries.fromBlock);
     if (queries.lock) {
       if (!instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(queries.lock)
+        validators.ValidateScript(queries.lock);
       } else if (instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(queries.lock.script)
+        validators.ValidateScript(queries.lock.script);
       }
       emitter.lock = queries.lock as Script;
     } else if (queries.type && queries.type !== "empty") {
       if (!instanceOfScriptWrapper(queries.type)) {
-        validators.ValidateScript(queries.type)
+        validators.ValidateScript(queries.type);
       } else if (instanceOfScriptWrapper(queries.type)) {
-        validators.ValidateScript(queries.type.script)
+        validators.ValidateScript(queries.type.script);
       }
       emitter.type = queries.type as Script;
     } else {

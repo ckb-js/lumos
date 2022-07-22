@@ -32,7 +32,9 @@ class ScriptValue extends Value {
 class OutPointValue extends Value {
   constructor(outPoint) {
     super(
-      blockchain.OutPoint.pack(blockchainUtils.transformOutPointCodecType(outPoint))
+      blockchain.OutPoint.pack(
+        blockchainUtils.transformOutPointCodecType(outPoint)
+      )
     );
   }
 }

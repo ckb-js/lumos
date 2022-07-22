@@ -21,7 +21,7 @@ import {
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
 import { BI, BIish } from "@ckb-lumos/bi";
-import RPC from '@ckb-lumos/rpc'
+import RPC from "@ckb-lumos/rpc";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -359,7 +359,9 @@ interface ScriptConfig {
 function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = utils.ckbHash(
-    blockchain.Transaction.pack(blockchainUtils.transformTransactionCodecType(tx))
+    blockchain.Transaction.pack(
+      blockchainUtils.transformTransactionCodecType(tx)
+    )
   );
   return txHash;
 }

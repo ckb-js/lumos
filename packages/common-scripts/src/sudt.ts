@@ -441,9 +441,7 @@ export async function transfer(
   } of cellCollectorInfos) {
     for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
-      const key = `${inputCell.outPoint!.txHash}_${
-        inputCell.outPoint!.index
-      }`;
+      const key = `${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`;
       if (previousInputs.has(key)) {
         continue;
       }

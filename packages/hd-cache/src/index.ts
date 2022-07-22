@@ -400,8 +400,7 @@ export class Cache {
       TransactionCollector,
       masterPublicKey = undefined,
       rpc = new RPC(indexer.uri),
-    }: 
-    {
+    }: {
       TransactionCollector: typeof BaseTransactionCollector;
       masterPublicKey?: HexString;
       rpc?: RPC;
@@ -555,8 +554,7 @@ export class CacheManager {
       pollIntervalSeconds = 2,
       livenessCheckIntervalSeconds = 5,
       rpc = new RPC(indexer.uri),
-    }: 
-    {
+    }: {
       TransactionCollector: typeof BaseTransactionCollector;
       logger?: (level: string, message: string) => void;
       pollIntervalSeconds?: number;

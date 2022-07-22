@@ -67,12 +67,7 @@ export function ValidateScript(
   script,
   { nestedValidation = true, debugPath = "script" } = {}
 ) {
-  assertObjectWithKeys(
-    debugPath,
-    script,
-    ["codeHash", "hashType", "args"],
-    []
-  );
+  assertObjectWithKeys(debugPath, script, ["codeHash", "hashType", "args"], []);
   assertHash(`${debugPath}.codeHash`, script.codeHash);
   assertHexString(`${debugPath}.args`, script.args);
 
@@ -204,14 +199,7 @@ export function ValidateRawTransaction(
   assertObjectWithKeys(
     debugPath,
     rawTransaction,
-    [
-      "version",
-      "cellDeps",
-      "headerDeps",
-      "inputs",
-      "outputs",
-      "outputsData",
-    ],
+    ["version", "cellDeps", "headerDeps", "inputs", "outputs", "outputsData"],
     []
   );
   assertCommonTransaction(debugPath, rawTransaction, nestedValidation);

@@ -1,7 +1,7 @@
 const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
 const { blockchain, blockchainUtils } = require("@ckb-lumos/codec");
-const RPC = require('@ckb-lumos/rpc')
+const RPC = require("@ckb-lumos/rpc");
 const {
   CKBIndexerTransactionCollector: TransactionCollector,
 } = require("@ckb-lumos/ckb-indexer");
@@ -106,7 +106,9 @@ class TransactionManager {
   }
 
   async sendTransaction(tx) {
-    blockchain.Transaction.pack(blockchainUtils.transformTransactionCodecType(tx));
+    blockchain.Transaction.pack(
+      blockchainUtils.transformTransactionCodecType(tx)
+    );
     tx.inputs.forEach((input) => {
       if (
         this.spentCells.includes(

@@ -1,16 +1,16 @@
-import { CKBComponents } from './types/api'
-import { RPC } from './types/rpc'
+import { CKBComponents } from "./types/api";
+import { RPC } from "./types/rpc";
 
 const isTxPoolIds = (rawTxPool: RPC.RawTxPool): rawTxPool is RPC.TxPoolIds => {
-  return Array.isArray(rawTxPool.pending)
-}
-
+  return Array.isArray(rawTxPool.pending);
+};
 
 /* eslint-disable camelcase */
-const toNumber = (number: RPC.BlockNumber): CKBComponents.BlockNumber => number.toString()
-const toHash = (hash: RPC.Hash256): CKBComponents.Hash256 => hash
+const toNumber = (number: RPC.BlockNumber): CKBComponents.BlockNumber =>
+  number.toString();
+const toHash = (hash: RPC.Hash256): CKBComponents.Hash256 => hash;
 const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
-  if (!header) return header
+  if (!header) return header;
   const {
     compact_target: compactTarget,
     transactions_root: transactionsRoot,
@@ -18,7 +18,7 @@ const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
     extra_hash: extraHash,
     parent_hash: parentHash,
     ...rest
-  } = header
+  } = header;
   return {
     compactTarget,
     parentHash,
@@ -26,62 +26,70 @@ const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
     proposalsHash,
     extraHash,
     ...rest,
-  }
-}
+  };
+};
 const toScript = (script: RPC.Script): CKBComponents.Script => {
-  if (!script) return script
-  const { code_hash: codeHash, hash_type: hashType, ...rest } = script
+  if (!script) return script;
+  const { code_hash: codeHash, hash_type: hashType, ...rest } = script;
   return {
     codeHash,
     hashType,
     ...rest,
-  }
-}
+  };
+};
 const toInput = (input: RPC.CellInput): CKBComponents.CellInput => {
-  if (!input) return input
-  const { previous_output: previousOutput, ...rest } = input
+  if (!input) return input;
+  const { previous_output: previousOutput, ...rest } = input;
   return {
-    previousOutput: previousOutput ? toOutPoint(previousOutput) : previousOutput,
+    previousOutput: previousOutput
+      ? toOutPoint(previousOutput)
+      : previousOutput,
     ...rest,
-  }
-}
+  };
+};
 const toOutput = (output: RPC.CellOutput): CKBComponents.CellOutput => {
-  if (!output) return output
-  const { lock, type, ...rest } = output
+  if (!output) return output;
+  const { lock, type, ...rest } = output;
   return {
     lock: toScript(lock),
     type: type ? toScript(type) : type,
     ...rest,
-  }
-}
-const toOutPoint = (outPoint: RPC.OutPoint | undefined): CKBComponents.OutPoint | undefined => {
-  if (!outPoint) return outPoint
-  const { tx_hash: txHash, ...rest } = outPoint
+  };
+};
+const toOutPoint = (
+  outPoint: RPC.OutPoint | undefined
+): CKBComponents.OutPoint | undefined => {
+  if (!outPoint) return outPoint;
+  const { tx_hash: txHash, ...rest } = outPoint;
   return {
     txHash,
     ...rest,
-  }
-}
+  };
+};
 const toDepType = (type: RPC.DepType) => {
-  if (type === 'dep_group') {
-    return 'depGroup'
+  if (type === "dep_group") {
+    return "depGroup";
   }
-  return type
-}
+  return type;
+};
 
 const toCellDep = (cellDep: RPC.CellDep): CKBComponents.CellDep => {
-  if (!cellDep) return cellDep
-  const { out_point: outPoint = undefined, dep_type = 'code', ...rest } = cellDep
+  if (!cellDep) return cellDep;
+  const {
+    out_point: outPoint = undefined,
+    dep_type = "code",
+    ...rest
+  } = cellDep;
   return {
     outPoint: toOutPoint(outPoint),
     depType: toDepType(dep_type),
     ...rest,
-  }
-}
-function toTransaction(tx: RPC.RawTransaction): CKBComponents.RawTransaction
-function toTransaction(tx: RPC.Transaction): CKBComponents.Transaction
+  };
+};
+function toTransaction(tx: RPC.RawTransaction): CKBComponents.RawTransaction;
+function toTransaction(tx: RPC.Transaction): CKBComponents.Transaction;
 function toTransaction(tx: RPC.RawTransaction | RPC.Transaction): any {
-  if (!tx) return tx
+  if (!tx) return tx;
   const {
     cell_deps: cellDeps = [],
     inputs = [],
@@ -89,7 +97,7 @@ function toTransaction(tx: RPC.RawTransaction | RPC.Transaction): any {
     outputs_data: outputsData = [],
     header_deps: headerDeps = [],
     ...rest
-  } = tx
+  } = tx;
   return {
     cellDeps: cellDeps.map(toCellDep),
     inputs: inputs.map(toInput),
@@ -97,56 +105,75 @@ function toTransaction(tx: RPC.RawTransaction | RPC.Transaction): any {
     outputsData,
     headerDeps,
     ...rest,
-  }
+  };
 }
 const toUncleBlock = (uncleBlock: RPC.UncleBlock): CKBComponents.UncleBlock => {
-  if (!uncleBlock) return uncleBlock
-  const { header, ...rest } = uncleBlock
+  if (!uncleBlock) return uncleBlock;
+  const { header, ...rest } = uncleBlock;
   return {
     header: toHeader(header),
     ...rest,
-  }
-}
+  };
+};
 
 const toBlock = (block: RPC.Block): CKBComponents.Block => {
-  if (!block) return block
-  const { header, uncles = [], transactions = [], ...rest } = block
+  if (!block) return block;
+  const { header, uncles = [], transactions = [], ...rest } = block;
   return {
     header: toHeader(header),
     uncles: uncles.map(toUncleBlock),
     transactions: transactions.map(toTransaction),
     ...rest,
-  }
-}
-const toAlertMessage = (alertMessage: RPC.AlertMessage): CKBComponents.AlertMessage => {
-  if (!alertMessage) return alertMessage
-  const { notice_until: noticeUntil, ...rest } = alertMessage
+  };
+};
+const toAlertMessage = (
+  alertMessage: RPC.AlertMessage
+): CKBComponents.AlertMessage => {
+  if (!alertMessage) return alertMessage;
+  const { notice_until: noticeUntil, ...rest } = alertMessage;
   return {
     noticeUntil,
     ...rest,
-  }
-}
-const toBlockchainInfo = (info: RPC.BlockchainInfo): CKBComponents.BlockchainInfo => {
-  if (!info) return info
-  const { is_initial_block_download: isInitialBlockDownload, median_time: medianTime, alerts, ...rest } = info
+  };
+};
+const toBlockchainInfo = (
+  info: RPC.BlockchainInfo
+): CKBComponents.BlockchainInfo => {
+  if (!info) return info;
+  const {
+    is_initial_block_download: isInitialBlockDownload,
+    median_time: medianTime,
+    alerts,
+    ...rest
+  } = info;
   return {
     isInitialBlockDownload,
     medianTime,
     alerts: alerts.map(toAlertMessage),
     ...rest,
-  }
-}
-const toLocalNodeInfo = (info: RPC.LocalNodeInfo): CKBComponents.LocalNodeInfo => {
-  if (!info) return info
-  const { node_id: nodeId, protocols, ...rest } = info
+  };
+};
+const toLocalNodeInfo = (
+  info: RPC.LocalNodeInfo
+): CKBComponents.LocalNodeInfo => {
+  if (!info) return info;
+  const { node_id: nodeId, protocols, ...rest } = info;
   return {
     nodeId,
-    protocols: protocols.map(({ id, name, support_versions: supportVersions }) => ({ id, name, supportVersions })),
+    protocols: protocols.map(
+      ({ id, name, support_versions: supportVersions }) => ({
+        id,
+        name,
+        supportVersions,
+      })
+    ),
     ...rest,
-  }
-}
-const toRemoteNodeInfo = (info: RPC.RemoteNodeInfo): CKBComponents.RemoteNodeInfo => {
-  if (!info) return info
+  };
+};
+const toRemoteNodeInfo = (
+  info: RPC.RemoteNodeInfo
+): CKBComponents.RemoteNodeInfo => {
+  if (!info) return info;
   const {
     node_id: nodeId,
     connected_duration: connectedDuration,
@@ -154,7 +181,7 @@ const toRemoteNodeInfo = (info: RPC.RemoteNodeInfo): CKBComponents.RemoteNodeInf
     last_ping_duration: lastPingDuration,
     sync_state,
     ...rest
-  } = info
+  } = info;
   return {
     nodeId,
     connectedDuration,
@@ -170,10 +197,10 @@ const toRemoteNodeInfo = (info: RPC.RemoteNodeInfo): CKBComponents.RemoteNodeInf
       unknownHeaderListSize: sync_state.unknown_header_list_size,
     },
     ...rest,
-  }
-}
+  };
+};
 const toTxPoolInfo = (info: RPC.TxPoolInfo): CKBComponents.TxPoolInfo => {
-  if (!info) return info
+  if (!info) return info;
   const {
     last_txs_updated_at: lastTxsUpdatedAt,
     tip_hash: tipHash,
@@ -182,7 +209,7 @@ const toTxPoolInfo = (info: RPC.TxPoolInfo): CKBComponents.TxPoolInfo => {
     total_tx_size: totalTxSize,
     min_fee_rate: minFeeRate,
     ...rest
-  } = info
+  } = info;
   return {
     lastTxsUpdatedAt,
     tipHash,
@@ -191,67 +218,77 @@ const toTxPoolInfo = (info: RPC.TxPoolInfo): CKBComponents.TxPoolInfo => {
     totalTxSize,
     minFeeRate,
     ...rest,
-  }
-}
-const toPeers = (nodes: RPC.RemoteNodeInfo[]): CKBComponents.RemoteNodeInfo[] => {
-  if (!Array.isArray(nodes)) return []
-  return nodes.map(toRemoteNodeInfo)
-}
+  };
+};
+const toPeers = (
+  nodes: RPC.RemoteNodeInfo[]
+): CKBComponents.RemoteNodeInfo[] => {
+  if (!Array.isArray(nodes)) return [];
+  return nodes.map(toRemoteNodeInfo);
+};
 const toCell = (cell: RPC.Cell): CKBComponents.Cell => {
-  if (!cell) return cell
-  const { lock, type, ...rest } = cell
+  if (!cell) return cell;
+  const { lock, type, ...rest } = cell;
   return {
     lock: toScript(lock),
     type: type ? toScript(type) : undefined,
     ...rest,
-  }
-}
+  };
+};
 const toLiveCell = (liveCell: RPC.LiveCell): CKBComponents.LiveCell => {
-  if (!liveCell) return liveCell
-  const { data, output, ...rest } = liveCell
+  if (!liveCell) return liveCell;
+  const { data, output, ...rest } = liveCell;
   return {
     data,
     output: toOutput(output),
     ...rest,
-  }
-}
+  };
+};
 const toLiveCellWithStatus = (cellWithStatus: {
-  cell: RPC.LiveCell
-  status: string
+  cell: RPC.LiveCell;
+  status: string;
 }): { cell: CKBComponents.LiveCell; status: string } => {
-  if (!cellWithStatus) return cellWithStatus
-  const { cell, ...rest } = cellWithStatus
+  if (!cellWithStatus) return cellWithStatus;
+  const { cell, ...rest } = cellWithStatus;
   return {
     cell: toLiveCell(cell),
     ...rest,
-  }
-}
+  };
+};
 const toCells = (cells: RPC.Cell[]): CKBComponents.Cell[] => {
-  if (!Array.isArray(cells)) return []
-  return cells.map(toCell)
-}
+  if (!Array.isArray(cells)) return [];
+  return cells.map(toCell);
+};
 const toCellIncludingOutPoint = (cell: RPC.CellIncludingOutPoint) => {
-  if (!cell) return cell
-  const { lock, block_hash: blockHash, out_point, output_data_len: outputDataLen, ...rest } = cell
+  if (!cell) return cell;
+  const {
+    lock,
+    block_hash: blockHash,
+    out_point,
+    output_data_len: outputDataLen,
+    ...rest
+  } = cell;
   return {
     blockHash,
     lock: toScript(lock),
     outPoint: toOutPoint(out_point),
     outputDataLen,
     ...rest,
-  }
-}
-const toCellsIncludingOutPoint = (cells: RPC.CellIncludingOutPoint[]): CKBComponents.CellIncludingOutPoint[] => {
-  if (!Array.isArray(cells)) return []
-  return cells.map(toCellIncludingOutPoint)
-}
+  };
+};
+const toCellsIncludingOutPoint = (
+  cells: RPC.CellIncludingOutPoint[]
+): CKBComponents.CellIncludingOutPoint[] => {
+  if (!Array.isArray(cells)) return [];
+  return cells.map(toCellIncludingOutPoint);
+};
 const toTransactionWithStatus = (txWithStatus: RPC.TransactionWithStatus) => {
-  if (!txWithStatus) return txWithStatus
+  if (!txWithStatus) return txWithStatus;
   const {
     transaction,
     tx_status: { block_hash: blockHash, status },
     ...rest
-  } = txWithStatus
+  } = txWithStatus;
   return {
     transaction: toTransaction(transaction),
     txStatus: {
@@ -259,119 +296,167 @@ const toTransactionWithStatus = (txWithStatus: RPC.TransactionWithStatus) => {
       status,
     },
     ...rest,
-  }
-}
+  };
+};
 const toEpoch = (epoch: RPC.Epoch): CKBComponents.Epoch => {
-  if (!epoch) return epoch
-  const { start_number: startNumber, compact_target: compactTarget, ...rest } = epoch
+  if (!epoch) return epoch;
+  const {
+    start_number: startNumber,
+    compact_target: compactTarget,
+    ...rest
+  } = epoch;
   return {
     compactTarget,
     startNumber,
     ...rest,
-  }
-}
-const toTransactionPoint = (transactionPoint: RPC.TransactionPoint): CKBComponents.TransactionPoint => {
-  if (!transactionPoint) return transactionPoint
-  const { block_number: blockNumber, tx_hash: txHash, ...rest } = transactionPoint
+  };
+};
+const toTransactionPoint = (
+  transactionPoint: RPC.TransactionPoint
+): CKBComponents.TransactionPoint => {
+  if (!transactionPoint) return transactionPoint;
+  const {
+    block_number: blockNumber,
+    tx_hash: txHash,
+    ...rest
+  } = transactionPoint;
   return {
     blockNumber,
     txHash,
     ...rest,
-  }
-}
-const toTransactionsByLockHash = (transactions: RPC.TransactionsByLockHash): CKBComponents.TransactionsByLockHash => {
-  if (!transactions) return transactions
-  return transactions.map(tx => ({
-    consumedBy: tx.consumed_by ? toTransactionPoint(tx.consumed_by) : tx.consumed_by,
+  };
+};
+const toTransactionsByLockHash = (
+  transactions: RPC.TransactionsByLockHash
+): CKBComponents.TransactionsByLockHash => {
+  if (!transactions) return transactions;
+  return transactions.map((tx) => ({
+    consumedBy: tx.consumed_by
+      ? toTransactionPoint(tx.consumed_by)
+      : tx.consumed_by,
     createdBy: toTransactionPoint(tx.created_by),
-  }))
-}
-const toLiveCellsByLockHash = (cells: RPC.LiveCellsByLockHash): CKBComponents.LiveCellsByLockHash => {
-  if (!cells) return cells
-  return cells.map(cell => ({
+  }));
+};
+const toLiveCellsByLockHash = (
+  cells: RPC.LiveCellsByLockHash
+): CKBComponents.LiveCellsByLockHash => {
+  if (!cells) return cells;
+  return cells.map((cell) => ({
     cellOutput: toCell(cell.cell_output),
     createdBy: toTransactionPoint(cell.created_by),
     cellbase: cell.cellbase,
     outputDataLen: cell.output_data_len,
-  }))
-}
-const toLockHashIndexState = (index: RPC.LockHashIndexState): CKBComponents.LockHashIndexState => {
-  if (!index) return index
-  const { block_hash: blockHash, block_number: blockNumber, lock_hash: lockHash, ...rest } = index
+  }));
+};
+const toLockHashIndexState = (
+  index: RPC.LockHashIndexState
+): CKBComponents.LockHashIndexState => {
+  if (!index) return index;
+  const {
+    block_hash: blockHash,
+    block_number: blockNumber,
+    lock_hash: lockHash,
+    ...rest
+  } = index;
   return {
     blockHash,
     blockNumber,
     lockHash,
     ...rest,
-  }
-}
-const toLockHashIndexStates = (states: RPC.LockHashIndexStates): CKBComponents.LockHashIndexStates => {
-  if (!states) return states
-  return states.map(toLockHashIndexState)
-}
-const toBannedAddress = (bannedAddress: RPC.BannedAddress): CKBComponents.BannedAddress => {
-  if (!bannedAddress) return bannedAddress
-  const { ban_reason: banReason, ban_until: banUntil, created_at: createdAt, ...rest } = bannedAddress
+  };
+};
+const toLockHashIndexStates = (
+  states: RPC.LockHashIndexStates
+): CKBComponents.LockHashIndexStates => {
+  if (!states) return states;
+  return states.map(toLockHashIndexState);
+};
+const toBannedAddress = (
+  bannedAddress: RPC.BannedAddress
+): CKBComponents.BannedAddress => {
+  if (!bannedAddress) return bannedAddress;
+  const {
+    ban_reason: banReason,
+    ban_until: banUntil,
+    created_at: createdAt,
+    ...rest
+  } = bannedAddress;
   return {
     banReason,
     banUntil,
     createdAt,
     ...rest,
-  }
-}
-const toBannedAddresses = (bannedAddresses: RPC.BannedAddresses): CKBComponents.BannedAddresses => {
-  if (!bannedAddresses) return bannedAddresses
-  return bannedAddresses.map(banAddr => toBannedAddress(banAddr))
-}
+  };
+};
+const toBannedAddresses = (
+  bannedAddresses: RPC.BannedAddresses
+): CKBComponents.BannedAddresses => {
+  if (!bannedAddresses) return bannedAddresses;
+  return bannedAddresses.map((banAddr) => toBannedAddress(banAddr));
+};
 const toCellbaseOutputCapacityDetails = (
-  details: RPC.CellbaseOutputCapacityDetails,
+  details: RPC.CellbaseOutputCapacityDetails
 ): CKBComponents.CellbaseOutputCapacityDetails => {
-  if (!details) return details
-  const { proposal_reward: proposalReward, tx_fee: txFee, ...rest } = details
+  if (!details) return details;
+  const { proposal_reward: proposalReward, tx_fee: txFee, ...rest } = details;
   return {
     proposalReward,
     txFee,
     ...rest,
-  }
-}
+  };
+};
 
 const toFeeRate = (feeRateObj: RPC.FeeRate): CKBComponents.FeeRate => {
   if (!feeRateObj) {
-    return feeRateObj
+    return feeRateObj;
   }
-  const { fee_rate: feeRate, ...rest } = feeRateObj
+  const { fee_rate: feeRate, ...rest } = feeRateObj;
   return {
     feeRate,
     ...rest,
-  }
-}
-const toCapacityByLockHash = (capacityByLockHash: RPC.CapacityByLockHash): CKBComponents.CapacityByLockHash => {
+  };
+};
+const toCapacityByLockHash = (
+  capacityByLockHash: RPC.CapacityByLockHash
+): CKBComponents.CapacityByLockHash => {
   if (!capacityByLockHash) {
-    return capacityByLockHash
+    return capacityByLockHash;
   }
-  const { cells_count: cellsCount, block_number: blockNumber, capacity, ...rest } = capacityByLockHash
+  const {
+    cells_count: cellsCount,
+    block_number: blockNumber,
+    capacity,
+    ...rest
+  } = capacityByLockHash;
   return {
     blockNumber,
     capacity,
     cellsCount,
     ...rest,
-  }
-}
-const toBlockEconomicState = (blockEconomicState: RPC.BlockEconomicState): CKBComponents.BlockEconomicState => {
+  };
+};
+const toBlockEconomicState = (
+  blockEconomicState: RPC.BlockEconomicState
+): CKBComponents.BlockEconomicState => {
   if (!blockEconomicState) {
-    return blockEconomicState
+    return blockEconomicState;
   }
-  const { finalized_at: finalizedAt, miner_reward: minerReward, txs_fee: txsFee, ...rest } = blockEconomicState
+  const {
+    finalized_at: finalizedAt,
+    miner_reward: minerReward,
+    txs_fee: txsFee,
+    ...rest
+  } = blockEconomicState;
   return {
     finalizedAt,
     minerReward,
     txsFee,
     ...rest,
-  }
-}
+  };
+};
 const toSyncState = (state: RPC.SyncState): CKBComponents.SyncState => {
   if (!state) {
-    return state
+    return state;
   }
   return {
     bestKnownBlockNumber: state.best_known_block_number,
@@ -382,21 +467,27 @@ const toSyncState = (state: RPC.SyncState): CKBComponents.SyncState => {
     lowTime: state.low_time,
     normalTime: state.normal_time,
     orphanBlocksCount: state.orphan_blocks_count,
-  }
-}
-const toTransactionProof = (proof: RPC.TransactionProof): CKBComponents.TransactionProof => {
+  };
+};
+const toTransactionProof = (
+  proof: RPC.TransactionProof
+): CKBComponents.TransactionProof => {
   if (!proof) {
-    return proof
+    return proof;
   }
-  const { block_hash: blockHash, witnesses_root: witnessesRoot, ...rest } = proof
+  const {
+    block_hash: blockHash,
+    witnesses_root: witnessesRoot,
+    ...rest
+  } = proof;
   return {
     blockHash,
     witnessesRoot,
     ...rest,
-  }
-}
+  };
+};
 const toConsensus = (consensus: RPC.Consensus): CKBComponents.Consensus => {
-  if (!consensus) return consensus
+  if (!consensus) return consensus;
   return {
     blockVersion: consensus.block_version,
     cellbaseMaturity: consensus.cellbase_maturity,
@@ -412,25 +503,29 @@ const toConsensus = (consensus: RPC.Consensus): CKBComponents.Consensus => {
     medianTimeBlockCount: consensus.median_time_block_count,
     orphanRateTarget: consensus.orphan_rate_target,
     permanentDifficultyInDummy: consensus.permanent_difficulty_in_dummy,
-    primaryEpochRewardHalvingInterval: consensus.primary_epoch_reward_halving_interval,
+    primaryEpochRewardHalvingInterval:
+      consensus.primary_epoch_reward_halving_interval,
     proposerRewardRatio: consensus.proposer_reward_ratio,
     secondaryEpochReward: consensus.secondary_epoch_reward,
-    secp256k1Blake160MultisigAllTypeHash: consensus.secp256k1_blake160_multisig_all_type_hash,
-    secp256k1Blake160SighashAllTypeHash: consensus.secp256k1_blake160_sighash_all_type_hash,
+    secp256k1Blake160MultisigAllTypeHash:
+      consensus.secp256k1_blake160_multisig_all_type_hash,
+    secp256k1Blake160SighashAllTypeHash:
+      consensus.secp256k1_blake160_sighash_all_type_hash,
     txProposalWindow: consensus.tx_proposal_window,
     txVersion: consensus.tx_version,
     typeIdCodeHash: consensus.type_id_code_hash,
     hardforkFeatures:
-      consensus.hardfork_features?.map(({ epoch_number: epochNumber, ...rest }) => ({ epochNumber, ...rest })) ??
-      consensus.hardfork_features,
-  }
-}
+      consensus.hardfork_features?.map(
+        ({ epoch_number: epochNumber, ...rest }) => ({ epochNumber, ...rest })
+      ) ?? consensus.hardfork_features,
+  };
+};
 
 const toRawTxPool = (rawTxPool: RPC.RawTxPool): CKBComponents.RawTxPool => {
-  if (!rawTxPool) return rawTxPool
+  if (!rawTxPool) return rawTxPool;
 
   if (isTxPoolIds(rawTxPool)) {
-    return rawTxPool
+    return rawTxPool;
   }
 
   const toTxVerbosity = ({
@@ -443,22 +538,20 @@ const toRawTxPool = (rawTxPool: RPC.RawTxPool): CKBComponents.RawTxPool => {
     ancestorsCycles,
     ancestorsSize,
     ...rest,
-  })
-  const proposed: Record<CKBComponents.Hash256, CKBComponents.TxVerbosity> = {}
-  const pending: Record<CKBComponents.Hash256, CKBComponents.TxVerbosity> = {}
+  });
+  const proposed: Record<CKBComponents.Hash256, CKBComponents.TxVerbosity> = {};
+  const pending: Record<CKBComponents.Hash256, CKBComponents.TxVerbosity> = {};
 
-  Object.keys(rawTxPool.proposed).forEach(hash => {
-    proposed[hash] = toTxVerbosity(rawTxPool.proposed[hash])
-  })
+  Object.keys(rawTxPool.proposed).forEach((hash) => {
+    proposed[hash] = toTxVerbosity(rawTxPool.proposed[hash]);
+  });
 
-  Object.keys(rawTxPool.pending).forEach(hash => {
-    pending[hash] = toTxVerbosity(rawTxPool.pending[hash])
-  })
+  Object.keys(rawTxPool.pending).forEach((hash) => {
+    pending[hash] = toTxVerbosity(rawTxPool.pending[hash]);
+  });
 
-  return { proposed, pending }
-}
-
-
+  return { proposed, pending };
+};
 
 export default {
   toNumber,
@@ -502,5 +595,5 @@ export default {
   toTransactionProof,
   toConsensus,
   toRawTxPool,
-}
+};
 /* eslint-enable camelcase */

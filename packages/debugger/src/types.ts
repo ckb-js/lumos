@@ -26,7 +26,12 @@ export interface DataLoader {
 
 export interface DebuggerData {
   mock_info: {
-    inputs: { input: RPC.CellInput; output: RPC.CellOutput; data: HexString; header?: Hash }[];
+    inputs: {
+      input: RPC.CellInput;
+      output: RPC.CellOutput;
+      data: HexString;
+      header?: Hash;
+    }[];
     cell_deps: {
       cell_dep: RPC.CellDep;
       output: RPC.CellOutput;

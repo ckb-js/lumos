@@ -203,9 +203,7 @@ class MockTransactionCollector extends BaseIndexerModule.TransactionCollector {
   }
 }
 
-stub(rpc, "getHeader").callsFake(async function (
-  blockHash: string
-) {
+stub(rpc, "getHeader").callsFake(async function (blockHash: string) {
   return { ...headerData, ...{ hash: blockHash } };
 });
 const tipStub = stub(indexer, "tip");

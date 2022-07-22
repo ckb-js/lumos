@@ -643,8 +643,7 @@ function _deductCapacityCompatible(
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.filter(
       (output) =>
-        BI.from(output.cellOutput.capacity).toString() !==
-        BI.from(0).toString()
+        BI.from(output.cellOutput.capacity).toString() !== BI.from(0).toString()
     );
   });
 
@@ -732,8 +731,7 @@ async function collectInputCompatible(
         outputCapacity = lastOutputCapacity.sub(_needCapacity);
         availableCapacity = _needCapacity;
       }
-      clonedLastOutput.cellOutput.capacity =
-        "0x" + outputCapacity.toString(16);
+      clonedLastOutput.cellOutput.capacity = "0x" + outputCapacity.toString(16);
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.update(lastOutputIndex, () => clonedLastOutput);
       });

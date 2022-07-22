@@ -275,9 +275,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     ) => {
       const result: IndexerTransaction[] = [];
       transactionList1.forEach((tx1) => {
-        const tx2 = transactionList2.find(
-          (item) => item.txHash === tx1.txHash
-        );
+        const tx2 = transactionList2.find((item) => item.txHash === tx1.txHash);
         if (tx2) {
           // put the output io_type to intersection result, cause output have cells
           const targetTx = tx1.io_type === "output" ? tx1 : tx2;

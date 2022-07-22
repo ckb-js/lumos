@@ -35,7 +35,9 @@ export function createCKBMockRPC(options: Options): Express {
     if (!block) return null;
 
     if (Number(verbosity) === 0)
-      return bytes.hexify(blockchain.Block.pack(blockchainUtils.transformBlockCodecType(block)))
+      return bytes.hexify(
+        blockchain.Block.pack(blockchainUtils.transformBlockCodecType(block))
+      );
 
     return block;
   });

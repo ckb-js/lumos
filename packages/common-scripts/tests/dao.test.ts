@@ -312,10 +312,7 @@ test("withdraw multisig", async (t) => {
     txSkeleton.get("outputs").get(0)!.cellOutput.capacity
   );
   t.is(txSkeleton.get("headerDeps").size, 1);
-  t.is(
-    txSkeleton.get("headerDeps").get(0)!,
-    bobMultisigDaoInputs[0].blockHash
-  );
+  t.is(txSkeleton.get("headerDeps").get(0)!, bobMultisigDaoInputs[0].blockHash);
   t.deepEqual(
     txSkeleton.get("outputs").get(0)!.cellOutput.type,
     generateDaoTypeScript(AGGRON4)
@@ -499,7 +496,7 @@ test("unlock", async (t) => {
     bob.testnetAddress,
     {
       config: AGGRON4,
-      RpcClient: RpcMocker as any
+      RpcClient: RpcMocker as any,
     }
   );
 

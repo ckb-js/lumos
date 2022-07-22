@@ -1,9 +1,9 @@
-import resultFmts from '../resultFormatter'
+import resultFmts from "../resultFormatter";
 
 export default {
   getBlockchainInfo: {
-    method: 'get_blockchain_info',
+    method: "get_blockchain_info",
     paramsFormatters: [],
     resultFormatters: resultFmts.toBlockchainInfo,
   },
-}
+};

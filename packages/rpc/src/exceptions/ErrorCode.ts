@@ -6,4 +6,4 @@ export enum ErrorCode {
   ResponseMessage = 204,
 }
 
-export default ErrorCode
+export default ErrorCode;

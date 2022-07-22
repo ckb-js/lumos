@@ -24,10 +24,10 @@ class TransactionCollector {
     }
     // Wrap the plain `Script` into `ScriptWrapper`.
     if (lock && !lock.script) {
-      validators.ValidateScript(lock)
+      validators.ValidateScript(lock);
       this.lock = { script: lock, ioType: "both", argsLen: argsLen };
     } else if (lock && lock.script) {
-      validators.ValidateScript(lock.script)
+      validators.ValidateScript(lock.script);
       this.lock = lock;
       // check ioType, argsLen
       if (!lock.argsLen) {

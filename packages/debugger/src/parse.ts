@@ -6,7 +6,7 @@ import {
 import { CellDep, HexString } from "@ckb-lumos/base";
 import { bytify } from "@ckb-lumos/codec/lib/bytes";
 import { OutPointVec } from "./codecs";
-import { ParamsFormatter } from '@ckb-lumos/rpc'
+import { ParamsFormatter } from "@ckb-lumos/rpc";
 import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
 
 export function parseDebuggerMessage(
@@ -44,10 +44,15 @@ function resolveCellDeps(
   if (cellDep.depType === "depGroup") {
     const outPoints = OutPointVec.unpack(bytify(cellData));
 
-    return [{ data: cellData, cell_dep: ParamsFormatter.toCellDep(cellDep) }].concat(
+    return [
+      { data: cellData, cell_dep: ParamsFormatter.toCellDep(cellDep) },
+    ].concat(
       outPoints.map((outPoint) => {
         return {
-          cell_dep: { dep_type: "code", out_point: ParamsFormatter.toOutPoint(outPoint) },
+          cell_dep: {
+            dep_type: "code",
+            out_point: ParamsFormatter.toOutPoint(outPoint),
+          },
           data: loader.getCellData(outPoint),
         };
       })
@@ -94,14 +99,14 @@ export function parseDebuggerData(
       header_deps: [],
     },
     tx: {
-      "version": tx.version,
-      "cell_deps": tx.cellDeps.map(ParamsFormatter.toCellDep),
+      version: tx.version,
+      cell_deps: tx.cellDeps.map(ParamsFormatter.toCellDep),
       // TODO unimplemented
-      "header_deps": [],
-      "inputs": tx.inputs.map(ParamsFormatter.toInput),
-      "outputs": tx.outputs.map(ParamsFormatter.toOutput),
-      "witnesses": tx.witnesses,
-      "outputs_data": tx.outputsData
+      header_deps: [],
+      inputs: tx.inputs.map(ParamsFormatter.toInput),
+      outputs: tx.outputs.map(ParamsFormatter.toOutput),
+      witnesses: tx.witnesses,
+      outputs_data: tx.outputsData,
     },
   };
 }

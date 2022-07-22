@@ -49,7 +49,7 @@ import { secp256k1Blake160Multisig } from ".";
 import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { CellCollectorConstructor } from "./type";
-import RPC from '@ckb-lumos/rpc'
+import RPC from "@ckb-lumos/rpc";
 
 export interface LocktimeCell extends Cell {
   since: PackedSince;
@@ -75,8 +75,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
       queryOptions = {},
       tipHeader = undefined,
       NodeRPC = RPC,
-    }: 
-    Options & {
+    }: Options & {
       queryOptions?: QueryOptions;
       tipHeader?: Header;
       NodeRPC?: typeof RPC;
@@ -207,9 +206,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
           depositBlockHash = (await this.rpc.getTransaction(
             depositOutPoint!.txHash
           ))!.txStatus.blockHash!;
-          const depositBlockHeader = await this.rpc.getHeader(
-            depositBlockHash
-          );
+          const depositBlockHeader = await this.rpc.getHeader(depositBlockHash);
           const withdrawBlockHeader = await this.rpc.getHeader(
             withdrawBlockHash!
           );
@@ -825,9 +822,7 @@ async function injectCapacityWithoutChangeCompatible(
 
           const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
           const witnessArgs = {
-            inputType: toBigUInt64LE(
-              BI.from(depositHeaderDepIndex).toString()
-            ),
+            inputType: toBigUInt64LE(BI.from(depositHeaderDepIndex).toString()),
           };
           witness = bytes.hexify(blockchain.WitnessArgs.pack(witnessArgs));
         }

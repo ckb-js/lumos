@@ -267,7 +267,7 @@ export function createTransactionFromSkeleton(
     witnesses: txSkeleton.get("witnesses").toArray(),
   };
   if (validate) {
-    validators.ValidateTransaction(tx)
+    validators.ValidateTransaction(tx);
   }
   return tx;
 }
