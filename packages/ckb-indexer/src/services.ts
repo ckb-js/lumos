@@ -124,7 +124,6 @@ const request = async (
 };
 /* eslint-enalbe @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 
-
 export {
   generateSearchKey,
   getHexStringBytes,
