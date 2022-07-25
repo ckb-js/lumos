@@ -1,4 +1,5 @@
 import {
+  HashType,
   HexString,
   Script,
   Cell,
@@ -57,7 +58,7 @@ interface LockScriptInfo {
 
 export interface LockScriptMappingInfo {
   codeHash: HexString;
-  hashType: "data" | "type";
+  hashType: HashType;
   publicKeyToArgs: (publicKey: HexString) => HexString;
 }
 

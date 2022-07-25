@@ -1,3 +1,4 @@
 import { startCKBIndexer } from "@ckb-lumos/testkit";
+import { Indexer } from "../src";
 
-startCKBIndexer("0.3.2");
+startCKBIndexer(Indexer.version);

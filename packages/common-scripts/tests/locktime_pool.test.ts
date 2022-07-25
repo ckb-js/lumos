@@ -191,7 +191,7 @@ const tipHeader: Header = {
   timestamp: "0x172b772235e",
   transactionsRoot:
     "0xb8b4cee50a21a4c494d8eb4e34f6232fa72129fa9d7a2e4b09417ae224a43ebd",
-  unclesHash:
+  extra_hash:
     "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };
@@ -494,7 +494,7 @@ const depositHeader = {
   timestamp: "0x17293289266",
   transactionsRoot:
     "0x9294a800ec389d1b0d9e7c570c249da260a44cc2790bd4aa250f3d5c83eb8cde",
-  unclesHash:
+  extra_hash:
     "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };
@@ -512,7 +512,7 @@ const withdrawHeader = {
   timestamp: "0x1729cdd69c9",
   transactionsRoot:
     "0x467d72af12af6cb122985f9838bfc47073bba30cc37a4075aef54b0f0768f384",
-  unclesHash:
+  extra_hash:
     "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };

@@ -8,7 +8,7 @@ const SECP256K1_SIGNATURE_LENGTH = 65;
 
 test("secp256k1 witness args", (t) => {
   const unsigned = WitnessArgs.pack({
-    lock: hexify(Buffer.alloc(SECP256K1_SIGNATURE_LENGTH)),
+    lock: Buffer.alloc(SECP256K1_SIGNATURE_LENGTH),
   });
 
   t.deepEqual(
@@ -16,6 +16,17 @@ test("secp256k1 witness args", (t) => {
     bytify(
       "0x55000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
     )
+  );
+
+  t.deepEqual(
+    WitnessArgs.unpack(
+      "0x55000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    ),
+    {
+      lock: hexify(Buffer.alloc(SECP256K1_SIGNATURE_LENGTH)),
+      input_type: undefined,
+      output_type: undefined,
+    }
   );
 
   const signature = bytify(randomBytes(SECP256K1_SIGNATURE_LENGTH));

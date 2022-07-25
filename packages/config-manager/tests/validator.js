@@ -34,4 +34,8 @@ test("invalidate config", (t) => {
       },
     });
   });
+
+  t.throws(() => {
+    validateConfig(null);
+  });
 });

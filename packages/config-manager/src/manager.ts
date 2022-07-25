@@ -25,21 +25,20 @@ function assertInteger(debugPath: string, i: string) {
   }
 }
 
-function nonNullable(
-  condition: unknown,
-  debugPath = "variable"
-): asserts condition {
-  if (!condition) throw new Error(`${debugPath} cannot be nil`);
+function assert(condition: unknown, debugPath = "variable"): asserts condition {
+  if (!condition) throw new Error(`${debugPath} is not valid`);
 }
 
 export function validateConfig(config: Config): void {
-  if (typeof config.SCRIPTS !== "object" || config.SCRIPTS == null)
-    throw new Error();
+  assert(
+    typeof config.SCRIPTS === "object" && config.SCRIPTS != null,
+    "config.SCRIPT"
+  );
 
   for (const scriptName of Object.keys(config.SCRIPTS)) {
     const scriptConfig = config.SCRIPTS[scriptName];
 
-    nonNullable(scriptConfig?.CODE_HASH);
+    assert(scriptConfig?.CODE_HASH);
 
     assertHash(`SCRIPTS.${scriptName}.CODE_HASH`, scriptConfig.CODE_HASH);
     const hashType = scriptConfig.HASH_TYPE;

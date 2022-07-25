@@ -184,7 +184,7 @@ const tipHeader: Header = {
   timestamp: "0x172b772235e",
   transactionsRoot:
     "0xb8b4cee50a21a4c494d8eb4e34f6232fa72129fa9d7a2e4b09417ae224a43ebd",
-  unclesHash:
+  extra_hash:
     "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };

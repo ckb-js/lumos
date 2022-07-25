@@ -1,11 +1,11 @@
 module.exports = {
   mode: "modules",
-  out: "docusaurus/website/static/api",
+  out: "website/static/api",
   exclude: [
     "**/node_modules/**",
     "**/tests/**/*",
     "**/examples/**/*",
-    "**/docusaurus/**/*",
+    "**/website/**/*",
     "**/examples/**/*",
   ],
   name: "lumos",

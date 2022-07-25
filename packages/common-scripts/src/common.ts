@@ -23,6 +23,7 @@ import {
   PackedSince,
   utils,
   Transaction,
+  HashType,
 } from "@ckb-lumos/base";
 import { blockchain, blockchainUtils } from "@ckb-lumos/codec";
 import anyoneCanPay from "./anyone_can_pay";
@@ -42,7 +43,7 @@ function defaultLogger(level: string, message: string) {
  */
 export interface LockScriptInfo {
   codeHash: Hash;
-  hashType: "type" | "data";
+  hashType: HashType;
   lockScriptInfo: {
     CellCollector: CellCollectorConstructor;
     setupInputCell(

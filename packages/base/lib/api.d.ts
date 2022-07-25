@@ -10,7 +10,7 @@ export interface Header {
   parentHash: Hash;
   proposalsHash: Hash;
   transactionsRoot: Hash;
-  unclesHash: Hash;
+  extraHash: Hash;
   version: HexNumber;
 }
 

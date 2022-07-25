@@ -1,7 +1,7 @@
 {
   "name": "@ckb-lumos/rpc",
-  "version": "0.17.0",
-  "description": "RPC module of lumos",
+  "version": "0.18.0",
+  "description": "RPC module for CKB",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
@@ -38,7 +38,7 @@
     "release": "npm publish"
   },
   "dependencies": {
-    "@ckb-lumos/bi": "0.17.0",
+    "@ckb-lumos/bi": "0.18.0",
     "axios": "0.21.4",
     "tslib": "2.3.1"
   },

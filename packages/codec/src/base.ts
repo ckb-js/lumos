@@ -49,7 +49,7 @@ export type UnpackParam<T extends AnyCodec> = T extends Codec<
   ? Unpackable
   : never;
 
-export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<
+export type Uint8ArrayCodec<Unpacked = any, Packable = Unpacked> = Codec<
   Uint8Array,
   Unpacked,
   Packable
@@ -57,7 +57,7 @@ export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<
 
 export type BytesLike = ArrayLike<number> | ArrayBuffer | string;
 
-export type BytesLikeCodec<Unpacked = any, Packable = Unpacked> = Codec<
+export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<
   Uint8Array,
   Unpacked,
   Packable,
@@ -69,15 +69,15 @@ export type BytesLikeCodec<Unpacked = any, Packable = Unpacked> = Codec<
  * @param codec
  */
 export function createBytesCodec<Unpacked, Packable = Unpacked>(
-  codec: BytesCodec<Unpacked, Packable>
-): BytesLikeCodec<Unpacked, Packable> {
+  codec: Uint8ArrayCodec<Unpacked, Packable>
+): BytesCodec<Unpacked, Packable> {
   return {
     pack: (unpacked) => codec.pack(unpacked),
     unpack: (bytesLike) => codec.unpack(bytify(bytesLike)),
   };
 }
 
-export type BaseHeader = {
+export type Fixed = {
   readonly __isFixedCodec__: true;
   readonly byteLength: number;
 };
@@ -86,12 +86,7 @@ export type FixedBytesCodec<Unpacked = any, Packable = Unpacked> = BytesCodec<
   Unpacked,
   Packable
 > &
-  BaseHeader;
-
-export type FixedBytesLikeCodec<
-  Unpacked = any,
-  Packable = Unpacked
-> = BytesLikeCodec<Unpacked, Packable> & BaseHeader;
+  Fixed;
 
 export function isFixedCodec<T>(
   codec: BytesCodec<T>
@@ -100,8 +95,8 @@ export function isFixedCodec<T>(
 }
 
 export function createFixedBytesCodec<Unpacked, Packable = Unpacked>(
-  codec: BytesCodec<Unpacked, Packable> & { byteLength: number }
-): FixedBytesLikeCodec<Unpacked, Packable> {
+  codec: Uint8ArrayCodec<Unpacked, Packable> & { byteLength: number }
+): FixedBytesCodec<Unpacked, Packable> {
   const byteLength = codec.byteLength;
   return {
     __isFixedCodec__: true,

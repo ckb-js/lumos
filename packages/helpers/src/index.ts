@@ -104,6 +104,7 @@ export function generateAddress(
     );
     HAS_WARNED_FOR_DEPRECATED_ADDRESS = true;
   }
+  validators.ValidateScript(script);
 
   const scriptTemplate = Object.values(config.SCRIPTS).find(
     (s) =>
@@ -186,6 +187,7 @@ export function encodeToAddress(
   script: Script,
   { config = undefined }: Options = {}
 ): Address {
+  validators.ValidateScript(script);
   config = config || getConfig();
 
   const data: number[] = [];
@@ -333,7 +335,7 @@ export interface TransactionSkeletonObject {
 export function transactionSkeletonToObject(
   txSkelton: TransactionSkeletonType
 ): TransactionSkeletonObject {
-  return txSkelton.toJS();
+  return txSkelton.toJS() as TransactionSkeletonObject;
 }
 
 /**

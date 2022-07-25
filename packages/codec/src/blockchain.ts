@@ -2,9 +2,11 @@ import { Uint128LE, Uint8 } from "./number/uint";
 import {
   AnyCodec,
   BytesCodec,
+  BytesLike,
   createBytesCodec,
   createFixedBytesCodec,
   FixedBytesCodec,
+  PackParam,
   UnpackResult,
 } from "./base";
 import { bytify, hexify } from "./bytes";
@@ -44,6 +46,7 @@ export const BytesVec = vector(Bytes);
 export const Byte32 = createFixedHexBytesCodec(32);
 export const Byte32Vec = vector(Byte32);
 
+
 export function WitnessArgsOf<
   LockCodec extends AnyCodec,
   InputTypeCodec extends AnyCodec,
@@ -52,11 +55,18 @@ export function WitnessArgsOf<
   lock: LockCodec;
   inputType: InputTypeCodec;
   outputType: OutputTypeCodec;
-}): BytesCodec<{
-  lock?: UnpackResult<LockCodec>;
-  inputType?: UnpackResult<InputTypeCodec>;
-  outputType?: UnpackResult<OutputTypeCodec>;
-}> {
+}): BytesCodec<
+  {
+    lock?: UnpackResult<LockCodec>;
+    inputType?: UnpackResult<InputTypeCodec>;
+    outputType?: UnpackResult<OutputTypeCodec>;
+  },
+  {
+    lock?: PackParam<LockCodec>;
+    inputType?: PackParam<InputTypeCodec>;
+    outputType?: PackParam<OutputTypeCodec>;
+  }
+> {
   return table(
     {
       lock: option(byteVecOf(payload.lock)),
@@ -67,7 +77,10 @@ export function WitnessArgsOf<
   );
 }
 
-const HexifyCodec = createBytesCodec<string>({ pack: bytify, unpack: hexify });
+const HexifyCodec = createBytesCodec<string, BytesLike>({
+  pack: bytify,
+  unpack: hexify,
+});
 
 /**
  *

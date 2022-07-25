@@ -103,7 +103,6 @@ dist
 # TernJS port file
 .tern-port
 
-/docs/
 packages/sql-indexer/knexfile.dev.js
 
 # compiled js

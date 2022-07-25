@@ -1,0 +1,17 @@
+{
+  "name": "lumos-examples",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "workspaces": [
+    "../",
+    "../packages/*",
+    "./*"
+  ],
+  "devDependencies": {
+    "parcel": "^2.2.1"
+  },
+  "alias": {
+    "process": false
+  }
+}
