@@ -97,11 +97,11 @@ class TransactionCollector {
   }
 }
 
-const toScript = data => ({
+const toScript = (data) => ({
   codeHash: data.code_hash,
   hashType: data.hash_type,
-  args: data.args
-})
+  args: data.args,
+});
 
 module.exports = {
   TransactionCollector,

@@ -30,7 +30,7 @@ import RPC from "@ckb-lumos/rpc";
 import { validators } from "@ckb-lumos/toolkit";
 import { RPCType } from "./rpcType";
 import { IndexerType } from "./indexerType";
-import { toCellOutPut, toOutPoint, toTip, toScript } from "./resultFormatter";
+import { toCellOutPut, toOutPoint, toTip } from "./resultFormatter";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -118,7 +118,9 @@ export class CkbIndexer implements Indexer {
         const cell: Cell = {
           cellOutput: toCellOutPut(liveCell.output),
           data: liveCell.output_data,
-          outPoint: liveCell.outPoint ? toOutPoint(liveCell.outPoint) : undefined,
+          outPoint: liveCell.outPoint
+            ? toOutPoint(liveCell.outPoint)
+            : undefined,
           blockNumber: liveCell.blockNumber,
         };
         const { stop, push } = terminator(index, cell);
@@ -216,21 +218,20 @@ export class CkbIndexer implements Indexer {
       : BI.from(queries.fromBlock);
     if (queries.lock) {
       if (!instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(toScript(queries.lock));
-        emitter.type = toScript(queries.lock)
+        validators.ValidateScript(queries.lock);
+        emitter.type = queries.lock;
       } else if (instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(toScript(queries.lock.script));
-        emitter.type = toScript(queries.lock.script)
+        validators.ValidateScript(queries.lock.script);
+        emitter.type = queries.lock.script;
       }
     } else if (queries.type && queries.type !== "empty") {
       if (!instanceOfScriptWrapper(queries.type)) {
-        validators.ValidateScript(toScript(queries.type));
-        emitter.type = toScript(queries.type)
+        validators.ValidateScript(queries.type);
+        emitter.type = queries.type;
       } else if (instanceOfScriptWrapper(queries.type)) {
-        validators.ValidateScript(toScript(queries.type.script));
-        emitter.type = toScript(queries.type.script)
+        validators.ValidateScript(queries.type.script);
+        emitter.type = queries.type.script;
       }
-
     } else {
       throw new Error("Either lock or type script must be provided!");
     }

@@ -15,7 +15,6 @@ import {
   instanceOfScriptWrapper,
 } from "./services";
 import fetch from "cross-fetch";
-import { toScript } from "./resultFormatter";
 
 interface GetBlockHashRPCResult {
   jsonrpc: string;
@@ -55,9 +54,9 @@ export class CKBCellCollector implements BaseCellCollector {
 
     if (queries.lock) {
       if (!instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(toScript(queries.lock));
+        validators.ValidateScript(queries.lock);
       } else if (instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(toScript(queries.lock.script));
+        validators.ValidateScript(queries.lock.script);
       }
     }
 
@@ -66,12 +65,12 @@ export class CKBCellCollector implements BaseCellCollector {
         typeof queries.type === "object" &&
         !instanceOfScriptWrapper(queries.type)
       ) {
-        validators.ValidateScript(toScript(queries.type));
+        validators.ValidateScript(queries.type);
       } else if (
         typeof queries.type === "object" &&
         instanceOfScriptWrapper(queries.type)
       ) {
-        validators.ValidateScript(toScript(queries.type.script));
+        validators.ValidateScript(queries.type.script);
       }
     }
 
@@ -126,13 +125,13 @@ export class CKBCellCollector implements BaseCellCollector {
   }
 
   public convertQueryOptionToSearchKey(): void {
-    const queryLock = this.queries.lock
+    const queryLock = this.queries.lock;
     // unWrap `ScriptWrapper` into `Script`.
     if (queryLock) {
       if (instanceOfScriptWrapper(queryLock)) {
-        this.queries.lock = queryLock.script
+        this.queries.lock = queryLock.script;
       }
-      this.queries.lock = this.queries.lock
+      this.queries.lock = this.queries.lock;
     }
 
     // unWrap `ScriptWrapper` into `Script`.

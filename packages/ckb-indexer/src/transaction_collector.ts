@@ -152,8 +152,12 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     resolvedTransactionList: GetTransactionRPCResult[],
     indexerTransaction: IndexerTransaction
   ): Output {
-    console.log('getResolvedCell indexerTransaction', indexerTransaction, unresolvedTransaction);
-    
+    console.log(
+      "getResolvedCell indexerTransaction",
+      indexerTransaction,
+      unresolvedTransaction
+    );
+
     if (indexerTransaction.io_type !== "input") {
       return unresolvedTransaction.transaction.outputs[
         Number(indexerTransaction.io_index)

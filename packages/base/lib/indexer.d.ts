@@ -1,19 +1,14 @@
-import { Cell, HashType, Transaction, TransactionWithStatus } from "./api";
-import { Hash, Hexadecimal, HexString } from "./primitive";
+import { Cell, Script, Transaction, TransactionWithStatus } from "./api";
+import { Hexadecimal, HexString } from "./primitive";
 import { Logger } from "./logger";
 
-export type QueryScript = {
-  code_hash: Hash;
-  hash_type: HashType;
-  args: HexString;
-}
 /**
  * argsLen: if argsLen = 20, it means collected cells cell.cellOutput.lock.args should be 20-byte length, and prefix match to lock.args.
  * And if argsLen = -1 (default), means cell.cellOutput.lock.args should equals to lock.args.
  */
 export interface QueryOptions {
-  lock?: QueryScript | QueryScriptWrapper;
-  type?: QueryScript | QueryScriptWrapper | "empty";
+  lock?: Script | ScriptWrapper;
+  type?: Script | ScriptWrapper | "empty";
   // data = any means any data content is ok
   data?: string | "any";
   argsLen?: number | "any";
@@ -25,8 +20,8 @@ export interface QueryOptions {
   order?: "asc" | "desc";
 }
 
-export interface QueryScriptWrapper {
-  script: QueryScript;
+export interface ScriptWrapper {
+  script: Script;
   ioType?: "input" | "output" | "both";
   argsLen?: number | "any";
 }

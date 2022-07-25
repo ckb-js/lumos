@@ -1,4 +1,4 @@
-import { utils, HexString, QueryScriptWrapper, QueryScript } from "@ckb-lumos/base";
+import { utils, HexString, ScriptWrapper, Script } from "@ckb-lumos/base";
 import {
   CKBIndexerQueryOptions,
   HexadecimalRange,
@@ -8,31 +8,33 @@ import {
 } from "./type";
 import fetch from "cross-fetch";
 import { BI } from "@ckb-lumos/bi";
+import { toScript } from "./paramsFormatter";
+import { RPCType } from "./rpcType";
 
-function instanceOfScriptWrapper(object: unknown): object is QueryScriptWrapper {
+function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
   return typeof object === "object" && object != null && "script" in object;
 }
-const UnwrapScriptWrapper = (inputScript: QueryScriptWrapper | QueryScript): QueryScript => {
+const UnwrapScriptWrapper = (inputScript: ScriptWrapper | Script): Script => {
   if (instanceOfScriptWrapper(inputScript)) {
     return inputScript.script;
   }
   return inputScript;
 };
 const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
-  let script: QueryScript | undefined = undefined;
+  let script: RPCType.Script | undefined = undefined;
   const filter: SearchFilter = {};
   let script_type: ScriptType | undefined = undefined;
   if (queries.lock) {
     const lock = UnwrapScriptWrapper(queries.lock);
-    script = lock as QueryScript;
+    script = toScript(lock);
     script_type = "lock";
     if (queries.type && typeof queries.type !== "string") {
       const type = UnwrapScriptWrapper(queries.type);
-      filter.script = type as QueryScript;
+      filter.script = toScript(type);
     }
   } else if (queries.type && typeof queries.type !== "string") {
     const type = UnwrapScriptWrapper(queries.type);
-    script = type as QueryScript;
+    script = toScript(type);
     script_type = "type";
   }
   let block_range: HexadecimalRange | null = null;
