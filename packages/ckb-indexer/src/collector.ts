@@ -131,7 +131,6 @@ export class CKBCellCollector implements BaseCellCollector {
       if (instanceOfScriptWrapper(queryLock)) {
         this.queries.lock = queryLock.script;
       }
-      this.queries.lock = this.queries.lock;
     }
 
     // unWrap `ScriptWrapper` into `Script`.

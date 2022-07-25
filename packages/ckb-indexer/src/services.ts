@@ -67,11 +67,12 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   };
 };
 
-const getHexStringBytes = (hexString: HexString) => {
+const getHexStringBytes = (hexString: HexString): number => {
   utils.assertHexString("", hexString);
   return Math.ceil(hexString.substr(2).length / 2);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const requestBatch = async (rpcUrl: string, data: unknown): Promise<any> => {
   const res: Response = await fetch(rpcUrl, {
     method: "POST",
@@ -92,6 +93,7 @@ const requestBatch = async (rpcUrl: string, data: unknown): Promise<any> => {
   return result;
 };
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 const request = async (
   ckbIndexerUrl: string,
   method: string,
@@ -120,6 +122,8 @@ const request = async (
   }
   return data.result;
 };
+/* eslint-enalbe @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
+
 
 export {
   generateSearchKey,

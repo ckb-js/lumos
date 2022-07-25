@@ -1,5 +1,6 @@
 import { HexString, HexNumber, Hash } from "@ckb-lumos/base";
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace RPCType {
   export type Tip = {
     block_hash: HexNumber;
