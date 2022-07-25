@@ -14,6 +14,7 @@ declare type BlockCodecType = UnpackResult<typeof blockchain.Block>;
 declare type UncleBlockCodecType = UnpackResult<typeof blockchain.UncleBlock>;
 declare type HeaderCodecType = UnpackResult<typeof blockchain.Header>;
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 export function transformCellInputCodecType(data: any): CellInputCodecType {
   validators.ValidateCellInput(data);
   return {
@@ -102,3 +103,4 @@ export function transformBlockCodecType(data: any): BlockCodecType {
     proposals: data.proposals,
   };
 }
+/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */

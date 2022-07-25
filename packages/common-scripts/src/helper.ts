@@ -140,6 +140,7 @@ export function isAcpAddress(address: Address, config: Config): boolean {
   return isAcpScript(script, config);
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 export function hashWitness(hasher: any, witness: HexString): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
@@ -156,6 +157,7 @@ export function hashWitness(hasher: any, witness: HexString): void {
   hasher.update(lengthBuffer);
   hasher.update(witness);
 }
+/* eslint-enable camelcase, @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 
 export function prepareSigningEntries(
   txSkeleton: TransactionSkeletonType,

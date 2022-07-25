@@ -182,11 +182,11 @@ export async function setupInputCell(
         );
       }
       const inputType = witnessArgs.inputType;
-      if (!!inputType) {
+      if (inputType) {
         newWitnessArgs.inputType = inputType;
       }
       const outputType = witnessArgs.outputType;
-      if (!!outputType) {
+      if (outputType) {
         newWitnessArgs.outputType = outputType;
       }
     }
@@ -502,11 +502,11 @@ export async function transferCompatible(
         );
       }
       const inputType = witnessArgs.inputType;
-      if (!!inputType) {
+      if (inputType) {
         newWitnessArgs.inputType = inputType;
       }
       const outputType = witnessArgs.outputType;
-      if (!!outputType) {
+      if (outputType) {
         newWitnessArgs.outputType = outputType;
       }
     }

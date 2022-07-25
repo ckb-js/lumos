@@ -13,6 +13,7 @@ interface GetCellsCapacityResult {
   block_number: HexString;
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const handler = {
   get: (target: any, method: string) => {
     return async (...params: any) => {
@@ -76,3 +77,4 @@ export class RPC {
     return this.rpcProxy.get_indexer_info();
   }
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

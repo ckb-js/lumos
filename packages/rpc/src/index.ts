@@ -21,19 +21,19 @@ class CKBRPC extends Base {
     url: "",
   };
 
-  get node() {
+  get node(): CKBComponents.Node {
     return this.#node;
   }
 
   #paramsFormatter = paramsFormatter;
 
-  get paramsFormatter() {
+  get paramsFormatter(): typeof paramsFormatter {
     return this.#paramsFormatter;
   }
 
   #resultFormatter = resultFormatter;
 
-  get resultFormatter() {
+  get resultFormatter(): typeof resultFormatter {
     return this.#resultFormatter;
   }
 
@@ -67,7 +67,7 @@ class CKBRPC extends Base {
     return this.node;
   }
 
-  public addMethod = (options: CKBComponents.Method) => {
+  public addMethod = (options: CKBComponents.Method): void => {
     const method = new Method(this.node, options);
 
     Object.defineProperty(this, options.name, {

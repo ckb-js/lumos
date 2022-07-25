@@ -66,7 +66,7 @@ const toOutPoint = (
     ...rest,
   };
 };
-const toDepType = (type: RPC.DepType) => {
+const toDepType = (type: RPC.DepType): CKBComponents.DepType => {
   if (type === "dep_group") {
     return "depGroup";
   }
@@ -88,7 +88,9 @@ const toCellDep = (cellDep: RPC.CellDep): CKBComponents.CellDep => {
 };
 function toTransaction(tx: RPC.RawTransaction): CKBComponents.RawTransaction;
 function toTransaction(tx: RPC.Transaction): CKBComponents.Transaction;
-function toTransaction(tx: RPC.RawTransaction | RPC.Transaction): any {
+function toTransaction(
+  tx: RPC.RawTransaction | RPC.Transaction
+): CKBComponents.Transaction | CKBComponents.RawTransaction {
   if (!tx) return tx;
   const {
     cell_deps: cellDeps = [],
@@ -259,6 +261,7 @@ const toCells = (cells: RPC.Cell[]): CKBComponents.Cell[] => {
   if (!Array.isArray(cells)) return [];
   return cells.map(toCell);
 };
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const toCellIncludingOutPoint = (cell: RPC.CellIncludingOutPoint) => {
   if (!cell) return cell;
   const {
@@ -282,6 +285,7 @@ const toCellsIncludingOutPoint = (
   if (!Array.isArray(cells)) return [];
   return cells.map(toCellIncludingOutPoint);
 };
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const toTransactionWithStatus = (txWithStatus: RPC.TransactionWithStatus) => {
   if (!txWithStatus) return txWithStatus;
   const {

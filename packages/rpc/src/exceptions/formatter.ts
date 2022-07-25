@@ -29,6 +29,7 @@ export class OutputsValidatorTypeException extends TypeError {
   }
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 export class BigintOrHexStringTypeException extends TypeError {
   code = ErrorCode.ParameterInvalid;
 
@@ -44,7 +45,7 @@ export class StringHashTypeException extends TypeError {
     super(`Expect hash to be string, but ${hash} received`);
   }
 }
-
+/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 export class HexStringWithout0xException extends Error {
   code = ErrorCode.ParameterInvalid;
 

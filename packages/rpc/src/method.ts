@@ -5,7 +5,7 @@ import { CKBComponents } from "./types/api";
 class Method {
   #name: string;
 
-  get name() {
+  get name(): string {
     return this.#name;
   }
 
@@ -29,6 +29,7 @@ class Method {
     });
   }
 
+  /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/explicit-module-boundary-types */
   public call = (...params: (string | number | object)[]) => {
     const payload = this.getPayload(...params);
     return axios({
@@ -70,5 +71,6 @@ class Method {
     return payload;
   };
 }
+/* eslint-enable @typescript-eslint/ban-types, @typescript-eslint/explicit-module-boundary-types */
 
 export default Method;

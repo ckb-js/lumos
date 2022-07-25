@@ -370,9 +370,9 @@ export interface Base {
 }
 
 export class Base {
-  #rpcProperties = rpcProperties;
+  #rpcProperties: RpcPropertes = rpcProperties;
 
-  get rpcProperties() {
+  get rpcProperties(): RpcPropertes {
     return this.#rpcProperties;
   }
 }

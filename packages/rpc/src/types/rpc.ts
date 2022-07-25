@@ -3,7 +3,7 @@
  */
 import { CKBComponents } from "./api";
 
-/* eslint-disable camelcase */
+/* eslint-disable  @typescript-eslint/no-namespace */
 export namespace RPC {
   export type ProposalShortId = CKBComponents.ProposalShortId;
   export type Number = CKBComponents.Number;
@@ -293,7 +293,7 @@ export namespace RPC {
   export interface TransactionProof {
     block_hash: Hash;
     proof: {
-      indices: Number[];
+      indices: number[];
       lemmas: Hash[];
     };
     witnesses_root: Hash;

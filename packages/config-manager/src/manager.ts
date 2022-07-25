@@ -32,7 +32,7 @@ function nonNullable(
   if (!condition) throw new Error(`${debugPath} cannot be nil`);
 }
 
-export function validateConfig(config: Config) {
+export function validateConfig(config: Config): void {
   if (typeof config.SCRIPTS !== "object" || config.SCRIPTS == null)
     throw new Error();
 
@@ -98,6 +98,7 @@ function initializeConfigLegacy() {
   const configFile = env?.LUMOS_CONFIG_FILE;
   const configFilename = configFile || "config.json";
   try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const data = require("fs").readFileSync(configFilename);
     const loadedConfig = JSON.parse(data);
     validateConfig(loadedConfig);

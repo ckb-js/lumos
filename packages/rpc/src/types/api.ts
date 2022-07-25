@@ -1,7 +1,7 @@
 /**
  * @see https://github.com/nervosnetwork/ckb/blob/develop/protocol/src/protocol.fbs for more infGomation
  */
-
+/* eslint-disable  @typescript-eslint/no-namespace,  @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types  */
 export namespace CKBComponents {
   export type DAO = string;
   export type Hash = string;
@@ -250,7 +250,7 @@ export namespace CKBComponents {
    * @property capacty, cell capacity
    * @property lock, lock hash
    */
-  export interface Cell extends CellOutput {}
+  export type Cell = CellOutput;
 
   /**
    * @typeof Live Cell
@@ -372,9 +372,9 @@ export namespace CKBComponents {
 
   export interface Epoch {
     compactTarget: Hash;
-    length: String;
-    number: String;
-    startNumber: String;
+    length: string;
+    number: string;
+    startNumber: string;
   }
 
   export interface RunDryResult {
@@ -458,7 +458,7 @@ export namespace CKBComponents {
   export interface TransactionProof {
     blockHash: Hash;
     proof: {
-      indices: Number[];
+      indices: number[];
       lemmas: Hash[];
     };
     witnessesRoot: Hash;

@@ -10,9 +10,9 @@ import { BI } from "@ckb-lumos/bi";
 import { RPC } from "./types/rpc";
 import { CKBComponents } from "./types/api";
 
-/* eslint-disable camelcase */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 const formatter = {
-  toOptional: (format?: Function) => (arg: any) => {
+  toOptional: (format?: (args: any) => any) => (arg: any) => {
     if (!format || arg === undefined || arg === null) {
       return arg;
     }
@@ -32,7 +32,6 @@ const formatter = {
   },
   toNumber: (number: CKBComponents.Number | bigint): RPC.Number => {
     if (typeof number === "bigint") {
-      // @ts-ignore
       return `0x${number.toString(16)}`;
     }
     if (typeof number !== "string") {
@@ -138,7 +137,7 @@ const formatter = {
       throw new PageSizeTooSmallException(pageSize, MIN_SIZE);
     return formatter.toNumber(`0x${size.toString(16)}`);
   },
-  toReverseOrder: (reverse: boolean = false) => !!reverse,
+  toReverseOrder: (reverse = false) => !!reverse,
   toOutputsValidator: (outputsValidator: CKBComponents.OutputsValidator) => {
     if (!outputsValidator) return undefined;
     const VALIDATORS = ["default", "passthrough"];
@@ -168,4 +167,4 @@ const formatter = {
 };
 
 export default formatter;
-/* eslint-enable camelcase */
+/* eslint-enable camelcase, @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */

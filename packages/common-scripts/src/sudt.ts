@@ -89,7 +89,7 @@ export async function issueToken(
   if (!capacity) {
     capacity = minimalCellCapacityCompatible(targetOutput);
   }
-  let _capacity = BI.from(capacity);
+  const _capacity = BI.from(capacity);
   targetOutput.cellOutput.capacity = "0x" + _capacity.toString(16);
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -146,6 +146,7 @@ export async function transfer(
     LocktimePoolCellCollector = LocktimeCellCollector,
     splitChangeCell = false,
   }: Options & {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
     LocktimePoolCellCollector?: any;
     splitChangeCell?: boolean;
   } = {}
@@ -609,7 +610,7 @@ export async function transfer(
     const minimalChangeCellWithoutSudtCapacity = BI.from(
       minimalCellCapacityCompatible(changeCellWithoutSudt)
     );
-    let splitFlag: boolean = false;
+    let splitFlag = false;
     if (
       changeAmount.gt(0) &&
       splitChangeCell &&

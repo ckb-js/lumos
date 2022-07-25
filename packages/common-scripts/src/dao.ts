@@ -363,7 +363,7 @@ export async function unlock(
     config = undefined,
     RpcClient = RPC,
   }: Options & { RpcClient?: typeof RPC } = {}
-) {
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   _checkDaoScript(config);
   txSkeleton = _addDaoCellDep(txSkeleton, config);
