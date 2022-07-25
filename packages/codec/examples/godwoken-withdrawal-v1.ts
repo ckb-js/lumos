@@ -74,16 +74,12 @@ const WithdrawalCodec = enhancePack(
       obj.owner_lock
     ),
   (buf) => {
-    const [
-      rollup_type_hash,
-      withdrawal_lock_args,
-      owner_lock_len,
-      owner_lock,
-    ] = cut(buf, [
-      32 /* rollup_type_hash */,
-      WithdrawalLockArgs.byteLength /* withdrawal_lock_args */,
-      4 /* owner_lock_len */,
-    ]);
+    const [rollup_type_hash, withdrawal_lock_args, owner_lock_len, owner_lock] =
+      cut(buf, [
+        32 /* rollup_type_hash */,
+        WithdrawalLockArgs.byteLength /* withdrawal_lock_args */,
+        4 /* owner_lock_len */,
+      ]);
 
     return {
       rollup_type_hash,

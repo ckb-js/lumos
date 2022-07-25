@@ -59,7 +59,8 @@ export interface LocktimeCell extends Cell {
 }
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
-  implements CellCollectorType {
+  implements CellCollectorType
+{
   private cellCollectors: List<CellCollectorType>;
   private config: Config;
   private rpc: RPC;

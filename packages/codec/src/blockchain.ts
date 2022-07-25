@@ -46,7 +46,6 @@ export const BytesVec = vector(Bytes);
 export const Byte32 = createFixedHexBytesCodec(32);
 export const Byte32Vec = vector(Byte32);
 
-
 export function WitnessArgsOf<
   LockCodec extends AnyCodec,
   InputTypeCodec extends AnyCodec,

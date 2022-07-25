@@ -184,7 +184,7 @@ const tipHeader: Header = {
   timestamp: "0x172b772235e",
   transactionsRoot:
     "0xb8b4cee50a21a4c494d8eb4e34f6232fa72129fa9d7a2e4b09417ae224a43ebd",
-  extra_hash:
+  extraHash:
     "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };
@@ -329,8 +329,9 @@ test("BigInt:prepareSigningEntries, multisig & dao", async (t) => {
   expectedMessages.forEach((expectedMessage, index) => {
     const message = txSkeleton
       .get("signingEntries")
-      .find((s) => s.type === "witness_args_lock" && s.index === index)!
-      .message;
+      .find(
+        (s) => s.type === "witness_args_lock" && s.index === index
+      )!.message;
     t.is(message, expectedMessage);
   });
 });
@@ -436,7 +437,7 @@ test("BigInt:Don't update capacity directly when deduct", async (t) => {
   );
 
   const getCapacities = (cells: List<Cell>): string[] => {
-    return cells.map((c) => c.cellOutput.capacity).toJS();
+    return cells.map((c) => c.cellOutput.capacity).toJS() as string[];
   };
 
   const inputCapacitiesBefore = getCapacities(txSkeleton.get("inputs"));

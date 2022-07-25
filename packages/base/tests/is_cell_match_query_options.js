@@ -37,8 +37,7 @@ const cells = [
         codeHash:
           "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
         hashType: "type",
-        args:
-          "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
+        args: "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
       },
     },
     data: "0x10270000000000000000000000000000",
@@ -161,8 +160,7 @@ test("filter by lock & type", (t) => {
       codeHash:
         "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
       hashType: "type",
-      args:
-        "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
+      args: "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
     },
   };
 
@@ -184,8 +182,7 @@ test("filter by wrapped lock & wrapped type", (t) => {
         codeHash:
           "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
         hashType: "type",
-        args:
-          "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
+        args: "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d",
       },
     },
   };

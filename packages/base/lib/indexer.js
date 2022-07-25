@@ -24,10 +24,10 @@ class TransactionCollector {
     }
     // Wrap the plain `Script` into `ScriptWrapper`.
     if (lock && !lock.script) {
-      validators.ValidateScript(toScript(lock));
+      validators.ValidateScript(lock);
       this.lock = { script: lock, ioType: "both", argsLen: argsLen };
     } else if (lock && lock.script) {
-      validators.ValidateScript(toScript(lock.script));
+      validators.ValidateScript(lock.script);
       this.lock = lock;
       // check ioType, argsLen
       if (!lock.argsLen) {
@@ -40,10 +40,10 @@ class TransactionCollector {
     if (type === "empty") {
       this.type = type;
     } else if (type && !type.script) {
-      validators.ValidateScript(toScript(type));
+      validators.ValidateScript(type);
       this.type = { script: type, ioType: "both", argsLen: argsLen };
     } else if (type && type.script) {
-      validators.ValidateScript(toScript(type.script));
+      validators.ValidateScript(type.script);
       this.type = type;
       // check ioType, argsLen
       if (!type.argsLen) {
@@ -96,12 +96,6 @@ class TransactionCollector {
     }
   }
 }
-
-const toScript = (data) => ({
-  codeHash: data.code_hash,
-  hashType: data.hash_type,
-  args: data.args,
-});
 
 module.exports = {
   TransactionCollector,

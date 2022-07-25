@@ -240,7 +240,8 @@ test("transfer multisig lock => secp", async (t) => {
     cellProvider,
   });
   const LocktimePoolCellCollector: CellCollectorConstructor = class LocktimePoolCellCollector
-    implements BaseCellCollector {
+    implements BaseCellCollector
+  {
     readonly fromScript: Script;
     constructor() {
       this.fromScript = {
@@ -507,7 +508,7 @@ test("Don't update capacity directly when deduct", async (t) => {
   );
 
   const getCapacities = (cells: List<Cell>): string[] => {
-    return cells.map((c) => c.cellOutput.capacity).toJS();
+    return cells.map((c) => c.cellOutput.capacity).toJS() as string[];
   };
 
   const inputCapacitiesBefore = getCapacities(txSkeleton.get("inputs"));
@@ -1029,7 +1030,8 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     cellProvider,
   });
   const LocktimePoolCellCollector: CellCollectorConstructor = class LocktimePoolCellCollector
-    implements BaseCellCollector {
+    implements BaseCellCollector
+  {
     readonly fromScript: Script;
     constructor() {
       this.fromScript = {

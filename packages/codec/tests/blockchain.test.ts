@@ -24,8 +24,8 @@ test("secp256k1 witness args", (t) => {
     ),
     {
       lock: hexify(Buffer.alloc(SECP256K1_SIGNATURE_LENGTH)),
-      input_type: undefined,
-      output_type: undefined,
+      inputType: undefined,
+      outputType: undefined,
     }
   );
 

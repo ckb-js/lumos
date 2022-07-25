@@ -309,9 +309,7 @@ async function withdraw(
   return txSkeleton;
 }
 
-function parseEpochCompatible(
-  epoch: BIish
-): {
+function parseEpochCompatible(epoch: BIish): {
   length: BI;
   index: BI;
   number: BI;
@@ -595,9 +593,7 @@ function _addDaoCellDep(
   });
 }
 
-function extractDaoDataCompatible(
-  dao: PackedDao
-): {
+function extractDaoDataCompatible(dao: PackedDao): {
   [key: string]: BI;
 } {
   if (!/^(0x)?([0-9a-fA-F]){64}$/.test(dao)) {

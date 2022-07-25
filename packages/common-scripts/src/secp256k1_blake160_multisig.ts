@@ -41,7 +41,8 @@ import { CellCollectorConstructor } from "./type";
 export { serializeMultisigScript, multisigArgs };
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
-  implements CellCollectorType {
+  implements CellCollectorType
+{
   private cellCollector: CellCollectorType;
   private config: Config;
   public readonly fromScript: Script;
@@ -119,8 +120,9 @@ export async function setupInputCell(
   const fromScript: Script = inputCell.cellOutput.lock;
 
   if (fromInfo) {
-    const parsedFromScript: Script = parseFromInfo(fromInfo, { config })
-      .fromScript;
+    const parsedFromScript: Script = parseFromInfo(fromInfo, {
+      config,
+    }).fromScript;
     if (
       !new ScriptValue(parsedFromScript, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })

@@ -306,8 +306,8 @@ export class TransactionCache {
       set.add(value)
     );
 
-    const count: number | undefined = this.totalTransactionCountCache.get(key)
-      ?.size;
+    const count: number | undefined =
+      this.totalTransactionCountCache.get(key)?.size;
     /* c8 ignore next 3 */
     if (count === undefined) {
       throw new Error(
@@ -606,7 +606,8 @@ export class CacheManager {
   ): CacheManager {
     const keystore = Keystore.load(path);
     const extendedPrivateKey = keystore.extendedPrivateKey(password);
-    const accountExtendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
+    const accountExtendedPublicKey =
+      extendedPrivateKey.toAccountExtendedPublicKey();
 
     let masterPublicKey: HexString | undefined;
     if (options.needMasterPublicKey || keystore.isFromCkbCli()) {
@@ -639,7 +640,8 @@ export class CacheManager {
   ): CacheManager {
     const seed = mnemonicToSeedSync(mnemonic);
     const extendedPrivateKey = ExtendedPrivateKey.fromSeed(seed);
-    const accountExtendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
+    const accountExtendedPublicKey =
+      extendedPrivateKey.toAccountExtendedPublicKey();
 
     let masterPublicKey: HexString | undefined;
     if (options.needMasterPublicKey) {

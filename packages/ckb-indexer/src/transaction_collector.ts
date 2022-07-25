@@ -87,9 +87,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       services.instanceOfScriptWrapper(queries.lock) &&
       services.instanceOfScriptWrapper(queries.type)
     ) {
-      indexerTransactionList = await this.getTransactionByLockAndTypeIndependent(
-        searchKeyFilter
-      );
+      indexerTransactionList =
+        await this.getTransactionByLockAndTypeIndependent(searchKeyFilter);
       lastCursor = indexerTransactionList.lastCursor;
     } else {
       //query by ScriptWrapper.script,block_range,order
@@ -217,10 +216,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   public async getTransactions(
     lastCursor?: string
   ): Promise<GetTransactionDetailResult> {
-    const indexerTransactionList: IndexerTransactionList = await this.fetchIndexerTransaction(
-      this.queries,
-      lastCursor
-    );
+    const indexerTransactionList: IndexerTransactionList =
+      await this.fetchIndexerTransaction(this.queries, lastCursor);
     lastCursor = indexerTransactionList.lastCursor;
 
     // return if transaction hash list if empty
@@ -230,9 +227,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         lastCursor: lastCursor,
       };
     }
-    const unresolvedTransactionList: TransactionWithStatus[] = await this.getTransactionListFromRpc(
-      indexerTransactionList
-    );
+    const unresolvedTransactionList: TransactionWithStatus[] =
+      await this.getTransactionListFromRpc(indexerTransactionList);
 
     const requestPayload = this.getResolvedTransactionRequestPayload(
       unresolvedTransactionList,
@@ -258,9 +254,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     const queryWithTypeAdditionOptions = { ...searchKeyFilter };
     const queryWithLockAdditionOptions = { ...searchKeyFilter };
     if (searchKeyFilter.lastCursor) {
-      const [lockLastCursor, typeLastCursor] = searchKeyFilter.lastCursor.split(
-        "-"
-      );
+      const [lockLastCursor, typeLastCursor] =
+        searchKeyFilter.lastCursor.split("-");
       queryWithLockAdditionOptions.lastCursor = lockLastCursor;
       queryWithTypeAdditionOptions.lastCursor = typeLastCursor;
     }
