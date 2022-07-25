@@ -4,7 +4,6 @@ import {
   HexString,
   Indexer,
   Script,
-  Tip,
   Output,
   utils,
   Block,
@@ -29,6 +28,9 @@ import {
 import { BI } from "@ckb-lumos/bi";
 import RPC from "@ckb-lumos/rpc";
 import { validators } from "@ckb-lumos/toolkit";
+import { RPCType } from "./rpcType";
+import { IndexerType } from "./indexerType";
+import { toCellOutPut, toOutPoint, toTip, toScript } from "./resultFormatter";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -52,9 +54,9 @@ export class CkbIndexer implements Indexer {
     return new RPC(this.ckbRpcUrl);
   }
 
-  async tip(): Promise<Tip> {
-    const res = await request(this.ckbIndexerUrl, "get_tip");
-    return res as Tip;
+  public async tip(): Promise<IndexerType.Tip> {
+    const res: RPCType.Tip = await request(this.ckbIndexerUrl, "get_tip");
+    return toTip(res);
   }
 
   asyncSleep(timeout: number): Promise<void> {
@@ -114,9 +116,9 @@ export class CkbIndexer implements Indexer {
       cursor = res.last_cursor;
       for (const liveCell of liveCells) {
         const cell: Cell = {
-          cellOutput: liveCell.output,
+          cellOutput: toCellOutPut(liveCell.output),
           data: liveCell.output_data,
-          outPoint: liveCell.outPoint,
+          outPoint: liveCell.outPoint ? toOutPoint(liveCell.outPoint) : undefined,
           blockNumber: liveCell.blockNumber,
         };
         const { stop, push } = terminator(index, cell);
@@ -214,18 +216,21 @@ export class CkbIndexer implements Indexer {
       : BI.from(queries.fromBlock);
     if (queries.lock) {
       if (!instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(queries.lock);
+        validators.ValidateScript(toScript(queries.lock));
+        emitter.type = toScript(queries.lock)
       } else if (instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(queries.lock.script);
+        validators.ValidateScript(toScript(queries.lock.script));
+        emitter.type = toScript(queries.lock.script)
       }
-      emitter.lock = queries.lock as Script;
     } else if (queries.type && queries.type !== "empty") {
       if (!instanceOfScriptWrapper(queries.type)) {
-        validators.ValidateScript(queries.type);
+        validators.ValidateScript(toScript(queries.type));
+        emitter.type = toScript(queries.type)
       } else if (instanceOfScriptWrapper(queries.type)) {
-        validators.ValidateScript(queries.type.script);
+        validators.ValidateScript(toScript(queries.type.script));
+        emitter.type = toScript(queries.type.script)
       }
-      emitter.type = queries.type as Script;
+
     } else {
       throw new Error("Either lock or type script must be provided!");
     }

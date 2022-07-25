@@ -1,446 +1,279 @@
-CKB indexer is based on  [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer) with more features. It is designed for:
+## Introduce
 
-- Web client usage.
-- CKB's RPC query.
+All the [indexing](https://github.com/nervosnetwork/ckb/tree/develop/rpc#indexer) RPCs built in the CKB has been deprecated since v0.36.0 and removed in v0.40.0. This is a standalone service for creating cell and transaction indexes as an alternate solution.
 
-## **Usage**
+## Usage
 
-### **Indexer**
+Build binary from source
 
-```jsx
-const { Indexer } = require("@ckb-lumos/ckb-indexer");
-const nodeUri = "https://testnet.ckb.dev/rpc";
-const indexUri = "https://testnet.ckb.dev/indexer";
-const indexer = new Indexer(indexUri, nodeUri);
+```bash
+cargo build --release
 ```
 
-### **CellCollector**
-
-To query existing cells, you can create a CellCollector:
-
-```jsx
-cellCollector = new CellCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x0000000000000000000000000000000000000000000000000000000000000000",
-    hashType: "data",
-    args: "0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18",
-  },
-});
-
-for await (const cell of cellCollector.collect()) {
-  console.log(cell);
-}
+Connect to default ckb rpc service at `http://127.0.0.1:8114` and stores the indexer data at `/tmp/ckb-indexer-test` folder
+```bash
+RUST_LOG=info ./target/release/ckb-indexer -s /tmp/ckb-indexer-test
 ```
 
-Specify `lock` or `type` script as constraints for advance search:
-
-```jsx
-cellCollector = new CellCollector(indexer, {
-  lock: {
-    args: "0x92aad3bbab20f225cff28ec1d856c6ab63284c7a",
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-  },
-  type: {
-    args: "0x",
-    codeHash:
-      "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-    hashType: "type",
-  },
-});
+Or connect to ckb rpc service at `tcp://127.0.0.1:18114`
+```bash
+RUST_LOG=info ./target/release/ckb-indexer -s /tmp/ckb-indexer-test -c tcp://127.0.0.1:18114
 ```
 
-Query cells in certain block_numbers range (`fromBlock` and `toBlock` are included):
-
-```jsx
-cellCollector = new CellCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
-  },
-  fromBlock: "0x225510", // "0x" + 2250000n.toString(16)
-  toBlock: "0x225ce0", // "0x" + 2252000n.toString(16)
-});
-
-for await (const cell of cellCollector.collect()) {
-  console.log(cell);
-}
+Indexing the pending txs in the ckb tx-pool
+```bash
+RUST_LOG=info ./target/release/ckb-indexer -s /tmp/ckb-indexer-test -c tcp://127.0.0.1:18114 --index-tx-pool
 ```
 
-Skip a certain number of query results, e.g. the below code snippet means it would skip the first 100 cells and return from the 101st one
+Run `ckb-indexer --help` for more information
 
-```jsx
-cellCollector = new CellCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
-  },
-  skip: 100,
-});
+## RPC
 
-for await (const tx of cellCollector.collect()) {
-  console.log(tx);
-}
+### `get_tip`
+
+Returns the indexed tip block
+
+#### Parameters
+    null
+
+#### Returns
+
+    block_hash - indexed tip block hash
+    block_number - indexed tip block number
+
+#### Examples
+
+```bash
+echo '{
+    "id": 2,
+    "jsonrpc": "2.0",
+    "method": "get_tip"
+}' \
+| tr -d '\n' \
+| curl -H 'content-type: application/json' -d @- \
+http://localhost:8116
 ```
 
-Order by block number is supported by setting `order` field explicitly:
+### `get_cells`
 
-```jsx
-cellCollector = new CellCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
-  },
-  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
-  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
-  order: "desc", // default option is "asc"
-  skip: 300,
-});
+Returns the live cells collection by the lock or type script.
 
-for await (const cell of cellCollector.collect()) {
-  console.log(cell);
-}
+#### Parameters
+
+    search_key:
+        script - Script
+        scrip_type - enum, lock | type
+        filter - filter cells by following conditions, all conditions are optional
+            script: if search script type is lock, filter cells by type script prefix, and vice versa
+            output_data_len_range: [u64; 2], filter cells by output data len range, [inclusive, exclusive]
+            output_capacity_range: [u64; 2], filter cells by output capacity range, [inclusive, exclusive]
+            block_range: [u64; 2], filter cells by block number range, [inclusive, exclusive]
+    order: enum, asc | desc
+    limit: result size limit
+    after_cursor: pagination parameter, optional
+
+
+#### Returns
+
+    objects - live cells
+    last_cursor - pagination parameter
+
+#### Examples
+
+get cells by lock script
+
+```bash
+echo '{
+    "id": 2,
+    "jsonrpc": "2.0",
+    "method": "get_cells",
+    "params": [
+        {
+            "script": {
+                "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                "hash_type": "type",
+                "args": "0x8211f1b938a107cd53b6302cc752a6fc3965638d"
+            },
+            "script_type": "lock"
+        },
+        "asc",
+        "0x64"
+    ]
+}' \
+| tr -d '\n' \
+| curl -H 'content-type: application/json' -d @- \
+http://localhost:8116
 ```
 
-Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
+get cells by lock script and filter by type script
 
-```jsx
-cellCollector = new CellCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df3", // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
-  },
-  argsLen: 20, // default option is -1
-  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
-  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
-  order: "desc", // default option is "asc"
-  skip: 300,
-});
-
-for await (const cell of cellCollector.collect()) {
-  console.log(cell);
-}
+```bash
+echo '{
+    "id": 2,
+    "jsonrpc": "2.0",
+    "method": "get_cells",
+    "params": [
+        {
+            "script": {
+                "code_hash": "0x86a1c6987a4acbe1a887cca4c9dd2ac9fcb07405bbeda51b861b18bbf7492c4b",
+                "hash_type": "type",
+                "args": "0xb728659574c85e88d957bd643bb747a00f018d72"
+            },
+            "script_type": "lock",
+            "filter": {
+                "script": {
+                    "code_hash": "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
+                    "hash_type": "data",
+                    "args": "0x94bbc8327e16d195de87815c391e7b9131e80419c51a405a0b21227c6ee05129"
+                }
+            }
+        },
+        "asc",
+        "0x64"
+    ]
+}' \
+| tr -d '\n' \
+| curl -H 'content-type: application/json' -d @- \
+http://localhost:8116
 ```
 
-You can also set it as `any` when the argsLen has multiple possibilities. For example, lock script's args is 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios.
+get cells by lock script and filter capacity range
 
-```jsx
-cellCollector = new CellCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
-  },
-  argsLen: "any",
-  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
-  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
-  order: "desc", // default option is "asc"
-  skip: 300,
-});
-
-for await (const cell of cellCollector.collect()) {
-  console.log(cell);
-}
+```bash
+echo '{
+    "id": 2,
+    "jsonrpc": "2.0",
+    "method": "get_cells",
+    "params": [
+        {
+            "script": {
+                "code_hash": "0x86a1c6987a4acbe1a887cca4c9dd2ac9fcb07405bbeda51b861b18bbf7492c4b",
+                "hash_type": "type",
+                "args": "0xb728659574c85e88d957bd643bb747a00f018d72"
+            },
+            "script_type": "lock",
+            "filter": {
+                "output_capacity_range": ["0x0", "0x6cf8719ffd"]
+            }
+        },
+        "asc",
+        "0x64"
+    ]
+}' \
+| tr -d '\n' \
+| curl -H 'content-type: application/json' -d @- \
+http://localhost:8116
 ```
 
-Fine grained query for cells can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `argsLen`:
+### `get_transactions`
 
-```jsx
-cellCollector = new CellCollector(indexer, {
-  lock: {
-    script: {
-      codeHash:
-        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hashType: "type",
-      args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
-    },
-    argsLen: 20,
-  },
-  type: {
-    script: {
-      codeHash:
-        "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-      hashType: "type",
-      args: "0x",
-    },
-    // when the `argsLen` is not setted here, it will use the outside `argsLen` config, which in this case is -1 by default
-  },
-});
+Returns the transactions collection by the lock or type script.
 
-for await (const cell of cellCollector.collect()) {
-  console.log(cell);
-}
+#### Parameters
+
+    search_key:
+        script - Script
+        scrip_type - enum, lock | type
+        filter - filter cells by following conditions, all conditions are optional
+            script: if search script type is lock, filter cells by type script, and vice versa
+            block_range: [u64; 2], filter cells by block number range, [inclusive, exclusive]
+    order: enum, asc | desc
+    limit: result size limit
+    after_cursor: pagination parameter, optional
+
+
+#### Returns
+
+    objects - transactions
+    last_cursor - pagination parameter
+
+#### Examples
+
+```bash
+echo '{
+    "id": 2,
+    "jsonrpc": "2.0",
+    "method": "get_transactions",
+    "params": [
+        {
+            "script": {
+                "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                "hash_type": "type",
+                "args": "0x8211f1b938a107cd53b6302cc752a6fc3965638d"
+            },
+            "script_type": "lock"
+        },
+        "asc",
+        "0x64"
+    ]
+}' \
+| tr -d '\n' \
+| curl -H 'content-type: application/json' -d @- \
+http://localhost:8116
 ```
 
-`outputDataLenRange` for filtering cell by data length, and `outputCapacityRange` for filtering cell by capacity:
+### `get_cells_capacity`
 
-```jsx
-cellCollector = new CellCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
-  },
-  outputDataLenRange: [0x0, 0x160],
-  outputCapacityRange: [0x10000, 0x100000],
-});
+Returns the live cells capacity by the lock or type script.
 
-for await (const cell of cellCollector.collect()) {
-  console.log(cell);
-}
+#### Parameters
+
+    search_key:
+        script - Script
+        scrip_type - enum, lock | type
+        filter - filter cells by following conditions, all conditions are optional
+            script: if search script type is lock, filter cells by type script prefix, and vice versa
+            output_data_len_range: [u64; 2], filter cells by output data len range, [inclusive, exclusive]
+            output_capacity_range: [u64; 2], filter cells by output capacity range, [inclusive, exclusive]
+            block_range: [u64; 2], filter cells by block number range, [inclusive, exclusive]
+
+#### Returns
+
+    capacity - total capacity
+    block_hash - indexed tip block hash
+    block_number - indexed tip block number
+
+#### Examples
+
+```bash
+echo '{
+    "id": 2,
+    "jsonrpc": "2.0",
+    "method": "get_cells_capacity",
+    "params": [
+        {
+            "script": {
+                "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                "hash_type": "type",
+                "args": "0x8211f1b938a107cd53b6302cc752a6fc3965638d"
+            },
+            "script_type": "lock"
+        }
+    ]
+}' \
+| tr -d '\n' \
+| curl -H 'content-type: application/json' -d @- \
+http://localhost:8116
 ```
 
-To return blockHash in the result, add the following query options:
+### `get_indexer_info`
 
-```jsx
-const otherQueryOptions: OtherQueryOptions = {
-    withBlockHash: true,
-    ckbRpcUrl: nodeUri,
-  };
-  const cellCollector = new CellCollector(
-    indexer,
-   { lock: type }
-   otherQueryOptions
-  );
+Returns the indexer service information.
+
+#### Returns
+
+    version - indexer version
+
+#### Examples
+
+```bash
+echo '{
+    "id": 2,
+    "jsonrpc": "2.0",
+    "method": "get_indexer_info",
+    "params": []
+}' \
+| tr -d '\n' \
+| curl -H 'content-type: application/json' -d @- \
+http://localhost:8116
 ```
-
-### **TransactionCollector**
-
-Similar usage for quering transactions:
-
-```jsx
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x0000000000000000000000000000000000000000000000000000000000000000",
-    hashType: "data",
-    args: "0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18",
-  },
-  CKBRpcUrl,
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-}
-```
-
-Query cells in certain block_numbers range (`fromBlock` and `toBlock` are included):
-
-```jsx
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
-  },
-  fromBlock: "0x0", // "0x" + 0n.toString(16)
-  toBlock: "0x7d0" , // "0x" + 2000n.toString(16)
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-
-```
-
-Skip a certain number of query results, e.g. the below code snippet means it would skip the first 100 cells and return from the 101st one.
-
-```jsx
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
-  },
-  skip: 100,
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-}
-```
-
-Order by block number is supported:
-
-```jsx
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
-  },
-  fromBlock: "0x4e20", // "0x" + 20000n.toString(16)
-  toBlock: "0x5208", // "0x" + 21000n.toString(16)
-  order: "desc", // default option is "asc"
-  skip: 10,
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-}
-```
-
-Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
-
-```jsx
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df3", // truncate the last byte of orignal args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
-  },
-  argsLen: 20, // default option is -1
-  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
-  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
-  order: "desc", // default option is "asc"
-  skip: 300,
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-}
-```
-
-You can also set it as `any` when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
-
-```jsx
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
-  },
-  argsLen: "any",
-  fromBlock: "0x253b40", // "0x" + 2440000n.toString(16)
-  toBlock: "0x253f28", // "0x" + 2441000n.toString(16)
-  order: "desc", // default option is "asc"
-  skip: 300,
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-}
-```
-
-Fine grained query for transactions can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `ioType`, `argsLen`:
-
-```jsx
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    script: {
-      codeHash:
-        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hashType: "type",
-      args: "0xe60f7f88c94ef365d540afc1574c46bb017765", // trucate the last byte of original args: 0xe60f7f88c94ef365d540afc1574c46bb017765a2
-    },
-    ioType: "both",
-    argsLen: 20, // when the `argsLen` is not setted here, it will use the outside `argsLen` config
-  },
-  type: {
-    script: {
-      codeHash:
-        "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
-      hashType: "type",
-      args: "0x",
-    },
-    ioType: "input",
-  },
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-}
-```
-
-The `ioType` field is among `input | output | both`.
-
-`outputDataLenRange` is support to filter cell by data length, `outputCapacityRange` is support to filter cell by capacity。you can use as below.
-
-```jsx
-txCollector = new TransactionCollector(indexer, {
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d", // truncate the last two bytes of original args: 0xa528f2b9a51118b193178db4cf2f3db92e7df323
-  },
-  outputDataLenRange: [0x0, 0x160],
-  outputCapacityRange: [0x10000, 0x100000],
-});
-
-for await (const tx of txCollector.collect()) {
-  console.log(tx);
-}
-```
-
-### **EventEmitter**
-
-Besides polling pattern, event-driven pattern is also supported. After subsribing for certain `lock|type` script, it will emit a `changed` event when a block containing the subsribed script is indexed or rollbacked.
-
-The principle of the design is unreliable notification queue, so developers are supposed to pull from the data sources via `CellCollector|TransactionCollector`, to find out what might happened: cell consumed, new cell generated, new transaction generated, or a chain fork happened, etc; and take the next step accordingly.
-
-```jsx
-eventEmitter = indexer.subscribe({
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
-  },
-});
-
-eventEmitter.on("changed", () => {
-  console.log(
-    "States changed with the script, please pull the data sources from the indexer to find out what happend"
-  );
-});
-```
-
-Other query options like `fromBlock|argsLen|data` are also supported.
-
-```jsx
-eventEmitter = indexer.subscribe({
-  lock: {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type",
-    // the args bytes length is 18, truncate the last 2 bytes.
-    args: "0xa528f2b9a51118b193178db4cf2f3db92e7d",
-  },
-  // default value is -1
-  argsLen: 20,
-  // default value is "any"
-  data: "0x",
-  // default value is 0
-  fromBlock: 0x3e8, // "0x" + 1000n.toString(16)
-});
-```
-
-Listen to median time change when blocks changed.
-
-```jsx
-const medianTimeEmitter = indexer.subscribeMedianTime();
-medianTimeEmitter.on("changed", (medianTime) => {
-  console.log(medianTime);
-});
-```
-
-## **Migration**
-
-If you want to migrate native indexer to ckb-indexer, please check more detail in our [migration docs](https://github.com/nervosnetwork/lumos/blob/develop/packages/ckb-indexer/mirgation.md)

@@ -1,4 +1,4 @@
-import { utils, Script, ScriptWrapper, HexString } from "@ckb-lumos/base";
+import { utils, HexString, QueryScriptWrapper, QueryScript } from "@ckb-lumos/base";
 import {
   CKBIndexerQueryOptions,
   HexadecimalRange,
@@ -9,30 +9,30 @@ import {
 import fetch from "cross-fetch";
 import { BI } from "@ckb-lumos/bi";
 
-function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
+function instanceOfScriptWrapper(object: unknown): object is QueryScriptWrapper {
   return typeof object === "object" && object != null && "script" in object;
 }
-const UnwrapScriptWrapper = (inputScript: ScriptWrapper | Script): Script => {
+const UnwrapScriptWrapper = (inputScript: QueryScriptWrapper | QueryScript): QueryScript => {
   if (instanceOfScriptWrapper(inputScript)) {
     return inputScript.script;
   }
   return inputScript;
 };
 const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
-  let script: Script | undefined = undefined;
+  let script: QueryScript | undefined = undefined;
   const filter: SearchFilter = {};
   let script_type: ScriptType | undefined = undefined;
   if (queries.lock) {
     const lock = UnwrapScriptWrapper(queries.lock);
-    script = lock as Script;
+    script = lock as QueryScript;
     script_type = "lock";
     if (queries.type && typeof queries.type !== "string") {
       const type = UnwrapScriptWrapper(queries.type);
-      filter.script = type as Script;
+      filter.script = type as QueryScript;
     }
   } else if (queries.type && typeof queries.type !== "string") {
     const type = UnwrapScriptWrapper(queries.type);
-    script = type as Script;
+    script = type as QueryScript;
     script_type = "type";
   }
   let block_range: HexadecimalRange | null = null;

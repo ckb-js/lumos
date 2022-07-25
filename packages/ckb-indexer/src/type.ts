@@ -3,14 +3,15 @@ import {
   Hexadecimal,
   HexString,
   QueryOptions,
-  Script,
   OutPoint,
   HexNumber,
   Output,
   TransactionWithStatus,
+  Script,
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
 import { BIish } from "@ckb-lumos/bi";
+import { RPCType } from "./rpcType";
 
 export type ScriptType = "type" | "lock";
 export type Order = "asc" | "desc";
@@ -23,13 +24,13 @@ export interface CKBIndexerQueryOptions extends QueryOptions {
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
 export interface SearchFilter {
-  script?: Script;
+  script?: RPCType.Script;
   output_data_len_range?: HexadecimalRange; //empty
   output_capacity_range?: HexadecimalRange; //empty
   block_range?: HexadecimalRange; //fromBlock-toBlock
 }
 export interface SearchKey {
-  script: Script;
+  script: RPCType.Script;
   script_type: ScriptType;
   filter?: SearchFilter;
 }
@@ -51,16 +52,15 @@ export interface rpcResponseData {
 
 export interface IndexerCell {
   blockNumber: Hexadecimal;
-  outPoint: OutPoint;
+  outPoint: RPCType.OutPoint;
   output: {
     capacity: HexNumber;
-    lock: Script;
-    type?: Script;
+    lock: RPCType.Script;
+    type?: RPCType.Script;
   };
   output_data: HexString;
   tx_index: Hexadecimal;
 }
-
 export interface TerminatorResult {
   stop: boolean;
   push: boolean;
