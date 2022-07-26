@@ -147,14 +147,11 @@ function generateTypeIdScript(input, outputIndex = "0x0") {
   };
 }
 
-
 function toCamel(s) {
-  return s.replace(/([-_][a-z])/ig, ($1) => {
-    return $1.toUpperCase()
-      .replace('-', '')
-      .replace('_', '');
+  return s.replace(/([-_][a-z])/gi, ($1) => {
+    return $1.toUpperCase().replace("-", "").replace("_", "");
   });
-};
+}
 
 function deepCamel(data) {
   if (Object.prototype.toString.call(data) === "[object Array]") {
@@ -174,7 +171,7 @@ function deepCamel(data) {
       ) {
         result[toCamel(key)] = deepCamel(value);
       } else {
-        result[toCamel(key)] = value === 'dep_group' ? 'depGroup' : value;
+        result[toCamel(key)] = value === "dep_group" ? "depGroup" : value;
       }
     }
     return result;

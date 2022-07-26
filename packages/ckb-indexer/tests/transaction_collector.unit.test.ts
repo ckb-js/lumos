@@ -31,11 +31,10 @@ test.serial(
       queryOption,
       nodeUri
     );
-    const resolvedTransactionList =
-      transactionCollector.getResolvedTransactionRequestPayload(
-        unresolvedTransactionList,
-        indexerTransactionListThatHaveZeroIoTypeInput
-      );
+    const resolvedTransactionList = transactionCollector.getResolvedTransactionRequestPayload(
+      unresolvedTransactionList,
+      indexerTransactionListThatHaveZeroIoTypeInput
+    );
     const expectedResult: JsonRprRequestBody[] = [];
     t.deepEqual(resolvedTransactionList, expectedResult);
   }
@@ -49,11 +48,10 @@ test.serial(
       queryOption,
       nodeUri
     );
-    const resolvedTransactionList =
-      transactionCollector.getResolvedTransactionRequestPayload(
-        unresolvedTransactionList,
-        indexerTransactionListThatHaveOneIoTypeInput
-      );
+    const resolvedTransactionList = transactionCollector.getResolvedTransactionRequestPayload(
+      unresolvedTransactionList,
+      indexerTransactionListThatHaveOneIoTypeInput
+    );
     const expectedResult: JsonRprRequestBody[] = [
       {
         id: 0,
@@ -76,11 +74,10 @@ test.serial(
       queryOption,
       nodeUri
     );
-    const resolvedTransactionList =
-      transactionCollector.getResolvedTransactionRequestPayload(
-        unresolvedTransactionList,
-        indexerTransactionListThatHaveTwoIoTypeInput
-      );
+    const resolvedTransactionList = transactionCollector.getResolvedTransactionRequestPayload(
+      unresolvedTransactionList,
+      indexerTransactionListThatHaveTwoIoTypeInput
+    );
     const expectedResult: JsonRprRequestBody[] = [
       {
         id: 0,
@@ -110,8 +107,9 @@ test.serial("fetchResolvedTransaction#", async (t) => {
     nodeUri
   );
   const emptyPayload: JsonRprRequestBody[] = [];
-  const emptyResolvedTransaction =
-    await transactionCollector.fetchResolvedTransaction(emptyPayload);
+  const emptyResolvedTransaction = await transactionCollector.fetchResolvedTransaction(
+    emptyPayload
+  );
   t.is(
     requestBatchStub.called,
     false,
@@ -134,8 +132,9 @@ test.serial("fetchResolvedTransaction#", async (t) => {
     },
   ];
   requestBatchStub.resolves(batchRequestTransaction);
-  const resolvedTransactionList =
-    await transactionCollector.fetchResolvedTransaction(payloadWithData);
+  const resolvedTransactionList = await transactionCollector.fetchResolvedTransaction(
+    payloadWithData
+  );
   t.is(
     requestBatchStub.called,
     true,

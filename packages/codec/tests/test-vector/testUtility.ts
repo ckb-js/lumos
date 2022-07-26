@@ -74,7 +74,7 @@ export const testStruct = (
   fields: Array<string>
 ) => {
   const codec = struct(shape, fields);
-  return testObject("struct", codec, shape) as unknown as FixedTestBytesCodec;
+  return (testObject("struct", codec, shape) as unknown) as FixedTestBytesCodec;
 };
 export const testUnion = (
   shape: Record<string, BytesCodec>,
@@ -157,16 +157,16 @@ export function fullfillPartialCodecData(
   if (testMetadata.type === "array") {
     const fulfilledData = defaultData;
     Object.entries(data).forEach(([index, value]) => {
-      fulfilledData[index as any as number] = value;
+      fulfilledData[(index as any) as number] = value;
     });
     return fulfilledData;
   }
   if (testMetadata.type === "struct" || testMetadata.type === "table") {
     const fulfilledData = defaultData;
     Object.entries(data).forEach(([key, value]) => {
-      const itemCodec = (
-        testMetadata.itemCodecs as Array<[string, BytesCodec]>
-      ).find(([field]) => field === key)![1];
+      const itemCodec = (testMetadata.itemCodecs as Array<
+        [string, BytesCodec]
+      >).find(([field]) => field === key)![1];
       fulfilledData[key] = itemCodec.unpack(bytify(value as any));
     });
     return fulfilledData;
@@ -175,9 +175,9 @@ export function fullfillPartialCodecData(
     return codec.unpack(bytify(item));
   }
   if (testMetadata.type === "union") {
-    const itemCodec = (
-      testMetadata.itemCodecs as Array<[string, BytesCodec]>
-    ).find(([field]) => field === item.type)![1];
+    const itemCodec = (testMetadata.itemCodecs as Array<
+      [string, BytesCodec]
+    >).find(([field]) => field === item.type)![1];
     const fulfilledData = itemCodec.unpack(bytify(item.data));
     return {
       type: item.type,

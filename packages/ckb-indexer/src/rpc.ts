@@ -1,80 +1,77 @@
-import * as CKBRPC from "@ckb-lumos/rpc";
-import { HexString, Tip } from "@ckb-lumos/base";
+import { HexString, Tip, utils } from "@ckb-lumos/base";
 import {
-  GetCellsResults,
+  GetLiveCellsResult,
   IndexerTransactionList,
   Order,
   SearchKey,
 } from "./type";
-
-interface GetCellsCapacityResult {
-  capacity: HexString;
-  block_hash: HexString;
-  block_number: HexString;
-}
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const handler = {
-  get: (target: any, method: string) => {
-    return async (...params: any) => {
-      const result = await target.rpc[method](...params);
-      return result;
-    };
-  },
-};
-class RpcProxy {
-  private rpc: CKBRPC.default;
-  constructor(uri: string) {
-    this.rpc = new CKBRPC.default(uri);
-  }
-
-  getProxy() {
-    return new Proxy(this, handler);
-  }
-}
+import fetch from "cross-fetch";
 
 export class RPC {
-  private rpcProxy: any;
+  private uri: string;
 
   /**
    *
    * @param uri  indexer uri
    */
   constructor(uri: string) {
-    this.rpcProxy = new RpcProxy(uri).getProxy();
+    this.uri = uri;
   }
 
   async get_tip(): Promise<Tip> {
-    return this.rpcProxy.get_tip();
+    return utils.deepCamel(await request(this.uri, "get_tip"));
   }
   async get_cells(
     searchKey: SearchKey,
     order: Order,
     limit: HexString,
-    after_cursor?: string
-  ): Promise<GetCellsResults> {
-    return this.rpcProxy.get_cells(searchKey, order, limit, after_cursor);
+    cursor?: string
+  ): Promise<GetLiveCellsResult> {
+    const params = [searchKey, order, limit, cursor];
+    return utils.deepCamel(await request(this.uri, "get_cells", params));
   }
   async get_transactions(
     searchKey: SearchKey,
     order: Order,
     limit: HexString,
-    after_cursor?: string
+    cursor?: string
   ): Promise<IndexerTransactionList> {
-    return this.rpcProxy.get_transactions(
-      searchKey,
-      order,
-      limit,
-      after_cursor
-    );
-  }
-  async get_cells_capacity(
-    searchKey: SearchKey
-  ): Promise<GetCellsCapacityResult> {
-    return this.rpcProxy.get_cells_capacity(searchKey);
+    const params = [searchKey, order, limit, cursor];
+    return utils.deepCamel(await request(this.uri, "get_transactions", params));
   }
   async get_indexer_info(): Promise<string> {
-    return this.rpcProxy.get_indexer_info();
+    return utils.deepCamel(await request(this.uri, "get_indexer_info"));
   }
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
+const request = async (
+  ckbIndexerUrl: string,
+  method: string,
+  params?: any
+): Promise<any> => {
+  const res = await fetch(ckbIndexerUrl, {
+    method: "POST",
+    body: JSON.stringify({
+      id: 0,
+      jsonrpc: "2.0",
+      method,
+      params,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (res.status !== 200) {
+    throw new Error(`indexer request failed with HTTP code ${res.status}`);
+  }
+  const data = await res.json();
+  if (data.error !== undefined) {
+    throw new Error(
+      `indexer request rpc failed with error: ${JSON.stringify(data.error)}`
+    );
+  }
+  return data.result;
+};
+/* eslint-enalbe @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */

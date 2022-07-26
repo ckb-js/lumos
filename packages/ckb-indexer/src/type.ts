@@ -36,7 +36,7 @@ export interface SearchKey {
 }
 
 export interface GetLiveCellsResult {
-  last_cursor: string;
+  lastCursor: string;
   objects: IndexerCell[];
 }
 
@@ -51,15 +51,15 @@ export interface rpcResponseData {
 }
 
 export interface IndexerCell {
-  block_number: Hexadecimal;
-  out_point: RPCType.OutPoint;
+  blockNumber: Hexadecimal;
+  outPoint: OutPoint;
   output: {
     capacity: HexNumber;
-    lock: RPCType.Script;
-    type?: RPCType.Script;
+    lock: Script;
+    type?: Script;
   };
-  output_data: HexString;
-  tx_index: Hexadecimal;
+  outputData: HexString;
+  txIndex: Hexadecimal;
 }
 export interface TerminatorResult {
   stop: boolean;
@@ -75,11 +75,11 @@ export type HexNum = string;
 export type IOType = "input" | "output" | "both";
 export type Bytes32 = string;
 export type IndexerTransaction = {
-  block_number: HexNum;
-  io_index: HexNum;
-  io_type: IOType;
-  tx_hash: Bytes32;
-  tx_index: HexNum;
+  blockNumber: HexNum;
+  ioIndex: HexNum;
+  ioType: IOType;
+  txHash: Bytes32;
+  txIndex: HexNum;
 };
 export interface IndexerTransactionList {
   lastCursor: string | undefined;

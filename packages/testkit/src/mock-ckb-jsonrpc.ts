@@ -34,13 +34,15 @@ export function createCKBMockRPC(options: Options): Express {
     );
     if (!block) return null;
 
-    if (Number(verbosity) === 0){
-      const formattedBlock = utils.deepCamel(block)
-      const transfromedBlock = blockchainUtils.transformBlockCodecType(formattedBlock)
-      const packedBlock = blockchain.Block.pack(transfromedBlock)
+    if (Number(verbosity) === 0) {
+      const formattedBlock = utils.deepCamel(block);
+      const transfromedBlock = blockchainUtils.transformBlockCodecType(
+        formattedBlock
+      );
+      const packedBlock = blockchain.Block.pack(transfromedBlock);
       return bytes.hexify(packedBlock);
     }
-      
+
     return block;
   });
 

@@ -84,7 +84,8 @@ test("deploy with data", async (t) => {
           hashType: "type",
         },
         type: {
-          args: "0xe9451f3528af55247ff7d3851a00b54a5fe7de38d40dc29580ce2c069332633a",
+          args:
+            "0xe9451f3528af55247ff7d3851a00b54a5fe7de38d40dc29580ce2c069332633a",
           codeHash:
             "0x00000000000000000000000000000000000000000000000000545950455f4944",
           hashType: "type",
@@ -180,7 +181,8 @@ test("deploy with typeID", async (t) => {
           hashType: "type",
         },
         type: {
-          args: "0xe9451f3528af55247ff7d3851a00b54a5fe7de38d40dc29580ce2c069332633a",
+          args:
+            "0xe9451f3528af55247ff7d3851a00b54a5fe7de38d40dc29580ce2c069332633a",
           codeHash:
             "0x00000000000000000000000000000000000000000000000000545950455f4944",
           hashType: "type",
@@ -257,7 +259,8 @@ test("upgrade with typeID", async (t) => {
           hashType: "type",
         },
         type: {
-          args: "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
+          args:
+            "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
           codeHash:
             "0x00000000000000000000000000000000000000000000000000545950455f4944",
           hashType: "type",
@@ -320,7 +323,8 @@ test("upgrade with typeID", async (t) => {
       codeHash:
         "0x00000000000000000000000000000000000000000000000000545950455f4944",
       hashType: "type" as const,
-      args: "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
+      args:
+        "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
     },
     config: AGGRON4,
   };
@@ -353,7 +357,8 @@ test("upgrade contract with size reduced", async (t) => {
           hashType: "type",
         },
         type: {
-          args: "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
+          args:
+            "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
           codeHash:
             "0x00000000000000000000000000000000000000000000000000545950455f4944",
           hashType: "type",
@@ -416,7 +421,8 @@ test("upgrade contract with size reduced", async (t) => {
       codeHash:
         "0x00000000000000000000000000000000000000000000000000545950455f4944",
       hashType: "type" as const,
-      args: "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
+      args:
+        "0x2c82a38950de3204a4ae166c50331d1b104e97a21402cb5bdb7ca23bb9c15f0f",
     },
     config: AGGRON4,
   };
@@ -468,7 +474,8 @@ test("deploy with data by multisig", async (t) => {
           hashType: "type",
         },
         type: {
-          args: "0xe9451f3528af55247ff7d3851a00b54a5fe7de38d40dc29580ce2c069332633a",
+          args:
+            "0xe9451f3528af55247ff7d3851a00b54a5fe7de38d40dc29580ce2c069332633a",
           codeHash:
             "0x00000000000000000000000000000000000000000000000000545950455f4944",
           hashType: "type",

@@ -8,7 +8,7 @@ import {
   utils,
   Block,
 } from "@ckb-lumos/base";
-import { instanceOfScriptWrapper, request, requestBatch } from "./services";
+import { instanceOfScriptWrapper, requestBatch } from "./services";
 import { CKBCellCollector } from "./collector";
 import { EventEmitter } from "events";
 import {
@@ -26,11 +26,10 @@ import {
   OtherQueryOptions,
 } from "./type";
 import { BI } from "@ckb-lumos/bi";
-import RPC from "@ckb-lumos/rpc";
+import { RPC as CKBIndexerRpc } from "./rpc";
+import CKBRPC from "@ckb-lumos/rpc";
 import { validators } from "@ckb-lumos/toolkit";
-import { RPCType } from "./rpcType";
 import { IndexerType } from "./indexerType";
-import { toCellOutPut, toOutPoint, toTip } from "./resultFormatter";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -44,20 +43,24 @@ function defaultLogger(level: string, message: string) {
 export class CkbIndexer implements Indexer {
   static version = "0.3.2";
   uri: string;
+  ckbIndexerUri: string;
   medianTimeEmitters: EventEmitter[] = [];
   emitters: IndexerEmitter[] = [];
   isSubscribeRunning = false;
   constructor(public ckbIndexerUrl: string, public ckbRpcUrl: string) {
     this.uri = ckbRpcUrl;
+    this.ckbIndexerUri = ckbIndexerUrl;
   }
 
-  private getCkbRpc(): RPC {
-    return new RPC(this.ckbRpcUrl);
+  private getCkbRpc(): CKBRPC {
+    return new CKBRPC(this.ckbRpcUrl);
+  }
+  private getIndexerRpc(): CKBIndexerRpc {
+    return new CKBIndexerRpc(this.ckbIndexerUri);
   }
 
   public async tip(): Promise<IndexerType.Tip> {
-    const res: RPCType.Tip = await request(this.ckbIndexerUrl, "get_tip");
-    return toTip(res);
+    return await this.getIndexerRpc().get_tip();
   }
 
   asyncSleep(timeout: number): Promise<void> {
@@ -101,18 +104,20 @@ export class CkbIndexer implements Indexer {
     const order = searchKeyFilter.order || "asc";
     const index = 0;
     while (true) {
-      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
-      const res: GetLiveCellsResult = await request(this.ckbIndexerUrl, "get_cells", params);
+      const res: GetLiveCellsResult = await this.getIndexerRpc().get_cells(
+        searchKey,
+        order,
+        `0x${sizeLimit.toString(16)}`,
+        cursor
+      );
       const liveCells = res.objects;
-      cursor = res.last_cursor;
+      cursor = res.lastCursor;
       for (const liveCell of liveCells) {
         const cell: Cell = {
-          cellOutput: toCellOutPut(liveCell.output),
-          data: liveCell.output_data,
-          outPoint: liveCell.out_point
-            ? toOutPoint(liveCell.out_point)
-            : undefined,
-          blockNumber: liveCell.block_number,
+          cellOutput: liveCell.output,
+          data: liveCell.outputData,
+          outPoint: liveCell.outPoint ? liveCell.outPoint : undefined,
+          blockNumber: liveCell.blockNumber,
         };
         const { stop, push } = terminator(index, cell);
         if (push) {
@@ -144,10 +149,14 @@ export class CkbIndexer implements Indexer {
     const sizeLimit = searchKeyFilter.sizeLimit || 100;
     const order = searchKeyFilter.order || "asc";
     while (true) {
-      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
-      const res = await request(this.ckbIndexerUrl, "get_transactions", params);
+      const res = await this.getIndexerRpc().get_transactions(
+        searchKey,
+        order,
+        `0x${sizeLimit.toString(16)}`,
+        cursor
+      );
       const txs = res.objects;
-      cursor = res.last_cursor as string;
+      cursor = res.lastCursor;
       infos = infos.concat(txs);
       if (txs.length <= sizeLimit) {
         break;
@@ -258,36 +267,28 @@ export class CkbIndexer implements Indexer {
     const tip = await this.tip();
     const { blockNumber, blockHash } = tip;
     if (blockNumber === "0x0") {
-      const block: Block = await request(
-        this.ckbRpcUrl, 
-        "get_block_by_number",
-        [blockNumber],
-      );
+      const block: Block = (await this.getCkbRpc().getBlockByNumber(
+        blockNumber
+      )) as Block;
       await this.publishAppendBlockEvents(block);
     }
     const nextBlockNumber = BI.from(blockNumber).add(1);
-    const block = await request(
-      this.ckbRpcUrl,
-      "get_block_by_number",
-      [`0x${nextBlockNumber.toString(16)}`],
-    );
+    const block: Block = (await this.getCkbRpc().getBlockByNumber(
+      `0x${nextBlockNumber.toString(16)}`
+    )) as Block;
     if (block) {
       if (block.header.parentHash === blockHash) {
         await this.publishAppendBlockEvents(block);
       } else {
-        const block: Block = await request(
-          this.ckbRpcUrl,
-          "get_block_by_number",
-          [blockNumber],
-        );
+        const block: Block = (await this.getCkbRpc().getBlockByNumber(
+          blockNumber
+        )) as Block;
         await this.publishAppendBlockEvents(block);
       }
     } else {
-      const block = await request(
-        this.ckbRpcUrl,
-        "get_block_by_number",
-        [blockNumber],
-      );
+      const block: Block = (await this.getCkbRpc().getBlockByNumber(
+        blockNumber
+      )) as Block;
       await this.publishAppendBlockEvents(block);
       timeout = 3 * 1000;
     }
@@ -416,7 +417,7 @@ export class CkbIndexer implements Indexer {
     if (this.medianTimeEmitters.length === 0) {
       return;
     }
-    const info = await request(this.ckbRpcUrl, "get_blockchain_info");
+    const info = await this.getCkbRpc().getBlockchainInfo();
     const medianTime = info.medianTime;
     for (const medianTimeEmitter of this.medianTimeEmitters) {
       medianTimeEmitter.emit("changed", medianTime);

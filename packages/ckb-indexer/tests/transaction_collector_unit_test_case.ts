@@ -8,74 +8,71 @@ export const queryOption = {
     args: "0xbde8b19b4505dd1d1310223edecea20adc4e240e",
   },
 };
-export const indexerTransactionListThatHaveZeroIoTypeInput: IndexerTransactionList =
-  {
-    lastCursor: "",
-    objects: [
-      {
-        block_number: "0x44f48a",
-        io_index: "0x0",
-        io_type: "output",
-        tx_hash:
-          "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
-        tx_index: "0x1",
-      },
-      {
-        block_number: "0x44f48a",
-        io_index: "0x1",
-        io_type: "output",
-        tx_hash:
-          "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
-        tx_index: "0x1",
-      },
-    ],
-  };
+export const indexerTransactionListThatHaveZeroIoTypeInput: IndexerTransactionList = {
+  lastCursor: "",
+  objects: [
+    {
+      block_number: "0x44f48a",
+      io_index: "0x0",
+      io_type: "output",
+      tx_hash:
+        "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
+      tx_index: "0x1",
+    },
+    {
+      block_number: "0x44f48a",
+      io_index: "0x1",
+      io_type: "output",
+      tx_hash:
+        "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
+      tx_index: "0x1",
+    },
+  ],
+};
 
-export const indexerTransactionListThatHaveOneIoTypeInput: IndexerTransactionList =
-  {
-    lastCursor: "",
-    objects: [
-      {
-        block_number: "0x44f48a",
-        io_index: "0x0",
-        io_type: "input",
-        tx_hash:
-          "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
-        tx_index: "0x1",
-      },
-      {
-        block_number: "0x44f48a",
-        io_index: "0x1",
-        io_type: "output",
-        tx_hash:
-          "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
-        tx_index: "0x1",
-      },
-    ],
-  };
+export const indexerTransactionListThatHaveOneIoTypeInput: IndexerTransactionList = {
+  lastCursor: "",
+  objects: [
+    {
+      block_number: "0x44f48a",
+      io_index: "0x0",
+      io_type: "input",
+      tx_hash:
+        "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
+      tx_index: "0x1",
+    },
+    {
+      block_number: "0x44f48a",
+      io_index: "0x1",
+      io_type: "output",
+      tx_hash:
+        "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
+      tx_index: "0x1",
+    },
+  ],
+};
 
-export const indexerTransactionListThatHaveTwoIoTypeInput: IndexerTransactionList =
-  {
-    lastCursor: "",
-    objects: [
-      {
-        block_number: "0x44f48a",
-        io_index: "0x0",
-        io_type: "input",
-        tx_hash:
-          "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
-        tx_index: "0x1",
-      },
-      {
-        block_number: "0x44f48a",
-        io_index: "0x1",
-        io_type: "input",
-        tx_hash:
-          "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
-        tx_index: "0x1",
-      },
-    ],
-  };
+export const indexerTransactionListThatHaveTwoIoTypeInput: IndexerTransactionList = {
+  lastCursor: "",
+  objects: [
+    {
+      block_number: "0x44f48a",
+      io_index: "0x0",
+      io_type: "input",
+      tx_hash:
+        "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
+      tx_index: "0x1",
+    },
+    {
+      block_number: "0x44f48a",
+      io_index: "0x1",
+      io_type: "input",
+      tx_hash:
+        "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
+      tx_index: "0x1",
+    },
+  ],
+};
 export const unresolvedTransaction: TransactionWithStatus = {
   transaction: {
     cellDeps: [
@@ -274,7 +271,8 @@ export const batchRequestTransaction = [
             },
           },
         ],
-        hash: "0x992208eab19d0f8ce5a2fc10579d8d614d265aa12851ea140ec717f2f41b925f",
+        hash:
+          "0x992208eab19d0f8ce5a2fc10579d8d614d265aa12851ea140ec717f2f41b925f",
         headerDeps: [],
         inputs: [
           {

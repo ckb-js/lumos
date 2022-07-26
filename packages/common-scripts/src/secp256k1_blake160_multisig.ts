@@ -41,8 +41,7 @@ import { CellCollectorConstructor } from "./type";
 export { serializeMultisigScript, multisigArgs };
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
-  implements CellCollectorType
-{
+  implements CellCollectorType {
   private cellCollector: CellCollectorType;
   private config: Config;
   public readonly fromScript: Script;

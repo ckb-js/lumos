@@ -7662,7 +7662,7 @@ const cellsWithBlockHash = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7683,7 +7683,7 @@ const cellsWithBlockHash = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7704,7 +7704,7 @@ const cellsWithBlockHash = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7725,7 +7725,7 @@ const cellsWithBlockHash = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7746,7 +7746,7 @@ const cellsWithBlockHash = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7767,7 +7767,7 @@ const cellsWithBlockHash = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7788,7 +7788,7 @@ const cellsWithBlockHash = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7817,7 +7817,7 @@ const cellsByLock = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7838,7 +7838,7 @@ const cellsByLock = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7859,7 +7859,7 @@ const cellsByLock = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7880,7 +7880,7 @@ const cellsByLock = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7901,7 +7901,7 @@ const cellsByLock = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7922,7 +7922,7 @@ const cellsByLock = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:
@@ -7943,7 +7943,7 @@ const cellsByLock = [
         hashType: "type",
         args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
       },
-      type: undefined,
+      type: null,
     },
     outPoint: {
       txHash:

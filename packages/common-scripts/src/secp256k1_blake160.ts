@@ -34,8 +34,7 @@ import { CellCollectorConstructor } from "./type";
 const { ScriptValue } = values;
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
-  implements CellCollectorType
-{
+  implements CellCollectorType {
   private cellCollector: CellCollectorType;
   private config: Config;
   public readonly fromScript: Script;

@@ -70,7 +70,7 @@ export function transformHeaderCodecType(data: any): HeaderCodecType {
   // TODO what if hash is present here
   // validators.ValidateHeader(data);
   return {
-    raw: {  
+    raw: {
       timestamp: BI.from(data.timestamp),
       number: BI.from(data.number),
       epoch: BI.from(data.epoch),
