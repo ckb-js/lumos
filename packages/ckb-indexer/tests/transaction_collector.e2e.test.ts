@@ -6,7 +6,7 @@ const {
   transactionCollectorCollectTestCases,
 } = require("./test_cases.js");
 
-import { QueryOptions } from "@ckb-lumos/base";
+import { Hash, QueryOptions, utils } from "@ckb-lumos/base";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
@@ -84,7 +84,7 @@ test("query transactions with different queryOptions", async (t) => {
     for await (const hash of transactionCollector.collect()) {
       transactionList.push(hash);
     }
-    t.deepEqual(transactionList, queryCase.expectedResult, queryCase.desc);
+    t.deepEqual(utils.deepCamel(transactionList), queryCase.expectedResult, queryCase.desc);
   }
 });
 

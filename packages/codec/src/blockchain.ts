@@ -213,7 +213,7 @@ export const RawHeader = struct(
     parentHash: Byte32,
     transactionsRoot: Byte32,
     proposalsHash: Byte32,
-    extra_hash: Byte32,
+    extraHash: Byte32,
     dao: Byte32,
   },
   [
@@ -225,7 +225,7 @@ export const RawHeader = struct(
     "parentHash",
     "transactionsRoot",
     "proposalsHash",
-    "extra_hash",
+    "extraHash",
     "dao",
   ]
 );

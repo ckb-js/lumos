@@ -193,12 +193,12 @@ export interface NodeAddress {
 export interface LocalNodeProtocol {
   id: HexNumber;
   name: string;
-  supportVersions: string[];
+  support_versions: string[];
 }
 
 export interface LocalNode {
   version: string;
-  nodeId: string;
+  node_id: string;
   active: boolean;
   addresses: NodeAddress[];
   protocols: LocalNodeProtocol[];

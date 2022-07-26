@@ -13,18 +13,18 @@ export const indexerTransactionListThatHaveZeroIoTypeInput: IndexerTransactionLi
     lastCursor: "",
     objects: [
       {
-        blockNumber: "0x44f48a",
+        block_number: "0x44f48a",
         io_index: "0x0",
         io_type: "output",
-        txHash:
+        tx_hash:
           "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
         tx_index: "0x1",
       },
       {
-        blockNumber: "0x44f48a",
+        block_number: "0x44f48a",
         io_index: "0x1",
         io_type: "output",
-        txHash:
+        tx_hash:
           "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
         tx_index: "0x1",
       },
@@ -36,18 +36,18 @@ export const indexerTransactionListThatHaveOneIoTypeInput: IndexerTransactionLis
     lastCursor: "",
     objects: [
       {
-        blockNumber: "0x44f48a",
+        block_number: "0x44f48a",
         io_index: "0x0",
         io_type: "input",
-        txHash:
+        tx_hash:
           "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
         tx_index: "0x1",
       },
       {
-        blockNumber: "0x44f48a",
+        block_number: "0x44f48a",
         io_index: "0x1",
         io_type: "output",
-        txHash:
+        tx_hash:
           "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
         tx_index: "0x1",
       },
@@ -59,18 +59,18 @@ export const indexerTransactionListThatHaveTwoIoTypeInput: IndexerTransactionLis
     lastCursor: "",
     objects: [
       {
-        blockNumber: "0x44f48a",
+        block_number: "0x44f48a",
         io_index: "0x0",
         io_type: "input",
-        txHash:
+        tx_hash:
           "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
         tx_index: "0x1",
       },
       {
-        blockNumber: "0x44f48a",
+        block_number: "0x44f48a",
         io_index: "0x1",
         io_type: "input",
-        txHash:
+        tx_hash:
           "0x87c3586cc91ec7a1a97407456dba0adb34c5781c6031cb71bfb175939af4e6c6",
         tx_index: "0x1",
       },

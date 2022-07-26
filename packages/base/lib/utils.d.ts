@@ -20,3 +20,4 @@ export function assertHexString(debugPath: any, str: any): void;
 export function assertHexadecimal(debugPath: any, str: any): void;
 export function isDeepEqual(a: any, b: any): boolean;
 export function generateTypeIdScript(input: any, outputIndex?: string): Script;
+export function deepCamel(data: any): any;

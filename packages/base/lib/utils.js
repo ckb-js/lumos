@@ -147,9 +147,45 @@ function generateTypeIdScript(input, outputIndex = "0x0") {
   };
 }
 
+
+function toCamel(s) {
+  return s.replace(/([-_][a-z])/ig, ($1) => {
+    return $1.toUpperCase()
+      .replace('-', '')
+      .replace('_', '');
+  });
+};
+
+function deepCamel(data) {
+  if (Object.prototype.toString.call(data) === "[object Array]") {
+    if (data.length === 0) {
+      return data;
+    } else {
+      return data.map((item) => deepCamel(item));
+    }
+  }
+  let result = {};
+  if (Object.prototype.toString.call(data) === "[object Object]") {
+    for (let key in data) {
+      const value = data[key];
+      if (
+        Object.prototype.toString.call(value) === "[object Object]" ||
+        Object.prototype.toString.call(value) === "[object Array]"
+      ) {
+        result[toCamel(key)] = deepCamel(value);
+      } else {
+        result[toCamel(key)] = value === 'dep_group' ? 'depGroup' : value;
+      }
+    }
+    return result;
+  }
+  return data;
+}
+
 module.exports = {
   CKBHasher,
   ckbHash,
+  deepCamel,
   toBigUInt64LE,
   toBigUInt64LECompatible,
   readBigUInt64LE,

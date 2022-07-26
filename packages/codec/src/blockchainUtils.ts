@@ -1,4 +1,3 @@
-import { validators } from "@ckb-lumos/toolkit";
 import { BI } from "@ckb-lumos/bi";
 import { UnpackResult } from "./base";
 import * as blockchain from "./blockchain";
@@ -16,28 +15,28 @@ declare type HeaderCodecType = UnpackResult<typeof blockchain.Header>;
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 export function transformCellInputCodecType(data: any): CellInputCodecType {
-  validators.ValidateCellInput(data);
+  // validators.ValidateCellInput(data);
   return {
     previousOutput: transformOutPointCodecType(data.previousOutput),
     since: BI.from(data.since),
   };
 }
 export function transformOutPointCodecType(data: any): OutPointCodecType {
-  validators.ValidateOutPoint(data);
+  // validators.ValidateOutPoint(data);
   return {
     txHash: data.txHash,
     index: BI.from(data.index).toNumber(),
   };
 }
 export function transformCellDepCodecType(data: any): CellDepCodecType {
-  validators.ValidateCellDep(data);
+  // validators.ValidateCellDep(data);
   return {
     outPoint: transformOutPointCodecType(data.outPoint),
     depType: data.depType,
   };
 }
 export function transformCellOutputCodecType(data: any): CellOutputCodecType {
-  validators.ValidateCellOutput(data);
+  // validators.ValidateCellOutput(data);
   return {
     capacity: BI.from(data.capacity),
     lock: data.lock,
@@ -60,7 +59,7 @@ export function transformRawTransactionCodecType(
 }
 
 export function transformTransactionCodecType(data: any): TransactionCodecType {
-  validators.ValidateTransaction(data);
+  // validators.ValidateTransaction(data);
   return {
     raw: transformRawTransactionCodecType(data),
     witnesses: data.witnesses,
@@ -68,26 +67,27 @@ export function transformTransactionCodecType(data: any): TransactionCodecType {
 }
 
 export function transformHeaderCodecType(data: any): HeaderCodecType {
-  validators.ValidateHeader(data);
+  // TODO what if hash is present here
+  // validators.ValidateHeader(data);
   return {
-    raw: {
-      timestamp: data.timestamp,
-      number: data.number,
-      epoch: data.epoch,
-      compactTarget: data.compactTarget,
+    raw: {  
+      timestamp: BI.from(data.timestamp),
+      number: BI.from(data.number),
+      epoch: BI.from(data.epoch),
+      compactTarget: Number(data.compactTarget),
       dao: data.dao,
       parentHash: data.parentHash,
       proposalsHash: data.proposalsHash,
       transactionsRoot: data.transactionsRoot,
-      extra_hash: data.unclesHash,
-      version: data.version,
+      extraHash: data.extraHash,
+      version: Number(data.version),
     },
-    nonce: data.nonce,
+    nonce: BI.from(data.nonce),
   };
 }
 
 export function transformUncleBlockCodecType(data: any): UncleBlockCodecType {
-  validators.ValidateUncleBlock(data);
+  // validators.ValidateUncleBlock(data);
   return {
     header: transformHeaderCodecType(data.header),
     proposals: data.proposals,
@@ -95,7 +95,7 @@ export function transformUncleBlockCodecType(data: any): UncleBlockCodecType {
 }
 
 export function transformBlockCodecType(data: any): BlockCodecType {
-  validators.ValidateBlock(data);
+  // validators.ValidateBlock(data);
   return {
     header: transformHeaderCodecType(data.header),
     uncles: data.uncles.map(transformUncleBlockCodecType),

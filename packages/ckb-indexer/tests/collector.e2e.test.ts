@@ -6,7 +6,7 @@ const {
   cellCollectorTestCases,
   queryWithBlockHash,
 } = require("./test_cases.js");
-import { HashType } from "@ckb-lumos/base";
+import { HashType, Cell } from "@ckb-lumos/base";
 import { OtherQueryOptions } from "../src/type";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
@@ -42,7 +42,7 @@ test("query cells with block hash", async (t) => {
     queryWithBlockHash.queryOption,
     otherQueryOptions
   );
-  let cells = [];
+  let cells: Cell[] = [];
   for await (const cell of cellCollector.collect()) {
     cells.push(cell);
   }
@@ -56,7 +56,7 @@ test("query cells with block hash", async (t) => {
 test("query cells with different queryOptions", async (t) => {
   for (const queryCase of cellCollectorTestCases) {
     const cellCollector = new CellCollector(indexer, queryCase.queryOption);
-    let cells = [];
+    let cells: Cell[] = [];
     for await (const cell of cellCollector.collect()) {
       cells.push(cell);
     }

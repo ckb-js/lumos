@@ -151,12 +151,6 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     resolvedTransactionList: GetTransactionRPCResult[],
     indexerTransaction: IndexerTransaction
   ): Output {
-    console.log(
-      "getResolvedCell indexerTransaction",
-      indexerTransaction,
-      unresolvedTransaction
-    );
-
     if (indexerTransaction.io_type !== "input") {
       return unresolvedTransaction.transaction.outputs[
         Number(indexerTransaction.io_index)
@@ -229,7 +223,6 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
     const unresolvedTransactionList: TransactionWithStatus[] =
       await this.getTransactionListFromRpc(indexerTransactionList);
-
     const requestPayload = this.getResolvedTransactionRequestPayload(
       unresolvedTransactionList,
       indexerTransactionList
@@ -276,7 +269,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     ) => {
       const result: IndexerTransaction[] = [];
       transactionList1.forEach((tx1) => {
-        const tx2 = transactionList2.find((item) => item.txHash === tx1.txHash);
+        const tx2 = transactionList2.find((item) => item.tx_hash === tx1.tx_hash);
         if (tx2) {
           // put the output io_type to intersection result, cause output have cells
           const targetTx = tx1.io_type === "output" ? tx1 : tx2;
@@ -305,7 +298,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
           id: index,
           jsonrpc: "2.0",
           method: "get_transaction",
-          params: [hashItem.txHash],
+          params: [hashItem.tx_hash],
         };
       }
     );
@@ -317,7 +310,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
             if (!this.filterOptions.skipMissing && !item.result) {
               throw new Error(
                 `Transaction ${
-                  indexerTransactionList.objects[item.id].txHash
+                  indexerTransactionList.objects[item.id].tx_hash
                 } is missing!`
               );
             }

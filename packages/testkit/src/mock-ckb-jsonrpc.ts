@@ -1,7 +1,7 @@
 import { JSONRPCResponse, JSONRPCServer } from "json-rpc-2.0";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
-import { LocalNode, Block } from "@ckb-lumos/base";
+import { LocalNode, Block, utils } from "@ckb-lumos/base";
 import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
 interface Options {
   blocks: Block[];
@@ -34,11 +34,13 @@ export function createCKBMockRPC(options: Options): Express {
     );
     if (!block) return null;
 
-    if (Number(verbosity) === 0)
-      return bytes.hexify(
-        blockchain.Block.pack(blockchainUtils.transformBlockCodecType(block))
-      );
-
+    if (Number(verbosity) === 0){
+      const formattedBlock = utils.deepCamel(block)
+      const transfromedBlock = blockchainUtils.transformBlockCodecType(formattedBlock)
+      const packedBlock = blockchain.Block.pack(transfromedBlock)
+      return bytes.hexify(packedBlock);
+    }
+      
     return block;
   });
 

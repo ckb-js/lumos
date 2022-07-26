@@ -90,16 +90,6 @@ export class CkbIndexer implements Indexer {
     return new CKBCellCollector(this, queries, otherQueryOptions);
   }
 
-  private async request(
-    method: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    params?: any,
-    ckbIndexerUrl: string = this.ckbIndexerUrl
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<any> {
-    return request(ckbIndexerUrl, method, params);
-  }
-
   public async getCells(
     searchKey: SearchKey,
     terminator: Terminator = DefaultTerminator,
@@ -112,17 +102,17 @@ export class CkbIndexer implements Indexer {
     const index = 0;
     while (true) {
       const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
-      const res: GetLiveCellsResult = await this.request("get_cells", params);
+      const res: GetLiveCellsResult = await request(this.ckbIndexerUrl, "get_cells", params);
       const liveCells = res.objects;
       cursor = res.last_cursor;
       for (const liveCell of liveCells) {
         const cell: Cell = {
           cellOutput: toCellOutPut(liveCell.output),
           data: liveCell.output_data,
-          outPoint: liveCell.outPoint
-            ? toOutPoint(liveCell.outPoint)
+          outPoint: liveCell.out_point
+            ? toOutPoint(liveCell.out_point)
             : undefined,
-          blockNumber: liveCell.blockNumber,
+          blockNumber: liveCell.block_number,
         };
         const { stop, push } = terminator(index, cell);
         if (push) {
@@ -155,7 +145,7 @@ export class CkbIndexer implements Indexer {
     const order = searchKeyFilter.order || "asc";
     while (true) {
       const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
-      const res = await this.request("get_transactions", params);
+      const res = await request(this.ckbIndexerUrl, "get_transactions", params);
       const txs = res.objects;
       cursor = res.last_cursor as string;
       infos = infos.concat(txs);
@@ -268,35 +258,35 @@ export class CkbIndexer implements Indexer {
     const tip = await this.tip();
     const { blockNumber, blockHash } = tip;
     if (blockNumber === "0x0") {
-      const block: Block = await this.request(
+      const block: Block = await request(
+        this.ckbRpcUrl, 
         "get_block_by_number",
         [blockNumber],
-        this.ckbRpcUrl
       );
       await this.publishAppendBlockEvents(block);
     }
     const nextBlockNumber = BI.from(blockNumber).add(1);
-    const block = await this.request(
+    const block = await request(
+      this.ckbRpcUrl,
       "get_block_by_number",
       [`0x${nextBlockNumber.toString(16)}`],
-      this.ckbRpcUrl
     );
     if (block) {
       if (block.header.parentHash === blockHash) {
         await this.publishAppendBlockEvents(block);
       } else {
-        const block: Block = await this.request(
+        const block: Block = await request(
+          this.ckbRpcUrl,
           "get_block_by_number",
           [blockNumber],
-          this.ckbRpcUrl
         );
         await this.publishAppendBlockEvents(block);
       }
     } else {
-      const block = await this.request(
+      const block = await request(
+        this.ckbRpcUrl,
         "get_block_by_number",
         [blockNumber],
-        this.ckbRpcUrl
       );
       await this.publishAppendBlockEvents(block);
       timeout = 3 * 1000;
