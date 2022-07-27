@@ -42,6 +42,7 @@ const download = async () => {
   }
 
   shell.rm(`ckb-indexer-${CKB_Indexer_Version}-${osType}.zip`);
+  log("artifacts removed");
 };
 
 export async function downloadCKBIndexer(): Promise<void> {
