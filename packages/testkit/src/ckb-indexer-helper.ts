@@ -17,7 +17,7 @@ function getDownloadOsType() {
 
 let CKB_Indexer_Version = "0.2.2";
 const download = async () => {
-  const osType = getDownloadOsType()
+  const osType = getDownloadOsType();
   shell.echo("ckb-indexer not exist, downloading");
   shell.echo(`cwd is ${process.cwd()}`);
   const downloadUrl = `https://github.com/nervosnetwork/ckb-indexer/releases/download/v${CKB_Indexer_Version}/ckb-indexer-${CKB_Indexer_Version}-${osType}.zip`;
@@ -25,14 +25,12 @@ const download = async () => {
   await downloadAndExtract(downloadUrl, process.cwd());
   // const downloadCmd = `curl -O -L "${downloadUrl}"`;
   // shell.exec(downloadCmd);
-  shell.exec(
-    `unzip -o ./ckb-indexer-${CKB_Indexer_Version}-${osType}.zip`
-  );
-  if (osType === 'macos') {
+  shell.exec(`unzip -o ./ckb-indexer-${CKB_Indexer_Version}-${osType}.zip`);
+  if (osType === "macos") {
     shell.exec(`unzip -o ./ckb-indexer-mac-x86_64.zip`);
     shell.chmod("+x", "./ckb-indexer");
     shell.rm("-rf", "ckb-indexer-linux-x86_64.zip");
-  } else if (osType === 'linux') {
+  } else if (osType === "linux") {
     shell.exec(`tar xvzf ./ckb-indexer-linux-x86_64.tar.gz ckb-indexer`);
     shell.chmod("+x", "./ckb-indexer");
     shell.rm("-rf", "ckb-indexer-linux-x86_64.tar.gz");
@@ -57,7 +55,11 @@ export async function downloadCKBIndexer() {
   }
 }
 
-export async function startCKBIndexer(ckbRpcPort: number, indexerPort: number, CKBVersion?: string) {
+export async function startCKBIndexer(
+  ckbRpcPort: number,
+  indexerPort: number,
+  CKBVersion?: string
+) {
   CKB_Indexer_Version = CKBVersion ? CKBVersion : CKB_Indexer_Version;
   await downloadCKBIndexer();
   shell.exec(

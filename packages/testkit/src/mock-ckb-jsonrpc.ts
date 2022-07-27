@@ -24,11 +24,11 @@ export function createCKBMockRPC(options: Options): Express {
     addresses: localNode.addresses,
     connections: localNode.connections,
     node_id: localNode.nodeId,
-    protocols: localNode.protocols.map(item => ({
+    protocols: localNode.protocols.map((item) => ({
       id: item.id,
       name: item.name,
-      support_versions: item.supportVersions,          
-    }))
+      support_versions: item.supportVersions,
+    })),
   }));
   server.addMethod("get_block_by_number", (params) => {
     assertsParams(Array.isArray(params));
