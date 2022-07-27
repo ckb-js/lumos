@@ -27,10 +27,7 @@ function ScriptFrom(
   };
 }
 
-function ConfigFrom(
-  networkType: NetworkType,
-  options: { excludeShortId?: boolean } = {}
-): Config {
+function ConfigFrom(networkType: NetworkType, options: { excludeShortId?: boolean } = {}): Config {
   const { excludeShortId = false } = options;
   const config = predefined[networkType];
   return {
@@ -41,8 +38,7 @@ function ConfigFrom(
 
 test("[encodeToAddress] full address test (hashType = 0x02)", (t) => {
   const script: Script = {
-    codeHash:
-      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hashType: "data1",
     args: "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
   };
@@ -63,10 +59,7 @@ test("[encodeToAddress] full address test (hashType = 0x02)", (t) => {
 });
 
 test("[encodeToAddress] default short address (code_hash_index = 0x00)", (t) => {
-  const script = ScriptFrom(
-    "SECP256K1_BLAKE160",
-    "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64"
-  );
+  const script = ScriptFrom("SECP256K1_BLAKE160", "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64");
 
   t.is(
     encodeToAddress(script.LINA, { config: ConfigFrom("LINA") }),

@@ -25,20 +25,14 @@ export function createCKBMockRPC(options: Options): Express {
 
     const blockNumber = params[0];
     const verbosity = params[1] || "0x2";
-    assertsParams(
-      typeof blockNumber === "string" && !isNaN(Number(blockNumber))
-    );
+    assertsParams(typeof blockNumber === "string" && !isNaN(Number(blockNumber)));
 
-    const block = blocks.find(
-      (block) => Number(block.header.number) === Number(blockNumber)
-    );
+    const block = blocks.find((block) => Number(block.header.number) === Number(blockNumber));
     if (!block) return null;
 
     if (Number(verbosity) === 0) {
       const formattedBlock = utils.deepCamel(block);
-      const transfromedBlock = blockchainUtils.transformBlockCodecType(
-        formattedBlock
-      );
+      const transfromedBlock = blockchainUtils.transformBlockCodecType(formattedBlock);
       const packedBlock = blockchain.Block.pack(transfromedBlock);
       return bytes.hexify(packedBlock);
     }
@@ -49,13 +43,9 @@ export function createCKBMockRPC(options: Options): Express {
   server.addMethod("get_block_hash", (blockNumbers) => {
     assertsParams(Array.isArray(blockNumbers));
     const blockNumber = blockNumbers[0];
-    assertsParams(
-      typeof blockNumber === "string" && !isNaN(Number(blockNumber))
-    );
+    assertsParams(typeof blockNumber === "string" && !isNaN(Number(blockNumber)));
 
-    const block = blocks.find(
-      (block) => Number(block.header.number) === Number(blockNumber)
-    );
+    const block = blocks.find((block) => Number(block.header.number) === Number(blockNumber));
     if (!block) return null;
 
     return block.header.hash;

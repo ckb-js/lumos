@@ -1,9 +1,6 @@
 import test from "ava";
 import { CellProvider } from "./cell_provider";
-import {
-  TransactionSkeleton,
-  TransactionSkeletonType,
-} from "@ckb-lumos/helpers";
+import { TransactionSkeleton, TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { dao, common } from "../src";
 import { predefined, Config } from "@ckb-lumos/config-manager";
 const { LINA, AGGRON4 } = predefined;
@@ -68,10 +65,7 @@ test("deposit secp256k1_blake160", async (t) => {
   t.is(txSkeleton.get("witnesses").size, 1);
 
   t.is(txSkeleton.get("outputs").size, 2);
-  t.deepEqual(
-    txSkeleton.get("outputs").get(0)!.cellOutput!.type,
-    generateDaoTypeScript(LINA)
-  );
+  t.deepEqual(txSkeleton.get("outputs").get(0)!.cellOutput!.type, generateDaoTypeScript(LINA));
 });
 
 test("withdraw secp256k1_blake160", async (t) => {
@@ -83,8 +77,7 @@ test("withdraw secp256k1_blake160", async (t) => {
   );
 
   const fromInput = txSkeleton.get("outputs").get(0)!;
-  (fromInput.blockHash = "0x" + "1".repeat(64)),
-    (fromInput.blockNumber = "0x100");
+  (fromInput.blockHash = "0x" + "1".repeat(64)), (fromInput.blockNumber = "0x100");
   fromInput.outPoint = {
     txHash: "0x" + "1".repeat(64),
     index: "0x0",
@@ -111,10 +104,7 @@ test("withdraw secp256k1_blake160", async (t) => {
   );
   t.is(txSkeleton.get("headerDeps").size, 1);
   t.is(txSkeleton.get("headerDeps").get(0)!, fromInput.blockHash);
-  t.deepEqual(
-    txSkeleton.get("outputs").get(0)!.cellOutput.type,
-    generateDaoTypeScript(LINA)
-  );
+  t.deepEqual(txSkeleton.get("outputs").get(0)!.cellOutput.type, generateDaoTypeScript(LINA));
 
   const inputCapacity = txSkeleton
     .get("inputs")
@@ -134,25 +124,21 @@ const calculateMaximumWithdrawInfo = {
     cellOutput: {
       capacity: "0x174876e800",
       lock: {
-        codeHash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
         hashType: "type",
         args: "0xe2193df51d78411601796b35b17b4f8f2cd85bd0",
       },
       type: {
-        codeHash:
-          "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+        codeHash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
         hashType: "type",
         args: "0x",
       },
     },
     outPoint: {
-      txHash:
-        "0x9fbcf16a96897c1b0b80d4070752b9f30577d91275f5b460b048b955b58e08eb",
+      txHash: "0x9fbcf16a96897c1b0b80d4070752b9f30577d91275f5b460b048b955b58e08eb",
       index: "0x0",
     },
-    blockHash:
-      "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
+    blockHash: "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
     blockNumber: "0x19249",
     data: "0x0000000000000000",
   },
@@ -163,15 +149,11 @@ const calculateMaximumWithdrawInfo = {
     hash: "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
     nonce: "0x98e10e0a992f7274c7dc0c62e9d42f02",
     number: "0x19249",
-    parentHash:
-      "0xd4f3e8725de77aedadcf15755c0f6cdd00bc8d4a971e251385b59ce8215a5d70",
-    proposalsHash:
-      "0x0000000000000000000000000000000000000000000000000000000000000000",
+    parentHash: "0xd4f3e8725de77aedadcf15755c0f6cdd00bc8d4a971e251385b59ce8215a5d70",
+    proposalsHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
     timestamp: "0x17293289266",
-    transactionsRoot:
-      "0x9294a800ec389d1b0d9e7c570c249da260a44cc2790bd4aa250f3d5c83eb8cde",
-    extra_hash:
-      "0x0000000000000000000000000000000000000000000000000000000000000000",
+    transactionsRoot: "0x9294a800ec389d1b0d9e7c570c249da260a44cc2790bd4aa250f3d5c83eb8cde",
+    extra_hash: "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
   },
   withdrawHeader: {
@@ -181,15 +163,11 @@ const calculateMaximumWithdrawInfo = {
     hash: "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
     nonce: "0x7ffb49f45f12f2b30ac45586ecf13de2",
     number: "0x1929c",
-    parentHash:
-      "0xfe601308a34f1faf68906d2338e60246674ed1f1fbbad3d8471daca21a11cdf7",
-    proposalsHash:
-      "0x0000000000000000000000000000000000000000000000000000000000000000",
+    parentHash: "0xfe601308a34f1faf68906d2338e60246674ed1f1fbbad3d8471daca21a11cdf7",
+    proposalsHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
     timestamp: "0x1729cdd69c9",
-    transactionsRoot:
-      "0x467d72af12af6cb122985f9838bfc47073bba30cc37a4075aef54b0f0768f384",
-    extra_hash:
-      "0x0000000000000000000000000000000000000000000000000000000000000000",
+    transactionsRoot: "0x467d72af12af6cb122985f9838bfc47073bba30cc37a4075aef54b0f0768f384",
+    extra_hash: "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
   },
   expectedWithdrawCapacity: BigInt("0x1748ec3fdc"),
@@ -208,10 +186,7 @@ test("JSBI:calculateMaximumWithdrawCompatible", (t) => {
     withdrawHeader.dao
   );
 
-  t.is(
-    result.toString(),
-    BI.from(expectedWithdrawCapacity.toString()).toString()
-  );
+  t.is(result.toString(), BI.from(expectedWithdrawCapacity.toString()).toString());
 });
 
 test("deposit multisig", async (t) => {
@@ -248,23 +223,16 @@ test("deposit multisig", async (t) => {
     txHash: AGGRON4.SCRIPTS.DAO!.TX_HASH,
     index: AGGRON4.SCRIPTS.DAO!.INDEX,
   });
-  t.is(
-    txSkeleton.get("cellDeps").get(0)!.depType,
-    AGGRON4.SCRIPTS.DAO!.DEP_TYPE
-  );
+  t.is(txSkeleton.get("cellDeps").get(0)!.depType, AGGRON4.SCRIPTS.DAO!.DEP_TYPE);
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("witnesses").size, 1);
 
   t.is(txSkeleton.get("outputs").size, 2);
-  t.deepEqual(
-    txSkeleton.get("outputs").get(0)!.cellOutput!.type,
-    generateDaoTypeScript(AGGRON4)
-  );
+  t.deepEqual(txSkeleton.get("outputs").get(0)!.cellOutput!.type, generateDaoTypeScript(AGGRON4));
 
   t.is(txSkeleton.get("signingEntries").size, 1);
-  const expectedMessage =
-    "0xa41875ea85b7abda153b7aa3c24e2874e30c88d69203a2f8b9bceb6e52e8b73c";
+  const expectedMessage = "0xa41875ea85b7abda153b7aa3c24e2874e30c88d69203a2f8b9bceb6e52e8b73c";
   const message = txSkeleton.get("signingEntries").get(0)!.message;
   t.is(message, expectedMessage);
 
@@ -281,14 +249,9 @@ test("withdraw multisig", async (t) => {
     cellProvider,
   });
 
-  txSkeleton = await dao.withdraw(
-    txSkeleton,
-    bobMultisigDaoInputs[0],
-    bob.fromInfo,
-    {
-      config: AGGRON4,
-    }
-  );
+  txSkeleton = await dao.withdraw(txSkeleton, bobMultisigDaoInputs[0], bob.fromInfo, {
+    config: AGGRON4,
+  });
 
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
@@ -297,10 +260,7 @@ test("withdraw multisig", async (t) => {
     txHash: AGGRON4.SCRIPTS.DAO!.TX_HASH,
     index: AGGRON4.SCRIPTS.DAO!.INDEX,
   });
-  t.is(
-    txSkeleton.get("cellDeps").get(0)!.depType,
-    AGGRON4.SCRIPTS.DAO!.DEP_TYPE
-  );
+  t.is(txSkeleton.get("cellDeps").get(0)!.depType, AGGRON4.SCRIPTS.DAO!.DEP_TYPE);
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("witnesses").size, 1);
@@ -313,10 +273,7 @@ test("withdraw multisig", async (t) => {
   );
   t.is(txSkeleton.get("headerDeps").size, 1);
   t.is(txSkeleton.get("headerDeps").get(0)!, bobMultisigDaoInputs[0].blockHash);
-  t.deepEqual(
-    txSkeleton.get("outputs").get(0)!.cellOutput.type,
-    generateDaoTypeScript(AGGRON4)
-  );
+  t.deepEqual(txSkeleton.get("outputs").get(0)!.cellOutput.type, generateDaoTypeScript(AGGRON4));
 
   const inputCapacity = txSkeleton
     .get("inputs")
@@ -330,8 +287,7 @@ test("withdraw multisig", async (t) => {
 
   t.is(outputCapacity.toString(), inputCapacity.toString());
 
-  const expectedMessage =
-    "0x0d54fdf2cb8ec8cfbb41376e8fbd2851866a07724e5f5075d83d8b519279e801";
+  const expectedMessage = "0x0d54fdf2cb8ec8cfbb41376e8fbd2851866a07724e5f5075d83d8b519279e801";
   const expectedWitness =
     "0x6d000000100000006d0000006d000000590000000000010136c329ed630d6ce750712a477543672adab57f4c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
@@ -368,18 +324,12 @@ test("deposit, dao script not exists", async (t) => {
 test("deposit, toAddress not exists", async (t) => {
   await t.throwsAsync(
     async () => {
-      await dao.deposit(
-        txSkeleton,
-        bob.mainnetAddress,
-        undefined as any,
-        BigInt(1000 * 10 ** 8),
-        {
-          config: {
-            PREFIX: "ckt",
-            SCRIPTS: {},
-          },
-        }
-      );
+      await dao.deposit(txSkeleton, bob.mainnetAddress, undefined as any, BigInt(1000 * 10 ** 8), {
+        config: {
+          PREFIX: "ckt",
+          SCRIPTS: {},
+        },
+      });
     },
     undefined,
     "You must provide a to address!"
@@ -388,14 +338,9 @@ test("deposit, toAddress not exists", async (t) => {
 
 test("CellCollector, all", async (t) => {
   const cellProvider = new CellProvider(bobMultisigDaoInputs);
-  const iter = new dao.CellCollector(
-    bob.multisigTestnetAddress,
-    cellProvider,
-    "all",
-    {
-      config: AGGRON4,
-    }
-  ).collect();
+  const iter = new dao.CellCollector(bob.multisigTestnetAddress, cellProvider, "all", {
+    config: AGGRON4,
+  }).collect();
   let count = 0;
   while (!(await iter.next()).done) {
     count += 1;
@@ -406,14 +351,9 @@ test("CellCollector, all", async (t) => {
 
 test("CellCollector, deposit", async (t) => {
   const cellProvider = new CellProvider(bobMultisigDaoInputs);
-  const iter = new dao.CellCollector(
-    bob.multisigTestnetAddress,
-    cellProvider,
-    "deposit",
-    {
-      config: AGGRON4,
-    }
-  ).collect();
+  const iter = new dao.CellCollector(bob.multisigTestnetAddress, cellProvider, "deposit", {
+    config: AGGRON4,
+  }).collect();
   let count = 0;
   while (!(await iter.next()).done) {
     count += 1;
@@ -424,14 +364,9 @@ test("CellCollector, deposit", async (t) => {
 
 test("CellCollector, withdraw", async (t) => {
   const cellProvider = new CellProvider(bobMultisigDaoInputs);
-  const iter = new dao.CellCollector(
-    bob.multisigTestnetAddress,
-    cellProvider,
-    "withdraw",
-    {
-      config: AGGRON4,
-    }
-  ).collect();
+  const iter = new dao.CellCollector(bob.multisigTestnetAddress, cellProvider, "withdraw", {
+    config: AGGRON4,
+  }).collect();
   let count = 0;
   while (!(await iter.next()).done) {
     count += 1;
@@ -442,14 +377,9 @@ test("CellCollector, withdraw", async (t) => {
 
 test("listDaoCells, deposit", async (t) => {
   const cellProvider = new CellProvider(bobMultisigDaoInputs);
-  const iter = dao.listDaoCells(
-    cellProvider,
-    bob.multisigTestnetAddress,
-    "deposit",
-    {
-      config: AGGRON4,
-    }
-  );
+  const iter = dao.listDaoCells(cellProvider, bob.multisigTestnetAddress, "deposit", {
+    config: AGGRON4,
+  });
   let count = 0;
   while (!(await iter.next()).done) {
     count += 1;
@@ -461,10 +391,7 @@ test("listDaoCells, deposit", async (t) => {
 test("JSBI:calculateDaoEarliestSinceCompatible", (t) => {
   const { depositHeader, withdrawHeader } = calculateMaximumWithdrawInfo;
 
-  const result = dao.calculateDaoEarliestSinceCompatible(
-    depositHeader.epoch,
-    withdrawHeader.epoch
-  );
+  const result = dao.calculateDaoEarliestSinceCompatible(depositHeader.epoch, withdrawHeader.epoch);
 
   // since: relative = false, type = epochNumber value = { length: 10, index: 5, number: 10478 }
   // if decrease index to 4, will false to validation by dao script
@@ -511,8 +438,7 @@ test("unlock", async (t) => {
     calculateMaximumWithdrawInfo.withdrawHeader.hash,
   ]);
 
-  const expectedMessage =
-    "0xf276a45b7dbc018c2e10c4cd0a61915dd28db768894efc1b2c557c9566fc43fd";
+  const expectedMessage = "0xf276a45b7dbc018c2e10c4cd0a61915dd28db768894efc1b2c557c9566fc43fd";
   const expectedWitness =
     "0x61000000100000005500000061000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000";
 

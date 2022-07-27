@@ -2,12 +2,9 @@ import test from "ava";
 import { ExtendedPrivateKey, Keystore, IncorrectPassword } from "../src";
 
 const fixture = {
-  privateKey:
-    "0xe8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35",
-  publicKey:
-    "0x0339a36013301597daef41fbe593a02cc513d0b55527ec2df1050e2e8ff49c85c2",
-  chainCode:
-    "0x873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d508",
+  privateKey: "0xe8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35",
+  publicKey: "0x0339a36013301597daef41fbe593a02cc513d0b55527ec2df1050e2e8ff49c85c2",
+  chainCode: "0x873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d508",
 };
 
 // 'load and check password'

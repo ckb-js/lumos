@@ -63,9 +63,7 @@ export function hexify(buf: BytesLike): string {
 }
 
 export function concat(...bytesLikes: BytesLike[]): Uint8Array {
-  return Uint8Array.from(
-    bytesLikes.flatMap((bytes) => Array.from(bytify(bytes)))
-  );
+  return Uint8Array.from(bytesLikes.flatMap((bytes) => Array.from(bytify(bytes))));
 }
 
 // export function split(bytes: BytesLike, points: number[]): Uint8Array[] {

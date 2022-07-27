@@ -19,11 +19,7 @@ test.before(() => {
 });
 test("get count correct", async (t) => {
   const queryCase = transactionCollectorHashTestCases[0];
-  const cellCollector = new TransactionCollector(
-    indexer,
-    queryCase.queryOption,
-    nodeUri
-  );
+  const cellCollector = new TransactionCollector(indexer, queryCase.queryOption, nodeUri);
   const count = await cellCollector.count();
   t.is(count, 7);
 });
@@ -34,11 +30,7 @@ test("get count correct with buffer 3 and skip 1", async (t) => {
     ...queryCase.queryOption,
     ...{ skip: 1, bufferSize: 3 },
   };
-  const cellCollector = new TransactionCollector(
-    indexer,
-    newQueryOption,
-    nodeUri
-  );
+  const cellCollector = new TransactionCollector(indexer, newQueryOption, nodeUri);
   const count = await cellCollector.count();
   t.is(count, 6);
 });
@@ -49,22 +41,14 @@ test("get count correct if skip bigger than buffer size", async (t) => {
     ...queryCase.queryOption,
     ...{ skip: 4, bufferSize: 3 },
   };
-  const cellCollector = new TransactionCollector(
-    indexer,
-    newQueryOption,
-    nodeUri
-  );
+  const cellCollector = new TransactionCollector(indexer, newQueryOption, nodeUri);
   const count = await cellCollector.count();
   t.is(count, 3);
 });
 
 test("query transaction hash with different queryOptions", async (t) => {
   for (const queryCase of transactionCollectorHashTestCases) {
-    const transactionCollector = new TransactionCollector(
-      indexer,
-      queryCase.queryOption,
-      nodeUri
-    );
+    const transactionCollector = new TransactionCollector(indexer, queryCase.queryOption, nodeUri);
     let transactionHashes = [];
     for (const hash of await transactionCollector.getTransactionHashes()) {
       transactionHashes.push(hash);
@@ -75,20 +59,12 @@ test("query transaction hash with different queryOptions", async (t) => {
 
 test("query transactions with different queryOptions", async (t) => {
   for (const queryCase of transactionCollectorCollectTestCases) {
-    const transactionCollector = new TransactionCollector(
-      indexer,
-      queryCase.queryOption,
-      nodeUri
-    );
+    const transactionCollector = new TransactionCollector(indexer, queryCase.queryOption, nodeUri);
     let transactionList = [];
     for await (const hash of transactionCollector.collect()) {
       transactionList.push(hash);
     }
-    t.deepEqual(
-      utils.deepCamel(transactionList),
-      queryCase.expectedResult,
-      queryCase.desc
-    );
+    t.deepEqual(utils.deepCamel(transactionList), queryCase.expectedResult, queryCase.desc);
   }
 });
 

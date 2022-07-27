@@ -93,10 +93,7 @@ test("short address, mainnet, addressToScript", (t) => {
 
 test("invalid short address with bech32m", (t) => {
   const args = hexToByteArray("0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a");
-  const wrongAddress = bech32m.encode(
-    LINA.PREFIX,
-    bech32m.toWords([0x01, 0x0].concat(args))
-  );
+  const wrongAddress = bech32m.encode(LINA.PREFIX, bech32m.toWords([0x01, 0x0].concat(args)));
 
   t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
     message: /Invalid checksum/,
@@ -106,10 +103,7 @@ test("invalid short address with bech32m", (t) => {
 test("invalid short address with wrong args length", (t) => {
   /* 21 bytes */
   const args = hexToByteArray("0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a33");
-  const wrongAddress = bech32.encode(
-    LINA.PREFIX,
-    bech32m.toWords([0x01, 0x0].concat(args))
-  );
+  const wrongAddress = bech32.encode(LINA.PREFIX, bech32m.toWords([0x01, 0x0].concat(args)));
   t.is(wrongAddress, "ckb1qyqylv479ewscx3ms620sv34pgeuz6zagaarxdzvx03");
   t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
     message: /Invalid payload length/,
@@ -144,10 +138,7 @@ test("invalid code hash index ", (t) => {
 
 test("invalid address with too short payload", (t) => {
   const args = hexToByteArray("0x4fb2be2e5d0c1a3b8694f832350a33c1685d477a");
-  const wrongAddress = bech32.encode(
-    AGGRON4.PREFIX,
-    bech32.toWords([0x01, 0x0].concat(args))
-  );
+  const wrongAddress = bech32.encode(AGGRON4.PREFIX, bech32.toWords([0x01, 0x0].concat(args)));
 
   t.throws(() => addressToScript(wrongAddress, { config: LINA }), {
     message: /Invalid prefix/,

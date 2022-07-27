@@ -1,12 +1,4 @@
-import {
-  Script,
-  CellDep,
-  HexString,
-  OutPoint,
-  Hash,
-  HexNumber,
-  Cell,
-} from "@ckb-lumos/base";
+import { Script, CellDep, HexString, OutPoint, Hash, HexNumber, Cell } from "@ckb-lumos/base";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { minimalCellCapacity } from "@ckb-lumos/helpers";
 import { ScriptConfig, ScriptConfigs } from "@ckb-lumos/config-manager";
@@ -19,9 +11,7 @@ interface ScriptRegistry<T extends ScriptConfigs> {
   nameOfScript: (script: Script) => keyof T | undefined;
 }
 
-export function createScriptRegistry<T extends ScriptConfigs>(
-  payload: T
-): ScriptRegistry<T> {
+export function createScriptRegistry<T extends ScriptConfigs>(payload: T): ScriptRegistry<T> {
   const map: Map<keyof T, ScriptConfig | undefined> = new Map();
   Object.keys(payload).forEach((k) => map.set(k, payload[k]));
 
@@ -31,8 +21,7 @@ export function createScriptRegistry<T extends ScriptConfigs>(
 
   const newScript = (key: keyof T, args: string) => {
     const config = map.get(key);
-    if (config === undefined)
-      throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
+    if (config === undefined) throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
     if (typeof args === "string") {
       return {
         codeHash: config.CODE_HASH,
@@ -50,18 +39,13 @@ export function createScriptRegistry<T extends ScriptConfigs>(
 
   const isScriptOf = (key: keyof T, script: Script) => {
     const config = map.get(key);
-    if (config === undefined)
-      throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
-    return (
-      script.codeHash === config.CODE_HASH &&
-      script.hashType === config.HASH_TYPE
-    );
+    if (config === undefined) throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
+    return script.codeHash === config.CODE_HASH && script.hashType === config.HASH_TYPE;
   };
 
   const newCellDep = (key: keyof T) => {
     const config = map.get(key);
-    if (config === undefined)
-      throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
+    if (config === undefined) throw new Error(`${String(key)} doesn't exist in ScriptRegistry`);
     return {
       outPoint: {
         txHash: config.TX_HASH,
@@ -74,10 +58,7 @@ export function createScriptRegistry<T extends ScriptConfigs>(
   const nameOfScript = (script: Script) => {
     let name = undefined;
     map.forEach((value, key) => {
-      if (
-        script.codeHash === value?.CODE_HASH &&
-        script.hashType === value.HASH_TYPE
-      ) {
+      if (script.codeHash === value?.CODE_HASH && script.hashType === value.HASH_TYPE) {
         name = key;
       }
     });

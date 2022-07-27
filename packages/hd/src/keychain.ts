@@ -44,11 +44,7 @@ export default class Keychain {
 
   // Create a child keychain with extended public key and path.
   // Children of this keychain should not have any hardened paths.
-  public static fromPublicKey(
-    publicKey: Buffer,
-    chainCode: Buffer,
-    path: String
-  ): Keychain {
+  public static fromPublicKey(publicKey: Buffer, chainCode: Buffer, path: String): Keychain {
     const keychain = new Keychain(EMPTY_BUFFER, chainCode);
     keychain.publicKey = publicKey;
     keychain.calculateFingerprint();

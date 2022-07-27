@@ -23,8 +23,7 @@ type LocaleConfig = DepCodePath | DepGroupPath;
 
 function isDepCode(obj: LocaleConfig): obj is DepCodePath {
   return (
-    obj.depType === "code" ||
-    (typeof obj.depType === "undefined" && typeof obj.path === "string")
+    obj.depType === "code" || (typeof obj.depType === "undefined" && typeof obj.path === "string")
   );
 }
 
@@ -71,10 +70,7 @@ export function createTestContext<Code extends LocaleCode>(config: {
 
   Object.entries(deps).forEach(([key, depConfig]) => {
     const entryCodeOutPoint = mockOutPoint();
-    const entryCode = outputDataLoader.setCode(
-      entryCodeOutPoint,
-      depConfig.path
-    );
+    const entryCode = outputDataLoader.setCode(entryCodeOutPoint, depConfig.path);
 
     outputDataLoader.setCode(entryCodeOutPoint, depConfig.path);
 
@@ -96,10 +92,7 @@ export function createTestContext<Code extends LocaleCode>(config: {
       const includedOutPoints = Array.from({
         length: depConfig.includes.length,
       }).map(mockOutPoint);
-      outputDataLoader.setOutpointVec(depGroupOutPoint, [
-        entryCodeOutPoint,
-        ...includedOutPoints,
-      ]);
+      outputDataLoader.setOutpointVec(depGroupOutPoint, [entryCodeOutPoint, ...includedOutPoints]);
 
       includedOutPoints.forEach((includedOutPoint, i) =>
         outputDataLoader.setCode(includedOutPoint, depConfig.includes[i])
@@ -168,10 +161,7 @@ export function getDefaultConfig(): {
       },
       SECP256K1_BLAKE160_MULTISIG: {
         depType: "depGroup",
-        path: path.join(
-          __dirname,
-          "../contracts/secp256k1_blake160_multisig_all"
-        ),
+        path: path.join(__dirname, "../contracts/secp256k1_blake160_multisig_all"),
         includes: [path.join(__dirname, "../contracts/secp256k1_data_info")],
       },
       // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c

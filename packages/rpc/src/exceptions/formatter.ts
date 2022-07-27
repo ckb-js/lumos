@@ -5,9 +5,7 @@ export class PageSizeTooLargeException extends RangeError {
   code = ErrorCode.ParameterInvalid;
 
   constructor(pageSize: bigint | string, maxSize: number) {
-    super(
-      `Expect page size to be at most ${maxSize}, but ${pageSize} received`
-    );
+    super(`Expect page size to be at most ${maxSize}, but ${pageSize} received`);
   }
 }
 
@@ -15,9 +13,7 @@ export class PageSizeTooSmallException extends RangeError {
   code = ErrorCode.ParameterInvalid;
 
   constructor(pageSize: bigint | string, minSize: number) {
-    super(
-      `Expect page size to be at least ${minSize}, but ${pageSize} received`
-    );
+    super(`Expect page size to be at least ${minSize}, but ${pageSize} received`);
   }
 }
 

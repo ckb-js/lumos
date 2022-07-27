@@ -3,29 +3,24 @@ const { helpers, values } = require("@ckb-lumos/base");
 const TransactionManager = require("../lib");
 const { isCellMatchQueryOptions } = helpers;
 const sinon = require("sinon");
-const {
-  CKBIndexerTransactionCollector: TransactionCollector,
-} = require("@ckb-lumos/ckb-indexer");
+const { CKBIndexerTransactionCollector: TransactionCollector } = require("@ckb-lumos/ckb-indexer");
 
 const cells = [
   {
     cellOutput: {
       capacity: "0x11714b9539d5",
       lock: {
-        codeHash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
         hashType: "type",
         args: "0x36c329ed630d6ce750712a477543672adab57f4c",
       },
       type: undefined,
     },
     outPoint: {
-      txHash:
-        "0x9ab6b0cbea64475f61d10a832cfdf06cd0f219a284778a07e41278f341025754",
+      txHash: "0x9ab6b0cbea64475f61d10a832cfdf06cd0f219a284778a07e41278f341025754",
       index: "0x0",
     },
-    blockHash:
-      "0x80642e5e6ec40e101f651e3d694f4fd4d3fc9e8808c1472503ccd9a040c0d734",
+    blockHash: "0x80642e5e6ec40e101f651e3d694f4fd4d3fc9e8808c1472503ccd9a040c0d734",
     blockNumber: "0xa7",
     data: "0x",
   },
@@ -36,8 +31,7 @@ const tx = {
   cellDeps: [
     {
       outPoint: {
-        txHash:
-          "0x785aa819c8f9f8565a62f744685f8637c1b34886e57154e4e5a2ac7f225c7bf5",
+        txHash: "0x785aa819c8f9f8565a62f744685f8637c1b34886e57154e4e5a2ac7f225c7bf5",
         index: "0x0",
       },
       depType: "depGroup",
@@ -48,8 +42,7 @@ const tx = {
     {
       since: "0x0",
       previousOutput: {
-        txHash:
-          "0x9ab6b0cbea64475f61d10a832cfdf06cd0f219a284778a07e41278f341025754",
+        txHash: "0x9ab6b0cbea64475f61d10a832cfdf06cd0f219a284778a07e41278f341025754",
         index: "0x0",
       },
     },
@@ -58,8 +51,7 @@ const tx = {
     {
       capacity: "0x174876e800",
       lock: {
-        codeHash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
         hashType: "type",
         args: "0xe2193df51d78411601796b35b17b4f8f2cd85bd0",
       },
@@ -67,8 +59,7 @@ const tx = {
     {
       capacity: "0x115a031e51d5",
       lock: {
-        codeHash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
         hashType: "type",
         args: "0x36c329ed630d6ce750712a477543672adab57f4c",
       },
@@ -80,8 +71,7 @@ const tx = {
   ],
 };
 
-const txHash =
-  "0x4ca142a2b1e3eae453161340dbf437368cf76040f3c4d8454f3780b46b4e48c8";
+const txHash = "0x4ca142a2b1e3eae453161340dbf437368cf76040f3c4d8454f3780b46b4e48c8";
 
 class MockCellCollector {
   constructor(
@@ -186,8 +176,7 @@ test("send_transaction1", async (t) => {
 
   t.deepEqual(
     transactionManager.createdCells.toJS().map((cell) => {
-      return new values.OutPointValue(cell.outPoint, { validate: false })
-        .buffer;
+      return new values.OutPointValue(cell.outPoint, { validate: false }).buffer;
     }),
     tx.outputs.map((_, i) => {
       return new values.OutPointValue(

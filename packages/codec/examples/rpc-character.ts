@@ -136,10 +136,7 @@ const EquipOpt = option(Equip);
 //   main_equip: Equip,
 //   sub_equip: EquipOpt,
 // }
-const Character = table({ main_equip: Equip, sub_equip: EquipOpt }, [
-  "main_equip",
-  "sub_equip",
-]);
+const Character = table({ main_equip: Equip, sub_equip: EquipOpt }, ["main_equip", "sub_equip"]);
 
 function main() {
   /* usage */

@@ -7,18 +7,11 @@ import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
 import { HexString } from "@ckb-lumos/base";
 import { CKBDebugger, CKBDebuggerDownloader, DataLoader } from "../src";
 import { TransactionSkeleton } from "@ckb-lumos/helpers";
-import {
-  createTestContext,
-  getDefaultConfig,
-  mockOutPoint,
-} from "../src/context";
+import { createTestContext, getDefaultConfig, mockOutPoint } from "../src/context";
 import { randomBytes } from "crypto";
 import { privateKeyToBlake160, signRecoverable } from "@ckb-lumos/hd/lib/key";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
-import {
-  createP2PKHMessageGroup,
-  parseFromInfo,
-} from "@ckb-lumos/common-scripts";
+import { createP2PKHMessageGroup, parseFromInfo } from "@ckb-lumos/common-scripts";
 import { WitnessArgs } from "@ckb-lumos/codec/lib/blockchain";
 
 const downloader = new CKBDebuggerDownloader();
@@ -227,10 +220,7 @@ test("context#CKBDebugger with secp256k1 multisig with correct signature", async
     }
   );
 
-  const multisigLock = registry.newScript(
-    "SECP256K1_BLAKE160_MULTISIG",
-    fromScript.args
-  );
+  const multisigLock = registry.newScript("SECP256K1_BLAKE160_MULTISIG", fromScript.args);
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
@@ -245,11 +235,7 @@ test("context#CKBDebugger with secp256k1 multisig with correct signature", async
     cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160_MULTISIG"))
   );
   txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-    witnesses.push(
-      hexify(
-        WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })
-      )
-    )
+    witnesses.push(hexify(WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })))
   );
   const signingGroup = createP2PKHMessageGroup(txSkeleton, [multisigLock]);
   const aliceSignedMessage = signRecoverable(signingGroup[0].message, alicePk);
@@ -259,9 +245,7 @@ test("context#CKBDebugger with secp256k1 multisig with correct signature", async
       0,
       hexify(
         WitnessArgs.pack({
-          lock: `${multisigScript}${aliceSignedMessage.slice(
-            2
-          )}${bobSignedMessage.slice(2)}`,
+          lock: `${multisigScript}${aliceSignedMessage.slice(2)}${bobSignedMessage.slice(2)}`,
         })
       )
     )
@@ -299,10 +283,7 @@ test("context#CKBDebugger with secp256k1 multisig with wrong signature", async (
     }
   );
 
-  const multisigLock = registry.newScript(
-    "SECP256K1_BLAKE160_MULTISIG",
-    fromScript.args
-  );
+  const multisigLock = registry.newScript("SECP256K1_BLAKE160_MULTISIG", fromScript.args);
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
@@ -317,11 +298,7 @@ test("context#CKBDebugger with secp256k1 multisig with wrong signature", async (
     cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160_MULTISIG"))
   );
   txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-    witnesses.push(
-      hexify(
-        WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })
-      )
-    )
+    witnesses.push(hexify(WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })))
   );
   const signingGroup = createP2PKHMessageGroup(txSkeleton, [multisigLock]);
   const aliceSignedMessage = signRecoverable(signingGroup[0].message, alicePk);
@@ -332,9 +309,7 @@ test("context#CKBDebugger with secp256k1 multisig with wrong signature", async (
       0,
       hexify(
         WitnessArgs.pack({
-          lock: `${multisigScript}${aliceSignedMessage.slice(
-            2
-          )}${bobSignedMessage.slice(2)}`,
+          lock: `${multisigScript}${aliceSignedMessage.slice(2)}${bobSignedMessage.slice(2)}`,
         })
       )
     )

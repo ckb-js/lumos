@@ -27,12 +27,7 @@ const WithdrawalLockArgs = struct(
     // layer1 lock to withdraw after
     owner_lock_hash: Byte32,
   },
-  [
-    "withdrawal_block_hash",
-    "withdrawal_block_number",
-    "account_script_hash",
-    "owner_lock_hash",
-  ]
+  ["withdrawal_block_hash", "withdrawal_block_number", "account_script_hash", "owner_lock_hash"]
 );
 
 const Script = table(
@@ -67,19 +62,9 @@ function cut(bytes: BytesLike, points: number[]): Uint8Array[] {
 const WithdrawalCodec = enhancePack(
   FullWithdrawalWithdrawalObjectArgsCodec,
   (obj) =>
-    concat(
-      obj.rollup_type_hash,
-      obj.withdrawal_lock_args,
-      obj.owner_lock_len,
-      obj.owner_lock
-    ),
+    concat(obj.rollup_type_hash, obj.withdrawal_lock_args, obj.owner_lock_len, obj.owner_lock),
   (buf) => {
-    const [
-      rollup_type_hash,
-      withdrawal_lock_args,
-      owner_lock_len,
-      owner_lock,
-    ] = cut(buf, [
+    const [rollup_type_hash, withdrawal_lock_args, owner_lock_len, owner_lock] = cut(buf, [
       32 /* rollup_type_hash */,
       WithdrawalLockArgs.byteLength /* withdrawal_lock_args */,
       4 /* owner_lock_len */,

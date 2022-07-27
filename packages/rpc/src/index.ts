@@ -142,10 +142,7 @@ class CKBRPC extends Base {
             if (res.id !== payload[i].id) {
               return new IdNotMatchedInBatchException(i, payload[i].id, res.id);
             }
-            return (
-              ctx.rpcProperties[proxied[i][0]].resultFormatters?.(res.result) ??
-              res.result
-            );
+            return ctx.rpcProperties[proxied[i][0]].resultFormatters?.(res.result) ?? res.result;
           });
         },
       },

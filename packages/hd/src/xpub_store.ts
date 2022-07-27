@@ -35,9 +35,7 @@ export class XPubStore {
   static load(path: string): XPubStore {
     const json = fs.readFileSync(path, "utf-8");
     const xpub = JSON.parse(json).xpubkey;
-    const accountExtendedPublicKey = AccountExtendedPublicKey.parse(
-      "0x" + xpub
-    );
+    const accountExtendedPublicKey = AccountExtendedPublicKey.parse("0x" + xpub);
     return new XPubStore(accountExtendedPublicKey);
   }
 }

@@ -3,9 +3,7 @@ import { UnpackResult } from "./base";
 import * as blockchain from "./blockchain";
 declare type CellOutputCodecType = UnpackResult<typeof blockchain.CellOutput>;
 declare type TransactionCodecType = UnpackResult<typeof blockchain.Transaction>;
-declare type RawTransactionCodecType = UnpackResult<
-  typeof blockchain.RawTransaction
->;
+declare type RawTransactionCodecType = UnpackResult<typeof blockchain.RawTransaction>;
 declare type CellDepCodecType = UnpackResult<typeof blockchain.CellDep>;
 declare type OutPointCodecType = UnpackResult<typeof blockchain.OutPoint>;
 declare type CellInputCodecType = UnpackResult<typeof blockchain.CellInput>;
@@ -43,9 +41,7 @@ export function transformCellOutputCodecType(data: any): CellOutputCodecType {
     type: data.type,
   };
 }
-export function transformRawTransactionCodecType(
-  data: any
-): RawTransactionCodecType {
+export function transformRawTransactionCodecType(data: any): RawTransactionCodecType {
   // TODO maybe not apropriate to use this validator
   // validators.ValidateRawTransaction(data)
   return {

@@ -77,11 +77,7 @@ function maximumAbsoluteEpochSince(...args) {
 
   for (let i = 1; i < maxArgs.length; ++i) {
     const current = maxArgs[i];
-    if (
-      BI.from(current.index)
-        .mul(max.length)
-        .gte(BI.from(max.index).mul(current.length))
-    ) {
+    if (BI.from(current.index).mul(max.length).gte(BI.from(max.index).mul(current.length))) {
       max = current;
     }
   }
@@ -98,9 +94,7 @@ function generateAbsoluteEpochSince({ length, index, number }) {
 }
 
 function generateHeaderEpoch({ length, index, number }) {
-  return _toHex(
-    BI.from(length).shl(40).add(BI.from(index).shl(24)).add(number)
-  );
+  return _toHex(BI.from(length).shl(40).add(BI.from(index).shl(24)).add(number));
 }
 
 function parseAbsoluteEpochSince(since) {
@@ -141,9 +135,7 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
       if (!tipSinceValidationInfo.median_timestamp) {
         throw new Error(`Must provide tip median_timestamp!`);
       }
-      return BI.from(value)
-        .mul(1000)
-        .lte(tipSinceValidationInfo.median_timestamp);
+      return BI.from(value).mul(1000).lte(tipSinceValidationInfo.median_timestamp);
     }
   } else {
     if (type === "epochNumber") {
@@ -165,10 +157,7 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
         added.length = BI.from(value.length);
       }
 
-      if (
-        !BI.from(added.length).eq(0) &&
-        BI.from(added.index).gte(added.length)
-      ) {
+      if (!BI.from(added.length).eq(0) && BI.from(added.index).gte(added.length)) {
         added.number = added.index.div(added.length).add(added.number);
         added.index = added.index.mod(added.length);
       }
@@ -189,10 +178,7 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
     }
 
     if (type === "blockTimestamp") {
-      if (
-        !tipSinceValidationInfo.median_timestamp ||
-        !cellSinceValidationInfo.median_timestamp
-      ) {
+      if (!tipSinceValidationInfo.median_timestamp || !cellSinceValidationInfo.median_timestamp) {
         throw new Error(`Must provide median_timestamp!`);
       }
       return BI.from(value)

@@ -114,9 +114,7 @@ test("generateHeaderEpoch", (t) => {
 
 test("generateAbsoluteEpochSince", (t) => {
   fixtrues
-    .filter(
-      (f) => f.parsed.type === "epochNumber" && f.parsed.relative === false
-    )
+    .filter((f) => f.parsed.type === "epochNumber" && f.parsed.relative === false)
     .map((f) => {
       const since = generateAbsoluteEpochSince(f.parsed.value);
       t.deepEqual(since, f.since);
@@ -207,8 +205,7 @@ test("validateSince, absolute blockTimestamp", (t) => {
     // timestamp: "0x" + BigInt(+new Date("2020-01-01")).toString(16),
   };
   const validTipMedianTimestamp = "0x" + timestamp.mul(1000).toString(16);
-  const invalidTipMedianTimestamp =
-    "0x" + timestamp.mul(1000).sub(1).toString(16);
+  const invalidTipMedianTimestamp = "0x" + timestamp.mul(1000).sub(1).toString(16);
   t.true(
     validateSince(
       since,
@@ -237,8 +234,7 @@ test("validateSince, relative blockTimestamp", (t) => {
     value: BI.from(timestamp.toString()),
   });
 
-  const cellMedianTimestamp =
-    "0x" + BI.from(+new Date("2020-01-01")).toString(16);
+  const cellMedianTimestamp = "0x" + BI.from(+new Date("2020-01-01")).toString(16);
   const cellSinceValidationInfo = {
     median_timestamp: cellMedianTimestamp,
   };
@@ -246,8 +242,7 @@ test("validateSince, relative blockTimestamp", (t) => {
   const validTipMedianTimestamp =
     "0x" + BI.from(cellMedianTimestamp).add(timestamp.mul(1000)).toString(16);
   const invalidTipMedianTimestamp =
-    "0x" +
-    BI.from(cellMedianTimestamp).add(timestamp.mul(1000)).sub(1).toString(16);
+    "0x" + BI.from(cellMedianTimestamp).add(timestamp.mul(1000)).sub(1).toString(16);
   t.true(
     validateSince(
       since,

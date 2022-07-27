@@ -1,15 +1,5 @@
-import {
-  Cell,
-  utils,
-  Hash,
-  Script,
-  HexString,
-  RawTransaction,
-} from "@ckb-lumos/base";
-import {
-  TransactionSkeletonType,
-  createTransactionFromSkeleton,
-} from "@ckb-lumos/helpers";
+import { Cell, utils, Hash, Script, HexString, RawTransaction } from "@ckb-lumos/base";
+import { TransactionSkeletonType, createTransactionFromSkeleton } from "@ckb-lumos/helpers";
 import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 
@@ -22,9 +12,7 @@ function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
 
   const groups = new Map<string, number[]>();
   for (let i = 0; i < inputs.length; i++) {
-    const scriptHash = utils.ckbHash(
-      blockchain.Script.pack(inputs[i].cellOutput.lock)
-    );
+    const scriptHash = utils.ckbHash(blockchain.Script.pack(inputs[i].cellOutput.lock));
     if (lockSet.has(scriptHash)) {
       if (groups.get(scriptHash) === undefined) groups.set(scriptHash, []);
       groups.get(scriptHash)!.push(i);
@@ -44,9 +32,7 @@ function calcRawTxHash(tx: TransactionSkeletonType): HexString {
     version: createdTx.version,
   };
   return utils.ckbHash(
-    blockchain.RawTransaction.pack(
-      blockchainUtils.transformRawTransactionCodecType(rawTx)
-    )
+    blockchain.RawTransaction.pack(blockchainUtils.transformRawTransactionCodecType(rawTx))
   );
 }
 
@@ -101,9 +87,7 @@ export function createP2PKHMessageGroup(
 
   if (locks.length > 1 && !(thunkableHasher instanceof Function)) {
     // If we have multiple locks to group, we need the hasher to be thunk so that in the second group we can get another new hasher.
-    throw new Error(
-      "Must provide hasher producer when you have multiple locks to group."
-    );
+    throw new Error("Must provide hasher producer when you have multiple locks to group.");
   }
 
   const messageGroup: Group[] = [];
@@ -120,9 +104,7 @@ export function createP2PKHMessageGroup(
 
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
-    const witnessHexString = BI.from(
-      bytes.bytify(firstWitness).length
-    ).toString(16);
+    const witnessHexString = BI.from(bytes.bytify(firstWitness).length).toString(16);
     if (witnessHexString.length <= 8) {
       view.setUint32(0, Number("0x" + witnessHexString), true);
       view.setUint32(4, Number("0x" + "00000000"), true);
@@ -142,11 +124,7 @@ export function createP2PKHMessageGroup(
       messageHasher.update(bytes.bytify(witness));
     }
 
-    for (
-      let i = tx.inputs.toArray().length;
-      i < tx.witnesses.toArray().length;
-      i++
-    ) {
+    for (let i = tx.inputs.toArray().length; i < tx.witnesses.toArray().length; i++) {
       const witness = tx.witnesses.get(i)!;
       messageHasher.update(new Uint8Array(lengthBuffer));
       messageHasher.update(bytes.bytify(witness));
@@ -158,9 +136,7 @@ export function createP2PKHMessageGroup(
       lock: tx.inputs.get(firstIndex)!.cellOutput.lock,
       message:
         "0x" +
-        Array.prototype.map
-          .call(digested, (x) => ("00" + x.toString(16)).slice(-2))
-          .join(""),
+        Array.prototype.map.call(digested, (x) => ("00" + x.toString(16)).slice(-2)).join(""),
     };
 
     messageGroup.push(g);

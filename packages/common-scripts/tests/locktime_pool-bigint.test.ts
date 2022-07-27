@@ -1,9 +1,5 @@
 import test from "ava";
-import {
-  TransactionSkeleton,
-  TransactionSkeletonType,
-  Options,
-} from "@ckb-lumos/helpers";
+import { TransactionSkeleton, TransactionSkeletonType, Options } from "@ckb-lumos/helpers";
 import { locktimePool, LocktimeCell, FromInfo } from "../src";
 const { transfer, prepareSigningEntries, payFee } = locktimePool;
 import { CellProvider } from "./cell_provider";
@@ -11,13 +7,7 @@ import { calculateMaximumWithdraw } from "../src/dao";
 import { List } from "immutable";
 import { DEV_CONFIG } from "./dev_config";
 import { Config, predefined } from "@ckb-lumos/config-manager";
-import {
-  Header,
-  Cell,
-  CellCollector,
-  since as SinceUtils,
-  Script,
-} from "@ckb-lumos/base";
+import { Header, Cell, CellCollector, since as SinceUtils, Script } from "@ckb-lumos/base";
 import { parseFromInfo } from "../src/from_info";
 import {
   bobSecpDaoDepositInput,
@@ -35,20 +25,17 @@ const inputInfos: LocktimeCell[] = [
     cellOutput: {
       capacity: "0x" + BigInt("100000000000").toString(16),
       lock: {
-        codeHash:
-          "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+        codeHash: "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
         hashType: "type",
         args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d80000000000000000",
       },
       type: undefined,
     },
     outPoint: {
-      txHash:
-        "0xb4f92e2a74905ca2d24b952e782c42f35f18893cb56e46728857a926a893f41f",
+      txHash: "0xb4f92e2a74905ca2d24b952e782c42f35f18893cb56e46728857a926a893f41f",
       index: "0x0",
     },
-    blockHash:
-      "0x62e03ef430cb72041014224417de08caf73d4e804eaca7813c2015abcd6afe1a",
+    blockHash: "0x62e03ef430cb72041014224417de08caf73d4e804eaca7813c2015abcd6afe1a",
     blockNumber: "0x1aee1",
     data: "0x",
     since: "0x0",
@@ -66,20 +53,17 @@ const inputInfos: LocktimeCell[] = [
     cellOutput: {
       capacity: "0x" + BigInt("100000000000").toString(16),
       lock: {
-        codeHash:
-          "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+        codeHash: "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
         hashType: "type",
         args: "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8152b00c000f00020",
       },
       type: undefined,
     },
     outPoint: {
-      txHash:
-        "0x7d18dee8cf66bdc4721d18207dc18434f1d68af75537c89f97cb8618de73d871",
+      txHash: "0x7d18dee8cf66bdc4721d18207dc18434f1d68af75537c89f97cb8618de73d871",
       index: "0x0",
     },
-    blockHash:
-      "0xee89cacb5ff0dd3edcca3904619693355396536cce45658bf9a9c676ae3819c3",
+    blockHash: "0xee89cacb5ff0dd3edcca3904619693355396536cce45658bf9a9c676ae3819c3",
     blockNumber: "0x1aedd",
     data: "0x",
     since: "0x2000f000c0002b15",
@@ -97,51 +81,39 @@ const inputInfos: LocktimeCell[] = [
     cellOutput: {
       capacity: "0x" + BigInt("100007690204").toString(16),
       lock: {
-        codeHash:
-          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
         hashType: "type",
         args: "0xe2193df51d78411601796b35b17b4f8f2cd85bd0",
       },
       type: {
-        codeHash:
-          "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+        codeHash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
         hashType: "type",
         args: "0x",
       },
     },
     outPoint: {
-      txHash:
-        "0x42300d78faea694e0e1c2316de091964a0d976a4ed27775597bad2d43a3e17da",
+      txHash: "0x42300d78faea694e0e1c2316de091964a0d976a4ed27775597bad2d43a3e17da",
       index: "0x0",
     },
-    blockHash:
-      "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
+    blockHash: "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
     blockNumber: "0x1929c",
     data: "0x4992010000000000",
     since: "0x20000a00050028ee",
-    depositBlockHash:
-      "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
-    withdrawBlockHash:
-      "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
+    depositBlockHash: "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
+    withdrawBlockHash: "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
     sinceValidationInfo: undefined,
   },
 ];
 
-const depositDao =
-  "0x8eedf002d7c88852433518952edc28002dd416364532c50800d096d05aac0200";
-const withdrawDao =
-  "0x39d32247d33f90523d37dae613dd280037e9cc1d7b01c708003d8849d8ac0200";
+const depositDao = "0x8eedf002d7c88852433518952edc28002dd416364532c50800d096d05aac0200";
+const withdrawDao = "0x39d32247d33f90523d37dae613dd280037e9cc1d7b01c708003d8849d8ac0200";
 
 class LocktimeCellCollector {
   private fromInfo: FromInfo;
   private config: Config;
   readonly fromScript: Script;
 
-  constructor(
-    fromInfo: FromInfo,
-    _: any,
-    { config = undefined }: Options = {}
-  ) {
+  constructor(fromInfo: FromInfo, _: any, { config = undefined }: Options = {}) {
     this.fromInfo = fromInfo;
     this.config = config!;
     this.fromScript = {
@@ -157,10 +129,7 @@ class LocktimeCellCollector {
     });
     for (const info of inputInfos) {
       const lock = info.cellOutput.lock;
-      if (
-        lock.codeHash === fromScript.codeHash &&
-        lock.hashType === fromScript.hashType
-      ) {
+      if (lock.codeHash === fromScript.codeHash && lock.hashType === fromScript.hashType) {
         yield info;
       }
     }
@@ -177,15 +146,11 @@ const tipHeader: Header = {
   hash: "0xf77591af1c30a65d5aec4c4753a3e967ecbcb850f90a9a63f59a4e513029d135",
   nonce: "0x8d543978c6abec5d9924183a39e2eeb0",
   number: "0x1aee3",
-  parentHash:
-    "0x421f28afb4187d8034bb3895b671aa183e759f23036a744c792ff9c90b293c9d",
-  proposalsHash:
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  parentHash: "0x421f28afb4187d8034bb3895b671aa183e759f23036a744c792ff9c90b293c9d",
+  proposalsHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
   timestamp: "0x172b772235e",
-  transactionsRoot:
-    "0xb8b4cee50a21a4c494d8eb4e34f6232fa72129fa9d7a2e4b09417ae224a43ebd",
-  extraHash:
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  transactionsRoot: "0xb8b4cee50a21a4c494d8eb4e34f6232fa72129fa9d7a2e4b09417ae224a43ebd",
+  extraHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };
 const aliceAddress = "ckt1qyqwyxfa75whssgkq9ukkdd30d8c7txct0gqfvmy2v";
@@ -246,8 +211,7 @@ test("BigInt:prepareSigningEntries, multisig", async (t) => {
 
   t.is(txSkeleton.get("signingEntries").size, 1);
 
-  const expectedMessage =
-    "0x185fb55177cefec3187c681889d10f85bb142400bf9817dd68b4efb5b51b9b04";
+  const expectedMessage = "0x185fb55177cefec3187c681889d10f85bb142400bf9817dd68b4efb5b51b9b04";
 
   const signingEntry = txSkeleton.get("signingEntries").get(0)!;
   t.is(signingEntry.index, 0);
@@ -294,9 +258,7 @@ test("BigInt:transfer multisig & dao", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
   t.is(
     interest.toString(),
-    sumOfInputCapacity
-      .sub(BI.from(originCapacity).mul(txSkeleton.get("inputs").size))
-      .toString()
+    sumOfInputCapacity.sub(BI.from(originCapacity).mul(txSkeleton.get("inputs").size)).toString()
   );
 
   t.is(txSkeleton.get("inputs").size, 3);
@@ -341,8 +303,7 @@ test("BigInt:prepareSigningEntries, multisig & dao", async (t) => {
   expectedMessages.forEach((expectedMessage, index) => {
     const message = txSkeleton
       .get("signingEntries")
-      .find((s) => s.type === "witness_args_lock" && s.index === index)!
-      .message;
+      .find((s) => s.type === "witness_args_lock" && s.index === index)!.message;
     t.is(message, expectedMessage);
   });
 });
@@ -361,16 +322,10 @@ test("BigInt:payFee, multisig & dao", async (t) => {
   );
 
   const fee = BigInt(1 * 10 ** 8);
-  txSkeleton = await payFee(
-    txSkeleton,
-    [fromInfo, aliceAddress],
-    fee,
-    tipHeader,
-    {
-      config: DEV_CONFIG,
-      LocktimeCellCollector,
-    }
-  );
+  txSkeleton = await payFee(txSkeleton, [fromInfo, aliceAddress], fee, tipHeader, {
+    config: DEV_CONFIG,
+    LocktimeCellCollector,
+  });
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
@@ -397,8 +352,7 @@ test("BigInt:payFee, multisig & dao", async (t) => {
   t.is(sumOfOutputCapacity, sumOfInputCapacity - fee);
   t.is(
     interest,
-    sumOfInputCapacity -
-      BigInt(originCapacity) * BigInt(txSkeleton.get("inputs").size)
+    sumOfInputCapacity - BigInt(originCapacity) * BigInt(txSkeleton.get("inputs").size)
   );
 
   t.is(txSkeleton.get("inputs").size, 3);
@@ -414,11 +368,7 @@ test("BigInt:Don't update capacity directly when deduct", async (t) => {
     private fromInfo: FromInfo;
     private config: Config;
     readonly fromScript: Script;
-    constructor(
-      fromInfo: FromInfo,
-      _: any,
-      { config = undefined }: Options = {}
-    ) {
+    constructor(fromInfo: FromInfo, _: any, { config = undefined }: Options = {}) {
       this.fromInfo = fromInfo;
       this.config = config!;
       this.fromScript = {
@@ -434,10 +384,7 @@ test("BigInt:Don't update capacity directly when deduct", async (t) => {
       });
       for (const info of [inputInfos[0]]) {
         const lock = info.cellOutput.lock;
-        if (
-          lock.codeHash === fromScript.codeHash &&
-          lock.hashType === fromScript.hashType
-        ) {
+        if (lock.codeHash === fromScript.codeHash && lock.hashType === fromScript.hashType) {
           yield info;
         }
       }
@@ -495,15 +442,11 @@ const depositHeader = {
   hash: "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
   nonce: "0x98e10e0a992f7274c7dc0c62e9d42f02",
   number: "0x19249",
-  parentHash:
-    "0xd4f3e8725de77aedadcf15755c0f6cdd00bc8d4a971e251385b59ce8215a5d70",
-  proposalsHash:
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  parentHash: "0xd4f3e8725de77aedadcf15755c0f6cdd00bc8d4a971e251385b59ce8215a5d70",
+  proposalsHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
   timestamp: "0x17293289266",
-  transactionsRoot:
-    "0x9294a800ec389d1b0d9e7c570c249da260a44cc2790bd4aa250f3d5c83eb8cde",
-  unclesHash:
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  transactionsRoot: "0x9294a800ec389d1b0d9e7c570c249da260a44cc2790bd4aa250f3d5c83eb8cde",
+  unclesHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };
 const withdrawHeader = {
@@ -513,15 +456,11 @@ const withdrawHeader = {
   hash: "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
   nonce: "0x7ffb49f45f12f2b30ac45586ecf13de2",
   number: "0x1929c",
-  parentHash:
-    "0xfe601308a34f1faf68906d2338e60246674ed1f1fbbad3d8471daca21a11cdf7",
-  proposalsHash:
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  parentHash: "0xfe601308a34f1faf68906d2338e60246674ed1f1fbbad3d8471daca21a11cdf7",
+  proposalsHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
   timestamp: "0x1729cdd69c9",
-  transactionsRoot:
-    "0x467d72af12af6cb122985f9838bfc47073bba30cc37a4075aef54b0f0768f384",
-  unclesHash:
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
+  transactionsRoot: "0x467d72af12af6cb122985f9838bfc47073bba30cc37a4075aef54b0f0768f384",
+  unclesHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };
 
@@ -586,15 +525,11 @@ test("BigInt:CellCollector, dao", async (t) => {
   const epochValue = { length: 10, index: 5, number: 10478 };
   const epoch = SinceUtils.generateHeaderEpoch(epochValue);
   tipHeader.epoch = epoch;
-  const collector = new locktimePool.CellCollector(
-    bob.testnetAddress,
-    cellProvider,
-    {
-      config: AGGRON4,
-      NodeRPC: RpcMocker as any,
-      tipHeader,
-    }
-  );
+  const collector = new locktimePool.CellCollector(bob.testnetAddress, cellProvider, {
+    config: AGGRON4,
+    NodeRPC: RpcMocker as any,
+    tipHeader,
+  });
 
   const maximumWithdrawCapacity = calculateMaximumWithdraw(
     bobSecpDaoWithdrawInput,

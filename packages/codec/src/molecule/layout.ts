@@ -31,14 +31,11 @@ export type ObjectCodec<T extends Record<string, BytesCodec>> = BytesCodec<
   PartialNullable<{ [key in keyof T]: UnpackResult<T[key]> }>
 >;
 
-export interface OptionCodec<T extends BytesCodec>
-  extends BytesCodec<UnpackResult<T> | undefined> {
+export interface OptionCodec<T extends BytesCodec> extends BytesCodec<UnpackResult<T> | undefined> {
   pack: (packable?: UnpackResult<T>) => Uint8Array;
 }
 
-export type ArrayCodec<T extends BytesCodec> = BytesCodec<
-  Array<UnpackResult<T>>
->;
+export type ArrayCodec<T extends BytesCodec> = BytesCodec<Array<UnpackResult<T>>>;
 
 export type UnionCodec<T extends Record<string, BytesCodec>> = BytesCodec<
   { [key in keyof T]: { type: key; value: UnpackResult<T[key]> } }[keyof T]
@@ -77,9 +74,9 @@ function checkShape<T>(shape: T, fields: (keyof T)[]) {
 
   if (missingFields.length > 0 || missingShape.length > 0) {
     throw new Error(
-      `Invalid shape: missing fields ${missingFields.join(
+      `Invalid shape: missing fields ${missingFields.join(", ")} or shape ${missingShape.join(
         ", "
-      )} or shape ${missingShape.join(", ")}`
+      )}`
     );
   }
 }
@@ -128,10 +125,7 @@ export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
     pack(items) {
       return concat(
         Uint32LE.pack(items.length),
-        items.reduce(
-          (buf, item) => concat(buf, itemCodec.pack(item)),
-          new ArrayBuffer(0)
-        )
+        items.reduce((buf, item) => concat(buf, itemCodec.pack(item)), new ArrayBuffer(0))
       );
     },
     unpack(buf) {
@@ -165,9 +159,7 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
           offset: 4 + obj.length * 4,
         }
       );
-      const packedTotalSize = Uint32LE.pack(
-        packed.header.byteLength + packed.body.byteLength + 4
-      );
+      const packedTotalSize = Uint32LE.pack(packed.header.byteLength + packed.body.byteLength + 4);
       return concat(packedTotalSize, packed.header, packed.body);
     },
     unpack(buf) {
@@ -185,9 +177,7 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
         const itemCount = (offset0 - 4) / 4;
         const offsets = new Array(itemCount)
           .fill(1)
-          .map((_, index) =>
-            Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
-          );
+          .map((_, index) => Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4)));
         offsets.push(totalSize);
         const result: UnpackResult<T>[] = [];
         for (let index = 0; index < offsets.length - 1; index++) {
@@ -237,9 +227,7 @@ export function table<T extends Record<string, BytesCodec>>(
           offset: headerLength,
         }
       );
-      const packedTotalSize = Uint32LE.pack(
-        packed.header.byteLength + packed.body.byteLength + 4
-      );
+      const packedTotalSize = Uint32LE.pack(packed.header.byteLength + packed.body.byteLength + 4);
       return concat(packedTotalSize, packed.header, packed.body);
     },
     unpack(buf) {
