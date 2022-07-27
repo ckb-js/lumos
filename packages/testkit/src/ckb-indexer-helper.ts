@@ -39,7 +39,7 @@ const download = async () => {
   shell.rm(`ckb-indexer-${CKB_Indexer_Version}-${osType}.zip`);
 };
 
-export async function downloadCKBIndexer() {
+export async function downloadCKBIndexer(): Promise<void> {
   if (!shell.test("-e", "./ckb-indexer")) {
     await download();
   } else {
@@ -59,7 +59,7 @@ export async function startCKBIndexer(
   ckbRpcPort: number,
   indexerPort: number,
   CKBVersion?: string
-) {
+): Promise<void> {
   CKB_Indexer_Version = CKBVersion ? CKBVersion : CKB_Indexer_Version;
   await downloadCKBIndexer();
   shell.exec(
