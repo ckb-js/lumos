@@ -3,13 +3,16 @@ import fs from "fs";
 import path from "path";
 
 const blockDataPath = path.join(__dirname, "./blocks_data.json");
-const blocksData = fs.readFileSync(blockDataPath, "utf8").toString();
+const blocksData = JSON.parse(
+  fs.readFileSync(blockDataPath, "utf8").toString()
+);
 
 console.log("blockDataPath", blockDataPath);
-console.log("blocksData", blocksData.slice(0, 100));
+console.log("blocksData length", blocksData.length);
+console.log("blocksData[0].header", blocksData[0]["header"]);
 
 const server = createCKBMockRPC({
-  blocks: JSON.parse(blocksData),
+  blocks: blocksData,
   localNode: mockData.localNode(),
 });
 
