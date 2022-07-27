@@ -61,15 +61,13 @@ export async function downloadCKBIndexer(): Promise<void> {
   }
 }
 
-export async function startCKBIndexer(
-  ckbRpcPort: number,
-  indexerPort: number,
-  CKBVersion?: string
-): Promise<void> {
+export async function startCKBIndexer(CKBVersion?: string): Promise<void> {
   CKB_Indexer_Version = CKBVersion ? CKBVersion : CKB_Indexer_Version;
   await downloadCKBIndexer();
+  console.log("start indexer at", new Date().toLocaleString());
+
   shell.exec(
-    `./ckb-indexer -c http://127.0.0.1:${ckbRpcPort}/rpc -l 127.0.0.1:${indexerPort} -s indexer-store-${ckbRpcPort}-${indexerPort}-tmp`,
+    `RUST_LOG=info ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp`,
     {
       async: true,
     }
