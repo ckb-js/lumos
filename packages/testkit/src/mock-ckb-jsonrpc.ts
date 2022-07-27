@@ -18,8 +18,18 @@ export function createCKBMockRPC(options: Options): Express {
   const { routePath = "/rpc", blocks, localNode } = options;
 
   const server = new JSONRPCServer();
-
-  server.addMethod("local_node_info", () => localNode);
+  server.addMethod("local_node_info", () => ({
+    version: localNode.version,
+    active: localNode.active,
+    addresses: localNode.addresses,
+    connections: localNode.connections,
+    node_id: localNode.nodeId,
+    protocols: localNode.protocols.map(item => ({
+      id: item.id,
+      name: item.name,
+      support_versions: item.supportVersions,          
+    }))
+  }));
   server.addMethod("get_block_by_number", (params) => {
     assertsParams(Array.isArray(params));
 
