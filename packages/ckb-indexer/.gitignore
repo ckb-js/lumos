@@ -1,5 +1,5 @@
 /lib
-/indexer-store-tmp
+/indexer-store*
 ckb-indexer*
 COPYING
 nohup.out
