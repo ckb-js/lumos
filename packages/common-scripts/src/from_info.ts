@@ -1,4 +1,11 @@
-import { PackedSince, Hash, Address, Script, HexString, utils } from "@ckb-lumos/base";
+import {
+  PackedSince,
+  Hash,
+  Address,
+  Script,
+  HexString,
+  utils,
+} from "@ckb-lumos/base";
 import { Options, parseAddress } from "@ckb-lumos/helpers";
 import { getConfig } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
@@ -39,7 +46,11 @@ export type FromInfo = MultisigScript | Address | ACP | CustomScript;
  * @param params multisig script params
  * @returns serialized multisig script
  */
-export function serializeMultisigScript({ R, M, publicKeyHashes }: MultisigScript): HexString {
+export function serializeMultisigScript({
+  R,
+  M,
+  publicKeyHashes,
+}: MultisigScript): HexString {
   if (R < 0 || R > 255) {
     throw new Error("`R` should be less than 256!");
   }
@@ -62,12 +73,18 @@ export function serializeMultisigScript({ R, M, publicKeyHashes }: MultisigScrip
  * @param since
  * @returns lock script args
  */
-export function multisigArgs(serializedMultisigScript: HexString, since?: PackedSince): HexString {
+export function multisigArgs(
+  serializedMultisigScript: HexString,
+  since?: PackedSince
+): HexString {
   let sinceLE = "0x";
   if (since != null) {
     sinceLE = toBigUInt64LE(BI.from(since));
   }
-  return new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) + sinceLE.slice(2);
+  return (
+    new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +
+    sinceLE.slice(2)
+  );
 }
 
 export function parseFromInfo(
@@ -93,7 +110,9 @@ export function parseFromInfo(
     if ("R" in fromInfo) {
       const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
       if (!template) {
-        throw new Error("Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!");
+        throw new Error(
+          "Provided config does not have SECP256K1_BLAKE16_MULTISIG script setup!"
+        );
       }
 
       multisigScript = serializeMultisigScript(fromInfo);
@@ -106,14 +125,19 @@ export function parseFromInfo(
     } else if ("address" in fromInfo) {
       const template = config.SCRIPTS.ANYONE_CAN_PAY;
       if (!template) {
-        throw new Error("Provided config does not have ANYONE_CAN_PAY script setup!");
+        throw new Error(
+          "Provided config does not have ANYONE_CAN_PAY script setup!"
+        );
       }
 
       const address = fromInfo.address;
       fromScript = parseAddress(address, { config });
       destroyable = fromInfo.destroyable;
 
-      if (fromScript.codeHash !== template.CODE_HASH || fromScript.hashType !== template.HASH_TYPE) {
+      if (
+        fromScript.codeHash !== template.CODE_HASH ||
+        fromScript.hashType !== template.HASH_TYPE
+      ) {
         throw new Error(`fromInfo.address is not ANYONE_CAN_PAY address!`);
       }
     } else if ("script" in fromInfo) {

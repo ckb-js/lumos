@@ -1,4 +1,9 @@
-import Keystore, { UnsupportedCipher, IncorrectPassword, InvalidKeystore, HexStringWithoutPrefix } from "./keystore";
+import Keystore, {
+  UnsupportedCipher,
+  IncorrectPassword,
+  InvalidKeystore,
+  HexStringWithoutPrefix,
+} from "./keystore";
 import { XPubStore } from "./xpub_store";
 import Keychain from "./keychain";
 import {

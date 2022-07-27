@@ -1,6 +1,11 @@
 import { assertBufferLength, assertMinBufferLength } from "../utils";
 import { concat } from "../bytes";
-import { BytesCodec, createBytesCodec, createFixedBytesCodec, FixedBytesCodec } from "../base";
+import {
+  BytesCodec,
+  createBytesCodec,
+  createFixedBytesCodec,
+  FixedBytesCodec,
+} from "../base";
 import { Uint32LE } from "../number";
 
 /**

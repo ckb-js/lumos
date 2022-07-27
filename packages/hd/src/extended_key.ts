@@ -32,7 +32,10 @@ export class ExtendedPublicKey {
 
   static parse(serialized: HexString): ExtendedPublicKey {
     utils.assertHexString("serialized", serialized);
-    return new ExtendedPublicKey(serialized.slice(0, 68), "0x" + serialized.slice(68));
+    return new ExtendedPublicKey(
+      serialized.slice(0, 68),
+      "0x" + serialized.slice(68)
+    );
   }
 }
 
@@ -44,7 +47,10 @@ export class AccountExtendedPublicKey extends ExtendedPublicKey {
 
   static parse(serialized: HexString): AccountExtendedPublicKey {
     utils.assertHexString("serialized", serialized);
-    return new AccountExtendedPublicKey(serialized.slice(0, 68), "0x" + serialized.slice(68));
+    return new AccountExtendedPublicKey(
+      serialized.slice(0, 68),
+      "0x" + serialized.slice(68)
+    );
   }
 
   publicKeyInfo(type: AddressType, index: number): PublicKeyInfo {
@@ -114,7 +120,9 @@ export class ExtendedPrivateKey {
       Buffer.from(this.privateKey.slice(2), "hex"),
       Buffer.from(this.chainCode.slice(2), "hex")
     );
-    const accountKeychain = masterKeychain.derivePath(AccountExtendedPublicKey.ckbAccountPath);
+    const accountKeychain = masterKeychain.derivePath(
+      AccountExtendedPublicKey.ckbAccountPath
+    );
 
     return new AccountExtendedPublicKey(
       "0x" + accountKeychain.publicKey.toString("hex"),
@@ -144,7 +152,10 @@ export class ExtendedPrivateKey {
     return this.privateKeyInfoFromKeychain(keychain, path);
   }
 
-  private privateKeyInfoFromKeychain(keychain: Keychain, path: string): PrivateKeyInfo {
+  private privateKeyInfoFromKeychain(
+    keychain: Keychain,
+    path: string
+  ): PrivateKeyInfo {
     return {
       privateKey: "0x" + keychain.privateKey.toString("hex"),
       publicKey: "0x" + keychain.publicKey.toString("hex"),
@@ -154,6 +165,9 @@ export class ExtendedPrivateKey {
 
   static parse(serialized: HexString): ExtendedPrivateKey {
     utils.assertHexString("serialized", serialized);
-    return new ExtendedPrivateKey(serialized.slice(0, 66), "0x" + serialized.slice(66));
+    return new ExtendedPrivateKey(
+      serialized.slice(0, 66),
+      "0x" + serialized.slice(66)
+    );
   }
 }

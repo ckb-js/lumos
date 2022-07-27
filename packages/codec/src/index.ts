@@ -1,4 +1,11 @@
-export type { PackResult, UnpackResult, PackParam, UnpackParam, BytesLike, AnyCodec } from "./base";
+export type {
+  PackResult,
+  UnpackResult,
+  PackParam,
+  UnpackParam,
+  BytesLike,
+  AnyCodec,
+} from "./base";
 export { createBytesCodec, createFixedBytesCodec, isFixedCodec } from "./base";
 export * from "./high-order";
 

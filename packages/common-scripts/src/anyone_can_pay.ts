@@ -25,12 +25,18 @@ import {
 import { List, Set } from "immutable";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { FromInfo, parseFromInfo } from "./from_info";
-import { addCellDep, hashWitness, isAcpScript, SECP_SIGNATURE_PLACEHOLDER } from "./helper";
+import {
+  addCellDep,
+  hashWitness,
+  isAcpScript,
+  SECP_SIGNATURE_PLACEHOLDER,
+} from "./helper";
 import { CellCollectorConstructor, CellCollectorType } from "./type";
 const { ScriptValue } = values;
 const { CKBHasher, ckbHash, readBigUInt128LECompatible } = utils;
 
-export const CellCollector: CellCollectorConstructor = class CellCollector implements CellCollectorType {
+export const CellCollector: CellCollectorConstructor = class CellCollector
+  implements CellCollectorType {
   private cellCollector: BaseCellCollectorType;
   private config: Config;
   public readonly fromScript: Script;
@@ -164,7 +170,9 @@ export async function setupInputCell(
       const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
       const lock = witnessArgs.lock;
       if (!!lock && lock !== newWitnessArgs.lock) {
-        throw new Error("Lock field in first witness is set aside for signature!");
+        throw new Error(
+          "Lock field in first witness is set aside for signature!"
+        );
       }
       const inputType = witnessArgs.inputType;
       if (inputType) {
@@ -209,7 +217,9 @@ export function checkLimit(acpArgs: HexString, capacity: BIish): void {
   } else if (minimalCapacity) {
     //check if undefined
     if (_capacity.lt(minimalCapacity)) {
-      throw new Error(`capacity(${capacity}) less than toAddress minimal capacity limit(${minimalCapacity})!`);
+      throw new Error(
+        `capacity(${capacity}) less than toAddress minimal capacity limit(${minimalCapacity})!`
+      );
     }
   }
 }
@@ -237,7 +247,9 @@ export async function setupOutputCell(
     config,
   });
 
-  const toAddressInput: Cell | void = (await toAddressCellCollector.collect().next()).value;
+  const toAddressInput: Cell | void = (
+    await toAddressCellCollector.collect().next()
+  ).value;
 
   let outputCapacity: BI = capacity;
   if (toAddressInput) {
@@ -293,7 +305,9 @@ export async function injectCapacity(
 
   const template = config.SCRIPTS.ANYONE_CAN_PAY;
   if (!template) {
-    throw new Error(`Provided config does not have ANYONE_CAN_PAY script setup!`);
+    throw new Error(
+      `Provided config does not have ANYONE_CAN_PAY script setup!`
+    );
   }
 
   const fromScript: Script = cellCollector.fromScript;
@@ -319,19 +333,27 @@ export async function injectCapacity(
       )
     ) {
       const cellCapacity: BI = BI.from(output.cellOutput.capacity);
-      const availableCapacity: BI = cellCapacity.sub(minimalCellCapacityCompatible(output));
+      const availableCapacity: BI = cellCapacity.sub(
+        minimalCellCapacityCompatible(output)
+      );
       // should maintain minimal cell capcity in anyone-can-pay output
-      const deductCapacity: BI = _capacity.gte(availableCapacity) ? availableCapacity : _capacity;
+      const deductCapacity: BI = _capacity.gte(availableCapacity)
+        ? availableCapacity
+        : _capacity;
       _capacity = _capacity.sub(deductCapacity);
-      output.cellOutput.capacity = "0x" + cellCapacity.sub(deductCapacity).toString(16);
+      output.cellOutput.capacity =
+        "0x" + cellCapacity.sub(deductCapacity).toString(16);
     }
   }
   // Remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.filter((output) => !BI.from(output.cellOutput.capacity).eq(0));
+    return outputs.filter(
+      (output) => !BI.from(output.cellOutput.capacity).eq(0)
+    );
   });
 
-  const getInputKey = (input: Cell) => `${input.outPoint!.txHash}_${input.outPoint!.index}`;
+  const getInputKey = (input: Cell) =>
+    `${input.outPoint!.txHash}_${input.outPoint!.index}`;
   if (_capacity.gt(0)) {
     const changeCell: Cell = {
       cellOutput: {
@@ -344,7 +366,9 @@ export async function injectCapacity(
       blockHash: undefined,
     };
     let changeCapacity = BI.from(0);
-    const minimalChangeCapacity: BI = BI.from(minimalCellCapacityCompatible(changeCell));
+    const minimalChangeCapacity: BI = BI.from(
+      minimalCellCapacityCompatible(changeCell)
+    );
 
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
@@ -364,9 +388,14 @@ export async function injectCapacity(
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.remove(lastOutputIndex);
       });
-      const fixedEntryIndex: number = txSkeleton.get("fixedEntries").findIndex((fixedEntry) => {
-        return fixedEntry.field === "outputs" && fixedEntry.index === lastOutputIndex;
-      });
+      const fixedEntryIndex: number = txSkeleton
+        .get("fixedEntries")
+        .findIndex((fixedEntry) => {
+          return (
+            fixedEntry.field === "outputs" &&
+            fixedEntry.index === lastOutputIndex
+          );
+        });
       if (fixedEntryIndex >= 0) {
         txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
           return fixedEntries.remove(fixedEntryIndex);
@@ -412,12 +441,18 @@ export function prepareSigningEntries(
   const scriptType = "ANYONE_CAN_PAY";
   const template = config.SCRIPTS[scriptType];
   if (!template) {
-    throw new Error(`Provided config does not have ${scriptType} script setup!`);
+    throw new Error(
+      `Provided config does not have ${scriptType} script setup!`
+    );
   }
 
   let processedArgs = Set<string>();
   const tx = createTransactionFromSkeleton(txSkeleton);
-  const txHash = ckbHash(blockchain.RawTransaction.pack(blockchainUtils.transformRawTransactionCodecType(tx)));
+  const txHash = ckbHash(
+    blockchain.RawTransaction.pack(
+      blockchainUtils.transformRawTransactionCodecType(tx)
+    )
+  );
   const inputs = txSkeleton.get("inputs");
   const witnesses = txSkeleton.get("witnesses");
   let signingEntries = txSkeleton.get("signingEntries");
@@ -461,7 +496,10 @@ export function prepareSigningEntries(
         .map((i) => BI.from(readBigUInt128LECompatible(i.data)))
         .reduce((result, c) => result.add(c), BI.from(0));
 
-      if (sumOfInputCapacity.lte(sumOfOutputCapacity) && sumOfInputAmount.lte(sumOfOutputAmount)) {
+      if (
+        sumOfInputCapacity.lte(sumOfOutputCapacity) &&
+        sumOfInputAmount.lte(sumOfOutputAmount)
+      ) {
         continue;
       }
 
@@ -520,15 +558,20 @@ export async function withdraw(
   // check capacity
   const _capacity = BI.from(capacity);
   const fromInputCapacity: BI = BI.from(fromInput.cellOutput.capacity);
-  const inputMinimalCellCapacity: BI = BI.from(minimalCellCapacityCompatible(fromInput));
+  const inputMinimalCellCapacity: BI = BI.from(
+    minimalCellCapacityCompatible(fromInput)
+  );
   if (
     !(
-      (_capacity.gte(0) && _capacity.lte(fromInputCapacity.sub(inputMinimalCellCapacity))) ||
+      (_capacity.gte(0) &&
+        _capacity.lte(fromInputCapacity.sub(inputMinimalCellCapacity))) ||
       _capacity.eq(fromInputCapacity)
     )
   ) {
     throw new Error(
-      `capacity must be in [0, ${fromInputCapacity.sub(inputMinimalCellCapacity)}] or ${fromInputCapacity} !`
+      `capacity must be in [0, ${fromInputCapacity.sub(
+        inputMinimalCellCapacity
+      )}] or ${fromInputCapacity} !`
     );
   }
 
@@ -557,12 +600,16 @@ export async function withdraw(
       config,
     });
 
-    const toAddressInput: Cell | void = (await toAddressCellCollector.collect().next()).value;
+    const toAddressInput: Cell | void = (
+      await toAddressCellCollector.collect().next()
+    ).value;
     if (!toAddressInput) {
       throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
     }
 
-    const outputCapacity: BI = _capacity.add(toAddressInput.cellOutput.capacity);
+    const outputCapacity: BI = _capacity.add(
+      toAddressInput.cellOutput.capacity
+    );
     targetOutput.cellOutput.capacity = "0x" + outputCapacity.toString(16);
 
     txSkeleton = txSkeleton.update("inputs", (inputs) => {
@@ -577,17 +624,26 @@ export async function withdraw(
     return outputs.push(targetOutput);
   });
 
-  txSkeleton = await setupInputCell(txSkeleton, fromInput, generateAddress(fromInput.cellOutput.lock, { config }), {
-    config,
-  });
+  txSkeleton = await setupInputCell(
+    txSkeleton,
+    fromInput,
+    generateAddress(fromInput.cellOutput.lock, { config }),
+    {
+      config,
+    }
+  );
   // remove output and fixedEntry added by `setupInputCell`
   const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.remove(lastOutputIndex);
   });
-  const fixedEntryIndex: number = txSkeleton.get("fixedEntries").findIndex((fixedEntry) => {
-    return fixedEntry.field === "outputs" && fixedEntry.index === lastOutputIndex;
-  });
+  const fixedEntryIndex: number = txSkeleton
+    .get("fixedEntries")
+    .findIndex((fixedEntry) => {
+      return (
+        fixedEntry.field === "outputs" && fixedEntry.index === lastOutputIndex
+      );
+    });
   if (fixedEntryIndex >= 0) {
     txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
       return fixedEntries.remove(fixedEntryIndex);

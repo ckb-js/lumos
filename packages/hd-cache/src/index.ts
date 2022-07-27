@@ -17,7 +17,14 @@ import {
 import { Map, Set } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import RPC from "@ckb-lumos/rpc";
-import { AccountExtendedPublicKey, AddressType, ExtendedPrivateKey, key, Keystore, mnemonic } from "@ckb-lumos/hd";
+import {
+  AccountExtendedPublicKey,
+  AddressType,
+  ExtendedPrivateKey,
+  key,
+  Keystore,
+  mnemonic,
+} from "@ckb-lumos/hd";
 import { assertPublicKey, assertChainCode } from "@ckb-lumos/hd/lib/helper";
 import { BI } from "@ckb-lumos/bi";
 const { isCellMatchQueryOptions } = helpers;
@@ -28,8 +35,12 @@ export function serializeOutPoint(outPoint: OutPoint): string {
   return `${outPoint.txHash}_${outPoint.index}`;
 }
 
-function assertsNonNil<T>(value: T, name: string): asserts value is NonNullable<T> {
-  if (value === undefined || value === null) throw new Error("Impossible: can not find " + name);
+function assertsNonNil<T>(
+  value: T,
+  name: string
+): asserts value is NonNullable<T> {
+  if (value === undefined || value === null)
+    throw new Error("Impossible: can not find " + name);
 }
 
 export interface PublicKeyInfo {
@@ -88,7 +99,10 @@ export class HDCache {
     this.chainCode = chainCode;
     this.receivingKeys = [];
     this.changeKeys = [];
-    this.accountExtendedPublicKey = new AccountExtendedPublicKey(this.publicKey, this.chainCode);
+    this.accountExtendedPublicKey = new AccountExtendedPublicKey(
+      this.publicKey,
+      this.chainCode
+    );
     this.init();
 
     this.infos = infos;
@@ -150,8 +164,11 @@ export class HDCache {
 
   private checkAndDeriveReceivingKeys(): void {
     const lastIndex: number = this.receivingKeys.length - 1;
-    const usedKeys = this.receivingKeys.filter((key) => key.historyTxCount !== 0);
-    const lastUsedIndex: number = usedKeys.length === 0 ? -1 : usedKeys[usedKeys.length - 1].index;
+    const usedKeys = this.receivingKeys.filter(
+      (key) => key.historyTxCount !== 0
+    );
+    const lastUsedIndex: number =
+      usedKeys.length === 0 ? -1 : usedKeys[usedKeys.length - 1].index;
 
     const unusedKeyCount: number = lastIndex - lastUsedIndex;
     if (unusedKeyCount < HDCache.receivingKeyThreshold) {
@@ -165,14 +182,17 @@ export class HDCache {
     }
     const lastIndex: number = this.receivingKeys.length - 1;
     for (let i = lastIndex + 1; i <= lastIndex + count; ++i) {
-      this.receivingKeys.push(this.generatePublicKeyInfo(AddressType.Receiving, i));
+      this.receivingKeys.push(
+        this.generatePublicKeyInfo(AddressType.Receiving, i)
+      );
     }
   }
 
   private checkAndDeriveChangeKeys(): void {
     const lastIndex: number = this.changeKeys[this.changeKeys.length - 1].index;
     const usedKeys = this.changeKeys.filter((key) => key.historyTxCount !== 0);
-    const lastUsedIndex: number = usedKeys.length === 0 ? -1 : usedKeys[usedKeys.length - 1].index;
+    const lastUsedIndex: number =
+      usedKeys.length === 0 ? -1 : usedKeys[usedKeys.length - 1].index;
 
     const unusedKeyCount: number = lastIndex - lastUsedIndex;
     if (unusedKeyCount < HDCache.changeKeyThreshold) {
@@ -191,19 +211,29 @@ export class HDCache {
   }
 
   getNextReceivingPublicKeyInfo(): PublicKeyInfo {
-    const info: PublicKeyInfo | undefined = this.receivingKeys.find((key) => key.historyTxCount === 0);
+    const info: PublicKeyInfo | undefined = this.receivingKeys.find(
+      (key) => key.historyTxCount === 0
+    );
     assertsNonNil(info, "next receiving public key");
     return info;
   }
 
   getNextChangePublicKeyInfo(): PublicKeyInfo {
-    const info: PublicKeyInfo | undefined = this.changeKeys.find((key) => key.historyTxCount === 0);
+    const info: PublicKeyInfo | undefined = this.changeKeys.find(
+      (key) => key.historyTxCount === 0
+    );
     assertsNonNil(info, "next change public key");
     return info;
   }
 
-  private generatePublicKeyInfo(type: AddressType, index: number): PublicKeyInfo {
-    const publicKeyInfo = this.accountExtendedPublicKey.publicKeyInfo(type, index);
+  private generatePublicKeyInfo(
+    type: AddressType,
+    index: number
+  ): PublicKeyInfo {
+    const publicKeyInfo = this.accountExtendedPublicKey.publicKeyInfo(
+      type,
+      index
+    );
     return {
       publicKey: publicKeyInfo.publicKey,
       blake160: publicKeyInfo.blake160,
@@ -239,11 +269,15 @@ function outputToCell(
 }
 
 function lockScriptMatch(script: Script, otherScript: Script): boolean {
-  const shorterArgsLength = Math.min(script.args.length, otherScript.args.length);
+  const shorterArgsLength = Math.min(
+    script.args.length,
+    otherScript.args.length
+  );
   return (
     script.codeHash === otherScript.codeHash &&
     script.hashType === otherScript.hashType &&
-    script.args.slice(0, shorterArgsLength) === otherScript.args.slice(0, shorterArgsLength)
+    script.args.slice(0, shorterArgsLength) ===
+      otherScript.args.slice(0, shorterArgsLength)
   );
 }
 
@@ -267,18 +301,28 @@ export class TransactionCache {
   addTransactionCountCache(key: HexString, value: HexString): void {
     const previous = this.totalTransactionCountCache.get(key);
     const set = previous || Set<HexString>();
-    this.totalTransactionCountCache = this.totalTransactionCountCache.set(key, set.add(value));
+    this.totalTransactionCountCache = this.totalTransactionCountCache.set(
+      key,
+      set.add(value)
+    );
 
-    const count: number | undefined = this.totalTransactionCountCache.get(key)?.size;
+    const count: number | undefined = this.totalTransactionCountCache.get(key)
+      ?.size;
     /* c8 ignore next 3 */
     if (count === undefined) {
-      throw new Error("Impossible: transaction count cache of key is undefined");
+      throw new Error(
+        "Impossible: transaction count cache of key is undefined"
+      );
     }
-    const receivingIndex: number = this.hdCache.receivingKeys.findIndex((k) => k.publicKey === key);
+    const receivingIndex: number = this.hdCache.receivingKeys.findIndex(
+      (k) => k.publicKey === key
+    );
     if (receivingIndex >= 0) {
       this.hdCache.receivingKeys[receivingIndex].historyTxCount = count;
     } else {
-      const changeIndex: number = this.hdCache.changeKeys.findIndex((k) => k.publicKey === key);
+      const changeIndex: number = this.hdCache.changeKeys.findIndex(
+        (k) => k.publicKey === key
+      );
       if (changeIndex >= 0) {
         this.hdCache.changeKeys[changeIndex].historyTxCount = count;
       } else {
@@ -405,7 +449,13 @@ export class Cache {
         const blockNumber: HexString | undefined = tipHeader?.number;
         assertsNonNil(blockNumber, "tipHeader.number");
 
-        this.txCache.parseTransaction(tx, lockScript, lockScriptInfo.publicKeyInfo.publicKey, blockHash, blockNumber);
+        this.txCache.parseTransaction(
+          tx,
+          lockScript,
+          lockScriptInfo.publicKeyInfo.publicKey,
+          blockHash,
+          blockNumber
+        );
         this.hdCache.deriveKeys();
       }
     }
@@ -442,11 +492,16 @@ export function publicKeyToMultisigArgs(publicKey: HexString): HexString {
     ("00" + publicKeyHashes.length.toString(16)).slice(-2) +
     publicKeyHashes.map((h) => h.slice(2)).join("");
 
-  const args = new utils.CKBHasher().update(serialized).digestHex().slice(0, 42);
+  const args = new utils.CKBHasher()
+    .update(serialized)
+    .digestHex()
+    .slice(0, 42);
   return args;
 }
 
-export function getDefaultInfos(config: Config | undefined = undefined): LockScriptMappingInfo[] {
+export function getDefaultInfos(
+  config: Config | undefined = undefined
+): LockScriptMappingInfo[] {
   config = config || getConfig();
   const infos: LockScriptMappingInfo[] = [];
   const secpTemplate = config.SCRIPTS.SECP256K1_BLAKE160;
@@ -626,7 +681,10 @@ export class CacheManager {
         this.scheduleLoop();
       })
       .catch((e) => {
-        this.logger("error", `Error occurs: ${e} ${e.stack}, stopping indexer!`);
+        this.logger(
+          "error",
+          `Error occurs: ${e} ${e.stack}, stopping indexer!`
+        );
         this.stop();
       });
   }
@@ -728,7 +786,9 @@ export class CellCollectorWithQueryOptions implements CellCollectorInterface {
   }
 }
 
-export async function getBalance(cellCollector: CellCollectorInterface): Promise<HexString> {
+export async function getBalance(
+  cellCollector: CellCollectorInterface
+): Promise<HexString> {
   let balance: BI = BI.from(0);
   for await (const cell of cellCollector.collect()) {
     balance = balance.add(cell.cellOutput.capacity);

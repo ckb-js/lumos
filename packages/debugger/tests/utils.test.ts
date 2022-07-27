@@ -16,7 +16,9 @@ test("utils#groupBy", (t) => {
     { key: { val: 1 }, name: "group1", payload: "payload3" },
   ]);
 
-  t.deepEqual(grouped.get({ val: 2 }), [{ key: { val: 2 }, name: "group2", payload: "payload2" }]);
+  t.deepEqual(grouped.get({ val: 2 }), [
+    { key: { val: 2 }, name: "group2", payload: "payload2" },
+  ]);
 
   t.deepEqual(grouped.get({ val: 3 }), []);
 
@@ -42,7 +44,9 @@ test("utils#groupBy with custom hashCode", (t) => {
     { key: { val: 1 }, name: "group1", payload: "payload3" },
   ]);
 
-  t.deepEqual(grouped.get({ val: 2 }), [{ key: { val: 2 }, name: "group2", payload: "payload2" }]);
+  t.deepEqual(grouped.get({ val: 2 }), [
+    { key: { val: 2 }, name: "group2", payload: "payload2" },
+  ]);
 
   t.deepEqual(grouped.get({ val: 3 }), []);
 

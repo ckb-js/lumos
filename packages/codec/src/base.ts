@@ -2,7 +2,12 @@
 import { assertBufferLength, isObjectLike } from "./utils";
 import { bytify } from "./bytes";
 
-export interface Codec<Packed, Unpacked, Packable = Unpacked, Unpackable = Packed> {
+export interface Codec<
+  Packed,
+  Unpacked,
+  Packable = Unpacked,
+  Unpackable = Packed
+> {
   pack: (packable: Packable) => Packed;
   unpack: (unpackable: Unpackable) => Unpacked;
 }
@@ -44,11 +49,20 @@ export type UnpackParam<T extends AnyCodec> = T extends Codec<
   ? Unpackable
   : never;
 
-export type Uint8ArrayCodec<Unpacked = any, Packable = Unpacked> = Codec<Uint8Array, Unpacked, Packable>;
+export type Uint8ArrayCodec<Unpacked = any, Packable = Unpacked> = Codec<
+  Uint8Array,
+  Unpacked,
+  Packable
+>;
 
 export type BytesLike = ArrayLike<number> | ArrayBuffer | string;
 
-export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<Uint8Array, Unpacked, Packable, BytesLike>;
+export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<
+  Uint8Array,
+  Unpacked,
+  Packable,
+  BytesLike
+>;
 
 /**
  * This function helps to create a codec that can
@@ -68,9 +82,15 @@ export type Fixed = {
   readonly byteLength: number;
 };
 
-export type FixedBytesCodec<Unpacked = any, Packable = Unpacked> = BytesCodec<Unpacked, Packable> & Fixed;
+export type FixedBytesCodec<Unpacked = any, Packable = Unpacked> = BytesCodec<
+  Unpacked,
+  Packable
+> &
+  Fixed;
 
-export function isFixedCodec<T>(codec: BytesCodec<T>): codec is FixedBytesCodec<T> {
+export function isFixedCodec<T>(
+  codec: BytesCodec<T>
+): codec is FixedBytesCodec<T> {
   return isObjectLike(codec) && !!codec.__isFixedCodec__;
 }
 

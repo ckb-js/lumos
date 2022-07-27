@@ -28,7 +28,10 @@ export class OutputDataLoader {
   }
 
   setOutpointVec(outPoint: OutPoint, outPoints: OutPoint[]): void {
-    this.cache.set(hexify(OutPointCodec.pack(outPoint)), hexify(OutPointVec.pack(outPoints)));
+    this.cache.set(
+      hexify(OutPointCodec.pack(outPoint)),
+      hexify(OutPointVec.pack(outPoints))
+    );
   }
 
   getOutputData(outPoint: OutPoint): HexString | undefined {

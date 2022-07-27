@@ -4,11 +4,16 @@ import { getConfig } from "./manager";
 
 type ScriptTemplate = Omit<Script, "args">;
 
-export function findConfigByScript(scriptTemplate: ScriptTemplate, SCRIPTS?: ScriptConfigs): ScriptConfig | undefined {
+export function findConfigByScript(
+  scriptTemplate: ScriptTemplate,
+  SCRIPTS?: ScriptConfigs
+): ScriptConfig | undefined {
   const scripts = SCRIPTS || getConfig().SCRIPTS;
 
   return Object.values(scripts).find(
-    (item) => item?.CODE_HASH === scriptTemplate.codeHash && item?.HASH_TYPE === scriptTemplate.hashType
+    (item) =>
+      item?.CODE_HASH === scriptTemplate.codeHash &&
+      item?.HASH_TYPE === scriptTemplate.hashType
   );
 }
 
@@ -31,7 +36,9 @@ export function nameOfScript<S extends ScriptConfigs>(
   const scripts = SCRIPTS || getConfig().SCRIPTS;
 
   const foundEntry = Object.entries(scripts).find(
-    ([, config]) => config?.CODE_HASH === scriptTemplate.codeHash && config?.HASH_TYPE === scriptTemplate.hashType
+    ([, config]) =>
+      config?.CODE_HASH === scriptTemplate.codeHash &&
+      config?.HASH_TYPE === scriptTemplate.hashType
   );
 
   if (!foundEntry) return undefined;

@@ -1,4 +1,11 @@
-import { Transaction, Hash, QueryOptions, logger, Indexer, CellCollector } from "@ckb-lumos/base";
+import {
+  Transaction,
+  Hash,
+  QueryOptions,
+  logger,
+  Indexer,
+  CellCollector,
+} from "@ckb-lumos/base";
 
 declare class TransactionManager {
   constructor(
@@ -21,7 +28,10 @@ declare class TransactionManager {
    * @param queryOptions
    * @param options
    */
-  collector(queryOptions?: QueryOptions, options?: { usePendingOutputs?: boolean }): CellCollector;
+  collector(
+    queryOptions?: QueryOptions,
+    options?: { usePendingOutputs?: boolean }
+  ): CellCollector;
 }
 
 export = TransactionManager;

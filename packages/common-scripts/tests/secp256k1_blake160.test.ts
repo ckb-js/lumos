@@ -1,6 +1,10 @@
 import test from "ava";
 import { CellProvider } from "./cell_provider";
-import { parseAddress, TransactionSkeleton, TransactionSkeletonType } from "@ckb-lumos/helpers";
+import {
+  parseAddress,
+  TransactionSkeleton,
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
 import { secp256k1Blake160 } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 const { LINA, AGGRON4 } = predefined;
@@ -81,7 +85,11 @@ test("JSBI:payFee", async (t) => {
   );
 
   const fee = BI.from(1 * 10 ** 8);
-  txSkeleton = await secp256k1Blake160.payFee(txSkeleton, bob.mainnetAddress, BI.from(fee));
+  txSkeleton = await secp256k1Blake160.payFee(
+    txSkeleton,
+    bob.mainnetAddress,
+    BI.from(fee)
+  );
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
@@ -98,7 +106,8 @@ test("JSBI:payFee", async (t) => {
 });
 
 test("JSBI:prepareSigningEntries", async (t) => {
-  const expectedMessage = "0xd90a4204aee91348bf2ada132065a9a7aa4479001ec61e046c54804987b309ce";
+  const expectedMessage =
+    "0xd90a4204aee91348bf2ada132065a9a7aa4479001ec61e046c54804987b309ce";
 
   txSkeleton = await secp256k1Blake160.transferCompatible(
     txSkeleton,
@@ -108,7 +117,11 @@ test("JSBI:prepareSigningEntries", async (t) => {
   );
 
   const fee = BI.from(1 * 10 ** 8);
-  txSkeleton = await secp256k1Blake160.payFee(txSkeleton, bob.mainnetAddress, BI.from(fee));
+  txSkeleton = await secp256k1Blake160.payFee(
+    txSkeleton,
+    bob.mainnetAddress,
+    BI.from(fee)
+  );
 
   txSkeleton = await secp256k1Blake160.prepareSigningEntries(txSkeleton);
 
@@ -170,7 +183,10 @@ test.skip("JSBI:transferCompatible, skip duplicated input", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 3);
-  t.notDeepEqual(txSkeleton.get("inputs").get(0)!.outPoint, txSkeleton.get("inputs").get(1)!.outPoint);
+  t.notDeepEqual(
+    txSkeleton.get("inputs").get(0)!.outPoint,
+    txSkeleton.get("inputs").get(1)!.outPoint
+  );
 });
 
 test("setupInputCell", async (t) => {
@@ -179,9 +195,14 @@ test("setupInputCell", async (t) => {
     cellProvider,
   });
 
-  txSkeleton = await secp256k1Blake160.setupInputCell(txSkeleton, inputCell, undefined, {
-    config: AGGRON4,
-  });
+  txSkeleton = await secp256k1Blake160.setupInputCell(
+    txSkeleton,
+    inputCell,
+    undefined,
+    {
+      config: AGGRON4,
+    }
+  );
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 1);
@@ -201,7 +222,9 @@ test("setupInputCell", async (t) => {
     (!input.cellOutput.type && !output.cellOutput.type) ||
       new values.ScriptValue(input.cellOutput.type!, {
         validate: false,
-      }).equals(new values.ScriptValue(output.cellOutput.type!, { validate: false }))
+      }).equals(
+        new values.ScriptValue(output.cellOutput.type!, { validate: false })
+      )
   );
 });
 
@@ -222,7 +245,12 @@ test("injectCapacity", async (t) => {
     return outputs.push(output);
   });
 
-  txSkeleton = await secp256k1Blake160.injectCapacity(txSkeleton, 0, bob.testnetAddress, { config: AGGRON4 });
+  txSkeleton = await secp256k1Blake160.injectCapacity(
+    txSkeleton,
+    0,
+    bob.testnetAddress,
+    { config: AGGRON4 }
+  );
 
   txSkeleton = secp256k1Blake160.prepareSigningEntries(txSkeleton, {
     config: AGGRON4,
@@ -240,7 +268,8 @@ test("injectCapacity", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("signingEntries").size, 1);
-  const expectedMessage = "0xaeb7b9b819ae94b20bcb02abc7d156cfa771d71e8d8c136dc73f4e5de8d25bf2";
+  const expectedMessage =
+    "0xaeb7b9b819ae94b20bcb02abc7d156cfa771d71e8d8c136dc73f4e5de8d25bf2";
   const message = txSkeleton.get("signingEntries").get(0)!.message;
   t.is(message, expectedMessage);
 

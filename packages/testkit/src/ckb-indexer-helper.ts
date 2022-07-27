@@ -17,7 +17,10 @@ export function downloadCKBIndexer() {
   if (!shell.test("-e", "./ckb-indexer")) {
     download();
   } else {
-    const version = shell.exec(`./ckb-indexer -V`).replace("\n", "").split(" ")[1];
+    const version = shell
+      .exec(`./ckb-indexer -V`)
+      .replace("\n", "")
+      .split(" ")[1];
     console.log(compareVersions(version.toString(), CKB_Indexer_Version));
     if (compareVersions(version.toString(), CKB_Indexer_Version) !== 0) {
       shell.rm("-rf", "./ckb-indexer");
@@ -28,5 +31,8 @@ export function downloadCKBIndexer() {
 export function startCKBIndexer(CKBVersion?: string) {
   CKB_Indexer_Version = CKBVersion ? CKBVersion : CKB_Indexer_Version;
   downloadCKBIndexer();
-  shell.exec(`./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp`, { async: true });
+  shell.exec(
+    `./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp`,
+    { async: true }
+  );
 }

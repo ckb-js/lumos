@@ -1,9 +1,19 @@
 import { utils, Cell, BaseCellCollector } from "@ckb-lumos/base";
 import { validators } from "@ckb-lumos/toolkit";
-import { SearchKeyFilter, CKBIndexerQueryOptions, GetCellsResults, Order, OtherQueryOptions } from "./type";
+import {
+  SearchKeyFilter,
+  CKBIndexerQueryOptions,
+  GetCellsResults,
+  Order,
+  OtherQueryOptions,
+} from "./type";
 
 import { CkbIndexer } from "./indexer";
-import { generateSearchKey, getHexStringBytes, instanceOfScriptWrapper } from "./services";
+import {
+  generateSearchKey,
+  getHexStringBytes,
+  instanceOfScriptWrapper,
+} from "./services";
 import fetch from "cross-fetch";
 
 interface GetBlockHashRPCResult {
@@ -51,9 +61,15 @@ export class CKBCellCollector implements BaseCellCollector {
     }
 
     if (queries.type && queries.type !== "empty") {
-      if (typeof queries.type === "object" && !instanceOfScriptWrapper(queries.type)) {
+      if (
+        typeof queries.type === "object" &&
+        !instanceOfScriptWrapper(queries.type)
+      ) {
         validators.ValidateScript(queries.type);
-      } else if (typeof queries.type === "object" && instanceOfScriptWrapper(queries.type)) {
+      } else if (
+        typeof queries.type === "object" &&
+        instanceOfScriptWrapper(queries.type)
+      ) {
         validators.ValidateScript(queries.type.script);
       }
     }
@@ -68,18 +84,33 @@ export class CKBCellCollector implements BaseCellCollector {
       throw new Error("Order must be either asc or desc!");
     }
     if (queries.outputCapacityRange) {
-      utils.assertHexadecimal("outputCapacityRange[0]", queries.outputCapacityRange[0]);
-      utils.assertHexadecimal("outputCapacityRange[1]", queries.outputCapacityRange[1]);
+      utils.assertHexadecimal(
+        "outputCapacityRange[0]",
+        queries.outputCapacityRange[0]
+      );
+      utils.assertHexadecimal(
+        "outputCapacityRange[1]",
+        queries.outputCapacityRange[1]
+      );
     }
 
     if (queries.outputDataLenRange) {
-      utils.assertHexadecimal("outputDataLenRange[0]", queries.outputDataLenRange[0]);
-      utils.assertHexadecimal("outputDataLenRange[1]", queries.outputDataLenRange[1]);
+      utils.assertHexadecimal(
+        "outputDataLenRange[0]",
+        queries.outputDataLenRange[0]
+      );
+      utils.assertHexadecimal(
+        "outputDataLenRange[1]",
+        queries.outputDataLenRange[1]
+      );
     }
 
     if (queries.outputDataLenRange && queries.data && queries.data !== "any") {
       const dataLen = getHexStringBytes(queries.data);
-      if (dataLen < Number(queries.outputDataLenRange[0]) || dataLen >= Number(queries.outputDataLenRange[1])) {
+      if (
+        dataLen < Number(queries.outputDataLenRange[0]) ||
+        dataLen >= Number(queries.outputDataLenRange[1])
+      ) {
         throw new Error("data length not match outputDataLenRange");
       }
     }
@@ -104,7 +135,10 @@ export class CKBCellCollector implements BaseCellCollector {
 
     // unWrap `ScriptWrapper` into `Script`.
     if (this.queries.type && this.queries.type !== "empty") {
-      if (typeof this.queries.type === "object" && instanceOfScriptWrapper(this.queries.type)) {
+      if (
+        typeof this.queries.type === "object" &&
+        instanceOfScriptWrapper(this.queries.type)
+      ) {
         this.queries.type = this.queries.type.script;
       }
     }
@@ -112,7 +146,10 @@ export class CKBCellCollector implements BaseCellCollector {
     if (!this.queries.outputDataLenRange) {
       if (this.queries.data && this.queries.data !== "any") {
         const dataLenRange = getHexStringBytes(this.queries.data);
-        this.queries.outputDataLenRange = ["0x" + dataLenRange.toString(16), "0x" + (dataLenRange + 1).toString(16)];
+        this.queries.outputDataLenRange = [
+          "0x" + dataLenRange.toString(16),
+          "0x" + (dataLenRange + 1).toString(16),
+        ];
       }
     }
   }
@@ -202,7 +239,9 @@ export class CKBCellCollector implements BaseCellCollector {
     }
     const result = await res.json();
     if (result.error !== undefined) {
-      throw new Error(`indexer request rpc failed with error: ${JSON.stringify(result.error)}`);
+      throw new Error(
+        `indexer request rpc failed with error: ${JSON.stringify(result.error)}`
+      );
     }
     return result;
   }
@@ -223,9 +262,14 @@ export class CKBCellCollector implements BaseCellCollector {
         params: [cell.blockNumber],
       };
     });
-    const blockHashList: GetBlockHashRPCResult[] = await this.request(this.otherQueryOptions.ckbRpcUrl, requestData);
+    const blockHashList: GetBlockHashRPCResult[] = await this.request(
+      this.otherQueryOptions.ckbRpcUrl,
+      requestData
+    );
     result.objects = result.objects.map((item, index) => {
-      const rpcResponse = blockHashList.find((responseItem: GetBlockHashRPCResult) => responseItem.id === index);
+      const rpcResponse = blockHashList.find(
+        (responseItem: GetBlockHashRPCResult) => responseItem.id === index
+      );
       const blockHash = rpcResponse && rpcResponse.result;
       return { ...item, blockHash };
     });
@@ -238,7 +282,9 @@ export class CKBCellCollector implements BaseCellCollector {
   async *collect(): AsyncGenerator<Cell, void, unknown> {
     //TODO: fix return type
     const withBlockHash =
-      this.otherQueryOptions && "withBlockHash" in this.otherQueryOptions && this.otherQueryOptions.withBlockHash;
+      this.otherQueryOptions &&
+      "withBlockHash" in this.otherQueryOptions &&
+      this.otherQueryOptions.withBlockHash;
     let lastCursor: undefined | string = undefined;
     const getCellWithCursor = async (): Promise<Cell[]> => {
       const result: GetCellsResults = await (withBlockHash

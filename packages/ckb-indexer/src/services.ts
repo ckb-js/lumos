@@ -1,5 +1,11 @@
 import { utils, HexString, ScriptWrapper, Script } from "@ckb-lumos/base";
-import { CKBIndexerQueryOptions, HexadecimalRange, SearchFilter, ScriptType, SearchKey } from "./type";
+import {
+  CKBIndexerQueryOptions,
+  HexadecimalRange,
+  SearchFilter,
+  ScriptType,
+  SearchKey,
+} from "./type";
 import fetch from "cross-fetch";
 import { BI } from "@ckb-lumos/bi";
 import { toScript } from "./paramsFormatter";
@@ -34,7 +40,10 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   let block_range: HexadecimalRange | null = null;
   if (queries.fromBlock && queries.toBlock) {
     //toBlock+1 cause toBlock need to be included
-    block_range = [queries.fromBlock, `0x${BI.from(queries.toBlock).add(1).toString(16)}`];
+    block_range = [
+      queries.fromBlock,
+      `0x${BI.from(queries.toBlock).add(1).toString(16)}`,
+    ];
   }
   if (block_range) {
     filter.block_range = block_range;
@@ -77,9 +86,16 @@ const requestBatch = async (rpcUrl: string, data: unknown): Promise<any> => {
   }
   const result = await res.json();
   if (result.error !== undefined) {
-    throw new Error(`indexer request rpc failed with error: ${JSON.stringify(result.error)}`);
+    throw new Error(
+      `indexer request rpc failed with error: ${JSON.stringify(result.error)}`
+    );
   }
   return result;
 };
 
-export { generateSearchKey, getHexStringBytes, instanceOfScriptWrapper, requestBatch };
+export {
+  generateSearchKey,
+  getHexStringBytes,
+  instanceOfScriptWrapper,
+  requestBatch,
+};

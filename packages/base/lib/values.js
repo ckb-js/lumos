@@ -31,19 +31,31 @@ class ScriptValue extends Value {
 
 class OutPointValue extends Value {
   constructor(outPoint) {
-    super(blockchain.OutPoint.pack(blockchainUtils.transformOutPointCodecType(outPoint)));
+    super(
+      blockchain.OutPoint.pack(
+        blockchainUtils.transformOutPointCodecType(outPoint)
+      )
+    );
   }
 }
 
 class RawTransactionValue extends Value {
   constructor(rawTransaction) {
-    super(blockchain.RawTransaction.pack(blockchainUtils.transformRawTransactionCodecType(rawTransaction)));
+    super(
+      blockchain.RawTransaction.pack(
+        blockchainUtils.transformRawTransactionCodecType(rawTransaction)
+      )
+    );
   }
 }
 
 class TransactionValue extends Value {
   constructor(transaction) {
-    super(blockchain.Transaction.pack(blockchainUtils.transformTransactionCodecType(transaction)));
+    super(
+      blockchain.Transaction.pack(
+        blockchainUtils.transformTransactionCodecType(transaction)
+      )
+    );
   }
 }
 

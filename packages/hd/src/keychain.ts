@@ -33,7 +33,10 @@ export default class Keychain {
   }
 
   public static fromSeed(seed: Buffer): Keychain {
-    const i = crypto.createHmac("sha512", Buffer.from("Bitcoin seed", "utf8")).update(seed).digest();
+    const i = crypto
+      .createHmac("sha512", Buffer.from("Bitcoin seed", "utf8"))
+      .update(seed)
+      .digest();
     const keychain = new Keychain(i.slice(0, 32), i.slice(32));
     keychain.calculateFingerprint();
     return keychain;
@@ -41,7 +44,11 @@ export default class Keychain {
 
   // Create a child keychain with extended public key and path.
   // Children of this keychain should not have any hardened paths.
-  public static fromPublicKey(publicKey: Buffer, chainCode: Buffer, path: String): Keychain {
+  public static fromPublicKey(
+    publicKey: Buffer,
+    chainCode: Buffer,
+    path: String
+  ): Keychain {
     const keychain = new Keychain(EMPTY_BUFFER, chainCode);
     keychain.publicKey = publicKey;
     keychain.calculateFingerprint();

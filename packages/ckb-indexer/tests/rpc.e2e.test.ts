@@ -12,7 +12,8 @@ test.before(() => {
 });
 test("get tip", async (t) => {
   const expectTip: Tip = {
-    blockHash: "0x4d0913d3d9330b1f2acf70d1b38baffa1d0588a92b006be3c5a0ca031e9841c7",
+    blockHash:
+      "0x4d0913d3d9330b1f2acf70d1b38baffa1d0588a92b006be3c5a0ca031e9841c7",
     blockNumber: "0x63",
   };
 

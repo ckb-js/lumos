@@ -14,7 +14,11 @@ test.before(() => {
   };
 });
 
-async function asyncRetry(callback: () => Promise<boolean> | boolean, interval: number, timeout: number) {
+async function asyncRetry(
+  callback: () => Promise<boolean> | boolean,
+  interval: number,
+  timeout: number
+) {
   const start = Date.now();
   while (true) {
     if (Date.now() - start >= timeout) throw new Error("timeout");
@@ -27,7 +31,9 @@ async function asyncRetry(callback: () => Promise<boolean> | boolean, interval: 
 test("subscribe cells", async (t) => {
   let blockIndex = 0;
   const stub = sinon.stub(indexer, "tip").callsFake(() => {
-    const blocks = JSON.parse(fs.readFileSync(path.join(__dirname, "./blocks_data.json")).toString());
+    const blocks = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "./blocks_data.json")).toString()
+    );
     const block = blocks[blockIndex];
     if (blockIndex !== 99) {
       blockIndex = blockIndex + 1;

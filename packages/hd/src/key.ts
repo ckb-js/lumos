@@ -4,7 +4,10 @@ import { assertPrivateKey, assertPublicKey } from "./helper";
 
 const ec = new EC("secp256k1");
 
-export function signRecoverable(message: HexString, privateKey: HexString): HexString {
+export function signRecoverable(
+  message: HexString,
+  privateKey: HexString
+): HexString {
   utils.assertHexString("message", message);
   assertPrivateKey(privateKey);
 
@@ -21,7 +24,10 @@ export function signRecoverable(message: HexString, privateKey: HexString): HexS
   return "0x" + fmtR + fmtS + fmtRecoverableParam;
 }
 
-export function recoverFromSignature(message: HexString, signature: HexString): HexString {
+export function recoverFromSignature(
+  message: HexString,
+  signature: HexString
+): HexString {
   utils.assertHexString("message", message);
   utils.assertHexString("signature", signature);
 
@@ -42,7 +48,9 @@ export function recoverFromSignature(message: HexString, signature: HexString): 
 export function privateToPublic(privateKey: Buffer): Buffer;
 export function privateToPublic(privateKey: HexString): HexString;
 
-export function privateToPublic(privateKey: Buffer | HexString): Buffer | HexString {
+export function privateToPublic(
+  privateKey: Buffer | HexString
+): Buffer | HexString {
   let pkBuffer = privateKey;
   if (typeof privateKey === "string") {
     assertPrivateKey(privateKey);
@@ -62,7 +70,10 @@ export function privateToPublic(privateKey: Buffer | HexString): Buffer | HexStr
 export function publicKeyToBlake160(publicKey: HexString): HexString {
   assertPublicKey(publicKey);
 
-  const blake160: string = new utils.CKBHasher().update(publicKey).digestHex().slice(0, 42);
+  const blake160: string = new utils.CKBHasher()
+    .update(publicKey)
+    .digestHex()
+    .slice(0, 42);
 
   return blake160;
 }

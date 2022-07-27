@@ -77,7 +77,11 @@ function maximumAbsoluteEpochSince(...args) {
 
   for (let i = 1; i < maxArgs.length; ++i) {
     const current = maxArgs[i];
-    if (BI.from(current.index).mul(max.length).gte(BI.from(max.index).mul(current.length))) {
+    if (
+      BI.from(current.index)
+        .mul(max.length)
+        .gte(BI.from(max.index).mul(current.length))
+    ) {
       max = current;
     }
   }
@@ -94,7 +98,9 @@ function generateAbsoluteEpochSince({ length, index, number }) {
 }
 
 function generateHeaderEpoch({ length, index, number }) {
-  return _toHex(BI.from(length).shl(40).add(BI.from(index).shl(24)).add(number));
+  return _toHex(
+    BI.from(length).shl(40).add(BI.from(index).shl(24)).add(number)
+  );
 }
 
 function parseAbsoluteEpochSince(since) {
@@ -113,7 +119,9 @@ function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
   return (
     BI.from(value.number).lt(headerEpochParams.number) ||
     (BI.from(value.number).eq(headerEpochParams.number) &&
-      BI.from(value.index).mul(headerEpochParams.length).lte(BI.from(headerEpochParams.index).mul(value.length)))
+      BI.from(value.index)
+        .mul(headerEpochParams.length)
+        .lte(BI.from(headerEpochParams.index).mul(value.length)))
   );
 }
 
@@ -133,7 +141,9 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
       if (!tipSinceValidationInfo.median_timestamp) {
         throw new Error(`Must provide tip median_timestamp!`);
       }
-      return BI.from(value).mul(1000).lte(tipSinceValidationInfo.median_timestamp);
+      return BI.from(value)
+        .mul(1000)
+        .lte(tipSinceValidationInfo.median_timestamp);
     }
   } else {
     if (type === "epochNumber") {
@@ -141,7 +151,9 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
       const sinceHeaderEpoch = parseEpoch(cellSinceValidationInfo.epoch);
       const added = {
         number: BI.from(value.number).add(sinceHeaderEpoch.number),
-        index: BI.from(value.index).mul(sinceHeaderEpoch.length).add(BI.from(sinceHeaderEpoch.index).mul(value.length)),
+        index: BI.from(value.index)
+          .mul(sinceHeaderEpoch.length)
+          .add(BI.from(sinceHeaderEpoch.index).mul(value.length)),
         length: BI.from(value.length).mul(sinceHeaderEpoch.length),
       };
 
@@ -153,7 +165,10 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
         added.length = BI.from(value.length);
       }
 
-      if (!BI.from(added.length).eq(0) && BI.from(added.index).gte(added.length)) {
+      if (
+        !BI.from(added.length).eq(0) &&
+        BI.from(added.index).gte(added.length)
+      ) {
         added.number = added.index.div(added.length).add(added.number);
         added.index = added.index.mod(added.length);
       }
@@ -161,16 +176,23 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
       return (
         BI.from(added.number).lt(tipHeaderEpoch.number) ||
         (BI.from(added.number).eq(tipHeaderEpoch.number) &&
-          BI.from(added.index).mul(tipHeaderEpoch.length).lte(BI.from(tipHeaderEpoch.index).mul(added.length)))
+          BI.from(added.index)
+            .mul(tipHeaderEpoch.length)
+            .lte(BI.from(tipHeaderEpoch.index).mul(added.length)))
       );
     }
 
     if (type === "blockNumber") {
-      return BI.from(value).add(cellSinceValidationInfo.blockNumber).lte(tipSinceValidationInfo.blockNumber);
+      return BI.from(value)
+        .add(cellSinceValidationInfo.blockNumber)
+        .lte(tipSinceValidationInfo.blockNumber);
     }
 
     if (type === "blockTimestamp") {
-      if (!tipSinceValidationInfo.median_timestamp || !cellSinceValidationInfo.median_timestamp) {
+      if (
+        !tipSinceValidationInfo.median_timestamp ||
+        !cellSinceValidationInfo.median_timestamp
+      ) {
         throw new Error(`Must provide median_timestamp!`);
       }
       return BI.from(value)

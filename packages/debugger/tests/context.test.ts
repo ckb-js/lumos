@@ -1,14 +1,24 @@
 import test from "ava";
-import { createCellWithMinimalCapacity, createScriptRegistry } from "@ckb-lumos/experiment-tx-assembler";
+import {
+  createCellWithMinimalCapacity,
+  createScriptRegistry,
+} from "@ckb-lumos/experiment-tx-assembler";
 import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
 import { HexString } from "@ckb-lumos/base";
 import { CKBDebugger, CKBDebuggerDownloader, DataLoader } from "../src";
 import { TransactionSkeleton } from "@ckb-lumos/helpers";
-import { createTestContext, getDefaultConfig, mockOutPoint } from "../src/context";
+import {
+  createTestContext,
+  getDefaultConfig,
+  mockOutPoint,
+} from "../src/context";
 import { randomBytes } from "crypto";
 import { privateKeyToBlake160, signRecoverable } from "@ckb-lumos/hd/lib/key";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
-import { createP2PKHMessageGroup, parseFromInfo } from "@ckb-lumos/common-scripts";
+import {
+  createP2PKHMessageGroup,
+  parseFromInfo,
+} from "@ckb-lumos/common-scripts";
 import { WitnessArgs } from "@ckb-lumos/codec/lib/blockchain";
 
 const downloader = new CKBDebuggerDownloader();
@@ -53,7 +63,9 @@ test("context#CKBDebugger with always_success", async (t) => {
   txSkeleton = txSkeleton.update("outputs", (outputs) =>
     outputs.push(createCellWithMinimalCapacity({ lock: alwaysSuccessLock }))
   );
-  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => cellDeps.push(registry.newCellDep("ALWAYS_SUCCESS")));
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("ALWAYS_SUCCESS"))
+  );
 
   const result = await context.executor.execute(txSkeleton, {
     scriptGroupType: "lock",
@@ -78,7 +90,9 @@ test("context#CKBDebugger with always_fail", async (t) => {
   txSkeleton = txSkeleton.update("outputs", (outputs) =>
     outputs.push(createCellWithMinimalCapacity({ lock: alwaysFailureLock }))
   );
-  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => cellDeps.push(registry.newCellDep("ALWAYS_FAILURE")));
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("ALWAYS_FAILURE"))
+  );
 
   const result = await context.executor.execute(txSkeleton, {
     scriptGroupType: "lock",
@@ -102,8 +116,12 @@ test("context#CKBDebugger with secp256k1 with correct signature", async (t) => {
       ...createCellWithMinimalCapacity({ lock: secp256k1Lock }),
     })
   );
-  txSkeleton.update("outputs", (outputs) => outputs.push(createCellWithMinimalCapacity({ lock: secp256k1Lock })));
-  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160")));
+  txSkeleton.update("outputs", (outputs) =>
+    outputs.push(createCellWithMinimalCapacity({ lock: secp256k1Lock }))
+  );
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160"))
+  );
   txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
     witnesses.push(hexify(WitnessArgs.pack({ lock: "0x" + "00".repeat(65) })))
   );
@@ -136,8 +154,12 @@ test("context#CKBDebugger with secp256k1 with wrong signature", async (t) => {
       ...createCellWithMinimalCapacity({ lock: secp256k1Lock }),
     })
   );
-  txSkeleton.update("outputs", (outputs) => outputs.push(createCellWithMinimalCapacity({ lock: secp256k1Lock })));
-  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160")));
+  txSkeleton.update("outputs", (outputs) =>
+    outputs.push(createCellWithMinimalCapacity({ lock: secp256k1Lock }))
+  );
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160"))
+  );
 
   txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
     witnesses.push(hexify(WitnessArgs.pack({ lock: "0x" + "00".repeat(65) })))
@@ -169,7 +191,9 @@ test("context#CKBDebugger with printf debug message", async (t) => {
       ...createCellWithMinimalCapacity({ lock: debugScript }),
     })
   );
-  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => cellDeps.push(registry.newCellDep("DEBUGGER")));
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(registry.newCellDep("DEBUGGER"))
+  );
 
   const result = await context.executor.execute(txSkeleton, {
     scriptGroupType: "lock",
@@ -203,7 +227,10 @@ test("context#CKBDebugger with secp256k1 multisig with correct signature", async
     }
   );
 
-  const multisigLock = registry.newScript("SECP256K1_BLAKE160_MULTISIG", fromScript.args);
+  const multisigLock = registry.newScript(
+    "SECP256K1_BLAKE160_MULTISIG",
+    fromScript.args
+  );
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
@@ -211,12 +238,18 @@ test("context#CKBDebugger with secp256k1 multisig with correct signature", async
       ...createCellWithMinimalCapacity({ lock: multisigLock }),
     })
   );
-  txSkeleton.update("outputs", (outputs) => outputs.push(createCellWithMinimalCapacity({ lock: multisigLock })));
+  txSkeleton.update("outputs", (outputs) =>
+    outputs.push(createCellWithMinimalCapacity({ lock: multisigLock }))
+  );
   txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
     cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160_MULTISIG"))
   );
   txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-    witnesses.push(hexify(WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })))
+    witnesses.push(
+      hexify(
+        WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })
+      )
+    )
   );
   const signingGroup = createP2PKHMessageGroup(txSkeleton, [multisigLock]);
   const aliceSignedMessage = signRecoverable(signingGroup[0].message, alicePk);
@@ -226,7 +259,9 @@ test("context#CKBDebugger with secp256k1 multisig with correct signature", async
       0,
       hexify(
         WitnessArgs.pack({
-          lock: `${multisigScript}${aliceSignedMessage.slice(2)}${bobSignedMessage.slice(2)}`,
+          lock: `${multisigScript}${aliceSignedMessage.slice(
+            2
+          )}${bobSignedMessage.slice(2)}`,
         })
       )
     )
@@ -264,7 +299,10 @@ test("context#CKBDebugger with secp256k1 multisig with wrong signature", async (
     }
   );
 
-  const multisigLock = registry.newScript("SECP256K1_BLAKE160_MULTISIG", fromScript.args);
+  const multisigLock = registry.newScript(
+    "SECP256K1_BLAKE160_MULTISIG",
+    fromScript.args
+  );
 
   txSkeleton = txSkeleton.update("inputs", (inputs) =>
     inputs.push({
@@ -272,12 +310,18 @@ test("context#CKBDebugger with secp256k1 multisig with wrong signature", async (
       ...createCellWithMinimalCapacity({ lock: multisigLock }),
     })
   );
-  txSkeleton.update("outputs", (outputs) => outputs.push(createCellWithMinimalCapacity({ lock: multisigLock })));
+  txSkeleton.update("outputs", (outputs) =>
+    outputs.push(createCellWithMinimalCapacity({ lock: multisigLock }))
+  );
   txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
     cellDeps.push(registry.newCellDep("SECP256K1_BLAKE160_MULTISIG"))
   );
   txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-    witnesses.push(hexify(WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })))
+    witnesses.push(
+      hexify(
+        WitnessArgs.pack({ lock: `${multisigScript}${"00".repeat(65 * 2)}` })
+      )
+    )
   );
   const signingGroup = createP2PKHMessageGroup(txSkeleton, [multisigLock]);
   const aliceSignedMessage = signRecoverable(signingGroup[0].message, alicePk);
@@ -288,7 +332,9 @@ test("context#CKBDebugger with secp256k1 multisig with wrong signature", async (
       0,
       hexify(
         WitnessArgs.pack({
-          lock: `${multisigScript}${aliceSignedMessage.slice(2)}${bobSignedMessage.slice(2)}`,
+          lock: `${multisigScript}${aliceSignedMessage.slice(
+            2
+          )}${bobSignedMessage.slice(2)}`,
         })
       )
     )

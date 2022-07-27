@@ -81,7 +81,10 @@ export default {
 
   getTransactionProof: {
     method: "get_transaction_proof",
-    paramsFormatters: [paramsFmts.toArray(paramsFmts.toHash), paramsFmts.toOptional(paramsFmts.toHash)],
+    paramsFormatters: [
+      paramsFmts.toArray(paramsFmts.toHash),
+      paramsFmts.toOptional(paramsFmts.toHash),
+    ],
     resultFormatters: resultFmts.toTransactionProof,
   },
 

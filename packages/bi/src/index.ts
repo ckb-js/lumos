@@ -5,7 +5,9 @@ export function isBIish(value: unknown): value is BIish {
   return (
     value !== null &&
     ((typeof value === "number" && value % 1 === 0) ||
-      (typeof value === "string" && (!!value.match(/^0x(0|[0-9a-fA-F]+)$/) || !!value.match(/^-?[0-9]+$/))) ||
+      (typeof value === "string" &&
+        (!!value.match(/^0x(0|[0-9a-fA-F]+)$/) ||
+          !!value.match(/^-?[0-9]+$/))) ||
       typeof value === "bigint" ||
       BI.isBI(value))
   );
@@ -70,7 +72,10 @@ export class BI {
 
   mask(other: BIish): BI {
     const jsbiOther = toJSBI(other);
-    if (JSBI.lessThan(jsbiOther, toJSBI(0)) || JSBI.lessThan(this.jsbi, toJSBI(0))) {
+    if (
+      JSBI.lessThan(jsbiOther, toJSBI(0)) ||
+      JSBI.lessThan(this.jsbi, toJSBI(0))
+    ) {
       throw new Error("mask works only with positive numbers");
     }
 
@@ -78,7 +83,10 @@ export class BI {
     if (JSBI.lessThanOrEqual(length, jsbiOther)) {
       return toBI(this.jsbi);
     } else {
-      const maskNum = JSBI.leftShift(JSBI.signedRightShift(this.jsbi, jsbiOther), jsbiOther);
+      const maskNum = JSBI.leftShift(
+        JSBI.signedRightShift(this.jsbi, jsbiOther),
+        jsbiOther
+      );
       return toBI(JSBI.bitwiseXor(this.jsbi, maskNum));
     }
   }

@@ -1,6 +1,11 @@
 import test from "ava";
 import { Indexer, CellCollector } from "../src";
-const { lock, type, cellCollectorTestCases, queryWithBlockHash } = require("./test_cases.js");
+const {
+  lock,
+  type,
+  cellCollectorTestCases,
+  queryWithBlockHash,
+} = require("./test_cases.js");
 import { HashType, Cell } from "@ckb-lumos/base";
 import { OtherQueryOptions } from "../src/type";
 
@@ -17,7 +22,8 @@ test.before(() => {
 
 test("get count correct", async (t) => {
   const type = {
-    codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    codeHash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hashType: "type" as HashType,
     args: "0xa178db16d8228db82911fdb536df1916e761e205",
   };
@@ -31,12 +37,20 @@ test("query cells with block hash", async (t) => {
     withBlockHash: true,
     ckbRpcUrl: nodeUri,
   };
-  const cellCollector = new CellCollector(indexer, queryWithBlockHash.queryOption, otherQueryOptions);
+  const cellCollector = new CellCollector(
+    indexer,
+    queryWithBlockHash.queryOption,
+    otherQueryOptions
+  );
   let cells: Cell[] = [];
   for await (const cell of cellCollector.collect()) {
     cells.push(cell);
   }
-  t.deepEqual(cells, queryWithBlockHash.expectedResult, queryWithBlockHash.desc);
+  t.deepEqual(
+    cells,
+    queryWithBlockHash.expectedResult,
+    queryWithBlockHash.desc
+  );
 });
 
 test("query cells with different queryOptions", async (t) => {

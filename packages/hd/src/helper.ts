@@ -1,7 +1,10 @@
 import { utils, HexString } from "@ckb-lumos/base";
 const { assertHexString } = utils;
 
-export function assertPublicKey(publicKey: HexString, debugPath?: string): void {
+export function assertPublicKey(
+  publicKey: HexString,
+  debugPath?: string
+): void {
   debugPath = debugPath || "publicKey";
   assertHexString(debugPath, publicKey);
   if (publicKey.length !== 68) {

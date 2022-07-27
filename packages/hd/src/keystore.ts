@@ -89,7 +89,13 @@ export default class Keystore {
    * @param dir
    * @param options If you are sure to overwrite existing keystore file, set `overwrite` to true.
    */
-  save(dir: string, { name = this.filename(), overwrite = false }: { name?: string; overwrite?: boolean } = {}): void {
+  save(
+    dir: string,
+    {
+      name = this.filename(),
+      overwrite = false,
+    }: { name?: string; overwrite?: boolean } = {}
+  ): void {
     const path: string = Path.join(dir, name);
     if (!overwrite && fs.existsSync(path)) {
       throw new Error("Keystore file already exists!");
@@ -149,14 +155,25 @@ export default class Keystore {
       r: 8,
       p: 1,
     };
-    const derivedKey: Buffer = crypto.scryptSync(password, salt, kdfparams.dklen, Keystore.scryptOptions(kdfparams));
+    const derivedKey: Buffer = crypto.scryptSync(
+      password,
+      salt,
+      kdfparams.dklen,
+      Keystore.scryptOptions(kdfparams)
+    );
 
-    const cipher: crypto.Cipher = crypto.createCipheriv(CIPHER, derivedKey.slice(0, 16), iv);
+    const cipher: crypto.Cipher = crypto.createCipheriv(
+      CIPHER,
+      derivedKey.slice(0, 16),
+      iv
+    );
     if (!cipher) {
       throw new UnsupportedCipher();
     }
     const ciphertext: Buffer = Buffer.concat([
-      cipher.update(Buffer.from(extendedPrivateKey.serialize().slice(2), "hex")),
+      cipher.update(
+        Buffer.from(extendedPrivateKey.serialize().slice(2), "hex")
+      ),
       cipher.final(),
     ]);
 
@@ -192,7 +209,12 @@ export default class Keystore {
       derivedKey.slice(0, 16),
       Buffer.from(this.crypto.cipherparams.iv, "hex")
     );
-    return "0x" + Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("hex");
+    return (
+      "0x" +
+      Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString(
+        "hex"
+      )
+    );
   }
 
   extendedPrivateKey(password: string): ExtendedPrivateKey {
@@ -216,7 +238,9 @@ export default class Keystore {
   }
 
   static mac(derivedKey: Buffer, ciphertext: Buffer): HexStringWithoutPrefix {
-    return new Keccak(256).update(Buffer.concat([derivedKey.slice(16, 32), ciphertext])).digest("hex");
+    return new Keccak(256)
+      .update(Buffer.concat([derivedKey.slice(16, 32), ciphertext]))
+      .digest("hex");
   }
 
   static scryptOptions(kdfparams: KdfParams): crypto.ScryptOptions {
