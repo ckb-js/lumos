@@ -418,8 +418,7 @@ export namespace CKBComponents {
     outputType: BytesOpt; // witness for type script in output
   }
 
-  export interface RawTransactionToSign
-    extends Omit<RawTransaction, "witnesses"> {
+  export interface RawTransactionToSign extends Omit<RawTransaction, "witnesses"> {
     witnesses: (WitnessArgs | Witness)[];
   }
 
@@ -475,10 +474,7 @@ export namespace CKBComponents {
     ancestorsCount: Count;
   }
 
-  export type TxPoolVerbosity = Record<
-    "pending" | "proposed",
-    Record<Hash256, TxVerbosity>
-  >;
+  export type TxPoolVerbosity = Record<"pending" | "proposed", Record<Hash256, TxVerbosity>>;
 
   export type RawTxPool = TxPoolIds | TxPoolVerbosity;
 

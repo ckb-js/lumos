@@ -1,13 +1,4 @@
-import {
-  array,
-  dynvec,
-  fixvec,
-  option,
-  struct,
-  table,
-  union,
-  vector,
-} from "../src/molecule/layout";
+import { array, dynvec, fixvec, option, struct, table, union, vector } from "../src/molecule/layout";
 import { Bytes, createFixedHexBytesCodec } from "../src/blockchain";
 import { bytify } from "../src/bytes";
 import test from "ava";
@@ -94,9 +85,7 @@ test("test layout-table", (t) => {
 
   t.deepEqual(codec.pack(unpacked), buffer);
   t.throws(() => codec.unpack(bytify([0x00, 0x00, 0x00, 0x00])));
-  t.truthy(
-    JSON.stringify(codec.unpack(bytify([0x04, 0x00, 0x00, 0x00]))) === "{}"
-  );
+  t.truthy(JSON.stringify(codec.unpack(bytify([0x04, 0x00, 0x00, 0x00]))) === "{}");
 
   t.throws(() => {
     table({ key1: Uint8, key2: Uint8 }, []);
@@ -123,13 +112,7 @@ test("test layout-dynvec", (t) => {
         0x01, 0x00, 0x00, 0x00, 0x89,/* item 4 , vector(uint8)*/
         0x03, 0x00, 0x00, 0x00, 0xab, 0xcd, 0xef]); /* item 5 , vector(uint8）*/
   const unpacked = codec.unpack(buffer);
-  t.deepEqual(unpacked, [
-    [0x12, 0x34],
-    [],
-    [0x05, 0x67],
-    [0x89],
-    [0xab, 0xcd, 0xef],
-  ]);
+  t.deepEqual(unpacked, [[0x12, 0x34], [], [0x05, 0x67], [0x89], [0xab, 0xcd, 0xef]]);
   t.deepEqual(codec.pack(unpacked), buffer);
   t.truthy(codec.unpack(bytify([0x04, 0x00, 0x00, 0x00])).length === 0);
   t.throws(() => codec.unpack(bytify([0x34, 0x00, 0x00, 0x00])));

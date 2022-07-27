@@ -123,8 +123,7 @@ function isDeepEqual(a, b) {
   return isEqual(a, b);
 }
 // Buffer.from('TYPE_ID')
-const TYPE_ID_CODE_HASH =
-  "0x00000000000000000000000000000000000000000000000000545950455f4944";
+const TYPE_ID_CODE_HASH = "0x00000000000000000000000000000000000000000000000000545950455f4944";
 
 function generateTypeIdArgs(input, outputIndex) {
   const outPointBuf = blockchain.CellInput.pack(input);

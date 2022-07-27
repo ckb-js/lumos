@@ -1,9 +1,6 @@
 import test from "ava";
 import { CellProvider } from "./cell_provider";
-import {
-  TransactionSkeleton,
-  TransactionSkeletonType,
-} from "@ckb-lumos/helpers";
+import { TransactionSkeleton, TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { secp256k1Blake160 } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 const { LINA } = predefined;
@@ -74,11 +71,7 @@ test("BigInt:payFee", async (t) => {
   );
 
   const fee = BigInt(1 * 10 ** 8);
-  txSkeleton = await secp256k1Blake160.payFee(
-    txSkeleton,
-    bob.mainnetAddress,
-    fee
-  );
+  txSkeleton = await secp256k1Blake160.payFee(txSkeleton, bob.mainnetAddress, fee);
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
@@ -95,8 +88,7 @@ test("BigInt:payFee", async (t) => {
 });
 
 test("BigInt:prepareSigningEntries", async (t) => {
-  const expectedMessage =
-    "0xd90a4204aee91348bf2ada132065a9a7aa4479001ec61e046c54804987b309ce";
+  const expectedMessage = "0xd90a4204aee91348bf2ada132065a9a7aa4479001ec61e046c54804987b309ce";
 
   txSkeleton = await secp256k1Blake160.transfer(
     txSkeleton,
@@ -106,11 +98,7 @@ test("BigInt:prepareSigningEntries", async (t) => {
   );
 
   const fee = BigInt(1 * 10 ** 8);
-  txSkeleton = await secp256k1Blake160.payFee(
-    txSkeleton,
-    bob.mainnetAddress,
-    fee
-  );
+  txSkeleton = await secp256k1Blake160.payFee(txSkeleton, bob.mainnetAddress, fee);
 
   txSkeleton = await secp256k1Blake160.prepareSigningEntries(txSkeleton);
 
@@ -171,8 +159,5 @@ test("BigInt:transfer, skip duplicated input", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 3);
-  t.notDeepEqual(
-    txSkeleton.get("inputs").get(0)!.outPoint,
-    txSkeleton.get("inputs").get(1)!.outPoint
-  );
+  t.notDeepEqual(txSkeleton.get("inputs").get(0)!.outPoint, txSkeleton.get("inputs").get(1)!.outPoint);
 });

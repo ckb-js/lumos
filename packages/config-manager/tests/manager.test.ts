@@ -8,10 +8,7 @@ test("[deprecated] initialize config by file", (t) => {
 
   const configPath = path.join(__dirname, "config.json");
   process.env.LUMOS_CONFIG_FILE = configPath;
-  fs.writeFileSync(
-    configPath,
-    Buffer.from(JSON.stringify(predefined.LINA), "utf8")
-  );
+  fs.writeFileSync(configPath, Buffer.from(JSON.stringify(predefined.LINA), "utf8"));
   initializeConfig();
   fs.unlinkSync(configPath);
   t.pass();

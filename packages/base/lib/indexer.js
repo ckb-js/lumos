@@ -8,15 +8,7 @@ const { validators } = require("@ckb-lumos/toolkit");
 class TransactionCollector {
   constructor(
     indexer,
-    {
-      lock = null,
-      type = null,
-      argsLen = -1,
-      fromBlock = null,
-      toBlock = null,
-      order = "asc",
-      skip = null,
-    } = {},
+    { lock = null, type = null, argsLen = -1, fromBlock = null, toBlock = null, order = "asc", skip = null } = {},
     { skipMissing = false, includeStatus = true } = {}
   ) {
     if (!lock && (!type || type === "empty")) {

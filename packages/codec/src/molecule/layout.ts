@@ -31,23 +31,17 @@ export type ObjectCodec<T extends Record<string, BytesCodec>> = BytesCodec<
   PartialNullable<{ [key in keyof T]: UnpackResult<T[key]> }>
 >;
 
-export interface OptionCodec<T extends BytesCodec>
-  extends BytesCodec<UnpackResult<T> | undefined> {
+export interface OptionCodec<T extends BytesCodec> extends BytesCodec<UnpackResult<T> | undefined> {
   pack: (packable?: UnpackResult<T>) => Uint8Array;
 }
 
-export type ArrayCodec<T extends BytesCodec> = BytesCodec<
-  Array<UnpackResult<T>>
->;
+export type ArrayCodec<T extends BytesCodec> = BytesCodec<Array<UnpackResult<T>>>;
 
 export type UnionCodec<T extends Record<string, BytesCodec>> = BytesCodec<
   { [key in keyof T]: { type: key; value: UnpackResult<T[key]> } }[keyof T]
 >;
 
-export function array<T extends FixedBytesCodec>(
-  itemCodec: T,
-  itemCount: number
-): ArrayCodec<T> & Fixed {
+export function array<T extends FixedBytesCodec>(itemCodec: T, itemCount: number): ArrayCodec<T> & Fixed {
   return createFixedBytesCodec({
     byteLength: itemCodec.byteLength * itemCount,
     pack(items) {
@@ -76,11 +70,7 @@ function checkShape<T>(shape: T, fields: (keyof T)[]) {
   const missingShape = diff(fields, shapeKeys);
 
   if (missingFields.length > 0 || missingShape.length > 0) {
-    throw new Error(
-      `Invalid shape: missing fields ${missingFields.join(
-        ", "
-      )} or shape ${missingShape.join(", ")}`
-    );
+    throw new Error(`Invalid shape: missing fields ${missingFields.join(", ")} or shape ${missingShape.join(", ")}`);
   }
 }
 
@@ -128,17 +118,12 @@ export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
     pack(items) {
       return concat(
         Uint32LE.pack(items.length),
-        items.reduce(
-          (buf, item) => concat(buf, itemCodec.pack(item)),
-          new ArrayBuffer(0)
-        )
+        items.reduce((buf, item) => concat(buf, itemCodec.pack(item)), new ArrayBuffer(0))
       );
     },
     unpack(buf) {
       if (buf.byteLength < 4) {
-        throw new Error(
-          `fixvec: buffer is too short, expected at least 4 bytes, got ${buf.byteLength}`
-        );
+        throw new Error(`fixvec: buffer is too short, expected at least 4 bytes, got ${buf.byteLength}`);
       }
       const itemCount = Uint32LE.unpack(buf.slice(0, 4));
       return array(itemCodec, itemCount).unpack(buf.slice(4));
@@ -165,17 +150,13 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
           offset: 4 + obj.length * 4,
         }
       );
-      const packedTotalSize = Uint32LE.pack(
-        packed.header.byteLength + packed.body.byteLength + 4
-      );
+      const packedTotalSize = Uint32LE.pack(packed.header.byteLength + packed.body.byteLength + 4);
       return concat(packedTotalSize, packed.header, packed.body);
     },
     unpack(buf) {
       const totalSize = Uint32LE.unpack(buf.slice(0, 4));
       if (totalSize !== buf.byteLength) {
-        throw new Error(
-          `Invalid buffer size, read from header: ${totalSize}, actual: ${buf.byteLength}`
-        );
+        throw new Error(`Invalid buffer size, read from header: ${totalSize}, actual: ${buf.byteLength}`);
       }
       const result: UnpackResult<T>[] = [];
       if (totalSize <= 4) {
@@ -185,9 +166,7 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
         const itemCount = (offset0 - 4) / 4;
         const offsets = new Array(itemCount)
           .fill(1)
-          .map((_, index) =>
-            Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
-          );
+          .map((_, index) => Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4)));
         offsets.push(totalSize);
         const result: UnpackResult<T>[] = [];
         for (let index = 0; index < offsets.length - 1; index++) {
@@ -209,10 +188,7 @@ export function vector<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   return dynvec(itemCodec);
 }
 
-export function table<T extends Record<string, BytesCodec>>(
-  shape: T,
-  fields: (keyof T)[]
-): ObjectCodec<T> {
+export function table<T extends Record<string, BytesCodec>>(shape: T, fields: (keyof T)[]): ObjectCodec<T> {
   checkShape(shape, fields);
   return createBytesCodec({
     pack(obj) {
@@ -237,17 +213,13 @@ export function table<T extends Record<string, BytesCodec>>(
           offset: headerLength,
         }
       );
-      const packedTotalSize = Uint32LE.pack(
-        packed.header.byteLength + packed.body.byteLength + 4
-      );
+      const packedTotalSize = Uint32LE.pack(packed.header.byteLength + packed.body.byteLength + 4);
       return concat(packedTotalSize, packed.header, packed.body);
     },
     unpack(buf) {
       const totalSize = Uint32LE.unpack(buf.slice(0, 4));
       if (totalSize !== buf.byteLength) {
-        throw new Error(
-          `Invalid buffer size, read from header: ${totalSize}, actual: ${buf.byteLength}`
-        );
+        throw new Error(`Invalid buffer size, read from header: ${totalSize}, actual: ${buf.byteLength}`);
       }
       if (totalSize <= 4 || fields.length === 0) {
         return {} as PartialNullable<
@@ -256,9 +228,7 @@ export function table<T extends Record<string, BytesCodec>>(
           }
         >;
       } else {
-        const offsets = fields.map((_, index) =>
-          Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
-        );
+        const offsets = fields.map((_, index) => Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4)));
         offsets.push(totalSize);
         const obj = {};
         for (let index = 0; index < offsets.length - 1; index++) {
@@ -279,10 +249,7 @@ export function table<T extends Record<string, BytesCodec>>(
   });
 }
 
-export function union<T extends Record<string, BytesCodec>>(
-  itemCodec: T,
-  fields: (keyof T)[]
-): UnionCodec<T> {
+export function union<T extends Record<string, BytesCodec>>(itemCodec: T, fields: (keyof T)[]): UnionCodec<T> {
   return createBytesCodec({
     pack(obj) {
       const type = obj.type;

@@ -7,8 +7,7 @@ export function localNode(info?: Partial<LocalNode>): LocalNode {
       active: true,
       addresses: [
         {
-          address:
-            "/ip4/161.117.239.19/tcp/8115/p2p/QmXLNuWy66RFaEkbu6ovPPiGFhC2rVQ8iENcn3e3JD42Yx",
+          address: "/ip4/161.117.239.19/tcp/8115/p2p/QmXLNuWy66RFaEkbu6ovPPiGFhC2rVQ8iENcn3e3JD42Yx",
           score: "0x1",
         },
         {

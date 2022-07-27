@@ -1,11 +1,7 @@
 import test from "ava";
 import { anyoneCanPay } from "../src";
 import { CellProvider } from "./cell_provider";
-import {
-  TransactionSkeletonType,
-  TransactionSkeleton,
-  minimalCellCapacityCompatible,
-} from "@ckb-lumos/helpers";
+import { TransactionSkeletonType, TransactionSkeleton, minimalCellCapacityCompatible } from "@ckb-lumos/helpers";
 import { predefined } from "@ckb-lumos/config-manager";
 import { bob, alice } from "./account_info";
 import { bobAcpCells, aliceAcpCells } from "./inputs";
@@ -45,10 +41,7 @@ test("withdraw, acp to acp, all", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
-  t.is(
-    txSkeleton.get("cellDeps").get(0)!.outPoint.txHash,
-    AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH
-  );
+  t.is(txSkeleton.get("cellDeps").get(0)!.outPoint.txHash, AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH);
 
   t.is(txSkeleton.get("headerDeps").size, 0);
 
@@ -79,8 +72,7 @@ test("withdraw, acp to acp, all", async (t) => {
   });
 
   t.is(txSkeleton.get("signingEntries").size, 1);
-  const expectedMessage =
-    "0xf862243671a339a33e5843877e88e640f848b6f2394a3995bc00b44bf9d19d4e";
+  const expectedMessage = "0xf862243671a339a33e5843877e88e640f848b6f2394a3995bc00b44bf9d19d4e";
 
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -92,13 +84,9 @@ test("withdraw, acp to acp, half", async (t) => {
   });
 
   const capacity = BI.from(500 * 10 ** 8);
-  txSkeleton = await anyoneCanPay.withdraw(
-    txSkeleton,
-    bobAcpCells[0],
-    alice.acpTestnetAddress,
-    BI.from(capacity),
-    { config: AGGRON4 }
-  );
+  txSkeleton = await anyoneCanPay.withdraw(txSkeleton, bobAcpCells[0], alice.acpTestnetAddress, BI.from(capacity), {
+    config: AGGRON4,
+  });
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
@@ -112,10 +100,7 @@ test("withdraw, acp to acp, half", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
-  t.is(
-    txSkeleton.get("cellDeps").get(0)!.outPoint.txHash,
-    AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH
-  );
+  t.is(txSkeleton.get("cellDeps").get(0)!.outPoint.txHash, AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH);
 
   t.is(txSkeleton.get("headerDeps").size, 0);
 
@@ -138,9 +123,9 @@ test("withdraw, acp to acp, half", async (t) => {
     [alice.blake160, bob.blake160]
   );
 
-  const aliceReceiveCapacity: BI = BI.from(
-    txSkeleton.get("outputs").get(0)!.cellOutput.capacity
-  ).sub(BI.from(txSkeleton.get("inputs").get(0)!.cellOutput.capacity));
+  const aliceReceiveCapacity: BI = BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).sub(
+    BI.from(txSkeleton.get("inputs").get(0)!.cellOutput.capacity)
+  );
 
   t.is(aliceReceiveCapacity.toString(), capacity.toString());
 
@@ -152,8 +137,7 @@ test("withdraw, acp to acp, half", async (t) => {
   });
 
   t.is(txSkeleton.get("signingEntries").size, 1);
-  const expectedMessage =
-    "0x5acf7d234fc5c9adbc9b01f4938a5efdf6efde2b0a836f4740e6a79f81b64d65";
+  const expectedMessage = "0x5acf7d234fc5c9adbc9b01f4938a5efdf6efde2b0a836f4740e6a79f81b64d65";
 
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -165,13 +149,9 @@ test("withdraw, acp to secp, half", async (t) => {
   });
 
   const capacity = BI.from(500 * 10 ** 8);
-  txSkeleton = await anyoneCanPay.withdraw(
-    txSkeleton,
-    bobAcpCells[0],
-    alice.testnetAddress,
-    BI.from(capacity),
-    { config: AGGRON4 }
-  );
+  txSkeleton = await anyoneCanPay.withdraw(txSkeleton, bobAcpCells[0], alice.testnetAddress, BI.from(capacity), {
+    config: AGGRON4,
+  });
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
@@ -185,10 +165,7 @@ test("withdraw, acp to secp, half", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
-  t.is(
-    txSkeleton.get("cellDeps").get(0)!.outPoint.txHash,
-    AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH
-  );
+  t.is(txSkeleton.get("cellDeps").get(0)!.outPoint.txHash, AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH);
 
   t.is(txSkeleton.get("headerDeps").size, 0);
 
@@ -211,9 +188,7 @@ test("withdraw, acp to secp, half", async (t) => {
     [alice.blake160, bob.blake160]
   );
 
-  const aliceReceiveCapacity: BI = BI.from(
-    txSkeleton.get("outputs").get(0)!.cellOutput.capacity
-  );
+  const aliceReceiveCapacity: BI = BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity);
 
   t.is(aliceReceiveCapacity.toString(), capacity.toString());
 
@@ -228,8 +203,7 @@ test("withdraw, acp to secp, half", async (t) => {
   });
 
   t.is(txSkeleton.get("signingEntries").size, 1);
-  const expectedMessage =
-    "0x554307c4b5858beed7c655b3b7a5537492f532a99ef419df59c94ac7f9347e8e";
+  const expectedMessage = "0x554307c4b5858beed7c655b3b7a5537492f532a99ef419df59c94ac7f9347e8e";
 
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -241,13 +215,9 @@ test("withdraw, acp to secp, all", async (t) => {
   });
 
   const capacity = BI.from(1000 * 10 ** 8);
-  txSkeleton = await anyoneCanPay.withdraw(
-    txSkeleton,
-    bobAcpCells[0],
-    alice.testnetAddress,
-    BI.from(capacity),
-    { config: AGGRON4 }
-  );
+  txSkeleton = await anyoneCanPay.withdraw(txSkeleton, bobAcpCells[0], alice.testnetAddress, BI.from(capacity), {
+    config: AGGRON4,
+  });
 
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
@@ -261,10 +231,7 @@ test("withdraw, acp to secp, all", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 1);
-  t.is(
-    txSkeleton.get("cellDeps").get(0)!.outPoint.txHash,
-    AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH
-  );
+  t.is(txSkeleton.get("cellDeps").get(0)!.outPoint.txHash, AGGRON4.SCRIPTS.ANYONE_CAN_PAY!.TX_HASH);
 
   t.is(txSkeleton.get("headerDeps").size, 0);
 
@@ -287,9 +254,7 @@ test("withdraw, acp to secp, all", async (t) => {
     [alice.blake160]
   );
 
-  const aliceReceiveCapacity: BI = BI.from(
-    txSkeleton.get("outputs").get(0)!.cellOutput.capacity
-  );
+  const aliceReceiveCapacity: BI = BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity);
 
   t.is(aliceReceiveCapacity.toString(), capacity.toString());
 
@@ -304,8 +269,7 @@ test("withdraw, acp to secp, all", async (t) => {
   });
 
   t.is(txSkeleton.get("signingEntries").size, 1);
-  const expectedMessage =
-    "0x1cb8e323da40058080ddd386ab0f6e62b793abacf68fd3da835273dd0e278c25";
+  const expectedMessage = "0x1cb8e323da40058080ddd386ab0f6e62b793abacf68fd3da835273dd0e278c25";
 
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -318,19 +282,11 @@ test("withdraw, acp to secp, greater than capacity - minimal", async (t) => {
 
   const bobCell = bobAcpCells[0]!;
 
-  const capacity = BI.from(bobCell.cellOutput.capacity)
-    .sub(minimalCellCapacityCompatible(bobCell))
-    .add(1);
+  const capacity = BI.from(bobCell.cellOutput.capacity).sub(minimalCellCapacityCompatible(bobCell)).add(1);
 
   await t.throwsAsync(
     async () => {
-      await anyoneCanPay.withdraw(
-        txSkeleton,
-        bobCell,
-        alice.testnetAddress,
-        BI.from(capacity),
-        { config: AGGRON4 }
-      );
+      await anyoneCanPay.withdraw(txSkeleton, bobCell, alice.testnetAddress, BI.from(capacity), { config: AGGRON4 });
     },
     null,
     "capacity must be in [0, 93900000000] or 100000000000 !"
@@ -344,14 +300,9 @@ test("setupInputCell", async (t) => {
   });
   const inputCell: Cell = bobAcpCells[0];
 
-  txSkeleton = await anyoneCanPay.setupInputCell(
-    txSkeleton,
-    inputCell,
-    bob.testnetAddress,
-    {
-      config: AGGRON4,
-    }
-  );
+  txSkeleton = await anyoneCanPay.setupInputCell(txSkeleton, inputCell, bob.testnetAddress, {
+    config: AGGRON4,
+  });
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 1);
@@ -371,9 +322,7 @@ test("setupInputCell", async (t) => {
     (!input.cellOutput.type && !output.cellOutput.type) ||
       new values.ScriptValue(input.cellOutput.type!, {
         validate: false,
-      }).equals(
-        new values.ScriptValue(output.cellOutput.type!, { validate: false })
-      )
+      }).equals(new values.ScriptValue(output.cellOutput.type!, { validate: false }))
   );
 });
 

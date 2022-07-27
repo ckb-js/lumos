@@ -3,14 +3,7 @@ const { BI } = require("@ckb-lumos/bi");
 
 function isCellMatchQueryOptions(
   cell,
-  {
-    lock = undefined,
-    type = undefined,
-    argsLen = -1,
-    data = "any",
-    fromBlock = undefined,
-    toBlock = undefined,
-  }
+  { lock = undefined, type = undefined, argsLen = -1, data = "any", fromBlock = undefined, toBlock = undefined }
 ) {
   let wrappedLock = null;
   let wrappedType = null;
@@ -57,12 +50,7 @@ function isCellMatchQueryOptions(
     }
   }
 
-  if (
-    wrappedLock &&
-    wrappedLock.script &&
-    typeof wrappedLock.argsLen === "number" &&
-    wrappedLock.argsLen >= 0
-  ) {
+  if (wrappedLock && wrappedLock.script && typeof wrappedLock.argsLen === "number" && wrappedLock.argsLen >= 0) {
     const length = wrappedLock.argsLen * 2 + 2;
     const lockArgsLength = wrappedLock.script.args.length;
     const minLength = Math.min(length, lockArgsLength);
@@ -75,8 +63,7 @@ function isCellMatchQueryOptions(
       !(
         cellLock.codeHash === wrappedLock.script.codeHash &&
         cellLock.hashType === wrappedLock.script.hashType &&
-        cellLock.args.slice(0, minLength) ===
-          wrappedLock.script.args.slice(0, minLength)
+        cellLock.args.slice(0, minLength) === wrappedLock.script.args.slice(0, minLength)
       )
     ) {
       return false;
@@ -99,18 +86,10 @@ function isCellMatchQueryOptions(
   if (data && data !== "any" && cell.data !== data) {
     return false;
   }
-  if (
-    fromBlock &&
-    cell.blockNumber &&
-    BI.from(cell.blockNumber).lt(BI.from(fromBlock))
-  ) {
+  if (fromBlock && cell.blockNumber && BI.from(cell.blockNumber).lt(BI.from(fromBlock))) {
     return false;
   }
-  if (
-    toBlock &&
-    cell.blockNumber &&
-    BI.from(cell.blockNumber).gt(BI.from(toBlock))
-  ) {
+  if (toBlock && cell.blockNumber && BI.from(cell.blockNumber).gt(BI.from(toBlock))) {
     return false;
   }
 

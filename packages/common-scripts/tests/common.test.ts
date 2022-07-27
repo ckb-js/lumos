@@ -10,18 +10,8 @@ import common, {
 } from "../src/common";
 const { __tests__ } = common;
 import { CellProvider } from "./cell_provider";
-import {
-  parseAddress,
-  TransactionSkeleton,
-  TransactionSkeletonType,
-} from "@ckb-lumos/helpers";
-import {
-  Cell,
-  Transaction,
-  values,
-  Script,
-  CellCollector as BaseCellCollector,
-} from "@ckb-lumos/base";
+import { parseAddress, TransactionSkeleton, TransactionSkeletonType } from "@ckb-lumos/helpers";
+import { Cell, Transaction, values, Script, CellCollector as BaseCellCollector } from "@ckb-lumos/base";
 import { anyoneCanPay, parseFromInfo } from "../src";
 import { Config, predefined } from "@ckb-lumos/config-manager";
 import { CellCollector } from "../src/locktime_pool";
@@ -82,8 +72,7 @@ test("transfer, acp => acp", async (t) => {
 
   t.is(txSkeleton.get("witnesses").get(0)!, "0x");
 
-  const expectedMessage =
-    "0x5acf7d234fc5c9adbc9b01f4938a5efdf6efde2b0a836f4740e6a79f81b64d65";
+  const expectedMessage = "0x5acf7d234fc5c9adbc9b01f4938a5efdf6efde2b0a836f4740e6a79f81b64d65";
 
   txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
@@ -129,15 +118,9 @@ test("transfer secp => secp", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.testnetAddress],
-    aliceAddress,
-    BI.from(amount),
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.testnetAddress], aliceAddress, BI.from(amount), undefined, undefined, {
+    config: AGGRON4,
+  });
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
@@ -153,16 +136,11 @@ test("transfer secp => secp", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
-    amount.toString()
-  );
+  t.is(BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(), amount.toString());
 
   t.is(txSkeleton.get("witnesses").size, 1);
 
-  const expectedMessages = [
-    "0x997f7d53307a114104b37c0fcdef97240d250d468189e71632d79e1c3b20a4f9",
-  ];
+  const expectedMessages = ["0x997f7d53307a114104b37c0fcdef97240d250d468189e71632d79e1c3b20a4f9"];
 
   txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
@@ -177,10 +155,7 @@ test("transfer secp => secp", async (t) => {
 });
 
 test("transfer secp & multisig => secp", async (t) => {
-  const cellProvider = new CellProvider([
-    bobSecpInputs[0],
-    ...bobMultisigInputs,
-  ]);
+  const cellProvider = new CellProvider([bobSecpInputs[0], ...bobMultisigInputs]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
@@ -210,10 +185,7 @@ test("transfer secp & multisig => secp", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
-    amount.toString()
-  );
+  t.is(BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(), amount.toString());
 
   t.is(txSkeleton.get("witnesses").size, 2);
 
@@ -261,18 +233,10 @@ test("transfer multisig lock => secp", async (t) => {
   };
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.fromInfo],
-    alice.testnetAddress,
-    BI.from(amount),
-    undefined,
-    tipHeader,
-    {
-      config: AGGRON4,
-      LocktimePoolCellCollector: LocktimePoolCellCollector,
-    }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.fromInfo], alice.testnetAddress, BI.from(amount), undefined, tipHeader, {
+    config: AGGRON4,
+    LocktimePoolCellCollector: LocktimePoolCellCollector,
+  });
 
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
@@ -288,16 +252,11 @@ test("transfer multisig lock => secp", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
-    amount.toString()
-  );
+  t.is(BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(), amount.toString());
 
   t.is(txSkeleton.get("witnesses").size, 1);
 
-  const expectedMessages = [
-    "0x54f766189f91dcf10a23833c5b1f0d318044c7237a2a703ad77ea46990190b8b",
-  ];
+  const expectedMessages = ["0x54f766189f91dcf10a23833c5b1f0d318044c7237a2a703ad77ea46990190b8b"];
 
   txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
@@ -355,9 +314,7 @@ test("transfer secp => acp", async (t) => {
   ];
   t.deepEqual(txSkeleton.get("witnesses").toJS(), expectedWitnesses);
 
-  const expectedMessages = [
-    "0x7449d526fa5fbaf942cbf29f833d89026b6f28322d0bd4725eb8c0b921b3b275",
-  ];
+  const expectedMessages = ["0x7449d526fa5fbaf942cbf29f833d89026b6f28322d0bd4725eb8c0b921b3b275"];
 
   txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
@@ -404,19 +361,14 @@ test("transfer secp => acp, no acp previous input", async (t) => {
   t.is(txSkeleton.get("headerDeps").size, 0);
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
-    amount.toString()
-  );
+  t.is(BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(), amount.toString());
 
   const expectedWitnesses = [
     "0x55000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
   ];
   t.deepEqual(txSkeleton.get("witnesses").toJS(), expectedWitnesses);
 
-  const expectedMessages = [
-    "0x68a543a1ef68667281609d9331f3587f4bfac16002f0fbac72e3774de80f45fb",
-  ];
+  const expectedMessages = ["0x68a543a1ef68667281609d9331f3587f4bfac16002f0fbac72e3774de80f45fb"];
 
   txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
@@ -466,16 +418,11 @@ test("transfer acp => secp, destroy", async (t) => {
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 1);
-  t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
-    amount.toString()
-  );
+  t.is(BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(), amount.toString());
 
   t.is(txSkeleton.get("witnesses").size, 1);
 
-  const expectedMessages = [
-    "0x3196d29d3365c1d3d599be55e80e4addd631acb6605646329eb39a1b9264ab89",
-  ];
+  const expectedMessages = ["0x3196d29d3365c1d3d599be55e80e4addd631acb6605646329eb39a1b9264ab89"];
 
   txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
@@ -496,15 +443,9 @@ test("Don't update capacity directly when deduct", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.testnetAddress],
-    aliceAddress,
-    BI.from(amount),
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.testnetAddress], aliceAddress, BI.from(amount), undefined, undefined, {
+    config: AGGRON4,
+  });
 
   const getCapacities = (cells: List<Cell>): string[] => {
     return cells.map((c) => c.cellOutput.capacity).toJS() as string[];
@@ -566,9 +507,7 @@ test("setupInputCell secp", async (t) => {
     (!input.cellOutput.type && !output.cellOutput.type) ||
       new values.ScriptValue(input.cellOutput.type!, {
         validate: false,
-      }).equals(
-        new values.ScriptValue(output.cellOutput.type!, { validate: false })
-      )
+      }).equals(new values.ScriptValue(output.cellOutput.type!, { validate: false }))
   );
 });
 
@@ -577,16 +516,14 @@ const testTx: Transaction = {
   cellDeps: [
     {
       outPoint: {
-        txHash:
-          "0xc12386705b5cbb312b693874f3edf45c43a274482e27b8df0fd80c8d3f5feb8b",
+        txHash: "0xc12386705b5cbb312b693874f3edf45c43a274482e27b8df0fd80c8d3f5feb8b",
         index: "0x0",
       },
       depType: "depGroup",
     },
     {
       outPoint: {
-        txHash:
-          "0x0fb4945d52baf91e0dee2a686cdd9d84cad95b566a1d7409b970ee0a0f364f60",
+        txHash: "0x0fb4945d52baf91e0dee2a686cdd9d84cad95b566a1d7409b970ee0a0f364f60",
         index: "0x2",
       },
       depType: "code",
@@ -596,8 +533,7 @@ const testTx: Transaction = {
   inputs: [
     {
       previousOutput: {
-        txHash:
-          "0x31f695263423a4b05045dd25ce6692bb55d7bba2965d8be16b036e138e72cc65",
+        txHash: "0x31f695263423a4b05045dd25ce6692bb55d7bba2965d8be16b036e138e72cc65",
         index: "0x1",
       },
       since: "0x0",
@@ -607,14 +543,12 @@ const testTx: Transaction = {
     {
       capacity: "0x174876e800",
       lock: {
-        codeHash:
-          "0x68d5438ac952d2f584abf879527946a537e82c7f3c1cbf6d8ebf9767437d8e88",
+        codeHash: "0x68d5438ac952d2f584abf879527946a537e82c7f3c1cbf6d8ebf9767437d8e88",
         args: "0x59a27ef3ba84f061517d13f42cf44ed020610061",
         hashType: "type",
       },
       type: {
-        codeHash:
-          "0xece45e0979030e2f8909f76258631c42333b1e906fd9701ec3600a464a90b8f6",
+        codeHash: "0xece45e0979030e2f8909f76258631c42333b1e906fd9701ec3600a464a90b8f6",
         args: "0x",
         hashType: "data",
       },
@@ -622,8 +556,7 @@ const testTx: Transaction = {
     {
       capacity: "0x59e1416a5000",
       lock: {
-        codeHash:
-          "0x68d5438ac952d2f584abf879527946a537e82c7f3c1cbf6d8ebf9767437d8e88",
+        codeHash: "0x68d5438ac952d2f584abf879527946a537e82c7f3c1cbf6d8ebf9767437d8e88",
         args: "0x59a27ef3ba84f061517d13f42cf44ed020610061",
         hashType: "type",
       },
@@ -642,26 +575,15 @@ test("getTransactionSizeByTx", (t) => {
 });
 
 test("calculateFeeCompatible, without carry", (t) => {
-  t.is(
-    __tests__.calculateFeeCompatible(1035, BI.from(BI.from(1000))).toString(),
-    BI.from(1035).toString()
-  );
+  t.is(__tests__.calculateFeeCompatible(1035, BI.from(BI.from(1000))).toString(), BI.from(1035).toString());
 });
 
 test("calculateFeeCompatible, with carry", (t) => {
-  t.is(
-    __tests__.calculateFeeCompatible(1035, BI.from(BI.from(900))).toString(),
-    BI.from(932).toString()
-  );
+  t.is(__tests__.calculateFeeCompatible(1035, BI.from(BI.from(900))).toString(), BI.from(932).toString());
 });
 
 function getExpectedFee(txSkeleton: TransactionSkeletonType, feeRate: BI): BI {
-  return BI.from(
-    __tests__.calculateFeeCompatible(
-      __tests__.getTransactionSize(txSkeleton),
-      BI.from(feeRate)
-    )
-  );
+  return BI.from(__tests__.calculateFeeCompatible(__tests__.getTransactionSize(txSkeleton), BI.from(feeRate)));
 }
 
 function getFee(txSkeleton: TransactionSkeletonType): BI {
@@ -691,33 +613,18 @@ test("payFeeByFeeRate 1 in 1 out, add 1 in 1 out", async (t) => {
   });
 
   const amount = BI.from(1000 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.testnetAddress],
-    aliceAddress,
-    BI.from(amount),
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.testnetAddress], aliceAddress, BI.from(amount), undefined, undefined, {
+    config: AGGRON4,
+  });
 
   const feeRate = BI.from(1 * 10 ** 8 * 1000);
-  txSkeleton = await payFeeByFeeRate(
-    txSkeleton,
-    [bob.testnetAddress],
-    BI.from(feeRate),
-    undefined,
-    {
-      config: AGGRON4,
-    }
-  );
+  txSkeleton = await payFeeByFeeRate(txSkeleton, [bob.testnetAddress], BI.from(feeRate), undefined, {
+    config: AGGRON4,
+  });
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(
-    getFee(txSkeleton).toString(),
-    getExpectedFee(txSkeleton, feeRate).toString()
-  );
+  t.is(getFee(txSkeleton).toString(), getExpectedFee(txSkeleton, feeRate).toString());
 });
 
 test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
@@ -727,33 +634,18 @@ test("payFeeByFeeRate 1 in 2 out, add nothing", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.testnetAddress],
-    aliceAddress,
-    BI.from(amount),
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.testnetAddress], aliceAddress, BI.from(amount), undefined, undefined, {
+    config: AGGRON4,
+  });
 
   const feeRate = BI.from(1 * 10 ** 8);
-  txSkeleton = await payFeeByFeeRate(
-    txSkeleton,
-    [bob.testnetAddress],
-    BI.from(feeRate),
-    undefined,
-    {
-      config: AGGRON4,
-    }
-  );
+  txSkeleton = await payFeeByFeeRate(txSkeleton, [bob.testnetAddress], BI.from(feeRate), undefined, {
+    config: AGGRON4,
+  });
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(
-    getFee(txSkeleton).toString(),
-    getExpectedFee(txSkeleton, feeRate).toString()
-  );
+  t.is(getFee(txSkeleton).toString(), getExpectedFee(txSkeleton, feeRate).toString());
 });
 
 test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
@@ -763,26 +655,14 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
   });
 
   const amount = BI.from(536 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.testnetAddress],
-    aliceAddress,
-    BI.from(amount),
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.testnetAddress], aliceAddress, BI.from(amount), undefined, undefined, {
+    config: AGGRON4,
+  });
 
   const feeRate = BI.from(1 * 10 ** 8 * 1000);
-  txSkeleton = await payFeeByFeeRate(
-    txSkeleton,
-    [bob.testnetAddress],
-    BI.from(feeRate),
-    undefined,
-    {
-      config: AGGRON4,
-    }
-  );
+  txSkeleton = await payFeeByFeeRate(txSkeleton, [bob.testnetAddress], BI.from(feeRate), undefined, {
+    config: AGGRON4,
+  });
 
   // NOTE: 1000CKB => 536CKB + 464CKB(change), need 464CKB for fee, so reduced change cell
   // But, new tx is 1000CKB => 536CKB, need 355CKB for fee
@@ -791,9 +671,7 @@ test("payFeeByFeeRate 1 in 2 out, reduce 1 out", async (t) => {
   t.is(txSkeleton.get("outputs").size, 1);
   t.is(
     getFee(txSkeleton).toString(),
-    __tests__
-      .calculateFeeCompatible(ONE_IN_TWO_OUT_SIZE, BI.from(feeRate))
-      .toString()
+    __tests__.calculateFeeCompatible(ONE_IN_TWO_OUT_SIZE, BI.from(feeRate)).toString()
   );
 });
 
@@ -804,33 +682,18 @@ test("payFeeByFeeRate 1 in 2 out, add 1 in", async (t) => {
   });
 
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.testnetAddress],
-    aliceAddress,
-    BI.from(amount),
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.testnetAddress], aliceAddress, BI.from(amount), undefined, undefined, {
+    config: AGGRON4,
+  });
 
   const feeRate = BI.from(1 * 10 ** 8 * 1000);
-  txSkeleton = await payFeeByFeeRate(
-    txSkeleton,
-    [bob.testnetAddress],
-    BI.from(feeRate),
-    undefined,
-    {
-      config: AGGRON4,
-    }
-  );
+  txSkeleton = await payFeeByFeeRate(txSkeleton, [bob.testnetAddress], BI.from(feeRate), undefined, {
+    config: AGGRON4,
+  });
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 2);
-  t.is(
-    getFee(txSkeleton).toString(),
-    getExpectedFee(txSkeleton, feeRate).toString()
-  );
+  t.is(getFee(txSkeleton).toString(), getExpectedFee(txSkeleton, feeRate).toString());
 });
 
 test("payFeeByFeeRate, capacity 500", async (t) => {
@@ -840,26 +703,14 @@ test("payFeeByFeeRate, capacity 500", async (t) => {
   });
 
   const amount = BI.from(500 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.testnetAddress],
-    aliceAddress,
-    BI.from(amount),
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.testnetAddress], aliceAddress, BI.from(amount), undefined, undefined, {
+    config: AGGRON4,
+  });
 
   const feeRate = BI.from(1000);
-  txSkeleton = await payFeeByFeeRate(
-    txSkeleton,
-    [bob.testnetAddress],
-    BI.from(feeRate),
-    undefined,
-    {
-      config: AGGRON4,
-    }
-  );
+  txSkeleton = await payFeeByFeeRate(txSkeleton, [bob.testnetAddress], BI.from(feeRate), undefined, {
+    config: AGGRON4,
+  });
 
   const expectedFee: BI = BI.from(464);
 
@@ -873,26 +724,14 @@ test("payFeeByFeeRate, capacity 1000", async (t) => {
   });
 
   const amount = BI.from(1000 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.testnetAddress],
-    aliceAddress,
-    BI.from(amount),
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.testnetAddress], aliceAddress, BI.from(amount), undefined, undefined, {
+    config: AGGRON4,
+  });
 
   const feeRate = BI.from(1000);
-  txSkeleton = await payFeeByFeeRate(
-    txSkeleton,
-    [bob.testnetAddress],
-    BI.from(feeRate),
-    undefined,
-    {
-      config: AGGRON4,
-    }
-  );
+  txSkeleton = await payFeeByFeeRate(txSkeleton, [bob.testnetAddress], BI.from(feeRate), undefined, {
+    config: AGGRON4,
+  });
 
   const expectedFee: BI = BI.from(516);
 
@@ -917,15 +756,7 @@ test("Should not throw if anyone-can-pay config not provided", async (t) => {
 
   const amount = BI.from(600 * 10 ** 8);
   await t.notThrowsAsync(async () => {
-    await transfer(
-      txSkeleton,
-      [bob.testnetAddress],
-      aliceAddress,
-      BI.from(amount),
-      undefined,
-      undefined,
-      { config }
-    );
+    await transfer(txSkeleton, [bob.testnetAddress], aliceAddress, BI.from(amount), undefined, undefined, { config });
   });
 });
 
@@ -952,16 +783,10 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
   t.is(txSkeleton.get("outputs").size, 2);
 
   const fee: BI = BI.from(1000);
-  txSkeleton = await payFee(
-    txSkeleton,
-    [bob.testnetAddress],
-    BI.from(fee),
-    undefined,
-    {
-      config: AGGRON4,
-      enableDeductCapacity: false,
-    }
-  );
+  txSkeleton = await payFee(txSkeleton, [bob.testnetAddress], BI.from(fee), undefined, {
+    config: AGGRON4,
+    enableDeductCapacity: false,
+  });
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 3);
@@ -978,10 +803,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
 
   t.is(sumOfInputCapacity.sub(sumOfOutputCapcity).toString(), fee.toString());
 
-  t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
-    amount.toString()
-  );
+  t.is(BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(), amount.toString());
   t.is(
     BI.from(txSkeleton.get("outputs").get(1)!.cellOutput.capacity).toString(),
     BI.from(bobSecpInputs[0].cellOutput.capacity).sub(amount).toString()
@@ -1007,9 +829,7 @@ test("transfer secp => secp, without deduct capacity", async (t) => {
   );
   t.is(txSkeleton.get("fixedEntries").size, 0);
 
-  const expectedMessages = [
-    "0x7bf7f9183d54e3a69d80c1d049d0b1cda7005341f428b70b22abc356286dbf70",
-  ];
+  const expectedMessages = ["0x7bf7f9183d54e3a69d80c1d049d0b1cda7005341f428b70b22abc356286dbf70"];
 
   txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
@@ -1051,35 +871,20 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     }
   };
   const amount = BI.from(600 * 10 ** 8);
-  txSkeleton = await transfer(
-    txSkeleton,
-    [bob.fromInfo],
-    alice.testnetAddress,
-    BI.from(amount),
-    undefined,
-    tipHeader,
-    {
-      config: AGGRON4,
-      LocktimePoolCellCollector: LocktimePoolCellCollector,
-    }
-  );
+  txSkeleton = await transfer(txSkeleton, [bob.fromInfo], alice.testnetAddress, BI.from(amount), undefined, tipHeader, {
+    config: AGGRON4,
+    LocktimePoolCellCollector: LocktimePoolCellCollector,
+  });
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
 
   const fee = BI.from(1000);
-  txSkeleton = await injectCapacity(
-    txSkeleton,
-    [bob.fromInfo],
-    BI.from(fee),
-    undefined,
-    tipHeader,
-    {
-      config: AGGRON4,
-      LocktimePoolCellCollector: CellCollector,
-      enableDeductCapacity: false,
-    }
-  );
+  txSkeleton = await injectCapacity(txSkeleton, [bob.fromInfo], BI.from(fee), undefined, tipHeader, {
+    config: AGGRON4,
+    LocktimePoolCellCollector: CellCollector,
+    enableDeductCapacity: false,
+  });
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 3);
@@ -1096,10 +901,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
 
   t.is(sumOfInputCapacity.sub(sumOfOutputCapcity).toString(), fee.toString());
 
-  t.is(
-    BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(),
-    amount.toString()
-  );
+  t.is(BI.from(txSkeleton.get("outputs").get(0)!.cellOutput.capacity).toString(), amount.toString());
   t.is(
     BI.from(txSkeleton.get("outputs").get(1)!.cellOutput.capacity).toString(),
     BI.from(bobMultisigInputs[0].cellOutput.capacity).sub(amount).toString()
@@ -1124,9 +926,7 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
   );
   t.is(txSkeleton.get("fixedEntries").size, 0);
 
-  const expectedMessages = [
-    "0x01fc08c48a5cab51686b808e65d041966a460a17cfa82bb77cbd270fff4634c0",
-  ];
+  const expectedMessages = ["0x01fc08c48a5cab51686b808e65d041966a460a17cfa82bb77cbd270fff4634c0"];
 
   txSkeleton = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
   t.deepEqual(

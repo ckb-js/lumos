@@ -16,9 +16,7 @@ import { Uint32LE, Uint64LE } from "./number";
 export type _HashType = "type" | "data" | "data1";
 export type _DepType = "depGroup" | "code";
 
-export const createFixedHexBytesCodec = (
-  byteLength: number
-): FixedBytesCodec<string> =>
+export const createFixedHexBytesCodec = (byteLength: number): FixedBytesCodec<string> =>
   createFixedBytesCodec<string>({
     byteLength,
     pack: (hex) => bytify(hex),

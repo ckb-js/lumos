@@ -22,10 +22,7 @@ type DepGroupPath = { depType: "depGroup"; path: string; includes: string[] };
 type LocaleConfig = DepCodePath | DepGroupPath;
 
 function isDepCode(obj: LocaleConfig): obj is DepCodePath {
-  return (
-    obj.depType === "code" ||
-    (typeof obj.depType === "undefined" && typeof obj.path === "string")
-  );
+  return obj.depType === "code" || (typeof obj.depType === "undefined" && typeof obj.path === "string");
 }
 
 function isDepGroup(obj: LocaleConfig): obj is DepGroupPath {
@@ -41,9 +38,7 @@ export type CreateContextOptions = {
 function createCKBDebugger(loader: DataLoader): CKBDebugger {
   if (process.env.CKB_DEBUGGER_PATH) {
     if (!fs.existsSync(process.env.CKB_DEBUGGER_PATH)) {
-      throw new Error(
-        `Cannot find ckb-debugger in CKB_DEBUGGER_PATH of ${process.env.CKB_DEBUGGER_PATH}`
-      );
+      throw new Error(`Cannot find ckb-debugger in CKB_DEBUGGER_PATH of ${process.env.CKB_DEBUGGER_PATH}`);
     }
 
     return new CKBDebugger({
@@ -61,9 +56,7 @@ function createCKBDebugger(loader: DataLoader): CKBDebugger {
   });
 }
 
-export function createTestContext<Code extends LocaleCode>(config: {
-  deps: Code;
-}): TestContext<Code> {
+export function createTestContext<Code extends LocaleCode>(config: { deps: Code }): TestContext<Code> {
   const { deps } = config;
 
   const scriptConfigs = {} as Record<keyof Code, ScriptConfig>;
@@ -71,10 +64,7 @@ export function createTestContext<Code extends LocaleCode>(config: {
 
   Object.entries(deps).forEach(([key, depConfig]) => {
     const entryCodeOutPoint = mockOutPoint();
-    const entryCode = outputDataLoader.setCode(
-      entryCodeOutPoint,
-      depConfig.path
-    );
+    const entryCode = outputDataLoader.setCode(entryCodeOutPoint, depConfig.path);
 
     outputDataLoader.setCode(entryCodeOutPoint, depConfig.path);
 
@@ -96,10 +86,7 @@ export function createTestContext<Code extends LocaleCode>(config: {
       const includedOutPoints = Array.from({
         length: depConfig.includes.length,
       }).map(mockOutPoint);
-      outputDataLoader.setOutpointVec(depGroupOutPoint, [
-        entryCodeOutPoint,
-        ...includedOutPoints,
-      ]);
+      outputDataLoader.setOutpointVec(depGroupOutPoint, [entryCodeOutPoint, ...includedOutPoints]);
 
       includedOutPoints.forEach((includedOutPoint, i) =>
         outputDataLoader.setCode(includedOutPoint, depConfig.includes[i])
@@ -168,10 +155,7 @@ export function getDefaultConfig(): {
       },
       SECP256K1_BLAKE160_MULTISIG: {
         depType: "depGroup",
-        path: path.join(
-          __dirname,
-          "../contracts/secp256k1_blake160_multisig_all"
-        ),
+        path: path.join(__dirname, "../contracts/secp256k1_blake160_multisig_all"),
         includes: [path.join(__dirname, "../contracts/secp256k1_data_info")],
       },
       // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c

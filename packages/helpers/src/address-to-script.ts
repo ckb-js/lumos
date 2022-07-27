@@ -36,10 +36,7 @@ export const ADDRESS_FORMAT_FULLDATA = 0x02;
  */
 export const ADDRESS_FORMAT_FULLTYPE = 0x04;
 
-export function parseFullFormatAddress(
-  address: Address,
-  { config }: Options
-): Script {
+export function parseFullFormatAddress(address: Address, { config }: Options): Script {
   config = config || getConfig();
 
   // throw error here if polymod not 0x2bc830a3(BECH32M_CONST)
@@ -47,9 +44,7 @@ export function parseFullFormatAddress(
   const { words, prefix } = bech32m.decode(address, BECH32_LIMIT);
 
   if (prefix !== config.PREFIX) {
-    throw Error(
-      `Invalid prefix! Expected: ${config.PREFIX}, actual: ${prefix}`
-    );
+    throw Error(`Invalid prefix! Expected: ${config.PREFIX}, actual: ${prefix}`);
   }
 
   const [formatType, ...body] = bech32m.fromWords(words);
@@ -77,10 +72,7 @@ export function parseFullFormatAddress(
   return { codeHash, hashType, args };
 }
 
-export function parseDeprecatedCkb2019Address(
-  address: string,
-  { config }: Options
-): Script {
+export function parseDeprecatedCkb2019Address(address: string, { config }: Options): Script {
   config = config || getConfig();
 
   // throw error here if polymod not 1
@@ -88,9 +80,7 @@ export function parseDeprecatedCkb2019Address(
   const { prefix, words } = bech32.decode(address, BECH32_LIMIT);
 
   if (prefix !== config.PREFIX) {
-    throw Error(
-      `Invalid prefix! Expected: ${config.PREFIX}, actual: ${prefix}`
-    );
+    throw Error(`Invalid prefix! Expected: ${config.PREFIX}, actual: ${prefix}`);
   }
   const [formatType, ...body] = bech32.fromWords(words);
 
@@ -103,9 +93,7 @@ export function parseDeprecatedCkb2019Address(
       if (argsBytes.length !== 20) {
         throw Error(`Invalid payload length!`);
       }
-      const scriptTemplate = Object.values(config.SCRIPTS).find(
-        (s) => s && s.SHORT_ID === shortId
-      );
+      const scriptTemplate = Object.values(config.SCRIPTS).find((s) => s && s.SHORT_ID === shortId);
       if (!scriptTemplate) {
         throw Error(`Invalid code hash index: ${shortId}!`);
       }

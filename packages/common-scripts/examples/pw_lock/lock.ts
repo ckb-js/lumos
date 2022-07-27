@@ -13,11 +13,7 @@ import {
   utils,
   CellDep,
 } from "@ckb-lumos/base";
-import {
-  Options,
-  TransactionSkeletonType,
-  createTransactionFromSkeleton,
-} from "@ckb-lumos/helpers";
+import { Options, TransactionSkeletonType, createTransactionFromSkeleton } from "@ckb-lumos/helpers";
 import { getConfig, Config, initializeConfig } from "@ckb-lumos/config-manager";
 import { Set } from "immutable";
 import keccak, { Keccak } from "keccak";
@@ -32,17 +28,11 @@ export const SIGNATURE_PLACEHOLDER =
 
 function isPwLock(script: Script, config: Config) {
   const template = config.SCRIPTS.PW_LOCK!;
-  return (
-    script.codeHash === template.CODE_HASH &&
-    script.hashType === template.HASH_TYPE
-  );
+  return script.codeHash === template.CODE_HASH && script.hashType === template.HASH_TYPE;
 }
 
 // Help to deal with cell deps, add cell dep to txSkeleton.get("cellDeps") if not exists.
-function addCellDep(
-  txSkeleton: TransactionSkeletonType,
-  newCellDep: CellDep
-): TransactionSkeletonType {
+function addCellDep(txSkeleton: TransactionSkeletonType, newCellDep: CellDep): TransactionSkeletonType {
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
       cellDep.depType === newCellDep.depType &&
@@ -190,9 +180,7 @@ async function setupInputCell(
     );
   if (firstIndex !== -1) {
     while (firstIndex >= txSkeleton.get("witnesses").size) {
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-        witnesses.push("0x")
-      );
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
     }
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
     const newWitnessArgs: WitnessArgs = {
@@ -202,35 +190,20 @@ async function setupInputCell(
     if (witness !== "0x") {
       const witnessArgs = new core.WitnessArgs(new Reader(witness));
       const lock = witnessArgs.getLock();
-      if (
-        lock.hasValue() &&
-        new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
-      ) {
-        throw new Error(
-          "Lock field in first witness is set aside for signature!"
-        );
+      if (lock.hasValue() && new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock) {
+        throw new Error("Lock field in first witness is set aside for signature!");
       }
       const inputType = witnessArgs.getInputType();
       if (inputType.hasValue()) {
-        newWitnessArgs.inputType = new Reader(
-          inputType.value().raw()
-        ).serializeJson();
+        newWitnessArgs.inputType = new Reader(inputType.value().raw()).serializeJson();
       }
       const outputType = witnessArgs.getOutputType();
       if (outputType.hasValue()) {
-        newWitnessArgs.outputType = new Reader(
-          outputType.value().raw()
-        ).serializeJson();
+        newWitnessArgs.outputType = new Reader(outputType.value().raw()).serializeJson();
       }
     }
-    witness = new Reader(
-      core.SerializeWitnessArgs(
-        normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
-    ).serializeJson();
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-      witnesses.set(firstIndex, witness)
-    );
+    witness = new Reader(core.SerializeWitnessArgs(normalizers.NormalizeWitnessArgs(newWitnessArgs))).serializeJson();
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
   }
 
   return txSkeleton;
@@ -283,11 +256,7 @@ function prepareSigningEntries(
   }
   let processedArgs = Set<string>();
   const tx = createTransactionFromSkeleton(txSkeleton);
-  const txHash = utils
-    .ckbHash(
-      core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))
-    )
-    .serializeJson();
+  const txHash = utils.ckbHash(core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))).serializeJson();
   const inputs = txSkeleton.get("inputs");
   const witnesses = txSkeleton.get("witnesses");
   let signingEntries = txSkeleton.get("signingEntries");

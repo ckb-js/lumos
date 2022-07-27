@@ -5,16 +5,11 @@ function assertNumberRange(value: BIish, min: BIish, max: BIish): void {
   value = BI.from(value);
 
   if (value.lt(min) || value.gt(max)) {
-    throw new Error(
-      `Value must be between ${min.toString()} and ${max.toString()}, but got ${value.toString()}`
-    );
+    throw new Error(`Value must be between ${min.toString()} and ${max.toString()}, but got ${value.toString()}`);
   }
 }
 
-function createUintNumberCodec(
-  byteLength: number,
-  littleEndian = false
-): FixedBytesCodec<number, BIish> {
+function createUintNumberCodec(byteLength: number, littleEndian = false): FixedBytesCodec<number, BIish> {
   const codec = createUintBICodec(byteLength, littleEndian);
   return {
     __isFixedCodec__: true,

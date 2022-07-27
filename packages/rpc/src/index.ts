@@ -5,11 +5,7 @@ import { CKBComponents } from "./types/api";
 
 import paramsFormatter from "./paramsFormatter";
 import resultFormatter from "./resultFormatter";
-import {
-  IdNotMatchedInBatchException,
-  MethodInBatchNotFoundException,
-  PayloadInBatchException,
-} from "./exceptions";
+import { IdNotMatchedInBatchException, MethodInBatchNotFoundException, PayloadInBatchException } from "./exceptions";
 import axios from "axios";
 // import { MethodInBatchNotFoundException, PayloadInBatchException, IdNotMatchedInBatchException } from './exceptions'
 
@@ -76,11 +72,7 @@ class CKBRPC extends Base {
     });
   };
   /* eslint-disable */
-  public createBatchRequest = <
-    N extends keyof Base,
-    P extends (string | number | object)[],
-    R = any[]
-  >(
+  public createBatchRequest = <N extends keyof Base, P extends (string | number | object)[], R = any[]>(
     // TODO fix me
     // params: [method: N, ...rest: P][] = [],
     params: any = []
@@ -142,10 +134,7 @@ class CKBRPC extends Base {
             if (res.id !== payload[i].id) {
               return new IdNotMatchedInBatchException(i, payload[i].id, res.id);
             }
-            return (
-              ctx.rpcProperties[proxied[i][0]].resultFormatters?.(res.result) ??
-              res.result
-            );
+            return ctx.rpcProperties[proxied[i][0]].resultFormatters?.(res.result) ?? res.result;
           });
         },
       },

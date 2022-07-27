@@ -2,9 +2,7 @@ const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
 const { blockchain, blockchainUtils } = require("@ckb-lumos/codec");
 const RPC = require("@ckb-lumos/rpc");
-const {
-  CKBIndexerTransactionCollector: TransactionCollector,
-} = require("@ckb-lumos/ckb-indexer");
+const { CKBIndexerTransactionCollector: TransactionCollector } = require("@ckb-lumos/ckb-indexer");
 const { isCellMatchQueryOptions } = helpers;
 
 function defaultLogger(level, message) {
@@ -12,14 +10,7 @@ function defaultLogger(level, message) {
 }
 
 class TransactionManager {
-  constructor(
-    indexer,
-    {
-      logger = defaultLogger,
-      pollIntervalSeconds = 30,
-      rpc = new RPC.default(indexer.uri),
-    } = {}
-  ) {
+  constructor(indexer, { logger = defaultLogger, pollIntervalSeconds = 30, rpc = new RPC.default(indexer.uri) } = {}) {
     this.indexer = indexer;
     this.rpc = rpc;
     this.transactions = Set();
@@ -106,15 +97,9 @@ class TransactionManager {
   }
 
   async sendTransaction(tx) {
-    blockchain.Transaction.pack(
-      blockchainUtils.transformTransactionCodecType(tx)
-    );
+    blockchain.Transaction.pack(blockchainUtils.transformTransactionCodecType(tx));
     tx.inputs.forEach((input) => {
-      if (
-        this.spentCells.includes(
-          new values.OutPointValue(input.previousOutput, { validate: false })
-        )
-      ) {
+      if (this.spentCells.includes(new values.OutPointValue(input.previousOutput, { validate: false }))) {
         throw new Error(
           `OutPoint ${input.previousOutput.txHash}@${input.previousOutput.index} has already been spent!`
         );
@@ -124,9 +109,7 @@ class TransactionManager {
     tx.hash = txHash;
     this.transactions = this.transactions.add(tx);
     tx.inputs.forEach((input) => {
-      this.spentCells = this.spentCells.add(
-        new values.OutPointValue(input.previousOutput, { validate: false })
-      );
+      this.spentCells = this.spentCells.add(new values.OutPointValue(input.previousOutput, { validate: false }));
     });
     for (let i = 0; i < tx.outputs.length; i++) {
       const op = {
@@ -143,10 +126,7 @@ class TransactionManager {
     return txHash;
   }
 
-  _filterCells(
-    createdCells,
-    { lock = null, type = null, argsLen = -1, data = "any" } = {}
-  ) {
+  _filterCells(createdCells, { lock = null, type = null, argsLen = -1, data = "any" } = {}) {
     const filteredCreatedCells = createdCells.filter((cell) => {
       return isCellMatchQueryOptions(cell, {
         lock,
@@ -159,15 +139,7 @@ class TransactionManager {
   }
 
   collector(
-    {
-      lock = null,
-      type = null,
-      argsLen = -1,
-      data = "any",
-      fromBlock = null,
-      toBlock = null,
-      skip = null,
-    } = {},
+    { lock = null, type = null, argsLen = -1, data = "any", fromBlock = null, toBlock = null, skip = null } = {},
     { usePendingOutputs = true } = {}
   ) {
     const params = [
@@ -187,11 +159,7 @@ class TransactionManager {
       .filter((param) => param.value != null)
       .map((param) => param.name);
     if (usePendingOutputs && params.length !== 0) {
-      this.logger(
-        "warn",
-        params.map((param) => `\`${param}\``).join(", ") +
-          " will not effect on pending cells."
-      );
+      this.logger("warn", params.map((param) => `\`${param}\``).join(", ") + " will not effect on pending cells.");
     }
     const innerCollector = this.indexer.collector({
       lock,
@@ -208,22 +176,14 @@ class TransactionManager {
       argsLen,
       data,
     });
-    return new TransactionManagerCellCollector(
-      innerCollector,
-      this.spentCells,
-      filteredCreatedCells,
-      { usePendingOutputs }
-    );
+    return new TransactionManagerCellCollector(innerCollector, this.spentCells, filteredCreatedCells, {
+      usePendingOutputs,
+    });
   }
 }
 
 class TransactionManagerCellCollector {
-  constructor(
-    collector,
-    spentCells,
-    filteredCreatedCells,
-    { usePendingOutputs = true } = {}
-  ) {
+  constructor(collector, spentCells, filteredCreatedCells, { usePendingOutputs = true } = {}) {
     this.collector = collector;
     this.spentCells = Set(spentCells);
     this.filteredCreatedCells = filteredCreatedCells;

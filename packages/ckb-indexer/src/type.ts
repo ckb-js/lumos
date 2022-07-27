@@ -66,10 +66,7 @@ export interface TerminatorResult {
   push: boolean;
 }
 
-export declare type Terminator = (
-  index: number,
-  cell: Cell
-) => TerminatorResult;
+export declare type Terminator = (index: number, cell: Cell) => TerminatorResult;
 
 export type HexNum = string;
 export type IOType = "input" | "output" | "both";
