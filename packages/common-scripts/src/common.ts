@@ -210,14 +210,13 @@ export async function transfer(
 
   generateLockScriptInfos({ config });
 
-  const targetLockScriptInfo:
-    | LockScriptInfo
-    | undefined = lockScriptInfos.infos.find((lockScriptInfo) => {
-    return (
-      lockScriptInfo.codeHash === toScript.codeHash &&
-      lockScriptInfo.hashType === toScript.hashType
-    );
-  });
+  const targetLockScriptInfo: LockScriptInfo | undefined =
+    lockScriptInfos.infos.find((lockScriptInfo) => {
+      return (
+        lockScriptInfo.codeHash === toScript.codeHash &&
+        lockScriptInfo.hashType === toScript.hashType
+      );
+    });
 
   if (
     targetLockScriptInfo &&
@@ -790,14 +789,13 @@ export async function setupInputCell(
   generateLockScriptInfos({ config });
   const inputLock = inputCell.cellOutput.lock;
 
-  const targetLockScriptInfo:
-    | LockScriptInfo
-    | undefined = lockScriptInfos.infos.find((lockScriptInfo) => {
-    return (
-      lockScriptInfo.codeHash === inputLock.codeHash &&
-      lockScriptInfo.hashType === inputLock.hashType
-    );
-  });
+  const targetLockScriptInfo: LockScriptInfo | undefined =
+    lockScriptInfos.infos.find((lockScriptInfo) => {
+      return (
+        lockScriptInfo.codeHash === inputLock.codeHash &&
+        lockScriptInfo.hashType === inputLock.hashType
+      );
+    });
 
   if (!targetLockScriptInfo) {
     throw new Error(`No LockScriptInfo found for setupInputCell!`);

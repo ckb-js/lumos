@@ -36,7 +36,8 @@ const { ScriptValue } = values;
 const { CKBHasher, ckbHash, readBigUInt128LECompatible } = utils;
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
-  implements CellCollectorType {
+  implements CellCollectorType
+{
   private cellCollector: BaseCellCollectorType;
   private config: Config;
   public readonly fromScript: Script;

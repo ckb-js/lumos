@@ -342,8 +342,9 @@ test("JSBI.prepareSigningEntries, multisig & dao", async (t) => {
   expectedMessages.forEach((expectedMessage, index) => {
     const message = txSkeleton
       .get("signingEntries")
-      .find((s) => s.type === "witness_args_lock" && s.index === index)!
-      .message;
+      .find(
+        (s) => s.type === "witness_args_lock" && s.index === index
+      )!.message;
     t.is(message, expectedMessage);
   });
 });

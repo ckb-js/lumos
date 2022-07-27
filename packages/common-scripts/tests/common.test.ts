@@ -242,7 +242,8 @@ test("transfer multisig lock => secp", async (t) => {
     cellProvider,
   });
   const LocktimePoolCellCollector: CellCollectorConstructor = class LocktimePoolCellCollector
-    implements BaseCellCollector {
+    implements BaseCellCollector
+  {
     readonly fromScript: Script;
     constructor() {
       this.fromScript = {
@@ -1045,7 +1046,8 @@ test("transfer multisig lock => secp, without deduct capacity", async (t) => {
     cellProvider,
   });
   const LocktimePoolCellCollector: CellCollectorConstructor = class LocktimePoolCellCollector
-    implements BaseCellCollector {
+    implements BaseCellCollector
+  {
     readonly fromScript: Script;
     constructor() {
       this.fromScript = {
