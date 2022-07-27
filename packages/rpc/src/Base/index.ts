@@ -62,7 +62,9 @@ export interface Base {
    * @param {string} hash - block hash
    * @return {Promise<string>} block hash
    */
-  getBlockHash: (number: CKBComponents.BlockNumber | bigint) => Promise<CKBComponents.Hash>;
+  getBlockHash: (
+    number: CKBComponents.BlockNumber | bigint
+  ) => Promise<CKBComponents.Hash>;
 
   /**
    * @method getBlock
@@ -79,7 +81,9 @@ export interface Base {
    * @description Returns the information about a block header by hash.
    * @params {Promise<string>} block hash
    */
-  getHeader: (blockHash: CKBComponents.Hash) => Promise<CKBComponents.BlockHeader>;
+  getHeader: (
+    blockHash: CKBComponents.Hash
+  ) => Promise<CKBComponents.BlockHeader>;
 
   /**
    * @method getHeaderByNumber
@@ -115,7 +119,9 @@ export interface Base {
    * @param {string} hash - the transaction hash of the target transaction
    * @return {Promise<object>} transaction object with transaction status
    */
-  getTransaction: (hash: CKBComponents.Hash) => Promise<CKBComponents.TransactionWithStatus>;
+  getTransaction: (
+    hash: CKBComponents.Hash
+  ) => Promise<CKBComponents.TransactionWithStatus>;
 
   /**
    * @method getCellbaseOutputCapacityDetails
@@ -179,7 +185,9 @@ export interface Base {
    * @param {string} number - the block number of the target block
    * @returns {Promise<object>} block object
    */
-  getBlockByNumber: (number: CKBComponents.BlockNumber | bigint) => Promise<CKBComponents.Block>;
+  getBlockByNumber: (
+    number: CKBComponents.BlockNumber | bigint
+  ) => Promise<CKBComponents.Block>;
 
   /* Experimental */
 
@@ -191,7 +199,9 @@ export interface Base {
    * @param {object} rawTrasnaction - the raw transaction whose cycles is going to be calculated
    * @return {Promise<object>} dry run result, including cycles the transaction used.
    */
-  dryRunTransaction: (tx: CKBComponents.RawTransaction) => Promise<CKBComponents.RunDryResult>;
+  dryRunTransaction: (
+    tx: CKBComponents.RawTransaction
+  ) => Promise<CKBComponents.RunDryResult>;
 
   calculateDaoMaximumWithdraw: (
     outPoint: CKBComponents.OutPoint,

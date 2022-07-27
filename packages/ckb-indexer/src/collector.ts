@@ -9,7 +9,11 @@ import {
 } from "./type";
 
 import { CkbIndexer } from "./indexer";
-import { generateSearchKey, getHexStringBytes, instanceOfScriptWrapper } from "./services";
+import {
+  generateSearchKey,
+  getHexStringBytes,
+  instanceOfScriptWrapper,
+} from "./services";
 import fetch from "cross-fetch";
 
 interface GetBlockHashRPCResult {
@@ -57,9 +61,15 @@ export class CKBCellCollector implements BaseCellCollector {
     }
 
     if (queries.type && queries.type !== "empty") {
-      if (typeof queries.type === "object" && !instanceOfScriptWrapper(queries.type)) {
+      if (
+        typeof queries.type === "object" &&
+        !instanceOfScriptWrapper(queries.type)
+      ) {
         validators.ValidateScript(queries.type);
-      } else if (typeof queries.type === "object" && instanceOfScriptWrapper(queries.type)) {
+      } else if (
+        typeof queries.type === "object" &&
+        instanceOfScriptWrapper(queries.type)
+      ) {
         validators.ValidateScript(queries.type.script);
       }
     }
@@ -74,13 +84,25 @@ export class CKBCellCollector implements BaseCellCollector {
       throw new Error("Order must be either asc or desc!");
     }
     if (queries.outputCapacityRange) {
-      utils.assertHexadecimal("outputCapacityRange[0]", queries.outputCapacityRange[0]);
-      utils.assertHexadecimal("outputCapacityRange[1]", queries.outputCapacityRange[1]);
+      utils.assertHexadecimal(
+        "outputCapacityRange[0]",
+        queries.outputCapacityRange[0]
+      );
+      utils.assertHexadecimal(
+        "outputCapacityRange[1]",
+        queries.outputCapacityRange[1]
+      );
     }
 
     if (queries.outputDataLenRange) {
-      utils.assertHexadecimal("outputDataLenRange[0]", queries.outputDataLenRange[0]);
-      utils.assertHexadecimal("outputDataLenRange[1]", queries.outputDataLenRange[1]);
+      utils.assertHexadecimal(
+        "outputDataLenRange[0]",
+        queries.outputDataLenRange[0]
+      );
+      utils.assertHexadecimal(
+        "outputDataLenRange[1]",
+        queries.outputDataLenRange[1]
+      );
     }
 
     if (queries.outputDataLenRange && queries.data && queries.data !== "any") {
@@ -113,7 +135,10 @@ export class CKBCellCollector implements BaseCellCollector {
 
     // unWrap `ScriptWrapper` into `Script`.
     if (this.queries.type && this.queries.type !== "empty") {
-      if (typeof this.queries.type === "object" && instanceOfScriptWrapper(this.queries.type)) {
+      if (
+        typeof this.queries.type === "object" &&
+        instanceOfScriptWrapper(this.queries.type)
+      ) {
         this.queries.type = this.queries.type.script;
       }
     }
@@ -214,7 +239,9 @@ export class CKBCellCollector implements BaseCellCollector {
     }
     const result = await res.json();
     if (result.error !== undefined) {
-      throw new Error(`indexer request rpc failed with error: ${JSON.stringify(result.error)}`);
+      throw new Error(
+        `indexer request rpc failed with error: ${JSON.stringify(result.error)}`
+      );
     }
     return result;
   }

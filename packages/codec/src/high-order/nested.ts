@@ -1,4 +1,11 @@
-import { AnyCodec, Codec, PackParam, PackResult, UnpackParam, UnpackResult } from "../base";
+import {
+  AnyCodec,
+  Codec,
+  PackParam,
+  PackResult,
+  UnpackParam,
+  UnpackResult,
+} from "../base";
 
 export interface NullableCodec<C extends AnyCodec = AnyCodec> extends AnyCodec {
   pack(packable?: PackParam<C>): PackResult<C>;
@@ -6,7 +13,9 @@ export interface NullableCodec<C extends AnyCodec = AnyCodec> extends AnyCodec {
   unpack(unpackable?: UnpackParam<C>): UnpackResult<C>;
 }
 
-export function createNullableCodec<C extends AnyCodec = AnyCodec>(codec: C): NullableCodec<C> {
+export function createNullableCodec<C extends AnyCodec = AnyCodec>(
+  codec: C
+): NullableCodec<C> {
   return {
     pack: (packable) => {
       if (packable == null) return packable;
@@ -20,7 +29,9 @@ export function createNullableCodec<C extends AnyCodec = AnyCodec>(codec: C): Nu
 }
 
 type ObjectCodecShape = Record<string, AnyCodec>;
-export type ObjectCodec<Shape extends ObjectCodecShape = ObjectCodecShape> = Codec<
+export type ObjectCodec<
+  Shape extends ObjectCodecShape = ObjectCodecShape
+> = Codec<
   { [key in keyof Shape]: PackResult<Shape[key]> },
   { [key in keyof Shape]: UnpackResult<Shape[key]> },
   { [key in keyof Shape]: PackParam<Shape[key]> },

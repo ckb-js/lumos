@@ -91,7 +91,10 @@ export default class Keystore {
    */
   save(
     dir: string,
-    { name = this.filename(), overwrite = false }: { name?: string; overwrite?: boolean } = {}
+    {
+      name = this.filename(),
+      overwrite = false,
+    }: { name?: string; overwrite?: boolean } = {}
   ): void {
     const path: string = Path.join(dir, name);
     if (!overwrite && fs.existsSync(path)) {
@@ -159,12 +162,18 @@ export default class Keystore {
       Keystore.scryptOptions(kdfparams)
     );
 
-    const cipher: crypto.Cipher = crypto.createCipheriv(CIPHER, derivedKey.slice(0, 16), iv);
+    const cipher: crypto.Cipher = crypto.createCipheriv(
+      CIPHER,
+      derivedKey.slice(0, 16),
+      iv
+    );
     if (!cipher) {
       throw new UnsupportedCipher();
     }
     const ciphertext: Buffer = Buffer.concat([
-      cipher.update(Buffer.from(extendedPrivateKey.serialize().slice(2), "hex")),
+      cipher.update(
+        Buffer.from(extendedPrivateKey.serialize().slice(2), "hex")
+      ),
       cipher.final(),
     ]);
 
@@ -200,7 +209,12 @@ export default class Keystore {
       derivedKey.slice(0, 16),
       Buffer.from(this.crypto.cipherparams.iv, "hex")
     );
-    return "0x" + Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("hex");
+    return (
+      "0x" +
+      Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString(
+        "hex"
+      )
+    );
   }
 
   extendedPrivateKey(password: string): ExtendedPrivateKey {

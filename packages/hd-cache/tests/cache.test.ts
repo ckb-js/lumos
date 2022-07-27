@@ -23,13 +23,15 @@ const mockTxs: TransactionWithStatus[] = [
   {
     transaction: {
       version: "0",
-      hash: "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
+      hash:
+        "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
       headerDeps: [],
       cellDeps: [],
       inputs: [
         {
           previousOutput: {
-            txHash: "0x58a29007f29ede069d49221f468107681c1a4d8d341de1d053b9b60596d6b233",
+            txHash:
+              "0x58a29007f29ede069d49221f468107681c1a4d8d341de1d053b9b60596d6b233",
             index: "0x0",
           },
           since: "0x0",
@@ -39,7 +41,8 @@ const mockTxs: TransactionWithStatus[] = [
         {
           capacity: "0x" + BigInt(1000 * 10 ** 8).toString(16),
           lock: {
-            codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            codeHash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
             hashType: "type",
             args: "0x89cba48c68b3978f185df19f31634bb870e94639",
           },
@@ -50,7 +53,8 @@ const mockTxs: TransactionWithStatus[] = [
     },
     txStatus: {
       status: "committed",
-      blockHash: "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68",
+      blockHash:
+        "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68",
     },
   },
   {
@@ -62,7 +66,8 @@ const mockTxs: TransactionWithStatus[] = [
       inputs: [
         {
           previousOutput: {
-            txHash: "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
+            txHash:
+              "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
             index: "0x0",
           },
           since: "0x0",
@@ -72,7 +77,8 @@ const mockTxs: TransactionWithStatus[] = [
         {
           capacity: "0x" + BigInt(200 * 10 ** 8).toString(16),
           lock: {
-            codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            codeHash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
             hashType: "type",
             args: "0x0ce445e32d7f91c9392485ddb9bc6885ce46ad64",
           },
@@ -80,7 +86,8 @@ const mockTxs: TransactionWithStatus[] = [
         {
           capacity: "0x" + BigInt(300 * 10 ** 8).toString(16),
           lock: {
-            codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            codeHash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
             hashType: "type",
             args: "0xaa5aa575dedb6f5d7a5c835428c3b4a3ea7ba1eb",
           },
@@ -88,7 +95,8 @@ const mockTxs: TransactionWithStatus[] = [
         {
           capacity: "0x" + BigInt(400 * 10 ** 8).toString(16),
           lock: {
-            codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            codeHash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
             hashType: "type",
             args: "0xfa7b46aa28cb233db373e5712e16edcaaa4c4999",
           },
@@ -97,7 +105,8 @@ const mockTxs: TransactionWithStatus[] = [
         {
           capacity: "0x" + BigInt(50 * 10 ** 8).toString(16),
           lock: {
-            codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+            codeHash:
+              "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
             hashType: "type",
             args: "0xa6ee79109863906e75668acd75d6c6adbd56469c",
           },
@@ -108,7 +117,8 @@ const mockTxs: TransactionWithStatus[] = [
     },
     txStatus: {
       status: "committed",
-      blockHash: "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68",
+      blockHash:
+        "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68",
     },
   },
 ];
@@ -119,11 +129,15 @@ const headerData = {
   hash: "blockHash",
   nonce: "0x0",
   number: "0x400",
-  parentHash: "0xae003585fa15309b30b31aed3dcf385e9472c3c3e93746a6c4540629a6a1ed2d",
-  proposalsHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+  parentHash:
+    "0xae003585fa15309b30b31aed3dcf385e9472c3c3e93746a6c4540629a6a1ed2d",
+  proposalsHash:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
   timestamp: "0x5cd2b117",
-  transactionsRoot: "0xc47d5b78b3c4c4c853e2a32810818940d0ee403423bea9ec7b8e566d9595206c",
-  extra_hash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+  transactionsRoot:
+    "0xc47d5b78b3c4c4c853e2a32810818940d0ee403423bea9ec7b8e566d9595206c",
+  extra_hash:
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
   version: "0x0",
 };
 // TODO eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -193,13 +207,19 @@ stub(rpc, "getHeader").callsFake(async function (blockHash: string) {
 });
 const tipStub = stub(indexer, "tip");
 tipStub.resolves({
-  blockHash: "0xb97f00e2d023a9be5b38cc0dabcfdfa149597a3c5f6bc89b013c2cb69e186432",
+  blockHash:
+    "0xb97f00e2d023a9be5b38cc0dabcfdfa149597a3c5f6bc89b013c2cb69e186432",
   blockNumber: "0x10",
 });
-const cacheManager = CacheManager.fromMnemonic(indexer, mnemonic, getDefaultInfos(), {
-  TransactionCollector: MockTransactionCollector,
-  rpc,
-});
+const cacheManager = CacheManager.fromMnemonic(
+  indexer,
+  mnemonic,
+  getDefaultInfos(),
+  {
+    TransactionCollector: MockTransactionCollector,
+    rpc,
+  }
+);
 
 test.before(() => {
   // @ts-ignore: Unreachable code error
@@ -209,10 +229,15 @@ test.before(() => {
 });
 
 test("derive threshold", async (t) => {
-  const cacheManager = CacheManager.fromMnemonic(indexer, mnemonic, getDefaultInfos(), {
-    TransactionCollector: MockTransactionCollector,
-    rpc,
-  });
+  const cacheManager = CacheManager.fromMnemonic(
+    indexer,
+    mnemonic,
+    getDefaultInfos(),
+    {
+      TransactionCollector: MockTransactionCollector,
+      rpc,
+    }
+  );
 
   t.is(cacheManager.getReceivingKeys().length, 3);
   t.is(cacheManager.getChangeKeys().length, 2);
@@ -261,11 +286,16 @@ test("getMasterPublicKeyInfo, default", async (t) => {
 });
 
 test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
-  const cacheManager = CacheManager.fromMnemonic(indexer, mnemonic, getDefaultInfos(), {
-    TransactionCollector: MockTransactionCollector,
-    rpc,
-    needMasterPublicKey: true,
-  });
+  const cacheManager = CacheManager.fromMnemonic(
+    indexer,
+    mnemonic,
+    getDefaultInfos(),
+    {
+      TransactionCollector: MockTransactionCollector,
+      rpc,
+      needMasterPublicKey: true,
+    }
+  );
   // @ts-ignore
   await cacheManager.cache.loop();
 
@@ -316,7 +346,10 @@ test("CellCollector", async (t) => {
 
   const firstCell = cells[0];
   t.is(firstCell.blockNumber, "0x400");
-  t.is(firstCell.blockHash, "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68");
+  t.is(
+    firstCell.blockHash,
+    "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68"
+  );
 });
 
 test("CellCollectorWithQueryOptions", async (t) => {
@@ -325,7 +358,8 @@ test("CellCollectorWithQueryOptions", async (t) => {
 
   const queryOptions: QueryOptions = {
     lock: {
-      codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      codeHash:
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
       hashType: "type",
       args: "0x0ce445e32d7f91c9392485ddb9bc6885ce46ad64",
     },
@@ -382,24 +416,36 @@ test("getBalance", async (t) => {
 
   const balance = await getBalance(new CellCollector(cacheManager));
 
-  t.is(BI.from(balance).toString(), BI.from(900).mul(BI.from(10).pow(8)).toString());
+  t.is(
+    BI.from(balance).toString(),
+    BI.from(900).mul(BI.from(10).pow(8)).toString()
+  );
 });
 
 test("getBalance, needMasterPublicKey", async (t) => {
-  const cacheManager = CacheManager.fromMnemonic(indexer, mnemonic, getDefaultInfos(), {
-    TransactionCollector: MockTransactionCollector,
-    rpc,
-    needMasterPublicKey: true,
-  });
+  const cacheManager = CacheManager.fromMnemonic(
+    indexer,
+    mnemonic,
+    getDefaultInfos(),
+    {
+      TransactionCollector: MockTransactionCollector,
+      rpc,
+      needMasterPublicKey: true,
+    }
+  );
   // @ts-ignore
   await cacheManager.cache.loop();
 
   const balance = await getBalance(new CellCollector(cacheManager));
-  t.is(BI.from(balance).toString(), BI.from(950).mul(BI.from(10).pow(8)).toString());
+  t.is(
+    BI.from(balance).toString(),
+    BI.from(950).mul(BI.from(10).pow(8)).toString()
+  );
 });
 
 test("publicKeyToMultisigArgs", (t) => {
-  const publicKey = "0x024a501efd328e062c8675f2365970728c859c592beeefd6be8ead3d901330bc01";
+  const publicKey =
+    "0x024a501efd328e062c8675f2365970728c859c592beeefd6be8ead3d901330bc01";
   const multisigArgs = "0x56f281b3d4bb5fc73c751714af0bf78eb8aba0d8";
 
   t.is(publicKeyToMultisigArgs(publicKey), multisigArgs);

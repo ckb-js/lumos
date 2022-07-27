@@ -1,5 +1,10 @@
 import { HexString, Tip, utils } from "@ckb-lumos/base";
-import { GetLiveCellsResult, IndexerTransactionList, Order, SearchKey } from "./type";
+import {
+  GetLiveCellsResult,
+  IndexerTransactionList,
+  Order,
+  SearchKey,
+} from "./type";
 import fetch from "cross-fetch";
 
 export class RPC {
@@ -41,7 +46,11 @@ export class RPC {
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
-const request = async (ckbIndexerUrl: string, method: string, params?: any): Promise<any> => {
+const request = async (
+  ckbIndexerUrl: string,
+  method: string,
+  params?: any
+): Promise<any> => {
   const res = await fetch(ckbIndexerUrl, {
     method: "POST",
     body: JSON.stringify({
@@ -59,7 +68,9 @@ const request = async (ckbIndexerUrl: string, method: string, params?: any): Pro
   }
   const data = await res.json();
   if (data.error !== undefined) {
-    throw new Error(`indexer request rpc failed with error: ${JSON.stringify(data.error)}`);
+    throw new Error(
+      `indexer request rpc failed with error: ${JSON.stringify(data.error)}`
+    );
   }
   return data.result;
 };

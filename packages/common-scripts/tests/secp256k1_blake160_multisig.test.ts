@@ -1,6 +1,10 @@
 import test from "ava";
 import { CellProvider } from "./cell_provider";
-import { parseAddress, TransactionSkeleton, TransactionSkeletonType } from "@ckb-lumos/helpers";
+import {
+  parseAddress,
+  TransactionSkeleton,
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
 import { secp256k1Blake160Multisig } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4 } = predefined;
@@ -22,9 +26,14 @@ test.before(() => {
 test("setupInputCell", async (t) => {
   const inputCell: Cell = bobMultisigInputs[0];
 
-  txSkeleton = await secp256k1Blake160Multisig.setupInputCell(txSkeleton, inputCell, bob.fromInfo, {
-    config: AGGRON4,
-  });
+  txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
+    txSkeleton,
+    inputCell,
+    bob.fromInfo,
+    {
+      config: AGGRON4,
+    }
+  );
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 1);
@@ -44,7 +53,9 @@ test("setupInputCell", async (t) => {
     (!input.cellOutput.type && !output.cellOutput.type) ||
       new values.ScriptValue(input.cellOutput.type!, {
         validate: false,
-      }).equals(new values.ScriptValue(output.cellOutput.type!, { validate: false }))
+      }).equals(
+        new values.ScriptValue(output.cellOutput.type!, { validate: false })
+      )
   );
 });
 
@@ -75,7 +86,8 @@ test("JSBI:transfer success", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("signingEntries").size, 1);
-  const expectedMessage = "0x692b35a7f06b5a0d80d6f4b393ae2da0176f4c04883fdc322e4b8861ea88121c";
+  const expectedMessage =
+    "0x692b35a7f06b5a0d80d6f4b393ae2da0176f4c04883fdc322e4b8861ea88121c";
   const message = txSkeleton.get("signingEntries").get(0)!.message;
   t.is(message, expectedMessage);
   const expectedWitness =
@@ -100,9 +112,14 @@ test("injectCapacity", async (t) => {
     return outputs.push(output);
   });
 
-  txSkeleton = await secp256k1Blake160Multisig.injectCapacity(txSkeleton, 0, bob.fromInfo, {
-    config: AGGRON4,
-  });
+  txSkeleton = await secp256k1Blake160Multisig.injectCapacity(
+    txSkeleton,
+    0,
+    bob.fromInfo,
+    {
+      config: AGGRON4,
+    }
+  );
 
   txSkeleton = secp256k1Blake160Multisig.prepareSigningEntries(txSkeleton, {
     config: AGGRON4,
@@ -120,7 +137,8 @@ test("injectCapacity", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("signingEntries").size, 1);
-  const expectedMessage = "0x692b35a7f06b5a0d80d6f4b393ae2da0176f4c04883fdc322e4b8861ea88121c";
+  const expectedMessage =
+    "0x692b35a7f06b5a0d80d6f4b393ae2da0176f4c04883fdc322e4b8861ea88121c";
   const message = txSkeleton.get("signingEntries").get(0)!.message;
   t.is(message, expectedMessage);
   const expectedWitness =
@@ -134,8 +152,13 @@ test("setupInputCell, require fromInfo", async (t) => {
   const inputCell: Cell = bobMultisigInputs[0];
 
   await t.throwsAsync(async () => {
-    await secp256k1Blake160Multisig.setupInputCell(txSkeleton, inputCell, undefined, {
-      config: AGGRON4,
-    });
+    await secp256k1Blake160Multisig.setupInputCell(
+      txSkeleton,
+      inputCell,
+      undefined,
+      {
+        config: AGGRON4,
+      }
+    );
   });
 });

@@ -5,7 +5,14 @@ import {
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
 import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
-import { values, utils, CellDep, Script, Address, HexString } from "@ckb-lumos/base";
+import {
+  values,
+  utils,
+  CellDep,
+  Script,
+  Address,
+  HexString,
+} from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
 import { Config } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
@@ -45,35 +52,61 @@ export function generateDaoScript(config: Config): Script {
   };
 }
 
-export function isSecp256k1Blake160Script(script: Script, config: Config): boolean {
+export function isSecp256k1Blake160Script(
+  script: Script,
+  config: Config
+): boolean {
   const template = config.SCRIPTS.SECP256K1_BLAKE160!;
-  return script.codeHash === template.CODE_HASH && script.hashType === template.HASH_TYPE;
+  return (
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
+  );
 }
 
-export function isSecp256k1Blake160Address(address: Address, config: Config): boolean {
+export function isSecp256k1Blake160Address(
+  address: Address,
+  config: Config
+): boolean {
   const script = parseAddress(address, { config });
   return isSecp256k1Blake160Script(script, config);
 }
 
-export function isSecp256k1Blake160MultisigScript(script: Script, config: Config): boolean {
+export function isSecp256k1Blake160MultisigScript(
+  script: Script,
+  config: Config
+): boolean {
   const template = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG!;
-  return script.codeHash === template.CODE_HASH && script.hashType === template.HASH_TYPE;
+  return (
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
+  );
 }
 
-export function isSecp256k1Blake160MultisigAddress(address: Address, config: Config): boolean {
+export function isSecp256k1Blake160MultisigAddress(
+  address: Address,
+  config: Config
+): boolean {
   const script = parseAddress(address, { config });
   return isSecp256k1Blake160MultisigScript(script, config);
 }
 
-export function isDaoScript(script: Script | undefined, config: Config): boolean {
+export function isDaoScript(
+  script: Script | undefined,
+  config: Config
+): boolean {
   const template = config.SCRIPTS.DAO!;
 
   return (
-    !!script && script.codeHash === template.CODE_HASH && script.hashType === template.HASH_TYPE
+    !!script &&
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
   );
 }
 
-export function isSudtScript(script: Script | undefined, config: Config): boolean {
+export function isSudtScript(
+  script: Script | undefined,
+  config: Config
+): boolean {
   const template = config.SCRIPTS.SUDT;
 
   if (!template) {
@@ -81,7 +114,9 @@ export function isSudtScript(script: Script | undefined, config: Config): boolea
   }
 
   return (
-    !!script && script.codeHash === template.CODE_HASH && script.hashType === template.HASH_TYPE
+    !!script &&
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
   );
 }
 
@@ -93,7 +128,9 @@ export function isAcpScript(script: Script, config: Config): boolean {
   }
 
   return (
-    !!script && script.codeHash === template.CODE_HASH && script.hashType === template.HASH_TYPE
+    !!script &&
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
   );
 }
 
@@ -129,12 +166,16 @@ export function prepareSigningEntries(
 ): TransactionSkeletonType {
   const template = config.SCRIPTS[scriptType];
   if (!template) {
-    throw new Error(`Provided config does not have ${scriptType} script setup!`);
+    throw new Error(
+      `Provided config does not have ${scriptType} script setup!`
+    );
   }
   let processedArgs = Set<string>();
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = ckbHash(
-    blockchain.RawTransaction.pack(blockchainUtils.transformRawTransactionCodecType(tx))
+    blockchain.RawTransaction.pack(
+      blockchainUtils.transformRawTransactionCodecType(tx)
+    )
   );
   const inputs = txSkeleton.get("inputs");
   const witnesses = txSkeleton.get("witnesses");
@@ -192,9 +233,14 @@ export function ensureScript(
 ): void {
   const template = config.SCRIPTS[scriptType];
   if (!template) {
-    throw new Error(`Provided config does not have ${scriptType} script setup!`);
+    throw new Error(
+      `Provided config does not have ${scriptType} script setup!`
+    );
   }
-  if (template.CODE_HASH !== script.codeHash || template.HASH_TYPE !== script.hashType) {
+  if (
+    template.CODE_HASH !== script.codeHash ||
+    template.HASH_TYPE !== script.hashType
+  ) {
     throw new Error(`Provided script is not ${scriptType} script!`);
   }
 }

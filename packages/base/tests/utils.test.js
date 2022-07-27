@@ -16,7 +16,8 @@ const {
 } = require("../lib/utils");
 
 const message = "0x";
-const messageDigest = "0x44f4c69744d5f8c55d642062949dcae49bc4e7ef43d388c5a12f42b5633d163e";
+const messageDigest =
+  "0x44f4c69744d5f8c55d642062949dcae49bc4e7ef43d388c5a12f42b5633d163e";
 
 test.before(() => {
   BigInt = () => {
@@ -71,11 +72,13 @@ test("readBigUInt128LECompatible", (t) => {
 });
 
 const script = {
-  codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+  codeHash:
+    "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
   hashType: "type",
   args: "0x36c329ed630d6ce750712a477543672adab57f4c",
 };
-const scriptHash = "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d";
+const scriptHash =
+  "0x1f2615a8dde4e28ca736ff763c2078aff990043f4cbf09eb4b3a58a140a0862d";
 
 test("computeScriptHash", (t) => {
   t.is(computeScriptHash(script), scriptHash);
@@ -106,13 +109,15 @@ test("test type id", (t) => {
   const input = {
     previousOutput: {
       index: "0x0",
-      txHash: "0x128b201cd1995efba3126d4431f837c34f7d2f6a29ed8968d2ebc39059add56a",
+      txHash:
+        "0x128b201cd1995efba3126d4431f837c34f7d2f6a29ed8968d2ebc39059add56a",
     },
     since: "0x0",
   };
   const typeIdScript = {
     args: "0xa803c9ed6c190fd780e64d885794933ab23da641e94ad1b9270ebac893a7cdcc",
-    codeHash: "0x00000000000000000000000000000000000000000000000000545950455f4944",
+    codeHash:
+      "0x00000000000000000000000000000000000000000000000000545950455f4944",
     hashType: "type",
   };
   t.deepEqual(generateTypeIdScript(input, "0x0"), typeIdScript);

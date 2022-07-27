@@ -38,7 +38,11 @@ test("secp256k1 witness args", (t) => {
     "header of signed witness is not valid"
   );
 
-  t.deepEqual(signed.slice(-SECP256K1_SIGNATURE_LENGTH), signature, "signature is not valid");
+  t.deepEqual(
+    signed.slice(-SECP256K1_SIGNATURE_LENGTH),
+    signature,
+    "signature is not valid"
+  );
 });
 
 test("a real world Omni Lock witness should work as expected", (t) => {
@@ -82,7 +86,8 @@ test("a real world Omni Lock witness should work as expected", (t) => {
 
 test("Script codec", (t) => {
   const script = {
-    codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    codeHash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     hashType: "type" as _HashType,
     args: "0x0000",
   };

@@ -22,7 +22,9 @@ import {
 import { Set, List } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { CellCollector as LocktimeCellCollector } from "./locktime_pool";
-import anyoneCanPay, { CellCollector as AnyoneCanPayCellCollector } from "./anyone_can_pay";
+import anyoneCanPay, {
+  CellCollector as AnyoneCanPayCellCollector,
+} from "./anyone_can_pay";
 const { ScriptValue } = values;
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
@@ -190,15 +192,21 @@ export async function transfer(
   let toAddressInputCapacity: BI = BI.from(0);
   let toAddressInputAmount: BI = BI.from(0);
   if (isAcpScript(toScript, config)) {
-    const toAddressCellCollector = new AnyoneCanPayCellCollector(toAddress, cellProvider, {
-      config,
-      queryOptions: {
-        type: sudtType,
-        data: "any",
-      },
-    });
+    const toAddressCellCollector = new AnyoneCanPayCellCollector(
+      toAddress,
+      cellProvider,
+      {
+        config,
+        queryOptions: {
+          type: sudtType,
+          data: "any",
+        },
+      }
+    );
 
-    const toAddressInput: Cell | void = (await toAddressCellCollector.collect().next()).value;
+    const toAddressInput: Cell | void = (
+      await toAddressCellCollector.collect().next()
+    ).value;
     if (!toAddressInput) {
       throw new Error(`toAddress ANYONE_CAN_PAY input not found!`);
     }
@@ -212,7 +220,9 @@ export async function transfer(
     });
 
     toAddressInputCapacity = BI.from(toAddressInput.cellOutput.capacity);
-    toAddressInputAmount = BI.from(readBigUInt128LECompatible(toAddressInput.data));
+    toAddressInputAmount = BI.from(
+      readBigUInt128LECompatible(toAddressInput.data)
+    );
   }
 
   const targetOutput: Cell = {
@@ -229,7 +239,8 @@ export async function transfer(
     if (!_capacity) {
       _capacity = BI.from(0);
     }
-    targetOutput.cellOutput.capacity = "0x" + toAddressInputCapacity.add(_capacity).toString(16);
+    targetOutput.cellOutput.capacity =
+      "0x" + toAddressInputCapacity.add(_capacity).toString(16);
     targetOutput.data = toBigUInt128LE(toAddressInputAmount.add(_amount));
   } else {
     if (!_capacity) {
@@ -283,7 +294,9 @@ export async function transfer(
   let changeAmount = BI.from(0);
   let previousInputs = Set<string>();
   for (const input of txSkeleton.get("inputs")) {
-    previousInputs = previousInputs.add(`${input.outPoint!.txHash}_${input.outPoint!.index}`);
+    previousInputs = previousInputs.add(
+      `${input.outPoint!.txHash}_${input.outPoint!.index}`
+    );
   }
   let cellCollectorInfos: List<{
     cellCollector: CellCollectorInterface;
@@ -293,14 +306,18 @@ export async function transfer(
   }> = List();
   if (tipHeader) {
     fromInfos.forEach((fromInfo, index) => {
-      const locktimePoolCellCollector = new LocktimePoolCellCollector(fromInfo, cellProvider, {
-        config,
-        tipHeader,
-        queryOptions: {
-          type: sudtType,
-          data: "any",
-        },
-      });
+      const locktimePoolCellCollector = new LocktimePoolCellCollector(
+        fromInfo,
+        cellProvider,
+        {
+          config,
+          tipHeader,
+          queryOptions: {
+            type: sudtType,
+            data: "any",
+          },
+        }
+      );
 
       cellCollectorInfos = cellCollectorInfos.push({
         cellCollector: locktimePoolCellCollector,
@@ -309,27 +326,39 @@ export async function transfer(
     });
   }
   fromInfos.forEach((fromInfo, index) => {
-    const secpCollector = new secp256k1Blake160.CellCollector(fromInfo, cellProvider, {
-      config,
-      queryOptions: {
-        type: sudtType,
-        data: "any",
-      },
-    });
-    const multisigCollector = new secp256k1Blake160Multisig.CellCollector(fromInfo, cellProvider, {
-      config,
-      queryOptions: {
-        type: sudtType,
-        data: "any",
-      },
-    });
-    const acpCollector = new anyoneCanPay.CellCollector(fromInfo, cellProvider, {
-      config,
-      queryOptions: {
-        type: sudtType,
-        data: "any",
-      },
-    });
+    const secpCollector = new secp256k1Blake160.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+        queryOptions: {
+          type: sudtType,
+          data: "any",
+        },
+      }
+    );
+    const multisigCollector = new secp256k1Blake160Multisig.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+        queryOptions: {
+          type: sudtType,
+          data: "any",
+        },
+      }
+    );
+    const acpCollector = new anyoneCanPay.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+        queryOptions: {
+          type: sudtType,
+          data: "any",
+        },
+      }
+    );
 
     cellCollectorInfos = cellCollectorInfos.push(
       {
@@ -350,10 +379,14 @@ export async function transfer(
   });
   if (tipHeader) {
     fromInfos.forEach((fromInfo, index) => {
-      const locktimeCellCollector = new LocktimePoolCellCollector(fromInfo, cellProvider, {
-        config,
-        tipHeader,
-      });
+      const locktimeCellCollector = new LocktimePoolCellCollector(
+        fromInfo,
+        cellProvider,
+        {
+          config,
+          tipHeader,
+        }
+      );
 
       cellCollectorInfos = cellCollectorInfos.push({
         cellCollector: locktimeCellCollector,
@@ -362,15 +395,27 @@ export async function transfer(
     });
   }
   fromInfos.forEach((fromInfo, index) => {
-    const secpCollector = new secp256k1Blake160.CellCollector(fromInfo, cellProvider, {
-      config,
-    });
-    const multisigCollector = new secp256k1Blake160Multisig.CellCollector(fromInfo, cellProvider, {
-      config,
-    });
-    const acpCollector = new anyoneCanPay.CellCollector(fromInfo, cellProvider, {
-      config,
-    });
+    const secpCollector = new secp256k1Blake160.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+      }
+    );
+    const multisigCollector = new secp256k1Blake160Multisig.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+      }
+    );
+    const acpCollector = new anyoneCanPay.CellCollector(
+      fromInfo,
+      cellProvider,
+      {
+        config,
+      }
+    );
 
     cellCollectorInfos = cellCollectorInfos.push(
       {
@@ -389,7 +434,12 @@ export async function transfer(
       }
     );
   });
-  for (const { index, cellCollector, isAnyoneCanPay, destroyable } of cellCollectorInfos) {
+  for (const {
+    index,
+    cellCollector,
+    isAnyoneCanPay,
+    destroyable,
+  } of cellCollectorInfos) {
     for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
       const key = `${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`;
@@ -399,18 +449,28 @@ export async function transfer(
       previousInputs = previousInputs.add(key);
 
       const fromInfo = fromInfos[index];
-      txSkeleton = await common.setupInputCell(txSkeleton, inputCell, fromInfo, {
-        config,
-      });
+      txSkeleton = await common.setupInputCell(
+        txSkeleton,
+        inputCell,
+        fromInfo,
+        {
+          config,
+        }
+      );
       // remove output which added by `setupInputCell`
       const lastOutputIndex: number = txSkeleton.get("outputs").size - 1;
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.remove(lastOutputIndex);
       });
       // remove output fixedEntry
-      const fixedEntryIndex: number = txSkeleton.get("fixedEntries").findIndex((fixedEntry) => {
-        return fixedEntry.field === "outputs" && fixedEntry.index === lastOutputIndex;
-      });
+      const fixedEntryIndex: number = txSkeleton
+        .get("fixedEntries")
+        .findIndex((fixedEntry) => {
+          return (
+            fixedEntry.field === "outputs" &&
+            fixedEntry.index === lastOutputIndex
+          );
+        });
       if (fixedEntryIndex >= 0) {
         txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
           return fixedEntries.remove(fixedEntryIndex);
@@ -450,7 +510,9 @@ export async function transfer(
             lock: inputCell.cellOutput.lock,
             type: inputCell.cellOutput.type,
           },
-          data: inputCell.cellOutput.type ? toBigUInt128LE(currentChangeAmount.toString()) : "0x",
+          data: inputCell.cellOutput.type
+            ? toBigUInt128LE(currentChangeAmount.toString())
+            : "0x",
         };
 
         txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -472,7 +534,9 @@ export async function transfer(
         _capacity.eq(0) &&
         _amount.eq(0) &&
         ((changeCapacity.eq(0) && changeAmount.eq(0)) ||
-          (changeCapacity.gt(minimalCellCapacityCompatible(changeCellWithoutSudt)) &&
+          (changeCapacity.gt(
+            minimalCellCapacityCompatible(changeCellWithoutSudt)
+          ) &&
             changeAmount.eq(0)))
       ) {
         changeCell.cellOutput.type = undefined;
@@ -482,7 +546,9 @@ export async function transfer(
       if (
         _capacity.eq(0) &&
         _amount.eq(0) &&
-        changeCapacity.gt(minimalCellCapacityCompatible(changeCellWithoutSudt)) &&
+        changeCapacity.gt(
+          minimalCellCapacityCompatible(changeCellWithoutSudt)
+        ) &&
         changeAmount.gt(0)
       ) {
         break;
@@ -501,31 +567,46 @@ export async function transfer(
       return (
         new ScriptValue(changeCell.cellOutput.lock, {
           validate: false,
-        }).equals(new ScriptValue(output.cellOutput.lock, { validate: false })) &&
-        ((changeAmount.eq(0) && !changeCell.cellOutput.type && !output.cellOutput.type) ||
+        }).equals(
+          new ScriptValue(output.cellOutput.lock, { validate: false })
+        ) &&
+        ((changeAmount.eq(0) &&
+          !changeCell.cellOutput.type &&
+          !output.cellOutput.type) ||
           (changeAmount.gte(0) &&
             !!changeCell.cellOutput.type &&
             !!output.cellOutput.type &&
             new ScriptValue(changeCell.cellOutput.type, {
               validate: false,
-            }).equals(new ScriptValue(output.cellOutput.type, { validate: false }))))
+            }).equals(
+              new ScriptValue(output.cellOutput.type, { validate: false })
+            )))
       );
     })) !== -1 &&
     txSkeleton.get("fixedEntries").findIndex((fixedEntry) => {
-      return fixedEntry.field === "output" && fixedEntry.index === changeOutputIndex;
+      return (
+        fixedEntry.field === "output" && fixedEntry.index === changeOutputIndex
+      );
     }) === -1
   ) {
-    const originOutput: Cell = txSkeleton.get("outputs").get(changeOutputIndex)!;
+    const originOutput: Cell = txSkeleton
+      .get("outputs")
+      .get(changeOutputIndex)!;
     const clonedOutput: Cell = JSON.parse(JSON.stringify(originOutput));
     clonedOutput.cellOutput.capacity =
-      "0x" + BI.from(originOutput.cellOutput.capacity).add(changeCapacity).toString(16);
+      "0x" +
+      BI.from(originOutput.cellOutput.capacity)
+        .add(changeCapacity)
+        .toString(16);
     if (changeAmount.gt(0)) {
       clonedOutput.data = toBigUInt128LE(
         readBigUInt128LECompatible(originOutput.data).add(changeAmount)
       );
     }
 
-    const minimalChangeCellCapcaity = BI.from(minimalCellCapacityCompatible(changeCell));
+    const minimalChangeCellCapcaity = BI.from(
+      minimalCellCapacityCompatible(changeCell)
+    );
     const minimalChangeCellWithoutSudtCapacity = BI.from(
       minimalCellCapacityCompatible(changeCellWithoutSudt)
     );
@@ -533,10 +614,13 @@ export async function transfer(
     if (
       changeAmount.gt(0) &&
       splitChangeCell &&
-      changeCapacity.gte(minimalChangeCellCapcaity.add(minimalChangeCellWithoutSudtCapacity))
+      changeCapacity.gte(
+        minimalChangeCellCapcaity.add(minimalChangeCellWithoutSudtCapacity)
+      )
     ) {
       clonedOutput.cellOutput.capacity = originOutput.cellOutput.capacity;
-      changeCellWithoutSudt.cellOutput.capacity = "0x" + changeCapacity.toString(16);
+      changeCellWithoutSudt.cellOutput.capacity =
+        "0x" + changeCapacity.toString(16);
       splitFlag = true;
     }
 
@@ -555,21 +639,30 @@ export async function transfer(
       changeCell.data = toBigUInt128LE(changeAmount.toString());
     }
 
-    const minimalChangeCellCapcaity = BI.from(minimalCellCapacityCompatible(changeCell));
+    const minimalChangeCellCapcaity = BI.from(
+      minimalCellCapacityCompatible(changeCell)
+    );
     const minimalChangeCellWithoutSudtCapacity = BI.from(
       minimalCellCapacityCompatible(changeCellWithoutSudt)
     );
     let splitFlag = false;
     if (changeAmount.gt(0) && splitChangeCell) {
-      if (changeCapacity.gte(minimalChangeCellCapcaity.add(minimalChangeCellWithoutSudtCapacity))) {
-        changeCell.cellOutput.capacity = "0x" + minimalChangeCellCapcaity.toString(16);
+      if (
+        changeCapacity.gte(
+          minimalChangeCellCapcaity.add(minimalChangeCellWithoutSudtCapacity)
+        )
+      ) {
+        changeCell.cellOutput.capacity =
+          "0x" + minimalChangeCellCapcaity.toString(16);
         changeCellWithoutSudt.cellOutput.capacity =
           "0x" + changeCapacity.sub(minimalChangeCellCapcaity).toString(16);
         splitFlag = true;
       }
     }
 
-    txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(changeCell));
+    txSkeleton = txSkeleton.update("outputs", (outputs) =>
+      outputs.push(changeCell)
+    );
     if (changeAmount.gt(0)) {
       txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
         return fixedEntries.push({
@@ -583,7 +676,10 @@ export async function transfer(
         return outputs.push(changeCellWithoutSudt);
       });
     }
-  } else if (changeAmount.gt(0) && changeCapacity.lt(minimalCellCapacityCompatible(changeCell))) {
+  } else if (
+    changeAmount.gt(0) &&
+    changeCapacity.lt(minimalCellCapacityCompatible(changeCell))
+  ) {
     throw new Error("Not enough capacity for change in from infos!");
   }
   if (_capacity.gt(0)) {
@@ -612,7 +708,10 @@ function _generateSudtScript(token: Hash, config: Config): Script {
  * @param fromInfo
  * @param options
  */
-export function ownerForSudt(fromInfo: FromInfo, { config = undefined }: Options = {}): Token {
+export function ownerForSudt(
+  fromInfo: FromInfo,
+  { config = undefined }: Options = {}
+): Token {
   config = config || getConfig();
   const { fromScript } = parseFromInfo(fromInfo, { config });
   const lockHash = computeScriptHash(fromScript);

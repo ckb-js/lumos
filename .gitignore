@@ -116,6 +116,7 @@ packages/experiment-tx-assembler/lib
 
 # knex config
 packages/sql-indexer/knexfile.ts
+packages/lib
 
 experiment/*/lib
 

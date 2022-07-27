@@ -30,7 +30,10 @@ function assert(condition: unknown, debugPath = "variable"): asserts condition {
 }
 
 export function validateConfig(config: Config): void {
-  assert(typeof config.SCRIPTS === "object" && config.SCRIPTS != null, "config.SCRIPT");
+  assert(
+    typeof config.SCRIPTS === "object" && config.SCRIPTS != null,
+    "config.SCRIPT"
+  );
 
   for (const scriptName of Object.keys(config.SCRIPTS)) {
     const scriptConfig = config.SCRIPTS[scriptName];
@@ -40,13 +43,17 @@ export function validateConfig(config: Config): void {
     assertHash(`SCRIPTS.${scriptName}.CODE_HASH`, scriptConfig.CODE_HASH);
     const hashType = scriptConfig.HASH_TYPE;
     if (hashType !== "type" && hashType !== "data") {
-      throw new Error(`SCRIPTS.${scriptName}.HASH_TYPE must either be data or type!`);
+      throw new Error(
+        `SCRIPTS.${scriptName}.HASH_TYPE must either be data or type!`
+      );
     }
     assertHash(`SCRIPTS.${scriptName}.TX_HASH`, scriptConfig.TX_HASH);
     assertInteger(`SCRIPTS.${scriptName}.INDEX`, scriptConfig.INDEX);
     const depType = scriptConfig.DEP_TYPE;
     if (depType !== "depGroup" && depType !== "code") {
-      throw new Error(`SCRIPTS.${scriptName}.DEP_TYPE must either be depGroup or code!`);
+      throw new Error(
+        `SCRIPTS.${scriptName}.DEP_TYPE must either be depGroup or code!`
+      );
     }
     const shortId = scriptConfig.SHORT_ID;
     // Short ID is optional
@@ -79,7 +86,10 @@ function initializeConfigLegacy() {
   const env = process?.env;
   const configName = env?.LUMOS_CONFIG_NAME;
 
-  if ((configName === "LINA" || configName === "AGGRON4") && predefined[configName]) {
+  if (
+    (configName === "LINA" || configName === "AGGRON4") &&
+    predefined[configName]
+  ) {
     config = predefined[configName];
     return;
   }

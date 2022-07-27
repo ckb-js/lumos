@@ -48,13 +48,18 @@ class Method {
       if (res.data.error) {
         throw new ResponseException(JSON.stringify(res.data.error));
       }
-      return this.#options.resultFormatters?.(res.data.result) ?? res.data.result;
+      return (
+        this.#options.resultFormatters?.(res.data.result) ?? res.data.result
+      );
     });
   };
 
   public getPayload = (...params: (string | number | object)[]) => {
     const data = params.map(
-      (p, i) => (this.#options.paramsFormatters[i] && this.#options.paramsFormatters[i](p)) || p
+      (p, i) =>
+        (this.#options.paramsFormatters[i] &&
+          this.#options.paramsFormatters[i](p)) ||
+        p
     );
     const id = Math.round(Math.random() * 10000);
     const payload = {

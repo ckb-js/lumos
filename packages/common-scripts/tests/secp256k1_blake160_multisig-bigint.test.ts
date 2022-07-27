@@ -1,6 +1,9 @@
 import test from "ava";
 import { CellProvider } from "./cell_provider";
-import { TransactionSkeleton, TransactionSkeletonType } from "@ckb-lumos/helpers";
+import {
+  TransactionSkeleton,
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
 import { secp256k1Blake160Multisig } from "../src";
 import { predefined } from "@ckb-lumos/config-manager";
 const { AGGRON4 } = predefined;
@@ -37,7 +40,8 @@ test("BigInt:transfer success", async (t) => {
   t.is(sumOfOutputCapacity, sumOfInputCapacity);
 
   t.is(txSkeleton.get("signingEntries").size, 1);
-  const expectedMessage = "0x692b35a7f06b5a0d80d6f4b393ae2da0176f4c04883fdc322e4b8861ea88121c";
+  const expectedMessage =
+    "0x692b35a7f06b5a0d80d6f4b393ae2da0176f4c04883fdc322e4b8861ea88121c";
   const message = txSkeleton.get("signingEntries").get(0)!.message;
   t.is(message, expectedMessage);
   const expectedWitness =

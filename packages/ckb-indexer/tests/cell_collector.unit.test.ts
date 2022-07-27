@@ -13,7 +13,8 @@ test.before(() => {
 });
 test.afterEach(() => {});
 const lockScript: Script = {
-  codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+  codeHash:
+    "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
   hashType: "type",
   args: "0xbde8b19b4505dd1d1310223edecea20adc4e240e",
 };

@@ -50,7 +50,9 @@ const formatter = {
       ...rest,
     };
   },
-  toOutPoint: (outPoint: CKBComponents.OutPoint | undefined): RPC.OutPoint | undefined => {
+  toOutPoint: (
+    outPoint: CKBComponents.OutPoint | undefined
+  ): RPC.OutPoint | undefined => {
     if (!outPoint) return outPoint;
     const { txHash, index, ...rest } = outPoint;
     return {
@@ -93,7 +95,9 @@ const formatter = {
       ...rest,
     };
   },
-  toRawTransaction: (transaction: CKBComponents.RawTransaction): RPC.RawTransaction => {
+  toRawTransaction: (
+    transaction: CKBComponents.RawTransaction
+  ): RPC.RawTransaction => {
     if (!transaction) return transaction;
     const {
       version,
@@ -105,8 +109,12 @@ const formatter = {
       ...rest
     } = transaction;
     const formattedInputs = inputs.map((input) => formatter.toInput(input));
-    const formattedOutputs = outputs.map((output) => formatter.toOutput(output));
-    const formattedCellDeps = cellDeps.map((cellDep) => formatter.toCellDep(cellDep));
+    const formattedOutputs = outputs.map((output) =>
+      formatter.toOutput(output)
+    );
+    const formattedCellDeps = cellDeps.map((cellDep) =>
+      formatter.toCellDep(cellDep)
+    );
     const tx = {
       version: formatter.toNumber(version),
       cell_deps: formattedCellDeps,
@@ -123,8 +131,10 @@ const formatter = {
     const size = BI.from(pageSize);
     const MAX_SIZE = 50;
     const MIN_SIZE = 0;
-    if (BI.from(size).gt(MAX_SIZE)) throw new PageSizeTooLargeException(pageSize, MAX_SIZE);
-    if (BI.from(size).lt(MIN_SIZE)) throw new PageSizeTooSmallException(pageSize, MIN_SIZE);
+    if (BI.from(size).gt(MAX_SIZE))
+      throw new PageSizeTooLargeException(pageSize, MAX_SIZE);
+    if (BI.from(size).lt(MIN_SIZE))
+      throw new PageSizeTooSmallException(pageSize, MIN_SIZE);
     return formatter.toNumber(`0x${size.toString(16)}`);
   },
   toReverseOrder: (reverse = false) => !!reverse,
@@ -139,9 +149,15 @@ const formatter = {
   toBoolean: (value: boolean) => {
     return !!value;
   },
-  toTransactionProof: (proof: CKBComponents.TransactionProof): RPC.TransactionProof => {
+  toTransactionProof: (
+    proof: CKBComponents.TransactionProof
+  ): RPC.TransactionProof => {
     if (!proof) return proof;
-    const { blockHash: block_hash, witnessesRoot: witnesses_root, ...rest } = proof;
+    const {
+      blockHash: block_hash,
+      witnessesRoot: witnesses_root,
+      ...rest
+    } = proof;
     return {
       block_hash,
       witnesses_root,

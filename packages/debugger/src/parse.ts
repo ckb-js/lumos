@@ -1,17 +1,25 @@
 import { DataLoader, DebuggerData, ExecuteResult } from "./types";
-import { createTransactionFromSkeleton, TransactionSkeletonType } from "@ckb-lumos/helpers";
+import {
+  createTransactionFromSkeleton,
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
 import { CellDep, HexString } from "@ckb-lumos/base";
 import { bytify } from "@ckb-lumos/codec/lib/bytes";
 import { OutPointVec } from "./codecs";
 import { ParamsFormatter } from "@ckb-lumos/rpc";
 import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
 
-export function parseDebuggerMessage(message: string, debugMessage = ""): ExecuteResult {
+export function parseDebuggerMessage(
+  message: string,
+  debugMessage = ""
+): ExecuteResult {
   const codeMatch = message.match(/Run result: (-?\d+)/);
   const cycleMatch = message.match(/Total cycles consumed: (\d+)/);
 
   if (!codeMatch || !cycleMatch) {
-    throw new Error("Invalid debugger result: " + message + (debugMessage ? debugMessage : ""));
+    throw new Error(
+      "Invalid debugger result: " + message + (debugMessage ? debugMessage : "")
+    );
   }
 
   const code = Number(codeMatch[1]);
@@ -27,13 +35,18 @@ type ResolvedCellDep = { cell_dep: RPC.CellDep; data: HexString };
  * @param cellDep
  * @param loader
  */
-function resolveCellDeps(cellDep: CellDep, loader: DataLoader): ResolvedCellDep[] {
+function resolveCellDeps(
+  cellDep: CellDep,
+  loader: DataLoader
+): ResolvedCellDep[] {
   const cellData = loader.getCellData(cellDep.outPoint);
 
   if (cellDep.depType === "depGroup") {
     const outPoints = OutPointVec.unpack(bytify(cellData));
 
-    return [{ data: cellData, cell_dep: ParamsFormatter.toCellDep(cellDep) }].concat(
+    return [
+      { data: cellData, cell_dep: ParamsFormatter.toCellDep(cellDep) },
+    ].concat(
       outPoints.map((outPoint) => {
         return {
           cell_dep: {

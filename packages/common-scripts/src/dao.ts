@@ -55,7 +55,8 @@ export class CellCollector implements CellCollectorInterface {
 
     const fromScript = parseFromInfo(fromInfo, { config }).fromScript;
     const daoTypeScript = generateDaoScript(config);
-    const data: HexString | string = cellType === "deposit" ? DEPOSIT_DAO_DATA : "any";
+    const data: HexString | string =
+      cellType === "deposit" ? DEPOSIT_DAO_DATA : "any";
     this.cellType = cellType;
 
     this.cellCollector = cellProvider.collector({
@@ -165,9 +166,14 @@ export async function deposit(
     const fromScript = parseAddress(fromInfo, { config });
     // address
     if (isSecp256k1Blake160Script(fromScript, config)) {
-      txSkeleton = await secp256k1Blake160.injectCapacity(txSkeleton, outputIndex, fromInfo, {
-        config,
-      });
+      txSkeleton = await secp256k1Blake160.injectCapacity(
+        txSkeleton,
+        outputIndex,
+        fromInfo,
+        {
+          config,
+        }
+      );
     } else if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
       txSkeleton = await secp256k1Blake160Multisig.injectCapacity(
         txSkeleton,
@@ -177,9 +183,14 @@ export async function deposit(
       );
     }
   } else if (fromInfo) {
-    txSkeleton = await secp256k1Blake160Multisig.injectCapacity(txSkeleton, outputIndex, fromInfo, {
-      config,
-    });
+    txSkeleton = await secp256k1Blake160Multisig.injectCapacity(
+      txSkeleton,
+      outputIndex,
+      fromInfo,
+      {
+        config,
+      }
+    );
   }
 
   return txSkeleton;
@@ -255,9 +266,14 @@ async function withdraw(
   // setup input cell
   const fromLockScript = fromInput.cellOutput.lock;
   if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160.setupInputCell(txSkeleton, fromInput, undefined, {
-      config,
-    });
+    txSkeleton = await secp256k1Blake160.setupInputCell(
+      txSkeleton,
+      fromInput,
+      undefined,
+      {
+        config,
+      }
+    );
   } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
@@ -324,7 +340,11 @@ function epochSinceCompatible({
   const _length = BI.from(length);
   const _index = BI.from(index);
   const _number = BI.from(number);
-  return BI.from(0x20).shl(56).add(_length.shl(40)).add(_index.shl(24)).add(_number);
+  return BI.from(0x20)
+    .shl(56)
+    .add(_length.shl(40))
+    .add(_index.shl(24))
+    .add(_number);
 }
 
 /**
@@ -343,7 +363,10 @@ export async function unlock(
   withdrawInput: Cell,
   toAddress: Address,
   fromInfo: FromInfo,
-  { config = undefined, RpcClient = RPC }: Options & { RpcClient?: typeof RPC } = {}
+  {
+    config = undefined,
+    RpcClient = RPC,
+  }: Options & { RpcClient?: typeof RPC } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   _checkDaoScript(config);
@@ -433,7 +456,9 @@ export async function unlock(
   const since: PackedSince = "0x" + minimalSince.toString(16);
 
   while (txSkeleton.get("witnesses").size < txSkeleton.get("inputs").size - 1) {
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+      witnesses.push("0x")
+    );
   }
 
   // add header deps
@@ -447,14 +472,21 @@ export async function unlock(
   const defaultWitnessArgs: WitnessArgs = {
     inputType: toBigUInt64LE(depositHeaderDepIndex),
   };
-  const defaultWitness: HexString = bytes.hexify(blockchain.WitnessArgs.pack(defaultWitnessArgs));
+  const defaultWitness: HexString = bytes.hexify(
+    blockchain.WitnessArgs.pack(defaultWitnessArgs)
+  );
   const fromLockScript = withdrawInput.cellOutput.lock;
   if (isSecp256k1Blake160Script(fromLockScript, config)) {
-    txSkeleton = await secp256k1Blake160.setupInputCell(txSkeleton, withdrawInput, undefined, {
-      config,
-      since,
-      defaultWitness,
-    });
+    txSkeleton = await secp256k1Blake160.setupInputCell(
+      txSkeleton,
+      withdrawInput,
+      undefined,
+      {
+        config,
+        since,
+        defaultWitness,
+      }
+    );
   } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
@@ -586,7 +618,9 @@ function extractDaoDataCompatible(
   return ["c", "ar", "s", "u"]
     .map((key, i) => {
       return {
-        [key]: BI.from(readBigUInt64LECompatible("0x" + hex.slice(len * i, len * (i + 1)))),
+        [key]: BI.from(
+          readBigUInt64LECompatible("0x" + hex.slice(len * i, len * (i + 1)))
+        ),
       };
     })
     .reduce((result, c) => ({ ...result, ...c }), {});
@@ -604,7 +638,11 @@ export function calculateMaximumWithdraw(
   depositDao: PackedDao,
   withdrawDao: PackedDao
 ): bigint {
-  return calculateMaximumWithdrawCompatible(withdrawCell, depositDao, withdrawDao).toBigInt();
+  return calculateMaximumWithdrawCompatible(
+    withdrawCell,
+    depositDao,
+    withdrawDao
+  ).toBigInt();
 }
 
 /**
@@ -625,7 +663,9 @@ export function calculateMaximumWithdrawCompatible(
   const occupiedCapacity = BI.from(minimalCellCapacityCompatible(withdrawCell));
   const outputCapacity = BI.from(withdrawCell.cellOutput.capacity);
   const countedCapacity = outputCapacity.sub(occupiedCapacity);
-  const withdrawCountedCapacity = countedCapacity.mul(withdrawAR).div(depositAR);
+  const withdrawCountedCapacity = countedCapacity
+    .mul(withdrawAR)
+    .div(depositAR);
 
   return withdrawCountedCapacity.add(occupiedCapacity);
 }

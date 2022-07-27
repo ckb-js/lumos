@@ -2,7 +2,9 @@ const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
 const { blockchain, blockchainUtils } = require("@ckb-lumos/codec");
 const RPC = require("@ckb-lumos/rpc");
-const { CKBIndexerTransactionCollector: TransactionCollector } = require("@ckb-lumos/ckb-indexer");
+const {
+  CKBIndexerTransactionCollector: TransactionCollector,
+} = require("@ckb-lumos/ckb-indexer");
 const { isCellMatchQueryOptions } = helpers;
 
 function defaultLogger(level, message) {
@@ -12,7 +14,11 @@ function defaultLogger(level, message) {
 class TransactionManager {
   constructor(
     indexer,
-    { logger = defaultLogger, pollIntervalSeconds = 30, rpc = new RPC.default(indexer.uri) } = {}
+    {
+      logger = defaultLogger,
+      pollIntervalSeconds = 30,
+      rpc = new RPC.default(indexer.uri),
+    } = {}
   ) {
     this.indexer = indexer;
     this.rpc = rpc;
@@ -100,7 +106,9 @@ class TransactionManager {
   }
 
   async sendTransaction(tx) {
-    blockchain.Transaction.pack(blockchainUtils.transformTransactionCodecType(tx));
+    blockchain.Transaction.pack(
+      blockchainUtils.transformTransactionCodecType(tx)
+    );
     tx.inputs.forEach((input) => {
       if (
         this.spentCells.includes(
@@ -135,7 +143,10 @@ class TransactionManager {
     return txHash;
   }
 
-  _filterCells(createdCells, { lock = null, type = null, argsLen = -1, data = "any" } = {}) {
+  _filterCells(
+    createdCells,
+    { lock = null, type = null, argsLen = -1, data = "any" } = {}
+  ) {
     const filteredCreatedCells = createdCells.filter((cell) => {
       return isCellMatchQueryOptions(cell, {
         lock,
@@ -178,7 +189,8 @@ class TransactionManager {
     if (usePendingOutputs && params.length !== 0) {
       this.logger(
         "warn",
-        params.map((param) => `\`${param}\``).join(", ") + " will not effect on pending cells."
+        params.map((param) => `\`${param}\``).join(", ") +
+          " will not effect on pending cells."
       );
     }
     const innerCollector = this.indexer.collector({
@@ -208,7 +220,12 @@ class TransactionManager {
 }
 
 class TransactionManagerCellCollector {
-  constructor(collector, spentCells, filteredCreatedCells, { usePendingOutputs = true } = {}) {
+  constructor(
+    collector,
+    spentCells,
+    filteredCreatedCells,
+    { usePendingOutputs = true } = {}
+  ) {
     this.collector = collector;
     this.spentCells = Set(spentCells);
     this.filteredCreatedCells = filteredCreatedCells;

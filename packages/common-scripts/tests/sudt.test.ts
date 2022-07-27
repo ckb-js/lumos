@@ -1,7 +1,11 @@
 import test from "ava";
 import { sudt, common } from "../src";
 import { CellProvider } from "./cell_provider";
-import { TransactionSkeletonType, TransactionSkeleton, parseAddress } from "@ckb-lumos/helpers";
+import {
+  TransactionSkeletonType,
+  TransactionSkeleton,
+  parseAddress,
+} from "@ckb-lumos/helpers";
 import { bob, alice } from "./account_info";
 import { predefined } from "@ckb-lumos/config-manager";
 import { Script, utils } from "@ckb-lumos/base";
@@ -56,11 +60,15 @@ test("issueToken", async (t) => {
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(0)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
     amount.toString()
   );
 
-  t.true(isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4));
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
+  );
 });
 
 test("transfer secp", async (t) => {
@@ -108,11 +116,15 @@ test("transfer secp", async (t) => {
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(0)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
     amount.toString()
   );
 
-  t.true(isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4));
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
+  );
 });
 
 test("transfer locktime pool multisig & secp", async (t) => {
@@ -180,12 +192,17 @@ test("transfer locktime pool multisig & secp", async (t) => {
   t.is(txSkeleton.get("outputs").size, 2);
   const targetOutput = txSkeleton.get("outputs").get(0)!;
   const changeOutput = txSkeleton.get("outputs").get(1)!;
-  t.is(readBigUInt128LECompatible(targetOutput!.data).toString(), amount.toString());
+  t.is(
+    readBigUInt128LECompatible(targetOutput!.data).toString(),
+    amount.toString()
+  );
   t.true(isSudtScript(targetOutput.cellOutput.type!, AGGRON4));
   t.is(changeOutput!.data, "0x");
   t.is(changeOutput.cellOutput.type, undefined);
 
-  t.true(isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4));
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
+  );
 });
 
 test("ownerForSudt, by address", (t) => {
@@ -197,13 +214,17 @@ test("ownerForSudt, by address", (t) => {
 test("ownerForSudt, by MultisigScript", (t) => {
   const sudtToken = sudt.ownerForSudt(bob.fromInfo);
 
-  const expectedToken = "0x52ac8ff1f0486783a5a6a30659715fcee67709c75172ff7b015910ced4586436";
+  const expectedToken =
+    "0x52ac8ff1f0486783a5a6a30659715fcee67709c75172ff7b015910ced4586436";
 
   t.is(sudtToken, expectedToken);
 });
 
 test("transfer acp", async (t) => {
-  const cellProvider = new CellProvider([...bobAcpSudtInputs, ...aliceAcpSudtInputs]);
+  const cellProvider = new CellProvider([
+    ...bobAcpSudtInputs,
+    ...aliceAcpSudtInputs,
+  ]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
@@ -251,19 +272,29 @@ test("transfer acp", async (t) => {
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(0)!.data).toString(),
-    amount.add(readBigUInt128LECompatible(aliceAcpSudtInputs[0].data)).toString()
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
+    amount
+      .add(readBigUInt128LECompatible(aliceAcpSudtInputs[0].data))
+      .toString()
   );
 
-  t.true(isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4));
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
+  );
 
-  const expectedMessage = "0xd35ffba0a67f0637dab904f9940b3080d2ba9d65bf68a028756438c767251eb4";
+  const expectedMessage =
+    "0xd35ffba0a67f0637dab904f9940b3080d2ba9d65bf68a028756438c767251eb4";
   t.is(txSkeleton.get("signingEntries").size, 1);
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
 
 test("transfer acp => secp, destroyable", async (t) => {
-  const cellProvider = new CellProvider([...bobAcpSudtInputs, ...bobSecpInputs]);
+  const cellProvider = new CellProvider([
+    ...bobAcpSudtInputs,
+    ...bobSecpInputs,
+  ]);
   let txSkeleton: TransactionSkeletonType = TransactionSkeleton({
     cellProvider,
   });
@@ -316,13 +347,18 @@ test("transfer acp => secp, destroyable", async (t) => {
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(0)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
     amount.toString()
   );
 
-  t.true(isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4));
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
+  );
 
-  const expectedMessage = "0xf8000f721af269f64f46c41ba0666a20957e9a70fad54e8badeeb6027dc351ad";
+  const expectedMessage =
+    "0xf8000f721af269f64f46c41ba0666a20957e9a70fad54e8badeeb6027dc351ad";
   t.is(txSkeleton.get("signingEntries").size, 1);
   t.is(txSkeleton.get("signingEntries").get(0)!.message, expectedMessage);
 });
@@ -403,19 +439,27 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(0)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
     BI.from(0).toString()
   );
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(1)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(1)!.data
+    ).toString(),
     amount.toString()
   );
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(2)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(2)!.data
+    ).toString(),
     BI.from(10000).sub(amount).toString()
   );
 
-  t.true(isSudtScript(txSkeleton.get("outputs").get(1)!.cellOutput.type, AGGRON4));
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(1)!.cellOutput.type, AGGRON4)
+  );
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 3);
@@ -471,11 +515,15 @@ test("transfer secp, split change cell", async (t) => {
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(0)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
     amount.toString()
   );
 
-  t.true(isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4));
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
+  );
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 3);
@@ -531,11 +579,15 @@ test("transfer secp, split change cell, not enough for two minimals", async (t) 
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(0)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
     amount.toString()
   );
 
-  t.true(isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4));
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
+  );
 
   t.is(txSkeleton.get("inputs").size, 1);
   t.is(txSkeleton.get("outputs").size, 2);
@@ -614,15 +666,21 @@ test("transfer secp => secp, change to acp and has previous output, split change
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(0)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(0)!.data
+    ).toString(),
     BI.from(10000).sub(amount).toString()
   );
   t.is(
-    readBigUInt128LECompatible(txSkeleton.get("outputs").get(1)!.data).toString(),
+    readBigUInt128LECompatible(
+      txSkeleton.get("outputs").get(1)!.data
+    ).toString(),
     amount.toString()
   );
 
-  t.true(isSudtScript(txSkeleton.get("outputs").get(1)!.cellOutput.type, AGGRON4));
+  t.true(
+    isSudtScript(txSkeleton.get("outputs").get(1)!.cellOutput.type, AGGRON4)
+  );
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 3);

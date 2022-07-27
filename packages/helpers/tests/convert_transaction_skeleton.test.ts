@@ -37,7 +37,10 @@ test("objectToTransactionSkeleton", (t) => {
     t.deepEqual(txSkeleton.get(key as any).toArray(), txSkeletonObject[key]);
   });
 
-  t.deepEqual(txSkeleton.get("inputSinces").toJS(), txSkeletonObject["inputSinces"]);
+  t.deepEqual(
+    txSkeleton.get("inputSinces").toJS(),
+    txSkeletonObject["inputSinces"]
+  );
 
   t.is(txSkeleton.get("inputSinces").get(0), txSkeletonObject.inputSinces["0"]);
 });
@@ -71,7 +74,8 @@ test("createTransactionFromSkeleton, invalid input", (t) => {
     cellOutput: {
       capacity: "0x0",
       lock: {
-        codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        codeHash:
+          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
         args: "0x159890a7cacb44a95bef0743064433d763de229c",
         hashType: "type",
       },
@@ -80,5 +84,8 @@ test("createTransactionFromSkeleton, invalid input", (t) => {
   };
   txSkeleton = txSkeleton.update("inputs", (inputs) => inputs.push(inputCell));
   const error = t.throws(() => createTransactionFromSkeleton(txSkeleton));
-  t.is(error.message, "cannot find OutPoint in Inputs[0] when createTransactionFromSkeleton");
+  t.is(
+    error.message,
+    "cannot find OutPoint in Inputs[0] when createTransactionFromSkeleton"
+  );
 });

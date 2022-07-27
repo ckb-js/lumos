@@ -4,7 +4,11 @@ import path from "path";
 
 const server = createCKBMockRPC({
   blocks: JSON.parse(
-    fs.readFileSync(path.join(__dirname, "../../ckb-indexer/tests/blocks_data.json")).toString()
+    fs
+      .readFileSync(
+        path.join(__dirname, "../../ckb-indexer/tests/blocks_data.json")
+      )
+      .toString()
   ),
   localNode: mockData.localNode(),
 });

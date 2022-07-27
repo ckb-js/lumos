@@ -164,7 +164,9 @@ export async function setupInputCell(
     );
   if (firstIndex !== -1) {
     while (firstIndex >= txSkeleton.get("witnesses").size) {
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.push("0x")
+      );
     }
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
     const newWitnessArgs: WitnessArgs = {
@@ -175,7 +177,9 @@ export async function setupInputCell(
       const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
       const lock = witnessArgs.lock;
       if (!!lock && lock !== newWitnessArgs.lock) {
-        throw new Error("Lock field in first witness is set aside for signature!");
+        throw new Error(
+          "Lock field in first witness is set aside for signature!"
+        );
       }
       const inputType = witnessArgs.inputType;
       if (inputType) {
@@ -187,7 +191,9 @@ export async function setupInputCell(
       }
     }
     witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+      witnesses.set(firstIndex, witness)
+    );
   }
 
   return txSkeleton;
@@ -241,11 +247,17 @@ export async function transfer(
     assertAmountEnough?: boolean;
   } = {}
 ): Promise<TransactionSkeletonType | [TransactionSkeletonType, bigint]> {
-  const result = await transferCompatible(txSkeleton, fromAddress, toAddress, amount, {
-    config,
-    requireToAddress,
-    assertAmountEnough: assertAmountEnough as true | undefined,
-  });
+  const result = await transferCompatible(
+    txSkeleton,
+    fromAddress,
+    toAddress,
+    amount,
+    {
+      config,
+      requireToAddress,
+      assertAmountEnough: assertAmountEnough as true | undefined,
+    }
+  );
   let _txSkeleton: TransactionSkeletonType;
   let _amount: bigint;
   if (result instanceof Array) {
@@ -308,7 +320,9 @@ export async function transferCompatible(
 
   const template = config.SCRIPTS.SECP256K1_BLAKE160;
   if (!template) {
-    throw new Error("Provided config does not have SECP256K1_BLAKE160 script setup!");
+    throw new Error(
+      "Provided config does not have SECP256K1_BLAKE160 script setup!"
+    );
   }
   const scriptOutPoint = {
     txHash: template.TX_HASH,
@@ -370,18 +384,23 @@ export async function transferCompatible(
       if (_amount.gte(cellCapacity)) {
         deductCapacity = cellCapacity;
       } else {
-        deductCapacity = cellCapacity.sub(minimalCellCapacityCompatible(output));
+        deductCapacity = cellCapacity.sub(
+          minimalCellCapacityCompatible(output)
+        );
         if (deductCapacity.gt(_amount)) {
           deductCapacity = _amount;
         }
       }
       _amount = _amount.sub(deductCapacity);
-      output.cellOutput.capacity = "0x" + cellCapacity.sub(deductCapacity).toString(16);
+      output.cellOutput.capacity =
+        "0x" + cellCapacity.sub(deductCapacity).toString(16);
     }
   }
   // Remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.filter((output) => !BI.from(output.cellOutput.capacity).eq(0));
+    return outputs.filter(
+      (output) => !BI.from(output.cellOutput.capacity).eq(0)
+    );
   });
   /*
    * Collect and add new input cells so as to prepare remaining capacities.
@@ -407,15 +426,25 @@ export async function transferCompatible(
     let changeCapacity = BI.from(0);
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
-      previousInputs = previousInputs.add(`${input.outPoint!.txHash}_${input.outPoint!.index}`);
+      previousInputs = previousInputs.add(
+        `${input.outPoint!.txHash}_${input.outPoint!.index}`
+      );
     }
     for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
-      if (previousInputs.has(`${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`)) {
+      if (
+        previousInputs.has(
+          `${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`
+        )
+      ) {
         continue;
       }
-      txSkeleton = txSkeleton.update("inputs", (inputs) => inputs.push(inputCell));
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
+      txSkeleton = txSkeleton.update("inputs", (inputs) =>
+        inputs.push(inputCell)
+      );
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.push("0x")
+      );
       const inputCapacity = BI.from(inputCell.cellOutput.capacity);
       let deductCapacity = inputCapacity;
       if (deductCapacity.gt(_amount)) {
@@ -425,14 +454,17 @@ export async function transferCompatible(
       changeCapacity = changeCapacity.add(inputCapacity).sub(deductCapacity);
       if (
         _amount.eq(0) &&
-        (changeCapacity.eq(0) || changeCapacity.gt(minimalCellCapacityCompatible(changeCell)))
+        (changeCapacity.eq(0) ||
+          changeCapacity.gt(minimalCellCapacityCompatible(changeCell)))
       ) {
         break;
       }
     }
     if (changeCapacity.gt(0)) {
       changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
-      txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(changeCell));
+      txSkeleton = txSkeleton.update("outputs", (outputs) =>
+        outputs.push(changeCell)
+      );
     }
   }
   if (_amount.gt(0) && assertAmountEnough) {
@@ -452,7 +484,9 @@ export async function transferCompatible(
     );
   if (firstIndex !== -1) {
     while (firstIndex >= txSkeleton.get("witnesses").size) {
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.push("0x")
+      );
     }
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
     const newWitnessArgs: WitnessArgs = {
@@ -463,7 +497,9 @@ export async function transferCompatible(
       const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
       const lock = witnessArgs.lock;
       if (!!lock && lock !== newWitnessArgs.lock) {
-        throw new Error("Lock field in first witness is set aside for signature!");
+        throw new Error(
+          "Lock field in first witness is set aside for signature!"
+        );
       }
       const inputType = witnessArgs.inputType;
       if (inputType) {
@@ -475,7 +511,9 @@ export async function transferCompatible(
       }
     }
     witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+      witnesses.set(firstIndex, witness)
+    );
   }
   if (!assertAmountEnough) {
     return [txSkeleton, BI.from(_amount)];
@@ -522,11 +560,19 @@ export async function injectCapacity(
   if (outputIndex >= txSkeleton.get("outputs").size) {
     throw new Error("Invalid output index!");
   }
-  const capacity = BI.from(txSkeleton.get("outputs").get(outputIndex)!.cellOutput.capacity);
-  return await transferCompatible(txSkeleton, fromAddress, null, BI.from(capacity), {
-    config,
-    requireToAddress: false,
-  });
+  const capacity = BI.from(
+    txSkeleton.get("outputs").get(outputIndex)!.cellOutput.capacity
+  );
+  return await transferCompatible(
+    txSkeleton,
+    fromAddress,
+    null,
+    BI.from(capacity),
+    {
+      config,
+      requireToAddress: false,
+    }
+  );
 }
 
 /**

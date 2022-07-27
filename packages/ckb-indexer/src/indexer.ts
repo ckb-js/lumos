@@ -70,7 +70,10 @@ export class CkbIndexer implements Indexer {
   async waitForSync(blockDifference = 0): Promise<void> {
     console.log(blockDifference);
 
-    const rpcTipNumber = parseInt((await this.getCkbRpc().getTipHeader()).number, 16);
+    const rpcTipNumber = parseInt(
+      (await this.getCkbRpc().getTipHeader()).number,
+      16
+    );
     while (true) {
       const indexerTipNumber = parseInt((await this.tip()).blockNumber, 16);
       if (indexerTipNumber + blockDifference >= rpcTipNumber) {
@@ -83,7 +86,10 @@ export class CkbIndexer implements Indexer {
   /** collector cells without blockHash by default.if you need blockHash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
    * don't use OtherQueryOption if you don't need blockHash,cause it will slowly your collect.
    */
-  collector(queries: CKBIndexerQueryOptions, otherQueryOptions?: OtherQueryOptions): CellCollector {
+  collector(
+    queries: CKBIndexerQueryOptions,
+    otherQueryOptions?: OtherQueryOptions
+  ): CellCollector {
     return new CKBCellCollector(this, queries, otherQueryOptions);
   }
 
@@ -167,15 +173,24 @@ export class CkbIndexer implements Indexer {
   }
 
   start(): void {
-    defaultLogger("warn", "deprecated: no need to start the ckb-indexer manually");
+    defaultLogger(
+      "warn",
+      "deprecated: no need to start the ckb-indexer manually"
+    );
   }
 
   startForever(): void {
-    defaultLogger("warn", "deprecated: no need to startForever the ckb-indexer manually");
+    defaultLogger(
+      "warn",
+      "deprecated: no need to startForever the ckb-indexer manually"
+    );
   }
 
   stop(): void {
-    defaultLogger("warn", "deprecated: no need to stop the ckb-indexer manually");
+    defaultLogger(
+      "warn",
+      "deprecated: no need to stop the ckb-indexer manually"
+    );
   }
 
   subscribe(queries: CKBIndexerQueryOptions): EventEmitter {
@@ -198,7 +213,9 @@ export class CkbIndexer implements Indexer {
     if (queries.fromBlock) {
       utils.assertHexadecimal("fromBlock", queries.fromBlock);
     }
-    emitter.fromBlock = !queries.fromBlock ? BI.from(0) : BI.from(queries.fromBlock);
+    emitter.fromBlock = !queries.fromBlock
+      ? BI.from(0)
+      : BI.from(queries.fromBlock);
     if (queries.lock) {
       if (!instanceOfScriptWrapper(queries.lock)) {
         validators.ValidateScript(queries.lock);
@@ -231,7 +248,10 @@ export class CkbIndexer implements Indexer {
         this.scheduleLoop(timeout);
       })
       .catch((e) => {
-        defaultLogger("error", `Error occurs: ${e} ${e.stack}, stopping indexer!`);
+        defaultLogger(
+          "error",
+          `Error occurs: ${e} ${e.stack}, stopping indexer!`
+        );
         this.isSubscribeRunning = false;
       });
   }
@@ -247,7 +267,9 @@ export class CkbIndexer implements Indexer {
     const tip = await this.tip();
     const { blockNumber, blockHash } = tip;
     if (blockNumber === "0x0") {
-      const block: Block = (await this.getCkbRpc().getBlockByNumber(blockNumber)) as Block;
+      const block: Block = (await this.getCkbRpc().getBlockByNumber(
+        blockNumber
+      )) as Block;
       await this.publishAppendBlockEvents(block);
     }
     const nextBlockNumber = BI.from(blockNumber).add(1);
@@ -258,11 +280,15 @@ export class CkbIndexer implements Indexer {
       if (block.header.parentHash === blockHash) {
         await this.publishAppendBlockEvents(block);
       } else {
-        const block: Block = (await this.getCkbRpc().getBlockByNumber(blockNumber)) as Block;
+        const block: Block = (await this.getCkbRpc().getBlockByNumber(
+          blockNumber
+        )) as Block;
         await this.publishAppendBlockEvents(block);
       }
     } else {
-      const block: Block = (await this.getCkbRpc().getBlockByNumber(blockNumber)) as Block;
+      const block: Block = (await this.getCkbRpc().getBlockByNumber(
+        blockNumber
+      )) as Block;
       await this.publishAppendBlockEvents(block);
       timeout = 3 * 1000;
     }
@@ -288,12 +314,16 @@ export class CkbIndexer implements Indexer {
           this.ckbRpcUrl,
           requestData
         ).then((response: GetTransactionRPCResult[]) => {
-          return response.map((item: GetTransactionRPCResult, index: number) => {
-            const cellIndex = tx.inputs[index].previousOutput.index;
-            const outputCell = item.result.transaction.outputs[parseInt(cellIndex)];
-            const outputData = item.result.transaction.outputsData[parseInt(cellIndex)];
-            return { output: outputCell, outputData } as OutputToVerify;
-          });
+          return response.map(
+            (item: GetTransactionRPCResult, index: number) => {
+              const cellIndex = tx.inputs[index].previousOutput.index;
+              const outputCell =
+                item.result.transaction.outputs[parseInt(cellIndex)];
+              const outputData =
+                item.result.transaction.outputsData[parseInt(cellIndex)];
+              return { output: outputCell, outputData } as OutputToVerify;
+            }
+          );
         });
         transactionResponse.forEach(({ output, outputData }) => {
           this.filterEvents(output, blockNumber, outputData);
@@ -308,11 +338,21 @@ export class CkbIndexer implements Indexer {
     await this.emitMedianTimeEvents();
   }
 
-  private filterEvents(output: Output, blockNumber: string, outputData: HexString) {
+  private filterEvents(
+    output: Output,
+    blockNumber: string,
+    outputData: HexString
+  ) {
     for (const emitter of this.emitters) {
       if (
         emitter.lock !== undefined &&
-        this.checkFilterOptions(emitter, blockNumber, outputData, emitter.lock, output.lock)
+        this.checkFilterOptions(
+          emitter,
+          blockNumber,
+          outputData,
+          emitter.lock,
+          output.lock
+        )
       ) {
         emitter.emit("changed");
       }
@@ -321,7 +361,13 @@ export class CkbIndexer implements Indexer {
       for (const emitter of this.emitters) {
         if (
           emitter.type !== undefined &&
-          this.checkFilterOptions(emitter, blockNumber, outputData, emitter.type, output.type)
+          this.checkFilterOptions(
+            emitter,
+            blockNumber,
+            outputData,
+            emitter.type,
+            output.type
+          )
         ) {
           emitter.emit("changed");
         }
@@ -336,7 +382,9 @@ export class CkbIndexer implements Indexer {
     emitterScript: Script,
     script: Script | undefined
   ) {
-    const checkBlockNumber = emitter.fromBlock ? BI.from(emitter.fromBlock).lte(blockNumber) : true;
+    const checkBlockNumber = emitter.fromBlock
+      ? BI.from(emitter.fromBlock).lte(blockNumber)
+      : true;
     const checkOutputData =
       emitter.outputData === "any" || !emitter.outputData
         ? true
@@ -349,7 +397,11 @@ export class CkbIndexer implements Indexer {
     return checkBlockNumber && checkOutputData && checkScript;
   }
 
-  private checkArgs(argsLen: number | "any" | undefined, emitterArgs: HexString, args: HexString) {
+  private checkArgs(
+    argsLen: number | "any" | undefined,
+    emitterArgs: HexString,
+    args: HexString
+  ) {
     if (argsLen === -1 || (!argsLen && argsLen !== 0)) {
       return emitterArgs === args;
     } else if (typeof argsLen === "number" && args.length === argsLen * 2 + 2) {

@@ -22,7 +22,9 @@ export class CKBDebugger implements Executor {
     const debuggerPath = payload.debuggerPath || process.env.CKB_DEBUGGER_PATH;
 
     if (!debuggerPath) {
-      throw new Error("Cannot find ckb-debugger, please set CKB_DEBUGGER_PATH env");
+      throw new Error(
+        "Cannot find ckb-debugger, please set CKB_DEBUGGER_PATH env"
+      );
     }
 
     this.debuggerPath = debuggerPath;
@@ -68,6 +70,9 @@ export class CKBDebugger implements Executor {
       }
     );
 
-    return parseDebuggerMessage(buf.stdout.toString("utf-8"), buf.stderr.toString("utf-8"));
+    return parseDebuggerMessage(
+      buf.stdout.toString("utf-8"),
+      buf.stderr.toString("utf-8")
+    );
   }
 }

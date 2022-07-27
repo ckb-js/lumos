@@ -7,21 +7,25 @@ const calculateMaximumWithdrawInfo = {
     cellOutput: {
       capacity: "0x174876e800",
       lock: {
-        codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+        codeHash:
+          "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
         hashType: "type",
         args: "0xe2193df51d78411601796b35b17b4f8f2cd85bd0",
       },
       type: {
-        codeHash: "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+        codeHash:
+          "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
         hashType: "type",
         args: "0x",
       },
     },
     outPoint: {
-      txHash: "0x9fbcf16a96897c1b0b80d4070752b9f30577d91275f5b460b048b955b58e08eb",
+      txHash:
+        "0x9fbcf16a96897c1b0b80d4070752b9f30577d91275f5b460b048b955b58e08eb",
       index: "0x0",
     },
-    blockHash: "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
+    blockHash:
+      "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
     blockNumber: "0x19249",
     data: "0x0000000000000000",
   },
@@ -32,11 +36,15 @@ const calculateMaximumWithdrawInfo = {
     hash: "0x41d081cd95d705c4e80a6b473f71050efc4a0a0057ee8cab98c4933ad11f0719",
     nonce: "0x98e10e0a992f7274c7dc0c62e9d42f02",
     number: "0x19249",
-    parentHash: "0xd4f3e8725de77aedadcf15755c0f6cdd00bc8d4a971e251385b59ce8215a5d70",
-    proposalsHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+    parentHash:
+      "0xd4f3e8725de77aedadcf15755c0f6cdd00bc8d4a971e251385b59ce8215a5d70",
+    proposalsHash:
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
     timestamp: "0x17293289266",
-    transactionsRoot: "0x9294a800ec389d1b0d9e7c570c249da260a44cc2790bd4aa250f3d5c83eb8cde",
-    unclesHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+    transactionsRoot:
+      "0x9294a800ec389d1b0d9e7c570c249da260a44cc2790bd4aa250f3d5c83eb8cde",
+    unclesHash:
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
   },
   withdrawHeader: {
@@ -46,11 +54,15 @@ const calculateMaximumWithdrawInfo = {
     hash: "0x156ecda80550b6664e5d745b6277c0ae56009681389dcc8f1565d815633ae906",
     nonce: "0x7ffb49f45f12f2b30ac45586ecf13de2",
     number: "0x1929c",
-    parentHash: "0xfe601308a34f1faf68906d2338e60246674ed1f1fbbad3d8471daca21a11cdf7",
-    proposalsHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+    parentHash:
+      "0xfe601308a34f1faf68906d2338e60246674ed1f1fbbad3d8471daca21a11cdf7",
+    proposalsHash:
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
     timestamp: "0x1729cdd69c9",
-    transactionsRoot: "0x467d72af12af6cb122985f9838bfc47073bba30cc37a4075aef54b0f0768f384",
-    unclesHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+    transactionsRoot:
+      "0x467d72af12af6cb122985f9838bfc47073bba30cc37a4075aef54b0f0768f384",
+    unclesHash:
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
     version: "0x0",
   },
   expectedWithdrawCapacity: BigInt("0x1748ec3fdc"),
@@ -75,7 +87,10 @@ test("BigInt:calculateMaximumWithdraw", (t) => {
 test("BigInt:calculateDaoEarliestSince", (t) => {
   const { depositHeader, withdrawHeader } = calculateMaximumWithdrawInfo;
 
-  const result = dao.calculateDaoEarliestSince(depositHeader.epoch, withdrawHeader.epoch);
+  const result = dao.calculateDaoEarliestSince(
+    depositHeader.epoch,
+    withdrawHeader.epoch
+  );
 
   // since: relative = false, type = epochNumber value = { length: 10, index: 5, number: 10478 }
   // if decrease index to 4, will false to validation by dao script

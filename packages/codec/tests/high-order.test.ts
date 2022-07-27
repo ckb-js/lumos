@@ -1,5 +1,10 @@
 import test from "ava";
-import { createArrayCodec, createNullableCodec, createObjectCodec, enhancePack } from "../src";
+import {
+  createArrayCodec,
+  createNullableCodec,
+  createObjectCodec,
+  enhancePack,
+} from "../src";
 import { bytify } from "../src/bytes";
 import { Codec } from "../src/base";
 import { Uint32 } from "../src/number";

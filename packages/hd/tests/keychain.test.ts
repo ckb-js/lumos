@@ -15,7 +15,10 @@ test("create master keychain from seed", (t) => {
     master.privateKey.toString("hex"),
     "e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35"
   );
-  t.is(master.identifier.toString("hex"), "3442193e1bb70916e914552172cd4e2dbc9df811");
+  t.is(
+    master.identifier.toString("hex"),
+    "3442193e1bb70916e914552172cd4e2dbc9df811"
+  );
   t.is(master.fingerprint, 876747070);
   t.is(
     master.chainCode.toString("hex"),
@@ -34,7 +37,10 @@ test("derive children hardened", (t) => {
     child.privateKey.toString("hex"),
     "edb2e14f9ee77d26dd93b4ecede8d16ed408ce149b6cd80b0715a2d911a0afea"
   );
-  t.is(child.identifier.toString("hex"), "5c1bd648ed23aa5fd50ba52b2457c11e9e80a6a7");
+  t.is(
+    child.identifier.toString("hex"),
+    "5c1bd648ed23aa5fd50ba52b2457c11e9e80a6a7"
+  );
   t.is(child.fingerprint, 1545328200);
   t.is(
     child.chainCode.toString("hex"),
@@ -57,7 +63,10 @@ test("derive path", (t) => {
     child.privateKey.toString("hex"),
     "cbce0d719ecf7431d88e6a89fa1483e02e35092af60c042b1df2ff59fa424dca"
   );
-  t.is(child.identifier.toString("hex"), "ee7ab90cde56a8c0e2bb086ac49748b8db9dce72");
+  t.is(
+    child.identifier.toString("hex"),
+    "ee7ab90cde56a8c0e2bb086ac49748b8db9dce72"
+  );
   t.is(child.fingerprint, 4001020172);
   t.is(
     child.chainCode.toString("hex"),
@@ -74,7 +83,10 @@ test("create master keychain from long seed", (t) => {
     master.privateKey.toString("hex"),
     "4b03d6fc340455b363f51020ad3ecca4f0850280cf436c70c727923f6db46c3e"
   );
-  t.is(master.identifier.toString("hex"), "bd16bee53961a47d6ad888e29545434a89bdfe95");
+  t.is(
+    master.identifier.toString("hex"),
+    "bd16bee53961a47d6ad888e29545434a89bdfe95"
+  );
   t.is(master.fingerprint, 3172384485);
   t.is(
     master.chainCode.toString("hex"),
@@ -97,7 +109,10 @@ test("derive path large index", (t) => {
     child.privateKey.toString("hex"),
     "877c779ad9687164e9c2f4f0f4ff0340814392330693ce95a58fe18fd52e6e93"
   );
-  t.is(child.identifier.toString("hex"), "d8ab493736da02f11ed682f88339e720fb0379d1");
+  t.is(
+    child.identifier.toString("hex"),
+    "d8ab493736da02f11ed682f88339e720fb0379d1"
+  );
   t.is(child.fingerprint, 3635104055);
   t.is(
     child.chainCode.toString("hex"),
@@ -111,7 +126,10 @@ test("derive path large index", (t) => {
     child.privateKey.toString("hex"),
     "704addf544a06e5ee4bea37098463c23613da32020d604506da8c0518e1da4b7"
   );
-  t.is(child.identifier.toString("hex"), "78412e3a2296a40de124307b6485bd19833e2e34");
+  t.is(
+    child.identifier.toString("hex"),
+    "78412e3a2296a40de124307b6485bd19833e2e34"
+  );
   t.is(child.fingerprint, 2017537594);
   t.is(
     child.chainCode.toString("hex"),
@@ -125,7 +143,10 @@ test("derive path large index", (t) => {
     child.privateKey.toString("hex"),
     "f1c7c871a54a804afe328b4c83a1c33b8e5ff48f5087273f04efa83b247d6a2d"
   );
-  t.is(child.identifier.toString("hex"), "31a507b815593dfc51ffc7245ae7e5aee304246e");
+  t.is(
+    child.identifier.toString("hex"),
+    "31a507b815593dfc51ffc7245ae7e5aee304246e"
+  );
   t.is(child.fingerprint, 832899000);
   t.is(
     child.chainCode.toString("hex"),
@@ -142,7 +163,10 @@ test("derive children no hardened", (t) => {
     child.privateKey.toString("hex"),
     "abe74a98f6c7eabee0428f53798f0ab8aa1bd37873999041703c742f15ac7e1e"
   );
-  t.is(child.identifier.toString("hex"), "5a61ff8eb7aaca3010db97ebda76121610b78096");
+  t.is(
+    child.identifier.toString("hex"),
+    "5a61ff8eb7aaca3010db97ebda76121610b78096"
+  );
   t.is(child.fingerprint, 1516371854);
   t.is(
     child.chainCode.toString("hex"),
@@ -154,11 +178,20 @@ test("derive children no hardened", (t) => {
 
 test("create child keychain from public key", (t) => {
   const child = Keychain.fromPublicKey(
-    Buffer.from("0357bfe1e341d01c69fe5654309956cbea516822fba8a601743a012a7896ee8dc2", "hex"),
-    Buffer.from("04466b9cc8e161e966409ca52986c584f07e9dc81f735db683c3ff6ec7b1503f", "hex"),
+    Buffer.from(
+      "0357bfe1e341d01c69fe5654309956cbea516822fba8a601743a012a7896ee8dc2",
+      "hex"
+    ),
+    Buffer.from(
+      "04466b9cc8e161e966409ca52986c584f07e9dc81f735db683c3ff6ec7b1503f",
+      "hex"
+    ),
     `m/0'/1/2'`
   );
-  t.is(child.identifier.toString("hex"), "ee7ab90cde56a8c0e2bb086ac49748b8db9dce72");
+  t.is(
+    child.identifier.toString("hex"),
+    "ee7ab90cde56a8c0e2bb086ac49748b8db9dce72"
+  );
   t.is(child.fingerprint, 4001020172);
   t.is(child.index, 2);
   t.is(child.depth, 3);
@@ -172,7 +205,10 @@ test("create child keychain from public key", (t) => {
     grandchild.chainCode.toString("hex"),
     "cfb71883f01676f587d023cc53a35bc7f88f724b1f8c2892ac1275ac822a3edd"
   );
-  t.is(grandchild.identifier.toString("hex"), "d880d7d893848509a62d8fb74e32148dac68412f");
+  t.is(
+    grandchild.identifier.toString("hex"),
+    "d880d7d893848509a62d8fb74e32148dac68412f"
+  );
   t.is(grandchild.fingerprint, 3632322520);
   t.is(grandchild.index, 2);
   t.is(grandchild.depth, 4);
@@ -228,7 +264,10 @@ test("derive ckb keys another seed", (t) => {
   );
 
   t.is(
-    master.derivePath(`m/44'/309'/0'`).deriveChild(0, false).privateKey.toString("hex"),
+    master
+      .derivePath(`m/44'/309'/0'`)
+      .deriveChild(0, false)
+      .privateKey.toString("hex"),
     "047fae4f38b3204f93a6b39d6dbcfbf5901f2b09f6afec21cbef6033d01801f1"
   );
 
@@ -273,7 +312,10 @@ test("derive ckb keys from master extended key", (t) => {
   );
 
   t.is(
-    master.derivePath(`m/44'/309'/0'`).deriveChild(0, false).privateKey.toString("hex"),
+    master
+      .derivePath(`m/44'/309'/0'`)
+      .deriveChild(0, false)
+      .privateKey.toString("hex"),
     "047fae4f38b3204f93a6b39d6dbcfbf5901f2b09f6afec21cbef6033d01801f1"
   );
 
@@ -308,7 +350,10 @@ test("private key add", (t) => {
   );
   // @ts-ignore: Private method
   const sum = Keychain.privateKeyAdd(privateKey, toAdd);
-  t.is(sum.toString("hex"), "d57acaca11f2556dae7df2d22342fb0427f2e97d9ba8064d245aa1601a8adcdd");
+  t.is(
+    sum.toString("hex"),
+    "d57acaca11f2556dae7df2d22342fb0427f2e97d9ba8064d245aa1601a8adcdd"
+  );
 });
 
 test("public key add", (t) => {
@@ -322,5 +367,8 @@ test("public key add", (t) => {
   );
   // @ts-ignore: Private method
   const sum = Keychain.publicKeyAdd(publicKey, toAdd);
-  t.is(sum.toString("hex"), "03db6eab66f918e434bae0e24fd73de1a2b293a2af9bd3ad53123996fa94494f37");
+  t.is(
+    sum.toString("hex"),
+    "03db6eab66f918e434bae0e24fd73de1a2b293a2af9bd3ad53123996fa94494f37"
+  );
 });

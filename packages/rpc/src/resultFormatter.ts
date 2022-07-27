@@ -6,7 +6,8 @@ const isTxPoolIds = (rawTxPool: RPC.RawTxPool): rawTxPool is RPC.TxPoolIds => {
 };
 
 /* eslint-disable camelcase */
-const toNumber = (number: RPC.BlockNumber): CKBComponents.BlockNumber => number.toString();
+const toNumber = (number: RPC.BlockNumber): CKBComponents.BlockNumber =>
+  number.toString();
 const toHash = (hash: RPC.Hash256): CKBComponents.Hash256 => hash;
 const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
   if (!header) return header;
@@ -40,7 +41,9 @@ const toInput = (input: RPC.CellInput): CKBComponents.CellInput => {
   if (!input) return input;
   const { previous_output: previousOutput, ...rest } = input;
   return {
-    previousOutput: previousOutput ? toOutPoint(previousOutput) : previousOutput,
+    previousOutput: previousOutput
+      ? toOutPoint(previousOutput)
+      : previousOutput,
     ...rest,
   };
 };
@@ -53,7 +56,9 @@ const toOutput = (output: RPC.CellOutput): CKBComponents.CellOutput => {
     ...rest,
   };
 };
-const toOutPoint = (outPoint: RPC.OutPoint | undefined): CKBComponents.OutPoint | undefined => {
+const toOutPoint = (
+  outPoint: RPC.OutPoint | undefined
+): CKBComponents.OutPoint | undefined => {
   if (!outPoint) return outPoint;
   const { tx_hash: txHash, ...rest } = outPoint;
   return {
@@ -70,7 +75,11 @@ const toDepType = (type: RPC.DepType): CKBComponents.DepType => {
 
 const toCellDep = (cellDep: RPC.CellDep): CKBComponents.CellDep => {
   if (!cellDep) return cellDep;
-  const { out_point: outPoint = undefined, dep_type = "code", ...rest } = cellDep;
+  const {
+    out_point: outPoint = undefined,
+    dep_type = "code",
+    ...rest
+  } = cellDep;
   return {
     outPoint: toOutPoint(outPoint),
     depType: toDepType(dep_type),
@@ -119,7 +128,9 @@ const toBlock = (block: RPC.Block): CKBComponents.Block => {
     ...rest,
   };
 };
-const toAlertMessage = (alertMessage: RPC.AlertMessage): CKBComponents.AlertMessage => {
+const toAlertMessage = (
+  alertMessage: RPC.AlertMessage
+): CKBComponents.AlertMessage => {
   if (!alertMessage) return alertMessage;
   const { notice_until: noticeUntil, ...rest } = alertMessage;
   return {
@@ -127,7 +138,9 @@ const toAlertMessage = (alertMessage: RPC.AlertMessage): CKBComponents.AlertMess
     ...rest,
   };
 };
-const toBlockchainInfo = (info: RPC.BlockchainInfo): CKBComponents.BlockchainInfo => {
+const toBlockchainInfo = (
+  info: RPC.BlockchainInfo
+): CKBComponents.BlockchainInfo => {
   if (!info) return info;
   const {
     is_initial_block_download: isInitialBlockDownload,
@@ -142,20 +155,26 @@ const toBlockchainInfo = (info: RPC.BlockchainInfo): CKBComponents.BlockchainInf
     ...rest,
   };
 };
-const toLocalNodeInfo = (info: RPC.LocalNodeInfo): CKBComponents.LocalNodeInfo => {
+const toLocalNodeInfo = (
+  info: RPC.LocalNodeInfo
+): CKBComponents.LocalNodeInfo => {
   if (!info) return info;
   const { node_id: nodeId, protocols, ...rest } = info;
   return {
     nodeId,
-    protocols: protocols.map(({ id, name, support_versions: supportVersions }) => ({
-      id,
-      name,
-      supportVersions,
-    })),
+    protocols: protocols.map(
+      ({ id, name, support_versions: supportVersions }) => ({
+        id,
+        name,
+        supportVersions,
+      })
+    ),
     ...rest,
   };
 };
-const toRemoteNodeInfo = (info: RPC.RemoteNodeInfo): CKBComponents.RemoteNodeInfo => {
+const toRemoteNodeInfo = (
+  info: RPC.RemoteNodeInfo
+): CKBComponents.RemoteNodeInfo => {
   if (!info) return info;
   const {
     node_id: nodeId,
@@ -203,7 +222,9 @@ const toTxPoolInfo = (info: RPC.TxPoolInfo): CKBComponents.TxPoolInfo => {
     ...rest,
   };
 };
-const toPeers = (nodes: RPC.RemoteNodeInfo[]): CKBComponents.RemoteNodeInfo[] => {
+const toPeers = (
+  nodes: RPC.RemoteNodeInfo[]
+): CKBComponents.RemoteNodeInfo[] => {
   if (!Array.isArray(nodes)) return [];
   return nodes.map(toRemoteNodeInfo);
 };
@@ -243,7 +264,13 @@ const toCells = (cells: RPC.Cell[]): CKBComponents.Cell[] => {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const toCellIncludingOutPoint = (cell: RPC.CellIncludingOutPoint) => {
   if (!cell) return cell;
-  const { lock, block_hash: blockHash, out_point, output_data_len: outputDataLen, ...rest } = cell;
+  const {
+    lock,
+    block_hash: blockHash,
+    out_point,
+    output_data_len: outputDataLen,
+    ...rest
+  } = cell;
   return {
     blockHash,
     lock: toScript(lock),
@@ -277,7 +304,11 @@ const toTransactionWithStatus = (txWithStatus: RPC.TransactionWithStatus) => {
 };
 const toEpoch = (epoch: RPC.Epoch): CKBComponents.Epoch => {
   if (!epoch) return epoch;
-  const { start_number: startNumber, compact_target: compactTarget, ...rest } = epoch;
+  const {
+    start_number: startNumber,
+    compact_target: compactTarget,
+    ...rest
+  } = epoch;
   return {
     compactTarget,
     startNumber,
@@ -288,7 +319,11 @@ const toTransactionPoint = (
   transactionPoint: RPC.TransactionPoint
 ): CKBComponents.TransactionPoint => {
   if (!transactionPoint) return transactionPoint;
-  const { block_number: blockNumber, tx_hash: txHash, ...rest } = transactionPoint;
+  const {
+    block_number: blockNumber,
+    tx_hash: txHash,
+    ...rest
+  } = transactionPoint;
   return {
     blockNumber,
     txHash,
@@ -300,7 +335,9 @@ const toTransactionsByLockHash = (
 ): CKBComponents.TransactionsByLockHash => {
   if (!transactions) return transactions;
   return transactions.map((tx) => ({
-    consumedBy: tx.consumed_by ? toTransactionPoint(tx.consumed_by) : tx.consumed_by,
+    consumedBy: tx.consumed_by
+      ? toTransactionPoint(tx.consumed_by)
+      : tx.consumed_by,
     createdBy: toTransactionPoint(tx.created_by),
   }));
 };
@@ -315,9 +352,16 @@ const toLiveCellsByLockHash = (
     outputDataLen: cell.output_data_len,
   }));
 };
-const toLockHashIndexState = (index: RPC.LockHashIndexState): CKBComponents.LockHashIndexState => {
+const toLockHashIndexState = (
+  index: RPC.LockHashIndexState
+): CKBComponents.LockHashIndexState => {
   if (!index) return index;
-  const { block_hash: blockHash, block_number: blockNumber, lock_hash: lockHash, ...rest } = index;
+  const {
+    block_hash: blockHash,
+    block_number: blockNumber,
+    lock_hash: lockHash,
+    ...rest
+  } = index;
   return {
     blockHash,
     blockNumber,
@@ -331,7 +375,9 @@ const toLockHashIndexStates = (
   if (!states) return states;
   return states.map(toLockHashIndexState);
 };
-const toBannedAddress = (bannedAddress: RPC.BannedAddress): CKBComponents.BannedAddress => {
+const toBannedAddress = (
+  bannedAddress: RPC.BannedAddress
+): CKBComponents.BannedAddress => {
   if (!bannedAddress) return bannedAddress;
   const {
     ban_reason: banReason,
@@ -346,7 +392,9 @@ const toBannedAddress = (bannedAddress: RPC.BannedAddress): CKBComponents.Banned
     ...rest,
   };
 };
-const toBannedAddresses = (bannedAddresses: RPC.BannedAddresses): CKBComponents.BannedAddresses => {
+const toBannedAddresses = (
+  bannedAddresses: RPC.BannedAddresses
+): CKBComponents.BannedAddresses => {
   if (!bannedAddresses) return bannedAddresses;
   return bannedAddresses.map((banAddr) => toBannedAddress(banAddr));
 };
@@ -425,11 +473,17 @@ const toSyncState = (state: RPC.SyncState): CKBComponents.SyncState => {
     orphanBlocksCount: state.orphan_blocks_count,
   };
 };
-const toTransactionProof = (proof: RPC.TransactionProof): CKBComponents.TransactionProof => {
+const toTransactionProof = (
+  proof: RPC.TransactionProof
+): CKBComponents.TransactionProof => {
   if (!proof) {
     return proof;
   }
-  const { block_hash: blockHash, witnesses_root: witnessesRoot, ...rest } = proof;
+  const {
+    block_hash: blockHash,
+    witnesses_root: witnessesRoot,
+    ...rest
+  } = proof;
   return {
     blockHash,
     witnessesRoot,
@@ -453,19 +507,24 @@ const toConsensus = (consensus: RPC.Consensus): CKBComponents.Consensus => {
     medianTimeBlockCount: consensus.median_time_block_count,
     orphanRateTarget: consensus.orphan_rate_target,
     permanentDifficultyInDummy: consensus.permanent_difficulty_in_dummy,
-    primaryEpochRewardHalvingInterval: consensus.primary_epoch_reward_halving_interval,
+    primaryEpochRewardHalvingInterval:
+      consensus.primary_epoch_reward_halving_interval,
     proposerRewardRatio: consensus.proposer_reward_ratio,
     secondaryEpochReward: consensus.secondary_epoch_reward,
-    secp256k1Blake160MultisigAllTypeHash: consensus.secp256k1_blake160_multisig_all_type_hash,
-    secp256k1Blake160SighashAllTypeHash: consensus.secp256k1_blake160_sighash_all_type_hash,
+    secp256k1Blake160MultisigAllTypeHash:
+      consensus.secp256k1_blake160_multisig_all_type_hash,
+    secp256k1Blake160SighashAllTypeHash:
+      consensus.secp256k1_blake160_sighash_all_type_hash,
     txProposalWindow: consensus.tx_proposal_window,
     txVersion: consensus.tx_version,
     typeIdCodeHash: consensus.type_id_code_hash,
     hardforkFeatures:
-      consensus.hardfork_features?.map(({ epoch_number: epochNumber, ...rest }) => ({
-        epochNumber,
-        ...rest,
-      })) ?? consensus.hardfork_features,
+      consensus.hardfork_features?.map(
+        ({ epoch_number: epochNumber, ...rest }) => ({
+          epochNumber,
+          ...rest,
+        })
+      ) ?? consensus.hardfork_features,
   };
 };
 

@@ -15,7 +15,10 @@ import { bech32, bech32m } from "bech32";
 import { List, Map as ImmutableMap, Record } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
-import { parseDeprecatedCkb2019Address, parseFullFormatAddress } from "./address-to-script";
+import {
+  parseDeprecatedCkb2019Address,
+  parseFullFormatAddress,
+} from "./address-to-script";
 import { hexToByteArray } from "./utils";
 import { validators } from "@ckb-lumos/toolkit";
 
@@ -39,7 +42,9 @@ export function minimalCellCapacityCompatible(
   { validate = true }: { validate?: boolean } = {}
 ): BI {
   if (validate) {
-    blockchain.CellOutput.pack(blockchainUtils.transformCellOutputCodecType(fullCell.cellOutput));
+    blockchain.CellOutput.pack(
+      blockchainUtils.transformCellOutputCodecType(fullCell.cellOutput)
+    );
   }
   // Capacity field itself
   let bytes = 8;
@@ -64,7 +69,8 @@ export function locateCellDep(
 ): CellDep | null {
   config = config || getConfig();
   const scriptTemplate = Object.values(config.SCRIPTS).find(
-    (s) => s && s.CODE_HASH === script.codeHash && s.HASH_TYPE === script.hashType
+    (s) =>
+      s && s.CODE_HASH === script.codeHash && s.HASH_TYPE === script.hashType
   );
 
   if (scriptTemplate) {
@@ -87,7 +93,10 @@ let HAS_WARNED_FOR_DEPRECATED_ADDRESS = false;
  * @param param1
  * @returns
  */
-export function generateAddress(script: Script, { config = undefined }: Options = {}): Address {
+export function generateAddress(
+  script: Script,
+  { config = undefined }: Options = {}
+): Address {
   config = config || getConfig();
   if (!HAS_WARNED_FOR_DEPRECATED_ADDRESS) {
     console.warn(
@@ -98,7 +107,8 @@ export function generateAddress(script: Script, { config = undefined }: Options 
   validators.ValidateScript(script);
 
   const scriptTemplate = Object.values(config.SCRIPTS).find(
-    (s) => s && s.CODE_HASH === script.codeHash && s.HASH_TYPE === script.hashType
+    (s) =>
+      s && s.CODE_HASH === script.codeHash && s.HASH_TYPE === script.hashType
   );
   const data = [];
   if (scriptTemplate && scriptTemplate.SHORT_ID !== undefined) {
@@ -129,7 +139,9 @@ function generatePredefinedAddress(
   const template = config.SCRIPTS[scriptType];
   if (!template) {
     const availableKeys = Object.keys(config.SCRIPTS);
-    throw new Error(`Invalid script type: ${scriptType}, only support: ${availableKeys}`);
+    throw new Error(
+      `Invalid script type: ${scriptType}, only support: ${availableKeys}`
+    );
   }
   const script: Script = {
     codeHash: template.CODE_HASH,
@@ -156,7 +168,10 @@ export function generateSecp256k1Blake160MultisigAddress(
   });
 }
 
-export function parseAddress(address: Address, { config = undefined }: Options = {}): Script {
+export function parseAddress(
+  address: Address,
+  { config = undefined }: Options = {}
+): Script {
   config = config || getConfig();
 
   try {
@@ -168,7 +183,10 @@ export function parseAddress(address: Address, { config = undefined }: Options =
 
 export const addressToScript = parseAddress;
 
-export function encodeToAddress(script: Script, { config = undefined }: Options = {}): Address {
+export function encodeToAddress(
+  script: Script,
+  { config = undefined }: Options = {}
+): Address {
   validators.ValidateScript(script);
   config = config || getConfig();
 
@@ -263,9 +281,9 @@ export function sealTransaction(
   const tx = createTransactionFromSkeleton(txSkeleton);
   if (sealingContents.length !== txSkeleton.get("signingEntries").size) {
     throw new Error(
-      `Requiring ${txSkeleton.get("signingEntries").size} sealing contents but provided ${
-        sealingContents.length
-      }!`
+      `Requiring ${
+        txSkeleton.get("signingEntries").size
+      } sealing contents but provided ${sealingContents.length}!`
     );
   }
   txSkeleton.get("signingEntries").forEach((e, i) => {
@@ -285,7 +303,9 @@ export function sealTransaction(
           newWitnessArgs.outputType = outputType;
         }
 
-        tx.witnesses[e.index] = hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
+        tx.witnesses[e.index] = hexify(
+          blockchain.WitnessArgs.pack(newWitnessArgs)
+        );
         break;
       }
       default:

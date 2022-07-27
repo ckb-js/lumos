@@ -4,7 +4,10 @@ import resultFmts from "../resultFormatter";
 export default {
   sendTransaction: {
     method: "send_transaction",
-    paramsFormatters: [paramsFmts.toRawTransaction, paramsFmts.toOutputsValidator],
+    paramsFormatters: [
+      paramsFmts.toRawTransaction,
+      paramsFmts.toOutputsValidator,
+    ],
     resultFormatters: resultFmts.toHash,
   },
 

@@ -32,7 +32,10 @@ function bytesToHex(bytes: Uint8Array): string {
   return res;
 }
 
-async function findCellsByLock(lockScript: Script, cellProvider: CellProvider): Promise<Cell[]> {
+async function findCellsByLock(
+  lockScript: Script,
+  cellProvider: CellProvider
+): Promise<Cell[]> {
   const collector = cellProvider.collector({
     lock: lockScript,
     type: "empty",
@@ -45,7 +48,10 @@ async function findCellsByLock(lockScript: Script, cellProvider: CellProvider): 
   return cells;
 }
 
-function updateOutputs(txSkeleton: TransactionSkeletonType, output: Cell): TransactionSkeletonType {
+function updateOutputs(
+  txSkeleton: TransactionSkeletonType,
+  output: Cell
+): TransactionSkeletonType {
   const cellCapacity = minimalCellCapacityCompatible(output);
   output.cellOutput.capacity = `0x${cellCapacity.toString(16)}`;
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -108,10 +114,15 @@ async function completeTx(
     .map((c) => BI.from(c.cellOutput.capacity))
     .reduce((a, b) => a.add(b), BI.from(0));
   const needCapacity = outputCapacity.sub(inputCapacity);
-  txSkeleton = await injectCapacity(txSkeleton, fromInfo, BI.from(needCapacity), {
-    config: config,
-    feeRate: feeRate,
-  });
+  txSkeleton = await injectCapacity(
+    txSkeleton,
+    fromInfo,
+    BI.from(needCapacity),
+    {
+      config: config,
+      feeRate: feeRate,
+    }
+  );
   return txSkeleton;
 }
 
@@ -119,7 +130,10 @@ async function injectCapacity(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
   amount: BIish,
-  { config = undefined, feeRate = undefined }: { config?: Config; feeRate?: BIish }
+  {
+    config = undefined,
+    feeRate = undefined,
+  }: { config?: Config; feeRate?: BIish }
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   const _feeRate = feeRate || 1000;
@@ -135,9 +149,9 @@ async function injectCapacity(
     },
     data: "0x",
   };
-  const minimalChangeCapacity: BI = BI.from(minimalCellCapacityCompatible(changeCell)).add(
-    BI.from(10).pow(8)
-  );
+  const minimalChangeCapacity: BI = BI.from(
+    minimalCellCapacityCompatible(changeCell)
+  ).add(BI.from(10).pow(8));
 
   if (_amount.lt(0)) {
     changeCapacity = changeCapacity.sub(_amount);
@@ -154,14 +168,24 @@ async function injectCapacity(
 
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
-      previousInputs = previousInputs.add(`${input.outPoint!.txHash}_${input.outPoint!.index}`);
+      previousInputs = previousInputs.add(
+        `${input.outPoint!.txHash}_${input.outPoint!.index}`
+      );
     }
 
     for await (const inputCell of cellCollector.collect()) {
-      if (previousInputs.has(`${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`))
+      if (
+        previousInputs.has(
+          `${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`
+        )
+      )
         continue;
-      txSkeleton = txSkeleton.update("inputs", (inputs) => inputs.push(inputCell));
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
+      txSkeleton = txSkeleton.update("inputs", (inputs) =>
+        inputs.push(inputCell)
+      );
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.push("0x")
+      );
       const inputCapacity = BI.from(inputCell.cellOutput.capacity);
       let deductCapacity = inputCapacity;
       if (deductCapacity.gt(_amount)) {
@@ -169,14 +193,19 @@ async function injectCapacity(
       }
       _amount = _amount.sub(deductCapacity);
       changeCapacity = changeCapacity.add(inputCapacity).sub(deductCapacity);
-      if (_amount.eq(0) && (changeCapacity.eq(0) || changeCapacity.gte(minimalChangeCapacity)))
+      if (
+        _amount.eq(0) &&
+        (changeCapacity.eq(0) || changeCapacity.gte(minimalChangeCapacity))
+      )
         break;
     }
   }
 
   if (changeCapacity.gt(0)) {
     changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
-    txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(changeCell));
+    txSkeleton = txSkeleton.update("outputs", (outputs) =>
+      outputs.push(changeCell)
+    );
   }
   if (_amount.gt(0) || changeCapacity.lt(minimalChangeCapacity))
     throw new Error("Not enough capacity in from address!");
@@ -195,7 +224,9 @@ async function injectCapacity(
     );
   if (firstIndex !== -1) {
     while (firstIndex >= txSkeleton.get("witnesses").size) {
-      txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
+      txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+        witnesses.push("0x")
+      );
     }
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
     let newWitnessArgs: WitnessArgs;
@@ -207,7 +238,9 @@ async function injectCapacity(
         lock:
           "0x" +
           multisigScript!.slice(2) +
-          SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat((fromInfo as MultisigScript).M),
+          SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat(
+            (fromInfo as MultisigScript).M
+          ),
       };
     } else {
       newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
@@ -217,7 +250,9 @@ async function injectCapacity(
       const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
       const lock = witnessArgs.lock;
       if (!!lock && lock !== newWitnessArgs.lock) {
-        throw new Error("Lock field in first witness is set aside for signature!");
+        throw new Error(
+          "Lock field in first witness is set aside for signature!"
+        );
       }
       const inputType = witnessArgs.inputType;
       if (inputType) {
@@ -229,7 +264,9 @@ async function injectCapacity(
       }
     }
     witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
-    txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
+    txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+      witnesses.set(firstIndex, witness)
+    );
   }
 
   const txFee = calculateTxFee(txSkeleton, _feeRate);
@@ -240,7 +277,9 @@ async function injectCapacity(
   });
   if (changeCapacity.gt(0)) {
     changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
-    txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(changeCell));
+    txSkeleton = txSkeleton.update("outputs", (outputs) =>
+      outputs.push(changeCell)
+    );
   }
 
   return txSkeleton;
@@ -271,7 +310,10 @@ function calculateFee(size: number, feeRate: BIish): BI {
   return BI.from(fee);
 }
 
-function calculateTxFee(txSkeleton: TransactionSkeletonType, feeRate: BIish): BI {
+function calculateTxFee(
+  txSkeleton: TransactionSkeletonType,
+  feeRate: BIish
+): BI {
   const txSize = getTransactionSize(txSkeleton);
   return BI.from(calculateFee(txSize, feeRate));
 }
@@ -317,7 +359,9 @@ interface ScriptConfig {
 function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = utils.ckbHash(
-    blockchain.Transaction.pack(blockchainUtils.transformTransactionCodecType(tx))
+    blockchain.Transaction.pack(
+      blockchainUtils.transformTransactionCodecType(tx)
+    )
   );
   return txHash;
 }
@@ -356,29 +400,47 @@ function getScriptConfigByTypeHash(
   return scriptConfig;
 }
 
-function getScriptConfig(txSkeleton: TransactionSkeletonType, outputIndex: number): ScriptConfig {
+function getScriptConfig(
+  txSkeleton: TransactionSkeletonType,
+  outputIndex: number
+): ScriptConfig {
   const outputCell = txSkeleton.outputs.get(outputIndex);
-  if (outputCell == undefined) throw new Error("Invalid txSkeleton or outputIndex");
+  if (outputCell == undefined)
+    throw new Error("Invalid txSkeleton or outputIndex");
   const type = outputCell.cellOutput.type;
-  if (type !== undefined) return getScriptConfigByTypeHash(txSkeleton, outputIndex);
+  if (type !== undefined)
+    return getScriptConfigByTypeHash(txSkeleton, outputIndex);
   return getScriptConfigByDataHash(txSkeleton, outputIndex);
 }
 
 function isMultisigFromInfo(fromInfo: FromInfo): fromInfo is MultisigScript {
   if (typeof fromInfo !== "object") return false;
-  return "M" in fromInfo && "R" in fromInfo && Array.isArray(fromInfo.publicKeyHashes);
+  return (
+    "M" in fromInfo &&
+    "R" in fromInfo &&
+    Array.isArray(fromInfo.publicKeyHashes)
+  );
 }
 
-function verifyFromInfo(fromInfo: FromInfo, { config = undefined }: Options = {}): void {
+function verifyFromInfo(
+  fromInfo: FromInfo,
+  { config = undefined }: Options = {}
+): void {
   config = config || getConfig();
   if (typeof fromInfo === "string") {
     if (
-      helpers.nameOfScript(parseAddress(fromInfo, { config }), config.SCRIPTS) !==
-      "SECP256K1_BLAKE160"
+      helpers.nameOfScript(
+        parseAddress(fromInfo, { config }),
+        config.SCRIPTS
+      ) !== "SECP256K1_BLAKE160"
     )
-      throw new Error("only SECP256K1_BLAKE160 or SECP256K1_MULTISIG is supported");
+      throw new Error(
+        "only SECP256K1_BLAKE160 or SECP256K1_MULTISIG is supported"
+      );
   } else if (!isMultisigFromInfo(fromInfo)) {
-    throw new Error("only SECP256K1_BLAKE160 or SECP256K1_MULTISIG is supported");
+    throw new Error(
+      "only SECP256K1_BLAKE160 or SECP256K1_MULTISIG is supported"
+    );
   }
 }
 
@@ -409,7 +471,9 @@ interface TypeIDDeployResult extends DeployResult {
  *
  * @param options
  */
-export async function generateDeployWithDataTx(options: DeployOptions): Promise<DeployResult> {
+export async function generateDeployWithDataTx(
+  options: DeployOptions
+): Promise<DeployResult> {
   verifyFromInfo(options.fromInfo, { config: options.config });
 
   let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
@@ -427,7 +491,12 @@ export async function generateDeployWithDataTx(options: DeployOptions): Promise<
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, options.fromInfo, options.config, options.feeRate);
+  txSkeleton = await completeTx(
+    txSkeleton,
+    options.fromInfo,
+    options.config,
+    options.feeRate
+  );
 
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 
@@ -472,7 +541,12 @@ export async function generateDeployWithTypeIdTx(
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, options.fromInfo, options.config, options.feeRate);
+  txSkeleton = await completeTx(
+    txSkeleton,
+    options.fromInfo,
+    options.config,
+    options.feeRate
+  );
 
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 
@@ -483,7 +557,9 @@ export async function generateDeployWithTypeIdTx(
   };
 }
 
-export async function generateUpgradeTypeIdDataTx(options: UpgradeOptions): Promise<DeployResult> {
+export async function generateUpgradeTypeIdDataTx(
+  options: UpgradeOptions
+): Promise<DeployResult> {
   verifyFromInfo(options.fromInfo, { config: options.config });
 
   let txSkeleton = TransactionSkeleton({ cellProvider: options.cellProvider });
@@ -514,7 +590,12 @@ export async function generateUpgradeTypeIdDataTx(options: UpgradeOptions): Prom
 
   txSkeleton = updateOutputs(txSkeleton, output);
   txSkeleton = updateCellDeps(txSkeleton, options.config);
-  txSkeleton = await completeTx(txSkeleton, options.fromInfo, options.config, options.feeRate);
+  txSkeleton = await completeTx(
+    txSkeleton,
+    options.fromInfo,
+    options.config,
+    options.feeRate
+  );
 
   const scriptConfig = getScriptConfig(txSkeleton, 0);
 
