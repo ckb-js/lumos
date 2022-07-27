@@ -23,8 +23,7 @@ const mockTxs: TransactionWithStatus[] = [
   {
     transaction: {
       version: "0",
-      hash:
-        "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
+      hash: "0xfd69760e8062dca9142a6802d7f42f82204e1b266719e34a17cc1f5c0bd03b97",
       headerDeps: [],
       cellDeps: [],
       inputs: [

@@ -36,9 +36,8 @@ export function createCKBMockRPC(options: Options): Express {
 
     if (Number(verbosity) === 0) {
       const formattedBlock = utils.deepCamel(block);
-      const transfromedBlock = blockchainUtils.transformBlockCodecType(
-        formattedBlock
-      );
+      const transfromedBlock =
+        blockchainUtils.transformBlockCodecType(formattedBlock);
       const packedBlock = blockchain.Block.pack(transfromedBlock);
       return bytes.hexify(packedBlock);
     }
