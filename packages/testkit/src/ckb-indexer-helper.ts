@@ -4,6 +4,10 @@ import os from "os";
 // TODO dep
 import downloadAndExtract from "download";
 
+function log(info: string): void {
+  console.log(info);
+}
+
 function getDownloadOsType() {
   // it returns 'Linux' on Linux, 'Darwin' on macOS, and 'Windows_NT' on Windows.
   const osType = os.type();
@@ -18,10 +22,11 @@ function getDownloadOsType() {
 let CKB_Indexer_Version = "0.2.2";
 const download = async () => {
   const osType = getDownloadOsType();
-  shell.echo("ckb-indexer not exist, downloading");
-  shell.echo(`cwd is ${process.cwd()}`);
+  log("ckb-indexer not exist, downloading");
+  log(`cwd is ${process.cwd()}`);
   const downloadUrl = `https://github.com/nervosnetwork/ckb-indexer/releases/download/v${CKB_Indexer_Version}/ckb-indexer-${CKB_Indexer_Version}-${osType}.zip`;
 
+  // TODO use option to extract
   await downloadAndExtract(downloadUrl, process.cwd());
   // const downloadCmd = `curl -O -L "${downloadUrl}"`;
   // shell.exec(downloadCmd);

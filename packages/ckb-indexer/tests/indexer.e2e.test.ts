@@ -90,6 +90,6 @@ test("throw error when pass both null lock and null type to subscribe", (t) => {
     },
     { instanceOf: Error }
   );
-  console.log(error);
+
   t.is(error.message, "Either lock or type script must be provided!");
 });

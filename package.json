@@ -46,7 +46,7 @@
     "docs": "typedoc .",
     "prepare": "husky install",
     "test": "lerna run test --parallel",
-    "e2e-test": "lerna run test:e2e",
+    "e2e-test": "lerna run test:e2e --stream",
     "test-coverage": "yarn c8 --reporter=cobertura --reporter=html --clean -o coverage yarn run test",
     "build:types": "lerna run build:types",
     "build:js": "lerna run build:js --parallel",
