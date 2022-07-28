@@ -16,14 +16,15 @@ import { Uint32LE, Uint64LE } from "./number";
 export type _HashType = "type" | "data" | "data1";
 export type _DepType = "depGroup" | "code";
 
-export const createFixedHexBytesCodec = (
+export function createFixedHexBytesCodec(
   byteLength: number
-): FixedBytesCodec<string> =>
-  createFixedBytesCodec<string>({
+): FixedBytesCodec<string, BytesLike> {
+  return createFixedBytesCodec({
     byteLength,
     pack: (hex) => bytify(hex),
     unpack: (buf) => hexify(buf),
   });
+}
 
 /**
  * placeholder codec, generally used as a placeholder
@@ -36,10 +37,7 @@ export const createFixedHexBytesCodec = (
 // export const UnusedOpt = option(Unknown);
 
 // vector Bytes <byte>
-export const Bytes = byteVecOf<string>({
-  pack: (hex) => bytify(hex),
-  unpack: (buf) => hexify(buf),
-});
+export const Bytes = byteVecOf({ pack: bytify, unpack: hexify });
 
 export const BytesOpt = option(Bytes);
 export const BytesVec = vector(Bytes);

@@ -10,7 +10,13 @@
  * | union  | item-type-id                                     | item                              |
  */
 
-import type { BytesCodec, Fixed, FixedBytesCodec, UnpackResult } from "../base";
+import type {
+  BytesCodec,
+  Fixed,
+  FixedBytesCodec,
+  PackParam,
+  UnpackResult,
+} from "../base";
 import { createBytesCodec, createFixedBytesCodec, isFixedCodec } from "../base";
 import { Uint32LE } from "../number";
 import { concat } from "../bytes";
@@ -24,24 +30,27 @@ type NonNullableKeys<O extends Record<string, unknown>> = {
 
 // prettier-ignore
 type PartialNullable<O extends Record<string, unknown>> =
-     & Partial<Pick<O, NullableKeys<O>>>
-     & Pick<O, NonNullableKeys<O>>;
+  & Partial<Pick<O, NullableKeys<O>>>
+  & Pick<O, NonNullableKeys<O>>;
 
 export type ObjectCodec<T extends Record<string, BytesCodec>> = BytesCodec<
-  PartialNullable<{ [key in keyof T]: UnpackResult<T[key]> }>
+  PartialNullable<{ [key in keyof T]: UnpackResult<T[key]> }>,
+  PartialNullable<{ [key in keyof T]: PackParam<T[key]> }>
 >;
 
 export interface OptionCodec<T extends BytesCodec>
   extends BytesCodec<UnpackResult<T> | undefined> {
-  pack: (packable?: UnpackResult<T>) => Uint8Array;
+  pack: (packable?: PackParam<T>) => Uint8Array;
 }
 
 export type ArrayCodec<T extends BytesCodec> = BytesCodec<
-  Array<UnpackResult<T>>
+  Array<UnpackResult<T>>,
+  Array<PackParam<T>>
 >;
 
 export type UnionCodec<T extends Record<string, BytesCodec>> = BytesCodec<
-  { [key in keyof T]: { type: key; value: UnpackResult<T[key]> } }[keyof T]
+  { [key in keyof T]: { type: key; value: UnpackResult<T[key]> } }[keyof T],
+  { [key in keyof T]: { type: key; value: PackParam<T[key]> } }[keyof T]
 >;
 
 export function array<T extends FixedBytesCodec>(
@@ -280,6 +289,12 @@ export function union<T extends Record<string, BytesCodec>>(
   return createBytesCodec({
     pack(obj) {
       const type = obj.type;
+
+      /* c8 ignore next */
+      if (typeof type !== "string") {
+        throw new Error(`Invalid type in union, type must be a string`);
+      }
+
       const fieldIndex = fields.indexOf(type);
       if (fieldIndex === -1) {
         throw new Error(`Unknown union type: ${String(obj.type)}`);
