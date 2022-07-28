@@ -27,7 +27,9 @@ export function byteArrayOf<Packed, Packable = Packed>(
  * a helper function to create custom codec of `byte`
  * @param codec
  */
-export function byteOf<T>(codec: BytesCodec<T>): FixedBytesCodec<T> {
+export function byteOf<Packed, Packable = Packed>(
+  codec: BytesCodec<Packed, Packable>
+): FixedBytesCodec<Packed, Packable> {
   return byteArrayOf({ ...codec, byteLength: 1 });
 }
 
@@ -35,7 +37,9 @@ export function byteOf<T>(codec: BytesCodec<T>): FixedBytesCodec<T> {
  * a helper function to create custom codec of `vector Bytes <byte>`
  * @param codec
  */
-export const byteVecOf = <T>(codec: BytesCodec<T>): BytesCodec<T> => {
+export function byteVecOf<Packed, Packable = Packed>(
+  codec: BytesCodec<Packed, Packable>
+): BytesCodec<Packed, Packable> {
   return createBytesCodec({
     pack(unpacked) {
       const payload = codec.pack(unpacked);
@@ -50,4 +54,4 @@ export const byteVecOf = <T>(codec: BytesCodec<T>): BytesCodec<T> => {
       return codec.unpack(packed.slice(4));
     },
   });
-};
+}
