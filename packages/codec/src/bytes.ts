@@ -63,9 +63,18 @@ export function hexify(buf: BytesLike): string {
 }
 
 export function concat(...bytesLikes: BytesLike[]): Uint8Array {
-  return Uint8Array.from(
-    bytesLikes.flatMap((bytes) => Array.from(bytify(bytes)))
-  );
+  const unmerged = bytesLikes.map(bytify);
+  const totalSize = unmerged.reduce((size, item) => size + item.length, 0);
+
+  const merged = new Uint8Array(totalSize);
+
+  let offset = 0;
+  unmerged.forEach((item) => {
+    merged.set(item, offset);
+    offset += item.length;
+  });
+
+  return merged;
 }
 
 // export function split(bytes: BytesLike, points: number[]): Uint8Array[] {
