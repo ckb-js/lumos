@@ -1,6 +1,6 @@
 import { blockchain, bytes } from '@ckb-lumos/codec';
 import {
-  indexer as CKBIndexer,
+  Indexer as CkbIndexer,
   helpers,
   Address,
   Script,
@@ -19,8 +19,8 @@ export const { AGGRON4 } = config.predefined;
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
-const rpc = new RPC.default(CKB_RPC_URL);
-const indexer = new CKBIndexer.Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const rpc = new RPC(CKB_RPC_URL);
+const indexer = new CkbIndexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
 type Account = {
   lockScript: Script;

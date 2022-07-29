@@ -1,5 +1,5 @@
 import { blockchain, bytes } from '@ckb-lumos/codec';
-import { BI, Cell, config, helpers, RPC, commons, indexer as CKBIndexer } from "@ckb-lumos/lumos";
+import { BI, Cell, config, helpers, RPC, commons, Indexer as CkbIndexer } from "@ckb-lumos/lumos";
 import {
   COSESign1Builder,
   HeaderMap,
@@ -33,8 +33,8 @@ config.initializeConfig(CONFIG);
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
-const rpc = new RPC.default(CKB_RPC_URL);
-const indexer = new CKBIndexer.Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const rpc = new RPC(CKB_RPC_URL);
+const indexer = new CkbIndexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
 export interface Cardano {
   nami: {

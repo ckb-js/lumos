@@ -1,6 +1,6 @@
 import { blockchain, bytes } from '@ckb-lumos/codec';
 import {
-  indexer as CKBIndexer,
+  Indexer as CkbIndexer,
   helpers,
   Script,
   RPC,
@@ -21,8 +21,8 @@ const { AGGRON4 } = config.predefined;
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
-const rpc = new RPC.default(CKB_RPC_URL);
-const indexer = new CKBIndexer.Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const rpc = new RPC(CKB_RPC_URL);
+const indexer = new CkbIndexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
 const ALICE = {
   PRIVATE_KEY: "0x2c56a92a03d767542222432e4f2a0584f01e516311f705041d86b1af7573751f",

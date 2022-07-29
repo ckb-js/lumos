@@ -1,7 +1,7 @@
 const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
 const { blockchain, blockchainUtils } = require("@ckb-lumos/codec");
-const RPC = require("@ckb-lumos/rpc");
+const RPC = require("@ckb-lumos/rpc").default;
 const {
   CKBIndexerTransactionCollector: TransactionCollector,
 } = require("@ckb-lumos/ckb-indexer");
@@ -17,7 +17,7 @@ class TransactionManager {
     {
       logger = defaultLogger,
       pollIntervalSeconds = 30,
-      rpc = new RPC.default(indexer.uri),
+      rpc = new RPC(indexer.uri),
     } = {}
   ) {
     this.indexer = indexer;

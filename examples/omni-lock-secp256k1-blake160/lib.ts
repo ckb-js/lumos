@@ -1,5 +1,5 @@
 import { bytes, blockchain } from '@ckb-lumos/codec';
-import { BI, Cell, config, helpers, indexer as CKBIndexer, RPC, utils, commons, hd, Hash } from "@ckb-lumos/lumos";
+import { BI, Cell, config, helpers, Indexer as CkbIndexer, RPC, utils, commons, hd, Hash } from "@ckb-lumos/lumos";
 import { SerializeRcLockWitnessLock } from "./generated/omni";
 
 export const CONFIG = config.createConfig({
@@ -21,8 +21,8 @@ config.initializeConfig(CONFIG);
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
-const rpc = new RPC.default(CKB_RPC_URL);
-const indexer = new CKBIndexer.Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const rpc = new RPC(CKB_RPC_URL);
+const indexer = new CkbIndexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
 export function asyncSleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
