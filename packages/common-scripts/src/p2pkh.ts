@@ -10,7 +10,7 @@ import {
   TransactionSkeletonType,
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
-import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 
 function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {
@@ -43,11 +43,7 @@ function calcRawTxHash(tx: TransactionSkeletonType): HexString {
     outputsData: createdTx.outputsData,
     version: createdTx.version,
   };
-  return utils.ckbHash(
-    blockchain.RawTransaction.pack(
-      blockchainUtils.transformRawTransactionCodecType(rawTx)
-    )
-  );
+  return utils.ckbHash(blockchain.RawTransaction.pack(rawTx));
 }
 
 export interface Hasher {

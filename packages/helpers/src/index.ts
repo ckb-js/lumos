@@ -1,4 +1,4 @@
-import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
+import { blockchain, bytes } from "@ckb-lumos/codec";
 import {
   Address,
   Cell,
@@ -42,9 +42,7 @@ export function minimalCellCapacityCompatible(
   { validate = true }: { validate?: boolean } = {}
 ): BI {
   if (validate) {
-    blockchain.CellOutput.pack(
-      blockchainUtils.transformCellOutputCodecType(fullCell.cellOutput)
-    );
+    blockchain.CellOutput.pack(fullCell.cellOutput);
   }
   // Capacity field itself
   let bytes = 8;
