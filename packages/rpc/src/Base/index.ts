@@ -376,5 +376,3 @@ export class Base {
     return this.#rpcProperties;
   }
 }
-
-export default Base;

@@ -137,8 +137,8 @@ export async function transfer(options: Options): Promise<string> {
     "0x" +
       "00".repeat(
         SerializeCardanoWitnessLock({
-          pubkey: bytes.bytify("0x" + "00".repeat(32)),
-          signature: bytes.bytify("0x" + "00".repeat(64)),
+          pubkey: new Uint8Array(32),
+          signature: new Uint8Array(64),
           sig_structure: toSign.buffer,
         }).byteLength
       )

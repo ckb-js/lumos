@@ -7,7 +7,7 @@ import {
   Header,
 } from "@ckb-lumos/base";
 import { Options } from "@ckb-lumos/helpers";
-import RPC from "@ckb-lumos/rpc";
+import { RPC } from "@ckb-lumos/rpc";
 import { FromInfo } from "./from_info";
 
 export interface CellCollectorConstructor {

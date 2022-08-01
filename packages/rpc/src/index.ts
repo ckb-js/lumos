@@ -1,5 +1,5 @@
 // import axios from 'axios'
-import Base from "./Base";
+import { Base } from "./Base";
 import Method from "./method";
 import { CKBComponents } from "./types/api";
 
@@ -16,7 +16,7 @@ import axios from "axios";
 export const ParamsFormatter = paramsFormatter;
 export const ResultFormatter = resultFormatter;
 
-class CKBRPC extends Base {
+export class CKBRPC extends Base {
   #node: CKBComponents.Node = {
     url: "",
   };
@@ -161,4 +161,4 @@ class CKBRPC extends Base {
   };
 }
 
-export default CKBRPC;
+export { CKBRPC as RPC };

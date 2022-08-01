@@ -49,7 +49,7 @@ import { secp256k1Blake160Multisig } from ".";
 import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { CellCollectorConstructor } from "./type";
-import RPC from "@ckb-lumos/rpc";
+import { RPC } from "@ckb-lumos/rpc";
 
 export interface LocktimeCell extends Cell {
   since: PackedSince;

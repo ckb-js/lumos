@@ -197,7 +197,7 @@ function deepCamelizeDepType(data) {
       ) {
         result[key] = deepCamelizeDepType(value);
       } else {
-        result[key] = value === 'dep_group' ? 'depGroup' : value;
+        result[key] = value === "dep_group" ? "depGroup" : value;
       }
     }
     return result;

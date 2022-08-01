@@ -32,7 +32,7 @@ import {
 } from "./helper";
 import { readBigUInt64LECompatible } from "@ckb-lumos/base/lib/utils";
 import { BI, BIish } from "@ckb-lumos/bi";
-import RPC from "@ckb-lumos/rpc";
+import { RPC } from "@ckb-lumos/rpc";
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE = BI.from(180);

@@ -1,5 +1,5 @@
-const utils = require("./utils");
 const { validators } = require("@ckb-lumos/toolkit");
+const utils = require("./utils");
 // Notice this TransactionCollector implementation only uses indexer
 // here. Since the indexer we use doesn't store full transaction data,
 // we will have to run CKB RPC queries on each tx hash to fetch transaction

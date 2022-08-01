@@ -7,10 +7,6 @@ const blocksData = JSON.parse(
   fs.readFileSync(blockDataPath, "utf8").toString()
 );
 
-console.log("blockDataPath", blockDataPath);
-console.log("blocksData length", blocksData.length);
-console.log("blocksData[0].header", blocksData[0]["header"]);
-
 const server = createCKBMockRPC({
   blocks: blocksData,
   localNode: mockData.localNode(),

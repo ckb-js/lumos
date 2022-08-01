@@ -177,12 +177,12 @@ export const CellDep = struct(
   ["outPoint", "depType"]
 );
 
-export const DeCellDepVec = vector(CellDep);
+export const CellDepVec = vector(CellDep);
 
 export const RawTransaction = table(
   {
     version: Uint32LE,
-    cellDeps: DeCellDepVec,
+    cellDeps: CellDepVec,
     headerDeps: Byte32Vec,
     inputs: CellInputVec,
     outputs: CellOutputVec,

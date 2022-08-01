@@ -38,7 +38,7 @@ const SECP_SIGNATURE_PLACEHOLDER = (
   "0x" +
     "00".repeat(
       SerializeRcLockWitnessLock({
-        signature: bytes.bytify("0x" + "00".repeat(65)),
+        signature: new Uint8Array(65),
       }).byteLength
     )
 );

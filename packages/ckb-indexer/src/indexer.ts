@@ -27,7 +27,7 @@ import {
 } from "./type";
 import { BI } from "@ckb-lumos/bi";
 import { RPC as CKBIndexerRpc } from "./rpc";
-import CKBRPC from "@ckb-lumos/rpc";
+import { CKBRPC } from "@ckb-lumos/rpc";
 import { validators } from "@ckb-lumos/toolkit";
 import { IndexerType } from "./indexerType";
 
@@ -68,8 +68,6 @@ export class CkbIndexer implements Indexer {
   }
 
   async waitForSync(blockDifference = 0): Promise<void> {
-    console.log(blockDifference);
-
     const rpcTipNumber = parseInt(
       (await this.getCkbRpc().getTipHeader()).number,
       16

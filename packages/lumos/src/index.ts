@@ -28,10 +28,12 @@ export type {
 export { since, utils } from "@ckb-lumos/base";
 export * as config from "@ckb-lumos/config-manager";
 
-import RPC from "@ckb-lumos/rpc";
-export { RPC };
+export { RPC } from "@ckb-lumos/rpc";
 export * as hd from "@ckb-lumos/hd";
-export { CKBIndexerTransactionCollector , CkbIndexer as Indexer } from "@ckb-lumos/ckb-indexer";
+export {
+  CKBIndexerTransactionCollector,
+  CkbIndexer as Indexer,
+} from "@ckb-lumos/ckb-indexer";
 export * as helpers from "@ckb-lumos/helpers";
 export * as commons from "@ckb-lumos/common-scripts";
 export { BI } from "@ckb-lumos/bi";

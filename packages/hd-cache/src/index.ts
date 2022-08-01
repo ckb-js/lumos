@@ -16,7 +16,7 @@ import {
 } from "@ckb-lumos/base";
 import { Map, Set } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
-import RPC from "@ckb-lumos/rpc";
+import { RPC } from "@ckb-lumos/rpc";
 import {
   AccountExtendedPublicKey,
   AddressType,

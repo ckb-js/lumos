@@ -127,29 +127,29 @@ test("test type id", (t) => {
 
 test("test camalize", (t) => {
   const sampleInput = {
-    dep_type: 'dep_group',
+    dep_type: "dep_group",
     script: {
-      code_hash: 'code_hash',
-      hash_type: 'hash_type',
-      args: 'args',
-    }
-  }
+      code_hash: "code_hash",
+      hash_type: "hash_type",
+      args: "args",
+    },
+  };
   const expectedOutput1 = {
-    depType: 'dep_group',
+    depType: "dep_group",
     script: {
-      codeHash: 'code_hash',
-      hashType: 'hash_type',
-      args: 'args',
-    }
-  }
+      codeHash: "code_hash",
+      hashType: "hash_type",
+      args: "args",
+    },
+  };
   const expectedOutput2 = {
-    depType: 'depGroup',
+    depType: "depGroup",
     script: {
-      codeHash: 'code_hash',
-      hashType: 'hash_type',
-      args: 'args',
-    }
-  }
+      codeHash: "code_hash",
+      hashType: "hash_type",
+      args: "args",
+    },
+  };
   t.deepEqual(deepCamel(sampleInput), expectedOutput1);
   t.deepEqual(deepCamelizeDepType(deepCamel(sampleInput)), expectedOutput2);
 });
