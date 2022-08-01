@@ -1,12 +1,12 @@
-import { BI } from "@ckb-lumos/bi";
-import { UnpackResult } from "./base";
+import { PackParam } from "@ckb-lumos/codec";
 import * as blockchain from "./blockchain";
-declare type TransactionCodecType = UnpackResult<typeof blockchain.Transaction>;
-declare type BlockCodecType = UnpackResult<typeof blockchain.Block>;
-declare type UncleBlockCodecType = UnpackResult<typeof blockchain.UncleBlock>;
-declare type HeaderCodecType = UnpackResult<typeof blockchain.Header>;
+import { Transaction, Block, Header, UncleBlock  } from '../lib/api';
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
+declare type TransactionCodecType = PackParam<typeof blockchain.Transaction>;
+declare type BlockCodecType = PackParam<typeof blockchain.Block>;
+declare type UncleBlockCodecType = PackParam<typeof blockchain.UncleBlock>;
+declare type HeaderCodecType = PackParam<typeof blockchain.Header>;
+
 /**
  * from Transantion defined in  @ckb-lumos/base/lib/api.d.ts
  * ```
@@ -36,7 +36,7 @@ declare type HeaderCodecType = UnpackResult<typeof blockchain.Header>;
  * @param data Transantion defined in @ckb-lumos/base/lib/api.d.ts
  * @returns TransactionCodecType
  */
-export function transformTransactionCodecType(data: any): TransactionCodecType {
+export function transformTransactionCodecType(data: Transaction): TransactionCodecType {
   return {
     raw: {
       version: data.version,
@@ -50,32 +50,32 @@ export function transformTransactionCodecType(data: any): TransactionCodecType {
   };
 }
 
-export function transformHeaderCodecType(data: any): HeaderCodecType {
+export function transformHeaderCodecType(data: Header): HeaderCodecType {
   return {
     raw: {
-      timestamp: BI.from(data.timestamp),
-      number: BI.from(data.number),
-      epoch: BI.from(data.epoch),
+      timestamp: (data.timestamp),
+      number: (data.number),
+      epoch: (data.epoch),
       compactTarget: Number(data.compactTarget),
       dao: data.dao,
       parentHash: data.parentHash,
       proposalsHash: data.proposalsHash,
       transactionsRoot: data.transactionsRoot,
       extraHash: data.extraHash,
-      version: Number(data.version),
+      version: (data.version),
     },
-    nonce: BI.from(data.nonce),
+    nonce: (data.nonce),
   };
 }
 
-export function transformUncleBlockCodecType(data: any): UncleBlockCodecType {
+export function transformUncleBlockCodecType(data: UncleBlock): UncleBlockCodecType {
   return {
     header: transformHeaderCodecType(data.header),
     proposals: data.proposals,
   };
 }
 
-export function transformBlockCodecType(data: any): BlockCodecType {
+export function transformBlockCodecType(data: Block): BlockCodecType {
   return {
     header: transformHeaderCodecType(data.header),
     uncles: data.uncles.map(transformUncleBlockCodecType),
@@ -83,4 +83,3 @@ export function transformBlockCodecType(data: any): BlockCodecType {
     proposals: data.proposals,
   };
 }
-/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */

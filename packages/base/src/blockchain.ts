@@ -1,20 +1,20 @@
-import { Uint128LE, Uint8 } from "./number/uint";
 import {
   AnyCodec,
-  BytesCodec,
   BytesLike,
   createBytesCodec,
   createFixedBytesCodec,
-  FixedBytesCodec,
   PackParam,
   UnpackResult,
-} from "./base";
-import { bytify, hexify } from "./bytes";
-import { byteVecOf, option, table, vector, struct } from "./molecule";
-import { Uint32LE, Uint64LE } from "./number";
+  number, molecule, bytes
+} from "@ckb-lumos/codec";
+import {BytesCodec ,FixedBytesCodec,} from '@ckb-lumos/codec/lib/base';
 
-export type _HashType = "type" | "data" | "data1";
-export type _DepType = "depGroup" | "code";
+import { HashType as _HashType, DepType as _DepType  } from '../lib/api';
+
+const { Uint128LE, Uint8,  Uint32LE, Uint64LE  } = number
+const { byteVecOf, option, table, vector, struct } = molecule
+const { bytify, hexify } = bytes
+
 
 export function createFixedHexBytesCodec(
   byteLength: number
