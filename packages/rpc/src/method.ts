@@ -2,7 +2,7 @@ import axios from "axios";
 import { IdNotMatchException, ResponseException } from "./exceptions";
 import { CKBComponents } from "./types/api";
 
-class Method {
+export class Method {
   #name: string;
 
   get name(): string {
@@ -72,5 +72,3 @@ class Method {
   };
 }
 /* eslint-enable @typescript-eslint/ban-types, @typescript-eslint/explicit-module-boundary-types */
-
-export default Method;

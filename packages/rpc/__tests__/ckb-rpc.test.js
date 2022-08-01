@@ -3,7 +3,7 @@
 jest.mock('axios')
 
 const axiosMock = require('axios')
-const CKBRPC = require('../lib').default
+const {CKBRPC} = require('../lib')
 
 describe('Test with mock', () => {
   const rpc = new CKBRPC('http://localhost:8114')

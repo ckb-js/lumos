@@ -1,6 +1,6 @@
 jest.mock('axios')
 const axiosMock = require('axios')
-const Method = require('../lib/method').default
+const {Method} = require('../lib/method')
 
 describe('Test Method', () => {
   const ranNum = 1

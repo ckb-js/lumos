@@ -2,7 +2,7 @@ const http = require('http')
 const https = require('https')
 
 const NODE_URL = 'http://localhost:8114'
-const CKBRPC = require('../lib').default
+const {CKBRPC} = require('../lib')
 
 const rpc = new CKBRPC(NODE_URL)
 describe('ckb-rpc settings and helpers', () => {

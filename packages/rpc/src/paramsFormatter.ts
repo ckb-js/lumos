@@ -11,7 +11,7 @@ import { RPC } from "./types/rpc";
 import { CKBComponents } from "./types/api";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
-const formatter = {
+export const formatter = {
   toOptional: (format?: (args: any) => any) => (arg: any) => {
     if (!format || arg === undefined || arg === null) {
       return arg;
@@ -165,6 +165,4 @@ const formatter = {
     };
   },
 };
-
-export default formatter;
 /* eslint-enable camelcase, @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */

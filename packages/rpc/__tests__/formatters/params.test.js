@@ -1,4 +1,4 @@
-const { default: paramsFmt } = require('../../lib/paramsFormatter')
+const { formatter: paramsFmt } = require('../../lib/paramsFormatter')
 const fixtures = require('./params.fixtures.json')
 
 describe('params formatter', () => {

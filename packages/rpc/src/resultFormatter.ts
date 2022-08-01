@@ -560,7 +560,7 @@ const toRawTxPool = (rawTxPool: RPC.RawTxPool): CKBComponents.RawTxPool => {
   return { proposed, pending };
 };
 
-export default {
+export {
   toNumber,
   toHash,
   toHeader,

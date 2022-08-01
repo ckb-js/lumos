@@ -1,5 +1,4 @@
-import paramsFmts from "../paramsFormatter";
-
+import { formatter as paramsFmts } from "../paramsFormatter";
 export default {
   dryRunTransaction: {
     method: "dry_run_transaction",

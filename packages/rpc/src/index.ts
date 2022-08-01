@@ -1,10 +1,11 @@
 // import axios from 'axios'
 import { Base } from "./Base";
-import Method from "./method";
+import { Method } from "./method";
 import { CKBComponents } from "./types/api";
 
-import paramsFormatter from "./paramsFormatter";
-import resultFormatter from "./resultFormatter";
+import { formatter as paramsFormatter } from "./paramsFormatter";
+import * as resultFormatter from "./resultFormatter";
+
 import {
   IdNotMatchedInBatchException,
   MethodInBatchNotFoundException,

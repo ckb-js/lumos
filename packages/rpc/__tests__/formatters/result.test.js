@@ -1,4 +1,4 @@
-const { default: resultFmt } = require('../../lib/resultFormatter')
+const resultFmt = require('../../lib/resultFormatter')
 const fixtures = require('./result.fixtures.json')
 
 describe('result formatter', () => {
