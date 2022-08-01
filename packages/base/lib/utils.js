@@ -171,7 +171,33 @@ function deepCamel(data) {
       ) {
         result[toCamel(key)] = deepCamel(value);
       } else {
-        result[toCamel(key)] = value === "dep_group" ? "depGroup" : value;
+        result[toCamel(key)] = value;
+      }
+    }
+    return result;
+  }
+  return data;
+}
+
+function deepCamelizeDepType(data) {
+  if (Object.prototype.toString.call(data) === "[object Array]") {
+    if (data.length === 0) {
+      return data;
+    } else {
+      return data.map((item) => deepCamelizeDepType(item));
+    }
+  }
+  let result = {};
+  if (Object.prototype.toString.call(data) === "[object Object]") {
+    for (let key in data) {
+      const value = data[key];
+      if (
+        Object.prototype.toString.call(value) === "[object Object]" ||
+        Object.prototype.toString.call(value) === "[object Array]"
+      ) {
+        result[key] = deepCamelizeDepType(value);
+      } else {
+        result[key] = value === 'dep_group' ? 'depGroup' : value;
       }
     }
     return result;
@@ -183,6 +209,7 @@ module.exports = {
   CKBHasher,
   ckbHash,
   deepCamel,
+  deepCamelizeDepType,
   toBigUInt64LE,
   toBigUInt64LECompatible,
   readBigUInt64LE,
