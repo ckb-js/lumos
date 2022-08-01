@@ -1,7 +1,7 @@
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+  value: true,
 });
 exports.transformBlockCodecType = transformBlockCodecType;
 exports.transformHeaderCodecType = transformHeaderCodecType;
@@ -45,9 +45,9 @@ function transformTransactionCodecType(data) {
       headerDeps: data.headerDeps,
       inputs: data.inputs,
       outputs: data.outputs,
-      outputsData: data.outputsData
+      outputsData: data.outputsData,
     },
-    witnesses: data.witnesses
+    witnesses: data.witnesses,
   };
 }
 
@@ -63,16 +63,16 @@ function transformHeaderCodecType(data) {
       proposalsHash: data.proposalsHash,
       transactionsRoot: data.transactionsRoot,
       extraHash: data.extraHash,
-      version: data.version
+      version: data.version,
     },
-    nonce: data.nonce
+    nonce: data.nonce,
   };
 }
 
 function transformUncleBlockCodecType(data) {
   return {
     header: transformHeaderCodecType(data.header),
-    proposals: data.proposals
+    proposals: data.proposals,
   };
 }
 
@@ -81,7 +81,7 @@ function transformBlockCodecType(data) {
     header: transformHeaderCodecType(data.header),
     uncles: data.uncles.map(transformUncleBlockCodecType),
     transactions: data.transactions.map(transformTransactionCodecType),
-    proposals: data.proposals
+    proposals: data.proposals,
   };
 }
 //# sourceMappingURL=blockchainUtils.js.map

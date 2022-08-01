@@ -5,7 +5,7 @@ import {
   TransactionSkeletonType,
   Options,
 } from "@ckb-lumos/helpers";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import {
   values,
   Address,
@@ -18,6 +18,7 @@ import {
   OutPoint,
   HexString,
   PackedSince,
+  blockchain,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import {

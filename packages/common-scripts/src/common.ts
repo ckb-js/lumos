@@ -24,8 +24,9 @@ import {
   utils,
   Transaction,
   HashType,
+  blockchain,
+  blockchainUtils,
 } from "@ckb-lumos/base";
-import { blockchain, blockchainUtils } from "@ckb-lumos/codec";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
 import { Set } from "immutable";

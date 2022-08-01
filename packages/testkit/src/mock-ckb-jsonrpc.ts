@@ -1,8 +1,14 @@
 import { JSONRPCResponse, JSONRPCServer } from "json-rpc-2.0";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
-import { LocalNode, Block, utils } from "@ckb-lumos/base";
-import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
+import {
+  LocalNode,
+  Block,
+  utils,
+  blockchain,
+  blockchainUtils,
+} from "@ckb-lumos/base";
+import { bytes } from "@ckb-lumos/codec";
 interface Options {
   blocks: Block[];
   localNode: LocalNode;

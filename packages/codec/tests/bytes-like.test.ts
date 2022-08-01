@@ -1,12 +1,12 @@
 import test from "ava";
-import { blockchain, molecule, number } from "../src";
+import { molecule, number } from "../src";
+import { Byte32 } from "../src/blockchain";
 import { randomBytes } from "crypto";
 import { concat, hexify } from "../src/bytes";
 import { BI } from "@ckb-lumos/bi";
 
 const { struct } = molecule;
 const { Uint32 } = number;
-const { Byte32 } = blockchain;
 
 test("pack with BytesLike and BIish", (t) => {
   const OutPoint = struct({ tx_hash: Byte32, index: Uint32 }, [

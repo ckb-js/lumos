@@ -2,7 +2,9 @@
 // structures to allow seamless immutable.js integration.
 const { xxHash32 } = require("js-xxhash");
 const { ckbHash } = require("./utils");
-const { bytes, blockchain, blockchainUtils } = require("@ckb-lumos/codec");
+const { bytes } = require("@ckb-lumos/codec");
+const blockchain = require("./blockchain");
+const blockchainUtils = require("./blockchainUtils");
 
 const { hexify } = bytes;
 class Value {

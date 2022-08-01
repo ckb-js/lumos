@@ -4,7 +4,7 @@ import {
   Options,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import {
   values,
   HexString,
@@ -17,6 +17,7 @@ import {
   CellProvider,
   QueryOptions,
   PackedSince,
+  blockchain,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { ScriptValue } = values;

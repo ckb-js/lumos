@@ -5,12 +5,13 @@ import {
   Script,
   HexString,
   RawTransaction,
+  blockchain,
 } from "@ckb-lumos/base";
 import {
   TransactionSkeletonType,
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 
 function groupInputs(inputs: Cell[], locks: Script[]): Map<string, number[]> {

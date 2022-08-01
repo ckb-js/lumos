@@ -2,7 +2,8 @@ const blake2b = require("blake2b");
 const isEqual = require("lodash.isequal");
 const { xxHash32 } = require("js-xxhash");
 const { BI } = require("@ckb-lumos/bi");
-const { bytes, blockchain } = require("@ckb-lumos/codec");
+const { bytes } = require("@ckb-lumos/codec");
+const blockchain = require("./blockchain");
 
 const { bytify, hexify, bytifyRawString } = bytes;
 class CKBHasher {

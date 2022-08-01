@@ -11,8 +11,9 @@ import {
   utils,
   values,
   WitnessArgs,
+  blockchain,
 } from "@ckb-lumos/base";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import {
   createTransactionFromSkeleton,

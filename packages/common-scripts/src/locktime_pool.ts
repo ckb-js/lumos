@@ -4,7 +4,7 @@ import {
   TransactionSkeletonType,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import {
@@ -26,6 +26,7 @@ import {
   QueryOptions,
   CellCollector as CellCollectorType,
   SinceValidationInfo,
+  blockchain,
 } from "@ckb-lumos/base";
 const { toBigUInt64LE, readBigUInt64LECompatible, readBigUInt64LE } = utils;
 const { ScriptValue } = values;

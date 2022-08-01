@@ -4,7 +4,7 @@ import {
   parseAddress,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import {
   values,
   utils,
@@ -12,6 +12,7 @@ import {
   Script,
   Address,
   HexString,
+  blockchain,
 } from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
 import { Config } from "@ckb-lumos/config-manager";

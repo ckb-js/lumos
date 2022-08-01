@@ -16,8 +16,9 @@ import {
   PackedDao,
   PackedSince,
   CellCollector as CellCollectorInterface,
+  blockchain,
 } from "@ckb-lumos/base";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { parseSince } = sinceUtils;

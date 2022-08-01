@@ -1,8 +1,11 @@
+import { bytes, molecule } from "@ckb-lumos/codec";
 import test from "ava";
-import { BytesOpt, WitnessArgs, Script, _HashType } from "../src/blockchain";
-import { bytify, hexify } from "../src/bytes";
-import { byteVecOf, table } from "../src/molecule";
+import { BytesOpt, WitnessArgs, Script } from "../src/blockchain";
 import { randomBytes } from "crypto";
+import { HashType } from "../lib/api";
+
+const { bytify, hexify } = bytes;
+const { byteVecOf, table } = molecule;
 
 const SECP256K1_SIGNATURE_LENGTH = 65;
 
@@ -88,7 +91,7 @@ test("Script codec", (t) => {
   const script = {
     codeHash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hashType: "type" as _HashType,
+    hashType: "type" as HashType,
     args: "0x0000",
   };
   t.deepEqual(

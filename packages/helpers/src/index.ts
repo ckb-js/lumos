@@ -1,4 +1,4 @@
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import {
   Address,
   Cell,
@@ -10,6 +10,7 @@ import {
   Script,
   Transaction,
   WitnessArgs,
+  blockchain,
 } from "@ckb-lumos/base";
 import { bech32, bech32m } from "bech32";
 import { List, Map as ImmutableMap, Record } from "immutable";

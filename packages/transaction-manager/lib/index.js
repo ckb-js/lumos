@@ -1,6 +1,6 @@
 const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
-const { blockchain, blockchainUtils } = require("@ckb-lumos/codec");
+const { blockchain, blockchainUtils } = require("@ckb-lumos/base");
 const { RPC } = require("@ckb-lumos/rpc");
 const {
   CKBIndexerTransactionCollector: TransactionCollector,

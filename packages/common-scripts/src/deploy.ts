@@ -7,8 +7,10 @@ import {
   values,
   WitnessArgs,
   Transaction,
+  blockchain,
+  blockchainUtils,
 } from "@ckb-lumos/base";
-import { blockchain, blockchainUtils, bytes } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,

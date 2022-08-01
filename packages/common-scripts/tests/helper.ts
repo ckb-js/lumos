@@ -2,8 +2,8 @@ import {
   TransactionSkeletonType,
   TransactionSkeleton,
 } from "@ckb-lumos/helpers";
-import { Cell, CellDep } from "@ckb-lumos/base";
-import { blockchain, bytes } from "@ckb-lumos/codec";
+import { Cell, CellDep, blockchain } from "@ckb-lumos/base";
+import { bytes } from "@ckb-lumos/codec";
 
 export interface txObject {
   inputs: Cell[];

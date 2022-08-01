@@ -25,6 +25,7 @@
     "@ckb-lumos/helpers": "0.18.0",
     "@ckb-lumos/rpc": "0.18.0",
     "@ckb-lumos/toolkit": "0.18.0",
+    "@ckb-lumos/codec": "0.18.0",
     "immutable": "^4.0.0-rc.12"
   },
   "repository": {
