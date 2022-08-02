@@ -17,7 +17,7 @@ import {
 } from "../src";
 import { BI } from "@ckb-lumos/bi";
 import { stub } from "sinon";
-import { CkbIndexer } from "@ckb-lumos/ckb-indexer";
+import { Indexer } from "@ckb-lumos/ckb-indexer";
 
 const mockTxs: TransactionWithStatus[] = [
   {
@@ -177,7 +177,7 @@ const mnemonic =
 
 const NODE_URI = "http://127.0.0.1:8118/rpc";
 const INDEX_URI = "ttp://127.0.0.1:8120";
-const indexer = new CkbIndexer(INDEX_URI, NODE_URI);
+const indexer = new Indexer(INDEX_URI, NODE_URI);
 
 class MockTransactionCollector extends BaseIndexerModule.TransactionCollector {
   async *collect(): any {

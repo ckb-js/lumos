@@ -3,9 +3,7 @@ const { helpers, values } = require("@ckb-lumos/base");
 const TransactionManager = require("../lib");
 const { isCellMatchQueryOptions } = helpers;
 const sinon = require("sinon");
-const {
-  CKBIndexerTransactionCollector: TransactionCollector,
-} = require("@ckb-lumos/ckb-indexer");
+const { TransactionCollector } = require("@ckb-lumos/ckb-indexer");
 
 const cells = [
   {

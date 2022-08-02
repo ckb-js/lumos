@@ -2,9 +2,7 @@ const { List, Set } = require("immutable");
 const { values, helpers } = require("@ckb-lumos/base");
 const { blockchain, blockchainUtils } = require("@ckb-lumos/base");
 const { RPC } = require("@ckb-lumos/rpc");
-const {
-  CKBIndexerTransactionCollector: TransactionCollector,
-} = require("@ckb-lumos/ckb-indexer");
+const { TransactionCollector } = require("@ckb-lumos/ckb-indexer");
 const { isCellMatchQueryOptions } = helpers;
 
 function defaultLogger(level, message) {
