@@ -1,6 +1,6 @@
 const test = require("ava");
 
-const { readBigUInt128LE, toBigUInt128LE } = require("../lib/utils");
+const { readBigUInt128LE, toBigUInt128LE } = require("../src/utils");
 
 const u128 = BigInt("1208925819614629174706177");
 const u128le = "0x01000000000000000000010000000000";

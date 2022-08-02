@@ -2,7 +2,7 @@ import { BytesLike, createObjectCodec, enhancePack } from "../src";
 import { struct, table } from "../src/molecule";
 import { bytify, concat } from "../src/bytes";
 import { Uint32BE, Uint64, Uint8 } from "../src/number";
-import { Byte32, Bytes } from "../src/blockchain";
+import { Byte32, Bytes } from "@ckb-lumos/base/lib/blockchain";
 
 // https://github.com/nervosnetwork/godwoken/blob/90ecd3b58e1f25fe83ef74090e5bca83287ca2eb/crates/rpc-client/src/withdrawal.rs#L36-L71
 // godwoken-v1 withdrawal cell lock args

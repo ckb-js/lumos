@@ -1,7 +1,7 @@
 const test = require("ava");
 const { BI } = require("@ckb-lumos/bi");
 
-const { since, utils } = require("../lib");
+const { since, utils } = require("../src");
 
 const {
   parseSinceCompatible,

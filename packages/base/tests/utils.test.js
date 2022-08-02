@@ -15,7 +15,7 @@ const {
   generateTypeIdScript,
   deepCamel,
   deepCamelizeDepType,
-} = require("../lib/utils");
+} = require("../src/utils");
 
 const message = "0x";
 const messageDigest =
