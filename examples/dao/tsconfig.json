@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "lib": ["dom"],
+    "jsx": "react",
+    "module": "CommonJS",
+    "target": "es2020",
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  }
+}

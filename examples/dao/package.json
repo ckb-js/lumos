@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "name": "@lumos-examples/dao",
+  "version": "0.17.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@ckb-lumos/lumos": "0.17.0"
+  }
+}
