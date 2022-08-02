@@ -64,5 +64,7 @@ export function generateTypeIdScript(
   outputIndex?: HexNumber
 ): Script;
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function deepCamel(data: any): any;
 export function deepCamelizeDepType(data: any): any;
+/* eslint-enable @typescript-eslint/no-explicit-any*/
