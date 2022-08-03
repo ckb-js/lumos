@@ -180,12 +180,12 @@ function deepCamel(data) {
   return data;
 }
 
-function deepCamelizeDepType(data) {
+function deepCamelizeTransaction(data) {
   if (Object.prototype.toString.call(data) === "[object Array]") {
     if (data.length === 0) {
       return data;
     } else {
-      return data.map((item) => deepCamelizeDepType(item));
+      return data.map((item) => deepCamelizeTransaction(item));
     }
   }
   let result = {};
@@ -196,7 +196,7 @@ function deepCamelizeDepType(data) {
         Object.prototype.toString.call(value) === "[object Object]" ||
         Object.prototype.toString.call(value) === "[object Array]"
       ) {
-        result[key] = deepCamelizeDepType(value);
+        result[key] = deepCamelizeTransaction(value);
       } else {
         result[key] = value === "dep_group" ? "depGroup" : value;
       }
@@ -210,7 +210,7 @@ module.exports = {
   CKBHasher,
   ckbHash,
   deepCamel,
-  deepCamelizeDepType,
+  deepCamelizeTransaction,
   toBigUInt64LE,
   toBigUInt64LECompatible,
   readBigUInt64LE,

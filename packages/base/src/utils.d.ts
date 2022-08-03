@@ -66,5 +66,5 @@ export function generateTypeIdScript(
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function deepCamel(data: any): any;
-export function deepCamelizeDepType(data: any): any;
+export function deepCamelizeTransaction(data: any): any;
 /* eslint-enable @typescript-eslint/no-explicit-any*/

@@ -11,14 +11,7 @@ import {
 } from "@ckb-lumos/codec";
 import { BytesCodec, FixedBytesCodec } from "@ckb-lumos/codec/lib/base";
 
-import {
-  HashType as _HashType,
-  DepType as _DepType,
-  Transaction as _Transaction,
-  Block as _Block,
-  Header as _Header,
-  UncleBlock as _UncleBlock,
-} from "./api";
+import type * as api from './api';
 import { BI } from "@ckb-lumos/bi";
 
 const { Uint128LE, Uint8, Uint32LE, Uint64LE } = number;
@@ -111,7 +104,7 @@ export const WitnessArgs = WitnessArgsOf({
  * Implementation of blockchain.mol
  * https://github.com/nervosnetwork/ckb/blob/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol
  */
-export const HashType = createFixedBytesCodec<_HashType>({
+export const HashType = createFixedBytesCodec<api.HashType>({
   byteLength: 1,
   pack: (type) => {
     if (type === "data") return Uint8.pack(0);
@@ -128,7 +121,7 @@ export const HashType = createFixedBytesCodec<_HashType>({
   },
 });
 
-export const DepType = createFixedBytesCodec<_DepType>({
+export const DepType = createFixedBytesCodec<api.DepType>({
   byteLength: 1,
   pack: (type) => {
     if (type === "code") return Uint8.pack(0);
@@ -214,7 +207,7 @@ const BaseTransaction = table(
 );
 
 export const Transaction = createBytesCodec({
-  pack: (tx: _Transaction) =>
+  pack: (tx: api.Transaction) =>
     BaseTransaction.pack(transformTransactionCodecType(tx)),
   unpack: (buf) => deTransformTransactionCodecType(BaseTransaction.unpack(buf)),
 });
@@ -257,7 +250,7 @@ export const BaseHeader = struct(
 );
 
 export const Header = createBytesCodec({
-  pack: (header: _Header) => BaseHeader.pack(transformHeaderCodecType(header)),
+  pack: (header: api.Header) => BaseHeader.pack(transformHeaderCodecType(header)),
   unpack: (buf) => deTransformHeaderCodecType(BaseHeader.unpack(buf)),
 });
 
@@ -334,7 +327,7 @@ export const CellbaseWitness = table(
  * @returns TransactionCodecType
  */
 export function transformTransactionCodecType(
-  data: _Transaction
+  data: api.Transaction
 ): TransactionCodecType {
   return {
     raw: {
@@ -351,7 +344,7 @@ export function transformTransactionCodecType(
 
 export function deTransformTransactionCodecType(
   data: TransactionUnpackResultType
-): _Transaction {
+): api.Transaction {
   return {
     cellDeps: data.raw.cellDeps.map((cellDep) => {
       return {
@@ -385,7 +378,7 @@ export function deTransformTransactionCodecType(
   };
 }
 
-export function transformHeaderCodecType(data: _Header): HeaderCodecType {
+export function transformHeaderCodecType(data: api.Header): HeaderCodecType {
   return {
     raw: {
       timestamp: data.timestamp,
@@ -405,7 +398,7 @@ export function transformHeaderCodecType(data: _Header): HeaderCodecType {
 
 export function deTransformHeaderCodecType(
   data: HeaderUnpackResultType
-): _Header {
+): api.Header {
   return {
     timestamp: data.raw.timestamp.toHexString(),
     number: data.raw.number.toHexString(),

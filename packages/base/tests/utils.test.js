@@ -14,7 +14,7 @@ const {
   assertHexadecimal,
   generateTypeIdScript,
   deepCamel,
-  deepCamelizeDepType,
+  deepCamelizeTransaction,
 } = require("../src/utils");
 
 const message = "0x";
@@ -151,5 +151,5 @@ test("test camalize", (t) => {
     },
   };
   t.deepEqual(deepCamel(sampleInput), expectedOutput1);
-  t.deepEqual(deepCamelizeDepType(deepCamel(sampleInput)), expectedOutput2);
+  t.deepEqual(deepCamelizeTransaction(deepCamel(sampleInput)), expectedOutput2);
 });
