@@ -297,6 +297,7 @@ export const CellbaseWitness = table(
   ["lock", "message"]
 );
 
+// TODO make an enhancer for number codecs
 /**
  * from Transantion defined in  @ckb-lumos/base/lib/api.d.ts
  * ```
