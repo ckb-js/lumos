@@ -43,7 +43,6 @@ export class RPC {
     return utils.deepCamel(await request(this.uri, "get_indexer_info"));
   }
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 const request = async (
