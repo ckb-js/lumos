@@ -244,7 +244,7 @@ export class CkbIndexer implements Indexer {
       });
   }
 
-  scheduleLoop(timeout = 1) {
+  scheduleLoop(timeout = 1): void {
     setTimeout(() => {
       this.loop();
     }, timeout);
