@@ -48,6 +48,19 @@ export function bytify(bytesLike: BytesLike): Uint8Array {
   throw new Error(`Cannot convert ${bytesLike}`);
 }
 
+export function compare(a: BytesLike, b: BytesLike): boolean {
+  const aUint8Array = bytify(a);
+  const bUint8Array = bytify(b);
+  if (aUint8Array.length !== bUint8Array.length) return false;
+  return compareUint8Array(aUint8Array, bUint8Array);
+}
+
+function compareUint8Array(a: Uint8Array, b: Uint8Array): boolean {
+  for (let i = a.length; -1 < i; i -= 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
 /**
  * convert a {@link BytesLike} to an even length hex string prefixed with "0x"
  * @param buf

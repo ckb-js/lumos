@@ -1,4 +1,4 @@
-import { blockchain, bytes } from '@ckb-lumos/codec';
+import { bytes } from '@ckb-lumos/codec';
 import {
   Indexer as CkbIndexer,
   helpers,
@@ -11,7 +11,7 @@ import {
   WitnessArgs,
   BI,
 } from "@ckb-lumos/lumos";
-import { values } from "@ckb-lumos/base";
+import { values, blockchain } from "@ckb-lumos/base";
 import { parseFromInfo, MultisigScript } from "@ckb-lumos/common-scripts/lib/from_info";
 import { BIish } from "@ckb-lumos/bi";
 
@@ -155,7 +155,7 @@ export async function transfer(options: Options): Promise<string> {
     if (witness !== "0x") {
       const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness))
       const lock = witnessArgs.lock;
-      if (!!lock && lock !== newWitnessArgs.lock) {
+      if (!!lock && !!newWitnessArgs.lock && !bytes.compare(lock, newWitnessArgs.lock)) {
         throw new Error("Lock field in first witness is set aside for signature!");
       }
       const inputType = witnessArgs.inputType;
@@ -163,7 +163,7 @@ export async function transfer(options: Options): Promise<string> {
         newWitnessArgs.inputType = inputType;
       }
       const outputType = witnessArgs.outputType;
-      if (!outputType) {
+      if (!!outputType) {
         newWitnessArgs.outputType = outputType;
       }
     }
