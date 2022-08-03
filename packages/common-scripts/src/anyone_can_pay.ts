@@ -174,7 +174,7 @@ export async function setupInputCell(
       if (
         !!lock &&
         !!newWitnessArgs.lock &&
-        !bytes.compare(lock, newWitnessArgs.lock)
+        !bytes.equal(lock, newWitnessArgs.lock)
       ) {
         throw new Error(
           "Lock field in first witness is set aside for signature!"
