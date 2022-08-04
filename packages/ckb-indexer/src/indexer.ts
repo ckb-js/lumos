@@ -8,7 +8,7 @@ import {
   utils,
   Block,
 } from "@ckb-lumos/base";
-import { instanceOfScriptWrapper, requestBatch } from "./services";
+import { requestBatch } from "./services";
 import { CKBCellCollector } from "./collector";
 import { EventEmitter } from "events";
 import {
@@ -29,7 +29,7 @@ import { BI } from "@ckb-lumos/bi";
 import { RPC as CKBIndexerRpc } from "./rpc";
 import { CKBRPC } from "@ckb-lumos/rpc";
 import { validators } from "@ckb-lumos/toolkit";
-import { IndexerType } from "./indexerType";
+import type * as IndexerType from "./indexerType";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -215,21 +215,11 @@ export class CkbIndexer implements Indexer {
       ? BI.from(0)
       : BI.from(queries.fromBlock);
     if (queries.lock) {
-      if (!instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(queries.lock);
-        emitter.type = queries.lock;
-      } else if (instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(queries.lock.script);
-        emitter.type = queries.lock.script;
-      }
+      validators.ValidateScript(queries.lock);
+      emitter.lock = queries.lock as Script;
     } else if (queries.type && queries.type !== "empty") {
-      if (!instanceOfScriptWrapper(queries.type)) {
-        validators.ValidateScript(queries.type);
-        emitter.type = queries.type;
-      } else if (instanceOfScriptWrapper(queries.type)) {
-        validators.ValidateScript(queries.type.script);
-        emitter.type = queries.type.script;
-      }
+      validators.ValidateScript(queries.type);
+      emitter.type = queries.type as Script;
     } else {
       throw new Error("Either lock or type script must be provided!");
     }
@@ -254,7 +244,7 @@ export class CkbIndexer implements Indexer {
       });
   }
 
-  private scheduleLoop(timeout = 1) {
+  scheduleLoop(timeout = 1): void {
     setTimeout(() => {
       this.loop();
     }, timeout);

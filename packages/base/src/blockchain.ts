@@ -5,16 +5,23 @@ import {
   createFixedBytesCodec,
   PackParam,
   UnpackResult,
-  number, molecule, bytes
+  number,
+  molecule,
+  bytes,
 } from "@ckb-lumos/codec";
-import {BytesCodec ,FixedBytesCodec,} from '@ckb-lumos/codec/lib/base';
+import { BytesCodec, FixedBytesCodec } from "@ckb-lumos/codec/lib/base";
 
-import { HashType as _HashType, DepType as _DepType  } from '../lib/api';
+import type * as api from './api';
+import { BI } from "@ckb-lumos/bi";
 
-const { Uint128LE, Uint8,  Uint32LE, Uint64LE  } = number
-const { byteVecOf, option, table, vector, struct } = molecule
-const { bytify, hexify } = bytes
+const { Uint128LE, Uint8, Uint32LE, Uint64LE } = number;
+const { byteVecOf, option, table, vector, struct } = molecule;
+const { bytify, hexify } = bytes;
 
+type TransactionCodecType = PackParam<typeof BaseTransaction>;
+type TransactionUnpackResultType = UnpackResult<typeof BaseTransaction>;
+type HeaderCodecType = PackParam<typeof BaseHeader>;
+type HeaderUnpackResultType = UnpackResult<typeof BaseHeader>;
 
 export function createFixedHexBytesCodec(
   byteLength: number
@@ -97,7 +104,7 @@ export const WitnessArgs = WitnessArgsOf({
  * Implementation of blockchain.mol
  * https://github.com/nervosnetwork/ckb/blob/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol
  */
-export const HashType = createFixedBytesCodec<_HashType>({
+export const HashType = createFixedBytesCodec<api.HashType>({
   byteLength: 1,
   pack: (type) => {
     if (type === "data") return Uint8.pack(0);
@@ -114,7 +121,7 @@ export const HashType = createFixedBytesCodec<_HashType>({
   },
 });
 
-export const DepType = createFixedBytesCodec<_DepType>({
+export const DepType = createFixedBytesCodec<api.DepType>({
   byteLength: 1,
   pack: (type) => {
     if (type === "code") return Uint8.pack(0);
@@ -191,13 +198,19 @@ export const RawTransaction = table(
   ["version", "cellDeps", "headerDeps", "inputs", "outputs", "outputsData"]
 );
 
-export const Transaction = table(
+const BaseTransaction = table(
   {
     raw: RawTransaction,
     witnesses: BytesVec,
   },
   ["raw", "witnesses"]
 );
+
+export const Transaction = createBytesCodec({
+  pack: (tx: api.Transaction) =>
+    BaseTransaction.pack(transformTransactionCodecType(tx)),
+  unpack: (buf) => deTransformTransactionCodecType(BaseTransaction.unpack(buf)),
+});
 
 export const TransactionVec = vector(Transaction);
 
@@ -228,13 +241,18 @@ export const RawHeader = struct(
   ]
 );
 
-export const Header = struct(
+export const BaseHeader = struct(
   {
     raw: RawHeader,
     nonce: Uint128LE,
   },
   ["raw", "nonce"]
 );
+
+export const Header = createBytesCodec({
+  pack: (header: api.Header) => BaseHeader.pack(transformHeaderCodecType(header)),
+  unpack: (buf) => deTransformHeaderCodecType(BaseHeader.unpack(buf)),
+});
 
 export const ProposalShortId = createFixedHexBytesCodec(10);
 
@@ -278,3 +296,122 @@ export const CellbaseWitness = table(
   },
   ["lock", "message"]
 );
+
+// TODO make an enhancer for number codecs
+/**
+ * from Transantion defined in  @ckb-lumos/base/lib/api.d.ts
+ * ```
+ * export interface Transaction {
+ *  cellDeps: CellDep[];
+ *  hash?: Hash;
+ *  headerDeps: Hash[];
+ *  inputs: Input[];
+ *  outputs: Output[];
+ *  outputsData: HexString[];
+ *  version: HexNumber;
+ *  witnesses: HexString[];
+ *}
+ * to :
+ * interface TransactionCodecType {
+ *   raw: {
+ *     version: Uint32LE;
+ *     cellDeps: DeCellDepVec;
+ *     headerDeps: Byte32Vec;
+ *     inputs: CellInputVec;
+ *     outputs: CellOutputVec;
+ *     outputsData: BytesVec;
+ *   };
+ *   witnesses: BytesVec;
+ * }
+ * ```
+ * @param data Transantion defined in @ckb-lumos/base/lib/api.d.ts
+ * @returns TransactionCodecType
+ */
+export function transformTransactionCodecType(
+  data: api.Transaction
+): TransactionCodecType {
+  return {
+    raw: {
+      version: data.version,
+      cellDeps: data.cellDeps,
+      headerDeps: data.headerDeps,
+      inputs: data.inputs,
+      outputs: data.outputs,
+      outputsData: data.outputsData,
+    },
+    witnesses: data.witnesses,
+  };
+}
+
+export function deTransformTransactionCodecType(
+  data: TransactionUnpackResultType
+): api.Transaction {
+  return {
+    cellDeps: data.raw.cellDeps.map((cellDep) => {
+      return {
+        outPoint: {
+          txHash: cellDep.outPoint.txHash,
+          index: BI.from(cellDep.outPoint.index).toHexString(),
+        },
+        depType: cellDep.depType,
+      };
+    }),
+    headerDeps: data.raw.headerDeps,
+    inputs: data.raw.inputs.map((input) => {
+      return {
+        previousOutput: {
+          txHash: input.previousOutput.txHash,
+          index: BI.from(input.previousOutput.index).toHexString(),
+        },
+        since: input.since.toHexString(),
+      };
+    }),
+    outputs: data.raw.outputs.map((output) => {
+      return {
+        capacity: output.capacity.toHexString(),
+        lock: output.lock,
+        type: output.type,
+      };
+    }),
+    outputsData: data.raw.outputsData,
+    version: BI.from(data.raw.version).toHexString(),
+    witnesses: data.witnesses,
+  };
+}
+
+export function transformHeaderCodecType(data: api.Header): HeaderCodecType {
+  return {
+    raw: {
+      timestamp: data.timestamp,
+      number: data.number,
+      epoch: data.epoch,
+      compactTarget: Number(data.compactTarget),
+      dao: data.dao,
+      parentHash: data.parentHash,
+      proposalsHash: data.proposalsHash,
+      transactionsRoot: data.transactionsRoot,
+      extraHash: data.extraHash,
+      version: data.version,
+    },
+    nonce: data.nonce,
+  };
+}
+
+export function deTransformHeaderCodecType(
+  data: HeaderUnpackResultType
+): api.Header {
+  return {
+    timestamp: data.raw.timestamp.toHexString(),
+    number: data.raw.number.toHexString(),
+    epoch: data.raw.epoch.toHexString(),
+    compactTarget: BI.from(data.raw.compactTarget).toHexString(),
+    dao: data.raw.dao,
+    parentHash: data.raw.parentHash,
+    proposalsHash: data.raw.proposalsHash,
+    transactionsRoot: data.raw.transactionsRoot,
+    extraHash: data.raw.extraHash,
+    version: BI.from(data.raw.version).toHexString(),
+    nonce: data.nonce.toHexString(),
+    hash: "",
+  };
+}

@@ -6,5 +6,4 @@ module.exports = {
   indexer: require("./indexer"),
   logger: require("./logger"),
   blockchain: require("./blockchain"),
-  blockchainUtils: require("./blockchainUtils"),
 };

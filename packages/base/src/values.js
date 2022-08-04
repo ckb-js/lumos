@@ -4,7 +4,6 @@ const { xxHash32 } = require("js-xxhash");
 const { ckbHash } = require("./utils");
 const { bytes } = require("@ckb-lumos/codec");
 const blockchain = require("./blockchain");
-const blockchainUtils = require("./blockchainUtils");
 
 const { hexify } = bytes;
 class Value {
@@ -46,9 +45,7 @@ class RawTransactionValue extends Value {
 class TransactionValue extends Value {
   constructor(transaction) {
     super(
-      blockchain.Transaction.pack(
-        blockchainUtils.transformTransactionCodecType(transaction)
-      )
+      blockchain.Transaction.pack(transaction)
     );
   }
 }

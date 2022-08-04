@@ -9,7 +9,7 @@ import {
 import fetch from "cross-fetch";
 import { BI } from "@ckb-lumos/bi";
 import { toScript } from "./paramsFormatter";
-import { RPCType } from "./rpcType";
+import type * as RPCType from "./rpcType";
 
 function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
   return typeof object === "object" && object != null && "script" in object;

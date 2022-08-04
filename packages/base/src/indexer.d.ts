@@ -50,6 +50,7 @@ export interface IndexerOptions {
   logger?: Logger;
   keepNum?: number;
   pruneInterval?: number;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   rpcOptions?: object;
 }
 

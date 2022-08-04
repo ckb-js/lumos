@@ -1,9 +1,9 @@
 import { Tip } from "@ckb-lumos/base";
 import test from "ava";
-import { CkbIndexer } from "../src";
+import { Indexer } from "../src";
 const indexerUri = "http://127.0.0.1:8120";
 const rpcUri = "http://127.0.0.1:8118";
-const ckbIndexer = new CkbIndexer(indexerUri, rpcUri);
+const ckbIndexer = new Indexer(indexerUri, rpcUri);
 test.before(() => {
   // @ts-ignore: Unreachable code error
   BigInt = () => {

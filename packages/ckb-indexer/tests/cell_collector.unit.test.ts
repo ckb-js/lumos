@@ -2,16 +2,21 @@ import test from "ava";
 import { Indexer, CellCollector } from "../src";
 import { HexadecimalRange, Script, utils } from "@ckb-lumos/base";
 import sinon, { SinonSpy } from "sinon";
+import { validators } from "@ckb-lumos/toolkit";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);
 
+let validateScriptSpy: SinonSpy;
 let utilsSpy: SinonSpy;
 test.before(() => {
+  validateScriptSpy = sinon.spy(validators, "ValidateScript");
   utilsSpy = sinon.spy(utils, "assertHexadecimal");
 });
-test.afterEach(() => {});
+test.afterEach(() => {
+  validateScriptSpy.resetHistory();
+});
 const lockScript: Script = {
   codeHash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
@@ -78,6 +83,38 @@ test("validateQueryOption#should throw error if lock and type not provided", (t)
     undefined,
     "throw error if lock is not provided and type is empty"
   );
+});
+
+test("validateQueryOption#validate lock if lock is script", (t) => {
+  const query = {
+    lock: lockScript,
+  };
+  new CellCollector(indexer, query);
+  t.is(validateScriptSpy.calledWith(query.lock), true);
+});
+
+test("validateQueryOption#validate lock.script if lock is ScriptWrapper", (t) => {
+  const query = {
+    lock: { script: lockScript, argsLen: 20 },
+  };
+  new CellCollector(indexer, query);
+  t.is(validateScriptSpy.calledWith(query.lock.script), true);
+});
+
+test("validateQueryOption#validate type if type is script", (t) => {
+  const query = {
+    type: lockScript,
+  };
+  new CellCollector(indexer, query);
+  t.is(validateScriptSpy.calledWith(query.type), true);
+});
+
+test("validateQueryOption#validate type.script if type is ScriptWrapper", (t) => {
+  const query = {
+    type: { script: lockScript, argsLen: 20 },
+  };
+  new CellCollector(indexer, query);
+  t.is(validateScriptSpy.calledWith(query.type.script), true);
 });
 
 test("validateQueryOption#validate fromBlock", (t) => {

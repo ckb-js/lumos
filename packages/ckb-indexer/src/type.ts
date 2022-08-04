@@ -11,7 +11,7 @@ import {
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
 import { BIish } from "@ckb-lumos/bi";
-import { RPCType } from "./rpcType";
+import type * as RPCType from "./rpcType";
 
 export type ScriptType = "type" | "lock";
 export type Order = "asc" | "desc";

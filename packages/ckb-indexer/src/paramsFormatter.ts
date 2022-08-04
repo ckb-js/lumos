@@ -1,5 +1,5 @@
 import { Script } from "@ckb-lumos/base";
-import { RPCType } from "./rpcType";
+import type * as RPCType from "./rpcType";
 
 const toScript = (data: Script): RPCType.Script => ({
   code_hash: data.codeHash,

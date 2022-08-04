@@ -8,7 +8,6 @@ import {
   WitnessArgs,
   Transaction,
   blockchain,
-  blockchainUtils,
 } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
 import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
@@ -251,7 +250,11 @@ async function injectCapacity(
     if (witness !== "0x") {
       const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
       const lock = witnessArgs.lock;
-      if (!!lock && lock !== newWitnessArgs.lock) {
+      if (
+        !!lock &&
+        !!newWitnessArgs.lock &&
+        !bytes.equal(lock, newWitnessArgs.lock)
+      ) {
         throw new Error(
           "Lock field in first witness is set aside for signature!"
         );
@@ -293,9 +296,7 @@ function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
 }
 
 function getTransactionSizeByTx(tx: Transaction): number {
-  const serializedTx = blockchain.Transaction.pack(
-    blockchainUtils.transformTransactionCodecType(tx)
-  );
+  const serializedTx = blockchain.Transaction.pack(tx);
   // 4 is serialized offset bytesize
   const size = serializedTx.byteLength + 4;
   return size;
@@ -360,11 +361,7 @@ interface ScriptConfig {
 
 function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
   const tx = createTransactionFromSkeleton(txSkeleton);
-  const txHash = utils.ckbHash(
-    blockchain.Transaction.pack(
-      blockchainUtils.transformTransactionCodecType(tx)
-    )
-  );
+  const txHash = utils.ckbHash(blockchain.Transaction.pack(tx));
   return txHash;
 }
 

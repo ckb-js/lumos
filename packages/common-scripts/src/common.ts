@@ -25,7 +25,6 @@ import {
   Transaction,
   HashType,
   blockchain,
-  blockchainUtils,
 } from "@ckb-lumos/base";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
@@ -874,9 +873,7 @@ function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
 }
 
 function getTransactionSizeByTx(tx: Transaction): number {
-  const serializedTx = blockchain.Transaction.pack(
-    blockchainUtils.transformTransactionCodecType(tx)
-  );
+  const serializedTx = blockchain.Transaction.pack(tx);
   // 4 is serialized offset bytesize
   const size = serializedTx.byteLength + 4;
   return size;

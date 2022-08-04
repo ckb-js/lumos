@@ -1,6 +1,6 @@
 import { OutPoint, Script } from "@ckb-lumos/base";
-import { IndexerType } from "./indexerType";
-import { RPCType } from "./rpcType";
+import type * as IndexerType from "./indexerType";
+import type * as RPCType from "./rpcType";
 
 const toTip = (tip: RPCType.Tip): IndexerType.Tip => ({
   blockHash: tip.block_hash,

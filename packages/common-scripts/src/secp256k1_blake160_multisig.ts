@@ -222,7 +222,11 @@ export async function setupInputCell(
           bytes.bytify(witness)
         );
         const lock = witnessArgs.lock;
-        if (!!lock && lock !== newWitnessArgs.lock) {
+        if (
+          !!lock &&
+          !!newWitnessArgs.lock &&
+          !bytes.equal(lock, newWitnessArgs.lock)
+        ) {
           throw new Error(
             "Lock field in first witness is set aside for signature!"
           );
@@ -543,7 +547,11 @@ export async function transferCompatible(
           bytes.bytify(witness)
         );
         const lock = witnessArgs.lock;
-        if (!!lock && lock !== newWitnessArgs.lock) {
+        if (
+          !!lock &&
+          !!newWitnessArgs.lock &&
+          !bytes.equal(lock, newWitnessArgs.lock)
+        ) {
           throw new Error(
             "Lock field in first witness is set aside for signature!"
           );
