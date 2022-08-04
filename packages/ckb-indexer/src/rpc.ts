@@ -18,10 +18,10 @@ export class RPC {
     this.uri = uri;
   }
 
-  async get_tip(): Promise<Tip> {
+  async getTip(): Promise<Tip> {
     return utils.deepCamel(await request(this.uri, "get_tip"));
   }
-  async get_cells(
+  async getCells(
     searchKey: SearchKey,
     order: Order,
     limit: HexString,
@@ -30,7 +30,7 @@ export class RPC {
     const params = [searchKey, order, limit, cursor];
     return utils.deepCamel(await request(this.uri, "get_cells", params));
   }
-  async get_transactions(
+  async getTransactions(
     searchKey: SearchKey,
     order: Order,
     limit: HexString,
@@ -39,7 +39,7 @@ export class RPC {
     const params = [searchKey, order, limit, cursor];
     return utils.deepCamel(await request(this.uri, "get_transactions", params));
   }
-  async get_indexer_info(): Promise<string> {
+  async getIndexerInfo(): Promise<string> {
     return utils.deepCamel(await request(this.uri, "get_indexer_info"));
   }
 }

@@ -60,7 +60,7 @@ export class CkbIndexer implements Indexer {
   }
 
   public async tip(): Promise<IndexerType.Tip> {
-    return await this.getIndexerRpc().get_tip();
+    return await this.getIndexerRpc().getTip();
   }
 
   asyncSleep(timeout: number): Promise<void> {
@@ -102,7 +102,7 @@ export class CkbIndexer implements Indexer {
     const order = searchKeyFilter.order || "asc";
     const index = 0;
     while (true) {
-      const res: GetLiveCellsResult = await this.getIndexerRpc().get_cells(
+      const res: GetLiveCellsResult = await this.getIndexerRpc().getCells(
         searchKey,
         order,
         `0x${sizeLimit.toString(16)}`,
@@ -147,7 +147,7 @@ export class CkbIndexer implements Indexer {
     const sizeLimit = searchKeyFilter.sizeLimit || 100;
     const order = searchKeyFilter.order || "asc";
     while (true) {
-      const res = await this.getIndexerRpc().get_transactions(
+      const res = await this.getIndexerRpc().getTransactions(
         searchKey,
         order,
         `0x${sizeLimit.toString(16)}`,
