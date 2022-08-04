@@ -1,7 +1,7 @@
-import { BI, Cell, config, helpers, Indexer as CkbIndexer, RPC, commons } from "@ckb-lumos/lumos";
+import { BI, Cell, config, helpers, Indexer, RPC, commons } from "@ckb-lumos/lumos";
 import { default as createKeccak } from "keccak";
-import { bytes, blockchain } from '@ckb-lumos/codec';
-
+import { bytes } from '@ckb-lumos/codec';
+import { blockchain } from '@ckb-lumos/base'
 
 export const CONFIG = config.createConfig({
   PREFIX: "ckt",
@@ -23,7 +23,7 @@ config.initializeConfig(CONFIG);
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
-const indexer = new CkbIndexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
 // prettier-ignore
 interface EthereumRpc {
