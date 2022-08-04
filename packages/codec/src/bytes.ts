@@ -51,11 +51,11 @@ export function bytify(bytesLike: BytesLike): Uint8Array {
 export function equal(a: BytesLike, b: BytesLike): boolean {
   const aUint8Array = bytify(a);
   const bUint8Array = bytify(b);
-  if (aUint8Array.length !== bUint8Array.length) return false;
   return equalUint8Array(aUint8Array, bUint8Array);
 }
 
 function equalUint8Array(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
   for (let i = a.length; -1 < i; i -= 1) {
     if (a[i] !== b[i]) return false;
   }
