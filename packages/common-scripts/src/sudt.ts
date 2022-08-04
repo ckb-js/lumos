@@ -9,7 +9,7 @@ import {
   CellCollector as CellCollectorInterface,
   values,
 } from "@ckb-lumos/base";
-const { toBigUInt128LE, computeScriptHash } = utils;
+const { computeScriptHash } = utils;
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
 import common from "./common";
@@ -27,8 +27,8 @@ import anyoneCanPay, {
 } from "./anyone_can_pay";
 const { ScriptValue } = values;
 import secp256k1Blake160 from "./secp256k1_blake160";
-import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
 import { BI, BIish } from "@ckb-lumos/bi";
+import { bytes, number } from "@ckb-lumos/codec";
 
 export type Token = Hash;
 
@@ -81,7 +81,7 @@ export async function issueToken(
       lock: toScript,
       type: sudtTypeScript,
     },
-    data: toBigUInt128LE(amount),
+    data: bytes.hexify(number.Uint128LE.pack(amount)),
     outPoint: undefined,
     blockHash: undefined,
   };
@@ -220,9 +220,7 @@ export async function transfer(
     });
 
     toAddressInputCapacity = BI.from(toAddressInput.cellOutput.capacity);
-    toAddressInputAmount = BI.from(
-      readBigUInt128LECompatible(toAddressInput.data)
-    );
+    toAddressInputAmount = number.Uint128LE.unpack(toAddressInput.data);
   }
 
   const targetOutput: Cell = {
@@ -231,7 +229,7 @@ export async function transfer(
       lock: toScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(_amount.toString()),
+    data: bytes.hexify(number.Uint128LE.pack(_amount)),
     outPoint: undefined,
     blockHash: undefined,
   };
@@ -241,7 +239,9 @@ export async function transfer(
     }
     targetOutput.cellOutput.capacity =
       "0x" + toAddressInputCapacity.add(_capacity).toString(16);
-    targetOutput.data = toBigUInt128LE(toAddressInputAmount.add(_amount));
+    targetOutput.data = bytes.hexify(
+      number.Uint128LE.pack(toAddressInputAmount.add(_amount))
+    );
   } else {
     if (!_capacity) {
       _capacity = BI.from(minimalCellCapacityCompatible(targetOutput));
@@ -276,7 +276,7 @@ export async function transfer(
       lock: changeOutputLockScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(BI.from(0).toString()),
+    data: bytes.hexify(number.Uint128LE.pack(0)),
     outPoint: undefined,
     blockHash: undefined,
   };
@@ -479,7 +479,7 @@ export async function transfer(
 
       const inputCapacity: BI = BI.from(inputCell.cellOutput.capacity);
       const inputAmount: BI = inputCell.cellOutput.type
-        ? BI.from(readBigUInt128LECompatible(inputCell.data))
+        ? number.Uint128LE.unpack(inputCell.data)
         : BI.from(0);
       let deductCapacity: BI =
         isAnyoneCanPay && !destroyable
@@ -511,7 +511,7 @@ export async function transfer(
             type: inputCell.cellOutput.type,
           },
           data: inputCell.cellOutput.type
-            ? toBigUInt128LE(currentChangeAmount.toString())
+            ? bytes.hexify(number.Uint128LE.pack(currentChangeAmount))
             : "0x",
         };
 
@@ -599,8 +599,10 @@ export async function transfer(
         .add(changeCapacity)
         .toString(16);
     if (changeAmount.gt(0)) {
-      clonedOutput.data = toBigUInt128LE(
-        readBigUInt128LECompatible(originOutput.data).add(changeAmount)
+      clonedOutput.data = bytes.hexify(
+        number.Uint128LE.pack(
+          number.Uint128LE.unpack(originOutput.data).add(changeAmount)
+        )
       );
     }
 
@@ -636,7 +638,7 @@ export async function transfer(
   } else if (changeCapacity.gte(minimalCellCapacityCompatible(changeCell))) {
     changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
     if (changeAmount.gt(0)) {
-      changeCell.data = toBigUInt128LE(changeAmount.toString());
+      changeCell.data = bytes.hexify(number.Uint128LE.pack(changeAmount));
     }
 
     const minimalChangeCellCapcaity = BI.from(

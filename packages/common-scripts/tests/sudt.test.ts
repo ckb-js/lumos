@@ -8,7 +8,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { bob, alice } from "./account_info";
 import { predefined } from "@ckb-lumos/config-manager";
-import { Script, utils } from "@ckb-lumos/base";
+import { Script } from "@ckb-lumos/base";
 import { isSudtScript } from "../src/helper";
 import {
   bobSecpInputs,
@@ -18,8 +18,8 @@ import {
   bobAcpSudtInputs,
   aliceAcpSudtInputs,
 } from "./inputs";
-import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
 import { BI } from "@ckb-lumos/bi";
+import { bytes, number } from "@ckb-lumos/codec";
 const { AGGRON4 } = predefined;
 
 test.before(() => {
@@ -59,13 +59,9 @@ test("issueToken", async (t) => {
   t.is(sumOfOutputCapacity.toString(), sumOfInputCapacity.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
-  t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(0)!.data
-    ).toString(),
-    amount.toString()
+  t.true(
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(0)!.data).eq(amount)
   );
-
   t.true(
     isSudtScript(txSkeleton.get("outputs").get(0)!.cellOutput.type, AGGRON4)
   );
@@ -103,22 +99,20 @@ test("transfer secp", async (t) => {
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(0)!.data
-    ).toString(),
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(0)!.data).toString(),
     amount.toString()
   );
 
@@ -175,13 +169,13 @@ test("transfer locktime pool multisig & secp", async (t) => {
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
@@ -193,7 +187,7 @@ test("transfer locktime pool multisig & secp", async (t) => {
   const targetOutput = txSkeleton.get("outputs").get(0)!;
   const changeOutput = txSkeleton.get("outputs").get(1)!;
   t.is(
-    readBigUInt128LECompatible(targetOutput!.data).toString(),
+    number.Uint128LE.unpack(targetOutput!.data).toString(),
     amount.toString()
   );
   t.true(isSudtScript(targetOutput.cellOutput.type!, AGGRON4));
@@ -259,25 +253,21 @@ test("transfer acp", async (t) => {
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(0)!.data
-    ).toString(),
-    amount
-      .add(readBigUInt128LECompatible(aliceAcpSudtInputs[0].data))
-      .toString()
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(0)!.data).toString(),
+    amount.add(number.Uint128LE.unpack(aliceAcpSudtInputs[0].data)).toString()
   );
 
   t.true(
@@ -334,22 +324,20 @@ test("transfer acp => secp, destroyable", async (t) => {
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(0)!.data
-    ).toString(),
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(0)!.data).toString(),
     amount.toString()
   );
 
@@ -388,7 +376,7 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
         lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
         type: sudtTypeScript,
       },
-      data: utils.toBigUInt128LE(BI.from(BI.from(0))),
+      data: bytes.hexify(number.Uint128LE.pack(0)),
     });
   });
 
@@ -426,34 +414,28 @@ test("transfer secp => secp, change to acp and has previous output, fixed", asyn
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(0)!.data
-    ).toString(),
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(0)!.data).toString(),
     BI.from(0).toString()
   );
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(1)!.data
-    ).toString(),
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(1)!.data).toString(),
     amount.toString()
   );
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(2)!.data
-    ).toString(),
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(2)!.data).toString(),
     BI.from(10000).sub(amount).toString()
   );
 
@@ -502,22 +484,20 @@ test("transfer secp, split change cell", async (t) => {
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(0)!.data
-    ).toString(),
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(0)!.data).toString(),
     amount.toString()
   );
 
@@ -566,22 +546,20 @@ test("transfer secp, split change cell, not enough for two minimals", async (t) 
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(0)!.data
-    ).toString(),
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(0)!.data).toString(),
     amount.toString()
   );
 
@@ -622,7 +600,7 @@ test("transfer secp => secp, change to acp and has previous output, split change
         lock: parseAddress(bob.acpTestnetAddress, { config: AGGRON4 }),
         type: sudtTypeScript,
       },
-      data: utils.toBigUInt128LE(BI.from(BI.from(0))),
+      data: bytes.hexify(number.Uint128LE.pack(0)),
     });
   });
 
@@ -653,28 +631,24 @@ test("transfer secp => secp, change to acp and has previous output, split change
   const sumOfInputAmount = txSkeleton
     .get("inputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   const sumOfOutputAmount = txSkeleton
     .get("outputs")
     .filter((i) => i.cellOutput.type)
-    .map((i) => readBigUInt128LECompatible(i.data))
+    .map((i) => number.Uint128LE.unpack(i.data))
     .reduce((result, c) => result.add(c), BI.from(0));
 
   t.is(sumOfInputAmount.toString(), sumOfOutputAmount.toString());
 
   t.is(txSkeleton.get("cellDeps").size, 2);
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(0)!.data
-    ).toString(),
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(0)!.data).toString(),
     BI.from(10000).sub(amount).toString()
   );
   t.is(
-    readBigUInt128LECompatible(
-      txSkeleton.get("outputs").get(1)!.data
-    ).toString(),
+    number.Uint128LE.unpack(txSkeleton.get("outputs").get(1)!.data).toString(),
     amount.toString()
   );
 

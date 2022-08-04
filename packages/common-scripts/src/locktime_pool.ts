@@ -4,7 +4,7 @@ import {
   TransactionSkeletonType,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
-import { bytes } from "@ckb-lumos/codec";
+import { bytes, number } from "@ckb-lumos/codec";
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import {
@@ -13,7 +13,6 @@ import {
 } from "./dao";
 import {
   values,
-  utils,
   since as sinceUtils,
   CellProvider,
   Script,
@@ -28,7 +27,6 @@ import {
   SinceValidationInfo,
   blockchain,
 } from "@ckb-lumos/base";
-const { toBigUInt64LE, readBigUInt64LECompatible, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
 import {
   generateDaoScript,
@@ -628,7 +626,7 @@ async function _transferCompatible(
         const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
 
         const witnessArgs = {
-          inputType: toBigUInt64LE(depositHeaderDepIndex),
+          inputType: bytes.hexify(number.Uint64.pack(depositHeaderDepIndex)),
         };
         witness = bytes.hexify(blockchain.WitnessArgs.pack(witnessArgs));
       }
@@ -824,7 +822,7 @@ async function injectCapacityWithoutChangeCompatible(
 
           const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
           const witnessArgs = {
-            inputType: toBigUInt64LE(BI.from(depositHeaderDepIndex).toString()),
+            inputType: bytes.hexify(number.Uint64.pack(depositHeaderDepIndex)),
           };
           witness = bytes.hexify(blockchain.WitnessArgs.pack(witnessArgs));
         }
@@ -1069,18 +1067,11 @@ export async function setupInputCell(
   }
 }
 
-function _parseMultisigArgsSince(args: HexString): bigint {
-  if (args.length !== 58) {
-    throw new Error("Invalid multisig with since args!");
-  }
-  return readBigUInt64LE("0x" + args.slice(42));
-}
-
 function _parseMultisigArgsSinceCompatible(args: HexString): BI {
   if (args.length !== 58) {
     throw new Error("Invalid multisig with since args!");
   }
-  return readBigUInt64LECompatible("0x" + args.slice(42));
+  return number.Uint64LE.unpack("0x" + args.slice(42));
 }
 
 export default {
