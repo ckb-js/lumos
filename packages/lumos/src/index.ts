@@ -14,6 +14,18 @@ export type {
   Script,
 } from "@ckb-lumos/base/lib/api";
 
+import {
+  Reader,
+  validators,
+  normalizers,
+  transformers,
+} from "@ckb-lumos/toolkit";
+
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
+export const toolkit = { Reader, validators, normalizers, transformers };
+
 export type {
   Address,
   Hash,
