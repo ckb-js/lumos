@@ -1,6 +1,6 @@
-import { HexNumber } from "..";
+import { BI, BIish } from "@ckb-lumos/bi";
 import { Script, Input } from "./api";
-import { Hash } from "./primitive";
+import { Hash, HexNumber, HexString } from "./primitive";
 
 export class CKBHasher {
   update(data: string | ArrayBuffer): this;
@@ -9,6 +9,45 @@ export class CKBHasher {
 }
 
 export function ckbHash(buffer: ArrayBuffer): Hash;
+
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * convert bigint to BigUInt64 little-endian hex string
+ * @param num
+ */
+export function toBigUInt64LE(num: BIish): HexString;
+
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * convert BigUInt64 little-endian hex string to bigint
+ *
+ * @param hex BigUInt64 little-endian hex string
+ */
+export function readBigUInt64LE(hex: HexString): bigint;
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
+export function readBigUInt64LECompatible(hex: HexString): BI;
+
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * convert bigint to BigUInt128 little-endian hex string
+ *
+ * @param u128
+ */
+export function toBigUInt128LE(u128: BIish): string;
+
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * convert BigUInt64 little-endian hex string to bigint
+ *
+ * @param leHex BigUInt128 little-endian hex string
+ */
+export function readBigUInt128LE(leHex: HexString): bigint;
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
+export function readBigUInt128LECompatible(leHex: HexString): BI;
 
 /**
  * compute lock/type hash

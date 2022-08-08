@@ -2,6 +2,7 @@ const blake2b = require("blake2b");
 const isEqual = require("lodash.isequal");
 const { xxHash32 } = require("js-xxhash");
 const { bytes, number } = require("@ckb-lumos/codec");
+const { BI } = require("@ckb-lumos/bi");
 const blockchain = require("./blockchain");
 
 const { bytify, hexify, bytifyRawString } = bytes;
@@ -34,6 +35,78 @@ function computeScriptHash(script) {
 
 function hashCode(buffer) {
   return xxHash32(buffer, 0);
+}
+
+
+function toBigUInt64LE(num) {
+  return toBigUInt64LECompatible(num);
+}
+
+function toBigUInt64LECompatible(num) {
+  num = BI.from(num);
+  const buf = Buffer.alloc(8);
+  buf.writeUInt32LE(num.and("0xffffffff").toNumber(), 0);
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and("0xffffffff").toNumber(), 4);
+  return `0x${buf.toString("hex")}`;
+}
+
+function readBigUInt64LE(hex) {
+  return readBigUInt64LECompatible(hex).toBigInt();
+}
+
+function readBigUInt64LECompatible(hex) {
+  const buf = Buffer.from(hex.slice(2), "hex");
+  return BI.from(buf.readUInt32LE()).add(BI.from(buf.readUInt32LE(4)).shl(32));
+}
+
+// const U128_MIN = BigInt(0);
+// const U128_MAX = BigInt("340282366920938463463374607431768211455");
+function toBigUInt128LE(u128) {
+  return toBigUInt128LECompatible(u128);
+}
+
+const U128_MIN_COMPATIBLE = BI.from(0);
+const U128_MAX_COMPATIBLE = BI.from("340282366920938463463374607431768211455");
+function toBigUInt128LECompatible(num) {
+  num = BI.from(num);
+  if (num.lt(U128_MIN_COMPATIBLE)) {
+    throw new Error(`u128 ${num} too small`);
+  }
+
+  if (num.gt(U128_MAX_COMPATIBLE)) {
+    throw new Error(`u128 ${num} too large`);
+  }
+
+  const buf = Buffer.alloc(16);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 0);
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 4);
+
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 8);
+
+  num = num.shr(32);
+  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 12);
+  return `0x${buf.toString("hex")}`;
+}
+
+function readBigUInt128LE(leHex) {
+  return readBigUInt128LECompatible(leHex).toBigInt();
+}
+
+function readBigUInt128LECompatible(leHex) {
+  if (leHex.length < 34 || !leHex.startsWith("0x")) {
+    throw new Error(`leHex format error`);
+  }
+
+  const buf = Buffer.from(leHex.slice(2, 34), "hex");
+
+  return BI.from(buf.readUInt32LE(0))
+    .shl(0)
+    .add(BI.from(buf.readUInt32LE(4)).shl(32))
+    .add(BI.from(buf.readUInt32LE(8)).shl(64))
+    .add(BI.from(buf.readUInt32LE(12)).shl(96));
 }
 
 function assertHexString(debugPath, str) {
@@ -139,6 +212,14 @@ module.exports = {
   ckbHash,
   deepCamel,
   deepCamelizeTransaction,
+  toBigUInt64LE,
+  toBigUInt64LECompatible,
+  readBigUInt64LE,
+  readBigUInt64LECompatible,
+  toBigUInt128LE,
+  toBigUInt128LECompatible,
+  readBigUInt128LE,
+  readBigUInt128LECompatible,
   computeScriptHash,
   hashCode,
   assertHexString,
