@@ -1,5 +1,4 @@
 const test = require("ava");
-const { Reader } = require("@ckb-lumos/toolkit");
 const { BI } = require("@ckb-lumos/bi");
 
 const {
@@ -14,7 +13,9 @@ const {
   assertHexString,
   assertHexadecimal,
   generateTypeIdScript,
-} = require("../lib/utils");
+  deepCamel,
+  deepCamelizeTransaction,
+} = require("../src/utils");
 
 const message = "0x";
 const messageDigest =
@@ -32,14 +33,13 @@ test("CKBHasher, hex", (t) => {
 });
 
 test("CKBHasher, reader", (t) => {
-  const result = new CKBHasher().update(new Reader(message)).digestHex();
+  const result = new CKBHasher().update(message).digestHex();
   t.is(result, messageDigest);
 });
 
 test("ckbHash", (t) => {
-  const arrayBuffer = new Reader(message).toArrayBuffer();
-  const result = ckbHash(arrayBuffer);
-  t.is(result.serializeJson(), messageDigest);
+  const result = ckbHash(message);
+  t.is(result, messageDigest);
 });
 
 const uint64Compatible = BI.from(1965338);
@@ -74,9 +74,9 @@ test("readBigUInt128LECompatible", (t) => {
 });
 
 const script = {
-  code_hash:
+  codeHash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-  hash_type: "type",
+  hashType: "type",
   args: "0x36c329ed630d6ce750712a477543672adab57f4c",
 };
 const scriptHash =
@@ -109,18 +109,47 @@ test("assertHexadecimal", (t) => {
 
 test("test type id", (t) => {
   const input = {
-    previous_output: {
+    previousOutput: {
       index: "0x0",
-      tx_hash:
+      txHash:
         "0x128b201cd1995efba3126d4431f837c34f7d2f6a29ed8968d2ebc39059add56a",
     },
     since: "0x0",
   };
   const typeIdScript = {
     args: "0xa803c9ed6c190fd780e64d885794933ab23da641e94ad1b9270ebac893a7cdcc",
-    code_hash:
+    codeHash:
       "0x00000000000000000000000000000000000000000000000000545950455f4944",
-    hash_type: "type",
+    hashType: "type",
   };
   t.deepEqual(generateTypeIdScript(input, "0x0"), typeIdScript);
+});
+
+test("test camalize", (t) => {
+  const sampleInput = {
+    dep_type: "dep_group",
+    script: {
+      code_hash: "code_hash",
+      hash_type: "hash_type",
+      args: "args",
+    },
+  };
+  const expectedOutput1 = {
+    depType: "dep_group",
+    script: {
+      codeHash: "code_hash",
+      hashType: "hash_type",
+      args: "args",
+    },
+  };
+  const expectedOutput2 = {
+    depType: "depGroup",
+    script: {
+      codeHash: "code_hash",
+      hashType: "hash_type",
+      args: "args",
+    },
+  };
+  t.deepEqual(deepCamel(sampleInput), expectedOutput1);
+  t.deepEqual(deepCamelizeTransaction(sampleInput), expectedOutput2);
 });

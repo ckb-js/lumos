@@ -24,11 +24,11 @@ test("BigInt:transfer success", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
+    .map((i) => BigInt(i.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
+    .map((o) => BigInt(o.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   t.is(sumOfOutputCapacity, sumOfInputCapacity);
 });
@@ -44,25 +44,25 @@ test("BigInt:transfer to non secp256k1_blake160 address", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
+    .map((i) => BigInt(i.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
+    .map((o) => BigInt(o.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   t.is(sumOfOutputCapacity, sumOfInputCapacity);
 
   t.is(txSkeleton.get("outputs").size, 2);
   const targetOutput = txSkeleton.get("outputs").get(0)!;
-  t.deepEqual(targetOutput.cell_output!.lock, fullAddressInfo.lock);
+  t.deepEqual(targetOutput.cellOutput!.lock, fullAddressInfo.lock);
   const changeOutput = txSkeleton.get("outputs").get(1)!;
   const template = LINA.SCRIPTS.SECP256K1_BLAKE160!;
   const expectedChangeLockScript = {
-    code_hash: template.CODE_HASH,
-    hash_type: template.HASH_TYPE,
+    codeHash: template.CODE_HASH,
+    hashType: template.HASH_TYPE,
     args: bob.blake160,
   };
-  t.deepEqual(changeOutput.cell_output!.lock, expectedChangeLockScript);
+  t.deepEqual(changeOutput.cellOutput!.lock, expectedChangeLockScript);
 });
 
 test("BigInt:payFee", async (t) => {
@@ -83,11 +83,11 @@ test("BigInt:payFee", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
+    .map((i) => BigInt(i.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
+    .map((o) => BigInt(o.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   t.is(sumOfOutputCapacity + fee, sumOfInputCapacity);
 
@@ -117,11 +117,11 @@ test("BigInt:prepareSigningEntries", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
+    .map((i) => BigInt(i.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
+    .map((o) => BigInt(o.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   t.is(sumOfOutputCapacity + fee, sumOfInputCapacity);
 
@@ -138,10 +138,10 @@ test("BigInt:transfer, skip duplicated input", async (t) => {
   });
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push({
-      cell_output: firstInput.cell_output,
+      cellOutput: firstInput.cellOutput,
       data: "0x",
-      out_point: undefined,
-      block_hash: undefined,
+      outPoint: undefined,
+      blockHash: undefined,
     });
   });
   txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
@@ -161,18 +161,18 @@ test("BigInt:transfer, skip duplicated input", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
+    .map((i) => BigInt(i.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
+    .map((o) => BigInt(o.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   t.is(sumOfOutputCapacity, sumOfInputCapacity);
 
   t.is(txSkeleton.get("inputs").size, 2);
   t.is(txSkeleton.get("outputs").size, 3);
   t.notDeepEqual(
-    txSkeleton.get("inputs").get(0)!.out_point,
-    txSkeleton.get("inputs").get(1)!.out_point
+    txSkeleton.get("inputs").get(0)!.outPoint,
+    txSkeleton.get("inputs").get(1)!.outPoint
   );
 });

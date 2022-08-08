@@ -11,17 +11,17 @@ type NetworkType = keyof typeof predefined;
 function ScriptFrom(
   scriptName: keyof typeof predefined.LINA.SCRIPTS,
   args: string,
-  hash_type?: HashType
+  hashType?: HashType
 ): { LINA: Script; AGGRON4: Script } {
   return {
     LINA: {
-      code_hash: LINA.SCRIPTS[scriptName]!.CODE_HASH,
-      hash_type: hash_type || LINA.SCRIPTS[scriptName]!.HASH_TYPE,
+      codeHash: LINA.SCRIPTS[scriptName]!.CODE_HASH,
+      hashType: hashType || LINA.SCRIPTS[scriptName]!.HASH_TYPE,
       args,
     },
     AGGRON4: {
-      code_hash: AGGRON4.SCRIPTS[scriptName]!.CODE_HASH,
-      hash_type: hash_type || AGGRON4.SCRIPTS[scriptName]!.HASH_TYPE,
+      codeHash: AGGRON4.SCRIPTS[scriptName]!.CODE_HASH,
+      hashType: hashType || AGGRON4.SCRIPTS[scriptName]!.HASH_TYPE,
       args,
     },
   };
@@ -39,11 +39,11 @@ function ConfigFrom(
   };
 }
 
-test("[encodeToAddress] full address test (hash_type = 0x02)", (t) => {
+test("[encodeToAddress] full address test (hashType = 0x02)", (t) => {
   const script: Script = {
-    code_hash:
+    codeHash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "data1",
+    hashType: "data1",
     args: "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
   };
 

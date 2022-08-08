@@ -1,19 +1,18 @@
-import * as core from "./lib/core";
-import * as utils from "./lib/utils";
-import * as helpers from "./lib/helpers";
-import * as since from "./lib/since";
-import * as denormalizers from "./lib/denormalizers";
-import * as values from "./lib/values";
-import * as logger from "./lib/logger";
+import * as utils from "./src/utils";
+import * as helpers from "./src/helpers";
+import * as since from "./src/since";
+import * as values from "./src/values";
+import * as logger from "./src/logger";
+import * as blockchain from "./src/blockchain";
 
-export * from "./lib/primitive";
-export * from "./lib/api";
-export * from "./lib/indexer";
+export * from "./src/primitive";
+export * from "./src/api";
+export * from "./src/indexer";
 
-export { core, utils, helpers, since, denormalizers, values, logger };
-export { SinceValidationInfo } from "./lib/since";
+export { utils, helpers, since, values, logger, blockchain };
+export { SinceValidationInfo } from "./src/since";
 
 export interface Tip {
-  block_number: string;
-  block_hash: string;
+  blockNumber: string;
+  blockHash: string;
 }

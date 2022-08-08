@@ -1,10 +1,10 @@
 // https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0021-ckb-address-format/0021-ckb-address-format.md
 // | format type |                   description                                |
 // |:-----------:|--------------------------------------------------------------|
-// |  0x00       | full version identifies the hash_type                        |
-// |  0x01       | short version for locks with popular code_hash, deprecated   |
-// |  0x02       | full version with hash_type = "Data", deprecated             |
-// |  0x04       | full version with hash_type = "Type", deprecated             |
+// |  0x00       | full version identifies the hashType                        |
+// |  0x01       | short version for locks with popular codeHash, deprecated   |
+// |  0x02       | full version with hashType = "Data", deprecated             |
+// |  0x04       | full version with hashType = "Type", deprecated             |
 
 import { Address, Script } from "@ckb-lumos/base";
 import { getConfig } from "@ckb-lumos/config-manager";
@@ -15,24 +15,24 @@ import { byteArrayToHex } from "./utils";
 const BECH32_LIMIT = 1023;
 
 /**
- * full version identifies the hash_type
+ * full version identifies the hashType
  */
 export const ADDRESS_FORMAT_FULL = 0x00;
 /**
  * @deprecated
- * short version for locks with popular code_hash, deprecated
+ * short version for locks with popular codeHash, deprecated
  */
 export const ADDRESS_FORMAT_SHORT = 0x01;
 
 /**
  * @deprecated
- * full version with hash_type = "Data", deprecated
+ * full version with hashType = "Data", deprecated
  */
 export const ADDRESS_FORMAT_FULLDATA = 0x02;
 
 /**
  * @deprecated
- * full version with hash_type = "Type", deprecated
+ * full version with hashType = "Type", deprecated
  */
 export const ADDRESS_FORMAT_FULLTYPE = 0x04;
 
@@ -62,19 +62,19 @@ export function parseFullFormatAddress(
     throw new Error("Invalid payload length, too short!");
   }
 
-  const code_hash = byteArrayToHex(body.slice(0, 32));
-  const hash_type = (() => {
+  const codeHash = byteArrayToHex(body.slice(0, 32));
+  const hashType = (() => {
     const serializedHashType = body[32];
 
     if (serializedHashType === 0) return "data";
     if (serializedHashType === 1) return "type";
     if (serializedHashType === 2) return "data1";
 
-    throw new Error(`Invalid hash_type ${serializedHashType}`);
+    throw new Error(`Invalid hashType ${serializedHashType}`);
   })();
   const args = byteArrayToHex(body.slice(33));
 
-  return { code_hash, hash_type, args };
+  return { codeHash, hashType, args };
 }
 
 export function parseDeprecatedCkb2019Address(
@@ -110,30 +110,30 @@ export function parseDeprecatedCkb2019Address(
         throw Error(`Invalid code hash index: ${shortId}!`);
       }
       return {
-        code_hash: scriptTemplate.CODE_HASH,
-        hash_type: scriptTemplate.HASH_TYPE,
+        codeHash: scriptTemplate.CODE_HASH,
+        hashType: scriptTemplate.HASH_TYPE,
         args: byteArrayToHex(argsBytes),
       };
     }
-    // payload = 0x02 | code_hash | args
+    // payload = 0x02 | codeHash | args
     case ADDRESS_FORMAT_FULLDATA: {
       if (body.length < 32) {
         throw Error(`Invalid payload length!`);
       }
       return {
-        code_hash: byteArrayToHex(body.slice(0, 32)),
-        hash_type: "data",
+        codeHash: byteArrayToHex(body.slice(0, 32)),
+        hashType: "data",
         args: byteArrayToHex(body.slice(32)),
       };
     }
-    // payload = 0x04 | code_hash | args
+    // payload = 0x04 | codeHash | args
     case ADDRESS_FORMAT_FULLTYPE: {
       if (body.length < 32) {
         throw Error(`Invalid payload length!`);
       }
       return {
-        code_hash: byteArrayToHex(body.slice(0, 32)),
-        hash_type: "type",
+        codeHash: byteArrayToHex(body.slice(0, 32)),
+        hashType: "type",
         args: byteArrayToHex(body.slice(32)),
       };
     }

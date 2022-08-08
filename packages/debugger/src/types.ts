@@ -1,17 +1,9 @@
 import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
-import {
-  CellDep,
-  Hash,
-  Header,
-  HexString,
-  Input,
-  OutPoint,
-  Output,
-  Transaction,
-} from "@ckb-lumos/base";
+import { Hash, Header, HexString, OutPoint } from "@ckb-lumos/base";
 import { CKBDebugger } from "./executor";
 import { LocaleCode } from "./context";
+import type { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
 
 export interface ExecuteResult {
   code: number;
@@ -28,16 +20,21 @@ export interface DataLoader {
 
 export interface DebuggerData {
   mock_info: {
-    inputs: { input: Input; output: Output; data: HexString; header?: Hash }[];
-    cell_deps: {
-      cell_dep: CellDep;
-      output: Output;
+    inputs: {
+      input: RPC.CellInput;
+      output: RPC.CellOutput;
       data: HexString;
       header?: Hash;
     }[];
-    header_deps: Header[];
+    cell_deps: {
+      cell_dep: RPC.CellDep;
+      output: RPC.CellOutput;
+      data: HexString;
+      header?: Hash;
+    }[];
+    header_deps: RPC.Header[];
   };
-  tx: Transaction;
+  tx: RPC.RawTransaction;
 }
 
 export interface Executor {

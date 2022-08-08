@@ -1,8 +1,9 @@
 import { Tip } from "@ckb-lumos/base";
 import test from "ava";
-import { RPC } from "../src";
-const indexUri = "http://127.0.0.1:8120";
-const rpc = new RPC(indexUri);
+import { Indexer } from "../src";
+const indexerUri = "http://127.0.0.1:8120";
+const rpcUri = "http://127.0.0.1:8118";
+const ckbIndexer = new Indexer(indexerUri, rpcUri);
 test.before(() => {
   // @ts-ignore: Unreachable code error
   BigInt = () => {
@@ -11,10 +12,11 @@ test.before(() => {
 });
 test("get tip", async (t) => {
   const expectTip: Tip = {
-    block_hash:
+    blockHash:
       "0x4d0913d3d9330b1f2acf70d1b38baffa1d0588a92b006be3c5a0ca031e9841c7",
-    block_number: "0x63",
+    blockNumber: "0x63",
   };
-  const tip = await rpc.get_tip();
+
+  const tip = await ckbIndexer.tip();
   t.deepEqual(tip, expectTip);
 });

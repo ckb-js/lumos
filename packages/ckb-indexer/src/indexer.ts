@@ -4,14 +4,11 @@ import {
   HexString,
   Indexer,
   Script,
-  Tip,
   Output,
   utils,
   Block,
 } from "@ckb-lumos/base";
-import { validators } from "@ckb-lumos/toolkit";
-import { RPC } from "@ckb-lumos/rpc";
-import { request, requestBatch } from "./services";
+import { requestBatch } from "./services";
 import { CKBCellCollector } from "./collector";
 import { EventEmitter } from "events";
 import {
@@ -29,6 +26,10 @@ import {
   OtherQueryOptions,
 } from "./type";
 import { BI } from "@ckb-lumos/bi";
+import { RPC as CKBIndexerRpc } from "./rpc";
+import { CKBRPC } from "@ckb-lumos/rpc";
+import { validators } from "@ckb-lumos/toolkit";
+import type * as IndexerType from "./indexerType";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -38,24 +39,28 @@ function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
 }
 
-/** CkbIndexer.collector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
+/** CkbIndexer.collector will not get cell with blockHash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get blockHash if you need. */
 export class CkbIndexer implements Indexer {
   static version = "0.3.2";
   uri: string;
+  ckbIndexerUri: string;
   medianTimeEmitters: EventEmitter[] = [];
   emitters: IndexerEmitter[] = [];
   isSubscribeRunning = false;
   constructor(public ckbIndexerUrl: string, public ckbRpcUrl: string) {
     this.uri = ckbRpcUrl;
+    this.ckbIndexerUri = ckbIndexerUrl;
   }
 
-  private getCkbRpc(): RPC {
-    return new RPC(this.ckbRpcUrl);
+  private getCkbRpc(): CKBRPC {
+    return new CKBRPC(this.ckbRpcUrl);
+  }
+  private getIndexerRpc(): CKBIndexerRpc {
+    return new CKBIndexerRpc(this.ckbIndexerUri);
   }
 
-  async tip(): Promise<Tip> {
-    const res = await request(this.ckbIndexerUrl, "get_tip");
-    return res as Tip;
+  public async tip(): Promise<IndexerType.Tip> {
+    return await this.getIndexerRpc().getTip();
   }
 
   asyncSleep(timeout: number): Promise<void> {
@@ -64,11 +69,11 @@ export class CkbIndexer implements Indexer {
 
   async waitForSync(blockDifference = 0): Promise<void> {
     const rpcTipNumber = parseInt(
-      (await this.getCkbRpc().get_tip_header()).number,
+      (await this.getCkbRpc().getTipHeader()).number,
       16
     );
     while (true) {
-      const indexerTipNumber = parseInt((await this.tip()).block_number, 16);
+      const indexerTipNumber = parseInt((await this.tip()).blockNumber, 16);
       if (indexerTipNumber + blockDifference >= rpcTipNumber) {
         return;
       }
@@ -76,24 +81,14 @@ export class CkbIndexer implements Indexer {
     }
   }
 
-  /** collector cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
-   * don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
+  /** collector cells without blockHash by default.if you need blockHash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl.
+   * don't use OtherQueryOption if you don't need blockHash,cause it will slowly your collect.
    */
   collector(
     queries: CKBIndexerQueryOptions,
     otherQueryOptions?: OtherQueryOptions
   ): CellCollector {
     return new CKBCellCollector(this, queries, otherQueryOptions);
-  }
-
-  private async request(
-    method: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    params?: any,
-    ckbIndexerUrl: string = this.ckbIndexerUrl
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<any> {
-    return request(ckbIndexerUrl, method, params);
   }
 
   public async getCells(
@@ -107,16 +102,20 @@ export class CkbIndexer implements Indexer {
     const order = searchKeyFilter.order || "asc";
     const index = 0;
     while (true) {
-      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
-      const res: GetLiveCellsResult = await this.request("get_cells", params);
+      const res: GetLiveCellsResult = await this.getIndexerRpc().getCells(
+        searchKey,
+        order,
+        `0x${sizeLimit.toString(16)}`,
+        cursor
+      );
       const liveCells = res.objects;
-      cursor = res.last_cursor;
+      cursor = res.lastCursor;
       for (const liveCell of liveCells) {
         const cell: Cell = {
-          cell_output: liveCell.output,
-          data: liveCell.output_data,
-          out_point: liveCell.out_point,
-          block_number: liveCell.block_number,
+          cellOutput: liveCell.output,
+          data: liveCell.outputData,
+          outPoint: liveCell.outPoint ? liveCell.outPoint : undefined,
+          blockNumber: liveCell.blockNumber,
         };
         const { stop, push } = terminator(index, cell);
         if (push) {
@@ -148,10 +147,14 @@ export class CkbIndexer implements Indexer {
     const sizeLimit = searchKeyFilter.sizeLimit || 100;
     const order = searchKeyFilter.order || "asc";
     while (true) {
-      const params = [searchKey, order, `0x${sizeLimit.toString(16)}`, cursor];
-      const res = await this.request("get_transactions", params);
+      const res = await this.getIndexerRpc().getTransactions(
+        searchKey,
+        order,
+        `0x${sizeLimit.toString(16)}`,
+        cursor
+      );
       const txs = res.objects;
-      cursor = res.last_cursor as string;
+      cursor = res.lastCursor;
       infos = infos.concat(txs);
       if (txs.length <= sizeLimit) {
         break;
@@ -241,7 +244,7 @@ export class CkbIndexer implements Indexer {
       });
   }
 
-  private scheduleLoop(timeout = 1) {
+  private scheduleLoop(timeout = 1): void {
     setTimeout(() => {
       this.loop();
     }, timeout);
@@ -250,38 +253,30 @@ export class CkbIndexer implements Indexer {
   private async poll() {
     let timeout = 1;
     const tip = await this.tip();
-    const { block_number, block_hash } = tip;
-    if (block_number === "0x0") {
-      const block: Block = await this.request(
-        "get_block_by_number",
-        [block_number],
-        this.ckbRpcUrl
-      );
+    const { blockNumber, blockHash } = tip;
+    if (blockNumber === "0x0") {
+      const block: Block = (await this.getCkbRpc().getBlockByNumber(
+        blockNumber
+      )) as Block;
       await this.publishAppendBlockEvents(block);
     }
-    const nextBlockNumber = BI.from(block_number).add(1);
-    const block = await this.request(
-      "get_block_by_number",
-      [`0x${nextBlockNumber.toString(16)}`],
-      this.ckbRpcUrl
-    );
+    const nextBlockNumber = BI.from(blockNumber).add(1);
+    const block: Block = (await this.getCkbRpc().getBlockByNumber(
+      `0x${nextBlockNumber.toString(16)}`
+    )) as Block;
     if (block) {
-      if (block.header.parent_hash === block_hash) {
+      if (block.header.parentHash === blockHash) {
         await this.publishAppendBlockEvents(block);
       } else {
-        const block: Block = await this.request(
-          "get_block_by_number",
-          [block_number],
-          this.ckbRpcUrl
-        );
+        const block: Block = (await this.getCkbRpc().getBlockByNumber(
+          blockNumber
+        )) as Block;
         await this.publishAppendBlockEvents(block);
       }
     } else {
-      const block = await this.request(
-        "get_block_by_number",
-        [block_number],
-        this.ckbRpcUrl
-      );
+      const block: Block = (await this.getCkbRpc().getBlockByNumber(
+        blockNumber
+      )) as Block;
       await this.publishAppendBlockEvents(block);
       timeout = 3 * 1000;
     }
@@ -298,7 +293,7 @@ export class CkbIndexer implements Indexer {
             id: index,
             jsonrpc: "2.0",
             method: "get_transaction",
-            params: [input.previous_output.tx_hash],
+            params: [input.previousOutput.txHash],
           };
         });
 
@@ -309,11 +304,11 @@ export class CkbIndexer implements Indexer {
         ).then((response: GetTransactionRPCResult[]) => {
           return response.map(
             (item: GetTransactionRPCResult, index: number) => {
-              const cellIndex = tx.inputs[index].previous_output.index;
+              const cellIndex = tx.inputs[index].previousOutput.index;
               const outputCell =
                 item.result.transaction.outputs[parseInt(cellIndex)];
               const outputData =
-                item.result.transaction.outputs_data[parseInt(cellIndex)];
+                item.result.transaction.outputsData[parseInt(cellIndex)];
               return { output: outputCell, outputData } as OutputToVerify;
             }
           );
@@ -324,7 +319,7 @@ export class CkbIndexer implements Indexer {
       }
       // publish changed events if subscribed script exists in output cells.
       for (const [outputIndex, output] of tx.outputs.entries()) {
-        const outputData = tx.outputs_data[outputIndex];
+        const outputData = tx.outputsData[outputIndex];
         this.filterEvents(output, blockNumber, outputData);
       }
     }
@@ -384,8 +379,8 @@ export class CkbIndexer implements Indexer {
         : emitter.outputData === outputData;
     const checkScript = !script
       ? true
-      : emitterScript.code_hash === script.code_hash &&
-        emitterScript.hash_type === script.hash_type &&
+      : emitterScript.codeHash === script.codeHash &&
+        emitterScript.hashType === script.hashType &&
         this.checkArgs(emitter.argsLen, emitterScript.args, script.args);
     return checkBlockNumber && checkOutputData && checkScript;
   }
@@ -410,8 +405,8 @@ export class CkbIndexer implements Indexer {
     if (this.medianTimeEmitters.length === 0) {
       return;
     }
-    const info = await request(this.ckbRpcUrl, "get_blockchain_info");
-    const medianTime = info.median_time;
+    const info = await this.getCkbRpc().getBlockchainInfo();
+    const medianTime = info.medianTime;
     for (const medianTimeEmitter of this.medianTimeEmitters) {
       medianTimeEmitter.emit("changed", medianTime);
     }

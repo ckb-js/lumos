@@ -2,30 +2,34 @@
   "name": "@ckb-lumos/rpc",
   "version": "0.18.0",
   "description": "RPC module for CKB",
-  "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
   "engines": {
     "node": ">=12.0.0"
   },
   "directories": {
     "lib": "lib",
-    "test": "tests"
+    "test": "__tests__"
   },
   "files": [
-    "lib",
-    "src"
+    "lib"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
+  "bugs": {
+    "url": "https://github.com/nervosnetwork/lumos/issues"
+  },
   "scripts": {
-    "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
-    "test": "echo \"No tests yet!\"",
+    "doc": "../../node_modules/.bin/typedoc --out docs --mode modules --includeDeclarations --excludeExternals --ignoreCompilerErrors --theme default",
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "test": "../../node_modules/.bin/jest",
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
@@ -33,23 +37,12 @@
     "prepublishOnly": "yarn run clean && yarn run build",
     "release": "npm publish"
   },
-  "bugs": {
-    "url": "https://github.com/nervosnetwork/lumos/issues"
-  },
   "dependencies": {
-    "@ckb-lumos/base": "0.18.0",
     "@ckb-lumos/bi": "0.18.0",
-    "@ckb-lumos/toolkit": "0.18.0"
+    "axios": "0.21.4",
+    "tslib": "2.3.1"
   },
-  "ava": {
-    "extensions": [
-      "ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ]
-  },
-  "publishConfig": {
-    "access": "public"
+  "devDependencies": {
+    "jest": "^28.1.3"
   }
 }

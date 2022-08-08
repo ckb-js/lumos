@@ -24,7 +24,7 @@ const LINA = createConfig({
       TX_HASH:
         "0x71a7ba8fc96349fea0ed3a5c47992e3b4084b031a42264a018e0072e8172e46c",
       INDEX: "0x0",
-      DEP_TYPE: "dep_group",
+      DEP_TYPE: "depGroup",
       SHORT_ID: 0,
     },
     SECP256K1_BLAKE160_MULTISIG: {
@@ -34,7 +34,7 @@ const LINA = createConfig({
       TX_HASH:
         "0x71a7ba8fc96349fea0ed3a5c47992e3b4084b031a42264a018e0072e8172e46c",
       INDEX: "0x1",
-      DEP_TYPE: "dep_group",
+      DEP_TYPE: "depGroup",
       SHORT_ID: 1,
     },
     DAO: {
@@ -62,7 +62,7 @@ const LINA = createConfig({
       TX_HASH:
         "0x4153a2014952d7cac45f285ce9a7c5c0c0e1b21f2d378b82ac1433cb11c25c4d",
       INDEX: "0x0",
-      DEP_TYPE: "dep_group",
+      DEP_TYPE: "depGroup",
       SHORT_ID: 2,
     },
   },
@@ -78,7 +78,7 @@ const AGGRON4 = createConfig({
       TX_HASH:
         "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
       INDEX: "0x0",
-      DEP_TYPE: "dep_group",
+      DEP_TYPE: "depGroup",
       SHORT_ID: 0,
     },
     SECP256K1_BLAKE160_MULTISIG: {
@@ -88,7 +88,7 @@ const AGGRON4 = createConfig({
       TX_HASH:
         "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
       INDEX: "0x1",
-      DEP_TYPE: "dep_group",
+      DEP_TYPE: "depGroup",
       SHORT_ID: 1,
     },
     DAO: {
@@ -116,7 +116,7 @@ const AGGRON4 = createConfig({
       TX_HASH:
         "0xec26b0f85ed839ece5f11c4c4e837ec359f5adc4420410f6453b1f6b60fb96a6",
       INDEX: "0x0",
-      DEP_TYPE: "dep_group",
+      DEP_TYPE: "depGroup",
       SHORT_ID: 2,
     },
   },

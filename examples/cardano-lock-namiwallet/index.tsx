@@ -39,8 +39,8 @@ export function App() {
         setCardanoAddr(address);
 
         const cardanoLock: Script = {
-          code_hash: CONFIG.SCRIPTS.CARDANO_LOCK.CODE_HASH,
-          hash_type: CONFIG.SCRIPTS.CARDANO_LOCK.HASH_TYPE,
+          codeHash: CONFIG.SCRIPTS.CARDANO_LOCK.CODE_HASH,
+          hashType: CONFIG.SCRIPTS.CARDANO_LOCK.HASH_TYPE,
           args: address,
         };
         const ckbAddr = helpers.generateAddress(cardanoLock);

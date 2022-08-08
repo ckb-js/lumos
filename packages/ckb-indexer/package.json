@@ -39,7 +39,7 @@
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "posttest:e2e": "ts-node tests/close-mock-server-and-ckb-indexer.ts",
-    "pretest:e2e": "(nohup ts-node tests/start_mock_rpc.ts &) ; (sleep 5) ; (nohup ts-node tests/start_ckb_indexer.ts &) ; (sleep 5)",
+    "pretest:e2e": "(nohup ts-node tests/start_mock_rpc.ts &) ; (sleep 5) ; (nohup ts-node tests/start_ckb_indexer.ts &) ; (sleep 10)",
     "test:e2e": "ava **/*.e2e.test.ts --timeout=2m",
     "test": "ava **/*.unit.test.ts --timeout=2m",
     "build": "npm run build:types && npm run build:js",
