@@ -1,6 +1,4 @@
 const test = require("ava");
-const { BI } = require("@ckb-lumos/bi");
-const { bytes, number } = require("@ckb-lumos/codec");
 
 const {
   CKBHasher,
@@ -37,39 +35,6 @@ test("CKBHasher, reader", (t) => {
 test("ckbHash", (t) => {
   const result = ckbHash(message);
   t.is(result, messageDigest);
-});
-
-const uint64Compatible = BI.from(1965338);
-const uint64leCompatible = "0x1afd1d0000000000";
-
-test("toBigUInt64LECompatible", (t) => {
-  t.true(
-    bytes.equal(number.Uint64LE.pack(uint64Compatible), uint64leCompatible)
-  );
-});
-
-test("number.Uint64LE.unpack", (t) => {
-  t.true(number.Uint64LE.unpack(uint64leCompatible).eq(uint64Compatible));
-});
-const u128Compatible = BI.from("1208925819614629174706177");
-const u128leCompatible = "0x01000000000000000000010000000000";
-
-test("toBigUInt128LECompatible", (t) => {
-  t.true(bytes.equal(number.Uint128LE.pack(u128Compatible), u128leCompatible));
-});
-
-test("toBigUInt128LECompatible, to small", (t) => {
-  t.throws(() => number.Uint128LE.pack(BI.from(-1)));
-  t.notThrows(() => number.Uint128LE.pack(0));
-});
-
-test("toBigUInt128LECompatible, to big", (t) => {
-  t.throws(() => number.Uint128LE.pack(BI.from(2).pow(128)));
-  t.notThrows(() => number.Uint128LE.pack(BI.from(2).pow(128).sub(1)));
-});
-
-test("number.Uint128LE.unpack", (t) => {
-  t.true(number.Uint128LE.unpack(u128leCompatible).eq(u128Compatible));
 });
 
 const script = {
