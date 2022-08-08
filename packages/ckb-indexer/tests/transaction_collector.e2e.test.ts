@@ -85,7 +85,7 @@ test("query transactions with different queryOptions", async (t) => {
       transactionList.push(hash);
     }
     t.deepEqual(
-      utils.deepCamelizeTransaction(utils.deepCamel(transactionList)),
+      utils.deepCamelizeTransaction(transactionList),
       queryCase.expectedResult,
       queryCase.desc
     );

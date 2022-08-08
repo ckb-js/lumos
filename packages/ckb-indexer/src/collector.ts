@@ -129,6 +129,7 @@ export class CKBCellCollector implements BaseCellCollector {
     // unWrap `ScriptWrapper` into `Script`.
     if (queryLock) {
       if (instanceOfScriptWrapper(queryLock)) {
+        validators.ValidateScript(queryLock.script);
         this.queries.lock = queryLock.script;
       }
     }
@@ -139,6 +140,7 @@ export class CKBCellCollector implements BaseCellCollector {
         typeof this.queries.type === "object" &&
         instanceOfScriptWrapper(this.queries.type)
       ) {
+        validators.ValidateScript(this.queries.type.script);
         this.queries.type = this.queries.type.script;
       }
     }
