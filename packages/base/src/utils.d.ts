@@ -1,6 +1,7 @@
 import { BI, BIish } from "@ckb-lumos/bi";
 import { Script, Input } from "./api";
 import { Hash, HexNumber, HexString } from "./primitive";
+import { BytesLike } from "@ckb-lumos/codec";
 
 export class CKBHasher {
   update(data: string | ArrayBuffer): this;
@@ -8,7 +9,7 @@ export class CKBHasher {
   digestHex(): Hash;
 }
 
-export function ckbHash(buffer: ArrayBuffer): Hash;
+export function ckbHash(data: BytesLike): Hash;
 
 /**
  * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}

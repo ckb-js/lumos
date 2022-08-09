@@ -115,5 +115,5 @@ test("test camalize", (t) => {
     },
   };
   t.deepEqual(deepCamel(sampleInput), expectedOutput1);
-  t.deepEqual(deepCamelizeTransaction(deepCamel(sampleInput)), expectedOutput2);
+  t.deepEqual(deepCamelizeTransaction(sampleInput), expectedOutput2);
 });

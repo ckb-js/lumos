@@ -8,6 +8,7 @@ const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);
 
 test.before(() => {
+  // @ts-ignore
   sinon.stub(indexer, "scheduleLoop").callsFake(() => {});
 });
 

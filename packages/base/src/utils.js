@@ -23,9 +23,9 @@ class CKBHasher {
   }
 }
 
-function ckbHash(buffer) {
+function ckbHash(data) {
   const hasher = new CKBHasher();
-  hasher.update(buffer);
+  hasher.update(bytes.bytify(data));
   return hasher.digestHex();
 }
 
@@ -36,7 +36,6 @@ function computeScriptHash(script) {
 function hashCode(buffer) {
   return xxHash32(buffer, 0);
 }
-
 
 function toBigUInt64LE(num) {
   return toBigUInt64LECompatible(num);
@@ -181,12 +180,12 @@ function deepCamel(data) {
   return data;
 }
 
-function deepCamelizeTransaction(data) {
+function deepCamelizeDepGroup(data) {
   if (Object.prototype.toString.call(data) === "[object Array]") {
     if (data.length === 0) {
       return data;
     } else {
-      return data.map((item) => deepCamelizeTransaction(item));
+      return data.map((item) => deepCamelizeDepGroup(item));
     }
   }
   let result = {};
@@ -197,7 +196,7 @@ function deepCamelizeTransaction(data) {
         Object.prototype.toString.call(value) === "[object Object]" ||
         Object.prototype.toString.call(value) === "[object Array]"
       ) {
-        result[key] = deepCamelizeTransaction(value);
+        result[key] = deepCamelizeDepGroup(value);
       } else {
         result[key] = value === "dep_group" ? "depGroup" : value;
       }
@@ -205,6 +204,10 @@ function deepCamelizeTransaction(data) {
     return result;
   }
   return data;
+}
+
+function deepCamelizeTransaction(data) {
+  return deepCamelizeDepGroup(deepCamel(data));
 }
 
 module.exports = {
