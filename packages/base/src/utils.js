@@ -1,8 +1,8 @@
 const blake2b = require("blake2b");
 const isEqual = require("lodash.isequal");
 const { xxHash32 } = require("js-xxhash");
+const { bytes, number } = require("@ckb-lumos/codec");
 const { BI } = require("@ckb-lumos/bi");
-const { bytes } = require("@ckb-lumos/codec");
 const blockchain = require("./blockchain");
 
 const { bytify, hexify, bytifyRawString } = bytes;
@@ -27,6 +27,14 @@ function ckbHash(data) {
   const hasher = new CKBHasher();
   hasher.update(bytes.bytify(data));
   return hasher.digestHex();
+}
+
+function computeScriptHash(script) {
+  return ckbHash(blockchain.Script.pack(script));
+}
+
+function hashCode(buffer) {
+  return xxHash32(buffer, 0);
 }
 
 function toBigUInt64LE(num) {
@@ -100,14 +108,6 @@ function readBigUInt128LECompatible(leHex) {
     .add(BI.from(buf.readUInt32LE(12)).shl(96));
 }
 
-function computeScriptHash(script) {
-  return ckbHash(blockchain.Script.pack(script));
-}
-
-function hashCode(buffer) {
-  return xxHash32(buffer, 0);
-}
-
 function assertHexString(debugPath, str) {
   if (!/^0x([0-9a-fA-F][0-9a-fA-F])*$/.test(str)) {
     throw new Error(`${debugPath} must be a hex string!`);
@@ -129,7 +129,7 @@ const TYPE_ID_CODE_HASH =
 
 function generateTypeIdArgs(input, outputIndex) {
   const outPointBuf = blockchain.CellInput.pack(input);
-  const outputIndexBuf = toBigUInt64LE(outputIndex);
+  const outputIndexBuf = bytes.hexify(number.Uint64LE.pack(outputIndex));
   const ckbHasher = new CKBHasher();
   ckbHasher.update(outPointBuf);
   ckbHasher.update(outputIndexBuf);

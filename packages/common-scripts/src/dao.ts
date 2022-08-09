@@ -6,7 +6,6 @@ import {
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
 import {
-  utils,
   since as sinceUtils,
   HexString,
   Address,
@@ -18,9 +17,8 @@ import {
   CellCollector as CellCollectorInterface,
   blockchain,
 } from "@ckb-lumos/base";
-import { bytes } from "@ckb-lumos/codec";
+import { bytes, number } from "@ckb-lumos/codec";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { parseSince } = sinceUtils;
 import secp256k1Blake160 from "./secp256k1_blake160";
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
@@ -31,7 +29,6 @@ import {
   isSecp256k1Blake160MultisigScript,
   generateDaoScript,
 } from "./helper";
-import { readBigUInt64LECompatible } from "@ckb-lumos/base/lib/utils";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { RPC } from "@ckb-lumos/rpc";
 
@@ -204,7 +201,7 @@ function _checkFromInfoSince(fromInfo: FromInfo, config: Config): void {
     const fromScript = parseAddress(fromInfo, { config });
     const args = fromScript.args;
     if (args.length === 58) {
-      since = "0x" + readBigUInt64LE("0x" + args.slice(42)).toString(16);
+      since = number.Uint64LE.unpack("0x" + args.slice(42)).toHexString();
     }
   } else if ("R" in fromInfo) {
     since = fromInfo.since;
@@ -287,7 +284,13 @@ async function withdraw(
   const targetOutputIndex: number = txSkeleton.get("outputs").size - 1;
   const targetOutput: Cell = txSkeleton.get("outputs").get(targetOutputIndex)!;
   const clonedTargetOutput: Cell = JSON.parse(JSON.stringify(targetOutput));
-  clonedTargetOutput.data = toBigUInt64LE(BI.from(fromInput.blockNumber));
+  if (!fromInput.blockNumber) {
+    throw new Error("fromInput has no blockNumber!");
+  } else {
+    clonedTargetOutput.data = bytes.hexify(
+      number.Uint64.pack(fromInput.blockNumber)
+    );
+  }
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.update(targetOutputIndex, () => clonedTargetOutput);
   });
@@ -469,7 +472,7 @@ export async function unlock(
 
   // setup input cell
   const defaultWitnessArgs: WitnessArgs = {
-    inputType: toBigUInt64LE(depositHeaderDepIndex),
+    inputType: bytes.hexify(number.Uint64LE.pack(depositHeaderDepIndex)),
   };
   const defaultWitness: HexString = bytes.hexify(
     blockchain.WitnessArgs.pack(defaultWitnessArgs)
@@ -615,9 +618,7 @@ function extractDaoDataCompatible(dao: PackedDao): {
   return ["c", "ar", "s", "u"]
     .map((key, i) => {
       return {
-        [key]: BI.from(
-          readBigUInt64LECompatible("0x" + hex.slice(len * i, len * (i + 1)))
-        ),
+        [key]: number.Uint64LE.unpack("0x" + hex.slice(len * i, len * (i + 1))),
       };
     })
     .reduce((result, c) => ({ ...result, ...c }), {});

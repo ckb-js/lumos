@@ -13,7 +13,7 @@ import {
   WitnessArgs,
   blockchain,
 } from "@ckb-lumos/base";
-import { bytes } from "@ckb-lumos/codec";
+import { bytes, number } from "@ckb-lumos/codec";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import {
   createTransactionFromSkeleton,
@@ -34,7 +34,7 @@ import {
 } from "./helper";
 import { CellCollectorConstructor, CellCollectorType } from "./type";
 const { ScriptValue } = values;
-const { CKBHasher, ckbHash, readBigUInt128LECompatible } = utils;
+const { CKBHasher, ckbHash } = utils;
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
   implements CellCollectorType
@@ -480,7 +480,7 @@ export function prepareSigningEntries(
 
       const sumOfOutputAmount: BI = outputs
         .filter((output) => output.data !== "0x")
-        .map((output) => BI.from(readBigUInt128LECompatible(output.data)))
+        .map((output) => number.Uint128LE.unpack(output.data))
         .reduce((result, c) => result.add(c), BI.from(0));
 
       const fInputs: List<Cell> = inputs.filter((i) => {
@@ -495,7 +495,7 @@ export function prepareSigningEntries(
 
       const sumOfInputAmount: BI = fInputs
         .filter((i) => i.data !== "0x")
-        .map((i) => BI.from(readBigUInt128LECompatible(i.data)))
+        .map((i) => BI.from(number.Uint128LE.unpack(i.data)))
         .reduce((result, c) => result.add(c), BI.from(0));
 
       if (

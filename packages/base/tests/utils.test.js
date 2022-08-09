@@ -1,13 +1,8 @@
 const test = require("ava");
-const { BI } = require("@ckb-lumos/bi");
 
 const {
   CKBHasher,
   ckbHash,
-  toBigUInt64LECompatible,
-  readBigUInt64LECompatible,
-  readBigUInt128LECompatible,
-  toBigUInt128LECompatible,
   computeScriptHash,
   hashCode,
   assertHexString,
@@ -40,37 +35,6 @@ test("CKBHasher, reader", (t) => {
 test("ckbHash", (t) => {
   const result = ckbHash(message);
   t.is(result, messageDigest);
-});
-
-const uint64Compatible = BI.from(1965338);
-const uint64leCompatible = "0x1afd1d0000000000";
-
-test("toBigUInt64LECompatible", (t) => {
-  t.is(toBigUInt64LECompatible(uint64Compatible), uint64leCompatible);
-});
-
-test("readBigUInt64LECompatible", (t) => {
-  t.true(readBigUInt64LECompatible(uint64leCompatible).eq(uint64Compatible));
-});
-const u128Compatible = BI.from("1208925819614629174706177");
-const u128leCompatible = "0x01000000000000000000010000000000";
-
-test("toBigUInt128LECompatible", (t) => {
-  t.is(toBigUInt128LECompatible(u128Compatible), u128leCompatible);
-});
-
-test("toBigUInt128LECompatible, to small", (t) => {
-  t.throws(() => toBigUInt128LECompatible(BI.from(-1)));
-  t.notThrows(() => toBigUInt128LECompatible(0));
-});
-
-test("toBigUInt128LECompatible, to big", (t) => {
-  t.throws(() => toBigUInt128LECompatible(BI.from(2).pow(128)));
-  t.notThrows(() => toBigUInt128LECompatible(BI.from(2).pow(128).sub(1)));
-});
-
-test("readBigUInt128LECompatible", (t) => {
-  t.true(readBigUInt128LECompatible(u128leCompatible).eq(u128Compatible));
 });
 
 const script = {

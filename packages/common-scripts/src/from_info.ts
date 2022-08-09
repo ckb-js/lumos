@@ -8,9 +8,9 @@ import {
 } from "@ckb-lumos/base";
 import { Options, parseAddress } from "@ckb-lumos/helpers";
 import { getConfig } from "@ckb-lumos/config-manager";
-import { BI } from "@ckb-lumos/bi";
+import { bytes, number } from "@ckb-lumos/codec";
 
-const { CKBHasher, toBigUInt64LE } = utils;
+const { CKBHasher } = utils;
 
 /**
  * secp256k1_blake160_multisig script requires S, R, M, N and public key hashes
@@ -79,7 +79,7 @@ export function multisigArgs(
 ): HexString {
   let sinceLE = "0x";
   if (since != null) {
-    sinceLE = toBigUInt64LE(BI.from(since));
+    sinceLE = bytes.hexify(number.Uint64LE.pack(since));
   }
   return (
     new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +
