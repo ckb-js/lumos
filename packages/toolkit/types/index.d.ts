@@ -1,5 +1,7 @@
 import JSBI from "jsbi";
 
+export * as validators from "./validators";
+
 /**
  * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
  */
@@ -23,31 +25,6 @@ export function HexStringToBigInt(hexString: string): JSBI;
  * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
  */
 export function BigIntToHexString(i: JSBI): string;
-
-/**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
- */
-export interface ValidatorOptions {
-  nestedValidation?: boolean;
-  debugPath?: string;
-}
-type ValidatorFunction = (value: object, options?: ValidatorOptions) => void;
-
-export namespace validators {
-  const ValidateScript: ValidatorFunction;
-  const ValidateOutPoint: ValidatorFunction;
-  const ValidateCellInput: ValidatorFunction;
-  const ValidateCellOutput: ValidatorFunction;
-  const ValidateCellDep: ValidatorFunction;
-  const ValidateRawTransaction: ValidatorFunction;
-  const ValidateTransaction: ValidatorFunction;
-  const ValidateRawHeader: ValidatorFunction;
-  const ValidateHeader: ValidatorFunction;
-  const ValidateUncleBlock: ValidatorFunction;
-  const ValidateBlock: ValidatorFunction;
-  const ValidateCellbaseWitness: ValidatorFunction;
-  const ValidateWitnessArgs: ValidatorFunction;
-}
 
 /**
  * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
