@@ -1,4 +1,4 @@
-# Migration to Lumos@0.19
+# Migration to Lumos 0.19
 
 Migrate from `lumos@0.18` or earlier to `lumos@0.19`
 
