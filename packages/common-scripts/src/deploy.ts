@@ -359,7 +359,7 @@ interface ScriptConfig {
   SHORT_ID?: number;
 }
 
-function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
+export function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = utils.ckbHash(blockchain.Transaction.pack(tx));
   return txHash;
