@@ -10,7 +10,11 @@ Migrate from `lumos@0.18` or earlier to `lumos@0.19`
 
 ### Step 1 - Codemod
 
-**WARNING**: Running the codemod will change your source code, please make sure your code are has been committed.
+:::caution
+
+Running the codemod will change your source code, please make sure your code are has been committed.
+
+:::
 
 Running the codemod will:
 
