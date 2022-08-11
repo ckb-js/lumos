@@ -8,16 +8,21 @@ Migrate from `lumos@0.18` or earlier to `lumos@0.19`
 
 ## Step-by-Step Guide
 
-### Step 1
+### Step 1 - Codemod
 
-Download the migration script and run it to automatically change your snake-case code to camel-case. Before doing this, you should commit your code to git and keep repo clean with no staging changes.
+**WARNING**: Running the codemod will change your source code, please make sure your code are has been committed.
+
+Running the codemod will:
+
+1. change your lumos-related API from snake_case to camelCase.
+2. show warnings for deprecated functions.
 
 ```sh
 curl -s https://gist.githubusercontent.com/zhangyouxin/e5ddf9b966f611173a01d6c98715c931/raw/30606c12756a866437a390add8dc5f5df47c9c36/codemod.js \
 | xargs -0 -I{} node -e {} "your-source-dir/**/*.js"
 ```
 
-The output shoul look like: ![output](../../assets/codemod-ouput.png)
+The output should look like: ![output](../../assets/codemod-ouput.png)
 
 Then check out the changes by `git status` and `git diff` and make sure the code diff is within expectation.
 
@@ -25,7 +30,7 @@ The warnings logged in console indicates that you should take care of some depre
 
 **Tips: If you have persisted data, remember to change snake-case to camel-case manually.**
 
-### Step 2
+### Step 2 - (De)Serialization
 
 Rewrite Serialization and DeSerialization codes.
 
@@ -47,7 +52,7 @@ Rewrite Serialization and DeSerialization codes.
 +    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs))
 ```
 
-### Step 3
+### Step 3 - Utility Functions in `@ckb-lumos/base/utils`
 
 Some other changes you should take care of.
 
@@ -68,7 +73,7 @@ After doing the 3 steps, you have done migrating to v0.19.
 
 ## Deprecated Functions
 
-Check the logs in the console of step 1,  deprecated functions work for now but should be repalced by new code.
+Check the warnings in the console of step 1,  deprecated functions work for now but should be repalced by new code.
 
 ```diff
 + import{ number, bytes } from "@ckb-lumos/codec"
