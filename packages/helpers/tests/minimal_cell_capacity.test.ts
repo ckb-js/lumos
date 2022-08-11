@@ -3,7 +3,6 @@ import { Cell } from "@ckb-lumos/base";
 import {
   minimalCellCapacity,
   minimalCellCapacityCompatible,
-  minimalScriptCapacity,
   minimalScriptCapacityCompatible,
 } from "../src";
 import { BI } from "@ckb-lumos/bi";
@@ -113,7 +112,7 @@ test("normal script, validate true", (t) => {
 
 test("invalid script, validate failed", (t) => {
   t.throws(() => {
-    minimalScriptCapacity({
+    minimalScriptCapacityCompatible({
       args: "0x36c329ed630d6ce750712a477543672adab57f4c",
       codeHash:
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
