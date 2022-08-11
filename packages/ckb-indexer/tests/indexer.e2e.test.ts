@@ -39,8 +39,8 @@ test("subscribe cells", async (t) => {
       blockIndex = blockIndex + 1;
     }
     return Promise.resolve({
-      block_hash: block.header.hash,
-      block_number: block.header.number,
+      blockHash: block.header.hash,
+      blockNumber: block.header.number,
     });
   });
 
@@ -90,6 +90,6 @@ test("throw error when pass both null lock and null type to subscribe", (t) => {
     },
     { instanceOf: Error }
   );
-  console.log(error);
+
   t.is(error.message, "Either lock or type script must be provided!");
 });

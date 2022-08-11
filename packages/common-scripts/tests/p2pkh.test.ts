@@ -1,13 +1,13 @@
 import test from "ava";
 import { Script, utils } from "@ckb-lumos/base";
-import { Reader } from "@ckb-lumos/toolkit";
 import { default as createKeccak } from "keccak";
 import { createP2PKHMessageGroup } from "../src/p2pkh";
 import { txObject, txSkeletonFromJson } from "./helper";
 import p2pkhJson from "./p2pkh.json";
+import { bytes } from "@ckb-lumos/codec";
 
 test("omni lock [g1]", (t) => {
-  const SIGNATURE_PLACEHOLDER = new Reader("0x" + "00".repeat(85));
+  const SIGNATURE_PLACEHOLDER = "0x" + "00".repeat(85);
   let tx = txSkeletonFromJson(
     p2pkhJson["OMNI_LOCK_[G1]"].tx as txObject,
     SIGNATURE_PLACEHOLDER
@@ -19,7 +19,7 @@ test("omni lock [g1]", (t) => {
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     hasher: {
       update: (message) => hasher.update(message.buffer),
-      digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+      digest: () => bytes.bytify(hasher.digestHex()),
     },
   });
   t.is(messageGroup.length, 1);
@@ -107,7 +107,7 @@ test("seck256k1 [g1, g2], test createP2PKHMessageGroup by multiple locks", (t) =
     createP2PKHMessageGroup(tx, [signLock, signLock2], {
       hasher: {
         update: (message) => hasher.update(message.buffer),
-        digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+        digest: () => bytes.bytify(hasher.digestHex()),
       },
     })
   );
@@ -125,7 +125,7 @@ test("seck256k1 [g1, g2], test createP2PKHMessageGroup by multiple locks", (t) =
         const hasher = new utils.CKBHasher();
         return {
           update: (message) => hasher.update(message.buffer),
-          digest: () => new Uint8Array(hasher.digestReader().toArrayBuffer()),
+          digest: () => bytes.bytify(hasher.digestHex()),
         };
       },
     }

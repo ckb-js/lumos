@@ -9,7 +9,7 @@ import {
   CellCollector as CellCollectorInterface,
   values,
 } from "@ckb-lumos/base";
-const { toBigUInt128LE, computeScriptHash } = utils;
+const { computeScriptHash } = utils;
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
 import common from "./common";
@@ -27,8 +27,8 @@ import anyoneCanPay, {
 } from "./anyone_can_pay";
 const { ScriptValue } = values;
 import secp256k1Blake160 from "./secp256k1_blake160";
-import { readBigUInt128LECompatible } from "@ckb-lumos/base/lib/utils";
 import { BI, BIish } from "@ckb-lumos/bi";
+import { bytes, number } from "@ckb-lumos/codec";
 
 export type Token = Hash;
 
@@ -58,11 +58,11 @@ export async function issueToken(
   }
 
   txSkeleton = addCellDep(txSkeleton, {
-    out_point: {
-      tx_hash: template.TX_HASH,
+    outPoint: {
+      txHash: template.TX_HASH,
       index: template.INDEX,
     },
-    dep_type: template.DEP_TYPE,
+    depType: template.DEP_TYPE,
   });
 
   const fromScript = parseFromInfo(fromInfo, { config }).fromScript;
@@ -70,27 +70,27 @@ export async function issueToken(
   const toScript = fromScript;
 
   const sudtTypeScript = {
-    code_hash: template.CODE_HASH,
-    hash_type: template.HASH_TYPE,
+    codeHash: template.CODE_HASH,
+    hashType: template.HASH_TYPE,
     args: computeScriptHash(fromScript),
   };
 
   const targetOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: toScript,
       type: sudtTypeScript,
     },
-    data: toBigUInt128LE(amount),
-    out_point: undefined,
-    block_hash: undefined,
+    data: bytes.hexify(number.Uint128LE.pack(amount)),
+    outPoint: undefined,
+    blockHash: undefined,
   };
 
   if (!capacity) {
     capacity = minimalCellCapacityCompatible(targetOutput);
   }
-  let _capacity = BI.from(capacity);
-  targetOutput.cell_output.capacity = "0x" + _capacity.toString(16);
+  const _capacity = BI.from(capacity);
+  targetOutput.cellOutput.capacity = "0x" + _capacity.toString(16);
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push(targetOutput);
@@ -109,7 +109,7 @@ export async function issueToken(
   txSkeleton = await common.injectCapacity(
     txSkeleton,
     [fromInfo],
-    BI.from(BI.from(targetOutput.cell_output.capacity)),
+    BI.from(BI.from(targetOutput.cellOutput.capacity)),
     undefined,
     tipHeader,
     {
@@ -146,6 +146,7 @@ export async function transfer(
     LocktimePoolCellCollector = LocktimeCellCollector,
     splitChangeCell = false,
   }: Options & {
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
     LocktimePoolCellCollector?: any;
     splitChangeCell?: boolean;
   } = {}
@@ -218,34 +219,34 @@ export async function transfer(
       return witnesses.push("0x");
     });
 
-    toAddressInputCapacity = BI.from(toAddressInput.cell_output.capacity);
-    toAddressInputAmount = BI.from(
-      readBigUInt128LECompatible(toAddressInput.data)
-    );
+    toAddressInputCapacity = BI.from(toAddressInput.cellOutput.capacity);
+    toAddressInputAmount = number.Uint128LE.unpack(toAddressInput.data);
   }
 
   const targetOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: toScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(_amount.toString()),
-    out_point: undefined,
-    block_hash: undefined,
+    data: bytes.hexify(number.Uint128LE.pack(_amount)),
+    outPoint: undefined,
+    blockHash: undefined,
   };
   if (isAcpScript(toScript, config)) {
     if (!_capacity) {
       _capacity = BI.from(0);
     }
-    targetOutput.cell_output.capacity =
+    targetOutput.cellOutput.capacity =
       "0x" + toAddressInputCapacity.add(_capacity).toString(16);
-    targetOutput.data = toBigUInt128LE(toAddressInputAmount.add(_amount));
+    targetOutput.data = bytes.hexify(
+      number.Uint128LE.pack(toAddressInputAmount.add(_amount))
+    );
   } else {
     if (!_capacity) {
       _capacity = BI.from(minimalCellCapacityCompatible(targetOutput));
     }
-    targetOutput.cell_output.capacity = "0x" + _capacity.toString(16);
+    targetOutput.cellOutput.capacity = "0x" + _capacity.toString(16);
   }
 
   // collect cells with which includes sUDT info
@@ -261,40 +262,40 @@ export async function transfer(
   });
 
   txSkeleton = addCellDep(txSkeleton, {
-    out_point: {
-      tx_hash: SUDT_SCRIPT.TX_HASH,
+    outPoint: {
+      txHash: SUDT_SCRIPT.TX_HASH,
       index: SUDT_SCRIPT.INDEX,
     },
-    dep_type: SUDT_SCRIPT.DEP_TYPE,
+    depType: SUDT_SCRIPT.DEP_TYPE,
   });
 
   // collect cells
   const changeCell: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: changeOutputLockScript,
       type: sudtType,
     },
-    data: toBigUInt128LE(BI.from(0).toString()),
-    out_point: undefined,
-    block_hash: undefined,
+    data: bytes.hexify(number.Uint128LE.pack(0)),
+    outPoint: undefined,
+    blockHash: undefined,
   };
   const changeCellWithoutSudt: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: changeOutputLockScript,
       type: undefined,
     },
     data: "0x",
-    out_point: undefined,
-    block_hash: undefined,
+    outPoint: undefined,
+    blockHash: undefined,
   };
   let changeCapacity = BI.from(0);
   let changeAmount = BI.from(0);
   let previousInputs = Set<string>();
   for (const input of txSkeleton.get("inputs")) {
     previousInputs = previousInputs.add(
-      `${input.out_point!.tx_hash}_${input.out_point!.index}`
+      `${input.outPoint!.txHash}_${input.outPoint!.index}`
     );
   }
   let cellCollectorInfos: List<{
@@ -441,9 +442,7 @@ export async function transfer(
   } of cellCollectorInfos) {
     for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
-      const key = `${inputCell.out_point!.tx_hash}_${
-        inputCell.out_point!.index
-      }`;
+      const key = `${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`;
       if (previousInputs.has(key)) {
         continue;
       }
@@ -478,9 +477,9 @@ export async function transfer(
         });
       }
 
-      const inputCapacity: BI = BI.from(inputCell.cell_output.capacity);
-      const inputAmount: BI = inputCell.cell_output.type
-        ? BI.from(readBigUInt128LECompatible(inputCell.data))
+      const inputCapacity: BI = BI.from(inputCell.cellOutput.capacity);
+      const inputAmount: BI = inputCell.cellOutput.type
+        ? number.Uint128LE.unpack(inputCell.data)
         : BI.from(0);
       let deductCapacity: BI =
         isAnyoneCanPay && !destroyable
@@ -506,13 +505,13 @@ export async function transfer(
 
       if (isAnyoneCanPay && !destroyable) {
         const acpChangeCell: Cell = {
-          cell_output: {
+          cellOutput: {
             capacity: "0x" + currentChangeCapacity.toString(16),
-            lock: inputCell.cell_output.lock,
-            type: inputCell.cell_output.type,
+            lock: inputCell.cellOutput.lock,
+            type: inputCell.cellOutput.type,
           },
-          data: inputCell.cell_output.type
-            ? toBigUInt128LE(currentChangeAmount.toString())
+          data: inputCell.cellOutput.type
+            ? bytes.hexify(number.Uint128LE.pack(currentChangeAmount))
             : "0x",
         };
 
@@ -520,7 +519,7 @@ export async function transfer(
           return outputs.push(acpChangeCell);
         });
 
-        if (inputCell.cell_output.type) {
+        if (inputCell.cellOutput.type) {
           txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
             return fixedEntries.push({
               field: "outputs",
@@ -540,7 +539,7 @@ export async function transfer(
           ) &&
             changeAmount.eq(0)))
       ) {
-        changeCell.cell_output.type = undefined;
+        changeCell.cellOutput.type = undefined;
         changeCell.data = "0x";
         break;
       }
@@ -563,24 +562,24 @@ export async function transfer(
   // 3. OutputA is not fixed.
   let changeOutputIndex = -1;
   if (
-    isAcpScript(changeCell.cell_output.lock, config) &&
+    isAcpScript(changeCell.cellOutput.lock, config) &&
     (changeOutputIndex = txSkeleton.get("outputs").findIndex((output) => {
       return (
-        new ScriptValue(changeCell.cell_output.lock, {
+        new ScriptValue(changeCell.cellOutput.lock, {
           validate: false,
         }).equals(
-          new ScriptValue(output.cell_output.lock, { validate: false })
+          new ScriptValue(output.cellOutput.lock, { validate: false })
         ) &&
         ((changeAmount.eq(0) &&
-          !changeCell.cell_output.type &&
-          !output.cell_output.type) ||
+          !changeCell.cellOutput.type &&
+          !output.cellOutput.type) ||
           (changeAmount.gte(0) &&
-            !!changeCell.cell_output.type &&
-            !!output.cell_output.type &&
-            new ScriptValue(changeCell.cell_output.type, {
+            !!changeCell.cellOutput.type &&
+            !!output.cellOutput.type &&
+            new ScriptValue(changeCell.cellOutput.type, {
               validate: false,
             }).equals(
-              new ScriptValue(output.cell_output.type, { validate: false })
+              new ScriptValue(output.cellOutput.type, { validate: false })
             )))
       );
     })) !== -1 &&
@@ -594,14 +593,16 @@ export async function transfer(
       .get("outputs")
       .get(changeOutputIndex)!;
     const clonedOutput: Cell = JSON.parse(JSON.stringify(originOutput));
-    clonedOutput.cell_output.capacity =
+    clonedOutput.cellOutput.capacity =
       "0x" +
-      BI.from(originOutput.cell_output.capacity)
+      BI.from(originOutput.cellOutput.capacity)
         .add(changeCapacity)
         .toString(16);
     if (changeAmount.gt(0)) {
-      clonedOutput.data = toBigUInt128LE(
-        readBigUInt128LECompatible(originOutput.data).add(changeAmount)
+      clonedOutput.data = bytes.hexify(
+        number.Uint128LE.pack(
+          number.Uint128LE.unpack(originOutput.data).add(changeAmount)
+        )
       );
     }
 
@@ -611,7 +612,7 @@ export async function transfer(
     const minimalChangeCellWithoutSudtCapacity = BI.from(
       minimalCellCapacityCompatible(changeCellWithoutSudt)
     );
-    let splitFlag: boolean = false;
+    let splitFlag = false;
     if (
       changeAmount.gt(0) &&
       splitChangeCell &&
@@ -619,8 +620,8 @@ export async function transfer(
         minimalChangeCellCapcaity.add(minimalChangeCellWithoutSudtCapacity)
       )
     ) {
-      clonedOutput.cell_output.capacity = originOutput.cell_output.capacity;
-      changeCellWithoutSudt.cell_output.capacity =
+      clonedOutput.cellOutput.capacity = originOutput.cellOutput.capacity;
+      changeCellWithoutSudt.cellOutput.capacity =
         "0x" + changeCapacity.toString(16);
       splitFlag = true;
     }
@@ -635,9 +636,9 @@ export async function transfer(
       });
     }
   } else if (changeCapacity.gte(minimalCellCapacityCompatible(changeCell))) {
-    changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+    changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
     if (changeAmount.gt(0)) {
-      changeCell.data = toBigUInt128LE(changeAmount.toString());
+      changeCell.data = bytes.hexify(number.Uint128LE.pack(changeAmount));
     }
 
     const minimalChangeCellCapcaity = BI.from(
@@ -653,9 +654,9 @@ export async function transfer(
           minimalChangeCellCapcaity.add(minimalChangeCellWithoutSudtCapacity)
         )
       ) {
-        changeCell.cell_output.capacity =
+        changeCell.cellOutput.capacity =
           "0x" + minimalChangeCellCapcaity.toString(16);
-        changeCellWithoutSudt.cell_output.capacity =
+        changeCellWithoutSudt.cellOutput.capacity =
           "0x" + changeCapacity.sub(minimalChangeCellCapcaity).toString(16);
         splitFlag = true;
       }
@@ -697,8 +698,8 @@ function _generateSudtScript(token: Hash, config: Config): Script {
   const SUDT_SCRIPT = config.SCRIPTS.SUDT!;
   // TODO: check token is a valid hash
   return {
-    code_hash: SUDT_SCRIPT.CODE_HASH,
-    hash_type: SUDT_SCRIPT.HASH_TYPE,
+    codeHash: SUDT_SCRIPT.CODE_HASH,
+    hashType: SUDT_SCRIPT.HASH_TYPE,
     args: token,
   };
 }

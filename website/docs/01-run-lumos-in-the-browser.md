@@ -61,7 +61,7 @@ For your convenience, we have introduced the new `@ckb-lumos/lumos` package. All
 ```ts
 import {
   Script,
-  Indexer as CkbIndexer,
+  Indexer,
   helpers,
   config,
 } from "@ckb-lumos/lumos";

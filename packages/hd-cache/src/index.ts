@@ -32,7 +32,7 @@ const { publicKeyToBlake160 } = key;
 const { mnemonicToSeedSync } = mnemonic;
 
 export function serializeOutPoint(outPoint: OutPoint): string {
-  return `${outPoint.tx_hash}_${outPoint.index}`;
+  return `${outPoint.txHash}_${outPoint.index}`;
 }
 
 function assertsNonNil<T>(
@@ -57,8 +57,8 @@ interface LockScriptInfo {
 }
 
 export interface LockScriptMappingInfo {
-  code_hash: HexString;
-  hash_type: HashType;
+  codeHash: HexString;
+  hashType: HashType;
   publicKeyToArgs: (publicKey: HexString) => HexString;
 }
 
@@ -130,8 +130,8 @@ export class HDCache {
         return this.infos.map((info) => {
           return {
             lockScript: {
-              code_hash: info.code_hash,
-              hash_type: info.hash_type,
+              codeHash: info.codeHash,
+              hashType: info.hashType,
               args: info.publicKeyToArgs(publicKeyInfo.publicKey),
             },
             publicKeyInfo,
@@ -253,18 +253,18 @@ function outputToCell(
   blockNumber: HexString
 ): Cell {
   return {
-    cell_output: {
+    cellOutput: {
       capacity: output.capacity,
       lock: output.lock,
       type: output.type,
     },
-    out_point: {
-      tx_hash: txHash,
+    outPoint: {
+      txHash: txHash,
       index,
     },
     data: data,
-    block_hash: blockHash,
-    block_number: blockNumber,
+    blockHash: blockHash,
+    blockNumber: blockNumber,
   };
 }
 
@@ -274,8 +274,8 @@ function lockScriptMatch(script: Script, otherScript: Script): boolean {
     otherScript.args.length
   );
   return (
-    script.code_hash === otherScript.code_hash &&
-    script.hash_type === otherScript.hash_type &&
+    script.codeHash === otherScript.codeHash &&
+    script.hashType === otherScript.hashType &&
     script.args.slice(0, shorterArgsLength) ===
       otherScript.args.slice(0, shorterArgsLength)
   );
@@ -306,8 +306,8 @@ export class TransactionCache {
       set.add(value)
     );
 
-    const count: number | undefined = this.totalTransactionCountCache.get(key)
-      ?.size;
+    const count: number | undefined =
+      this.totalTransactionCountCache.get(key)?.size;
     /* c8 ignore next 3 */
     if (count === undefined) {
       throw new Error(
@@ -353,7 +353,7 @@ export class TransactionCache {
 
         const cell: Cell = outputToCell(
           output,
-          transaction.outputs_data[index],
+          transaction.outputsData[index],
           txHash,
           outputIndex,
           blockHash,
@@ -365,14 +365,14 @@ export class TransactionCache {
       .filter((output) => !!output) as Cell[];
 
     const inputOutPoints = transaction.inputs.map((input) => {
-      return input.previous_output;
+      return input.previousOutput;
     });
 
     this.addTransactionCountCache(publicKey, txHash);
 
     outputs.forEach((output) => {
-      assertsNonNil(output.out_point, "output.out_point");
-      const key = serializeOutPoint(output.out_point);
+      assertsNonNil(output.outPoint, "output.outPoint");
+      const key = serializeOutPoint(output.outPoint);
       this.liveCellCache = this.liveCellCache.set(key, output);
     });
     inputOutPoints.forEach((inputOutPoint) => {
@@ -422,7 +422,7 @@ export class Cache {
 
   async tip(): Promise<HexString> {
     const t = await this.indexer.tip();
-    return t.block_number;
+    return t.blockNumber;
   }
 
   private async innerLoopTransactions(fromBlock: BI, toBlock: BI) {
@@ -443,9 +443,9 @@ export class Cache {
       for await (const txWithStatus of transactionCollector.collect()) {
         const txWS = txWithStatus as TransactionWithStatus;
         const tx = txWS.transaction;
-        const blockHash: HexString | undefined = txWS.tx_status.block_hash;
+        const blockHash: HexString | undefined = txWS.txStatus.blockHash;
         assertsNonNil(blockHash, "block hash");
-        const tipHeader = await this.rpc.get_header(blockHash);
+        const tipHeader = await this.rpc.getHeader(blockHash);
         const blockNumber: HexString | undefined = tipHeader?.number;
         assertsNonNil(blockNumber, "tipHeader.number");
 
@@ -472,7 +472,7 @@ export class Cache {
   }
 
   async loop(): Promise<void> {
-    const tipBlockNumber: HexString = (await this.indexer.tip()).block_number;
+    const tipBlockNumber: HexString = (await this.indexer.tip()).blockNumber;
     await this.loopTransactions(tipBlockNumber);
   }
 }
@@ -507,24 +507,24 @@ export function getDefaultInfos(
   const secpTemplate = config.SCRIPTS.SECP256K1_BLAKE160;
   if (secpTemplate) {
     infos.push({
-      code_hash: secpTemplate.CODE_HASH,
-      hash_type: secpTemplate.HASH_TYPE,
+      codeHash: secpTemplate.CODE_HASH,
+      hashType: secpTemplate.HASH_TYPE,
       publicKeyToArgs: publicKeyToBlake160,
     });
   }
   const multisigTemplate = config.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
   if (multisigTemplate) {
     infos.push({
-      code_hash: multisigTemplate.CODE_HASH,
-      hash_type: multisigTemplate.HASH_TYPE,
+      codeHash: multisigTemplate.CODE_HASH,
+      hashType: multisigTemplate.HASH_TYPE,
       publicKeyToArgs: publicKeyToMultisigArgs,
     });
   }
   const anyoneCanPayTemplate = config.SCRIPTS.ANYONE_CAN_PAY;
   if (anyoneCanPayTemplate) {
     infos.push({
-      code_hash: anyoneCanPayTemplate.CODE_HASH,
-      hash_type: anyoneCanPayTemplate.HASH_TYPE,
+      codeHash: anyoneCanPayTemplate.CODE_HASH,
+      hashType: anyoneCanPayTemplate.HASH_TYPE,
       publicKeyToArgs: publicKeyToBlake160,
     });
   }
@@ -606,7 +606,8 @@ export class CacheManager {
   ): CacheManager {
     const keystore = Keystore.load(path);
     const extendedPrivateKey = keystore.extendedPrivateKey(password);
-    const accountExtendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
+    const accountExtendedPublicKey =
+      extendedPrivateKey.toAccountExtendedPublicKey();
 
     let masterPublicKey: HexString | undefined;
     if (options.needMasterPublicKey || keystore.isFromCkbCli()) {
@@ -639,7 +640,8 @@ export class CacheManager {
   ): CacheManager {
     const seed = mnemonicToSeedSync(mnemonic);
     const extendedPrivateKey = ExtendedPrivateKey.fromSeed(seed);
-    const accountExtendedPublicKey = extendedPrivateKey.toAccountExtendedPublicKey();
+    const accountExtendedPublicKey =
+      extendedPrivateKey.toAccountExtendedPublicKey();
 
     let masterPublicKey: HexString | undefined;
     if (options.needMasterPublicKey) {
@@ -791,7 +793,7 @@ export async function getBalance(
 ): Promise<HexString> {
   let balance: BI = BI.from(0);
   for await (const cell of cellCollector.collect()) {
-    balance = balance.add(cell.cell_output.capacity);
+    balance = balance.add(cell.cellOutput.capacity);
   }
   return "0x" + balance.toString(16);
 }

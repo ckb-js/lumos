@@ -175,8 +175,8 @@ with `OmniLockWitnessLock.signature(BytesOpt)`, then it will be easier to do the
 ```mol
 table WitnessArgs {
     lock:                   BytesOpt,          // Lock args
-    input_type:             BytesOpt,          // Type args for input
-    output_type:            BytesOpt,          // Type args for output
+    inputType:             BytesOpt,          // Type args for input
+    outputType:            BytesOpt,          // Type args for output
 }
 
 table OmniLockWitnessLock {

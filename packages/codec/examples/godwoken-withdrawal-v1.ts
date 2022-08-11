@@ -37,11 +37,11 @@ const WithdrawalLockArgs = struct(
 
 const Script = table(
   {
-    code_hash: Byte32,
-    hash_type: Uint8,
+    codeHash: Byte32,
+    hashType: Uint8,
     args: Bytes,
   },
-  ["code_hash", "hash_type", "args"]
+  ["codeHash", "hashType", "args"]
 );
 
 const FullWithdrawalWithdrawalObjectArgsCodec = createObjectCodec({
@@ -74,16 +74,12 @@ const WithdrawalCodec = enhancePack(
       obj.owner_lock
     ),
   (buf) => {
-    const [
-      rollup_type_hash,
-      withdrawal_lock_args,
-      owner_lock_len,
-      owner_lock,
-    ] = cut(buf, [
-      32 /* rollup_type_hash */,
-      WithdrawalLockArgs.byteLength /* withdrawal_lock_args */,
-      4 /* owner_lock_len */,
-    ]);
+    const [rollup_type_hash, withdrawal_lock_args, owner_lock_len, owner_lock] =
+      cut(buf, [
+        32 /* rollup_type_hash */,
+        WithdrawalLockArgs.byteLength /* withdrawal_lock_args */,
+        4 /* owner_lock_len */,
+      ]);
 
     return {
       rollup_type_hash,

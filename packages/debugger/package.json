@@ -24,6 +24,7 @@
     "@ckb-lumos/base": "*",
     "@ckb-lumos/bi": "*",
     "@ckb-lumos/codec": "*",
+    "@ckb-lumos/rpc": "*",
     "@ckb-lumos/config-manager": "*",
     "@ckb-lumos/helpers": "*",
     "@types/download": "^8.0.1",

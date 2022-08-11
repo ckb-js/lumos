@@ -50,9 +50,9 @@ export function validateConfig(config: Config): void {
     assertHash(`SCRIPTS.${scriptName}.TX_HASH`, scriptConfig.TX_HASH);
     assertInteger(`SCRIPTS.${scriptName}.INDEX`, scriptConfig.INDEX);
     const depType = scriptConfig.DEP_TYPE;
-    if (depType !== "dep_group" && depType !== "code") {
+    if (depType !== "depGroup" && depType !== "code") {
       throw new Error(
-        `SCRIPTS.${scriptName}.DEP_TYPE must either be dep_group or code!`
+        `SCRIPTS.${scriptName}.DEP_TYPE must either be depGroup or code!`
       );
     }
     const shortId = scriptConfig.SHORT_ID;

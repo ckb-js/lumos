@@ -3,7 +3,7 @@
   "version": "0.18.0",
   "description": "JavaScript toolkits used to build dapps for Nervos CKB",
   "main": "lib/index.js",
-  "types": "index.d.ts",
+  "types": "types/index.d.ts",
   "engines": {
     "node": ">=12.0.0"
   },
@@ -12,7 +12,7 @@
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "files": [
-    "index.d.ts",
+    "types",
     "lib"
   ],
   "scripts": {
@@ -20,7 +20,7 @@
     "build:js": "babel -s --plugins @babel/plugin-proposal-export-namespace-from --plugins @babel/plugin-transform-modules-commonjs src --out-dir lib",
     "clean": "rm -rf lib",
     "test": "ava",
-    "fmt": "prettier --write \"{src,tests}/**/*.js\" index.d.ts",
+    "fmt": "prettier --write \"{src,tests}/**/*.js\"",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.js\"",
     "update-test-files": "curl -L https://raw.githubusercontent.com/nervosnetwork/ckb/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol -o testfiles/blockchain.mol && moleculec --language - --schema-file testfiles/blockchain.mol --format json > testfiles/blockchain.json && moleculec-es -inputFile testfiles/blockchain.json -outputFile testfiles/blockchain.esm.js && rollup -f umd -i testfiles/blockchain.esm.js -o testfiles/blockchain.umd.js --name Blockchain && rm testfiles/blockchain.mol testfiles/blockchain.json testfiles/blockchain.esm.js"
   },

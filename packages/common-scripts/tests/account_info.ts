@@ -39,9 +39,9 @@ export const fullAddressInfo = {
   testnetAddress:
     "ckt1qsqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpvumhs9nvu786dj9p0q5elx66t24n3kxgkpkap5",
   lock: {
-    code_hash:
+    codeHash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
-    hash_type: "type",
+    hashType: "type",
     args: "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
   },
 };

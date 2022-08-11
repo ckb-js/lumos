@@ -2,10 +2,13 @@ import { createCKBMockRPC, mockData } from "@ckb-lumos/testkit";
 import fs from "fs";
 import path from "path";
 
+const blockDataPath = path.join(__dirname, "./blocks_data.json");
+const blocksData = JSON.parse(
+  fs.readFileSync(blockDataPath, "utf8").toString()
+);
+
 const server = createCKBMockRPC({
-  blocks: JSON.parse(
-    fs.readFileSync(path.join(__dirname, "./blocks_data.json")).toString()
-  ),
+  blocks: blocksData,
   localNode: mockData.localNode(),
 });
 

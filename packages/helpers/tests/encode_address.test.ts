@@ -8,9 +8,9 @@ const AGGRON = predefined.AGGRON4;
 test("encode to full address", (t) => {
   const script: Script = {
     args: "0x159890a7cacb44a95bef0743064433d763de229c",
-    code_hash:
+    codeHash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type",
+    hashType: "type",
   };
   const mainnetAddress = encodeToAddress(script);
   const testnetAddress = encodeToAddress(script, { config: AGGRON });
@@ -27,9 +27,9 @@ test("encode to full address", (t) => {
 
 test("encode to full address, data1", (t) => {
   const script: Script = {
-    code_hash:
+    codeHash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "data1",
+    hashType: "data1",
     args: "0xb39bbc0b3673c7d36450bc14cfcdad2d559c6c64",
   };
   const testnetAddress = encodeToAddress(script, { config: AGGRON });

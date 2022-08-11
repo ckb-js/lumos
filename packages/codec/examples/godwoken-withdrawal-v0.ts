@@ -1,8 +1,8 @@
-import { blockchain, molecule, number } from "../src";
+import { molecule, number } from "../src";
 import { BI } from "@ckb-lumos/bi";
+import { Byte32 } from "../src/blockchain";
 
 const { struct } = molecule;
-const { Byte32 } = blockchain;
 const { Uint128, Uint32, Uint64 } = number;
 
 // struct RawWithdrawalRequest {

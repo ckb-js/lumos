@@ -29,14 +29,13 @@ export function createNullableCodec<C extends AnyCodec = AnyCodec>(
 }
 
 type ObjectCodecShape = Record<string, AnyCodec>;
-export type ObjectCodec<
-  Shape extends ObjectCodecShape = ObjectCodecShape
-> = Codec<
-  { [key in keyof Shape]: PackResult<Shape[key]> },
-  { [key in keyof Shape]: UnpackResult<Shape[key]> },
-  { [key in keyof Shape]: PackParam<Shape[key]> },
-  { [key in keyof Shape]: UnpackParam<Shape[key]> }
->;
+export type ObjectCodec<Shape extends ObjectCodecShape = ObjectCodecShape> =
+  Codec<
+    { [key in keyof Shape]: PackResult<Shape[key]> },
+    { [key in keyof Shape]: UnpackResult<Shape[key]> },
+    { [key in keyof Shape]: PackParam<Shape[key]> },
+    { [key in keyof Shape]: UnpackParam<Shape[key]> }
+  >;
 
 /**
  * a high-order codec that helps to organise multiple codecs together into a single object

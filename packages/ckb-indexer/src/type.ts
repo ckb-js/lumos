@@ -3,14 +3,15 @@ import {
   Hexadecimal,
   HexString,
   QueryOptions,
-  Script,
   OutPoint,
   HexNumber,
   Output,
   TransactionWithStatus,
+  Script,
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
 import { BIish } from "@ckb-lumos/bi";
+import type * as RPCType from "./rpcType";
 
 export type ScriptType = "type" | "lock";
 export type Order = "asc" | "desc";
@@ -23,19 +24,19 @@ export interface CKBIndexerQueryOptions extends QueryOptions {
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
 export interface SearchFilter {
-  script?: Script;
+  script?: RPCType.Script;
   output_data_len_range?: HexadecimalRange; //empty
   output_capacity_range?: HexadecimalRange; //empty
   block_range?: HexadecimalRange; //fromBlock-toBlock
 }
 export interface SearchKey {
-  script: Script;
+  script: RPCType.Script;
   script_type: ScriptType;
   filter?: SearchFilter;
 }
 
 export interface GetLiveCellsResult {
-  last_cursor: string;
+  lastCursor: string;
   objects: IndexerCell[];
 }
 
@@ -50,17 +51,16 @@ export interface rpcResponseData {
 }
 
 export interface IndexerCell {
-  block_number: Hexadecimal;
-  out_point: OutPoint;
+  blockNumber: Hexadecimal;
+  outPoint: OutPoint;
   output: {
     capacity: HexNumber;
     lock: Script;
     type?: Script;
   };
-  output_data: HexString;
-  tx_index: Hexadecimal;
+  outputData: HexString;
+  txIndex: Hexadecimal;
 }
-
 export interface TerminatorResult {
   stop: boolean;
   push: boolean;
@@ -75,11 +75,11 @@ export type HexNum = string;
 export type IOType = "input" | "output" | "both";
 export type Bytes32 = string;
 export type IndexerTransaction = {
-  block_number: HexNum;
-  io_index: HexNum;
-  io_type: IOType;
-  tx_hash: Bytes32;
-  tx_index: HexNum;
+  blockNumber: HexNum;
+  ioIndex: HexNum;
+  ioType: IOType;
+  txHash: Bytes32;
+  txIndex: HexNum;
 };
 export interface IndexerTransactionList {
   lastCursor: string | undefined;

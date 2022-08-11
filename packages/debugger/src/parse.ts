@@ -6,6 +6,8 @@ import {
 import { CellDep, HexString } from "@ckb-lumos/base";
 import { bytify } from "@ckb-lumos/codec/lib/bytes";
 import { OutPointVec } from "./codecs";
+import { ParamsFormatter } from "@ckb-lumos/rpc";
+import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
 
 export function parseDebuggerMessage(
   message: string,
@@ -26,7 +28,7 @@ export function parseDebuggerMessage(
   return { code, cycles, message, debugMessage };
 }
 
-type ResolvedCellDep = { cell_dep: CellDep; data: HexString };
+type ResolvedCellDep = { cell_dep: RPC.CellDep; data: HexString };
 
 /**
  * resolve a {@link CellDep cellDep} to code data
@@ -37,26 +39,31 @@ function resolveCellDeps(
   cellDep: CellDep,
   loader: DataLoader
 ): ResolvedCellDep[] {
-  const cellData = loader.getCellData(cellDep.out_point);
+  const cellData = loader.getCellData(cellDep.outPoint);
 
-  if (cellDep.dep_type === "dep_group") {
+  if (cellDep.depType === "depGroup") {
     const outPoints = OutPointVec.unpack(bytify(cellData));
 
-    return [{ data: cellData, cell_dep: cellDep }].concat(
+    return [
+      { data: cellData, cell_dep: ParamsFormatter.toCellDep(cellDep) },
+    ].concat(
       outPoints.map((outPoint) => {
         return {
-          cell_dep: { dep_type: "code", out_point: outPoint },
+          cell_dep: {
+            dep_type: "code",
+            out_point: ParamsFormatter.toOutPoint(outPoint),
+          },
           data: loader.getCellData(outPoint),
         };
       })
     );
   }
 
-  if (cellDep.dep_type === "code") {
-    return [{ cell_dep: cellDep, data: cellData }];
+  if (cellDep.depType === "code") {
+    return [{ cell_dep: ParamsFormatter.toCellDep(cellDep), data: cellData }];
   }
 
-  throw new Error(`Invalid dep type ${cellDep.dep_type}`);
+  throw new Error(`Invalid dep type ${cellDep.depType}`);
 }
 
 export function parseDebuggerData(
@@ -64,12 +71,11 @@ export function parseDebuggerData(
   loader: DataLoader
 ): DebuggerData {
   const tx = createTransactionFromSkeleton(txSkeleton);
-
   return {
     mock_info: {
       inputs: txSkeleton.inputs.toArray().map((cell, i) => ({
-        input: tx.inputs[i],
-        output: cell.cell_output,
+        input: ParamsFormatter.toInput(tx.inputs[i]),
+        output: ParamsFormatter.toOutput(cell.cellOutput),
         data: cell.data,
       })),
       cell_deps: txSkeleton
@@ -89,8 +95,18 @@ export function parseDebuggerData(
             },
           }))
         ),
-      header_deps: txSkeleton.get("headerDeps").toArray().map(loader.getHeader),
+      //TODO unimplemented
+      header_deps: [],
     },
-    tx,
+    tx: {
+      version: tx.version,
+      cell_deps: tx.cellDeps.map(ParamsFormatter.toCellDep),
+      // TODO unimplemented
+      header_deps: [],
+      inputs: tx.inputs.map(ParamsFormatter.toInput),
+      outputs: tx.outputs.map(ParamsFormatter.toOutput),
+      witnesses: tx.witnesses,
+      outputs_data: tx.outputsData,
+    },
   };
 }

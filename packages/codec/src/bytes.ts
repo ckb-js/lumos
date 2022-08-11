@@ -1,5 +1,18 @@
 import { BytesLike } from "./base";
-import { assertHexString } from "./utils";
+import { assertHexString, assertUtf8String } from "./utils";
+
+export function bytifyRawString(rawString: string): Uint8Array {
+  assertUtf8String(rawString);
+
+  const buffer = new ArrayBuffer(rawString.length);
+  const view = new DataView(buffer);
+
+  for (let i = 0; i < rawString.length; i++) {
+    const c = rawString.charCodeAt(i);
+    view.setUint8(i, c);
+  }
+  return new Uint8Array(buffer);
+}
 
 function bytifyHex(hex: string): Uint8Array {
   assertHexString(hex);
@@ -35,6 +48,19 @@ export function bytify(bytesLike: BytesLike): Uint8Array {
   throw new Error(`Cannot convert ${bytesLike}`);
 }
 
+export function equal(a: BytesLike, b: BytesLike): boolean {
+  const aUint8Array = bytify(a);
+  const bUint8Array = bytify(b);
+  return equalUint8Array(aUint8Array, bUint8Array);
+}
+
+function equalUint8Array(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = a.length; -1 < i; i -= 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
 /**
  * convert a {@link BytesLike} to an even length hex string prefixed with "0x"
  * @param buf

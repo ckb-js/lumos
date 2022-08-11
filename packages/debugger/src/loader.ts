@@ -9,7 +9,7 @@ export type LoadedCode = { codeHash: HexString; binary: HexString };
 export function loadCode(binaryPath: string): LoadedCode {
   const buf = fs.readFileSync(binaryPath);
   return {
-    codeHash: ckbHash(Uint8Array.from(buf).buffer).serializeJson(),
+    codeHash: ckbHash(Uint8Array.from(buf).buffer),
     binary: hexify(buf),
   };
 }

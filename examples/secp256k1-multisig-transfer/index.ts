@@ -1,3 +1,4 @@
+import { bytes } from '@ckb-lumos/codec';
 import {
   Indexer,
   helpers,
@@ -7,12 +8,10 @@ import {
   config,
   Cell,
   commons,
-  core,
   WitnessArgs,
-  toolkit,
   BI,
 } from "@ckb-lumos/lumos";
-import { values } from "@ckb-lumos/base";
+import { values, blockchain } from "@ckb-lumos/base";
 import { parseFromInfo, MultisigScript } from "@ckb-lumos/common-scripts/lib/from_info";
 import { BIish } from "@ckb-lumos/bi";
 
@@ -96,7 +95,7 @@ export async function transfer(options: Options): Promise<string> {
   const collected: Cell[] = [];
   const collector = indexer.collector({ lock: fromScript, type: "empty" });
   for await (const cell of collector.collect()) {
-    collectedSum = collectedSum.add(cell.cell_output.capacity);
+    collectedSum = collectedSum.add(cell.cellOutput.capacity);
     collected.push(cell);
     if (collectedSum >= neededCapacity) break;
   }
@@ -106,7 +105,7 @@ export async function transfer(options: Options): Promise<string> {
   }
 
   const transferOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: BI.from(options.amount).toHexString(),
       lock: toScript,
     },
@@ -114,7 +113,7 @@ export async function transfer(options: Options): Promise<string> {
   };
 
   const changeOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: collectedSum.sub(neededCapacity).toHexString(),
       lock: fromScript,
     },
@@ -125,18 +124,18 @@ export async function transfer(options: Options): Promise<string> {
   txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(transferOutput, changeOutput));
   txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
     cellDeps.push({
-      out_point: {
-        tx_hash: AGGRON4.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.TX_HASH,
+      outPoint: {
+        txHash: AGGRON4.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.TX_HASH,
         index: AGGRON4.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.INDEX,
       },
-      dep_type: AGGRON4.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.DEP_TYPE,
+      depType: AGGRON4.SCRIPTS.SECP256K1_BLAKE160_MULTISIG.DEP_TYPE,
     })
   );
 
   const firstIndex = txSkeleton
     .get("inputs")
     .findIndex((input) =>
-      new ScriptValue(input.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
     );
@@ -154,23 +153,21 @@ export async function transfer(options: Options): Promise<string> {
     };
 
     if (witness !== "0x") {
-      const witnessArgs = new core.WitnessArgs(new toolkit.Reader(witness));
-      const lock = witnessArgs.getLock();
-      if (lock.hasValue() && new toolkit.Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock) {
+      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness))
+      const lock = witnessArgs.lock;
+      if (!!lock && !!newWitnessArgs.lock && !bytes.equal(lock, newWitnessArgs.lock)) {
         throw new Error("Lock field in first witness is set aside for signature!");
       }
-      const inputType = witnessArgs.getInputType();
-      if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new toolkit.Reader(inputType.value().raw()).serializeJson();
+      const inputType = witnessArgs.inputType;
+      if (!!inputType) {
+        newWitnessArgs.inputType = inputType;
       }
-      const outputType = witnessArgs.getOutputType();
-      if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new toolkit.Reader(outputType.value().raw()).serializeJson();
+      const outputType = witnessArgs.outputType;
+      if (!!outputType) {
+        newWitnessArgs.outputType = outputType;
       }
     }
-    witness = new toolkit.Reader(
-      core.SerializeWitnessArgs(toolkit.normalizers.NormalizeWitnessArgs(newWitnessArgs))
-    ).serializeJson();
+    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs))
     txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
   }
 
@@ -200,7 +197,7 @@ export async function transfer(options: Options): Promise<string> {
     sigs;
 
   const tx = helpers.sealTransaction(txSkeleton, [sigs]);
-  const hash = await rpc.send_transaction(tx, "passthrough");
+  const hash = await rpc.sendTransaction(tx, "passthrough");
   console.log("The transaction hash is", hash);
 
   return hash;

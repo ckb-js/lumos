@@ -12,24 +12,24 @@ import { Uint32 } from "@ckb-lumos/codec/lib/number";
 
 export function mockOutPoint(): OutPoint {
   return {
-    tx_hash: hexify(crypto.randomBytes(32)),
+    txHash: hexify(crypto.randomBytes(32)),
     index: "0x" + Uint32.unpack(crypto.randomBytes(4)).toString(16),
   };
 }
 
-type DepCodePath = { dep_type?: "code"; path: string };
-type DepGroupPath = { dep_type: "dep_group"; path: string; includes: string[] };
+type DepCodePath = { depType?: "code"; path: string };
+type DepGroupPath = { depType: "depGroup"; path: string; includes: string[] };
 type LocaleConfig = DepCodePath | DepGroupPath;
 
 function isDepCode(obj: LocaleConfig): obj is DepCodePath {
   return (
-    obj.dep_type === "code" ||
-    (typeof obj.dep_type === "undefined" && typeof obj.path === "string")
+    obj.depType === "code" ||
+    (typeof obj.depType === "undefined" && typeof obj.path === "string")
   );
 }
 
 function isDepGroup(obj: LocaleConfig): obj is DepGroupPath {
-  return obj.dep_type === "dep_group";
+  return obj.depType === "depGroup";
 }
 
 export type LocaleCode = { [key: string]: LocaleConfig };
@@ -84,7 +84,7 @@ export function createTestContext<Code extends LocaleCode>(config: {
         DEP_TYPE: "code",
         INDEX: entryCodeOutPoint.index,
         HASH_TYPE: "data",
-        TX_HASH: entryCodeOutPoint.tx_hash,
+        TX_HASH: entryCodeOutPoint.txHash,
       };
 
       Object.assign(scriptConfigs, { [key]: entryScriptConfig });
@@ -107,8 +107,8 @@ export function createTestContext<Code extends LocaleCode>(config: {
 
       const depGroupScriptConfig: ScriptConfig = {
         CODE_HASH: entryCode.codeHash,
-        DEP_TYPE: "dep_group",
-        TX_HASH: depGroupOutPoint.tx_hash,
+        DEP_TYPE: "depGroup",
+        TX_HASH: depGroupOutPoint.txHash,
         INDEX: depGroupOutPoint.index,
         HASH_TYPE: "data",
       };
@@ -138,36 +138,36 @@ export function getDefaultConfig(): {
   return {
     deps: {
       ALWAYS_SUCCESS: {
-        dep_type: "code",
+        depType: "code",
         path: path.join(__dirname, "../contracts/always_success"),
       },
       ALWAYS_FAILURE: {
-        dep_type: "code",
+        depType: "code",
         path: path.join(__dirname, "../contracts/always_failure"),
       },
       ANYONE_CAN_PAY: {
-        dep_type: "code",
+        depType: "code",
         path: path.join(__dirname, "../contracts/anyone_can_pay"),
       },
       SUDT: {
-        dep_type: "code",
+        depType: "code",
         path: path.join(__dirname, "../contracts/sudt"),
       },
       OMNILOCK: {
-        dep_type: "code",
+        depType: "code",
         path: path.join(__dirname, "../contracts/omni_lock"),
       },
       DAO: {
-        dep_type: "code",
+        depType: "code",
         path: path.join(__dirname, "../contracts/dao"),
       },
       SECP256K1_BLAKE160: {
-        dep_type: "dep_group",
+        depType: "depGroup",
         path: path.join(__dirname, "../contracts/secp256k1_blake160"),
         includes: [path.join(__dirname, "../contracts/secp256k1_data_info")],
       },
       SECP256K1_BLAKE160_MULTISIG: {
-        dep_type: "dep_group",
+        depType: "depGroup",
         path: path.join(
           __dirname,
           "../contracts/secp256k1_blake160_multisig_all"
@@ -176,8 +176,8 @@ export function getDefaultConfig(): {
       },
       // https://github.com/nervosnetwork/ckb/blob/develop/script/testdata/debugger.c
       DEBUGGER: {
-        // the dep_type is defaults to "code"
-        // dep_type: "code",
+        // the depType is defaults to "code"
+        // depType: "code",
         path: path.join(__dirname, "../contracts/debugger"),
       },
     },

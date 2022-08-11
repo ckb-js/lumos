@@ -8,9 +8,9 @@ import {
 } from "@ckb-lumos/base";
 import { Options, parseAddress } from "@ckb-lumos/helpers";
 import { getConfig } from "@ckb-lumos/config-manager";
-import { BI } from "@ckb-lumos/bi";
+import { bytes, number } from "@ckb-lumos/codec";
 
-const { CKBHasher, toBigUInt64LE } = utils;
+const { CKBHasher } = utils;
 
 /**
  * secp256k1_blake160_multisig script requires S, R, M, N and public key hashes
@@ -79,7 +79,7 @@ export function multisigArgs(
 ): HexString {
   let sinceLE = "0x";
   if (since != null) {
-    sinceLE = toBigUInt64LE(BI.from(since));
+    sinceLE = bytes.hexify(number.Uint64LE.pack(since));
   }
   return (
     new CKBHasher().update(serializedMultisigScript).digestHex().slice(0, 42) +
@@ -118,8 +118,8 @@ export function parseFromInfo(
       multisigScript = serializeMultisigScript(fromInfo);
       const fromScriptArgs = multisigArgs(multisigScript, fromInfo.since);
       fromScript = {
-        code_hash: template.CODE_HASH,
-        hash_type: template.HASH_TYPE,
+        codeHash: template.CODE_HASH,
+        hashType: template.HASH_TYPE,
         args: fromScriptArgs,
       };
     } else if ("address" in fromInfo) {
@@ -135,8 +135,8 @@ export function parseFromInfo(
       destroyable = fromInfo.destroyable;
 
       if (
-        fromScript.code_hash !== template.CODE_HASH ||
-        fromScript.hash_type !== template.HASH_TYPE
+        fromScript.codeHash !== template.CODE_HASH ||
+        fromScript.hashType !== template.HASH_TYPE
       ) {
         throw new Error(`fromInfo.address is not ANYONE_CAN_PAY address!`);
       }
