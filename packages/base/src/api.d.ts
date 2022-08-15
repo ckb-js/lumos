@@ -160,6 +160,7 @@ export interface ProposalWindow {
 export interface Consensus {
   id: string;
   genesisHash: Hash;
+  // added this field by: https://github.com/nervosnetwork/ckb/pull/2879
   hardforkFeatures: Array<{ rfc: string; epochNumber: string | undefined }>;
   daoTypeHash?: Hash;
   secp256k1Blake160SighashAllTypeHash?: Hash;
