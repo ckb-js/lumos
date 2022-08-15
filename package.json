@@ -74,9 +74,12 @@
     }
   },
   "lint-staged": {
-    "packages/*/{src,tests}/**/*.{js,ts}": [
+    "packages/*/{src,tests}/**/*.{js,ts,md}": [
       "prettier --write",
       "eslint -c .eslintrc.next.js --fix"
     ]
-  }
+  },
+  "website/{docs,src}/**/*.{js,ts,md}": [
+    "prettier --write"
+  ]
 }
