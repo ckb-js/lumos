@@ -102,14 +102,15 @@ export interface Block {
   proposals: HexString[];
 }
 
+export interface LiveCell {
+  data: {
+    content: HexString;
+    hash: Hash;
+  };
+  output: Output;
+}
 export interface CellWithStatus {
-  cell: {
-    data: {
-      content: HexString;
-      hash: Hash;
-    };
-    output: Output;
-  } | null;
+  cell:  LiveCell | null;
   status: "live" | "unknown";
 }
 
@@ -159,6 +160,7 @@ export interface ProposalWindow {
 export interface Consensus {
   id: string;
   genesisHash: Hash;
+  hardforkFeatures: Array<{ rfc: string; epochNumber: string | undefined }>;
   daoTypeHash?: Hash;
   secp256k1Blake160SighashAllTypeHash?: Hash;
   secp256k1Blake160MultisigAllTypeHash?: Hash;
@@ -211,6 +213,8 @@ export interface PeerSyncState {
   lastCommonHeaderHash?: HexString;
   lastCommonHeaderNumber?: HexNumber;
   unknownHeaderListSize?: HexNumber;
+  canFetchCount?: HexNumber;
+  inflightCount?: HexNumber;
 }
 
 export interface RemoteNodeProtocol {
@@ -222,7 +226,7 @@ export interface RemoteNode {
   version: string;
   nodeId: string;
   addresses: NodeAddress[];
-  isOutbount: boolean;
+  isOutbound: boolean;
   connectedDuration: HexNumber;
   lastPingDuration?: HexNumber;
   syncState?: PeerSyncState;
