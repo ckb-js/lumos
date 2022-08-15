@@ -51,7 +51,7 @@ export namespace RPC {
   }
 
   export interface CellInput {
-    previous_output: OutPoint | undefined;
+    previous_output: OutPoint;
     since: Since;
   }
 
@@ -64,7 +64,7 @@ export namespace RPC {
   export type Cell = CellOutput;
 
   export interface LiveCell {
-    data?: {
+    data: {
       content: Hash;
       hash: Hash256;
     };
@@ -72,7 +72,7 @@ export namespace RPC {
   }
 
   export interface CellDep {
-    out_point: OutPoint | undefined;
+    out_point: OutPoint;
     dep_type: DepType;
   }
 
@@ -80,7 +80,7 @@ export namespace RPC {
     block_hash: Hash256;
     capacity: Capacity;
     lock: Script;
-    out_point: OutPoint | undefined;
+    out_point: OutPoint;
     cellbase: boolean;
     output_data_len: string;
   }
@@ -293,7 +293,7 @@ export namespace RPC {
   export interface TransactionProof {
     block_hash: Hash;
     proof: {
-      indices: number[];
+      indices: string[];
       lemmas: Hash[];
     };
     witnesses_root: Hash;

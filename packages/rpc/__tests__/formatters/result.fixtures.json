@@ -117,10 +117,6 @@
   ],
   "toOutPoint": [
     {
-      "result": null,
-      "expected": null
-    },
-    {
       "result": {
         "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
         "index": "4294967295"
@@ -132,37 +128,6 @@
     }
   ],
   "toCellDep": [
-    {
-      "result": null,
-      "expected": null
-    },
-    {
-      "result": {
-        "dep_type": "dep_group"
-      },
-      "expected": {
-        "depType": "depGroup"
-      }
-    },
-    {
-      "result": {
-        "out_point": null
-      },
-      "expected": {
-        "outPoint": null,
-        "depType": "code"
-      }
-    },
-    {
-      "result": {
-        "out_point": null,
-        "dep_type": "code"
-      },
-      "expected": {
-        "outPoint": null,
-        "depType": "code"
-      }
-    },
     {
       "result": {
         "out_point": {
