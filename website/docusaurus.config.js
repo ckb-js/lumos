@@ -82,10 +82,27 @@ const config = {
           },
           // { to: "/blog", label: "Blog", position: "left" },
           {
-            href: "/api/",
             label: "API",
             position: "left",
             target: "_blank",
+            items: [
+              {
+                href: "https://github.com/nervosnetwork/lumos",
+                label: "latest",
+              },
+              {
+                href: "https://github.com/nervosnetwork/lumos",
+                label: "v0.19.x",
+              },
+              {
+                href: "https://github.com/nervosnetwork/lumos",
+                label: "v0.18.x",
+              },
+              {
+                href: "https://github.com/nervosnetwork/lumos",
+                label: "v0.17.x",
+              },
+            ]
           },
           {
             href: "https://github.com/nervosnetwork/lumos",
