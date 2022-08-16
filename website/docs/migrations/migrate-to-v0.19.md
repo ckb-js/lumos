@@ -22,7 +22,7 @@ Running the codemod will:
 2. show warnings for deprecated functions.
 
 ```sh
-curl -s https://gist.githubusercontent.com/zhangyouxin/e5ddf9b966f611173a01d6c98715c931/raw/30606c12756a866437a390add8dc5f5df47c9c36/codemod.js \
+curl -s https://gist.githubusercontent.com/zhangyouxin/e5ddf9b966f611173a01d6c98715c931/raw \
 | xargs -0 -I{} node -e {} "your-source-dir/**/*.js"
 ```
 
@@ -56,12 +56,13 @@ Rewrite Serialization and DeSerialization codes.
 +    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs))
 ```
 
-### Step 3 - Utility Functions in `@ckb-lumos/base/utils`
+### Step 3 - Misc
 
 Some other changes you should take care of.
 
 - removed `digestReader` of `CKBHasher` class in `@ckb-lumos/base/utils`
 - return type of `ckbhash` function has changed to `HexString`
+- `blockchain` exposed in `@ckb-lumos/codec` has been moved to `@ckb-lumos/base`
 
 ```diff
   const hasher = new CKBHasher()
@@ -71,6 +72,9 @@ Some other changes you should take care of.
   // if you would like to manipulate ArrayBuffer
 + import { bytes } from "@ckb-lumos/codec"
 + const messageBytes = bytes.bytify(message)
+  // blockchain has been moved
+- import { blockchain } from "@ckb-lumos/codec"
++ import { blockchain } from "@ckb-lumos/base"
 ```
 
 After doing the 3 steps, you have done migrating to v0.19.
