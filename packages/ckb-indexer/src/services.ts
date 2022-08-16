@@ -1,15 +1,10 @@
 import { utils, HexString, ScriptWrapper, Script } from "@ckb-lumos/base";
-import {
-  CKBIndexerQueryOptions,
-  HexadecimalRange,
-  SearchFilter,
-  ScriptType,
-  SearchKey,
-} from "./type";
+import { CKBIndexerQueryOptions, SearchKey } from "./type";
 import fetch from "cross-fetch";
 import { BI } from "@ckb-lumos/bi";
 import { toScript } from "./paramsFormatter";
 import type * as RPCType from "./rpcType";
+import { toSearchKey } from "./resultFormatter";
 
 function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
   return typeof object === "object" && object != null && "script" in object;
@@ -22,8 +17,8 @@ const UnwrapScriptWrapper = (inputScript: ScriptWrapper | Script): Script => {
 };
 const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   let script: RPCType.Script | undefined = undefined;
-  const filter: SearchFilter = {};
-  let script_type: ScriptType | undefined = undefined;
+  const filter: RPCType.SearchFilter = {};
+  let script_type: RPCType.ScriptType | undefined = undefined;
   if (queries.lock) {
     const lock = UnwrapScriptWrapper(queries.lock);
     script = toScript(lock);
@@ -37,7 +32,7 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
     script = toScript(type);
     script_type = "type";
   }
-  let block_range: HexadecimalRange | null = null;
+  let block_range: RPCType.HexadecimalRange | null = null;
   if (queries.fromBlock && queries.toBlock) {
     //toBlock+1 cause toBlock need to be included
     block_range = [
@@ -60,11 +55,11 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   if (!script_type) {
     throw new Error("script_type must be provided");
   }
-  return {
+  return toSearchKey({
     script,
     script_type,
     filter,
-  };
+  });
 };
 
 const getHexStringBytes = (hexString: HexString): number => {

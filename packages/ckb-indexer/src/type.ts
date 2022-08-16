@@ -11,7 +11,6 @@ import {
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
 import { BIish } from "@ckb-lumos/bi";
-import type * as RPCType from "./rpcType";
 
 export type ScriptType = "type" | "lock";
 export type Order = "asc" | "desc";
@@ -24,17 +23,16 @@ export interface CKBIndexerQueryOptions extends QueryOptions {
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
 export interface SearchFilter {
-  script?: RPCType.Script;
-  output_data_len_range?: HexadecimalRange; //empty
-  output_capacity_range?: HexadecimalRange; //empty
-  block_range?: HexadecimalRange; //fromBlock-toBlock
+  script?: Script;
+  outputDataLenRange?: HexadecimalRange; //empty
+  outputCapacityRange?: HexadecimalRange; //empty
+  blockRange?: HexadecimalRange; //fromBlock-toBlock
 }
 export interface SearchKey {
-  script: RPCType.Script;
-  script_type: ScriptType;
+  script: Script;
+  scriptType: ScriptType;
   filter?: SearchFilter;
 }
-
 export interface GetLiveCellsResult {
   lastCursor: string;
   objects: IndexerCell[];
