@@ -6,6 +6,7 @@ import {
   SearchKey,
 } from "./type";
 import fetch from "cross-fetch";
+import { toSearchKey } from "./paramsFormatter";
 
 export class RPC {
   private uri: string;
@@ -27,7 +28,7 @@ export class RPC {
     limit: HexString,
     cursor?: string
   ): Promise<GetLiveCellsResult> {
-    const params = [searchKey, order, limit, cursor];
+    const params = [toSearchKey(searchKey), order, limit, cursor];
     return utils.deepCamel(await request(this.uri, "get_cells", params));
   }
   async getTransactions(
@@ -36,7 +37,7 @@ export class RPC {
     limit: HexString,
     cursor?: string
   ): Promise<IndexerTransactionList> {
-    const params = [searchKey, order, limit, cursor];
+    const params = [toSearchKey(searchKey), order, limit, cursor];
     return utils.deepCamel(await request(this.uri, "get_transactions", params));
   }
   async getIndexerInfo(): Promise<string> {

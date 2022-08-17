@@ -1,7 +1,21 @@
-# Changelog
+# Change Log
 
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+# [0.19.0-alpha.0](https://github.com/nervosnetwork/lumos/compare/v0.18.0...v0.19.0-alpha.0) (2022-08-11)
+
+
+* refactor!: camelize exposed APIs (#378) ([7c17f90](https://github.com/nervosnetwork/lumos/commit/7c17f901257b15934339022730db05c6912914f5)), closes [#378](https://github.com/nervosnetwork/lumos/issues/378)
+
+
+### BREAKING CHANGES
+
+* all exposed API are changed from snake-case to camel-case
+
+
+
+
 
 ## [0.103.1](https://github.com/nervosnetwork/ckb-sdk-js/compare/v0.102.3...v0.103.1) (2022-05-31)
 

@@ -50,10 +50,7 @@ export const formatter = {
       ...rest,
     };
   },
-  toOutPoint: (
-    outPoint: CKBComponents.OutPoint | undefined
-  ): RPC.OutPoint | undefined => {
-    if (!outPoint) return outPoint;
+  toOutPoint: (outPoint: CKBComponents.OutPoint): RPC.OutPoint => {
     const { txHash, index, ...rest } = outPoint;
     return {
       tx_hash: formatter.toHash(txHash),
@@ -88,7 +85,7 @@ export const formatter = {
   },
   toCellDep: (cellDep: CKBComponents.CellDep): RPC.CellDep => {
     if (!cellDep) return cellDep;
-    const { outPoint = undefined, depType = "code", ...rest } = cellDep;
+    const { outPoint, depType = "code", ...rest } = cellDep;
     return {
       out_point: formatter.toOutPoint(outPoint),
       dep_type: formatter.toDepType(depType),

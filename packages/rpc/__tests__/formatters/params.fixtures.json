@@ -33,10 +33,6 @@
   ],
   "toOutPoint": [
     {
-      "param": null,
-      "expected": null
-    },
-    {
       "param": {
         "txHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
         "index": "0xffffffff"
@@ -45,10 +41,6 @@
         "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
         "index": "0xffffffff"
       }
-    },
-    {
-      "param": null,
-      "expected": null
     }
   ],
   "toDepType": [
@@ -62,37 +54,6 @@
     }
   ],
   "toCellDep": [
-    {
-      "param": null,
-      "expected": null
-    },
-    {
-      "param": {
-        "depType": "depGroup"
-      },
-      "expected": {
-        "dep_type": "dep_group"
-      }
-    },
-    {
-      "param": {
-        "outPoint": null
-      },
-      "expected": {
-        "out_point": null,
-        "dep_type": "code"
-      }
-    },
-    {
-      "param": {
-        "outPoint": null,
-        "depType": "depGroup"
-      },
-      "expected": {
-        "out_point": null,
-        "dep_type": "dep_group"
-      }
-    },
     {
       "param": {
         "outPoint": {
@@ -113,20 +74,6 @@
 
   "toInput": [
     {
-      "param": null,
-      "expected": null
-    },
-    {
-      "param": {
-        "previousOutput": null,
-        "since": "0x0"
-      },
-      "expected": {
-        "previous_output": null,
-        "since": "0x0"
-      }
-    },
-    {
       "param": {
         "previousOutput": {
           "txHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -144,10 +91,6 @@
     }
   ],
   "toOutput": [
-    {
-      "param": null,
-      "expected": null
-    },
     {
       "param": {
         "capacity": "0x48c27395000",
@@ -253,7 +196,10 @@
         "headerDeps": [],
         "inputs": [
           {
-            "previousOutput": null,
+            "previousOutput": {
+              "txHash": "0x00000000000000000000000000000000000000000000000000000000000000001",
+              "index": "0xfffffff1"
+            },
             "since": "0x0"
           },
           {
@@ -292,7 +238,10 @@
         "header_deps": [],
         "inputs": [
           {
-            "previous_output": null,
+            "previous_output": {
+              "tx_hash": "0x00000000000000000000000000000000000000000000000000000000000000001",
+              "index": "0xfffffff1"
+            },
             "since": "0x0"
           },
           {

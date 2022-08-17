@@ -1,6 +1,7 @@
 import { OutPoint, Script } from "@ckb-lumos/base";
 import type * as IndexerType from "./indexerType";
 import type * as RPCType from "./rpcType";
+import { SearchFilter, SearchKey } from "./type";
 
 const toTip = (tip: RPCType.Tip): IndexerType.Tip => ({
   blockHash: tip.block_hash,
@@ -21,4 +22,26 @@ const toCellOutPut = (data: RPCType.CellOutput): IndexerType.CellOutput => ({
   type: data.type ? toScript(data.type) : undefined,
 });
 
-export { toTip, toScript, toOutPoint, toCellOutPut };
+const toSearchFilter = (data: RPCType.SearchFilter): SearchFilter => {
+  return {
+    script: data.script ? toScript(data.script) : data.script,
+    outputDataLenRange: data.output_data_len_range,
+    outputCapacityRange: data.output_capacity_range,
+    blockRange: data.block_range,
+  };
+};
+
+const toSearchKey = (data: RPCType.SearchKey): SearchKey => ({
+  script: toScript(data.script),
+  scriptType: data.script_type,
+  filter: data.filter ? toSearchFilter(data.filter) : data.filter,
+});
+
+export {
+  toTip,
+  toScript,
+  toOutPoint,
+  toCellOutPut,
+  toSearchKey,
+  toSearchFilter,
+};

@@ -56,10 +56,7 @@ const toOutput = (output: RPC.CellOutput): CKBComponents.CellOutput => {
     ...rest,
   };
 };
-const toOutPoint = (
-  outPoint: RPC.OutPoint | undefined
-): CKBComponents.OutPoint | undefined => {
-  if (!outPoint) return outPoint;
+const toOutPoint = (outPoint: RPC.OutPoint): CKBComponents.OutPoint => {
   const { tx_hash: txHash, ...rest } = outPoint;
   return {
     txHash,
@@ -75,11 +72,7 @@ const toDepType = (type: RPC.DepType): CKBComponents.DepType => {
 
 const toCellDep = (cellDep: RPC.CellDep): CKBComponents.CellDep => {
   if (!cellDep) return cellDep;
-  const {
-    out_point: outPoint = undefined,
-    dep_type = "code",
-    ...rest
-  } = cellDep;
+  const { out_point: outPoint, dep_type = "code", ...rest } = cellDep;
   return {
     outPoint: toOutPoint(outPoint),
     depType: toDepType(dep_type),
