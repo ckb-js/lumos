@@ -1,3 +1,4 @@
+// payFeeByFeeRate
 import {
   Indexer,
   helpers,
@@ -13,7 +14,9 @@ import {
   toolkit,
   BI,
 } from "@ckb-lumos/lumos";
+import { BIish } from "@ckb-lumos/bi";
 import { values } from "@ckb-lumos/base";
+import { payFeeByFeeRate } from "@ckb-lumos/common-scripts/lib/common";
 const { ScriptValue } = values;
 
 export const { AGGRON4 } = config.predefined;
@@ -28,6 +31,7 @@ type Account = {
   address: Address;
   pubKey: string;
 };
+
 export const generateAccountFromPrivateKey = (privKey: string): Account => {
   const pubKey = hd.key.privateToPublic(privKey);
   const args = hd.key.publicKeyToBlake160(pubKey);
@@ -46,75 +50,99 @@ export const generateAccountFromPrivateKey = (privKey: string): Account => {
 };
 
 export async function capacityOf(address: string): Promise<BI> {
-  const collector = indexer.collector({
-    lock: helpers.parseAddress(address, { config: AGGRON4 }),
-  });
-
   let balance = BI.from(0);
-  for await (const cell of collector.collect()) {
+  const cells = await collectInputCells(address);
+
+  for await (const cell of cells) {
     balance = balance.add(cell.cell_output.capacity);
   }
 
   return balance;
 }
 
+export async function collectInputCells(address: string, capacityLimit?: BIish): Promise<Cell[]> {
+  const collector = indexer.collector({
+    lock: helpers.parseAddress(address, { config: AGGRON4 }),
+  });
+
+  const cells: Cell[] = [];
+  let total = BI.from(0);
+
+  for await (const cell of collector.collect()) {
+    if (capacityLimit) {
+      if (total.gt(capacityLimit)) {
+        break;
+      } else {
+        total = total.add(cell.cell_output.capacity);
+      }
+    }
+    cells.push(cell);
+  }
+
+  return cells;
+}
+
 interface Options {
   from: string;
-  to: string;
-  amount: string;
+  targets: {
+    to: string;
+    amount: BIish;
+  }[];
   privKey: string;
 }
 
-export async function transfer(options: Options): Promise<string> {
-  let txSkeleton = helpers.TransactionSkeleton({});
+export async function createTxSkeleton(options: Options) {
   const fromScript = helpers.parseAddress(options.from, { config: AGGRON4 });
-  const toScript = helpers.parseAddress(options.to, { config: AGGRON4 });
-
-  // additional 0.001 ckb for tx fee
-  // the tx fee could calculated by tx size
-  // this is just a simple example
-  const neededCapacity = BI.from(options.amount).add(100000);
-  let collectedSum = BI.from(0);
-  const collected: Cell[] = [];
-  const collector = indexer.collector({ lock: fromScript, type: "empty" });
-  for await (const cell of collector.collect()) {
-    collectedSum = collectedSum.add(cell.cell_output.capacity);
-    collected.push(cell);
-    if (collectedSum >= neededCapacity) break;
-  }
-
-  if (collectedSum < neededCapacity) {
-    throw new Error("Not enough CKB");
-  }
-
-  const transferOutput: Cell = {
+  const totalOutputs = options.targets.reduce((prev, cur) => prev.add(cur.amount), BI.from(0));
+  const inputCells = await collectInputCells(options.from, totalOutputs);
+  const totalInputs = inputCells.reduce((prev, cur) => prev.add(cur.cell_output.capacity), BI.from(0));
+  const transferOutput: Cell[] = options.targets.map((target) => ({
     cell_output: {
-      capacity: BI.from(options.amount).toHexString(),
-      lock: toScript,
+      capacity: BI.from(target.amount).toHexString(),
+      lock: helpers.parseAddress(target.to, { config: AGGRON4 }),
     },
     data: "0x",
-  };
-
+  }));
   const changeOutput: Cell = {
     cell_output: {
-      capacity: collectedSum.sub(neededCapacity).toHexString(),
+      capacity: totalInputs.sub(totalOutputs).toHexString(),
       lock: fromScript,
     },
     data: "0x",
   };
 
-  txSkeleton = txSkeleton.update("inputs", (inputs) => inputs.push(...collected));
-  txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(transferOutput, changeOutput));
-  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
-    cellDeps.push({
-      out_point: {
-        tx_hash: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
-        index: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.INDEX,
-      },
-      dep_type: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
-    })
-  );
+  let txSkeleton = helpers
+    .TransactionSkeleton({ cellProvider: indexer })
+    .update("inputs", (inputs) => inputs.push(...inputCells))
+    .update("outputs", (outputs) => outputs.push(...transferOutput, changeOutput))
+    .update("cellDeps", (cellDeps) =>
+      cellDeps.push({
+        out_point: {
+          tx_hash: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
+          index: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.INDEX,
+        },
+        dep_type: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+      })
+    )
+    .update("witnesses", (witnesses) => {
+      const dummyWitness = {
+        lock: new toolkit.Reader(
+          "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        ).toArrayBuffer(),
+      };
 
+      const witnessArgs = new toolkit.Reader(core.SerializeWitnessArgs(dummyWitness)).serializeJson();
+      return witnesses.push(witnessArgs);
+    });
+
+  txSkeleton = await payFeeByFeeRate(txSkeleton, [options.from], 1000, undefined, { config: AGGRON4 });
+  console.log(txSkeleton.toJS());
+  return txSkeleton;
+}
+
+export async function transfer(options: Options): Promise<string> {
+  const fromScript = helpers.parseAddress(options.from, { config: AGGRON4 });
+  let txSkeleton = await createTxSkeleton(options);
   const firstIndex = txSkeleton
     .get("inputs")
     .findIndex((input) =>
