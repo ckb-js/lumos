@@ -3,7 +3,7 @@ import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { nanoid } from "nanoid";
 import { BI, Script, helpers } from "@ckb-lumos/lumos";
-import { capacityOf, createTxSkeleton, generateAccountFromPrivateKey, transfer } from "./lib";
+import { capacityOf, createTxSkeleton, generateAccountFromPrivateKey, transfer, Options } from "./lib";
 import { BIish } from "@ckb-lumos/bi";
 
 type TxTarget = {
@@ -12,7 +12,7 @@ type TxTarget = {
   key: string;
 };
 
-const genScenarioTxTarget = () => ({ key: nanoid(), amount: 0, address: "" });
+const createTxTo = (): TxTarget => ({ key: nanoid(), amount: 0, address: "" });
 
 export function App() {
   const [privKey, setPrivKey] = useState("");
@@ -22,34 +22,34 @@ export function App() {
   const [txHash, setTxHash] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [txTargets, setTxTargets] = useState<TxTarget[]>([genScenarioTxTarget()]);
+  const [txTo, setTxTo] = useState<TxTarget[]>([createTxTo()]);
   const [txSkeleton, setTxSkeleton] = useState<ReturnType<typeof helpers.TransactionSkeleton> | undefined>();
   const setTargetByIndex = (index: number, field: "amount" | "address") => (e: ChangeEvent<HTMLInputElement>) => {
     setErrorMessage("");
-    const newTargets = [...txTargets];
+    const newTo = [...txTo];
     if (field === "amount") {
-      newTargets[index].amount = Number(e.target.value);
+      newTo[index].amount = e.target.value;
     } else {
-      newTargets[index]["address"] = e.target.value;
+      newTo[index]["address"] = e.target.value;
     }
-    setTxTargets(newTargets);
+    setTxTo(newTo);
   };
 
   const insertTxTarget = () => {
-    setTxTargets((origin) => [...origin, genScenarioTxTarget()]);
+    setTxTo((origin) => [...origin, createTxTo()]);
   };
 
   const removeTxTarget = (index: number) => () => {
-    setTxTargets((origin) => origin.filter((_, i) => i !== index));
+    setTxTo((origin) => origin.filter((_, i) => i !== index));
   };
 
-  const txOptions = useMemo(
+  const txOptions = useMemo<Options>(
     () => ({
       from: fromAddr,
-      targets: txTargets.map((tx) => ({ to: tx.address, amount: BI.from(tx.amount) })),
+      to: txTo.map((tx) => ({ address: tx.address, amount: BI.from(tx.amount) })),
       privKey,
     }),
-    [fromAddr, txTargets, privKey]
+    [fromAddr, txTo, privKey]
   );
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export function App() {
         return;
       }
       try {
-        const skeleton = await createTxSkeleton({ ...txOptions, targets: txOptions.targets.filter((it) => it.to) });
+        const skeleton = await createTxSkeleton({ ...txOptions, to: txOptions.to.filter((it) => it.address) });
         setTxSkeleton(skeleton);
       } catch (e) {
         setErrorMessage(e.toString());
@@ -94,7 +94,7 @@ export function App() {
     try {
       const txHash = await transfer({
         from: fromAddr,
-        targets: txTargets.map((tx) => ({ to: tx.address, amount: BI.from(tx.amount) })),
+        to: txTo.map((tx) => ({ address: tx.address, amount: BI.from(tx.amount) })),
         privKey,
       });
       setTxHash(txHash);
@@ -137,7 +137,7 @@ export function App() {
           </tr>
         </thead>
         <tbody>
-          {txTargets.map((txTarget, index) => (
+          {txTo.map((txTarget, index) => (
             <tr key={txTarget.key}>
               <td>
                 <input
@@ -156,7 +156,7 @@ export function App() {
                 />
               </td>
               <td>
-                {txTargets.length > 1 && (
+                {txTo.length > 1 && (
                   <button onClick={removeTxTarget(index)} className="button is-danger">
                     Remove
                   </button>

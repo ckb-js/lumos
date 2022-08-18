@@ -82,10 +82,10 @@ export async function collectInputCells(address: string, capacityLimit?: BIish):
   return cells;
 }
 
-interface Options {
+export interface Options {
   from: string;
-  targets: {
-    to: string;
+  to: {
+    address: string;
     amount: BIish;
   }[];
   privKey: string;
@@ -93,13 +93,13 @@ interface Options {
 
 export async function createTxSkeleton(options: Options) {
   const fromScript = helpers.parseAddress(options.from, { config: AGGRON4 });
-  const totalOutputs = options.targets.reduce((prev, cur) => prev.add(cur.amount), BI.from(0));
+  const totalOutputs = options.to.reduce((prev, cur) => prev.add(cur.amount), BI.from(0));
   const inputCells = await collectInputCells(options.from, totalOutputs);
   const totalInputs = inputCells.reduce((prev, cur) => prev.add(cur.cell_output.capacity), BI.from(0));
-  const transferOutput: Cell[] = options.targets.map((target) => ({
+  const transferOutput: Cell[] = options.to.map((target) => ({
     cell_output: {
       capacity: BI.from(target.amount).toHexString(),
-      lock: helpers.parseAddress(target.to, { config: AGGRON4 }),
+      lock: helpers.parseAddress(target.address, { config: AGGRON4 }),
     },
     data: "0x",
   }));
