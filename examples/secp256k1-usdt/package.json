@@ -1,0 +1,22 @@
+{
+  "name": "secp256k1-usdt",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "parcel src/index.html"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
+    "parcel": "^2.7.0",
+    "process": "^0.11.10",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@ckb-lumos/lumos": "0.18.0",
+    "bulma": "^0.9.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
