@@ -225,25 +225,24 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
     data: "0x",
   };
 
-  let changeCapacity = calculateCKBBalance(holderCKBInputCells).sub(CKBAmount).sub(1e8);
-  changeCapacity = [SUDTTargetOutput, SUDTChangeOutput, CKBOutput].reduce(
-    (acc, cur) => acc.sub(cur.cell_output.capacity),
-    changeCapacity
-  );
+  // exchanged CKB from holder to issuer and change
+  txSkeleton = txSkeleton.update("outputs", (outputs) => {
+    return outputs.push(CKBOutput);
+  });
+
+  const inputsCapacity = txSkeleton.inputs.reduce((acc, cur) => acc.add(cur.cell_output.capacity), BI.from(0));
+  const outputsCapacity = txSkeleton.outputs.reduce((acc, cur) => acc.add(cur.cell_output.capacity), BI.from(0));
+
+  const changeCapacity = inputsCapacity.sub(outputsCapacity).sub(0.0001 * 1e8);
 
   const CKBChangeOutput: Cell = {
     cell_output: {
-      capacity: "0x0",
-      // capacity: changeCapacity.toHexString(),
+      capacity: changeCapacity.toHexString(),
       lock: holderAccountInfo.lockScript,
     },
     data: "0x",
   };
-
-  // exchanged CKB from holder to issuer and change
-  txSkeleton = txSkeleton.update("outputs", (outputs) => {
-    return outputs.push(CKBOutput /**  CKBChangeOutput  */);
-  });
+  txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(CKBChangeOutput));
 
   txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
     const dummyWitness = {
@@ -254,43 +253,14 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
 
     const witnessArgs = new toolkit.Reader(core.SerializeWitnessArgs(dummyWitness)).serializeJson();
 
-    return witnesses.push(witnessArgs, witnessArgs);
+    for (let index = 0; index < txSkeleton.inputs.size; index++) {
+      witnesses = witnesses.push(witnessArgs);
+    }
+
+    return witnesses;
   });
 
   // txSkeleton = await payFeeByFeeRate(txSkeleton, [holderAccountInfo.address], 1000, undefined, { config: AGGRON4 });
-  // txSkeleton = await payFeeByFeeRate(txSkeleton, [holderAccountInfo.address], 1000, undefined, { config: AGGRON4 });
-
-  // const SUDTTargetOutput: Cell = {};
-  // txSkeleton.update("outputs", (outputs) => {
-  //   return outputs.push({
-  //     capacity: BI.from(),
-  //   });
-  // });
-
-  // txSkeleton = await sudt.transfer(
-  //   helpers.TransactionSkeleton({ cellProvider: indexer }),
-  //   [issuerAccountInfo.address],
-  //   token,
-  //   holderAccountInfo.address,
-  //   BI.from(CKBAmount).mul(CKB2SUDTRate),
-  //   // issuerAccountInfo.address
-  //   undefined,
-  //   undefined,
-  //   undefined,
-  //   { config: AGGRON4 }
-  // );
-
-  // txSkeleton = await commons.common.transfer(
-  //   txSkeleton,
-  //   [holderAccountInfo.address],
-  //   issuerAccountInfo.address,
-  //   BI.from(CKBAmount).mul(10 ** 8),
-  //   holderAccountInfo.address,
-  //   undefined,
-  //   { config: AGGRON4 }
-  // );
-
-  txSkeleton = await payFeeByFeeRate(txSkeleton, [holderAccountInfo.address], 1000, undefined, { config: AGGRON4 });
 
   const tx = signTx(txSkeleton, [issuerPrivateKey, holderPrivateKey]);
   const txHash = await rpc.send_transaction(tx, "passthrough");
@@ -329,14 +299,13 @@ export async function transferSUDT2CKB(issuerPrivateKey: string, holderPrivateKe
     undefined,
     { config: AGGRON4 }
   );
-
-  txSkeleton = await payFeeByFeeRate(
-    txSkeleton,
-    [issuerAccountInfo.address, holderAccountInfo.address],
-    1000,
-    undefined,
-    { config: AGGRON4 }
-  );
+  // txSkeleton = await payFeeByFeeRate(
+  //   txSkeleton,
+  //   [issuerAccountInfo.address, holderAccountInfo.address],
+  //   1000,
+  //   undefined,
+  //   { config: AGGRON4 }
+  // );
   const tx = signTx(txSkeleton, [issuerPrivateKey, holderPrivateKey]);
   const txHash = await rpc.send_transaction(tx, "passthrough");
   console.log(txHash);
