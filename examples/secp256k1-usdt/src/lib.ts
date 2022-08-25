@@ -2,8 +2,7 @@
 import { Indexer, helpers, Address, Script, RPC, hd, config, Cell, commons, core, toolkit, BI } from "@ckb-lumos/lumos";
 import { sudt } from "@ckb-lumos/common-scripts";
 import { BIish } from "@ckb-lumos/bi";
-import { values } from "@ckb-lumos/base";
-import { payFeeByFeeRate, c } from "@ckb-lumos/common-scripts/lib/common";
+import { payFeeByFeeRate } from "@ckb-lumos/common-scripts/lib/common";
 import { addCellDep } from "@ckb-lumos/common-scripts/lib/helper";
 import { readBigUInt128LECompatible, computeScriptHash, toBigUInt128LE } from "@ckb-lumos/base/lib/utils";
 
