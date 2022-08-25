@@ -1,14 +1,12 @@
 import "bulma/css/bulma.css";
 
-import React, { FC, useEffect, useMemo, useState } from "react";
+import React, { FC, ReactNode, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import {
   fetchCKBBalance,
   fetchSUDTBalance,
   generateAccountFromPrivateKey,
-  mintSUDT,
-  // transferCKB,
-  // transferSUDT,
+  issueSUDT,
   transferCKB2SUDT,
   CKB2SUDTRate,
 } from "./lib";
@@ -27,16 +25,26 @@ const Field: FC<{ label: string; value: string; onChange: React.ChangeEventHandl
     </div>
   );
 };
+const Notification: FC<{ onClose: () => void; children: ReactNode }> = ({ children, onClose }) => {
+  return (
+    <div className="notification is-success">
+      <div className="delete" onClick={onClose}></div>
+      {children}
+    </div>
+  );
+};
 
 const App: FC = () => {
   const [issuerPrivateKey, setIssuerPrivateKey] = useState(
-    "0x496fb24bfd613947d7c64a3773a9f58c5d632a9bc1cf8e4a7f938e688fa93143"
+    "0x5a85f2c71da9ca9581dfdf59c19dba77005b9d9a61b3c647a6a122bee1be409e"
   );
   const [holderPrivateKey, setHolderPrivateKey] = useState(
-    "0x087ac6eb3e56004f66ec2034f767838d761bcc60abdb49c1cffca15c5997b363"
+    "0xf35458a0da78428e93858c996097afed03d61b9b3504ed56be7202ed83f45260"
   );
   const [issuerBalance, setIssuerBalance] = useState({ SUDT: "0", CKB: "0" });
   const [holderBalance, setHolderBalance] = useState({ SUDT: "0", CKB: "0" });
+  const [issueSUDTTx, setIssueSUDTTx] = useState("");
+  const [transferSUDTTx, setTransferSUDTTx] = useState("");
 
   const issuerAccountInfo = useMemo(
     () => (issuerPrivateKey ? generateAccountFromPrivateKey(issuerPrivateKey) : undefined),
@@ -65,29 +73,37 @@ const App: FC = () => {
     refreshBalance();
   }, [issuerAccountInfo, holderAccountInfo]);
 
-  const mintSomeSUDT = async () => {
-    await mintSUDT(issuerPrivateKey, 10 ** 12);
-    refreshBalance();
+  const issueSomeSUDT = async () => {
+    const tx = await issueSUDT(issuerPrivateKey, 10 ** 12);
+    setIssueSUDTTx(tx);
   };
 
   const exchangeCKB2SUDT = async () => {
     if (!issuerAccountInfo || !holderAccountInfo) {
       return;
     }
-    await transferCKB2SUDT(issuerPrivateKey, holderPrivateKey, 250 * 1e8);
-  };
-
-  const exchangeSUDT2CKB = async () => {
-    if (!issuerAccountInfo || !holderAccountInfo) {
-      return;
-    }
-    transferCKB2SUDT(issuerPrivateKey, holderPrivateKey, 2500);
-    // await transferSUDT(holderPrivateKey, issuerAccountInfo?.address, 25000);
-    // await transferCKB(issuerPrivateKey, holderAccountInfo?.address, 2500 * 10 ** 6);
+    const tx = await transferCKB2SUDT(issuerPrivateKey, holderPrivateKey, 250 * 1e8);
+    setTransferSUDTTx(tx);
   };
 
   return (
     <div className="m-5">
+      {issueSUDTTx && (
+        <Notification onClose={() => setIssueSUDTTx("")}>
+          Issue transaction sent, view it on{" "}
+          <a href={`https://pudge.explorer.nervos.org/transaction/${issueSUDTTx}`} target="_blank">
+            CKB Explorer(You may need to retry search if it is not found)
+          </a>
+        </Notification>
+      )}
+      {transferSUDTTx && (
+        <Notification onClose={() => setTransferSUDTTx("")}>
+          Transfer transaction sent, view it on{" "}
+          <a href={`https://pudge.explorer.nervos.org/transaction/${transferSUDTTx}`} target="_blank">
+            CKB Explorer(You may need to retry search if it is not found)
+          </a>
+        </Notification>
+      )}
       <div className="block">
         <Field
           label="Issuer private key"
@@ -97,8 +113,8 @@ const App: FC = () => {
         {issuerAccountInfo && <div>Address: {issuerAccountInfo.address}</div>}
         {issuerBalance && <label className="tag">SUDT amount: {issuerBalance.SUDT}</label>}
         <div>
-          <button className="button is-primary" onClick={mintSomeSUDT}>
-            Issue 10000000000 SUDT
+          <button className="button is-primary" onClick={issueSomeSUDT}>
+            Issue 1000000000000 SUDT
           </button>
         </div>
         <Field
@@ -117,10 +133,7 @@ const App: FC = () => {
       <div className="block">1 CKB = {CKB2SUDTRate} SUDT</div>
       <div>
         <button className="button" onClick={exchangeCKB2SUDT}>
-          Exchange 25 CKB to 2500 SUDT
-        </button>
-        <button className="button" onClick={exchangeSUDT2CKB}>
-          Exchange 2500 SUDT to 25 CKB
+          Exchange 250 CKB to 25000 SUDT
         </button>
       </div>
     </div>

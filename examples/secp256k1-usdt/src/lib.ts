@@ -28,7 +28,7 @@ export const generateAccountFromPrivateKey = (privKey: string): Account => {
     hash_type: template.HASH_TYPE,
     args: args,
   };
-  const address = helpers.generateAddress(lockScript, { config: AGGRON4 });
+  const address = helpers.encodeToAddress(lockScript, { config: AGGRON4 });
   return {
     lockScript,
     address,
@@ -36,7 +36,7 @@ export const generateAccountFromPrivateKey = (privKey: string): Account => {
   };
 };
 
-export const mintSUDT = async (privateKey: string, SUDTAmount: BIish) => {
+export const issueSUDT = async (privateKey: string, SUDTAmount: BIish) => {
   let txSkeleton = helpers.TransactionSkeleton({ cellProvider: indexer }).update("witnesses", (witnesses) => {
     const dummyWitness = {
       lock: new toolkit.Reader(
@@ -233,7 +233,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
   const inputsCapacity = txSkeleton.inputs.reduce((acc, cur) => acc.add(cur.cell_output.capacity), BI.from(0));
   const outputsCapacity = txSkeleton.outputs.reduce((acc, cur) => acc.add(cur.cell_output.capacity), BI.from(0));
 
-  const changeCapacity = inputsCapacity.sub(outputsCapacity).sub(0.0001 * 1e8);
+  const changeCapacity = inputsCapacity.sub(outputsCapacity);
 
   const CKBChangeOutput: Cell = {
     cell_output: {
@@ -260,53 +260,9 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
     return witnesses;
   });
 
-  // txSkeleton = await payFeeByFeeRate(txSkeleton, [holderAccountInfo.address], 1000, undefined, { config: AGGRON4 });
+  txSkeleton = await payFeeByFeeRate(txSkeleton, [holderAccountInfo.address], 1000, undefined, { config: AGGRON4 });
 
-  const tx = signTx(txSkeleton, [issuerPrivateKey, holderPrivateKey]);
-  const txHash = await rpc.send_transaction(tx, "passthrough");
-  console.log(txHash);
-  return txHash;
-}
-
-export async function transferSUDT2CKB(issuerPrivateKey: string, holderPrivateKey: string, SUDTAmount: BIish) {
-  const issuerAccountInfo = generateAccountFromPrivateKey(issuerPrivateKey);
-  const holderAccountInfo = generateAccountFromPrivateKey(holderPrivateKey);
-  const token = sudt.ownerForSudt(issuerAccountInfo.address, { config: AGGRON4 });
-  let txSkeleton = helpers.TransactionSkeleton({ cellProvider: indexer });
-
-  // holder send SUDT to issuer
-  txSkeleton = await sudt.transfer(
-    txSkeleton,
-    [holderAccountInfo.address],
-    token,
-    issuerAccountInfo.address,
-    BI.from(SUDTAmount),
-    undefined,
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
-
-  // issuer send CKB to holder
-  txSkeleton = await commons.common.transfer(
-    txSkeleton,
-    [issuerAccountInfo.address],
-    holderAccountInfo.address,
-    BI.from(SUDTAmount)
-      .div(CKB2SUDTRate)
-      .mul(10 ** 8),
-    undefined,
-    undefined,
-    { config: AGGRON4 }
-  );
-  // txSkeleton = await payFeeByFeeRate(
-  //   txSkeleton,
-  //   [issuerAccountInfo.address, holderAccountInfo.address],
-  //   1000,
-  //   undefined,
-  //   { config: AGGRON4 }
-  // );
-  const tx = signTx(txSkeleton, [issuerPrivateKey, holderPrivateKey]);
+  const tx = signTx(txSkeleton, [issuerPrivateKey, holderPrivateKey, issuerPrivateKey]);
   const txHash = await rpc.send_transaction(tx, "passthrough");
   console.log(txHash);
   return txHash;
