@@ -33,7 +33,7 @@ const App: FC = () => {
     "0x496fb24bfd613947d7c64a3773a9f58c5d632a9bc1cf8e4a7f938e688fa93143"
   );
   const [holderPrivateKey, setHolderPrivateKey] = useState(
-    "0xda486337c5f007b036ef144bc2b9fb02e5ab2351cd685c919e9899b70296d001"
+    "0x087ac6eb3e56004f66ec2034f767838d761bcc60abdb49c1cffca15c5997b363"
   );
   const [issuerBalance, setIssuerBalance] = useState({ SUDT: "0", CKB: "0" });
   const [holderBalance, setHolderBalance] = useState({ SUDT: "0", CKB: "0" });
@@ -66,7 +66,7 @@ const App: FC = () => {
   }, [issuerAccountInfo, holderAccountInfo]);
 
   const mintSomeSUDT = async () => {
-    await mintSUDT(issuerPrivateKey, 10 ** 8);
+    await mintSUDT(issuerPrivateKey, 10 ** 12);
     refreshBalance();
   };
 
@@ -98,7 +98,7 @@ const App: FC = () => {
         {issuerBalance && <label className="tag">SUDT amount: {issuerBalance.SUDT}</label>}
         <div>
           <button className="button is-primary" onClick={mintSomeSUDT}>
-            Issue 1000000 SUDT
+            Issue 10000000000 SUDT
           </button>
         </div>
         <Field
