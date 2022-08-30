@@ -1,5 +1,5 @@
 {
-  "name": "secp256k1-usdt",
+  "name": "@lumos-examples/exchange-sudt-for-ckb",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
@@ -16,7 +16,9 @@
   "dependencies": {
     "@ckb-lumos/lumos": "0.18.0",
     "bulma": "^0.9.4",
+    "immutable": "^4.1.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-use": "^17.4.0"
   }
 }
