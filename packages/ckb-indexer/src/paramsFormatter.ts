@@ -1,6 +1,11 @@
 import { Script } from "@ckb-lumos/base";
 import type * as RPCType from "./rpcType";
-import { SearchKey, SearchFilter } from "./type";
+import {
+  SearchKey,
+  SearchFilter,
+  GetCellsSearchKey,
+  GetTransactionsSearchKey,
+} from "./type";
 
 const toScript = (data: Script): RPCType.Script => ({
   code_hash: data.codeHash,
@@ -23,4 +28,24 @@ const toSearchKey = (data: SearchKey): RPCType.SearchKey => ({
   filter: data.filter ? toSearchFilter(data.filter) : data.filter,
 });
 
-export { toScript, toSearchKey, toSearchFilter };
+const toGetCellsSearchKey = (
+  data: GetCellsSearchKey
+): RPCType.GetCellsSearchKey => ({
+  ...toSearchKey(data),
+  with_data: data.withData,
+});
+
+const toGetTransactionsSearchKey = (
+  data: GetTransactionsSearchKey<boolean>
+): RPCType.GetTransactionsSearchKey => ({
+  ...toSearchKey(data),
+  group_by_transaction: data.groupByTransaction,
+});
+
+export {
+  toScript,
+  toSearchKey,
+  toGetCellsSearchKey,
+  toGetTransactionsSearchKey,
+  toSearchFilter,
+};

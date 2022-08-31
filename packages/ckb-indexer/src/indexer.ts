@@ -41,7 +41,7 @@ function defaultLogger(level: string, message: string) {
 
 /** CkbIndexer.collector will not get cell with blockHash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get blockHash if you need. */
 export class CkbIndexer implements Indexer {
-  static version = "0.3.2";
+  static version = "0.4.1";
   uri: string;
   ckbIndexerUri: string;
   medianTimeEmitters: EventEmitter[] = [];

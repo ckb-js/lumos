@@ -19,11 +19,14 @@ export interface CKBIndexerQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;
   outputCapacityRange?: HexadecimalRange;
   bufferSize?: number;
+  withData?: boolean;
+  groupByTransaction?: boolean;
 }
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
 export interface SearchFilter {
   script?: Script;
+  scriptLenRange?: HexadecimalRange;
   outputDataLenRange?: HexadecimalRange; //empty
   outputCapacityRange?: HexadecimalRange; //empty
   blockRange?: HexadecimalRange; //fromBlock-toBlock
@@ -33,9 +36,19 @@ export interface SearchKey {
   scriptType: ScriptType;
   filter?: SearchFilter;
 }
-export interface GetLiveCellsResult {
+export interface GetLiveCellsResult<WithData extends boolean = true> {
   lastCursor: string;
-  objects: IndexerCell[];
+  objects: WithData extends true ? IndexerCell[] : IndexerCellWithoutData[];
+}
+
+export interface GetCellsSearchKey<WithData extends boolean = boolean>
+  extends SearchKey {
+  withData?: WithData;
+}
+
+export interface GetTransactionsSearchKey<Group extends boolean = boolean>
+  extends SearchKey {
+  groupByTransaction?: Group;
 }
 
 export interface rpcResponse {
@@ -59,6 +72,12 @@ export interface IndexerCell {
   outputData: HexString;
   txIndex: Hexadecimal;
 }
+
+export interface IndexerCellWithoutData
+  extends Omit<IndexerCell, "outputData"> {
+  outputData: null;
+}
+
 export interface TerminatorResult {
   stop: boolean;
   push: boolean;
@@ -72,16 +91,31 @@ export declare type Terminator = (
 export type HexNum = string;
 export type IOType = "input" | "output" | "both";
 export type Bytes32 = string;
-export type IndexerTransaction = {
+export type IndexerTransaction<Goruped extends boolean = false> =
+  Goruped extends true
+    ? GroupedIndexerTransaction
+    : UngroupedIndexerTransaction;
+
+export type UngroupedIndexerTransaction = {
   blockNumber: HexNum;
   ioIndex: HexNum;
   ioType: IOType;
   txHash: Bytes32;
   txIndex: HexNum;
 };
-export interface IndexerTransactionList {
+
+export type GroupedIndexerTransaction = {
+  txHash: Bytes32;
+  blockNumber: HexNum;
+  txIndex: HexNum;
+  cells: Array<[IOType, HexNum]>;
+};
+
+export interface IndexerTransactionList<Grouped extends boolean = false> {
   lastCursor: string | undefined;
-  objects: IndexerTransaction[];
+  objects: Grouped extends true
+    ? GroupedIndexerTransaction[]
+    : UngroupedIndexerTransaction[];
 }
 
 export interface GetCellsResults {

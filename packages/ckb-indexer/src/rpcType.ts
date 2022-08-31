@@ -33,3 +33,10 @@ export interface SearchKey {
   script_type: ScriptType;
   filter?: SearchFilter;
 }
+export interface GetCellsSearchKey extends SearchKey {
+  with_data?: boolean;
+}
+
+export interface GetTransactionsSearchKey extends SearchKey {
+  group_by_transaction?: boolean;
+}
