@@ -56,13 +56,13 @@ const App: FC = () => {
 
   const refreshBalance = async () => {
     if (issuerAccountInfo) {
-      const SUDT = (await fetchSUDTBalance(issuerAccountInfo.address)).toString();
+      const SUDT = (await fetchSUDTBalance(issuerAccountInfo.address, issuerAccountInfo.lockScript)).toString();
       const CKB = (await fetchCKBBalance(issuerAccountInfo.address)).div(10 ** 8).toString();
       setState({ issuerBalance: { SUDT, CKB } });
     }
 
     if (holderAccountInfo) {
-      const SUDT = (await fetchSUDTBalance(holderAccountInfo.address)).toString();
+      const SUDT = (await fetchSUDTBalance(holderAccountInfo.address, issuerAccountInfo.lockScript)).toString();
       const CKB = (await fetchCKBBalance(holderAccountInfo.address)).div(10 ** 8).toString();
       setState({ holderBalance: { SUDT, CKB } });
     }

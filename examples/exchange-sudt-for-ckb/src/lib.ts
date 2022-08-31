@@ -292,14 +292,14 @@ export function calculateCKBSum(cells: Cell[]) {
  * @param address SUDT Issuer address
  * @returns the amount of SUDT in the address
  */
-export async function fetchSUDTBalance(address: string) {
+export async function fetchSUDTBalance(address: string, issuerLockScript: Script) {
   const collector = indexer.collector({
     lock: helpers.parseAddress(address, { config: AGGRON4 }),
     type: {
       script: {
         codeHash: AGGRON4.SCRIPTS.SUDT.CODE_HASH,
         hashType: AGGRON4.SCRIPTS.SUDT.HASH_TYPE,
-        args: "0x",
+        args: computeScriptHash(issuerLockScript),
       },
     },
   });
@@ -317,7 +317,7 @@ export async function fetchSUDTBalance(address: string) {
  * @returns the capacity owns by the address
  */
 export async function fetchCKBBalance(address: string) {
-  const collector = indexer.collector({ lock: helpers.parseAddress(address, { config: AGGRON4 }) });
+  const collector = indexer.collector({ lock: helpers.parseAddress(address, { config: AGGRON4 }), type: "empty" });
   let amount = BI.from(0);
   for await (const cell of collector.collect()) {
     amount = amount.add(cell.cellOutput.capacity);
