@@ -1,8 +1,8 @@
 import { JSONRPCResponse, JSONRPCServer } from "json-rpc-2.0";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
-import { LocalNode, Block, core } from "@ckb-lumos/base";
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
+import { LocalNode, Block, utils, blockchain } from "@ckb-lumos/base";
+import { bytes } from "@ckb-lumos/codec";
 interface Options {
   blocks: Block[];
   localNode: LocalNode;
@@ -18,8 +18,18 @@ export function createCKBMockRPC(options: Options): Express {
   const { routePath = "/rpc", blocks, localNode } = options;
 
   const server = new JSONRPCServer();
-
-  server.addMethod("local_node_info", () => localNode);
+  server.addMethod("local_node_info", () => ({
+    version: localNode.version,
+    active: localNode.active,
+    addresses: localNode.addresses,
+    connections: localNode.connections,
+    node_id: localNode.nodeId,
+    protocols: localNode.protocols.map((item) => ({
+      id: item.id,
+      name: item.name,
+      support_versions: item.supportVersions,
+    })),
+  }));
   server.addMethod("get_block_by_number", (params) => {
     assertsParams(Array.isArray(params));
 
@@ -34,10 +44,12 @@ export function createCKBMockRPC(options: Options): Express {
     );
     if (!block) return null;
 
-    if (Number(verbosity) === 0)
-      return new Reader(
-        core.SerializeBlock(normalizers.NormalizeBlock(block))
-      ).serializeJson();
+    if (Number(verbosity) === 0) {
+      const formattedBlock = utils.deepCamelizeTransaction(block);
+      const packedBlock = blockchain.Block.pack(formattedBlock);
+      return bytes.hexify(packedBlock);
+    }
+
     return block;
   });
 
@@ -68,7 +80,7 @@ export function createCKBMockRPC(options: Options): Express {
     const hash = hashes[0];
     let result;
     let blockHash;
-    for (let block of blocks) {
+    for (const block of blocks) {
       const tx = block.transactions.find((tx) => tx.hash === hash);
       if (tx) {
         result = tx;
@@ -78,7 +90,7 @@ export function createCKBMockRPC(options: Options): Express {
     }
     return {
       transaction: result,
-      tx_status: { status: "padding", block_hash: blockHash },
+      txStatus: { status: "padding", blockHash: blockHash },
     };
   });
 
@@ -88,8 +100,8 @@ export function createCKBMockRPC(options: Options): Express {
       chain: "ckb_testnet",
       difficulty: "0x1b6f506b",
       epoch: "0x708069a000cc5",
-      is_initial_block_download: false,
-      median_time: "0x17d3723d27d",
+      isInitialBlockDownload: false,
+      medianTime: "0x17d3723d27d",
     };
   });
 

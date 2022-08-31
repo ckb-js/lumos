@@ -5,7 +5,7 @@
 // 1. If the specified object has a serializeJson method, it would invoke this
 // method and use the result to replace current object.
 // 2. It then restricts the keys of the object to keys required by the specified
-// entity(i.e., a Script would only have code_hash, hash_type, args keys),for each
+// entity(i.e., a Script would only have codeHash, hashType, args keys),for each
 // sub-field, it then recursively perform the steps here from step 1.
 // 3. It then optionally run validator functions to ensure the resulting object
 // follows specified rules.
@@ -46,14 +46,16 @@ function transformObject(debugPath, object, keys) {
   }
   return result;
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformScript(
   script,
   { validation = true, debugPath = "script" } = {}
 ) {
   script = transformObject(debugPath, script, {
-    code_hash: invokeSerializeJson,
-    hash_type: invokeSerializeJson,
+    codeHash: invokeSerializeJson,
+    hashType: invokeSerializeJson,
     args: invokeSerializeJson,
   });
 
@@ -64,13 +66,15 @@ export function TransformScript(
   }
   return script;
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformOutPoint(
   outPoint,
-  { validation = true, debugPath = "out_point" } = {}
+  { validation = true, debugPath = "outPoint" } = {}
 ) {
   outPoint = transformObject(debugPath, outPoint, {
-    tx_hash: invokeSerializeJson,
+    txHash: invokeSerializeJson,
     index: invokeSerializeJson,
   });
 
@@ -90,14 +94,16 @@ function toInvoke(transform) {
     });
   };
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformCellInput(
   cellInput,
   { validation = true, debugPath = "cell_input" } = {}
 ) {
   cellInput = transformObject(debugPath, cellInput, {
     since: invokeSerializeJson,
-    previous_output: toInvoke(TransformOutPoint),
+    previousOutput: toInvoke(TransformOutPoint),
   });
 
   if (validation) {
@@ -107,10 +113,12 @@ export function TransformCellInput(
   }
   return cellInput;
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformCellOutput(
   cellOutput,
-  { validation = true, debugPath = "cell_output" } = {}
+  { validation = true, debugPath = "cellOutput" } = {}
 ) {
   cellOutput = transformObject(debugPath, cellOutput, {
     capacity: invokeSerializeJson,
@@ -125,14 +133,18 @@ export function TransformCellOutput(
   }
   return cellOutput;
 }
-
-export function TransformCellDep(
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */ function TransformCellDep(
   cellDep,
   { validation = true, debugPath = "cell_dep" } = {}
 ) {
   cellDep = transformObject(debugPath, cellDep, {
-    out_point: toInvoke(TransformOutPoint),
-    dep_type: invokeSerializeJson,
+    outPoint: toInvoke(TransformOutPoint),
+    depType: invokeSerializeJson,
   });
 
   if (validation) {
@@ -151,17 +163,20 @@ function toInvokeArray(invokeFunction) {
   };
 }
 
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformRawTransaction(
   rawTransaction,
   { validation = true, debugPath = "raw_transaction" } = {}
 ) {
   rawTransaction = transformObject(debugPath, rawTransaction, {
     version: invokeSerializeJson,
-    cell_deps: toInvokeArray(toInvoke(TransformCellDep)),
-    header_deps: toInvokeArray(invokeSerializeJson),
+    cellDeps: toInvokeArray(toInvoke(TransformCellDep)),
+    headerDeps: toInvokeArray(invokeSerializeJson),
     inputs: toInvokeArray(toInvoke(TransformCellInput)),
     outputs: toInvokeArray(toInvoke(TransformCellOutput)),
-    outputs_data: toInvokeArray(invokeSerializeJson),
+    outputsData: toInvokeArray(invokeSerializeJson),
   });
 
   if (validation) {
@@ -172,17 +187,20 @@ export function TransformRawTransaction(
   return rawTransaction;
 }
 
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformTransaction(
   transaction,
   { validation = true, debugPath = "transaction" } = {}
 ) {
   transaction = transformObject(debugPath, transaction, {
     version: invokeSerializeJson,
-    cell_deps: toInvokeArray(toInvoke(TransformCellDep)),
-    header_deps: toInvokeArray(invokeSerializeJson),
+    cellDeps: toInvokeArray(toInvoke(TransformCellDep)),
+    headerDeps: toInvokeArray(invokeSerializeJson),
     inputs: toInvokeArray(toInvoke(TransformCellInput)),
     outputs: toInvokeArray(toInvoke(TransformCellOutput)),
-    outputs_data: toInvokeArray(invokeSerializeJson),
+    outputsData: toInvokeArray(invokeSerializeJson),
     witnesses: toInvokeArray(invokeSerializeJson),
   });
 
@@ -194,20 +212,23 @@ export function TransformTransaction(
   return transaction;
 }
 
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformRawHeader(
   rawHeader,
   { validation = true, debugPath = "raw_header" } = {}
 ) {
   rawHeader = transformObject(debugPath, rawHeader, {
     version: invokeSerializeJson,
-    compact_target: invokeSerializeJson,
+    compactTarget: invokeSerializeJson,
     timestamp: invokeSerializeJson,
     number: invokeSerializeJson,
     epoch: invokeSerializeJson,
-    parent_hash: invokeSerializeJson,
-    transactions_root: invokeSerializeJson,
-    proposals_hash: invokeSerializeJson,
-    extra_hash: invokeSerializeJson,
+    parentHash: invokeSerializeJson,
+    transactionsRoot: invokeSerializeJson,
+    proposalsHash: invokeSerializeJson,
+    extraHash: invokeSerializeJson,
     dao: invokeSerializeJson,
   });
 
@@ -219,20 +240,23 @@ export function TransformRawHeader(
   return rawHeader;
 }
 
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformHeader(
   header,
   { validation = true, debugPath = "header" } = {}
 ) {
   header = transformObject(debugPath, header, {
     version: invokeSerializeJson,
-    compact_target: invokeSerializeJson,
+    compactTarget: invokeSerializeJson,
     timestamp: invokeSerializeJson,
     number: invokeSerializeJson,
     epoch: invokeSerializeJson,
-    parent_hash: invokeSerializeJson,
-    transactions_root: invokeSerializeJson,
-    proposals_hash: invokeSerializeJson,
-    extra_hash: invokeSerializeJson,
+    parentHash: invokeSerializeJson,
+    transactionsRoot: invokeSerializeJson,
+    proposalsHash: invokeSerializeJson,
+    extraHash: invokeSerializeJson,
     dao: invokeSerializeJson,
     nonce: invokeSerializeJson,
   });
@@ -245,6 +269,9 @@ export function TransformHeader(
   return header;
 }
 
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformUncleBlock(
   uncleBlock,
   { validation = true, debugPath = "uncle_block" } = {}
@@ -262,6 +289,9 @@ export function TransformUncleBlock(
   return uncleBlock;
 }
 
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformBlock(
   block,
   { validation = true, debugPath = "block" } = {}
@@ -281,6 +311,9 @@ export function TransformBlock(
   return block;
 }
 
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformCellbaseWitness(
   cellbaseWitness,
   { validation = true, debugPath = "cellbase_witness" } = {}
@@ -298,14 +331,17 @@ export function TransformCellbaseWitness(
   return cellbaseWitness;
 }
 
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function TransformWitnessArgs(
   witnessArgs,
   { validation = true, debugPath = "witness_args" } = {}
 ) {
   witnessArgs = transformObject(debugPath, witnessArgs, {
     lock: invokeSerializeJson,
-    input_type: invokeSerializeJson,
-    output_type: invokeSerializeJson,
+    inputType: invokeSerializeJson,
+    outputType: invokeSerializeJson,
   });
 
   if (validation) {

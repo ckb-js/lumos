@@ -4,8 +4,8 @@ import {
   Options,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
+import { bytes } from "@ckb-lumos/codec";
 import {
-  core,
   values,
   HexString,
   Script,
@@ -17,10 +17,10 @@ import {
   CellProvider,
   QueryOptions,
   PackedSince,
+  blockchain,
 } from "@ckb-lumos/base";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { ScriptValue } = values;
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import { Set } from "immutable";
 import {
   addCellDep,
@@ -42,7 +42,8 @@ import { CellCollectorConstructor } from "./type";
 export { serializeMultisigScript, multisigArgs };
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
-  implements CellCollectorType {
+  implements CellCollectorType
+{
   private cellCollector: CellCollectorType;
   private config: Config;
   public readonly fromScript: Script;
@@ -117,11 +118,12 @@ export async function setupInputCell(
     throw new Error("`fromInfo` must be MultisigScript format!");
   }
 
-  const fromScript: Script = inputCell.cell_output.lock;
+  const fromScript: Script = inputCell.cellOutput.lock;
 
   if (fromInfo) {
-    const parsedFromScript: Script = parseFromInfo(fromInfo, { config })
-      .fromScript;
+    const parsedFromScript: Script = parseFromInfo(fromInfo, {
+      config,
+    }).fromScript;
     if (
       !new ScriptValue(parsedFromScript, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
@@ -151,10 +153,10 @@ export async function setupInputCell(
   });
 
   const outputCell: Cell = {
-    cell_output: {
-      capacity: inputCell.cell_output.capacity,
-      lock: inputCell.cell_output.lock,
-      type: inputCell.cell_output.type,
+    cellOutput: {
+      capacity: inputCell.cellOutput.capacity,
+      lock: inputCell.cellOutput.lock,
+      type: inputCell.cellOutput.type,
     },
     data: inputCell.data,
   };
@@ -171,21 +173,21 @@ export async function setupInputCell(
   }
 
   const scriptOutPoint: OutPoint = {
-    tx_hash: template.TX_HASH,
+    txHash: template.TX_HASH,
     index: template.INDEX,
   };
 
   // add cell dep
   txSkeleton = addCellDep(txSkeleton, {
-    out_point: scriptOutPoint,
-    dep_type: template.DEP_TYPE,
+    outPoint: scriptOutPoint,
+    depType: template.DEP_TYPE,
   });
 
   // add witness
   const firstIndex = txSkeleton
     .get("inputs")
     .findIndex((input) =>
-      new ScriptValue(input.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
         new ScriptValue(fromScript!, { validate: false })
       )
     );
@@ -216,34 +218,29 @@ export async function setupInputCell(
           ),
       };
       if (witness !== "0x") {
-        const witnessArgs = new core.WitnessArgs(new Reader(witness));
-        const lock = witnessArgs.getLock();
+        const witnessArgs = blockchain.WitnessArgs.unpack(
+          bytes.bytify(witness)
+        );
+        const lock = witnessArgs.lock;
         if (
-          lock.hasValue() &&
-          new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
+          !!lock &&
+          !!newWitnessArgs.lock &&
+          !bytes.equal(lock, newWitnessArgs.lock)
         ) {
           throw new Error(
             "Lock field in first witness is set aside for signature!"
           );
         }
-        const inputType = witnessArgs.getInputType();
-        if (inputType.hasValue()) {
-          newWitnessArgs.input_type = new Reader(
-            inputType.value().raw()
-          ).serializeJson();
+        const inputType = witnessArgs.inputType;
+        if (inputType) {
+          newWitnessArgs.inputType = inputType;
         }
-        const outputType = witnessArgs.getOutputType();
-        if (outputType.hasValue()) {
-          newWitnessArgs.output_type = new Reader(
-            outputType.value().raw()
-          ).serializeJson();
+        const outputType = witnessArgs.outputType;
+        if (outputType) {
+          newWitnessArgs.outputType = outputType;
         }
       }
-      witness = new Reader(
-        core.SerializeWitnessArgs(
-          normalizers.NormalizeWitnessArgs(newWitnessArgs)
-        )
-      ).serializeJson();
+      witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
       txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
         witnesses.set(firstIndex, witness)
       );
@@ -370,13 +367,13 @@ export async function transferCompatible(
     );
   }
   const scriptOutPoint: OutPoint = {
-    tx_hash: template.TX_HASH,
+    txHash: template.TX_HASH,
     index: template.INDEX,
   };
 
   txSkeleton = addCellDep(txSkeleton, {
-    out_point: scriptOutPoint,
-    dep_type: template.DEP_TYPE,
+    outPoint: scriptOutPoint,
+    depType: template.DEP_TYPE,
   });
 
   const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
@@ -384,7 +381,7 @@ export async function transferCompatible(
   ensureScript(fromScript, config, "SECP256K1_BLAKE160_MULTISIG");
 
   const noMultisigBefore = !txSkeleton.get("inputs").find((i) => {
-    return new ScriptValue(i.cell_output.lock, { validate: false }).equals(
+    return new ScriptValue(i.cellOutput.lock, { validate: false }).equals(
       new ScriptValue(fromScript!, { validate: false })
     );
   });
@@ -403,14 +400,14 @@ export async function transferCompatible(
 
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
-        cell_output: {
+        cellOutput: {
           capacity: "0x" + _amount.toString(16),
           lock: toScript,
           type: undefined,
         },
         data: "0x",
-        out_point: undefined,
-        block_hash: undefined,
+        outPoint: undefined,
+        blockHash: undefined,
       });
     });
   }
@@ -423,11 +420,11 @@ export async function transferCompatible(
   for (; i < txSkeleton.get("outputs").size && _amount.gt(0); ++i) {
     const output = txSkeleton.get("outputs").get(i)!;
     if (
-      new ScriptValue(output.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(output.cellOutput.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
     ) {
-      const cellCapacity = BI.from(output.cell_output.capacity);
+      const cellCapacity = BI.from(output.cellOutput.capacity);
       let deductCapacity;
       if (_amount.gte(cellCapacity)) {
         deductCapacity = cellCapacity;
@@ -440,14 +437,14 @@ export async function transferCompatible(
         }
       }
       _amount = _amount.sub(deductCapacity);
-      output.cell_output.capacity =
+      output.cellOutput.capacity =
         "0x" + cellCapacity.sub(deductCapacity).toString(16);
     }
   }
   // remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.filter(
-      (output) => !BI.from(output.cell_output.capacity).eq(0)
+      (output) => !BI.from(output.cellOutput.capacity).eq(0)
     );
   });
   /*
@@ -463,27 +460,27 @@ export async function transferCompatible(
       lock: fromScript,
     });
     const changeCell: Cell = {
-      cell_output: {
+      cellOutput: {
         capacity: "0x0",
         lock: fromScript,
         type: undefined,
       },
       data: "0x",
-      out_point: undefined,
-      block_hash: undefined,
+      outPoint: undefined,
+      blockHash: undefined,
     };
     let changeCapacity = BI.from(0);
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
       previousInputs = previousInputs.add(
-        `${input.out_point!.tx_hash}_${input.out_point!.index}`
+        `${input.outPoint!.txHash}_${input.outPoint!.index}`
       );
     }
     for await (const inputCell of cellCollector.collect()) {
       // skip inputs already exists in txSkeleton.inputs
       if (
         previousInputs.has(
-          `${inputCell.out_point!.tx_hash}_${inputCell.out_point!.index}`
+          `${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`
         )
       ) {
         continue;
@@ -494,7 +491,7 @@ export async function transferCompatible(
       txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
         witnesses.push("0x")
       );
-      const inputCapacity = BI.from(inputCell.cell_output.capacity);
+      const inputCapacity = BI.from(inputCell.cellOutput.capacity);
       let deductCapacity = inputCapacity;
       if (deductCapacity.gt(_amount)) {
         deductCapacity = _amount;
@@ -510,7 +507,7 @@ export async function transferCompatible(
       }
     }
     if (changeCapacity.gt(0)) {
-      changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+      changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
       txSkeleton = txSkeleton.update("outputs", (outputs) =>
         outputs.push(changeCell)
       );
@@ -523,7 +520,7 @@ export async function transferCompatible(
   const firstIndex = txSkeleton
     .get("inputs")
     .findIndex((input) =>
-      new ScriptValue(input.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
         new ScriptValue(fromScript!, { validate: false })
       )
     );
@@ -546,34 +543,29 @@ export async function transferCompatible(
           ),
       };
       if (witness !== "0x") {
-        const witnessArgs = new core.WitnessArgs(new Reader(witness));
-        const lock = witnessArgs.getLock();
+        const witnessArgs = blockchain.WitnessArgs.unpack(
+          bytes.bytify(witness)
+        );
+        const lock = witnessArgs.lock;
         if (
-          lock.hasValue() &&
-          new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
+          !!lock &&
+          !!newWitnessArgs.lock &&
+          !bytes.equal(lock, newWitnessArgs.lock)
         ) {
           throw new Error(
             "Lock field in first witness is set aside for signature!"
           );
         }
-        const inputType = witnessArgs.getInputType();
-        if (inputType.hasValue()) {
-          newWitnessArgs.input_type = new Reader(
-            inputType.value().raw()
-          ).serializeJson();
+        const inputType = witnessArgs.inputType;
+        if (inputType) {
+          newWitnessArgs.inputType = inputType;
         }
-        const outputType = witnessArgs.getOutputType();
-        if (outputType.hasValue()) {
-          newWitnessArgs.output_type = new Reader(
-            outputType.value().raw()
-          ).serializeJson();
+        const outputType = witnessArgs.outputType;
+        if (outputType) {
+          newWitnessArgs.outputType = outputType;
         }
       }
-      witness = new Reader(
-        core.SerializeWitnessArgs(
-          normalizers.NormalizeWitnessArgs(newWitnessArgs)
-        )
-      ).serializeJson();
+      witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
       txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
         witnesses.set(firstIndex, witness)
       );
@@ -625,7 +617,7 @@ export async function injectCapacity(
     throw new Error("Invalid output index!");
   }
   const capacity = BI.from(
-    txSkeleton.get("outputs").get(outputIndex)!.cell_output.capacity
+    txSkeleton.get("outputs").get(outputIndex)!.cellOutput.capacity
   );
   return transferCompatible(txSkeleton, fromInfo, undefined, capacity, {
     config,

@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/base",
-  "version": "0.18.0",
+  "version": "0.19.0-alpha.1",
   "description": "Base data structures and utilities used in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -9,6 +9,10 @@
   "types": "index.d.ts",
   "engines": {
     "node": ">=12.0.0"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
   },
   "files": [
     "lib",
@@ -19,10 +23,15 @@
     "url": "git+https://github.com/nervosnetwork/lumos.git"
   },
   "scripts": {
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --declarationMap --emitDeclarationOnly",
+    "build:js": "npm run build:old && babel --root-mode upward src/blockchain.ts --out-file lib/blockchain.js --source-maps",
+    "build:old": "mkdir -p lib && cp -rp src/*.d.ts lib && cp -rp src/*.js lib",
     "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.js\"",
-    "regenerate-schema": "mkdir -p tmp && curl -L https://raw.githubusercontent.com/nervosnetwork/ckb/v0.100.0/util/types/schemas/blockchain.mol -o tmp/blockchain.mol && moleculec --language - --schema-file tmp/blockchain.mol --format json > tmp/core.json && moleculec-es -hasBigInt -inputFile tmp/core.json -outputFile tmp/core.esm.js -generateTypeScriptDefinition && rollup -f umd -i tmp/core.esm.js -o lib/core.js --name CKBCore && cp tmp/core.esm.d.ts lib/core.d.ts && rm -rf tmp",
-    "test": "ava"
+    "test:ts": "ava **/*.test.ts --timeout=2m",
+    "clean": "rm -rf lib",
+    "test": "ava --timeout=2m"
   },
   "devDependencies": {
     "rollup": "^1.32.0"
@@ -30,9 +39,19 @@
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
   },
+  "ava": {
+    "extensions": [
+      "ts",
+      "js"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
   "dependencies": {
-    "@ckb-lumos/bi": "0.18.0",
-    "@ckb-lumos/toolkit": "0.18.0",
+    "@ckb-lumos/bi": "^0.19.0-alpha.1",
+    "@ckb-lumos/codec": "^0.19.0-alpha.1",
+    "@ckb-lumos/toolkit": "^0.19.0-alpha.1",
     "@types/lodash.isequal": "^4.5.5",
     "blake2b": "^2.1.3",
     "js-xxhash": "^1.0.4",

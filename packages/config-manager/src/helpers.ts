@@ -12,8 +12,8 @@ export function findConfigByScript(
 
   return Object.values(scripts).find(
     (item) =>
-      item?.CODE_HASH === scriptTemplate.code_hash &&
-      item?.HASH_TYPE === scriptTemplate.hash_type
+      item?.CODE_HASH === scriptTemplate.codeHash &&
+      item?.HASH_TYPE === scriptTemplate.hashType
   );
 }
 
@@ -22,7 +22,7 @@ export function findConfigByScript(
  * We may need to determine if a `scriptTemplate` is a kind of ScriptConfig
  *
  * ```typescript
- * if (keyOfScript({ code_hash... })  === 'SECP256K1')  {
+ * if (keyOfScript({ codeHash... })  === 'SECP256K1')  {
  *   // ...
  * }
  * ```
@@ -37,8 +37,8 @@ export function nameOfScript<S extends ScriptConfigs>(
 
   const foundEntry = Object.entries(scripts).find(
     ([, config]) =>
-      config?.CODE_HASH === scriptTemplate.code_hash &&
-      config?.HASH_TYPE === scriptTemplate.hash_type
+      config?.CODE_HASH === scriptTemplate.codeHash &&
+      config?.HASH_TYPE === scriptTemplate.hashType
   );
 
   if (!foundEntry) return undefined;

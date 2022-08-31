@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/ckb-indexer",
-  "version": "0.18.0",
+  "version": "0.19.0-alpha.1",
   "description": "CKB Indexer",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
@@ -19,15 +19,15 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "0.18.0",
-    "@ckb-lumos/bi": "0.18.0",
-    "@ckb-lumos/rpc": "0.18.0",
-    "@ckb-lumos/toolkit": "0.18.0",
+    "@ckb-lumos/base": "^0.19.0-alpha.1",
+    "@ckb-lumos/bi": "^0.19.0-alpha.1",
+    "@ckb-lumos/rpc": "^0.19.0-alpha.1",
+    "@ckb-lumos/toolkit": "^0.19.0-alpha.1",
     "cross-fetch": "^3.1.5",
     "events": "^3.3.0"
   },
   "devDependencies": {
-    "@ckb-lumos/testkit": "0.18.0",
+    "@ckb-lumos/testkit": "^0.19.0-alpha.1",
     "@types/request": "^2.48.8",
     "@types/sinon": "^10.0.6",
     "find-process": "^1.4.7",
@@ -39,7 +39,7 @@
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "posttest:e2e": "ts-node tests/close-mock-server-and-ckb-indexer.ts",
-    "pretest:e2e": "(nohup ts-node tests/start_mock_rpc.ts &) ; (sleep 5) ; (nohup ts-node tests/start_ckb_indexer.ts &) ; (sleep 5)",
+    "pretest:e2e": "(nohup ts-node tests/start_mock_rpc.ts &) ; (sleep 5) ; (nohup ts-node tests/start_ckb_indexer.ts &) ; (sleep 10)",
     "test:e2e": "ava **/*.e2e.test.ts --timeout=2m",
     "test": "ava **/*.unit.test.ts --timeout=2m",
     "build": "npm run build:types && npm run build:js",

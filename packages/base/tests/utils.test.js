@@ -1,20 +1,16 @@
 const test = require("ava");
-const { Reader } = require("@ckb-lumos/toolkit");
-const { BI } = require("@ckb-lumos/bi");
 
 const {
   CKBHasher,
   ckbHash,
-  toBigUInt64LECompatible,
-  readBigUInt64LECompatible,
-  readBigUInt128LECompatible,
-  toBigUInt128LECompatible,
   computeScriptHash,
   hashCode,
   assertHexString,
   assertHexadecimal,
   generateTypeIdScript,
-} = require("../lib/utils");
+  deepCamel,
+  deepCamelizeTransaction,
+} = require("../src/utils");
 
 const message = "0x";
 const messageDigest =
@@ -32,51 +28,19 @@ test("CKBHasher, hex", (t) => {
 });
 
 test("CKBHasher, reader", (t) => {
-  const result = new CKBHasher().update(new Reader(message)).digestHex();
+  const result = new CKBHasher().update(message).digestHex();
   t.is(result, messageDigest);
 });
 
 test("ckbHash", (t) => {
-  const arrayBuffer = new Reader(message).toArrayBuffer();
-  const result = ckbHash(arrayBuffer);
-  t.is(result.serializeJson(), messageDigest);
-});
-
-const uint64Compatible = BI.from(1965338);
-const uint64leCompatible = "0x1afd1d0000000000";
-
-test("toBigUInt64LECompatible", (t) => {
-  t.is(toBigUInt64LECompatible(uint64Compatible), uint64leCompatible);
-});
-
-test("readBigUInt64LECompatible", (t) => {
-  t.true(readBigUInt64LECompatible(uint64leCompatible).eq(uint64Compatible));
-});
-const u128Compatible = BI.from("1208925819614629174706177");
-const u128leCompatible = "0x01000000000000000000010000000000";
-
-test("toBigUInt128LECompatible", (t) => {
-  t.is(toBigUInt128LECompatible(u128Compatible), u128leCompatible);
-});
-
-test("toBigUInt128LECompatible, to small", (t) => {
-  t.throws(() => toBigUInt128LECompatible(BI.from(-1)));
-  t.notThrows(() => toBigUInt128LECompatible(0));
-});
-
-test("toBigUInt128LECompatible, to big", (t) => {
-  t.throws(() => toBigUInt128LECompatible(BI.from(2).pow(128)));
-  t.notThrows(() => toBigUInt128LECompatible(BI.from(2).pow(128).sub(1)));
-});
-
-test("readBigUInt128LECompatible", (t) => {
-  t.true(readBigUInt128LECompatible(u128leCompatible).eq(u128Compatible));
+  const result = ckbHash(message);
+  t.is(result, messageDigest);
 });
 
 const script = {
-  code_hash:
+  codeHash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-  hash_type: "type",
+  hashType: "type",
   args: "0x36c329ed630d6ce750712a477543672adab57f4c",
 };
 const scriptHash =
@@ -109,18 +73,47 @@ test("assertHexadecimal", (t) => {
 
 test("test type id", (t) => {
   const input = {
-    previous_output: {
+    previousOutput: {
       index: "0x0",
-      tx_hash:
+      txHash:
         "0x128b201cd1995efba3126d4431f837c34f7d2f6a29ed8968d2ebc39059add56a",
     },
     since: "0x0",
   };
   const typeIdScript = {
     args: "0xa803c9ed6c190fd780e64d885794933ab23da641e94ad1b9270ebac893a7cdcc",
-    code_hash:
+    codeHash:
       "0x00000000000000000000000000000000000000000000000000545950455f4944",
-    hash_type: "type",
+    hashType: "type",
   };
   t.deepEqual(generateTypeIdScript(input, "0x0"), typeIdScript);
+});
+
+test("test camalize", (t) => {
+  const sampleInput = {
+    dep_type: "dep_group",
+    script: {
+      code_hash: "code_hash",
+      hash_type: "hash_type",
+      args: "args",
+    },
+  };
+  const expectedOutput1 = {
+    depType: "dep_group",
+    script: {
+      codeHash: "code_hash",
+      hashType: "hash_type",
+      args: "args",
+    },
+  };
+  const expectedOutput2 = {
+    depType: "depGroup",
+    script: {
+      codeHash: "code_hash",
+      hashType: "hash_type",
+      args: "args",
+    },
+  };
+  t.deepEqual(deepCamel(sampleInput), expectedOutput1);
+  t.deepEqual(deepCamelizeTransaction(sampleInput), expectedOutput2);
 });

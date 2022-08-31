@@ -31,11 +31,11 @@ test("BigInt:transfer success", async (t) => {
   // sum of outputs capacity should be equal to sum of inputs capacity
   const sumOfInputCapacity = txSkeleton
     .get("inputs")
-    .map((i) => BigInt(i.cell_output.capacity))
+    .map((i) => BigInt(i.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   const sumOfOutputCapacity = txSkeleton
     .get("outputs")
-    .map((o) => BigInt(o.cell_output.capacity))
+    .map((o) => BigInt(o.cellOutput.capacity))
     .reduce((result, c) => result + c, BigInt(0));
   t.is(sumOfOutputCapacity, sumOfInputCapacity);
 

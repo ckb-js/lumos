@@ -1,0 +1,74 @@
+{
+  "IdNotMatchException": {
+    "params": [10000, 10001],
+    "expected": {
+      "code": 201,
+      "message": "Expect json rpc id to be 10000, but 10001 received"
+    }
+  },
+  "ResponseException": {
+    "params": ["Response_Err_Message"],
+    "expected": {
+      "code": 204,
+      "message": "Response_Err_Message"
+    }
+  },
+  "PageSizeTooLargeException": {
+    "params": [51, 50],
+    "expected": {
+      "code": 101,
+      "message": "Expect page size to be at most 50, but 51 received"
+    }
+  },
+  "PageSizeTooSmallException": {
+    "params": [-1, 0],
+    "expected": {
+      "code": 101,
+      "message": "Expect page size to be at least 0, but -1 received"
+    }
+  },
+  "OutputsValidatorTypeException": {
+    "params": [],
+    "expected": {
+      "code": 101,
+      "message": "Expect outputs validator to be 'default' or 'passthrough'"
+    }
+  },
+  "BigintOrHexStringTypeException": {
+    "params": ["ab"],
+    "expected": {
+      "code": 101,
+      "message": "Expect number to be bigint or hex string, but ab received"
+    }
+  },
+  "StringHashTypeException": {
+    "params": [1],
+    "expected": {
+      "code": 101,
+      "message": "Expect hash to be string, but 1 received"
+    }
+  },
+  "MethodInBatchNotFoundException": {
+    "params": ["Method_Name"],
+    "expected": {
+      "code": 202,
+      "message": "[Batch Request]: Method Method_Name is not found"
+    }
+  },
+  "PayloadInBatchException": {
+    "params": [1, "Payload_Err_Message"],
+    "expected": {
+      "code": 203,
+      "index": 1,
+      "message": "[Batch Request 1]: Payload_Err_Message"
+    }
+  },
+  "IdNotMatchedInBatchException": {
+    "params": [1, 10000, 10001],
+    "expected": {
+      "code": 201,
+      "index": 1,
+      "message": "[Batch Request 1]: Expect json rpc id to be 10000, but 10001 received"
+    }
+  }
+}
