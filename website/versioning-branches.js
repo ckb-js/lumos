@@ -1,10 +1,12 @@
 // string or { branchName: string, label: string }
 const branches = [
-  '0.19',
-  'next/v0.19.0-alpha.0',
   {
-    branchName: 'ckb2021',
-    label: 'CKB-2021'
+    branchName: 'stable',
+    label: '0.18.0(latest)'
+  },
+  {
+    branchName: 'develop',
+    label: '0.19.x(next)'
   }
 ];
 
