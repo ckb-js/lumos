@@ -19,9 +19,9 @@ export const generateAccountFromPrivateKey = (privKey: string): Account => {
   const pubKey = hd.key.privateToPublic(privKey);
   const args = hd.key.publicKeyToBlake160(pubKey);
   const template = AGGRON4.SCRIPTS["SECP256K1_BLAKE160"]!;
-  const lockScript = {
-    code_hash: template.CODE_HASH,
-    hash_type: template.HASH_TYPE,
+  const lockScript: Script = {
+    codeHash: template.CODE_HASH,
+    hashType: template.HASH_TYPE,
     args: args,
   };
   const address = helpers.encodeToAddress(lockScript, { config: AGGRON4 });
@@ -38,8 +38,8 @@ export const generateAccountFromPrivateKey = (privKey: string): Account => {
  * @returns the transaction fee, it is from `sum(skeleton inputs capacity) - sum(skeleton outputs capacity)`
  */
 export function getPaidTransactionFee(skeleton: helpers.TransactionSkeletonType) {
-  const inputs = skeleton.inputs.reduce((acc, cur) => acc.add(cur.cell_output.capacity), BI.from(0));
-  const outputs = skeleton.outputs.reduce((acc, cur) => acc.add(cur.cell_output.capacity), BI.from(0));
+  const inputs = skeleton.inputs.reduce((acc, cur) => acc.add(cur.cellOutput.capacity), BI.from(0));
+  const outputs = skeleton.outputs.reduce((acc, cur) => acc.add(cur.cellOutput.capacity), BI.from(0));
   return inputs.sub(outputs);
 }
 /**
@@ -49,7 +49,7 @@ export async function fetchAddressBalance(address: string): Promise<BI> {
   let balance = BI.from(0);
 
   for await (const cell of indexer.collector({ lock: helpers.parseAddress(address, { config: AGGRON4 }) }).collect()) {
-    balance = balance.add(cell.cell_output.capacity);
+    balance = balance.add(cell.cellOutput.capacity);
   }
 
   return balance;
@@ -103,6 +103,6 @@ export function signTransaction(txSkeleton: helpers.TransactionSkeletonType, pri
  * @returns Promise with transaction hash
  */
 export async function transfer(tx: Transaction): Promise<string> {
-  const hash = await rpc.send_transaction(tx, "passthrough");
+  const hash = await rpc.sendTransaction(tx, "passthrough");
   return hash;
 }
