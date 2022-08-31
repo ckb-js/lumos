@@ -80,7 +80,7 @@ class HexStringReader extends BaseReader {
   }
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export class Reader extends BaseReader {
   constructor(input) {
