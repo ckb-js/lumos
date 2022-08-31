@@ -1,10 +1,12 @@
-import { Indexer, helpers, Address, Script, RPC, hd, config, Cell, commons, core, toolkit, BI } from "@ckb-lumos/lumos";
+import { Indexer, helpers, Address, Script, RPC, hd, config, Cell, commons, BI } from "@ckb-lumos/lumos";
 import { sudt } from "@ckb-lumos/common-scripts";
 import { BIish } from "@ckb-lumos/bi";
 import { payFeeByFeeRate } from "@ckb-lumos/common-scripts/lib/common";
 import { addCellDep } from "@ckb-lumos/common-scripts/lib/helper";
 import { List } from "immutable";
-import { readBigUInt128LECompatible, computeScriptHash, toBigUInt128LE } from "@ckb-lumos/base/lib/utils";
+import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
+import { bytes, number } from "@ckb-lumos/codec";
+import { blockchain } from "@ckb-lumos/base";
 
 export const { AGGRON4 } = config.predefined;
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
@@ -19,7 +21,7 @@ type Account = {
 };
 
 const getTotalCapacity = (list: Cell[] | List<Cell>) => {
-  const reducer = (acc: BI, cur: Cell) => acc.add(cur.cell_output.capacity);
+  const reducer = (acc: BI, cur: Cell) => acc.add(cur.cellOutput.capacity);
 
   // typescript does not allow merge two reduce into one
   return Array.isArray(list) ? list.reduce(reducer, BI.from(0)) : list.reduce(reducer, BI.from(0));
@@ -29,9 +31,9 @@ export const generateAddressInfoFromPrivateKey = (privateKey: string): Account =
   const pubKey = hd.key.privateToPublic(privateKey);
   const args = hd.key.publicKeyToBlake160(pubKey);
   const template = AGGRON4.SCRIPTS["SECP256K1_BLAKE160"]!;
-  const lockScript = {
-    code_hash: template.CODE_HASH,
-    hash_type: template.HASH_TYPE,
+  const lockScript: Script = {
+    codeHash: template.CODE_HASH,
+    hashType: template.HASH_TYPE,
     args: args,
   };
   const address = helpers.encodeToAddress(lockScript, { config: AGGRON4 });
@@ -42,7 +44,7 @@ export const generateAddressInfoFromPrivateKey = (privateKey: string): Account =
   };
 };
 
-export const SUDT_PER_CELL_VALUE = 50;
+export const SUDT_PER_CELL_VALUE = 50000;
 export const issueSUDT = async (privateKey: string) => {
   let txSkeleton = helpers.TransactionSkeleton({ cellProvider: indexer });
 
@@ -54,7 +56,7 @@ export const issueSUDT = async (privateKey: string) => {
   txSkeleton = await payFeeByFeeRate(txSkeleton, [account.address], 1000, undefined, { config: AGGRON4 });
   const tx = signTx(txSkeleton, [privateKey]);
 
-  const txHash = await rpc.send_transaction(tx, "passthrough");
+  const txHash = await rpc.sendTransaction(tx, "passthrough");
   return txHash;
 };
 
@@ -80,19 +82,19 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
   const SUDTAmount = CKBCapacity.div(1e8).mul(CKB2SUDTRate);
 
   txSkeleton = addCellDep(txSkeleton, {
-    out_point: {
-      tx_hash: SUDT_SCRIPT.TX_HASH,
+    outPoint: {
+      txHash: SUDT_SCRIPT.TX_HASH,
       index: SUDT_SCRIPT.INDEX,
     },
-    dep_type: SUDT_SCRIPT.DEP_TYPE,
+    depType: SUDT_SCRIPT.DEP_TYPE,
   });
 
   txSkeleton = addCellDep(txSkeleton, {
-    out_point: {
-      tx_hash: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
+    outPoint: {
+      txHash: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.TX_HASH,
       index: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.INDEX,
     },
-    dep_type: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+    depType: AGGRON4.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
   });
 
   const issuerSUDTCells: Cell[] = [];
@@ -100,7 +102,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
   for await (const cell of indexer
     .collector({
       lock: helpers.parseAddress(issuerAccountInfo.address, { config: AGGRON4 }),
-      type: { script: { code_hash: SUDT_SCRIPT.CODE_HASH, hash_type: SUDT_SCRIPT.HASH_TYPE, args: "0x" } },
+      type: { script: { codeHash: SUDT_SCRIPT.CODE_HASH, hashType: SUDT_SCRIPT.HASH_TYPE, args: "0x" } },
     })
     .collect()) {
     issuerSUDTCells.push(cell);
@@ -120,7 +122,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
         break;
       }
       inputs = inputs.push(cell);
-      total = total.add(readBigUInt128LECompatible(cell.data));
+      total = total.add(number.Uint128LE.unpack(cell.data));
     }
     return inputs;
   });
@@ -130,8 +132,8 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
 
   // the type script for SUDT
   const issuerTypeScript = {
-    code_hash: SUDT_SCRIPT.CODE_HASH,
-    hash_type: SUDT_SCRIPT.HASH_TYPE,
+    codeHash: SUDT_SCRIPT.CODE_HASH,
+    hashType: SUDT_SCRIPT.HASH_TYPE,
 
     // it determine which SUDT type the cell is
     args: computeScriptHash(issuerAccountInfo.lockScript),
@@ -139,32 +141,27 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
 
   // SUDT target output, SUDT issuer -> CKB holder
   const SUDTTargetOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: holderAccountInfo.lockScript,
       type: issuerTypeScript,
     },
-    data: toBigUInt128LE(SUDTAmount),
+    data: bytes.hexify(number.Uint128LE.pack(SUDTAmount)),
   };
 
+  console.log(calculateSUDTAmountSum(issuerSUDTCells).toBigInt());
   // SUDT change output, SUDT issuer -> SUDT issuer
   const SUDTChangeOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: issuerAccountInfo.lockScript,
       type: issuerTypeScript,
     },
-    data: toBigUInt128LE(calculateSUDTAmountSum(issuerSUDTCells).sub(SUDTAmount)),
+    data: bytes.hexify(number.Uint128LE.pack(calculateSUDTAmountSum(issuerSUDTCells).sub(SUDTAmount))),
   };
 
-  console.log(
-    "SUDT input cells",
-    pickedSUDTCells.map((it) => it.cell_output.capacity).toJS(),
-    pickedSUDTCells.map((it) => readBigUInt128LECompatible(it.data)).toJS()
-  );
-
-  SUDTTargetOutput.cell_output.capacity = BI.from(helpers.minimalCellCapacity(SUDTTargetOutput)).toHexString();
-  SUDTChangeOutput.cell_output.capacity = BI.from(helpers.minimalCellCapacity(SUDTChangeOutput)).toHexString();
+  SUDTTargetOutput.cellOutput.capacity = BI.from(helpers.minimalCellCapacity(SUDTTargetOutput)).toHexString();
+  SUDTChangeOutput.cellOutput.capacity = BI.from(helpers.minimalCellCapacity(SUDTChangeOutput)).toHexString();
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push(SUDTTargetOutput, SUDTChangeOutput);
@@ -178,7 +175,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
       break;
     }
     holderCKBInputCells.push(cell);
-    CKBInputAmount = CKBInputAmount.add(cell.cell_output.capacity);
+    CKBInputAmount = CKBInputAmount.add(cell.cellOutput.capacity);
   }
   txSkeleton = txSkeleton.update("inputs", (inputs) => {
     return inputs.push(...holderCKBInputCells);
@@ -190,11 +187,11 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
   the 1 SUDT cell's capacity should back to issuer address.
   */
   const recycleSUDTCapacity = getTotalCapacity(pickedSUDTCells)
-    .sub(SUDTTargetOutput.cell_output.capacity)
-    .sub(SUDTChangeOutput.cell_output.capacity);
+    .sub(SUDTTargetOutput.cellOutput.capacity)
+    .sub(SUDTChangeOutput.cellOutput.capacity);
 
   const CKBOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: BI.from(CKBCapacity).toHexString(),
       lock: issuerAccountInfo.lockScript,
     },
@@ -209,7 +206,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
   if (recycleSUDTCapacity.gt(0)) {
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
-        cell_output: {
+        cellOutput: {
           capacity: recycleSUDTCapacity.toHexString(),
           lock: issuerAccountInfo.lockScript,
         },
@@ -224,7 +221,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
   const CKBChangeCapacity = inputsCapacity.sub(outputsCapacity);
 
   const CKBChangeOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: CKBChangeCapacity.toHexString(),
       lock: holderAccountInfo.lockScript,
     },
@@ -234,12 +231,11 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
 
   txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
     const placeholderWitness = {
-      lock: new toolkit.Reader(
-        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-      ).toArrayBuffer(),
+      lock:
+        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
     };
 
-    const witnessArgs = new toolkit.Reader(core.SerializeWitnessArgs(placeholderWitness)).serializeJson();
+    const witnessArgs = bytes.hexify(blockchain.WitnessArgs.pack(placeholderWitness));
 
     for (let index = 0; index < txSkeleton.inputs.size; index++) {
       witnesses = witnesses.push(witnessArgs);
@@ -254,7 +250,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
   const tx = signTx(txSkeleton, [issuerPrivateKey, holderPrivateKey, issuerPrivateKey]);
 
   // STEP3: send it to testnet
-  const txHash = await rpc.send_transaction(tx, "passthrough");
+  const txHash = await rpc.sendTransaction(tx, "passthrough");
   return txHash;
 }
 
@@ -273,8 +269,8 @@ export function signTx(txSkeleton: helpers.TransactionSkeletonType, privateKey: 
 export function calculateSUDTAmountSum(cells: Cell[]) {
   let amount = BI.from(0);
   for (const cell of cells) {
-    if (cell.cell_output.type?.code_hash === AGGRON4.SCRIPTS.SUDT.CODE_HASH) {
-      amount = amount.add(readBigUInt128LECompatible(cell.data));
+    if (cell.cellOutput.type?.codeHash === AGGRON4.SCRIPTS.SUDT.CODE_HASH) {
+      amount = amount.add(number.Uint128LE.unpack(cell.data));
     }
   }
 
@@ -285,7 +281,7 @@ export function calculateCKBSum(cells: Cell[]) {
   let amount = BI.from(0);
 
   for (const cell of cells) {
-    amount = amount.add(cell.cell_output.capacity);
+    amount = amount.add(cell.cellOutput.capacity);
   }
 
   return amount;
@@ -301,8 +297,8 @@ export async function fetchSUDTBalance(address: string) {
     lock: helpers.parseAddress(address, { config: AGGRON4 }),
     type: {
       script: {
-        code_hash: AGGRON4.SCRIPTS.SUDT.CODE_HASH,
-        hash_type: AGGRON4.SCRIPTS.SUDT.HASH_TYPE,
+        codeHash: AGGRON4.SCRIPTS.SUDT.CODE_HASH,
+        hashType: AGGRON4.SCRIPTS.SUDT.HASH_TYPE,
         args: "0x",
       },
     },
@@ -310,7 +306,7 @@ export async function fetchSUDTBalance(address: string) {
   let amount = BI.from(0);
 
   for await (const cell of collector.collect()) {
-    amount = amount.add(readBigUInt128LECompatible(cell.data));
+    amount = amount.add(number.Uint128LE.unpack(cell.data));
   }
   return amount;
 }
@@ -324,7 +320,7 @@ export async function fetchCKBBalance(address: string) {
   const collector = indexer.collector({ lock: helpers.parseAddress(address, { config: AGGRON4 }) });
   let amount = BI.from(0);
   for await (const cell of collector.collect()) {
-    amount = amount.add(cell.cell_output.capacity);
+    amount = amount.add(cell.cellOutput.capacity);
   }
 
   return amount;

@@ -19,19 +19,24 @@ const App: FC = () => {
     holderPrivateKey: "",
     issueSUDTTxHash: "",
     transferSUDTTxHash: "",
+
+    // SUDT issuer
     issuerBalance: { CKB: "0", SUDT: "0" } as Balance,
+
+    // CKB holder
     holderBalance: { CKB: "0", SUDT: "0" } as Balance,
   });
 
   // when click issue SUDT button, will call this function.
-  // issue SUDT to holder's address
+  // issue SUDT to issuer's address
   const issueSomeSUDT = async () => {
     const tx = await issueSUDT(state.issuerPrivateKey);
     setState({ issueSUDTTxHash: tx });
   };
 
   // when click transfer SUDT button, will call this function.
-  // exchange CKB to SUDT by SUDT holder
+  // exchange CKB to SUDT by SUDT issuer
+  // SUDT issuer --SUDT-> CKB holder, and CKB holder --CKB-> SUDT issuer
   const exchangeCKB2SUDT = async () => {
     if (!issuerAccountInfo || !holderAccountInfo) {
       return;
