@@ -87,11 +87,6 @@ const config = {
             position: "left",
             target: "_blank",
             items: [
-              {
-                href: "/api/",
-                label: "latest",
-                target: "_blank",
-              },
               ...versioningBranchs,
             ]
           },
