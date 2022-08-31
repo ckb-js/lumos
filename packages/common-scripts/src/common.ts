@@ -32,6 +32,7 @@ import { Set } from "immutable";
 import { isAcpScript } from "./helper";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { CellCollectorConstructor } from "./type";
+import omnilock from "./omnilock";
 
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
@@ -107,7 +108,8 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
     const secpTemplate = config?.SCRIPTS.SECP256K1_BLAKE160;
     const multisigTemplate = config?.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
     const acpTemplate = config?.SCRIPTS.ANYONE_CAN_PAY;
-
+    const omnilockTemplate = config?.SCRIPTS.OMNILOCK;
+    
     const predefinedInfos: LockScriptInfo[] = [];
 
     if (secpTemplate) {
@@ -144,6 +146,15 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
       });
     } else {
       defaultLogger("warn", "ANYONE_CAN_PAY script info not found in config!");
+    }
+    if (omnilockTemplate) {
+      predefinedInfos.push({
+        codeHash: omnilockTemplate.CODE_HASH,
+        hashType: omnilockTemplate.HASH_TYPE,
+        lockScriptInfo: omnilock,
+      });
+    } else {
+      defaultLogger("warn", "OMNILOCK script info not found in config!");
     }
 
     return predefinedInfos;

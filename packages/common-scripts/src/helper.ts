@@ -72,6 +72,25 @@ export function isSecp256k1Blake160Address(
   return isSecp256k1Blake160Script(script, config);
 }
 
+export function isOmnilockScript(
+  script: Script,
+  config: Config
+): boolean {
+  const template = config.SCRIPTS.OMNILOCK!;
+  return (
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
+  );
+}
+
+export function isOmnilockAddress(
+  address: Address,
+  config: Config
+): boolean {
+  const script = parseAddress(address, { config });
+  return isOmnilockScript(script, config);
+}
+
 export function isSecp256k1Blake160MultisigScript(
   script: Script,
   config: Config
@@ -163,7 +182,7 @@ export function hashWitness(hasher: any, witness: HexString): void {
 export function prepareSigningEntries(
   txSkeleton: TransactionSkeletonType,
   config: Config,
-  scriptType: "SECP256K1_BLAKE160" | "SECP256K1_BLAKE160_MULTISIG"
+  scriptType: "SECP256K1_BLAKE160" | "SECP256K1_BLAKE160_MULTISIG" | "OMNILOCK"
 ): TransactionSkeletonType {
   const template = config.SCRIPTS[scriptType];
   if (!template) {
@@ -226,7 +245,7 @@ export function prepareSigningEntries(
 export function ensureScript(
   script: Script,
   config: Config,
-  scriptType: "SECP256K1_BLAKE160" | "SECP256K1_BLAKE160_MULTISIG" | "DAO"
+  scriptType: "SECP256K1_BLAKE160" | "SECP256K1_BLAKE160_MULTISIG" | "DAO" | "OMNILOCK"
 ): void {
   const template = config.SCRIPTS[scriptType];
   if (!template) {
@@ -245,6 +264,9 @@ export function ensureScript(
 /* 65-byte zeros in hex */
 export const SECP_SIGNATURE_PLACEHOLDER =
   "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+/* 85-byte zeros in hex */
+export const OMNILOCK_SIGNATURE_PLACEHOLDER =
+  "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
 export default {
   addCellDep,

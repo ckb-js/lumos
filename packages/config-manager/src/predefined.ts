@@ -65,6 +65,15 @@ const LINA = createConfig({
       DEP_TYPE: "depGroup",
       SHORT_ID: 2,
     },
+    OMNILOCK: {
+      CODE_HASH:
+        "0x9b819793a64463aed77c615d6cb226eea5487ccfc0783043a587254cda2b6f26",
+      HASH_TYPE: "type",
+      TX_HASH:
+        "0xdfdb40f5d229536915f2d5403c66047e162e25dedd70a79ef5164356e1facdc8",
+      INDEX: "0x0",
+      DEP_TYPE: "code",
+    },
   },
 });
 
@@ -118,6 +127,15 @@ const AGGRON4 = createConfig({
       INDEX: "0x0",
       DEP_TYPE: "depGroup",
       SHORT_ID: 2,
+    },
+    OMNILOCK: {
+      CODE_HASH:
+        "0xf329effd1c475a2978453c8600e1eaf0bc2087ee093c3ee64cc96ec6847752cb",
+      HASH_TYPE: "type",
+      TX_HASH:
+        "0x27b62d8be8ed80b9f56ee0fe41355becdb6f6a40aeba82d3900434f43b1c8b60",
+      INDEX: "0x0",
+      DEP_TYPE: "code",
     },
   },
 });

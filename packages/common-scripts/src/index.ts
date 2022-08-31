@@ -8,6 +8,7 @@ import sudt from "./sudt";
 import anyoneCanPay from "./anyone_can_pay";
 import { createP2PKHMessageGroup } from "./p2pkh";
 import deploy from "./deploy";
+import omnilock from "./omnilock";
 
 export {
   secp256k1Blake160,
@@ -24,6 +25,7 @@ export {
   parseFromInfo,
   createP2PKHMessageGroup,
   deploy,
+  omnilock,
 };
 
 export default {
