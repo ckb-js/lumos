@@ -87,7 +87,7 @@ Check the warnings in the console of step 1,  deprecated functions work for now 
 + import{ number, bytes } from "@ckb-lumos/codec"
 
 - const data: HexString = toBigUInt64LECompatible(num)
-+ const data: HexString = bytes.bytify(number.Uint64LE.pack(num))
++ const data: HexString = bytes.hexify(number.Uint64LE.pack(num))
 
 - const data: BI = readBigUInt64LECompatible(u64String)
 + const data: BI = number.Uint64LE.unpack(u64String)

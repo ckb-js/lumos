@@ -13,7 +13,7 @@
 import JSBI from "jsbi";
 import { Reader } from "./reader";
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 function normalizeHexNumber(length) {
   return function (debugPath, value) {
@@ -45,7 +45,7 @@ function normalizeHexNumber(length) {
   };
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 function normalizeRawData(length) {
   return function (debugPath, value) {
@@ -59,7 +59,7 @@ function normalizeRawData(length) {
   };
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 function normalizeObject(debugPath, object, keys) {
   const result = {};
@@ -74,7 +74,7 @@ function normalizeObject(debugPath, object, keys) {
   return result;
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeScript(script, { debugPath = "script" } = {}) {
   return normalizeObject(debugPath, script, {
@@ -101,7 +101,7 @@ export function NormalizeScript(script, { debugPath = "script" } = {}) {
   });
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeOutPoint(outPoint, { debugPath = "outPoint" } = {}) {
   return normalizeObject(debugPath, outPoint, {
@@ -110,7 +110,7 @@ export function NormalizeOutPoint(outPoint, { debugPath = "outPoint" } = {}) {
   });
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 function toNormalize(normalize) {
   return function (debugPath, value) {
@@ -120,7 +120,7 @@ function toNormalize(normalize) {
   };
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeCellInput(
   cellInput,
@@ -132,7 +132,7 @@ export function NormalizeCellInput(
   });
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeCellOutput(
   cellOutput,
@@ -150,7 +150,7 @@ export function NormalizeCellOutput(
   return result;
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeCellDep(cellDep, { debugPath = "cell_dep" } = {}) {
   return normalizeObject(debugPath, cellDep, {
@@ -172,7 +172,7 @@ export function NormalizeCellDep(cellDep, { debugPath = "cell_dep" } = {}) {
   });
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 function toNormalizeArray(normalizeFunction) {
   return function (debugPath, array) {
@@ -182,7 +182,7 @@ function toNormalizeArray(normalizeFunction) {
   };
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeRawTransaction(
   rawTransaction,
@@ -198,7 +198,7 @@ export function NormalizeRawTransaction(
   });
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeTransaction(
   transaction,
@@ -214,7 +214,7 @@ export function NormalizeTransaction(
   return result;
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeRawHeader(
   rawHeader,
@@ -234,7 +234,7 @@ export function NormalizeRawHeader(
   });
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeHeader(header, { debugPath = "header" } = {}) {
   const rawHeader = NormalizeRawHeader(header, {
@@ -247,7 +247,7 @@ export function NormalizeHeader(header, { debugPath = "header" } = {}) {
   return result;
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeUncleBlock(
   uncleBlock,
@@ -259,7 +259,7 @@ export function NormalizeUncleBlock(
   });
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeBlock(block, { debugPath = "block" } = {}) {
   return normalizeObject(debugPath, block, {
@@ -270,7 +270,7 @@ export function NormalizeBlock(block, { debugPath = "block" } = {}) {
   });
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeCellbaseWitness(
   cellbaseWitness,
@@ -282,7 +282,7 @@ export function NormalizeCellbaseWitness(
   });
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function NormalizeWitnessArgs(
   witnessArgs,

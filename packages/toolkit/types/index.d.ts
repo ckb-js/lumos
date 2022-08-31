@@ -3,7 +3,7 @@ import JSBI from "jsbi";
 export * as validators from "./validators";
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 export class Reader {
   constructor(reader: string | ArrayBuffer | Reader);
@@ -18,16 +18,16 @@ export class Reader {
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 export function HexStringToBigInt(hexString: string): JSBI;
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 export function BigIntToHexString(i: JSBI): string;
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 export interface TransformerOptions {
   validation?: boolean;
@@ -39,7 +39,7 @@ type TransformerFunction = (
 ) => object;
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 export namespace transformers {
   const TransformScript: TransformerFunction;
@@ -58,7 +58,7 @@ export namespace transformers {
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 export interface NormalizerOptions {
   debugPath?: string;
@@ -69,7 +69,7 @@ type NormalizerFunction = (
 ) => object;
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 export namespace normalizers {
   const NormalizeScript: NormalizerFunction;
@@ -88,7 +88,7 @@ export namespace normalizers {
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 export interface Cell {
   cell_output: object;
@@ -99,11 +99,11 @@ export interface Cell {
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 export type DepGroupUnpacker = (data: Reader) => Array<object>;
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
  */
 
 export const VERSION: string;
