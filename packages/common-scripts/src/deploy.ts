@@ -5,11 +5,11 @@ import {
   Cell,
   utils,
   values,
-  core,
   WitnessArgs,
   Transaction,
+  blockchain,
 } from "@ckb-lumos/base";
-import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
+import { bytes } from "@ckb-lumos/codec";
 import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
@@ -19,11 +19,10 @@ import {
   parseAddress,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
-import { Reader, normalizers } from "@ckb-lumos/toolkit";
-import { RPC } from "@ckb-lumos/rpc";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
 import { BI, BIish } from "@ckb-lumos/bi";
+import { RPC } from "@ckb-lumos/rpc";
 const { ScriptValue } = values;
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -55,7 +54,7 @@ function updateOutputs(
   output: Cell
 ): TransactionSkeletonType {
   const cellCapacity = minimalCellCapacityCompatible(output);
-  output.cell_output.capacity = `0x${cellCapacity.toString(16)}`;
+  output.cellOutput.capacity = `0x${cellCapacity.toString(16)}`;
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push(output);
   });
@@ -81,19 +80,19 @@ function updateCellDeps(
   txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
     return cellDeps.push(
       {
-        out_point: {
-          tx_hash: secp256k1Config.TX_HASH,
+        outPoint: {
+          txHash: secp256k1Config.TX_HASH,
           index: secp256k1Config.INDEX,
         },
-        dep_type: secp256k1Config.DEP_TYPE,
+        depType: secp256k1Config.DEP_TYPE,
       },
       // TODO: optimize me, push dep directly without checking actual locks used would cause bigger tx
       {
-        out_point: {
-          tx_hash: secp256k1MultiSigConfig.TX_HASH,
+        outPoint: {
+          txHash: secp256k1MultiSigConfig.TX_HASH,
           index: secp256k1MultiSigConfig.INDEX,
         },
-        dep_type: secp256k1MultiSigConfig.DEP_TYPE,
+        depType: secp256k1MultiSigConfig.DEP_TYPE,
       }
     );
   });
@@ -109,11 +108,11 @@ async function completeTx(
 ): Promise<TransactionSkeletonType> {
   const inputCapacity = txSkeleton
     .get("inputs")
-    .map((c) => BI.from(c.cell_output.capacity))
+    .map((c) => BI.from(c.cellOutput.capacity))
     .reduce((a, b) => a.add(b), BI.from(0));
   const outputCapacity = txSkeleton
     .get("outputs")
-    .map((c) => BI.from(c.cell_output.capacity))
+    .map((c) => BI.from(c.cellOutput.capacity))
     .reduce((a, b) => a.add(b), BI.from(0));
   const needCapacity = outputCapacity.sub(inputCapacity);
   txSkeleton = await injectCapacity(
@@ -144,7 +143,7 @@ async function injectCapacity(
   _amount = _amount.add(BI.from(10).pow(8));
   let changeCapacity = BI.from(10).pow(8);
   const changeCell: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: fromScript,
       type: undefined,
@@ -171,14 +170,14 @@ async function injectCapacity(
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
       previousInputs = previousInputs.add(
-        `${input.out_point!.tx_hash}_${input.out_point!.index}`
+        `${input.outPoint!.txHash}_${input.outPoint!.index}`
       );
     }
 
     for await (const inputCell of cellCollector.collect()) {
       if (
         previousInputs.has(
-          `${inputCell.out_point!.tx_hash}_${inputCell.out_point!.index}`
+          `${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`
         )
       )
         continue;
@@ -188,7 +187,7 @@ async function injectCapacity(
       txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
         witnesses.push("0x")
       );
-      const inputCapacity = BI.from(inputCell.cell_output.capacity);
+      const inputCapacity = BI.from(inputCell.cellOutput.capacity);
       let deductCapacity = inputCapacity;
       if (deductCapacity.gt(_amount)) {
         deductCapacity = _amount;
@@ -204,7 +203,7 @@ async function injectCapacity(
   }
 
   if (changeCapacity.gt(0)) {
-    changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+    changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
     txSkeleton = txSkeleton.update("outputs", (outputs) =>
       outputs.push(changeCell)
     );
@@ -220,7 +219,7 @@ async function injectCapacity(
   const firstIndex = txSkeleton
     .get("inputs")
     .findIndex((input) =>
-      new ScriptValue(input.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
     );
@@ -249,34 +248,27 @@ async function injectCapacity(
     }
 
     if (witness !== "0x") {
-      const witnessArgs = new core.WitnessArgs(new Reader(witness));
-      const lock = witnessArgs.getLock();
+      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
+      const lock = witnessArgs.lock;
       if (
-        lock.hasValue() &&
-        new Reader(lock.value().raw()).serializeJson() !== newWitnessArgs.lock
+        !!lock &&
+        !!newWitnessArgs.lock &&
+        !bytes.equal(lock, newWitnessArgs.lock)
       ) {
         throw new Error(
           "Lock field in first witness is set aside for signature!"
         );
       }
-      const inputType = witnessArgs.getInputType();
-      if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new Reader(
-          inputType.value().raw()
-        ).serializeJson();
+      const inputType = witnessArgs.inputType;
+      if (inputType) {
+        newWitnessArgs.inputType = inputType;
       }
-      const outputType = witnessArgs.getOutputType();
-      if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new Reader(
-          outputType.value().raw()
-        ).serializeJson();
+      const outputType = witnessArgs.outputType;
+      if (outputType) {
+        newWitnessArgs.outputType = outputType;
       }
     }
-    witness = new Reader(
-      core.SerializeWitnessArgs(
-        normalizers.NormalizeWitnessArgs(newWitnessArgs)
-      )
-    ).serializeJson();
+    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.set(firstIndex, witness)
     );
@@ -289,7 +281,7 @@ async function injectCapacity(
     return outputs.pop();
   });
   if (changeCapacity.gt(0)) {
-    changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+    changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
     txSkeleton = txSkeleton.update("outputs", (outputs) =>
       outputs.push(changeCell)
     );
@@ -304,9 +296,7 @@ function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
 }
 
 function getTransactionSizeByTx(tx: Transaction): number {
-  const serializedTx = SerializeTransaction(
-    normalizers.NormalizeTransaction(tx)
-  );
+  const serializedTx = blockchain.Transaction.pack(tx);
   // 4 is serialized offset bytesize
   const size = serializedTx.byteLength + 4;
   return size;
@@ -339,21 +329,21 @@ function calculateCodeHashByBin(scriptBin: Uint8Array): string {
 }
 
 async function getDataHash(outPoint: OutPoint, rpc: RPC): Promise<string> {
-  const txHash = outPoint.tx_hash;
+  const txHash = outPoint.txHash;
   const index = parseInt(outPoint.index, 10);
-  const tx = await rpc.get_transaction(txHash);
+  const tx = await rpc.getTransaction(txHash);
 
   if (!tx) throw new Error(`TxHash(${txHash}) is not found`);
 
-  const outputData = tx.transaction.outputs_data[index];
+  const outputData = tx.transaction.outputsData[index];
   if (!outputData) throw new Error(`cannot find output data`);
 
-  return new utils.CKBHasher().update(new Reader(outputData)).digestHex();
+  return new utils.CKBHasher().update(bytes.bytify(outputData)).digestHex();
 }
 
 interface ScriptConfig {
-  // if hash_type is type, code_hash is ckbHash(type_script)
-  // if hash_type is data, code_hash is ckbHash(data)
+  // if hashType is type, codeHash is ckbHash(type_script)
+  // if hashType is data, codeHash is ckbHash(data)
   CODE_HASH: string;
 
   HASH_TYPE: "type" | "data";
@@ -363,7 +353,7 @@ interface ScriptConfig {
   INDEX: string;
 
   // now deployWithX only supportted `code `
-  DEP_TYPE: "dep_group" | "code";
+  DEP_TYPE: "depGroup" | "code";
 
   // empty
   SHORT_ID?: number;
@@ -371,11 +361,7 @@ interface ScriptConfig {
 
 function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
   const tx = createTransactionFromSkeleton(txSkeleton);
-  const txHash = utils
-    .ckbHash(
-      core.SerializeRawTransaction(normalizers.NormalizeRawTransaction(tx))
-    )
-    .serializeJson();
+  const txHash = utils.ckbHash(blockchain.Transaction.pack(tx));
   return txHash;
 }
 
@@ -384,9 +370,7 @@ function getScriptConfigByDataHash(
   outputIndex: number
 ): ScriptConfig {
   const data = txSkeleton.outputs.get(outputIndex)!.data;
-  const codeHash = utils
-    .ckbHash(new Reader(data).toArrayBuffer())
-    .serializeJson();
+  const codeHash = utils.ckbHash(bytes.bytify(data));
   const txHash = calculateTxHash(txSkeleton);
   const scriptConfig: ScriptConfig = {
     CODE_HASH: codeHash,
@@ -402,7 +386,7 @@ function getScriptConfigByTypeHash(
   txSkeleton: TransactionSkeletonType,
   outputIndex: number
 ): ScriptConfig {
-  const typeScript = txSkeleton.outputs.get(outputIndex)!.cell_output.type!;
+  const typeScript = txSkeleton.outputs.get(outputIndex)!.cellOutput.type!;
   const codeHash = utils.computeScriptHash(typeScript);
   const txHash = calculateTxHash(txSkeleton);
   const scriptConfig: ScriptConfig = {
@@ -422,7 +406,7 @@ function getScriptConfig(
   const outputCell = txSkeleton.outputs.get(outputIndex);
   if (outputCell == undefined)
     throw new Error("Invalid txSkeleton or outputIndex");
-  const type = outputCell.cell_output.type;
+  const type = outputCell.cellOutput.type;
   if (type !== undefined)
     return getScriptConfigByTypeHash(txSkeleton, outputIndex);
   return getScriptConfigByDataHash(txSkeleton, outputIndex);
@@ -497,7 +481,7 @@ export async function generateDeployWithDataTx(
   });
 
   const output: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: fromScript,
     },
@@ -542,11 +526,11 @@ export async function generateDeployWithTypeIdTx(
   if (!resolved) throw new Error(`fromAddress has no live ckb`);
 
   const typeId = utils.generateTypeIdScript(
-    { previous_output: resolved.out_point!, since: "0x0" },
+    { previousOutput: resolved.outPoint!, since: "0x0" },
     "0x0"
   );
   const output: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: fromScript,
       type: typeId,
@@ -595,7 +579,7 @@ export async function generateUpgradeTypeIdDataTx(
   });
 
   const output: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: fromScript,
       type: options.typeId,

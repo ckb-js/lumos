@@ -79,7 +79,9 @@ class HexStringReader extends BaseReader {
     return this.string;
   }
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export class Reader extends BaseReader {
   constructor(input) {
     super();

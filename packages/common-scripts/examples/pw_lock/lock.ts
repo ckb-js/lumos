@@ -10,7 +10,6 @@ import {
   OutPoint,
   values,
   WitnessArgs,
-  core,
   utils,
   CellDep,
 } from "@ckb-lumos/base";
@@ -20,7 +19,6 @@ import {
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
 import { getConfig, Config, initializeConfig } from "@ckb-lumos/config-manager";
-import { Reader, normalizers } from "@ckb-lumos/toolkit";
 import { Set } from "immutable";
 import keccak, { Keccak } from "keccak";
 
@@ -35,8 +33,8 @@ export const SIGNATURE_PLACEHOLDER =
 function isPwLock(script: Script, config: Config) {
   const template = config.SCRIPTS.PW_LOCK!;
   return (
-    script.code_hash === template.CODE_HASH &&
-    script.hash_type === template.HASH_TYPE
+    script.codeHash === template.CODE_HASH &&
+    script.hashType === template.HASH_TYPE
   );
 }
 
@@ -47,9 +45,9 @@ function addCellDep(
 ): TransactionSkeletonType {
   const cellDep = txSkeleton.get("cellDeps").find((cellDep) => {
     return (
-      cellDep.dep_type === newCellDep.dep_type &&
-      new values.OutPointValue(cellDep.out_point, { validate: false }).equals(
-        new values.OutPointValue(newCellDep.out_point, { validate: false })
+      cellDep.depType === newCellDep.depType &&
+      new values.OutPointValue(cellDep.outPoint, { validate: false }).equals(
+        new values.OutPointValue(newCellDep.outPoint, { validate: false })
       )
     );
   });
@@ -57,8 +55,8 @@ function addCellDep(
   if (!cellDep) {
     txSkeleton = txSkeleton.update("cellDeps", (cellDeps) => {
       return cellDeps.push({
-        out_point: newCellDep.out_point,
-        dep_type: newCellDep.dep_type,
+        outPoint: newCellDep.outPoint,
+        depType: newCellDep.depType,
       });
     });
   }
@@ -128,7 +126,7 @@ async function setupInputCell(
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
 
-  const fromScript = inputCell.cell_output.lock;
+  const fromScript = inputCell.cellOutput.lock;
   if (!isPwLock(fromScript, config)) {
     throw new Error(`Not PW_LOCK input!`);
   }
@@ -139,10 +137,10 @@ async function setupInputCell(
   });
 
   const output: Cell = {
-    cell_output: {
-      capacity: inputCell.cell_output.capacity,
-      lock: inputCell.cell_output.lock,
-      type: inputCell.cell_output.type,
+    cellOutput: {
+      capacity: inputCell.cellOutput.capacity,
+      lock: inputCell.cellOutput.lock,
+      type: inputCell.cellOutput.type,
     },
     data: inputCell.data,
   };
@@ -167,14 +165,14 @@ async function setupInputCell(
   }
 
   const scriptOutPoint: OutPoint = {
-    tx_hash: template.TX_HASH,
+    txHash: template.TX_HASH,
     index: template.INDEX,
   };
 
   // add cell dep
   txSkeleton = addCellDep(txSkeleton, {
-    out_point: scriptOutPoint,
-    dep_type: template.DEP_TYPE,
+    outPoint: scriptOutPoint,
+    depType: template.DEP_TYPE,
   });
 
   // add witness
@@ -186,7 +184,7 @@ async function setupInputCell(
   const firstIndex = txSkeleton
     .get("inputs")
     .findIndex((input) =>
-      new ScriptValue(input.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
     );
@@ -214,13 +212,13 @@ async function setupInputCell(
       }
       const inputType = witnessArgs.getInputType();
       if (inputType.hasValue()) {
-        newWitnessArgs.input_type = new Reader(
+        newWitnessArgs.inputType = new Reader(
           inputType.value().raw()
         ).serializeJson();
       }
       const outputType = witnessArgs.getOutputType();
       if (outputType.hasValue()) {
-        newWitnessArgs.output_type = new Reader(
+        newWitnessArgs.outputType = new Reader(
           outputType.value().raw()
         ).serializeJson();
       }
@@ -296,12 +294,12 @@ function prepareSigningEntries(
   for (let i = 0; i < inputs.size; i++) {
     const input = inputs.get(i)!;
     if (
-      template.CODE_HASH === input.cell_output.lock.code_hash &&
-      template.HASH_TYPE === input.cell_output.lock.hash_type &&
-      !processedArgs.has(input.cell_output.lock.args)
+      template.CODE_HASH === input.cellOutput.lock.codeHash &&
+      template.HASH_TYPE === input.cellOutput.lock.hashType &&
+      !processedArgs.has(input.cellOutput.lock.args)
     ) {
-      processedArgs = processedArgs.add(input.cell_output.lock.args);
-      const lockValue = new values.ScriptValue(input.cell_output.lock, {
+      processedArgs = processedArgs.add(input.cellOutput.lock.args);
+      const lockValue = new values.ScriptValue(input.cellOutput.lock, {
         validate: false,
       });
       const hasher = new Keccak256Hasher();
@@ -316,7 +314,7 @@ function prepareSigningEntries(
         const otherInput = inputs.get(j)!;
         if (
           lockValue.equals(
-            new values.ScriptValue(otherInput.cell_output.lock, {
+            new values.ScriptValue(otherInput.cellOutput.lock, {
               validate: false,
             })
           )
@@ -355,8 +353,8 @@ export async function main() {
   // `setupOutputCell` is an optional method, if you only want to add a to output, you can ignore this.
   // `anyone_can_pay` script shows how to use `setupOutputCell`.
   const lockScriptInfo: LockScriptInfo = {
-    code_hash: template.CODE_HASH,
-    hash_type: template.HASH_TYPE,
+    codeHash: template.CODE_HASH,
+    hashType: template.HASH_TYPE,
     lockScriptInfo: {
       CellCollector,
       setupInputCell,
@@ -370,8 +368,8 @@ export async function main() {
 
   // let txSkeleton = TransactionSkeleton({ cellProvider: indexer })
   // const fromScript: Script = {
-  //   code_hash: template.CODE_HASH,
-  //   hash_type: template.HASH_TYPE,
+  //   codeHash: template.CODE_HASH,
+  //   hashType: template.HASH_TYPE,
   //   args: pwLockArgs,
   // }
   // const fromAddress = generateAddress(fromScript)

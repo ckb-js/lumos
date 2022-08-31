@@ -6,8 +6,6 @@ import {
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
 import {
-  core,
-  utils,
   since as sinceUtils,
   HexString,
   Address,
@@ -17,11 +15,11 @@ import {
   PackedDao,
   PackedSince,
   CellCollector as CellCollectorInterface,
+  blockchain,
 } from "@ckb-lumos/base";
+import { bytes, number } from "@ckb-lumos/codec";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-const { toBigUInt64LE, readBigUInt64LE } = utils;
 const { parseSince } = sinceUtils;
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { FromInfo, parseFromInfo } from "./from_info";
@@ -31,9 +29,8 @@ import {
   isSecp256k1Blake160MultisigScript,
   generateDaoScript,
 } from "./helper";
-import { RPC } from "@ckb-lumos/rpc";
-import { readBigUInt64LECompatible } from "@ckb-lumos/base/lib/utils";
 import { BI, BIish } from "@ckb-lumos/bi";
+import { RPC } from "@ckb-lumos/rpc";
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE = BI.from(180);
@@ -135,21 +132,21 @@ export async function deposit(
 
   const toScript = parseAddress(toAddress, { config });
   const daoTypeScript = {
-    code_hash: DAO_SCRIPT.CODE_HASH,
-    hash_type: DAO_SCRIPT.HASH_TYPE,
+    codeHash: DAO_SCRIPT.CODE_HASH,
+    hashType: DAO_SCRIPT.HASH_TYPE,
     args: "0x",
   };
 
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push({
-      cell_output: {
+      cellOutput: {
         capacity: "0x" + BI.from(amount).toString(16),
         lock: toScript,
         type: daoTypeScript,
       },
       data: DEPOSIT_DAO_DATA,
-      out_point: undefined,
-      block_hash: undefined,
+      outPoint: undefined,
+      blockHash: undefined,
     });
   });
 
@@ -171,7 +168,9 @@ export async function deposit(
         txSkeleton,
         outputIndex,
         fromInfo,
-        { config }
+        {
+          config,
+        }
       );
     } else if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
       txSkeleton = await secp256k1Blake160Multisig.injectCapacity(
@@ -186,7 +185,9 @@ export async function deposit(
       txSkeleton,
       outputIndex,
       fromInfo,
-      { config }
+      {
+        config,
+      }
     );
   }
 
@@ -200,7 +201,7 @@ function _checkFromInfoSince(fromInfo: FromInfo, config: Config): void {
     const fromScript = parseAddress(fromInfo, { config });
     const args = fromScript.args;
     if (args.length === 58) {
-      since = "0x" + readBigUInt64LE("0x" + args.slice(42)).toString(16);
+      since = number.Uint64LE.unpack("0x" + args.slice(42)).toHexString();
     }
   } else if ("R" in fromInfo) {
     since = fromInfo.since;
@@ -249,19 +250,19 @@ async function withdraw(
   if (!cellProvider) {
     throw new Error("Cell provider is missing!");
   }
-  const typeScript = fromInput.cell_output.type;
+  const typeScript = fromInput.cellOutput.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (
     !typeScript ||
-    typeScript.code_hash !== DAO_SCRIPT.CODE_HASH ||
-    typeScript.hash_type !== DAO_SCRIPT.HASH_TYPE ||
+    typeScript.codeHash !== DAO_SCRIPT.CODE_HASH ||
+    typeScript.hashType !== DAO_SCRIPT.HASH_TYPE ||
     fromInput.data !== DEPOSIT_DAO_DATA
   ) {
     throw new Error("fromInput is not a DAO deposit cell.");
   }
 
   // setup input cell
-  const fromLockScript = fromInput.cell_output.lock;
+  const fromLockScript = fromInput.cellOutput.lock;
   if (isSecp256k1Blake160Script(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160.setupInputCell(
       txSkeleton,
@@ -283,14 +284,20 @@ async function withdraw(
   const targetOutputIndex: number = txSkeleton.get("outputs").size - 1;
   const targetOutput: Cell = txSkeleton.get("outputs").get(targetOutputIndex)!;
   const clonedTargetOutput: Cell = JSON.parse(JSON.stringify(targetOutput));
-  clonedTargetOutput.data = toBigUInt64LE(BI.from(fromInput.block_number));
+  if (!fromInput.blockNumber) {
+    throw new Error("fromInput has no blockNumber!");
+  } else {
+    clonedTargetOutput.data = bytes.hexify(
+      number.Uint64.pack(fromInput.blockNumber)
+    );
+  }
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.update(targetOutputIndex, () => clonedTargetOutput);
   });
 
   // add header deps
   txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
-    return headerDeps.push(fromInput.block_hash!);
+    return headerDeps.push(fromInput.blockHash!);
   });
 
   // fix inputs / outputs / witnesses
@@ -310,9 +317,7 @@ async function withdraw(
   return txSkeleton;
 }
 
-function parseEpochCompatible(
-  epoch: BIish
-): {
+function parseEpochCompatible(epoch: BIish): {
   length: BI;
   index: BI;
   number: BI;
@@ -364,7 +369,7 @@ export async function unlock(
     config = undefined,
     RpcClient = RPC,
   }: Options & { RpcClient?: typeof RPC } = {}
-) {
+): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   _checkDaoScript(config);
   txSkeleton = _addDaoCellDep(txSkeleton, config);
@@ -379,33 +384,33 @@ export async function unlock(
   }
   const rpc = new RpcClient(cellProvider.uri!);
 
-  const typeScript = depositInput.cell_output.type;
+  const typeScript = depositInput.cellOutput.type;
   const DAO_SCRIPT = config.SCRIPTS.DAO;
   if (
     !typeScript ||
-    typeScript.code_hash !== DAO_SCRIPT.CODE_HASH ||
-    typeScript.hash_type !== DAO_SCRIPT.HASH_TYPE ||
+    typeScript.codeHash !== DAO_SCRIPT.CODE_HASH ||
+    typeScript.hashType !== DAO_SCRIPT.HASH_TYPE ||
     depositInput.data !== DEPOSIT_DAO_DATA
   ) {
     throw new Error("depositInput is not a DAO deposit cell.");
   }
 
-  const withdrawTypeScript = withdrawInput.cell_output.type;
+  const withdrawTypeScript = withdrawInput.cellOutput.type;
   if (
     !withdrawTypeScript ||
-    withdrawTypeScript.code_hash !== DAO_SCRIPT.CODE_HASH ||
-    withdrawTypeScript.hash_type !== DAO_SCRIPT.HASH_TYPE ||
+    withdrawTypeScript.codeHash !== DAO_SCRIPT.CODE_HASH ||
+    withdrawTypeScript.hashType !== DAO_SCRIPT.HASH_TYPE ||
     withdrawInput.data === DEPOSIT_DAO_DATA
   ) {
     throw new Error("withdrawInput is not a DAO withdraw cell.");
   }
 
   // calculate since & capacity (interest)
-  const depositBlockHeader = await rpc.get_header(depositInput.block_hash!);
+  const depositBlockHeader = await rpc.getHeader(depositInput.blockHash!);
   const depositEpoch = parseEpochCompatible(depositBlockHeader!.epoch);
-  // const depositCapacity = BigInt(depositInput.cell_output.capacity)
+  // const depositCapacity = BigInt(depositInput.cellOutput.capacity)
 
-  const withdrawBlockHeader = await rpc.get_header(withdrawInput.block_hash!);
+  const withdrawBlockHeader = await rpc.getHeader(withdrawInput.blockHash!);
   const withdrawEpoch = parseEpochCompatible(withdrawBlockHeader!.epoch);
 
   const withdrawFraction = withdrawEpoch.index.mul(depositEpoch.length);
@@ -439,14 +444,14 @@ export async function unlock(
   const toScript = parseAddress(toAddress, { config });
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.push({
-      cell_output: {
+      cellOutput: {
         capacity: outputCapacity,
         lock: toScript,
         type: undefined,
       },
       data: "0x",
-      out_point: undefined,
-      block_hash: undefined,
+      outPoint: undefined,
+      blockHash: undefined,
     });
   });
 
@@ -460,27 +465,29 @@ export async function unlock(
 
   // add header deps
   txSkeleton = txSkeleton.update("headerDeps", (headerDeps) => {
-    return headerDeps.push(depositInput.block_hash!, withdrawInput.block_hash!);
+    return headerDeps.push(depositInput.blockHash!, withdrawInput.blockHash!);
   });
 
   const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
 
   // setup input cell
   const defaultWitnessArgs: WitnessArgs = {
-    input_type: toBigUInt64LE(depositHeaderDepIndex),
+    inputType: bytes.hexify(number.Uint64LE.pack(depositHeaderDepIndex)),
   };
-  const defaultWitness: HexString = new Reader(
-    core.SerializeWitnessArgs(
-      normalizers.NormalizeWitnessArgs(defaultWitnessArgs)
-    )
-  ).serializeJson();
-  const fromLockScript = withdrawInput.cell_output.lock;
+  const defaultWitness: HexString = bytes.hexify(
+    blockchain.WitnessArgs.pack(defaultWitnessArgs)
+  );
+  const fromLockScript = withdrawInput.cellOutput.lock;
   if (isSecp256k1Blake160Script(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160.setupInputCell(
       txSkeleton,
       withdrawInput,
       undefined,
-      { config, since, defaultWitness }
+      {
+        config,
+        since,
+        defaultWitness,
+      }
     );
   } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
@@ -590,17 +597,15 @@ function _addDaoCellDep(
 ): TransactionSkeletonType {
   const template = config.SCRIPTS.DAO!;
   return addCellDep(txSkeleton, {
-    out_point: {
-      tx_hash: template.TX_HASH,
+    outPoint: {
+      txHash: template.TX_HASH,
       index: template.INDEX,
     },
-    dep_type: template.DEP_TYPE,
+    depType: template.DEP_TYPE,
   });
 }
 
-function extractDaoDataCompatible(
-  dao: PackedDao
-): {
+function extractDaoDataCompatible(dao: PackedDao): {
   [key: string]: BI;
 } {
   if (!/^(0x)?([0-9a-fA-F]){64}$/.test(dao)) {
@@ -613,9 +618,7 @@ function extractDaoDataCompatible(
   return ["c", "ar", "s", "u"]
     .map((key, i) => {
       return {
-        [key]: BI.from(
-          readBigUInt64LECompatible("0x" + hex.slice(len * i, len * (i + 1)))
-        ),
+        [key]: number.Uint64LE.unpack("0x" + hex.slice(len * i, len * (i + 1))),
       };
     })
     .reduce((result, c) => ({ ...result, ...c }), {});
@@ -656,7 +659,7 @@ export function calculateMaximumWithdrawCompatible(
   const withdrawAR = BI.from(extractDaoDataCompatible(withdrawDao).ar);
 
   const occupiedCapacity = BI.from(minimalCellCapacityCompatible(withdrawCell));
-  const outputCapacity = BI.from(withdrawCell.cell_output.capacity);
+  const outputCapacity = BI.from(withdrawCell.cellOutput.capacity);
   const countedCapacity = outputCapacity.sub(occupiedCapacity);
   const withdrawCountedCapacity = countedCapacity
     .mul(withdrawAR)

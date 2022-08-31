@@ -1,4 +1,4 @@
-CKB indexer is based on  [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer) with more features. It is designed for:
+CKB indexer is based on  [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer) with more features. It is designed for:
 
 - Web client usage.
 - CKB's RPC query.
@@ -33,7 +33,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-Specify `lock` or `type` script as constraints for advance search:
+Specify `lock` or `type` script as constraints for advance search:
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -89,7 +89,7 @@ for await (const tx of cellCollector.collect()) {
 }
 ```
 
-Order by block number is supported by setting `order` field explicitly:
+Order by block number is supported by setting `order` field explicitly:
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -110,7 +110,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
+Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -132,7 +132,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-You can also set it as `any` when the argsLen has multiple possibilities. For example, lock script's args is 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios.
+You can also set it as `any` when the argsLen has multiple possibilities. For example, lock script's args is 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios.
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -154,7 +154,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-Fine grained query for cells can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `argsLen`:
+Fine grained query for cells can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `argsLen`:
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -294,7 +294,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
+Prefix search is supported on `args`. The default `argsLen` is -1, which means you pass the full slice of original args, and you can specify it when the `args` field is the prefix of original args.
 
 ```jsx
 txCollector = new TransactionCollector(indexer, {
@@ -316,7 +316,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-You can also set it as `any` when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
+You can also set it as `any` when the argsLen of the field args might have multiple possibilities, for example, lock script's args could be 20 in normal scenario and 28 in multisig scenario, or any other length in customized scenarios. However, there's some performance lost when use `any` rather than explicitly specified length due to the low-level implementation.
 
 ```jsx
 txCollector = new TransactionCollector(indexer, {
@@ -338,7 +338,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-Fine grained query for transactions can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `ioType`, `argsLen`:
+Fine grained query for transactions can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `ioType`, `argsLen`:
 
 ```jsx
 txCollector = new TransactionCollector(indexer, {
@@ -368,7 +368,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-The `ioType` field is among `input | output | both`.
+The `ioType` field is among `input | output | both`.
 
 `outputDataLenRange` is support to filter cell by data length, `outputCapacityRange` is support to filter cell by capacity。you can use as below.
 
@@ -391,9 +391,9 @@ for await (const tx of txCollector.collect()) {
 
 ### **EventEmitter**
 
-Besides polling pattern, event-driven pattern is also supported. After subsribing for certain `lock|type` script, it will emit a `changed` event when a block containing the subsribed script is indexed or rollbacked.
+Besides polling pattern, event-driven pattern is also supported. After subsribing for certain `lock|type` script, it will emit a `changed` event when a block containing the subsribed script is indexed or rollbacked.
 
-The principle of the design is unreliable notification queue, so developers are supposed to pull from the data sources via `CellCollector|TransactionCollector`, to find out what might happened: cell consumed, new cell generated, new transaction generated, or a chain fork happened, etc; and take the next step accordingly.
+The principle of the design is unreliable notification queue, so developers are supposed to pull from the data sources via `CellCollector|TransactionCollector`, to find out what might happened: cell consumed, new cell generated, new transaction generated, or a chain fork happened, etc; and take the next step accordingly.
 
 ```jsx
 eventEmitter = indexer.subscribe({
@@ -412,7 +412,7 @@ eventEmitter.on("changed", () => {
 });
 ```
 
-Other query options like `fromBlock|argsLen|data` are also supported.
+Other query options like `fromBlock|argsLen|data` are also supported.
 
 ```jsx
 eventEmitter = indexer.subscribe({

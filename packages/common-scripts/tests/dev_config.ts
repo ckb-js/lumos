@@ -11,7 +11,7 @@ export const DEV_CONFIG: Config = {
         // "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
         "0x785aa819c8f9f8565a62f744685f8637c1b34886e57154e4e5a2ac7f225c7bf5",
       INDEX: "0x0",
-      DEP_TYPE: "dep_group",
+      DEP_TYPE: "depGroup",
       SHORT_ID: 0,
     },
     SECP256K1_BLAKE160_MULTISIG: {
@@ -22,7 +22,7 @@ export const DEV_CONFIG: Config = {
         // "0x6495cede8d500e4309218ae50bbcadb8f722f24cc7572dd2274f5876cb603e4e",
         "0x785aa819c8f9f8565a62f744685f8637c1b34886e57154e4e5a2ac7f225c7bf5",
       INDEX: "0x1",
-      DEP_TYPE: "dep_group",
+      DEP_TYPE: "depGroup",
       SHORT_ID: 1,
     },
     DAO: {

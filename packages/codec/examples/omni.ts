@@ -1,6 +1,5 @@
-import { blockchain, molecule } from "../src";
-
-const { BytesOpt } = blockchain;
+import { molecule } from "../src";
+import { BytesOpt } from "../src/blockchain";
 const { byteVecOf, option, table } = molecule;
 
 const OmniLockWitnessLock = table(

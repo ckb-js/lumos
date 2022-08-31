@@ -12,12 +12,13 @@
 // will not need this package.
 import JSBI from "jsbi";
 import { Reader } from "./reader";
-import { BigIntToHexString } from "./rpc";
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 function normalizeHexNumber(length) {
   return function (debugPath, value) {
     if (!(value instanceof ArrayBuffer)) {
-      let intValue = BigIntToHexString(JSBI.BigInt(value)).substr(2);
+      let intValue = JSBI.BigInt(value).toString(16);
       if (intValue.length % 2 !== 0) {
         intValue = "0" + intValue;
       }
@@ -43,7 +44,9 @@ function normalizeHexNumber(length) {
     return value;
   };
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 function normalizeRawData(length) {
   return function (debugPath, value) {
     value = new Reader(value).toArrayBuffer();
@@ -55,7 +58,9 @@ function normalizeRawData(length) {
     return value;
   };
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 function normalizeObject(debugPath, object, keys) {
   const result = {};
 
@@ -68,11 +73,13 @@ function normalizeObject(debugPath, object, keys) {
   }
   return result;
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeScript(script, { debugPath = "script" } = {}) {
   return normalizeObject(debugPath, script, {
-    code_hash: normalizeRawData(32),
-    hash_type: function (debugPath, value) {
+    codeHash: normalizeRawData(32),
+    hashType: function (debugPath, value) {
       switch (value) {
         case "data":
           return 0;
@@ -87,20 +94,24 @@ export function NormalizeScript(script, { debugPath = "script" } = {}) {
         case 2:
           return value;
         default:
-          throw new Error(`${debugPath}.hash_type has invalid value: ${value}`);
+          throw new Error(`${debugPath}.hashType has invalid value: ${value}`);
       }
     },
     args: normalizeRawData(-1),
   });
 }
-
-export function NormalizeOutPoint(outPoint, { debugPath = "out_point" } = {}) {
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
+export function NormalizeOutPoint(outPoint, { debugPath = "outPoint" } = {}) {
   return normalizeObject(debugPath, outPoint, {
-    tx_hash: normalizeRawData(32),
+    txHash: normalizeRawData(32),
     index: normalizeHexNumber(4),
   });
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 function toNormalize(normalize) {
   return function (debugPath, value) {
     return normalize(value, {
@@ -108,20 +119,24 @@ function toNormalize(normalize) {
     });
   };
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeCellInput(
   cellInput,
   { debugPath = "cell_input" } = {}
 ) {
   return normalizeObject(debugPath, cellInput, {
     since: normalizeHexNumber(8),
-    previous_output: toNormalize(NormalizeOutPoint),
+    previousOutput: toNormalize(NormalizeOutPoint),
   });
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeCellOutput(
   cellOutput,
-  { debugPath = "cell_output" } = {}
+  { debugPath = "cellOutput" } = {}
 ) {
   const result = normalizeObject(debugPath, cellOutput, {
     capacity: normalizeHexNumber(8),
@@ -134,27 +149,31 @@ export function NormalizeCellOutput(
   }
   return result;
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeCellDep(cellDep, { debugPath = "cell_dep" } = {}) {
   return normalizeObject(debugPath, cellDep, {
-    out_point: toNormalize(NormalizeOutPoint),
-    dep_type: function (debugPath, value) {
+    outPoint: toNormalize(NormalizeOutPoint),
+    depType: function (debugPath, value) {
       switch (value) {
         case "code":
           return 0;
-        case "dep_group":
+        case "depGroup":
           return 1;
         case 0:
           return value;
         case 1:
           return value;
         default:
-          throw new Error(`${debugPath}.dep_type has invalid value: ${value}`);
+          throw new Error(`${debugPath}.depType has invalid value: ${value}`);
       }
     },
   });
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 function toNormalizeArray(normalizeFunction) {
   return function (debugPath, array) {
     return array.map((item, i) => {
@@ -162,21 +181,25 @@ function toNormalizeArray(normalizeFunction) {
     });
   };
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeRawTransaction(
   rawTransaction,
   { debugPath = "raw_transaction" } = {}
 ) {
   return normalizeObject(debugPath, rawTransaction, {
     version: normalizeHexNumber(4),
-    cell_deps: toNormalizeArray(toNormalize(NormalizeCellDep)),
-    header_deps: toNormalizeArray(normalizeRawData(32)),
+    cellDeps: toNormalizeArray(toNormalize(NormalizeCellDep)),
+    headerDeps: toNormalizeArray(normalizeRawData(32)),
     inputs: toNormalizeArray(toNormalize(NormalizeCellInput)),
     outputs: toNormalizeArray(toNormalize(NormalizeCellOutput)),
-    outputs_data: toNormalizeArray(normalizeRawData(-1)),
+    outputsData: toNormalizeArray(normalizeRawData(-1)),
   });
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeTransaction(
   transaction,
   { debugPath = "transaction" } = {}
@@ -190,25 +213,29 @@ export function NormalizeTransaction(
   result.raw = rawTransaction;
   return result;
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeRawHeader(
   rawHeader,
   { debugPath = "raw_header" } = {}
 ) {
   return normalizeObject(debugPath, rawHeader, {
     version: normalizeHexNumber(4),
-    compact_target: normalizeHexNumber(4),
+    compactTarget: normalizeHexNumber(4),
     timestamp: normalizeHexNumber(8),
     number: normalizeHexNumber(8),
     epoch: normalizeHexNumber(8),
-    parent_hash: normalizeRawData(32),
-    transactions_root: normalizeRawData(32),
-    proposals_hash: normalizeRawData(32),
-    extra_hash: normalizeRawData(32),
+    parentHash: normalizeRawData(32),
+    transactionsRoot: normalizeRawData(32),
+    proposalsHash: normalizeRawData(32),
+    extraHash: normalizeRawData(32),
     dao: normalizeRawData(32),
   });
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeHeader(header, { debugPath = "header" } = {}) {
   const rawHeader = NormalizeRawHeader(header, {
     debugPath: `(raw)${debugPath}`,
@@ -219,7 +246,9 @@ export function NormalizeHeader(header, { debugPath = "header" } = {}) {
   result.raw = rawHeader;
   return result;
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeUncleBlock(
   uncleBlock,
   { debugPath = "uncle_block" } = {}
@@ -229,7 +258,9 @@ export function NormalizeUncleBlock(
     proposals: toNormalizeArray(normalizeRawData(10)),
   });
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeBlock(block, { debugPath = "block" } = {}) {
   return normalizeObject(debugPath, block, {
     header: toNormalize(NormalizeHeader),
@@ -238,7 +269,9 @@ export function NormalizeBlock(block, { debugPath = "block" } = {}) {
     proposals: toNormalizeArray(normalizeRawData(10)),
   });
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeCellbaseWitness(
   cellbaseWitness,
   { debugPath = "cellbase_witness" } = {}
@@ -248,7 +281,9 @@ export function NormalizeCellbaseWitness(
     message: normalizeRawData(-1),
   });
 }
-
+/**
+ * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ */
 export function NormalizeWitnessArgs(
   witnessArgs,
   { debugPath = "witness_args" } = {}
@@ -257,16 +292,16 @@ export function NormalizeWitnessArgs(
   if (witnessArgs.lock) {
     result.lock = normalizeRawData(-1)(`${debugPath}.lock`, witnessArgs.lock);
   }
-  if (witnessArgs.input_type) {
-    result.input_type = normalizeRawData(-1)(
-      `${debugPath}.input_type`,
-      witnessArgs.input_type
+  if (witnessArgs.inputType) {
+    result.inputType = normalizeRawData(-1)(
+      `${debugPath}.inputType`,
+      witnessArgs.inputType
     );
   }
-  if (witnessArgs.output_type) {
-    result.output_type = normalizeRawData(-1)(
-      `${debugPath}.output_type`,
-      witnessArgs.output_type
+  if (witnessArgs.outputType) {
+    result.outputType = normalizeRawData(-1)(
+      `${debugPath}.outputType`,
+      witnessArgs.outputType
     );
   }
   return result;

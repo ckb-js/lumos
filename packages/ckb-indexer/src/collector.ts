@@ -22,7 +22,7 @@ interface GetBlockHashRPCResult {
   result: string;
 }
 
-/** CellCollector will not get cell with block_hash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get block_hash if you need. */
+/** CellCollector will not get cell with blockHash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get blockHash if you need. */
 export class CKBCellCollector implements BaseCellCollector {
   constructor(
     public indexer: CkbIndexer,
@@ -125,11 +125,12 @@ export class CKBCellCollector implements BaseCellCollector {
   }
 
   public convertQueryOptionToSearchKey(): void {
+    const queryLock = this.queries.lock;
     // unWrap `ScriptWrapper` into `Script`.
-    if (this.queries.lock) {
-      if (instanceOfScriptWrapper(this.queries.lock)) {
-        validators.ValidateScript(this.queries.lock.script);
-        this.queries.lock = this.queries.lock.script;
+    if (queryLock) {
+      if (instanceOfScriptWrapper(queryLock)) {
+        validators.ValidateScript(queryLock.script);
+        this.queries.lock = queryLock.script;
       }
     }
 
@@ -139,6 +140,7 @@ export class CKBCellCollector implements BaseCellCollector {
         typeof this.queries.type === "object" &&
         instanceOfScriptWrapper(this.queries.type)
       ) {
+        validators.ValidateScript(this.queries.type.script);
         this.queries.type = this.queries.type.script;
       }
     }
@@ -174,7 +176,7 @@ export class CKBCellCollector implements BaseCellCollector {
     if (this.queries.skip && skippedCount < this.queries.skip) {
       return true;
     }
-    if (cell && this.queries.type === "empty" && cell.cell_output.type) {
+    if (cell && this.queries.type === "empty" && cell.cellOutput.type) {
       return true;
     }
     if (this.queries.data !== "any" && cell.data !== this.queries.data) {
@@ -183,7 +185,7 @@ export class CKBCellCollector implements BaseCellCollector {
     if (
       this.queries.argsLen !== -1 &&
       this.queries.argsLen !== "any" &&
-      getHexStringBytes(cell.cell_output.lock.args) !== this.queries.argsLen
+      getHexStringBytes(cell.cellOutput.lock.args) !== this.queries.argsLen
     ) {
       return true;
     }
@@ -259,7 +261,7 @@ export class CKBCellCollector implements BaseCellCollector {
         id: index,
         jsonrpc: "2.0",
         method: "get_block_hash",
-        params: [cell.block_number],
+        params: [cell.blockNumber],
       };
     });
     const blockHashList: GetBlockHashRPCResult[] = await this.request(
@@ -270,14 +272,14 @@ export class CKBCellCollector implements BaseCellCollector {
       const rpcResponse = blockHashList.find(
         (responseItem: GetBlockHashRPCResult) => responseItem.id === index
       );
-      const block_hash = rpcResponse && rpcResponse.result;
-      return { ...item, block_hash };
+      const blockHash = rpcResponse && rpcResponse.result;
+      return { ...item, blockHash };
     });
     return result;
   }
 
-  /** collect cells without block_hash by default.if you need block_hash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
-   * don't use OtherQueryOption if you don't need block_hash,cause it will slowly your collect.
+  /** collect cells without blockHash by default.if you need blockHash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
+   * don't use OtherQueryOption if you don't need blockHash,cause it will slowly your collect.
    */
   async *collect(): AsyncGenerator<Cell, void, unknown> {
     //TODO: fix return type

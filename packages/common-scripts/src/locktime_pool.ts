@@ -4,6 +4,7 @@ import {
   TransactionSkeletonType,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
+import { bytes, number } from "@ckb-lumos/codec";
 import { FromInfo, parseFromInfo } from "./from_info";
 import secp256k1Blake160 from "./secp256k1_blake160";
 import {
@@ -11,9 +12,7 @@ import {
   calculateDaoEarliestSinceCompatible,
 } from "./dao";
 import {
-  core,
   values,
-  utils,
   since as sinceUtils,
   CellProvider,
   Script,
@@ -26,10 +25,9 @@ import {
   QueryOptions,
   CellCollector as CellCollectorType,
   SinceValidationInfo,
+  blockchain,
 } from "@ckb-lumos/base";
-const { toBigUInt64LE, readBigUInt64LECompatible, readBigUInt64LE } = utils;
 const { ScriptValue } = values;
-import { normalizers, Reader } from "@ckb-lumos/toolkit";
 import {
   generateDaoScript,
   isSecp256k1Blake160MultisigScript,
@@ -46,11 +44,11 @@ const {
 } = sinceUtils;
 import { List, Set } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
-import { RPC } from "@ckb-lumos/rpc";
 import { secp256k1Blake160Multisig } from ".";
 import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { CellCollectorConstructor } from "./type";
+import { RPC } from "@ckb-lumos/rpc";
 
 export interface LocktimeCell extends Cell {
   since: PackedSince;
@@ -60,7 +58,8 @@ export interface LocktimeCell extends Cell {
 }
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
-  implements CellCollectorType {
+  implements CellCollectorType
+{
   private cellCollectors: List<CellCollectorType>;
   private config: Config;
   private rpc: RPC;
@@ -97,7 +96,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
     if (tipHeader) {
       // TODO: `median_timestamp` is not provided now!
       this.tipSinceValidationInfo = {
-        block_number: tipHeader.number,
+        blockNumber: tipHeader.number,
         epoch: tipHeader.epoch,
         median_timestamp: "",
       };
@@ -113,8 +112,8 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
     let cellCollectors = List<CellCollectorType>([]);
     if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
       const lock: Script = {
-        code_hash: fromScript.code_hash,
-        hash_type: fromScript.hash_type,
+        codeHash: fromScript.codeHash,
+        hashType: fromScript.hashType,
         args: fromScript.args.slice(0, 42),
       };
       // multisig with locktime, not dao
@@ -170,7 +169,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
   async *collect(): AsyncGenerator<LocktimeCell> {
     for (const cellCollector of this.cellCollectors) {
       for await (const inputCell of cellCollector.collect()) {
-        const lock = inputCell.cell_output.lock;
+        const lock = inputCell.cellOutput.lock;
 
         let since: PackedSince | undefined;
         let maximumCapacity: BI | undefined;
@@ -180,36 +179,35 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
 
         // multisig
         if (lock.args.length === 58) {
-          const header = (await this.rpc.get_header(inputCell.block_hash!))!;
+          const header = (await this.rpc.getHeader(inputCell.blockHash!))!;
           since =
             "0x" + _parseMultisigArgsSinceCompatible(lock.args).toString(16);
           // TODO: `median_timestamp` not provided now!
           sinceValidationInfo = {
             epoch: header.epoch,
-            block_number: header.number,
+            blockNumber: header.number,
             median_timestamp: "",
           };
         }
 
         // dao
-        if (isDaoScript(inputCell.cell_output.type, this.config)) {
+        if (isDaoScript(inputCell.cellOutput.type, this.config)) {
           if (inputCell.data === "0x0000000000000000") {
             continue;
           }
-          const transactionWithStatus = (await this.rpc.get_transaction(
-            inputCell.out_point!.tx_hash
+          const transactionWithStatus = (await this.rpc.getTransaction(
+            inputCell.outPoint!.txHash
           ))!;
-          withdrawBlockHash = transactionWithStatus.tx_status.block_hash;
+          withdrawBlockHash = transactionWithStatus.txStatus.blockHash;
           const transaction = transactionWithStatus.transaction;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const depositOutPoint =
-            transaction.inputs[+inputCell.out_point!.index].previous_output;
-          depositBlockHash = (await this.rpc.get_transaction(
-            depositOutPoint.tx_hash
-          ))!.tx_status.block_hash!;
-          const depositBlockHeader = await this.rpc.get_header(
-            depositBlockHash
-          );
-          const withdrawBlockHeader = await this.rpc.get_header(
+            transaction.inputs[+inputCell.outPoint!.index].previousOutput;
+          depositBlockHash = (await this.rpc.getTransaction(
+            depositOutPoint!.txHash
+          ))!.txStatus.blockHash!;
+          const depositBlockHeader = await this.rpc.getHeader(depositBlockHash);
+          const withdrawBlockHeader = await this.rpc.getHeader(
             withdrawBlockHash!
           );
           let daoSince: PackedSince =
@@ -279,9 +277,9 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
           withdrawBlockHash: withdrawBlockHash,
           sinceValidationInfo,
         };
-        result.cell_output.capacity =
+        result.cellOutput.capacity =
           "0x" +
-          (maximumCapacity || BI.from(inputCell.cell_output.capacity)).toString(
+          (maximumCapacity || BI.from(inputCell.cellOutput.capacity)).toString(
             16
           );
 
@@ -502,14 +500,14 @@ async function _transferCompatible(
 
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push({
-        cell_output: {
+        cellOutput: {
           capacity: "0x" + _amount.toString(16),
           lock: toScript,
           type: undefined,
         },
         data: "0x",
-        out_point: undefined,
-        block_hash: undefined,
+        outPoint: undefined,
+        blockHash: undefined,
       });
     });
   }
@@ -522,11 +520,11 @@ async function _transferCompatible(
   for (; i < txSkeleton.get("outputs").size && _amount.gt(0); ++i) {
     const output = txSkeleton.get("outputs").get(i)!;
     if (
-      new ScriptValue(output.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(output.cellOutput.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
     ) {
-      const cellCapacity = BI.from(output.cell_output.capacity);
+      const cellCapacity = BI.from(output.cellOutput.capacity);
       let deductCapacity;
       if (_amount.gte(cellCapacity)) {
         deductCapacity = cellCapacity;
@@ -541,7 +539,7 @@ async function _transferCompatible(
       _amount = _amount.sub(deductCapacity);
 
       const clonedOutput = JSON.parse(JSON.stringify(output));
-      clonedOutput.cell_output.capacity =
+      clonedOutput.cellOutput.capacity =
         "0x" + cellCapacity.sub(deductCapacity).toString(16);
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.update(i, () => clonedOutput);
@@ -551,7 +549,7 @@ async function _transferCompatible(
   // remove all output cells with capacity equal to 0
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.filter(
-      (output) => !BI.from(output.cell_output.capacity).eq(0)
+      (output) => !BI.from(output.cellOutput.capacity).eq(0)
     );
   });
   /*
@@ -567,21 +565,21 @@ async function _transferCompatible(
       ? parseAddress(changeAddress, { config })
       : fromScript;
     const changeCell: Cell = {
-      cell_output: {
+      cellOutput: {
         capacity: "0x0",
         lock: changeLockScript,
         type: undefined,
       },
       data: "0x",
-      out_point: undefined,
-      block_hash: undefined,
+      outPoint: undefined,
+      blockHash: undefined,
     };
     let changeCapacity = BI.from(0);
 
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
       previousInputs = previousInputs.add(
-        `${input.out_point!.tx_hash}_${input.out_point!.index}`
+        `${input.outPoint!.txHash}_${input.outPoint!.index}`
       );
     }
     const cellCollector = new LocktimeCellCollector(fromInfo, cellProvider, {
@@ -593,7 +591,7 @@ async function _transferCompatible(
       // skip inputs already exists in txSkeleton.inputs
       if (
         previousInputs.has(
-          `${inputCell.out_point!.tx_hash}_${inputCell.out_point!.index}`
+          `${inputCell.outPoint!.txHash}_${inputCell.outPoint!.index}`
         )
       ) {
         continue;
@@ -601,19 +599,19 @@ async function _transferCompatible(
 
       let multisigSince: BI | undefined;
       if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
-        const lockArgs = inputCell.cell_output.lock.args;
+        const lockArgs = inputCell.cellOutput.lock.args;
         multisigSince =
           lockArgs.length === 58
             ? BI.from(_parseMultisigArgsSinceCompatible(lockArgs))
             : undefined;
       }
       let witness: HexString = "0x";
-      if (isDaoScript(inputCell.cell_output.type, config)) {
+      if (isDaoScript(inputCell.cellOutput.type, config)) {
         const template = config.SCRIPTS.DAO!;
         txSkeleton = addCellDep(txSkeleton, {
-          dep_type: template.DEP_TYPE,
-          out_point: {
-            tx_hash: template.TX_HASH,
+          depType: template.DEP_TYPE,
+          outPoint: {
+            txHash: template.TX_HASH,
             index: template.INDEX,
           },
         });
@@ -628,13 +626,9 @@ async function _transferCompatible(
         const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
 
         const witnessArgs = {
-          input_type: toBigUInt64LE(depositHeaderDepIndex),
+          inputType: bytes.hexify(number.Uint64.pack(depositHeaderDepIndex)),
         };
-        witness = new Reader(
-          core.SerializeWitnessArgs(
-            normalizers.NormalizeWitnessArgs(witnessArgs)
-          )
-        ).serializeJson();
+        witness = bytes.hexify(blockchain.WitnessArgs.pack(witnessArgs));
       }
 
       txSkeleton = await collectInput(
@@ -646,14 +640,14 @@ async function _transferCompatible(
         { config, defaultWitness: witness, since: inputCell.since }
       );
 
-      const inputCapacity = BI.from(inputCell.cell_output.capacity);
+      const inputCapacity = BI.from(inputCell.cellOutput.capacity);
       let deductCapacity = inputCapacity;
       if (deductCapacity.gt(_amount)) {
         deductCapacity = _amount;
       }
       _amount = _amount.sub(deductCapacity);
       changeCapacity = changeCapacity.add(inputCapacity).sub(deductCapacity);
-      if (isDaoScript(inputCell.cell_output.type, config)) {
+      if (isDaoScript(inputCell.cellOutput.type, config)) {
         // fix inputs / outputs / witnesses
         txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
           return fixedEntries.push(
@@ -681,7 +675,7 @@ async function _transferCompatible(
       }
     }
     if (changeCapacity.gt(0)) {
-      changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+      changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
       txSkeleton = txSkeleton.update("outputs", (outputs) =>
         outputs.push(changeCell)
       );
@@ -743,12 +737,12 @@ async function injectCapacityWithoutChangeCompatible(
       for (; i < txSkeleton.get("outputs").size && _amount.gt(0); ++i) {
         const output = txSkeleton.get("outputs").get(i)!;
         if (
-          new ScriptValue(output.cell_output.lock, { validate: false }).equals(
+          new ScriptValue(output.cellOutput.lock, { validate: false }).equals(
             new ScriptValue(fromScript, { validate: false })
           )
         ) {
           const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
-          const cellCapacity = BI.from(clonedOutput.cell_output.capacity);
+          const cellCapacity = BI.from(clonedOutput.cellOutput.capacity);
           let deductCapacity;
           if (_amount.gte(cellCapacity)) {
             deductCapacity = cellCapacity;
@@ -761,7 +755,7 @@ async function injectCapacityWithoutChangeCompatible(
             }
           }
           _amount = _amount.sub(deductCapacity);
-          clonedOutput.cell_output.capacity =
+          clonedOutput.cellOutput.capacity =
             "0x" + cellCapacity.sub(deductCapacity).toString(16);
 
           txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -772,7 +766,7 @@ async function injectCapacityWithoutChangeCompatible(
       // remove all output cells with capacity equal to 0
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.filter(
-          (output) => !BI.from(output.cell_output.capacity).eq(0)
+          (output) => !BI.from(output.cellOutput.capacity).eq(0)
         );
       });
     }
@@ -789,7 +783,7 @@ async function injectCapacityWithoutChangeCompatible(
     }
 
     const getInputKey = (input: Cell) =>
-      `${input.out_point!.tx_hash}_${input.out_point!.index}`;
+      `${input.outPoint!.txHash}_${input.outPoint!.index}`;
     let previousInputs = Set<string>();
     for (const input of txSkeleton.get("inputs")) {
       previousInputs = previousInputs.add(getInputKey(input));
@@ -809,12 +803,12 @@ async function injectCapacityWithoutChangeCompatible(
         }
 
         let witness: HexString = "0x";
-        if (isDaoScript(inputCell.cell_output.type, config)) {
+        if (isDaoScript(inputCell.cellOutput.type, config)) {
           const template = config.SCRIPTS.DAO!;
           txSkeleton = addCellDep(txSkeleton, {
-            dep_type: template.DEP_TYPE,
-            out_point: {
-              tx_hash: template.TX_HASH,
+            depType: template.DEP_TYPE,
+            outPoint: {
+              txHash: template.TX_HASH,
               index: template.INDEX,
             },
           });
@@ -828,20 +822,14 @@ async function injectCapacityWithoutChangeCompatible(
 
           const depositHeaderDepIndex = txSkeleton.get("headerDeps").size - 2;
           const witnessArgs = {
-            input_type: toBigUInt64LE(
-              BI.from(depositHeaderDepIndex).toString()
-            ),
+            inputType: bytes.hexify(number.Uint64.pack(depositHeaderDepIndex)),
           };
-          witness = new Reader(
-            core.SerializeWitnessArgs(
-              normalizers.NormalizeWitnessArgs(witnessArgs)
-            )
-          ).serializeJson();
+          witness = bytes.hexify(blockchain.WitnessArgs.pack(witnessArgs));
         }
         let multisigSince: BI | undefined;
         if (isSecp256k1Blake160MultisigScript(fromScript, config)) {
           // multisig
-          const lockArgs = inputCell.cell_output.lock.args;
+          const lockArgs = inputCell.cellOutput.lock.args;
           multisigSince =
             lockArgs.length === 58
               ? BI.from(_parseMultisigArgsSinceCompatible(lockArgs))
@@ -851,10 +839,14 @@ async function injectCapacityWithoutChangeCompatible(
           txSkeleton,
           inputCell,
           Object.assign({}, fromInfo, { since: multisigSince }),
-          { config, defaultWitness: witness, since: inputCell.since }
+          {
+            config,
+            defaultWitness: witness,
+            since: inputCell.since,
+          }
         );
 
-        const inputCapacity = BI.from(inputCell.cell_output.capacity);
+        const inputCapacity = BI.from(inputCell.cellOutput.capacity);
         let deductCapacity = inputCapacity;
         if (deductCapacity.gt(_amount)) {
           deductCapacity = _amount;
@@ -862,7 +854,7 @@ async function injectCapacityWithoutChangeCompatible(
         _amount = _amount.sub(deductCapacity);
         changeCapacity = changeCapacity.add(inputCapacity).sub(deductCapacity);
 
-        if (isDaoScript(inputCell.cell_output.type, config)) {
+        if (isDaoScript(inputCell.cellOutput.type, config)) {
           // fix inputs / outputs / witnesses
           txSkeleton = txSkeleton.update("fixedEntries", (fixedEntries) => {
             return fixedEntries.push(
@@ -999,7 +991,7 @@ export async function injectCapacity(
     throw new Error("Invalid output index!");
   }
   const capacity = BI.from(
-    txSkeleton.get("outputs").get(outputIndex)!.cell_output.capacity
+    txSkeleton.get("outputs").get(outputIndex)!.cellOutput.capacity
   );
   return transferCompatible(
     txSkeleton,
@@ -1051,7 +1043,7 @@ export async function setupInputCell(
   }: Options & { defaultWitness?: HexString; since?: PackedSince } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
-  const inputLock = inputCell.cell_output.lock;
+  const inputLock = inputCell.cellOutput.lock;
 
   if (isSecp256k1Blake160Script(inputLock, config)) {
     return secp256k1Blake160.setupInputCell(txSkeleton, inputCell, fromInfo, {
@@ -1064,25 +1056,22 @@ export async function setupInputCell(
       txSkeleton,
       inputCell,
       fromInfo,
-      { config, defaultWitness, since }
+      {
+        config,
+        defaultWitness,
+        since,
+      }
     );
   } else {
     throw new Error(`Not supported input lock!`);
   }
 }
 
-function _parseMultisigArgsSince(args: HexString): bigint {
-  if (args.length !== 58) {
-    throw new Error("Invalid multisig with since args!");
-  }
-  return readBigUInt64LE("0x" + args.slice(42));
-}
-
 function _parseMultisigArgsSinceCompatible(args: HexString): BI {
   if (args.length !== 58) {
     throw new Error("Invalid multisig with since args!");
   }
-  return readBigUInt64LECompatible("0x" + args.slice(42));
+  return number.Uint64LE.unpack("0x" + args.slice(42));
 }
 
 export default {

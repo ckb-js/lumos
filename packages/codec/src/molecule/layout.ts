@@ -112,9 +112,9 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
       }, Uint8Array.from([]));
     },
     unpack(buf) {
-      const result = {} as PartialNullable<
-        { [key in keyof T]: UnpackResult<T[key]> }
-      >;
+      const result = {} as PartialNullable<{
+        [key in keyof T]: UnpackResult<T[key]>;
+      }>;
       let offset = 0;
 
       fields.forEach((field) => {
@@ -257,9 +257,9 @@ export function table<T extends Record<string, BytesCodec>>(
         );
       }
       if (totalSize <= 4 || fields.length === 0) {
-        return {} as PartialNullable<
-          { [key in keyof T]: UnpackResult<T[key]> }
-        >;
+        return {} as PartialNullable<{
+          [key in keyof T]: UnpackResult<T[key]>;
+        }>;
       } else {
         const offsets = fields.map((_, index) =>
           Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
@@ -274,9 +274,9 @@ export function table<T extends Record<string, BytesCodec>>(
           const itemBuf = buf.slice(start, end);
           Object.assign(obj, { [field]: itemCodec.unpack(itemBuf) });
         }
-        return obj as PartialNullable<
-          { [key in keyof T]: UnpackResult<T[key]> }
-        >;
+        return obj as PartialNullable<{
+          [key in keyof T]: UnpackResult<T[key]>;
+        }>;
       }
     },
   });
@@ -297,7 +297,7 @@ export function union<T extends Record<string, BytesCodec>>(
 
       const fieldIndex = fields.indexOf(type);
       if (fieldIndex === -1) {
-        throw new Error(`Unknown union type: ${type}`);
+        throw new Error(`Unknown union type: ${String(obj.type)}`);
       }
       const packedFieldIndex = Uint32LE.pack(fieldIndex);
       const packedBody = itemCodec[type].pack(obj.value);

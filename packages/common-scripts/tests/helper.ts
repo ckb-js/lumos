@@ -2,8 +2,8 @@ import {
   TransactionSkeletonType,
   TransactionSkeleton,
 } from "@ckb-lumos/helpers";
-import { Cell, CellDep, core } from "@ckb-lumos/base";
-import { Reader, normalizers } from "@ckb-lumos/toolkit";
+import { Cell, CellDep, blockchain } from "@ckb-lumos/base";
+import { bytes } from "@ckb-lumos/codec";
 
 export interface txObject {
   inputs: Cell[];
@@ -13,7 +13,7 @@ export interface txObject {
 
 export function txSkeletonFromJson(
   tx: txObject,
-  witnessHolder?: Reader | string
+  witnessHolder?: string
 ): TransactionSkeletonType {
   let skeleton = TransactionSkeleton({});
   const inputCell: Cell[] = tx.inputs;
@@ -29,11 +29,9 @@ export function txSkeletonFromJson(
 
   if (witnessHolder !== undefined) {
     const tmpWitnessArgs = { lock: witnessHolder };
-    const tmpWitness = new Reader(
-      core.SerializeWitnessArgs(
-        normalizers.NormalizeWitnessArgs(tmpWitnessArgs)
-      )
-    ).serializeJson();
+    const tmpWitness = bytes.hexify(
+      blockchain.WitnessArgs.pack(tmpWitnessArgs)
+    );
     for (let i = 0; i < inputCell.length; i++) {
       skeleton = skeleton.update("witnesses", (witnesses) =>
         witnesses.push(tmpWitness)

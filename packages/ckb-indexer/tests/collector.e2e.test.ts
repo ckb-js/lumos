@@ -6,7 +6,7 @@ const {
   cellCollectorTestCases,
   queryWithBlockHash,
 } = require("./test_cases.js");
-import { HashType } from "@ckb-lumos/base";
+import { HashType, Cell } from "@ckb-lumos/base";
 import { OtherQueryOptions } from "../src/type";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
@@ -22,9 +22,9 @@ test.before(() => {
 
 test("get count correct", async (t) => {
   const type = {
-    code_hash:
+    codeHash:
       "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-    hash_type: "type" as HashType,
+    hashType: "type" as HashType,
     args: "0xa178db16d8228db82911fdb536df1916e761e205",
   };
   const cellCollector = new CellCollector(indexer, { lock: type });
@@ -42,7 +42,7 @@ test("query cells with block hash", async (t) => {
     queryWithBlockHash.queryOption,
     otherQueryOptions
   );
-  let cells = [];
+  let cells: Cell[] = [];
   for await (const cell of cellCollector.collect()) {
     cells.push(cell);
   }
@@ -56,7 +56,7 @@ test("query cells with block hash", async (t) => {
 test("query cells with different queryOptions", async (t) => {
   for (const queryCase of cellCollectorTestCases) {
     const cellCollector = new CellCollector(indexer, queryCase.queryOption);
-    let cells = [];
+    let cells: Cell[] = [];
     for await (const cell of cellCollector.collect()) {
       cells.push(cell);
     }

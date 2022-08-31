@@ -12,7 +12,7 @@ Instead of calling `indexer.startForever()` in `native-indexer`, you just need t
 
 **CellCollector**
 
-To return the `block_hash`, you need to carry carry the third parameter in `CellCollector`.
+To return the `blockHash`, you need to carry carry the third parameter in `CellCollector`.
 
 ```jsx
 const otherQueryOptions: OtherQueryOptions = {

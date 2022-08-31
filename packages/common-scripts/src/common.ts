@@ -24,12 +24,11 @@ import {
   utils,
   Transaction,
   HashType,
+  blockchain,
 } from "@ckb-lumos/base";
 import anyoneCanPay from "./anyone_can_pay";
 const { ScriptValue } = values;
 import { Set } from "immutable";
-import { SerializeTransaction } from "@ckb-lumos/base/lib/core";
-import { normalizers } from "@ckb-lumos/toolkit";
 import { isAcpScript } from "./helper";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { CellCollectorConstructor } from "./type";
@@ -43,8 +42,8 @@ function defaultLogger(level: string, message: string) {
  *  please add the `output` at the end of `txSkeleton.get("outputs")`
  */
 export interface LockScriptInfo {
-  code_hash: Hash;
-  hash_type: HashType;
+  codeHash: Hash;
+  hashType: HashType;
   lockScriptInfo: {
     CellCollector: CellCollectorConstructor;
     setupInputCell(
@@ -113,8 +112,8 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
 
     if (secpTemplate) {
       predefinedInfos.push({
-        code_hash: secpTemplate.CODE_HASH,
-        hash_type: secpTemplate.HASH_TYPE,
+        codeHash: secpTemplate.CODE_HASH,
+        hashType: secpTemplate.HASH_TYPE,
         lockScriptInfo: secp256k1Blake160,
       });
     } else {
@@ -126,8 +125,8 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
 
     if (multisigTemplate) {
       predefinedInfos.push({
-        code_hash: multisigTemplate.CODE_HASH,
-        hash_type: multisigTemplate.HASH_TYPE,
+        codeHash: multisigTemplate.CODE_HASH,
+        hashType: multisigTemplate.HASH_TYPE,
         lockScriptInfo: secp256k1Blake160Multisig,
       });
     } else {
@@ -139,8 +138,8 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
 
     if (acpTemplate) {
       predefinedInfos.push({
-        code_hash: acpTemplate.CODE_HASH,
-        hash_type: acpTemplate.HASH_TYPE,
+        codeHash: acpTemplate.CODE_HASH,
+        hashType: acpTemplate.HASH_TYPE,
         lockScriptInfo: anyoneCanPay,
       });
     } else {
@@ -201,7 +200,7 @@ export async function transfer(
 
   const toScript: Script = parseAddress(toAddress, { config });
   const targetOutput: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x" + _amount.toString(16),
       lock: toScript,
       type: undefined,
@@ -211,14 +210,13 @@ export async function transfer(
 
   generateLockScriptInfos({ config });
 
-  const targetLockScriptInfo:
-    | LockScriptInfo
-    | undefined = lockScriptInfos.infos.find((lockScriptInfo) => {
-    return (
-      lockScriptInfo.code_hash === toScript.code_hash &&
-      lockScriptInfo.hash_type === toScript.hash_type
-    );
-  });
+  const targetLockScriptInfo: LockScriptInfo | undefined =
+    lockScriptInfos.infos.find((lockScriptInfo) => {
+      return (
+        lockScriptInfo.codeHash === toScript.codeHash &&
+        lockScriptInfo.hashType === toScript.hashType
+      );
+    });
 
   if (
     targetLockScriptInfo &&
@@ -284,7 +282,7 @@ export async function injectCapacity(
     { config }
   ).fromScript;
   const changeCell: Cell = {
-    cell_output: {
+    cellOutput: {
       capacity: "0x0",
       lock: changeLockScript,
       type: undefined,
@@ -321,7 +319,10 @@ export async function injectCapacity(
         fromInfos,
         deductAmount,
         minimalChangeCapacity,
-        { config, enableDeductCapacity }
+        {
+          config,
+          enableDeductCapacity,
+        }
       );
       txSkeleton = result.txSkeleton;
       deductAmount = result.capacity;
@@ -348,7 +349,10 @@ export async function injectCapacity(
       fromInfos,
       deductAmount,
       minimalChangeCapacity,
-      { config, enableDeductCapacity }
+      {
+        config,
+        enableDeductCapacity,
+      }
     );
     txSkeleton = result.txSkeleton;
     deductAmount = result.capacity;
@@ -404,7 +408,7 @@ export async function injectCapacity(
   }
 
   if (changeCapacity.gt(0)) {
-    changeCell.cell_output.capacity = "0x" + changeCapacity.toString(16);
+    changeCell.cellOutput.capacity = "0x" + changeCapacity.toString(16);
 
     txSkeleton = txSkeleton.update("outputs", (outputs) => {
       return outputs.push(changeCell);
@@ -508,7 +512,7 @@ async function _commonTransferCompatible(
   }
 
   const getInputKey = (input: Cell) =>
-    `${input.out_point?.tx_hash}_${input.out_point?.index}`;
+    `${input.outPoint?.txHash}_${input.outPoint?.index}`;
   let previousInputs = Set<string>();
   for (const input of txSkeleton.get("inputs")) {
     previousInputs = previousInputs.add(getInputKey(input));
@@ -614,12 +618,12 @@ function _deductCapacityCompatible(
     const output = txSkeleton.get("outputs").get(i);
     if (
       output &&
-      new ScriptValue(output.cell_output.lock, { validate: false }).equals(
+      new ScriptValue(output.cellOutput.lock, { validate: false }).equals(
         new ScriptValue(fromScript, { validate: false })
       )
     ) {
       const clonedOutput: Cell = JSON.parse(JSON.stringify(output));
-      const cellCapacity = BI.from(clonedOutput.cell_output.capacity);
+      const cellCapacity = BI.from(clonedOutput.cellOutput.capacity);
       const availableCapacity: BI = cellCapacity;
       let deductCapacity;
       if (_capacity.gte(availableCapacity)) {
@@ -633,7 +637,7 @@ function _deductCapacityCompatible(
         }
       }
       _capacity = _capacity.sub(deductCapacity);
-      clonedOutput.cell_output.capacity =
+      clonedOutput.cellOutput.capacity =
         "0x" + cellCapacity.sub(deductCapacity).toString(16);
 
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
@@ -645,8 +649,7 @@ function _deductCapacityCompatible(
   txSkeleton = txSkeleton.update("outputs", (outputs) => {
     return outputs.filter(
       (output) =>
-        BI.from(output.cell_output.capacity).toString() !==
-        BI.from(0).toString()
+        BI.from(output.cellOutput.capacity).toString() !== BI.from(0).toString()
     );
   });
 
@@ -688,7 +691,7 @@ async function collectInputCompatible(
   if (!lastOutput) {
     throw new Error("Impossible: can not find last output");
   }
-  const lastOutputCapacity: BI = BI.from(lastOutput.cell_output.capacity);
+  const lastOutputCapacity: BI = BI.from(lastOutput.cellOutput.capacity);
   const lastOutputFixedEntryIndex: number = txSkeleton
     .get("fixedEntries")
     .findIndex((fixedEntry) => {
@@ -696,7 +699,7 @@ async function collectInputCompatible(
         fixedEntry.field === "outputs" && fixedEntry.index === lastOutputIndex
       );
     });
-  const fromScript: Script = inputCell.cell_output.lock;
+  const fromScript: Script = inputCell.cellOutput.lock;
 
   let availableCapacity: BI = BI.from(0);
   if (config.SCRIPTS.ANYONE_CAN_PAY && isAcpScript(fromScript, config)) {
@@ -734,8 +737,7 @@ async function collectInputCompatible(
         outputCapacity = lastOutputCapacity.sub(_needCapacity);
         availableCapacity = _needCapacity;
       }
-      clonedLastOutput.cell_output.capacity =
-        "0x" + outputCapacity.toString(16);
+      clonedLastOutput.cellOutput.capacity = "0x" + outputCapacity.toString(16);
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.update(lastOutputIndex, () => clonedLastOutput);
       });
@@ -745,7 +747,7 @@ async function collectInputCompatible(
     if (lastOutputFixedEntryIndex < 0) {
       // Remove last output
       availableCapacity = BI.from(
-        txSkeleton.get("outputs").get(lastOutputIndex)?.cell_output.capacity
+        txSkeleton.get("outputs").get(lastOutputIndex)?.cellOutput.capacity
       );
       txSkeleton = txSkeleton.update("outputs", (outputs) => {
         return outputs.remove(lastOutputIndex);
@@ -785,16 +787,15 @@ export async function setupInputCell(
   config = config || getConfig();
 
   generateLockScriptInfos({ config });
-  const inputLock = inputCell.cell_output.lock;
+  const inputLock = inputCell.cellOutput.lock;
 
-  const targetLockScriptInfo:
-    | LockScriptInfo
-    | undefined = lockScriptInfos.infos.find((lockScriptInfo) => {
-    return (
-      lockScriptInfo.code_hash === inputLock.code_hash &&
-      lockScriptInfo.hash_type === inputLock.hash_type
-    );
-  });
+  const targetLockScriptInfo: LockScriptInfo | undefined =
+    lockScriptInfos.infos.find((lockScriptInfo) => {
+      return (
+        lockScriptInfo.codeHash === inputLock.codeHash &&
+        lockScriptInfo.hashType === inputLock.hashType
+      );
+    });
 
   if (!targetLockScriptInfo) {
     throw new Error(`No LockScriptInfo found for setupInputCell!`);
@@ -872,9 +873,7 @@ function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
 }
 
 function getTransactionSizeByTx(tx: Transaction): number {
-  const serializedTx = SerializeTransaction(
-    normalizers.NormalizeTransaction(tx)
-  );
+  const serializedTx = blockchain.Transaction.pack(tx);
   // 4 is serialized offset bytesize
   const size = serializedTx.byteLength + 4;
   return size;

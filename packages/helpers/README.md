@@ -11,29 +11,29 @@ const { minimalCellCapacity, generateAddress, parseAddress } = require("@ckb-lum
 
 // Get cell minimal capacity.
 const result = minimalCellCapacity({
-  cell_output: {
+  cellOutput: {
     capacity: "0x174876e800",
     lock: {
       args: "0x36c329ed630d6ce750712a477543672adab57f4c",
-      code_hash:
+      codeHash:
         "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hash_type: "type",
+      hashType: "type",
     },
     type: null,
   },
   data: "0x",
-  block_hash: null,
-  block_number: null,
-  out_point: null,
+  blockHash: null,
+  blockNumber: null,
+  outPoint: null,
 })
 
 // result will be 6100000000n shannons.
 
 // Use `generateAddress` to get address from lock script.
 const address = generateAddress({
-  code_hash:
+  codeHash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-  hash_type: "type",
+  hashType: "type",
   args: "0x36c329ed630d6ce750712a477543672adab57f4c",
 })
 
@@ -41,9 +41,9 @@ const address = generateAddress({
 const { predefined } = require("@ckb-lumos/config-manager")
 
 const address = generateAddress({
-  code_hash:
+  codeHash:
     "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-  hash_type: "type",
+  hashType: "type",
   args: "0x36c329ed630d6ce750712a477543672adab57f4c",
 }, { config: predefined.AGGRON4 })
 
