@@ -3,6 +3,7 @@
 
 const lightCodeTheme = require("prism-react-renderer/themes/github");
 const darkCodeTheme = require("prism-react-renderer/themes/dracula");
+const versioningBranchs = require("./versioning-branches");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -82,10 +83,12 @@ const config = {
           },
           // { to: "/blog", label: "Blog", position: "left" },
           {
-            href: "/api/",
             label: "API",
             position: "left",
             target: "_blank",
+            items: [
+              ...versioningBranchs,
+            ]
           },
           {
             href: "https://github.com/nervosnetwork/lumos",
