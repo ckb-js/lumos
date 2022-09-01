@@ -1,6 +1,6 @@
 import test from "ava";
 import { Cell } from "@ckb-lumos/base";
-import { minimalCellCapacity } from "../src";
+import { minimalCellCapacity, minimalScriptCapacity } from "../src";
 
 const normalCell: Cell = {
   cellOutput: {
@@ -52,5 +52,27 @@ test("BigInt:cell with type and data, validate true", (t) => {
   const capacity = minimalCellCapacity(cellWithTypeAndData);
   const expectedCapacity = BigInt((61 + 33 + 2) * 10 ** 8);
 
+  t.true(capacity === expectedCapacity);
+});
+
+test("BigInt:no args script capacity", (t) => {
+  const capacity = minimalScriptCapacity({
+    args: "0x",
+    codeHash:
+      "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+    hashType: "type",
+  });
+  const expectedCapacity = BigInt(33 * 10 ** 8);
+  t.true(capacity === expectedCapacity);
+});
+
+test("BigInt:normal script, validate true", (t) => {
+  const capacity = minimalScriptCapacity({
+    args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+    codeHash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hashType: "type",
+  });
+  const expectedCapacity = BigInt(53 * 10 ** 8);
   t.true(capacity === expectedCapacity);
 });

@@ -30,6 +30,31 @@ export interface Options {
 
 const BECH32_LIMIT = 1023;
 
+export function minimalScriptCapacity(
+  script: Script,
+  { validate = true }: { validate?: boolean } = {}
+): bigint {
+  const result = minimalScriptCapacityCompatible(script, { validate });
+  return BigInt(result.toString());
+}
+
+export function minimalScriptCapacityCompatible(
+  script: Script,
+  { validate = true }: { validate?: boolean } = {}
+): BI {
+  if (validate) {
+    validators.ValidateScript(script);
+  }
+
+  let bytes = 0;
+  bytes += bytify(script.codeHash).length;
+  bytes += bytify(script.args).length;
+  // hash_type field
+  bytes += 1;
+
+  return BI.from(bytes).mul(100000000);
+}
+
 export function minimalCellCapacity(
   fullCell: Cell,
   { validate = true }: { validate?: boolean } = {}
