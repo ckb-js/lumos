@@ -1,6 +1,10 @@
 import test from "ava";
 import { Cell } from "@ckb-lumos/base";
-import { minimalCellCapacity, minimalCellCapacityCompatible } from "../src";
+import {
+  minimalCellCapacity,
+  minimalCellCapacityCompatible,
+  minimalScriptCapacityCompatible,
+} from "../src";
 import { BI } from "@ckb-lumos/bi";
 
 const normalCell: Cell = {
@@ -82,4 +86,37 @@ test("cell with type and data, validate true", (t) => {
   const capacity = minimalCellCapacityCompatible(cellWithTypeAndData);
   const expectedCapacity = BI.from(61 + 33 + 2).mul(BI.from(10).pow(8));
   t.true(capacity.toString() === expectedCapacity.toString());
+});
+
+test("no args script capacity", (t) => {
+  const capacity = minimalScriptCapacityCompatible({
+    args: "0x",
+    codeHash:
+      "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
+    hashType: "type",
+  });
+  const expectedCapacity = BI.from(33).mul(BI.from(10).pow(8));
+  t.true(capacity.toString() === expectedCapacity.toString());
+});
+
+test("normal script, validate true", (t) => {
+  const capacity = minimalScriptCapacityCompatible({
+    args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+    codeHash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hashType: "type",
+  });
+  const expectedCapacity = BI.from(53).mul(BI.from(10).pow(8));
+  t.true(capacity.toString() === expectedCapacity.toString());
+});
+
+test("invalid script, validate failed", (t) => {
+  t.throws(() => {
+    minimalScriptCapacityCompatible({
+      args: "0x36c329ed630d6ce750712a477543672adab57f4c",
+      codeHash:
+        "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      hashType: "invalid",
+    } as any);
+  });
 });
