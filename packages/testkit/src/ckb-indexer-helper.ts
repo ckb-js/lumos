@@ -32,7 +32,7 @@ const download = async () => {
 
   const fileName = `ckb-indexer-${CKB_Indexer_Version}-${osType}${
     isOldVersion ? "" : "-x86_64"
-  }.zip`;
+  }.${osType === "linux" ? "tar.gz" : "zip"}`;
 
   const downloadUrl = `https://github.com/nervosnetwork/ckb-indexer/releases/download/v${CKB_Indexer_Version}/${fileName}`;
 
@@ -44,19 +44,20 @@ const download = async () => {
   await downloadAndExtract(downloadUrl, process.cwd());
   // const downloadCmd = `curl -O -L "${downloadUrl}"`;
   // shell.exec(downloadCmd);
-  log(`exec unzip -o ./${fileName} -x README.md`);
-  shell.exec(`unzip -o ./${fileName} -x README.md`);
   if (osType === "macos") {
-    shell.exec(`unzip -o ./ckb-indexer-mac-x86_64.zip`);
+    log(`exec unzip -o ./${fileName} -x README.md`);
+    shell.exec(`unzip -o ./${fileName} -x README.md`);
     shell.chmod("+x", "./ckb-indexer");
-    shell.rm("-rf", "ckb-indexer-linux-x86_64.zip");
+    shell.rm("-rf", fileName);
   } else if (osType === "mac") {
+    log(`exec unzip -o ./${fileName} -x README.md`);
+    shell.exec(`unzip -o ./${fileName} -x README.md`);
     shell.chmod("+x", "./ckb-indexer");
     shell.rm("-rf", fileName);
   } else if (osType === "linux") {
-    shell.exec(`tar xvzf ./ckb-indexer-linux-x86_64.tar.gz ckb-indexer`);
+    shell.exec(`tar xvzf ./${fileName} ckb-indexer`);
     shell.chmod("+x", "./ckb-indexer");
-    shell.rm("-rf", "ckb-indexer-linux-x86_64.tar.gz");
+    shell.rm("-rf", fileName);
   }
 
   shell.rm(fileName);

@@ -1,4 +1,4 @@
-import sinon from "sinon";
+import { stub, spy } from "sinon";
 import test from "ava";
 import fs from "fs";
 import path from "path";
@@ -30,7 +30,7 @@ async function asyncRetry(
 
 test("subscribe cells", async (t) => {
   let blockIndex = 0;
-  const stub = sinon.stub(indexer, "tip").callsFake(() => {
+  const _stub = stub(indexer, "tip").callsFake(() => {
     const blocks = JSON.parse(
       fs.readFileSync(path.join(__dirname, "./blocks_data.json")).toString()
     );
@@ -45,20 +45,20 @@ test("subscribe cells", async (t) => {
   });
 
   for (const queryCase of indexerSubscribeTestCases) {
-    let spy = sinon.spy();
+    let _spy = spy();
     const eventEmitter = indexer.subscribe(queryCase.queryOption);
     eventEmitter.on("changed", spy);
     asyncRetry(
       () => {
-        return spy.callCount >= queryCase.expectedResult;
+        return _spy.callCount >= queryCase.expectedResult;
       },
       1000,
       10000
     ).then(() => {
-      t.is(spy.callCount, queryCase.expectedResult, queryCase.desc);
-      stub.resetHistory();
+      t.is(_spy.callCount, queryCase.expectedResult, queryCase.desc);
+      _stub.resetHistory();
       blockIndex = 0;
-      spy.resetHistory();
+      _spy.resetHistory();
     });
   }
 });

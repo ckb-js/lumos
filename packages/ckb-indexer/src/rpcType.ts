@@ -27,6 +27,7 @@ export interface SearchFilter {
   output_data_len_range?: HexadecimalRange; //empty
   output_capacity_range?: HexadecimalRange; //empty
   block_range?: HexadecimalRange; //fromBlock-toBlock
+  script_len_range?: HexadecimalRange;
 }
 export interface SearchKey {
   script: Script;

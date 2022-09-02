@@ -8153,6 +8153,14 @@ const cellCollectorTestCases = [
     expectedResult: [],
   },
   {
+    desc: "Test query cells by lock and script length range and return empty result",
+    queryOption: {
+      lock: lockInNervosDAO,
+      scriptLenRange: ["0x0", "0x1"],
+    },
+    expectedResult: [],
+  },
+  {
     desc:
       "Test query cells by bufferSize 3 and can get all",
       queryOption: {

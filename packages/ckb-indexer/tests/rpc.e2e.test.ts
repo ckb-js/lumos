@@ -81,6 +81,39 @@ test("indexer rpc get cells without data", async (t) => {
   t.deepEqual(withoutDataCells.objects[0].outputData, null);
 });
 
+test("indexer rpc get cells with script_len_range param", async (t) => {
+  const lock: Script = {
+    codeHash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hashType: "type",
+    args: "0xb5a27e6b01d309135b06089ce192a267ceada8ea",
+  };
+
+  const allCells = await indexerRpc.getCells(
+    {
+      script: lock,
+      scriptType: "lock",
+    },
+    "asc",
+    "0x64"
+  );
+  t.deepEqual(allCells.objects.length, 1);
+  t.notDeepEqual(allCells.objects[0].outputData, null);
+
+  const filteredCells = await indexerRpc.getCells(
+    {
+      script: lock,
+      scriptType: "lock",
+      filter: {
+        scriptLenRange: ["0x0", "0x1"],
+      },
+    },
+    "asc",
+    "0x64"
+  );
+  t.deepEqual(filteredCells.objects.length, 0);
+});
+
 test("indexer rpc get group by hash transactions", async (t) => {
   const lock: Script = {
     codeHash:

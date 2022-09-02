@@ -18,6 +18,7 @@ export type Order = "asc" | "desc";
 export interface CKBIndexerQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;
   outputCapacityRange?: HexadecimalRange;
+  scriptLenRange?: HexadecimalRange;
   bufferSize?: number;
   withData?: boolean;
   groupByTransaction?: boolean;
