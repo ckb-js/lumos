@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/experiment-tx-assembler",
-  "version": "0.19.0-alpha.1",
+  "version": "0.19.0-alpha.2",
   "description": "",
   "homepage": "https://github.com/nervosnetwork/lumos#readme",
   "license": "MIT",
@@ -21,10 +21,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.19.0-alpha.1",
-    "@ckb-lumos/config-manager": "^0.19.0-alpha.1",
-    "@ckb-lumos/helpers": "^0.19.0-alpha.1",
-    "@ckb-lumos/toolkit": "^0.19.0-alpha.1"
+    "@ckb-lumos/base": "^0.19.0-alpha.2",
+    "@ckb-lumos/config-manager": "^0.19.0-alpha.2",
+    "@ckb-lumos/helpers": "^0.19.0-alpha.2",
+    "@ckb-lumos/toolkit": "^0.19.0-alpha.2"
   },
   "repository": {
     "type": "git",
