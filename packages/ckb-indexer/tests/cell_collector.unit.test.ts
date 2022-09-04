@@ -1,7 +1,7 @@
 import test from "ava";
 import { Indexer, CellCollector } from "../src";
 import { HexadecimalRange, Script, utils } from "@ckb-lumos/base";
-import sinon, { SinonSpy } from "sinon";
+import { spy, SinonSpy } from "sinon";
 import { validators } from "@ckb-lumos/toolkit";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
@@ -11,8 +11,8 @@ const indexer = new Indexer(indexUri, nodeUri);
 let validateScriptSpy: SinonSpy;
 let utilsSpy: SinonSpy;
 test.before(() => {
-  validateScriptSpy = sinon.spy(validators, "ValidateScript");
-  utilsSpy = sinon.spy(utils, "assertHexadecimal");
+  validateScriptSpy = spy(validators, "ValidateScript");
+  utilsSpy = spy(utils, "assertHexadecimal");
 });
 test.afterEach(() => {
   validateScriptSpy.resetHistory();
@@ -63,6 +63,27 @@ test("convertParams# should match outputDataRange if data and outputData both de
     new CellCollector(indexer, notMatchQuery);
   });
   t.is(error.message, "data length not match outputDataLenRange");
+});
+
+test("convertParams# should match scriptLenRange if type is 'empty' and scriptLenRange not provide", (t) => {
+  const cellCollect = new CellCollector(indexer, {
+    lock: lockScript,
+    type: "empty",
+    order: "asc",
+  });
+  cellCollect.convertQueryOptionToSearchKey();
+
+  t.deepEqual(cellCollect.queries.scriptLenRange, ["0x0", "0x1"]);
+
+  const cellCollect2 = new CellCollector(indexer, {
+    lock: lockScript,
+    scriptLenRange: ["0x0", "0xff"],
+    type: "empty",
+    order: "asc",
+  });
+  cellCollect2.convertQueryOptionToSearchKey();
+
+  t.deepEqual(cellCollect2.queries.scriptLenRange, ["0x0", "0xff"]);
 });
 
 test("validateQueryOption#should throw error if lock and type not provided", (t) => {
@@ -155,4 +176,35 @@ test("validateQueryOption#validate outputDataLenRange", (t) => {
   new CellCollector(indexer, query);
   t.is(utilsSpy.calledWith("outputDataLenRange[0]", "0x100"), true);
   t.is(utilsSpy.calledWith("outputDataLenRange[1]", "0x200"), true);
+});
+
+test("validateQueryOption#validate scriptLenRange", (t) => {
+  const scriptLenRange: HexadecimalRange = ["0x0", "0x1"];
+  const query = {
+    lock: lockScript,
+    scriptLenRange,
+  };
+  new CellCollector(indexer, query);
+  t.is(utilsSpy.calledWith("scriptLenRange[0]", "0x0"), true);
+  t.is(utilsSpy.calledWith("scriptLenRange[1]", "0x1"), true);
+
+  const wrongQuery = {
+    lock: lockScript,
+    data: "0x664455",
+    scriptLenRange: ["something", "0x1"] as HexadecimalRange,
+  };
+  const error = t.throws(() => {
+    new CellCollector(indexer, wrongQuery);
+  });
+  t.is(error.message, "scriptLenRange[0] must be a hexadecimal!");
+
+  const wrongQuery2 = {
+    lock: lockScript,
+    data: "0x664455",
+    scriptLenRange: ["0x0", "something"] as HexadecimalRange,
+  };
+  const error2 = t.throws(() => {
+    new CellCollector(indexer, wrongQuery2);
+  });
+  t.is(error2.message, "scriptLenRange[1] must be a hexadecimal!");
 });
