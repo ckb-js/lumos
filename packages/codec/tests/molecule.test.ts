@@ -13,6 +13,7 @@ import { bytify } from "../src/bytes";
 import test from "ava";
 import { Uint16, Uint32, Uint8 } from "../src/number";
 import { byteOf } from "../src/molecule";
+import { CodecExecuteError } from "../src/base";
 
 test("test layout-array", (t) => {
   const codec = array(Uint8, 4);
@@ -213,4 +214,114 @@ test("test fixed hex bytes", (t) => {
   t.deepEqual(hexBytes, bytify([0x12, 0x34, 0x56]));
   t.truthy(hexStr === createFixedHexBytesCodec(3).unpack(hexBytes));
   t.throws(() => createFixedHexBytesCodec(4).pack(hexStr));
+});
+test("test simple array codec error", (t) => {
+  const codec = array(Uint8, 3);
+  try {
+    codec.pack([0x1, 0xfff, 3]);
+    t.fail();
+  } catch (e) {
+    t.truthy(
+      (e as CodecExecuteError).message.includes(
+        "Expect type Uint8BE at [1] but got error: Value must be between 0 and 255, but got"
+      )
+    );
+  }
+});
+
+test("test simple struct error", (t) => {
+  const codec = struct({ f1: Uint8, f2: Uint8 }, ["f1", "f2"]);
+  try {
+    codec.pack({ f1: 0x1, f2: 0xffff });
+    t.fail();
+  } catch (e) {
+    t.truthy(
+      (e as CodecExecuteError).message.includes(
+        "Expect type Uint8BE at f2 but got error: Value must be between 0 and 255, but got"
+      )
+    );
+  }
+
+  try {
+    codec.pack({ f1: 0x23333, f2: 0x0 });
+    t.fail();
+  } catch (e) {
+    t.truthy(
+      (e as CodecExecuteError).message.includes(
+        "Expect type Uint8BE at f1 but got error: Value must be between 0 and 255, but got"
+      )
+    );
+  }
+});
+
+test("test simple fixedvec", (t) => {
+  const codec = fixvec(Uint8);
+  try {
+    codec.pack([0x1, 0x2, 0x114514]);
+  } catch (e) {
+    t.truthy(
+      (e as CodecExecuteError).message.includes(
+        "Expect type Uint8BE at [2] but got error: Value must be between 0 and 255, but got"
+      )
+    );
+  }
+});
+
+test("test simple dynvec", (t) => {
+  const codec = dynvec(Uint8);
+  try {
+    codec.pack([0x1, 0x2, 0x114514]);
+  } catch (e) {
+    t.truthy(
+      (e as CodecExecuteError).message.includes(
+        "Expect type Uint8BE at [2] but got error: Value must be between 0 and 255, but got"
+      )
+    );
+  }
+});
+
+test("simple table", (t) => {
+  const codec = table({ f1: Uint8, f2: Uint8, f3: Uint8 }, ["f1", "f2", "f3"]);
+
+  try {
+    codec.pack({ f1: 0x1, f2: 0xffff, f3: 0x1 });
+    t.fail();
+  } catch (e) {
+    t.truthy(
+      (e as CodecExecuteError).message.includes(
+        "Expect type Uint8BE at f2 but got error: Value must be between 0 and 255, but got"
+      )
+    );
+  }
+
+  try {
+    codec.pack({ f1: 0x1, f2: 0x0, f3: 0x2333 });
+    t.fail();
+  } catch (e) {
+    t.truthy(
+      (e as CodecExecuteError).message.includes(
+        "Expect type Uint8BE at f3 but got error: Value must be between 0 and 255, but got"
+      )
+    );
+  }
+});
+test("nested type", (t) => {
+  const codec = struct(
+    {
+      byteField: Uint8,
+      arrayField: array(Uint8, 3),
+    },
+    ["byteField", "arrayField"]
+  );
+
+  try {
+    codec.pack({ byteField: 0x1, arrayField: [0x1, 0x2, 0x114514] });
+    t.fail();
+  } catch (e) {
+    t.true(
+      (e as CodecExecuteError).message.includes(
+        "Expect type Uint8BE at arrayField[2] but got error: Value must be between 0 and 255, but got"
+      )
+    );
+  }
 });

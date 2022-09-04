@@ -20,6 +20,7 @@ import type {
 import { createBytesCodec, createFixedBytesCodec, isFixedCodec } from "../base";
 import { Uint32LE } from "../number";
 import { concat } from "../bytes";
+import { trackCodeExecuteError } from "../utils";
 
 type NullableKeys<O extends Record<string, unknown>> = {
   [K in keyof O]-?: [O[K] & (undefined | null)] extends [never] ? never : K;
@@ -60,7 +61,9 @@ export function array<T extends FixedBytesCodec>(
   return createFixedBytesCodec({
     byteLength: itemCodec.byteLength * itemCount,
     pack(items) {
-      const itemsBuf = items.map((item) => itemCodec.pack(item));
+      const itemsBuf = items.map((item, index) =>
+        trackCodeExecuteError(index, () => itemCodec.pack(item))
+      );
       return concat(...itemsBuf);
     },
     unpack(buf) {
@@ -108,13 +111,18 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const item = obj[field];
-        return concat(result, itemCodec.pack(item));
+        return concat(
+          result,
+          trackCodeExecuteError(field, () => itemCodec.pack(item))
+        );
       }, Uint8Array.from([]));
     },
     unpack(buf) {
-      const result = {} as PartialNullable<{
-        [key in keyof T]: UnpackResult<T[key]>;
-      }>;
+      const result = {} as PartialNullable<
+        {
+          [key in keyof T]: UnpackResult<T[key]>;
+        }
+      >;
       let offset = 0;
 
       fields.forEach((field) => {
@@ -136,7 +144,11 @@ export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
       return concat(
         Uint32LE.pack(items.length),
         items.reduce(
-          (buf, item) => concat(buf, itemCodec.pack(item)),
+          (buf, item, index) =>
+            concat(
+              buf,
+              trackCodeExecuteError(index, () => itemCodec.pack(item))
+            ),
           new ArrayBuffer(0)
         )
       );
@@ -157,8 +169,10 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   return createBytesCodec({
     pack(obj) {
       const packed = obj.reduce(
-        (result, item) => {
-          const packedItem = itemCodec.pack(item);
+        (result, item, index) => {
+          const packedItem = trackCodeExecuteError(index, () =>
+            itemCodec.pack(item)
+          );
           const packedHeader = Uint32LE.pack(result.offset);
           return {
             header: concat(result.header, packedHeader),
@@ -230,7 +244,9 @@ export function table<T extends Record<string, BytesCodec>>(
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           const item = obj[field];
-          const packedItem = itemCodec.pack(item);
+          const packedItem = trackCodeExecuteError(field, () =>
+            itemCodec.pack(item)
+          );
           const packedOffset = Uint32LE.pack(result.offset);
           return {
             header: concat(result.header, packedOffset),
@@ -257,9 +273,11 @@ export function table<T extends Record<string, BytesCodec>>(
         );
       }
       if (totalSize <= 4 || fields.length === 0) {
-        return {} as PartialNullable<{
-          [key in keyof T]: UnpackResult<T[key]>;
-        }>;
+        return {} as PartialNullable<
+          {
+            [key in keyof T]: UnpackResult<T[key]>;
+          }
+        >;
       } else {
         const offsets = fields.map((_, index) =>
           Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
@@ -274,9 +292,11 @@ export function table<T extends Record<string, BytesCodec>>(
           const itemBuf = buf.slice(start, end);
           Object.assign(obj, { [field]: itemCodec.unpack(itemBuf) });
         }
-        return obj as PartialNullable<{
-          [key in keyof T]: UnpackResult<T[key]>;
-        }>;
+        return obj as PartialNullable<
+          {
+            [key in keyof T]: UnpackResult<T[key]>;
+          }
+        >;
       }
     },
   });
@@ -315,7 +335,7 @@ export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
   return createBytesCodec({
     pack(obj?) {
       if (obj !== undefined && obj !== null) {
-        return itemCodec.pack(obj);
+        return trackCodeExecuteError("option", () => itemCodec.pack(obj));
       } else {
         return Uint8Array.from([]);
       }

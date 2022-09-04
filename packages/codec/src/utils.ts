@@ -1,3 +1,5 @@
+import { CodecBaseError, CodecExecuteError } from "./base";
+
 const HEX_DECIMAL_REGEX = /^0x([0-9a-fA-F])+$/;
 const HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();
 
@@ -78,4 +80,20 @@ export function assertMinBufferLength(
 export function isObjectLike(x: unknown): x is Record<string, unknown> {
   if (!x) return false;
   return typeof x === "object";
+}
+
+export function trackCodeExecuteError<T>(
+  path: string | number | symbol,
+  fn: () => T
+): T {
+  try {
+    return fn();
+  } catch (e) {
+    const readableError =
+      e instanceof CodecExecuteError
+        ? e
+        : new CodecExecuteError(e as CodecBaseError);
+    readableError.updateKey(path);
+    throw readableError;
+  }
 }

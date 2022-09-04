@@ -10,6 +10,7 @@ export interface Codec<
 > {
   pack: (packable: Packable) => Packed;
   unpack: (unpackable: Unpackable) => Unpacked;
+  name?: string;
 }
 
 export type AnyCodec = Codec<any, any>;
@@ -113,4 +114,40 @@ export function createFixedBytesCodec<Unpacked, Packable = Unpacked>(
       },
     }),
   };
+}
+
+export class CodecBaseError extends Error {
+  constructor(message: string, public expectedType: string) {
+    super(message);
+  }
+}
+
+export class CodecExecuteError extends Error {
+  constructor(private origin: CodecBaseError) {
+    super();
+  }
+
+  keys: (number | string)[] = [];
+
+  public updateKey(key: number | string | symbol): void {
+    this.keys.push(key as number | string);
+    this.message = this.getErrorMessage();
+  }
+
+  private getErrorMessage(): string {
+    const path = this.keys.reduceRight(
+      (acc, cur, index, array) =>
+        acc +
+        (typeof cur === "number"
+          ? `[${cur}]`
+          : `${index === array.length - 1 ? "" : "."}${cur}`),
+      ""
+    );
+
+    return `Expect type ${this.origin.expectedType} at ${path} but got error: ${
+      this.origin.message
+    }
+    ${this.origin.stack?.replace(/Error:.+?\n/, "")}
+    `;
+  }
 }
