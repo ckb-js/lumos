@@ -10,7 +10,6 @@ export interface Codec<
 > {
   pack: (packable: Packable) => Packed;
   unpack: (unpackable: Unpackable) => Unpacked;
-  name?: string;
 }
 
 export type AnyCodec = Codec<any, any>;
@@ -118,14 +117,14 @@ export function createFixedBytesCodec<Unpacked, Packable = Unpacked>(
 
 export const CODEC_OPTIONAL_PATH = Symbol("?");
 type CodecOptionalPath = typeof CODEC_OPTIONAL_PATH;
-export class CodecBaseError extends Error {
+export class CodecBaseParseError extends Error {
   constructor(message: string, public expectedType: string) {
     super(message);
   }
 }
 
 export class CodecExecuteError extends Error {
-  constructor(private origin: CodecBaseError) {
+  constructor(private origin: CodecBaseParseError) {
     super();
   }
 
@@ -133,10 +132,10 @@ export class CodecExecuteError extends Error {
 
   public updateKey(key: number | string | symbol): void {
     this.keys.push(key as number | string);
-    this.message = this.getErrorMessage();
+    this.message = this.getPackErrorMessage();
   }
 
-  private getErrorMessage(): string {
+  private getPackErrorMessage(): string {
     type CodecPath = number | string | CodecOptionalPath;
 
     const reducer = (acc: string, cur: CodecPath, index: number) => {

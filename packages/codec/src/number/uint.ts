@@ -2,7 +2,7 @@ import { BI, BIish } from "@ckb-lumos/bi";
 import {
   createFixedBytesCodec,
   FixedBytesCodec,
-  CodecBaseError,
+  CodecBaseParseError,
 } from "../base";
 
 function assertNumberRange(
@@ -14,7 +14,7 @@ function assertNumberRange(
   value = BI.from(value);
 
   if (value.lt(min) || value.gt(max)) {
-    throw new CodecBaseError(
+    throw new CodecBaseParseError(
       `Value must be between ${min.toString()} and ${max.toString()}, but got ${value.toString()}`,
       typeName
     );
@@ -44,7 +44,10 @@ const createUintBICodec = (byteLength: number, littleEndian = false) => {
     pack(biIsh) {
       const typeName = `Uint${byteLength * 8}${littleEndian ? "LE" : "BE"}`;
       if (typeof biIsh === "number" && !Number.isSafeInteger(biIsh)) {
-        throw new CodecBaseError(`${biIsh} is not a safe integer`, typeName);
+        throw new CodecBaseParseError(
+          `${biIsh} is not a safe integer`,
+          typeName
+        );
       }
 
       let num = BI.from(biIsh);

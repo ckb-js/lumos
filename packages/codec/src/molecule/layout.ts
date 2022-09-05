@@ -12,7 +12,7 @@
 
 import {
   BytesCodec,
-  CodecBaseError,
+  CodecBaseParseError,
   CODEC_OPTIONAL_PATH,
   Fixed,
   FixedBytesCodec,
@@ -63,7 +63,6 @@ export type UnionCodec<T extends Record<string, BytesCodec>> = BytesCodec<
  * The size of an array is the size of inner type times the length.
  * @param itemCodec the fixed-size array item codec
  * @param itemCount
- * @returns
  */
 export function array<T extends FixedBytesCodec>(
   itemCodec: T,
@@ -107,11 +106,11 @@ function checkShape<T>(shape: T, fields: (keyof T)[]) {
   }
 }
 
-/**checkShape
+/**
  * Struct is a fixed-size type: all fields in struct are fixed-size and it has a fixed quantity of fields.
  * The size of a struct is the sum of all fields' size.
  * @param shape a object contains all fields' codec
- * @param fields the shape's keys. Also provide an order for serialization/deserialization.
+ * @param fields the shape's keys. It provide an order for serialization/deserialization.
  */
 export function struct<T extends Record<string, FixedBytesCodec>>(
   shape: T,
@@ -352,7 +351,7 @@ export function union<T extends Record<string, BytesCodec>>(
 
       /* c8 ignore next */
       if (typeof type !== "string") {
-        throw new CodecBaseError(
+        throw new CodecBaseParseError(
           `Invalid type in union, type must be a string`,
           typeName
         );
@@ -360,7 +359,7 @@ export function union<T extends Record<string, BytesCodec>>(
 
       const fieldIndex = fields.indexOf(type);
       if (fieldIndex === -1) {
-        throw new CodecBaseError(
+        throw new CodecBaseParseError(
           `Unknown union type: ${String(obj.type)}`,
           typeName
         );

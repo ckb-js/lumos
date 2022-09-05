@@ -1,4 +1,4 @@
-import { CodecBaseError, CodecExecuteError } from "./base";
+import { CodecBaseParseError, CodecExecuteError } from "./base";
 
 const HEX_DECIMAL_REGEX = /^0x([0-9a-fA-F])+$/;
 const HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();
@@ -92,7 +92,7 @@ export function trackCodeExecuteError<T>(
     const readableError =
       e instanceof CodecExecuteError
         ? e
-        : new CodecExecuteError(e as CodecBaseError);
+        : new CodecExecuteError(e as CodecBaseParseError);
     readableError.updateKey(path);
     throw readableError;
   }

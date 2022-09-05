@@ -1,6 +1,6 @@
 import { HashType } from "@ckb-lumos/base";
 import test from "ava";
-import sinon from "sinon";
+import { stub } from "sinon";
 import { Indexer } from "../src";
 import { CKBIndexerQueryOptions, IndexerEmitter } from "../src/type";
 const nodeUri = "http://127.0.0.1:8118/rpc";
@@ -9,7 +9,7 @@ const indexer = new Indexer(indexUri, nodeUri);
 
 test.before(() => {
   // @ts-ignore
-  sinon.stub(indexer, "scheduleLoop").callsFake(() => {});
+  stub(indexer, "scheduleLoop").callsFake(() => {});
 });
 
 test("test subscrib by script", (t) => {
