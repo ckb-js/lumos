@@ -10,14 +10,18 @@
  * | union  | item-type-id                                     | item                              |
  */
 
-import type {
+import {
   BytesCodec,
+  CodecBaseError,
+  CODEC_OPTIONAL_PATH,
   Fixed,
   FixedBytesCodec,
   PackParam,
   UnpackResult,
+  createBytesCodec,
+  createFixedBytesCodec,
+  isFixedCodec,
 } from "../base";
-import { createBytesCodec, createFixedBytesCodec, isFixedCodec } from "../base";
 import { Uint32LE } from "../number";
 import { concat } from "../bytes";
 import { trackCodeExecuteError } from "../utils";
@@ -54,6 +58,13 @@ export type UnionCodec<T extends Record<string, BytesCodec>> = BytesCodec<
   { [key in keyof T]: { type: key; value: PackParam<T[key]> } }[keyof T]
 >;
 
+/**
+ * The array is a fixed-size type: it has a fixed-size inner type and a fixed length.
+ * The size of an array is the size of inner type times the length.
+ * @param itemCodec the fixed-size array item codec
+ * @param itemCount
+ * @returns
+ */
 export function array<T extends FixedBytesCodec>(
   itemCodec: T,
   itemCount: number
@@ -96,6 +107,12 @@ function checkShape<T>(shape: T, fields: (keyof T)[]) {
   }
 }
 
+/**checkShape
+ * Struct is a fixed-size type: all fields in struct are fixed-size and it has a fixed quantity of fields.
+ * The size of a struct is the sum of all fields' size.
+ * @param shape a object contains all fields' codec
+ * @param fields the shape's keys. Also provide an order for serialization/deserialization.
+ */
 export function struct<T extends Record<string, FixedBytesCodec>>(
   shape: T,
   fields: (keyof T)[]
@@ -118,11 +135,9 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
       }, Uint8Array.from([]));
     },
     unpack(buf) {
-      const result = {} as PartialNullable<
-        {
-          [key in keyof T]: UnpackResult<T[key]>;
-        }
-      >;
+      const result = {} as PartialNullable<{
+        [key in keyof T]: UnpackResult<T[key]>;
+      }>;
       let offset = 0;
 
       fields.forEach((field) => {
@@ -138,6 +153,10 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
   });
 }
 
+/**
+ * Vector with fixed size item codec
+ * @param itemCodec fixed-size vector item codec
+ */
 export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
   return createBytesCodec({
     pack(items) {
@@ -165,6 +184,11 @@ export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
   });
 }
 
+/**
+ * The vector can contain dynamic size items.
+ * @param itemCodec the vector item codec. It can be fixed-size or dynamic-size.
+ * For example, you can create a recursive vector with this.
+ */
 export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   return createBytesCodec({
     pack(obj) {
@@ -223,6 +247,11 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   });
 }
 
+/**
+ * General vector codec, if your itemCodec is fixed size type, it will create a fixvec codec, otherwise it will create a dynvec codec.
+ * @param itemCodec
+ * @returns
+ */
 export function vector<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   if (isFixedCodec(itemCodec)) {
     return fixvec(itemCodec);
@@ -230,6 +259,11 @@ export function vector<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   return dynvec(itemCodec);
 }
 
+/**
+ * Table is a dynamic-size type. It can be considered as a dynvec but the length is fixed.
+ * @param shape The table shape, item codec can be dynamic size
+ * @param fields the shape's keys. Also provide an order for serialization/deserialization.
+ */
 export function table<T extends Record<string, BytesCodec>>(
   shape: T,
   fields: (keyof T)[]
@@ -273,11 +307,9 @@ export function table<T extends Record<string, BytesCodec>>(
         );
       }
       if (totalSize <= 4 || fields.length === 0) {
-        return {} as PartialNullable<
-          {
-            [key in keyof T]: UnpackResult<T[key]>;
-          }
-        >;
+        return {} as PartialNullable<{
+          [key in keyof T]: UnpackResult<T[key]>;
+        }>;
       } else {
         const offsets = fields.map((_, index) =>
           Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
@@ -292,16 +324,23 @@ export function table<T extends Record<string, BytesCodec>>(
           const itemBuf = buf.slice(start, end);
           Object.assign(obj, { [field]: itemCodec.unpack(itemBuf) });
         }
-        return obj as PartialNullable<
-          {
-            [key in keyof T]: UnpackResult<T[key]>;
-          }
-        >;
+        return obj as PartialNullable<{
+          [key in keyof T]: UnpackResult<T[key]>;
+        }>;
       }
     },
   });
 }
 
+/**
+ * Union is a dynamic-size type.
+ * Serializing a union has two steps:
+ * - Serialize a item type id in bytes as a 32 bit unsigned integer in little-endian. The item type id is the index of the inner items, and it's starting at 0.
+ * - Serialize the inner item.
+ * @param itemCodec the union item record
+ * @param fields the list of itemCodec's keys. It's also provide an order for serialization/deserialization.
+ * @returns
+ */
 export function union<T extends Record<string, BytesCodec>>(
   itemCodec: T,
   fields: (keyof T)[]
@@ -309,15 +348,22 @@ export function union<T extends Record<string, BytesCodec>>(
   return createBytesCodec({
     pack(obj) {
       const type = obj.type;
+      const typeName = `Union(${fields.join(" | ")})`;
 
       /* c8 ignore next */
       if (typeof type !== "string") {
-        throw new Error(`Invalid type in union, type must be a string`);
+        throw new CodecBaseError(
+          `Invalid type in union, type must be a string`,
+          typeName
+        );
       }
 
       const fieldIndex = fields.indexOf(type);
       if (fieldIndex === -1) {
-        throw new Error(`Unknown union type: ${String(obj.type)}`);
+        throw new CodecBaseError(
+          `Unknown union type: ${String(obj.type)}`,
+          typeName
+        );
       }
       const packedFieldIndex = Uint32LE.pack(fieldIndex);
       const packedBody = itemCodec[type].pack(obj.value);
@@ -331,11 +377,20 @@ export function union<T extends Record<string, BytesCodec>>(
   });
 }
 
+/**
+ * Option is a dynamic-size type.
+ * Serializing an option depends on whether it is empty or not:
+ * - if it's empty, there is zero bytes (the size is 0).
+ * - if it's not empty, just serialize the inner item (the size is same as the inner item's size).
+ * @param itemCodec
+ */
 export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
   return createBytesCodec({
     pack(obj?) {
       if (obj !== undefined && obj !== null) {
-        return trackCodeExecuteError("option", () => itemCodec.pack(obj));
+        return trackCodeExecuteError(CODEC_OPTIONAL_PATH, () =>
+          itemCodec.pack(obj)
+        );
       } else {
         return Uint8Array.from([]);
       }
