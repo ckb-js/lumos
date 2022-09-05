@@ -220,6 +220,10 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
 
   const CKBChangeCapacity = inputsCapacity.sub(outputsCapacity);
 
+  if (CKBChangeCapacity.lt(0)) {
+    throw new Error("CKB holder capacity not enough");
+  }
+
   const CKBChangeOutput: Cell = {
     cellOutput: {
       capacity: CKBChangeCapacity.toHexString(),
@@ -231,8 +235,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
 
   txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
     const placeholderWitness = {
-      lock:
-        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      lock: "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
     };
 
     const witnessArgs = bytes.hexify(blockchain.WitnessArgs.pack(placeholderWitness));
@@ -244,6 +247,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
     return witnesses;
   });
 
+  console.log(txSkeleton.toJS());
   txSkeleton = await payFeeByFeeRate(txSkeleton, [holderAccountInfo.address], 1000, undefined, { config: AGGRON4 });
 
   // STEP2: sign the transaction skeleton
