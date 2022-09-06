@@ -109,7 +109,7 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
     const multisigTemplate = config?.SCRIPTS.SECP256K1_BLAKE160_MULTISIG;
     const acpTemplate = config?.SCRIPTS.ANYONE_CAN_PAY;
     const omnilockTemplate = config?.SCRIPTS.OMNILOCK;
-    
+
     const predefinedInfos: LockScriptInfo[] = [];
 
     if (secpTemplate) {
