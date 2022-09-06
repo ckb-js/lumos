@@ -1,9 +1,6 @@
 import { BI, BIish } from "@ckb-lumos/bi";
-import {
-  createFixedBytesCodec,
-  FixedBytesCodec,
-  CodecBaseParseError,
-} from "../base";
+import { createFixedBytesCodec, FixedBytesCodec } from "../base";
+import { CodecBaseParseError } from "../error";
 
 function assertNumberRange(
   value: BIish,
@@ -42,7 +39,12 @@ const createUintBICodec = (byteLength: number, littleEndian = false) => {
   return createFixedBytesCodec<BI, BIish>({
     byteLength,
     pack(biIsh) {
-      const typeName = `Uint${byteLength * 8}${littleEndian ? "LE" : "BE"}`;
+      let endianType: "LE" | "BE" | "" = littleEndian ? "LE" : "BE";
+
+      if (byteLength <= 1) {
+        endianType = "";
+      }
+      const typeName = `Uint${byteLength * 8}${endianType}`;
       if (typeof biIsh === "number" && !Number.isSafeInteger(biIsh)) {
         throw new CodecBaseParseError(
           `${biIsh} is not a safe integer`,

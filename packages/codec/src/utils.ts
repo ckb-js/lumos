@@ -1,4 +1,4 @@
-import { CodecBaseParseError, CodecExecuteError } from "./base";
+import { CodecBaseParseError, CodecExecuteError } from "./error";
 
 const HEX_DECIMAL_REGEX = /^0x([0-9a-fA-F])+$/;
 const HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();

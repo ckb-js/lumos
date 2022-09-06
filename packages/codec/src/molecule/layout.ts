@@ -12,8 +12,6 @@
 
 import {
   BytesCodec,
-  CodecBaseParseError,
-  CODEC_OPTIONAL_PATH,
   Fixed,
   FixedBytesCodec,
   PackParam,
@@ -25,6 +23,7 @@ import {
 import { Uint32LE } from "../number";
 import { concat } from "../bytes";
 import { trackCodeExecuteError } from "../utils";
+import { CodecBaseParseError, CODEC_OPTIONAL_PATH } from "../error";
 
 type NullableKeys<O extends Record<string, unknown>> = {
   [K in keyof O]-?: [O[K] & (undefined | null)] extends [never] ? never : K;
