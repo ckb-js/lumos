@@ -8,40 +8,59 @@ function log(info: string): void {
   console.log(info);
 }
 
+let CKB_Indexer_Version = "0.2.2";
+
 function getDownloadOsType() {
+  const isOldVersion = parseInt(CKB_Indexer_Version.split(".")[1]) < 4; // before v4.0
   // it returns 'Linux' on Linux, 'Darwin' on macOS, and 'Windows_NT' on Windows.
   const osType = os.type();
   if (osType === "Linux") return "linux";
-  if (osType === "Darwin") return "macos";
+  if (osType === "Darwin" && isOldVersion) return "macos";
+  if (osType === "Darwin") return "mac";
+
   // TODO support windows
   // if (osType === "Windows_NT") return "windows";
 
   throw new Error(`Unknown OS Type: ${osType}`);
 }
 
-let CKB_Indexer_Version = "0.2.2";
 const download = async () => {
+  const isOldVersion = parseInt(CKB_Indexer_Version.split(".")[1]) < 4; // before v4.0
   const osType = getDownloadOsType();
   log("ckb-indexer not exist, downloading");
   log(`cwd is ${process.cwd()}`);
-  const downloadUrl = `https://github.com/nervosnetwork/ckb-indexer/releases/download/v${CKB_Indexer_Version}/ckb-indexer-${CKB_Indexer_Version}-${osType}.zip`;
+
+  const fileName = `ckb-indexer-${CKB_Indexer_Version}-${osType}${
+    isOldVersion ? "" : "-x86_64"
+  }.${osType === "linux" ? "tar.gz" : "zip"}`;
+
+  const downloadUrl = `https://github.com/nervosnetwork/ckb-indexer/releases/download/v${CKB_Indexer_Version}/${fileName}`;
+
+  log(
+    `fileName is ${fileName}, osType is ${osType}, downloadUrl is ${downloadUrl}`
+  );
 
   // TODO use option to extract
   await downloadAndExtract(downloadUrl, process.cwd());
   // const downloadCmd = `curl -O -L "${downloadUrl}"`;
   // shell.exec(downloadCmd);
-  shell.exec(`unzip -o ./ckb-indexer-${CKB_Indexer_Version}-${osType}.zip`);
   if (osType === "macos") {
-    shell.exec(`unzip -o ./ckb-indexer-mac-x86_64.zip`);
+    log(`exec unzip -o ./${fileName} -x README.md`);
+    shell.exec(`unzip -o ./${fileName} -x README.md`);
     shell.chmod("+x", "./ckb-indexer");
-    shell.rm("-rf", "ckb-indexer-linux-x86_64.zip");
+    shell.rm("-rf", fileName);
+  } else if (osType === "mac") {
+    log(`exec unzip -o ./${fileName} -x README.md`);
+    shell.exec(`unzip -o ./${fileName} -x README.md`);
+    shell.chmod("+x", "./ckb-indexer");
+    shell.rm("-rf", fileName);
   } else if (osType === "linux") {
-    shell.exec(`tar xvzf ./ckb-indexer-linux-x86_64.tar.gz ckb-indexer`);
+    shell.exec(`tar xvzf ./${fileName} ckb-indexer`);
     shell.chmod("+x", "./ckb-indexer");
-    shell.rm("-rf", "ckb-indexer-linux-x86_64.tar.gz");
+    shell.rm("-rf", fileName);
   }
 
-  shell.rm(`ckb-indexer-${CKB_Indexer_Version}-${osType}.zip`);
+  shell.rm(fileName);
   log("artifacts removed");
 };
 

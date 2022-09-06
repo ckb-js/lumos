@@ -1,7 +1,7 @@
 import test from "ava";
 import { Indexer, TransactionCollector } from "../src";
 import { JsonRprRequestBody } from "../src/type";
-import sinon, { SinonStub } from "sinon";
+import { stub, SinonStub } from "sinon";
 import * as services from "../src/services";
 
 import {
@@ -18,7 +18,7 @@ const indexUri = "http://127.0.0.1:8120";
 const indexer = new Indexer(indexUri, nodeUri);
 let requestBatchStub: SinonStub;
 test.before(() => {
-  requestBatchStub = sinon.stub(services, "requestBatch");
+  requestBatchStub = stub(services, "requestBatch");
 });
 test.afterEach(() => {
   requestBatchStub.resetHistory();

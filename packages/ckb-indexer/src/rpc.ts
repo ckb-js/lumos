@@ -3,10 +3,14 @@ import {
   GetLiveCellsResult,
   IndexerTransactionList,
   Order,
-  SearchKey,
+  GetCellsSearchKey,
+  GetTransactionsSearchKey,
 } from "./type";
 import fetch from "cross-fetch";
-import { toSearchKey } from "./paramsFormatter";
+import {
+  toGetCellsSearchKey,
+  toGetTransactionsSearchKey,
+} from "./paramsFormatter";
 
 export class RPC {
   private uri: string;
@@ -22,22 +26,28 @@ export class RPC {
   async getTip(): Promise<Tip> {
     return utils.deepCamel(await request(this.uri, "get_tip"));
   }
-  async getCells(
-    searchKey: SearchKey,
+  async getCells<WithData extends boolean = true>(
+    searchKey: GetCellsSearchKey<WithData>,
     order: Order,
     limit: HexString,
     cursor?: string
-  ): Promise<GetLiveCellsResult> {
-    const params = [toSearchKey(searchKey), order, limit, cursor];
+  ): Promise<GetLiveCellsResult<WithData>> {
+    const params = [toGetCellsSearchKey(searchKey), order, limit, cursor];
     return utils.deepCamel(await request(this.uri, "get_cells", params));
   }
-  async getTransactions(
-    searchKey: SearchKey,
+
+  async getTransactions<Grouped extends boolean = false>(
+    searchKey: GetTransactionsSearchKey<Grouped>,
     order: Order,
     limit: HexString,
     cursor?: string
-  ): Promise<IndexerTransactionList> {
-    const params = [toSearchKey(searchKey), order, limit, cursor];
+  ): Promise<IndexerTransactionList<Grouped>> {
+    const params = [
+      toGetTransactionsSearchKey(searchKey),
+      order,
+      limit,
+      cursor,
+    ];
     return utils.deepCamel(await request(this.uri, "get_transactions", params));
   }
   async getIndexerInfo(): Promise<string> {
