@@ -26,15 +26,16 @@
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --declarationMap --emitDeclarationOnly",
     "build:js": "npm run build:old && babel --root-mode upward src/blockchain.ts --out-file lib/blockchain.js --source-maps",
-    "build:old": "mkdir -p lib && cp -rp src/*.d.ts lib && cp -rp src/*.js lib",
+    "build:old": "shx mkdir -p lib && shx cp -r src/*.d.ts lib && cp -r src/*.js lib",
     "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.js\"",
     "test:ts": "ava **/*.test.ts --timeout=2m",
-    "clean": "rm -rf lib",
+    "clean": "shx rm -rf lib",
     "test": "ava --timeout=2m"
   },
   "devDependencies": {
-    "rollup": "^1.32.0"
+    "rollup": "^1.32.0",
+    "shx": "^0.3.4"
   },
   "bugs": {
     "url": "https://github.com/nervosnetwork/lumos/issues"
