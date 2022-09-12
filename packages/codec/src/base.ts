@@ -114,3 +114,90 @@ export function createFixedBytesCodec<Unpacked, Packable = Unpacked>(
     }),
   };
 }
+
+const LAST_ACCESS_PATH = Symbol("PACKABLE_ACCESS_PATH");
+
+export class CodecBaseParseError extends Error {
+  constructor(message: string, public expectedType: string) {
+    super(message);
+  }
+}
+
+class CodecPackableProxyHandler<T extends Record<any, unknown> | any[]>
+  implements ProxyHandler<T>
+{
+  constructor(
+    private previousAccessPaths: PropertyKey[] = [],
+    private onAccess?: (paths: PropertyKey[]) => unknown
+  ) {}
+
+  lastAccess: PropertyKey[] = [];
+
+  get(target: T, p: string | symbol): any {
+    if (p === LAST_ACCESS_PATH) {
+      return this.lastAccess;
+    }
+
+    const value = target[p as keyof T];
+
+    // property may be an array's index, but proxy will automatically parse it to string. so we need to convert it back to number
+    const prop =
+      Array.isArray(target) && /^\d+$/.test(p as string) ? Number(p) : p;
+    const paths = [...this.previousAccessPaths, prop];
+    const onAccess =
+      this.onAccess ||
+      ((paths: PropertyKey[]) => {
+        this.lastAccess = paths;
+      });
+    if (!(p in (Reflect.getPrototypeOf(target) || Object.create(null)))) {
+      onAccess(paths);
+    }
+    if (Array.isArray(value) || (value !== null && typeof value === "object")) {
+      return new Proxy(
+        value as any,
+        new CodecPackableProxyHandler(paths, onAccess)
+      );
+    }
+
+    return value;
+  }
+}
+
+function createPackableProxy<T extends Record<any, unknown> | any[]>(
+  packable: T
+): T & { [LAST_ACCESS_PATH]: PropertyKey[] } {
+  if (typeof packable === "number" || typeof packable === "string") {
+    return packable;
+  }
+  return new Proxy(packable, new CodecPackableProxyHandler()) as T & {
+    [LAST_ACCESS_PATH]: PropertyKey[];
+  };
+}
+
+export function trackCodecErrorPath<T extends Codec<any, any>>(codec: T): T {
+  return {
+    ...codec,
+    pack(packable) {
+      const packableProxy = createPackableProxy(packable);
+
+      try {
+        return codec.pack(packableProxy);
+      } catch (e) {
+        const lastAccessPaths: PropertyKey[] = packableProxy[LAST_ACCESS_PATH];
+        const paths = (lastAccessPaths as (number | string)[]).reduce(
+          (acc, cur) => {
+            return acc + (typeof cur === "number" ? `[${cur}]` : `.${cur}`);
+          },
+          "input"
+        );
+        if (e instanceof CodecBaseParseError) {
+          throw new Error(
+            `Expect type ${e.expectedType} in ${paths} but got error: ${e.message}`
+          );
+        }
+
+        throw e;
+      }
+    },
+  };
+}

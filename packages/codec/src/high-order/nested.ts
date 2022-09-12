@@ -3,6 +3,7 @@ import {
   Codec,
   PackParam,
   PackResult,
+  trackCodecErrorPath,
   UnpackParam,
   UnpackResult,
 } from "../base";
@@ -57,7 +58,7 @@ export function createObjectCodec<Shape extends ObjectCodecShape>(
 ): ObjectCodec<Shape> {
   const codecEntries = Object.entries(codecShape);
 
-  return {
+  return trackCodecErrorPath({
     pack: (packableObj) => {
       const result = {} as { [key in keyof Shape]: PackResult<Shape[key]> };
 
@@ -76,7 +77,7 @@ export function createObjectCodec<Shape extends ObjectCodecShape>(
 
       return result;
     },
-  };
+  });
 }
 
 export type ArrayCodec<C extends AnyCodec> = Codec<
@@ -87,10 +88,10 @@ export type ArrayCodec<C extends AnyCodec> = Codec<
 >;
 
 export function createArrayCodec<C extends AnyCodec>(codec: C): ArrayCodec<C> {
-  return {
+  return trackCodecErrorPath({
     pack: (items) => items.map((item) => codec.pack(item)),
     unpack: (items) => items.map((item) => codec.unpack(item)),
-  };
+  });
 }
 
 /**

@@ -1,12 +1,22 @@
 import { BI, BIish } from "@ckb-lumos/bi";
-import { createFixedBytesCodec, FixedBytesCodec } from "../base";
+import {
+  CodecBaseParseError,
+  createFixedBytesCodec,
+  FixedBytesCodec,
+} from "../base";
 
-function assertNumberRange(value: BIish, min: BIish, max: BIish): void {
+function assertNumberRange(
+  value: BIish,
+  min: BIish,
+  max: BIish,
+  typeName: string
+): void {
   value = BI.from(value);
 
   if (value.lt(min) || value.gt(max)) {
-    throw new Error(
-      `Value must be between ${min.toString()} and ${max.toString()}, but got ${value.toString()}`
+    throw new CodecBaseParseError(
+      `Value must be between ${min.toString()} and ${max.toString()}, but got ${value.toString()}`,
+      typeName
     );
   }
 }
@@ -29,15 +39,25 @@ const createUintBICodec = (byteLength: number, littleEndian = false) => {
     .shl(byteLength * 8)
     .sub(1);
 
+  let endianType: "LE" | "BE" | "" = littleEndian ? "LE" : "BE";
+
+  if (byteLength <= 1) {
+    endianType = "";
+  }
+  const typeName = `Uint${byteLength * 8}${endianType}`;
+
   return createFixedBytesCodec<BI, BIish>({
     byteLength,
     pack(biIsh) {
       if (typeof biIsh === "number" && !Number.isSafeInteger(biIsh)) {
-        throw new Error(`${biIsh} is not a safe integer`);
+        throw new CodecBaseParseError(
+          `${biIsh} is not a safe integer`,
+          typeName
+        );
       }
 
       let num = BI.from(biIsh);
-      assertNumberRange(num, 0, max);
+      assertNumberRange(num, 0, max, typeName);
 
       const result = new DataView(new ArrayBuffer(byteLength));
 

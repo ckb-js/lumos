@@ -10,14 +10,17 @@
  * | union  | item-type-id                                     | item                              |
  */
 
-import type {
+import {
   BytesCodec,
   Fixed,
   FixedBytesCodec,
   PackParam,
   UnpackResult,
+  createBytesCodec,
+  createFixedBytesCodec,
+  isFixedCodec,
+  CodecBaseParseError,
 } from "../base";
-import { createBytesCodec, createFixedBytesCodec, isFixedCodec } from "../base";
 import { Uint32LE } from "../number";
 import { concat } from "../bytes";
 
@@ -289,6 +292,7 @@ export function union<T extends Record<string, BytesCodec>>(
   return createBytesCodec({
     pack(obj) {
       const type = obj.type;
+      const typeName = `union(${fields.join(" | ")})`;
 
       /* c8 ignore next */
       if (typeof type !== "string") {
@@ -297,7 +301,10 @@ export function union<T extends Record<string, BytesCodec>>(
 
       const fieldIndex = fields.indexOf(type);
       if (fieldIndex === -1) {
-        throw new Error(`Unknown union type: ${String(obj.type)}`);
+        throw new CodecBaseParseError(
+          `Unknown union type: ${String(obj.type)}`,
+          typeName
+        );
       }
       const packedFieldIndex = Uint32LE.pack(fieldIndex);
       const packedBody = itemCodec[type].pack(obj.value);
