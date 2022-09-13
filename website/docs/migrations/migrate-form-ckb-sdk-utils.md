@@ -9,7 +9,7 @@ with `@ckb-lumos/codec`.
 ## @lumos/codec
 
 @lumos/codec provides a set of functions to pack(encode) and unpack(decode) data.
-related link: https://github.com/nervosnetwork/lumos/blob/develop/packages/codec
+related link: https://github.com/ckb-js/lumos/blob/develop/packages/codec
 
 ## Migration list
 

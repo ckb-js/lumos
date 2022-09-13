@@ -8,7 +8,7 @@ If you are using any function that is not on this list, please refer to the `lum
 
 reference:
 
-- [lumos](https://github.com/nervosnetwork/lumos)
+- [lumos](https://github.com/ckb-js/lumos)
 - [ckb-sdk-core](https://github.com/nervosnetwork/ckb-sdk-js)
 
 ## Transaction migration example list

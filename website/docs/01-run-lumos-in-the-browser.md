@@ -35,7 +35,7 @@ async function main(): Promise<BI> {
 main();
 ```
 
-please refer to [ckb-indexer-collector example](https://github.com/nervosnetwork/lumos/blob/develop/examples/ckb-indexer-collector.ts) for a complete example.
+please refer to [ckb-indexer-collector example](https://github.com/ckb-js/lumos/blob/develop/examples/ckb-indexer-collector.ts) for a complete example.
 
 ### ckb-indexer
 
@@ -48,9 +48,9 @@ const indexUri = "https://testnet.ckb.dev/indexer";
 const indexer = new Indexer(indexUri, nodeUri);
 ```
 
-For a detailed tutorial, please refer to the [ckb-indexer User Guide](https://github.com/nervosnetwork/lumos/tree/develop/packages/ckb-indexer).
+For a detailed tutorial, please refer to the [ckb-indexer User Guide](https://github.com/ckb-js/lumos/tree/develop/packages/ckb-indexer).
 
-To migrate from `@ckb-lumos/indexer` to `@ckb-lumos/ckb-indexer`, please refer to the [migration documentation](https://github.com/nervosnetwork/lumos/blob/develop/packages/ckb-indexer/mirgation.md).
+To migrate from `@ckb-lumos/indexer` to `@ckb-lumos/ckb-indexer`, please refer to the [migration documentation](https://github.com/ckb-js/lumos/blob/develop/packages/ckb-indexer/mirgation.md).
 
 ### root package
 
@@ -72,7 +72,7 @@ const lock: Script = helpers.parseAddress(address);
 
 ### BI big number library
 
-In order to facilitate the calculation of large numbers, we provide the [large number library BI](https://github.com/nervosnetwork/lumos/tree/develop/packages/bi). You can convert strings, numbers, etc. to and from BI and perform some common operations.
+In order to facilitate the calculation of large numbers, we provide the [large number library BI](https://github.com/ckb-js/lumos/tree/develop/packages/bi). You can convert strings, numbers, etc. to and from BI and perform some common operations.
 
 ```jsx
 import { BI } from "@ckb-lumos/bi";
@@ -80,7 +80,7 @@ import { BI } from "@ckb-lumos/bi";
 BI.from(1).add(1);
 ```
 
-For more use of the API, please refer to [BI Test Cases](https://github.com/nervosnetwork/lumos/blob/develop/packages/bi/tests/index.test.ts).
+For more use of the API, please refer to [BI Test Cases](https://github.com/ckb-js/lumos/blob/develop/packages/bi/tests/index.test.ts).
 
 ### More Updates
 
@@ -90,11 +90,11 @@ For more use of the API, please refer to [BI Test Cases](https://github.com/nerv
 
 2. Conversion of new addresses
 
-   Lumos also supports ckb2021 upgraded [address](https://github.com/nervosnetwork/rfcs/pull/239/files), adding methods such as `encodeToAddress`. Refer to this [PR](https://github.com/nervosnetwork/lumos/pull/205) for more.
+   Lumos also supports ckb2021 upgraded [address](https://github.com/nervosnetwork/rfcs/pull/239/files), adding methods such as `encodeToAddress`. Refer to this [PR](https://github.com/ckb-js/lumos/pull/205) for more.
 
 3. Example code additions
 
-   Added `secp256k1-transfer`, `secp256k1-multisig-transfer`, `pw-lock-metamask`, `omni-lock-metamask` and other sample code, please refer to [lumos/example](https://[github.com/nervosnetwork/lumos/tree/develop/examples)
+   Added `secp256k1-transfer`, `secp256k1-multisig-transfer`, `pw-lock-metamask`, `omni-lock-metamask` and other sample code, please refer to [lumos/example](https://[github.com/ckb-js/lumos/tree/develop/examples)
 
 4. Online tools
 
@@ -104,7 +104,7 @@ For more use of the API, please refer to [BI Test Cases](https://github.com/nerv
 
    We used codesandbox and `@ckb-lumos/lumos` to build the [playground](https://codesandbox.io/s/objective-cloud-282i4?file=/src/index.js) where you can quickly try out the features of lumos.
 
-6. A contract deployment generator is provided in lumos to facilitate the deployment of contracts, visit the link [🔗](https://github.com/nervosnetwork/lumos/tree/develop/packages/common-scripts#usage)
+6. A contract deployment generator is provided in lumos to facilitate the deployment of contracts, visit the link [🔗](https://github.com/ckb-js/lumos/tree/develop/packages/common-scripts#usage)
 
 ### Follow-up plan
 

@@ -211,4 +211,4 @@ const upgradeOptions = {
 let upgradeTxSkeleton = await generateUpgradeTypeIdDataTx(upgradeOptions);
 ```
 
-Check [omni lock example](https://github.com/nervosnetwork/lumos/blob/develop/examples/omni-lock-metamask/lib.ts) and [pw lock example](https://github.com/nervosnetwork/lumos/blob/develop/examples/pw-lock-metamask/lib.ts) for how to use `p2pkh` script.
+Check [omni lock example](https://github.com/ckb-js/lumos/blob/develop/examples/omni-lock-metamask/lib.ts) and [pw lock example](https://github.com/ckb-js/lumos/blob/develop/examples/pw-lock-metamask/lib.ts) for how to use `p2pkh` script.
