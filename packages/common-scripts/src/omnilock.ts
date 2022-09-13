@@ -267,27 +267,6 @@ export async function setupInputCell(
       /* 85-byte zeros in hex */
       lock: OMNILOCK_SIGNATURE_PLACEHOLDER,
     };
-    if (witness !== "0x") {
-      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
-      const lock = witnessArgs.lock;
-      if (
-        !!lock &&
-        !!newWitnessArgs.lock &&
-        !bytes.equal(lock, newWitnessArgs.lock)
-      ) {
-        throw new Error(
-          "Lock field in first witness is set aside for signature!"
-        );
-      }
-      const inputType = witnessArgs.inputType;
-      if (inputType) {
-        newWitnessArgs.inputType = inputType;
-      }
-      const outputType = witnessArgs.outputType;
-      if (outputType) {
-        newWitnessArgs.outputType = outputType;
-      }
-    }
     witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
       witnesses.set(firstIndex, witness)

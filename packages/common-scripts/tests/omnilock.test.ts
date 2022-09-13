@@ -90,3 +90,52 @@ test("omnilock#common transfer", async (t) => {
   t.is(result.code, 0);
   t.regex(result.message, /Run result: 0/);
 });
+
+test("should createOmnilockScript fail if invalid config provided", (t) => {
+  const ALICE_PRIVKEY =
+    "0x1234567812345678123456781234567812345678123456781234567812345678";
+  const aliceArgs = hd.key.privateKeyToBlake160(ALICE_PRIVKEY);
+
+  const invalidCkbConfig: Config = {
+    PREFIX: "ckt",
+    SCRIPTS: {},
+  };
+
+  const error = t.throws(
+    () => {
+      omnilock.createOmnilockScript(
+        {
+          auth: {
+            flag: "SECP256K1_BLAKE160",
+            content: aliceArgs,
+          },
+        },
+        { config: invalidCkbConfig }
+      );
+    },
+    { instanceOf: Error }
+  );
+  t.is(error.message, "OMNILOCK script config not found.");
+});
+
+test("should createOmnilockScript fail if non supportted omnilock auth flag used", (t) => {
+  const ALICE_PRIVKEY =
+    "0x1234567812345678123456781234567812345678123456781234567812345678";
+  const aliceArgs = hd.key.privateKeyToBlake160(ALICE_PRIVKEY);
+
+  const error = t.throws(
+    () => {
+      omnilock.createOmnilockScript(
+        {
+          auth: {
+            flag: "PW_Lock" as any,
+            content: aliceArgs,
+          },
+        },
+        { config: ckbConfig }
+      );
+    },
+    { instanceOf: Error }
+  );
+  t.is(error.message, "Not supported flag: PW_Lock.");
+});
