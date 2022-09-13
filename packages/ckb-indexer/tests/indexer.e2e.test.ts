@@ -93,3 +93,13 @@ test("throw error when pass both null lock and null type to subscribe", (t) => {
 
   t.is(error.message, "Either lock or type script must be provided!");
 });
+
+test("test indexer tip function", async (t) => {
+  const tip = await indexer.tip();
+
+  t.deepEqual(tip, {
+    blockHash:
+      "0x92b197aa1fba0f63633922c61c92375c9c074a93e85963554f5499fe1450d0e5",
+    blockNumber: "0x0",
+  });
+});
