@@ -105,7 +105,7 @@ Check the warnings in the console of step 1,  deprecated functions work for now 
 
 ## A Real World Migration Example
 
-Here is a simple example of how we could migrate [secp256k1-transfer](https://github.com/nervosnetwork/lumos/blob/1669bf527c/examples/secp256k1-transfer/lib.ts) to the new version.
+Here is a simple example of how we could migrate [secp256k1-transfer](https://github.com/ckb-js/lumos/blob/1669bf527c/examples/secp256k1-transfer/lib.ts) to the new version.
 
 ```diff
 ...

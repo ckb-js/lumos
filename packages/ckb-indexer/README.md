@@ -154,7 +154,7 @@ for await (const cell of cellCollector.collect()) {
 }
 ```
 
-Fine grained query for cells can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `argsLen`:
+Fine grained query for cells can be achieved by using [ScriptWrapper](https://github.com/ckb-js/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `argsLen`:
 
 ```jsx
 cellCollector = new CellCollector(indexer, {
@@ -338,7 +338,7 @@ for await (const tx of txCollector.collect()) {
 }
 ```
 
-Fine grained query for transactions can be achieved by using [ScriptWrapper](https://github.com/nervosnetwork/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `ioType`, `argsLen`:
+Fine grained query for transactions can be achieved by using [ScriptWrapper](https://github.com/ckb-js/lumos/blob/cd418d258085d3cb6ab47eeaf5347073acf5422e/packages/base/index.d.ts#L123), with customized options like `ioType`, `argsLen`:
 
 ```jsx
 txCollector = new TransactionCollector(indexer, {
@@ -443,4 +443,4 @@ medianTimeEmitter.on("changed", (medianTime) => {
 
 ## **Migration**
 
-If you want to migrate native indexer to ckb-indexer, please check more detail in our [migration docs](https://github.com/nervosnetwork/lumos/blob/develop/packages/ckb-indexer/mirgation.md)
+If you want to migrate native indexer to ckb-indexer, please check more detail in our [migration docs](https://github.com/ckb-js/lumos/blob/develop/packages/ckb-indexer/mirgation.md)
