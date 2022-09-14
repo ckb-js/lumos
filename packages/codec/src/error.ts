@@ -1,4 +1,5 @@
-export const CODEC_OPTIONAL_PATH = "______?______";
+// lc for lumos codec
+export const CODEC_OPTIONAL_PATH = "__lc_option__";
 type CodecOptionalPath = typeof CODEC_OPTIONAL_PATH;
 export class CodecBaseParseError extends Error {
   constructor(message: string, public expectedType: string) {
