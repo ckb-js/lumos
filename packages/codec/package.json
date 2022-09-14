@@ -47,6 +47,7 @@
     ]
   },
   "devDependencies": {
+    "escape-string-regexp": "^4.0.0",
     "js-yaml": "^4.1.0"
   }
 }
