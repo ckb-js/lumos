@@ -16,7 +16,7 @@ export function isCodecExecuteError(
 }
 
 /**
- * This method can collect CodecBaseParseError, and put an human-readable error
+ * This Error class can collect CodecBaseParseError, and put an human-readable error
  */
 export class CodecExecuteError extends Error {
   name = CODEC_EXECUTE_ERROR_NAME;
