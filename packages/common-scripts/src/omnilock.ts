@@ -65,18 +65,19 @@ export function createOmnilockScript(
     throw new Error("OMNILOCK script config not found.");
   }
 
-  // omni flag       pubkey hash   omni lock flags
-  // chain identity   eth addr      function flag()
-  // 00: Nervos       👇            00: owner
-  // 01: Ethereum     👇            01: administrator
-  let args;
-  if (omnilockInfo.auth.flag === "ETHEREUM") {
-    args = `0x01${bytes.hexify(omnilockInfo.auth.content).slice(2)}00`;
-  } else if (omnilockInfo.auth.flag === "SECP256K1_BLAKE160") {
-    args = `0x00${bytes.hexify(omnilockInfo.auth.content).slice(2)}00`;
-  } else {
+  const args = (() => {
+    // omni flag       pubkey hash   omni lock flags
+    // chain identity   eth addr      function flag()
+    // 00: Nervos       👇            00: owner
+    // 01: Ethereum     👇            01: administrator
+    if (omnilockInfo.auth.flag === "ETHEREUM") {
+      return `0x01${bytes.hexify(omnilockInfo.auth.content).slice(2)}00`;
+    }
+    if (omnilockInfo.auth.flag === "SECP256K1_BLAKE160") {
+      return `0x00${bytes.hexify(omnilockInfo.auth.content).slice(2)}00`;
+    }
     throw new Error(`Not supported flag: ${omnilockInfo.auth.flag}.`);
-  }
+  })();
 
   const script: Script = {
     codeHash: omnilockConfig.CODE_HASH,

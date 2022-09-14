@@ -27,13 +27,11 @@ test.before(async () => {
   if (process.env.CKB_DEBUGGER_PATH) return;
   await downloader.downloadIfNotExists();
 });
-// TODO uncomment the skip when ci is ready
+
 test("omnilock#common transfer", async (t) => {
   const ALICE_PRIVKEY =
     "0x1234567812345678123456781234567812345678123456781234567812345678";
   const aliceArgs = hd.key.privateKeyToBlake160(ALICE_PRIVKEY);
-  console.log("alice args is:", aliceArgs);
-
   const aliceOmnilock: Script = omnilock.createOmnilockScript(
     {
       auth: {
