@@ -11,7 +11,8 @@ const CODEC_EXECUTE_ERROR_NAME = "CodecExecuteError";
 export function isCodecExecuteError(
   error: unknown
 ): error is CodecExecuteError {
-  return (error as Error)?.name === CODEC_EXECUTE_ERROR_NAME;
+  if (!(error instanceof Error)) return false;
+  return error.name === CODEC_EXECUTE_ERROR_NAME;
 }
 
 /**
