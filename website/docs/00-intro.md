@@ -3,12 +3,12 @@ slug: /
 sidebar_position: 1
 ---
 
-# Tutorial: Step-by-step create a wallet with Lumos 
+# Tutorial
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-We will create a simple wallet to help manage assets on the ckb chain. We won't delve into the shape of the wallet product in this tutorial, but we have implemented some simple logic that most wallets have
+We will create a simple HD wallet to help manage assets on CKB. We won't delve into the shape of the wallet product in this tutorial, but we have implemented some simple logic that most wallets have
 
  - Generate private key and address
  - Check own's ckb balance
@@ -94,19 +94,30 @@ touch wallet.ts
 
 For a wallet, the most important and commonly used function is to view your account and balance. This tutorial generates private key and address by `@ckb-lumos/hd`
 
+:::tip
+If you don't know much about HD Wallet, this [article](https://learnmeabitcoin.com/technical/hd-wallets) has a very good explanation
+:::
+
 ``` ts
 import { hd } from '@ckb-lumos/lumos';
 const { mnemonic, ExtendedPrivateKey } = hd;
 
-export const generatePrivateKey = () => {
+export const generateFirstHDPrivateKey = () => {
   const m = mnemonic.generateMnemonic()
   const seed = mnemonic.mnemonicToSeedSync(m)
-  return ExtendedPrivateKey.fromSeed(seed).privateKey
+  console.log('my mnemonic ', seed);
+  
+  
+  const extendedPrivKey = ExtendedPrivateKey.fromSeed(seed);
+  return extendedPrivKey.privateKeyInfo(
+    AddressType.Receving,
+    0,
+  ).privateKey
 }
 ```
 
 
-CKB has the testnet `Arggon` and the mainnet  `Lina`, `Lumos` can work on different environment.
+CKB has the testnet `Arggon` and the mainnet `Lina`, `Lumos` can work on different environment.
 
 This tutorial will use the testnet.
 
@@ -143,7 +154,7 @@ When you generate a private key, keep it in a safe place and do not disclose it 
 :::
 
 ``` ts
-const privateKey = generatePrivateKey()
+const privateKey = generateFirstHDPrivateKey()
 const address = getAddressByPrivateKey(privateKey);
 console.log('privateKey: ', privateKey)
 console.log('address: ', address)
@@ -304,10 +315,17 @@ const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
 const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
 
-export const generatePrivateKey = () => {
+export const generateFirstHDPrivateKey = () => {
   const m = mnemonic.generateMnemonic()
   const seed = mnemonic.mnemonicToSeedSync(m)
-  return ExtendedPrivateKey.fromSeed(seed).privateKey
+  console.log('my mnemonic ', seed);
+  
+  
+  const extendedPrivKey = ExtendedPrivateKey.fromSeed(seed);
+  return extendedPrivKey.privateKeyInfo(
+    AddressType.Receving,
+    0,
+  ).privateKey
 }
 
 const getAddressByPrivateKey = (privateKey: string) => {
