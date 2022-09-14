@@ -43,7 +43,7 @@ Use the tabs in the snippet to select your preferred package manager.
 ```
 
 ``` shell
-  npm init
+npm init
 ```
 
 ```mdx-code-block
@@ -52,7 +52,7 @@ Use the tabs in the snippet to select your preferred package manager.
 ```
 
 ``` shell
-  yarn init
+yarn init
 ```
 
 ```mdx-code-block
@@ -67,7 +67,7 @@ Now we can install Lumos
 ```
 
 ``` shell
-  npm install @ckb-lumos/lumos
+npm install @ckb-lumos/lumos
 ```
 
 ```mdx-code-block
@@ -76,7 +76,7 @@ Now we can install Lumos
 ```
 
 ``` shell
-  yarn add @ckb-lumos/lumos
+yarn add @ckb-lumos/lumos
 ```
 
 ```mdx-code-block
@@ -291,7 +291,7 @@ const txHash = await rpc.sendTransaction(tx, "passthrough");
 console.log(`txHash is: ${txHash}`)
 ```
 
-Let's run the transfer function and we'll see an output like `txHash is: 0x998dd1ec986ad0f1aff5f527dc3e9fe13cba0d20ee2e7ee0ce83af213cd399c4`, let's go to [block explorer](https ://pudge.explorer.nervos.org/) to look up the transaction
+Let's run the transfer function and we'll see an output like `txHash is: 0x998dd1ec986ad0f1aff5f527dc3e9fe13cba0d20ee2e7ee0ce83af213cd399c4`, let's go to [block explorer](https://pudge.explorer.nervos.org/) to look up the transaction
 
 ![example](https://user-images.githubusercontent.com/22258327/188527969-0e7b81e0-8c5f-42f8-8278-0b73d81ee7de.png)
 
@@ -397,7 +397,7 @@ In the last section we created a simple wallet to view CKB balance and transfer 
  - Check Alice's Token balance
 
 
-Token is a similar to ERC20 in the ethereum ecosystem. The token in ckb is called Sudt (Simple User Defined Token), and the data structure for storing Sudt cell looks like this.
+Token is a similar to ERC20 in the ethereum ecosystem. The token in ckb is called SUDT (Simple User Defined Token), and the data structure for storing SUDT cell looks like this.
 
 ```
 capacity:
@@ -421,7 +421,7 @@ Run the following command to create a new file.
 touch sudt-wallet.ts
 ```
 
-First set up the lumos as before
+First set up the lumos
 
 ```ts
 import { config } from '@ckb-lumos/lumos';
@@ -468,7 +468,7 @@ const privateKey = '0x9ab62c912c48d615a030318af514758e8c7b9f03d37a95dd1b89e775b6
 issueToken(getAddressByPrivateKey(privateKey), 1000, privateKey).then((txHash: string) => console.log('txHash: ', txHash));
 ```
 
-We can get an output like this, search it in explorer and indeed find sudt have issued
+We can get an output like this, search it in [explorer](https://pudge.explorer.nervos.org/) and indeed find SUDT have issued
 ```
 txHash:  0x53dbf57c44938bc95cb3e33a0ac10ce5c3c37e88224ea2e785a6499ac4ca1c4d
 ```
@@ -478,10 +478,10 @@ txHash:  0x53dbf57c44938bc95cb3e33a0ac10ce5c3c37e88224ea2e785a6499ac4ca1c4d
 
 ## Transfer Token to Alice
 :::info
-Suppose the address of alice is `ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq2x0z0rmc44ek25rmdk7dky5wnhdlrmqncyhcvkp`
+Suppose the alice'S address is `ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq2x0z0rmc44ek25rmdk7dky5wnhdlrmqncyhcvkp`
 :::
 
-`@ckb-lumos/common-scripts` also provides some simple functions to help transfer sudt
+`@ckb-lumos/common-scripts` also provides some simple functions to help transfer SUDT
 
 ``` ts
 export const transferToken = async (issuer: Address, to: Address, amount: number, privateKey: string) => {
@@ -519,13 +519,13 @@ const aliceAddress = 'ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq
 transferToken(getAddressByPrivateKey(privateKey), aliceAddress, 10, privateKey).then((txHash: string) => console.log('txHash: ', txHash));
 ```
 
-We can get an output like this, search the explorer, and indeed transferring 10 usdt to alice's account
+We can get an output like this, search txHash in [explorer](https://pudge.explorer.nervos.org/), and indeed transferring 10 SUDT to alice
 ```
 txHash:  0xbccac791e1eb4e005d0f8208c9cb3178af046f814fa1c01c2b5f3f6a966c3486
 ```
  
 ## Check Alice's Token balance
-Get token amount is also finding the cell where the token is stored, but unlike finding the ckb capacities, each sudt has a type script, and the amount of the token is stored in data instead of capacity
+Get token amount is also finding the cell where the token is stored, but unlike finding the ckb capacities, each SUDT has a type script, and number of tokens is stored in the data field, not the capacity field
 
 ```ts
 export const getTokenAmount = async (address: Address, sudtArgs: string) => {
@@ -546,7 +546,7 @@ export const getTokenAmount = async (address: Address, sudtArgs: string) => {
   return amount;
 }
 ```
-Let's run it and see how many sudt's alice has
+Let's run it and see how many SUDTs alice has
 
 :::tip
 The args of SUDT are the lock script hash of the token issuer, and we can use the built-in utils library in `Lumos` to help us calculate the hash
@@ -559,16 +559,16 @@ const issuerAddress = getAddressByPrivateKey(privateKey);
 const aliceAddress = 'ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsq2x0z0rmc44ek25rmdk7dky5wnhdlrmqncyhcvkp';
 
 const scriptLockHash = utils.computeScriptHash(helpers.parseAddress(issuerAddress))
-getTokenAmount(aliceAddress, scriptLockHash).then((v) => {console.log('sudt balance:', v.toString())})
+getTokenAmount(aliceAddress, scriptLockHash).then((v) => {console.log('SUDT balance:', v.toString())})
 
 ```
 
-We can get an output like this, which is the 10 sudt we just transferred to alice
+We can get an output like this, which is the 10 SUDT we just transferred to alice
 ```
-sudt balance: 10
+SUDT balance: 10
 ```
 
-So we have successfully added the functions of issue SUDT/transfer SUDT/check SUDT balance to the wallet
+So we have successfully added the functions of issue SUDT / transfer SUDT / check SUDT balance to the wallet
 
 
 <details>
