@@ -6,6 +6,8 @@ import {
   UnpackParam,
   UnpackResult,
 } from "../base";
+import { trackCodeExecuteError } from "../utils";
+import { CODEC_OPTIONAL_PATH } from "../error";
 
 export interface NullableCodec<C extends AnyCodec = AnyCodec> extends AnyCodec {
   pack(packable?: PackParam<C>): PackResult<C>;
@@ -19,7 +21,9 @@ export function createNullableCodec<C extends AnyCodec = AnyCodec>(
   return {
     pack: (packable) => {
       if (packable == null) return packable;
-      return codec.pack(packable);
+      return trackCodeExecuteError(CODEC_OPTIONAL_PATH, () =>
+        codec.pack(packable)
+      );
     },
     unpack: (unpackable) => {
       if (unpackable == null) return unpackable;
@@ -38,7 +42,7 @@ export type ObjectCodec<Shape extends ObjectCodecShape = ObjectCodecShape> =
   >;
 
 /**
- * a high-order codec that helps to organise multiple codecs together into a single object
+ * a high-order codec that helps to organize multiple codecs together into a single object
  * @param codecShape
  * @example
  * ```ts
@@ -62,7 +66,11 @@ export function createObjectCodec<Shape extends ObjectCodecShape>(
       const result = {} as { [key in keyof Shape]: PackResult<Shape[key]> };
 
       codecEntries.forEach(([key, itemCodec]) => {
-        Object.assign(result, { [key]: itemCodec.pack(packableObj[key]) });
+        Object.assign(result, {
+          [key]: trackCodeExecuteError(key, () =>
+            itemCodec.pack(packableObj[key])
+          ),
+        });
       });
 
       return result;
@@ -88,7 +96,10 @@ export type ArrayCodec<C extends AnyCodec> = Codec<
 
 export function createArrayCodec<C extends AnyCodec>(codec: C): ArrayCodec<C> {
   return {
-    pack: (items) => items.map((item) => codec.pack(item)),
+    pack: (items) =>
+      items.map((item, index) =>
+        trackCodeExecuteError(index, () => codec.pack(item))
+      ),
     unpack: (items) => items.map((item) => codec.unpack(item)),
   };
 }

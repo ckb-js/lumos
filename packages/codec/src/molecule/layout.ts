@@ -22,8 +22,12 @@ import {
 } from "../base";
 import { Uint32LE } from "../number";
 import { concat } from "../bytes";
-import { trackCodeExecuteError } from "../utils";
-import { CodecBaseParseError, CODEC_OPTIONAL_PATH } from "../error";
+import { CodecBaseParseError } from "../error";
+import {
+  createObjectCodec,
+  createArrayCodec,
+  createNullableCodec,
+} from "../high-order";
 
 type NullableKeys<O extends Record<string, unknown>> = {
   [K in keyof O]-?: [O[K] & (undefined | null)] extends [never] ? never : K;
@@ -67,12 +71,11 @@ export function array<T extends FixedBytesCodec>(
   itemCodec: T,
   itemCount: number
 ): ArrayCodec<T> & Fixed {
+  const enhancedArrayCodec = createArrayCodec(itemCodec);
   return createFixedBytesCodec({
     byteLength: itemCodec.byteLength * itemCount,
     pack(items) {
-      const itemsBuf = items.map((item, index) =>
-        trackCodeExecuteError(index, () => itemCodec.pack(item))
-      );
+      const itemsBuf = enhancedArrayCodec.pack(items);
       return concat(...itemsBuf);
     },
     unpack(buf) {
@@ -116,20 +119,15 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
   fields: (keyof T)[]
 ): ObjectCodec<T> & Fixed {
   checkShape(shape, fields);
-
+  const objectCodec = createObjectCodec(shape);
   return createFixedBytesCodec({
     byteLength: fields.reduce((sum, field) => sum + shape[field].byteLength, 0),
     pack(obj) {
+      const packed = objectCodec.pack(
+        obj as { [K in keyof T]: PackParam<T[K]> }
+      );
       return fields.reduce((result, field) => {
-        const itemCodec = shape[field];
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const item = obj[field];
-        return concat(
-          result,
-          trackCodeExecuteError(field, () => itemCodec.pack(item))
-        );
+        return concat(result, packed[field]);
       }, Uint8Array.from([]));
     },
     unpack(buf) {
@@ -158,16 +156,12 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
 export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
   return createBytesCodec({
     pack(items) {
+      const arrayCodec = createArrayCodec(itemCodec);
       return concat(
         Uint32LE.pack(items.length),
-        items.reduce(
-          (buf, item, index) =>
-            concat(
-              buf,
-              trackCodeExecuteError(index, () => itemCodec.pack(item))
-            ),
-          new ArrayBuffer(0)
-        )
+        arrayCodec
+          .pack(items)
+          .reduce((buf, item) => concat(buf, item), new ArrayBuffer(0))
       );
     },
     unpack(buf) {
@@ -183,23 +177,21 @@ export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
 }
 
 /**
- * The vector can contain dynamic size items.
+ * Vector with dynamic size item codec
  * @param itemCodec the vector item codec. It can be fixed-size or dynamic-size.
  * For example, you can create a recursive vector with this.
  */
 export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   return createBytesCodec({
     pack(obj) {
-      const packed = obj.reduce(
-        (result, item, index) => {
-          const packedItem = trackCodeExecuteError(index, () =>
-            itemCodec.pack(item)
-          );
+      const arrayCodec = createArrayCodec(itemCodec);
+      const packed = arrayCodec.pack(obj).reduce(
+        (result, item) => {
           const packedHeader = Uint32LE.pack(result.offset);
           return {
             header: concat(result.header, packedHeader),
-            body: concat(result.body, packedItem),
-            offset: result.offset + packedItem.byteLength,
+            body: concat(result.body, item),
+            offset: result.offset + item.byteLength,
           };
         },
         {
@@ -246,9 +238,8 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
 }
 
 /**
- * General vector codec, if your itemCodec is fixed size type, it will create a fixvec codec, otherwise it will create a dynvec codec.
+ * General vector codec, if `itemCodec` is fixed size type, it will create a fixvec codec, otherwise a dynvec codec will be created.
  * @param itemCodec
- * @returns
  */
 export function vector<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
   if (isFixedCodec(itemCodec)) {
@@ -260,7 +251,7 @@ export function vector<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
 /**
  * Table is a dynamic-size type. It can be considered as a dynvec but the length is fixed.
  * @param shape The table shape, item codec can be dynamic size
- * @param fields the shape's keys. Also provide an order for serialization/deserialization.
+ * @param fields the shape's keys. Also provide an order for pack/unpack.
  */
 export function table<T extends Record<string, BytesCodec>>(
   shape: T,
@@ -270,15 +261,13 @@ export function table<T extends Record<string, BytesCodec>>(
   return createBytesCodec({
     pack(obj) {
       const headerLength = 4 + fields.length * 4;
+      const objectCodec = createObjectCodec(shape);
+      const packedObj = objectCodec.pack(
+        obj as { [K in keyof T]: PackParam<T[K]> }
+      );
       const packed = fields.reduce(
         (result, field) => {
-          const itemCodec = shape[field];
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          const item = obj[field];
-          const packedItem = trackCodeExecuteError(field, () =>
-            itemCodec.pack(item)
-          );
+          const packedItem = packedObj[field];
           const packedOffset = Uint32LE.pack(result.offset);
           return {
             header: concat(result.header, packedOffset),
@@ -336,8 +325,7 @@ export function table<T extends Record<string, BytesCodec>>(
  * - Serialize a item type id in bytes as a 32 bit unsigned integer in little-endian. The item type id is the index of the inner items, and it's starting at 0.
  * - Serialize the inner item.
  * @param itemCodec the union item record
- * @param fields the list of itemCodec's keys. It's also provide an order for serialization/deserialization.
- * @returns
+ * @param fields the list of itemCodec's keys. It's also provide an order for pack/unpack.
  */
 export function union<T extends Record<string, BytesCodec>>(
   itemCodec: T,
@@ -385,10 +373,9 @@ export function union<T extends Record<string, BytesCodec>>(
 export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
   return createBytesCodec({
     pack(obj?) {
+      const nullableCodec = createNullableCodec(itemCodec);
       if (obj !== undefined && obj !== null) {
-        return trackCodeExecuteError(CODEC_OPTIONAL_PATH, () =>
-          itemCodec.pack(obj)
-        );
+        return nullableCodec.pack(obj);
       } else {
         return Uint8Array.from([]);
       }

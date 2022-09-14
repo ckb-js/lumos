@@ -1,4 +1,4 @@
-export const CODEC_OPTIONAL_PATH = Symbol("?");
+export const CODEC_OPTIONAL_PATH = "______?______";
 type CodecOptionalPath = typeof CODEC_OPTIONAL_PATH;
 export class CodecBaseParseError extends Error {
   constructor(message: string, public expectedType: string) {
@@ -6,7 +6,18 @@ export class CodecBaseParseError extends Error {
   }
 }
 
+const CODEC_EXECUTE_ERROR_NAME = "CodecExecuteError";
+export function isCodecExecuteError(
+  error: unknown
+): error is CodecExecuteError {
+  return (error as Error)?.name === CODEC_EXECUTE_ERROR_NAME;
+}
+
+/**
+ * This method can collect CodecBaseParseError, and put an human-readable error
+ */
 export class CodecExecuteError extends Error {
+  name = CODEC_EXECUTE_ERROR_NAME;
   constructor(private origin: CodecBaseParseError) {
     super();
   }
