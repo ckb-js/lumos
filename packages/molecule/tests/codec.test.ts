@@ -1,6 +1,5 @@
-import { deepHexifyBI } from "./utils";
 import test from "ava";
-import { toMolTypeMap } from "../src/utils";
+import { toMolTypeMap, deepHexifyBI } from "../src/utils";
 import { MolType } from "../src/type";
 import { createCodecMap } from "../src/codec";
 import { BI } from "@ckb-lumos/bi";

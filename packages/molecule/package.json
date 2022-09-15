@@ -37,9 +37,10 @@
     "test": "ava **/*.test.ts --timeout=2m",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "build": "npm run build:types && npm run build:js",
+    "build": "npm run build:types && npm run build:js && npm run build:old",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
+    "build:old": "shx mkdir -p lib/grammar && shx cp -r src/grammar/*.js lib/grammar ",
     "clean": "rm -rf lib",
     "prepublishOnly": "yarn run clean && yarn run build",
     "release": "npm publish"
@@ -50,5 +51,8 @@
     "@types/nearley": "^2.11.2",
     "moo": "^0.5.1",
     "nearley": "^2.20.1"
+  },
+  "devDependencies": {
+    "shx": "^0.3.4"
   }
 }
