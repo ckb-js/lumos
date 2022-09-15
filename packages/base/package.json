@@ -1,9 +1,9 @@
 {
   "name": "@ckb-lumos/base",
-  "version": "0.19.0-alpha.1",
+  "version": "0.19.0-alpha.2",
   "description": "Base data structures and utilities used in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
-  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "index.d.ts",
@@ -20,24 +20,25 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nervosnetwork/lumos.git"
+    "url": "git+https://github.com/ckb-js/lumos.git"
   },
   "scripts": {
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --declarationMap --emitDeclarationOnly",
     "build:js": "npm run build:old && babel --root-mode upward src/blockchain.ts --out-file lib/blockchain.js --source-maps",
-    "build:old": "mkdir -p lib && cp -rp src/*.d.ts lib && cp -rp src/*.js lib",
+    "build:old": "shx mkdir -p lib && shx cp -r src/*.d.ts lib && cp -r src/*.js lib",
     "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.js\"",
     "test:ts": "ava **/*.test.ts --timeout=2m",
-    "clean": "rm -rf lib",
+    "clean": "shx rm -rf lib",
     "test": "ava --timeout=2m"
   },
   "devDependencies": {
-    "rollup": "^1.32.0"
+    "rollup": "^1.32.0",
+    "shx": "^0.3.4"
   },
   "bugs": {
-    "url": "https://github.com/nervosnetwork/lumos/issues"
+    "url": "https://github.com/ckb-js/lumos/issues"
   },
   "ava": {
     "extensions": [
@@ -51,7 +52,7 @@
   "dependencies": {
     "@ckb-lumos/bi": "^0.19.0-alpha.1",
     "@ckb-lumos/codec": "^0.19.0-alpha.1",
-    "@ckb-lumos/toolkit": "^0.19.0-alpha.1",
+    "@ckb-lumos/toolkit": "^0.19.0-alpha.2",
     "@types/lodash.isequal": "^4.5.5",
     "blake2b": "^2.1.3",
     "js-xxhash": "^1.0.4",

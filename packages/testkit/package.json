@@ -1,8 +1,8 @@
 {
   "name": "@ckb-lumos/testkit",
-  "version": "0.19.0-alpha.1",
+  "version": "0.19.0-alpha.2",
   "description": "Test toolkit for CKB",
-  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -18,7 +18,7 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "^0.19.0-alpha.1",
+    "@ckb-lumos/base": "^0.19.0-alpha.2",
     "@ckb-lumos/bi": "^0.19.0-alpha.1",
     "@ckb-lumos/codec": "^0.19.0-alpha.1",
     "@types/body-parser": "^1.19.1",
@@ -32,7 +32,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nervosnetwork/lumos.git"
+    "url": "git+https://github.com/ckb-js/lumos.git"
   },
   "scripts": {
     "start": "ts-node example/mock-ckb-node.ts",
@@ -46,7 +46,7 @@
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s"
   },
   "bugs": {
-    "url": "https://github.com/nervosnetwork/lumos/issues"
+    "url": "https://github.com/ckb-js/lumos/issues"
   },
   "ava": {
     "extensions": [

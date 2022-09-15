@@ -3,6 +3,7 @@
 
 const lightCodeTheme = require("prism-react-renderer/themes/github");
 const darkCodeTheme = require("prism-react-renderer/themes/dracula");
+const versioningBranchs = require("./versioning-branches");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -41,7 +42,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            "https://github.com/nervosnetwork/lumos/tree/develop/website",
+            "https://github.com/ckb-js/lumos/tree/develop/website",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -82,13 +83,15 @@ const config = {
           },
           // { to: "/blog", label: "Blog", position: "left" },
           {
-            href: "/api/",
             label: "API",
             position: "left",
             target: "_blank",
+            items: [
+              ...versioningBranchs,
+            ]
           },
           {
-            href: "https://github.com/nervosnetwork/lumos",
+            href: "https://github.com/ckb-js/lumos",
             label: "GitHub",
             position: "right",
           },

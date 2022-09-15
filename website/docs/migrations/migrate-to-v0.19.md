@@ -87,7 +87,7 @@ Check the warnings in the console of step 1,  deprecated functions work for now 
 + import{ number, bytes } from "@ckb-lumos/codec"
 
 - const data: HexString = toBigUInt64LECompatible(num)
-+ const data: HexString = bytes.bytify(number.Uint64LE.pack(num))
++ const data: HexString = bytes.hexify(number.Uint64LE.pack(num))
 
 - const data: BI = readBigUInt64LECompatible(u64String)
 + const data: BI = number.Uint64LE.unpack(u64String)
@@ -105,7 +105,7 @@ Check the warnings in the console of step 1,  deprecated functions work for now 
 
 ## A Real World Migration Example
 
-Here is a simple example of how we could migrate [secp256k1-transfer](https://github.com/nervosnetwork/lumos/blob/1669bf527c/examples/secp256k1-transfer/lib.ts) to the new version.
+Here is a simple example of how we could migrate [secp256k1-transfer](https://github.com/ckb-js/lumos/blob/1669bf527c/examples/secp256k1-transfer/lib.ts) to the new version.
 
 ```diff
 ...

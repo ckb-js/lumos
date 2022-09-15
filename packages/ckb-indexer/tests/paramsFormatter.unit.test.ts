@@ -28,6 +28,7 @@ test("should toSearchKey works fine", async (t) => {
       script: undefined,
       block_range: undefined,
       output_capacity_range: undefined,
+      script_len_range: undefined,
       output_data_len_range: ["0x1", "0x2"],
     },
   };

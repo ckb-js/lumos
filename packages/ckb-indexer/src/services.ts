@@ -49,6 +49,9 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   if (queries.outputCapacityRange) {
     filter.output_capacity_range = queries.outputCapacityRange;
   }
+  if (queries.scriptLenRange) {
+    filter.script_len_range = queries.scriptLenRange;
+  }
   if (!script) {
     throw new Error("Either lock or type script must be provided!");
   }

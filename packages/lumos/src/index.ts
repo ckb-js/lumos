@@ -22,7 +22,7 @@ import {
 } from "@ckb-lumos/toolkit";
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export const toolkit = { Reader, validators, normalizers, transformers };
 

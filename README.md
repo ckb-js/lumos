@@ -1,8 +1,8 @@
 # lumos
 
-![build](https://github.com/nervosnetwork/lumos/actions/workflows/github-ci.yaml/badge.svg)
-[![codecov](https://codecov.io/gh/nervosnetwork/lumos/branch/develop/graph/badge.svg?token=6WJJOOMD2F)](https://codecov.io/gh/nervosnetwork/lumos)
-![license](https://img.shields.io/github/license/nervosnetwork/lumos)
+![build](https://github.com/ckb-js/lumos/actions/workflows/github-ci.yaml/badge.svg)
+[![codecov](https://codecov.io/gh/ckb-js/lumos/branch/develop/graph/badge.svg?token=6WJJOOMD2F)](https://codecov.io/gh/ckb-js/lumos)
+![license](https://img.shields.io/github/license/ckb-js/lumos)
 ![Lumos](./assets/lumos.jpg)
 
 > Lumos is still under active development and considered to be a work in progress.

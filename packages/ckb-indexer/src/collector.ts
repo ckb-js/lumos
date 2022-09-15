@@ -104,6 +104,10 @@ export class CKBCellCollector implements BaseCellCollector {
         queries.outputDataLenRange[1]
       );
     }
+    if (queries.scriptLenRange) {
+      utils.assertHexadecimal("scriptLenRange[0]", queries.scriptLenRange[0]);
+      utils.assertHexadecimal("scriptLenRange[1]", queries.scriptLenRange[1]);
+    }
 
     if (queries.outputDataLenRange && queries.data && queries.data !== "any") {
       const dataLen = getHexStringBytes(queries.data);
@@ -153,6 +157,10 @@ export class CKBCellCollector implements BaseCellCollector {
           "0x" + (dataLenRange + 1).toString(16),
         ];
       }
+    }
+
+    if (!this.queries.scriptLenRange && this.queries.type === "empty") {
+      this.queries.scriptLenRange = ["0x0", "0x1"];
     }
   }
 

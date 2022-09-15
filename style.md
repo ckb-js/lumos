@@ -15,7 +15,7 @@ This is not something that is as complete as a [formal Style Guide](https://goog
 * All Rust code should be compiled without warnings by the latest stable version of Rust.
 * All Rust code should be formatted via the latest stable version of cargofmt.
 * All Rust code should be checked by the latest stable version of clippy.
-* As mentioned above, all components using Rust code shall provide pre-built binaries. See [indexer](https://github.com/nervosnetwork/lumos/tree/master/packages/indexer) for an example.
+* As mentioned above, all components using Rust code shall provide pre-built binaries. See [indexer](https://github.com/ckb-js/lumos/tree/develop/packages/ckb-indexer) for an example.
 
 ## JavaScript/TypeScript Specific Part
 

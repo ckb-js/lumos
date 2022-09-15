@@ -27,9 +27,17 @@ export interface SearchFilter {
   output_data_len_range?: HexadecimalRange; //empty
   output_capacity_range?: HexadecimalRange; //empty
   block_range?: HexadecimalRange; //fromBlock-toBlock
+  script_len_range?: HexadecimalRange;
 }
 export interface SearchKey {
   script: Script;
   script_type: ScriptType;
   filter?: SearchFilter;
+}
+export interface GetCellsSearchKey extends SearchKey {
+  with_data?: boolean;
+}
+
+export interface GetTransactionsSearchKey extends SearchKey {
+  group_by_transaction?: boolean;
 }

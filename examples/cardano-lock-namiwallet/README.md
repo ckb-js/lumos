@@ -24,8 +24,8 @@ The cardano lock is compiled from this [commit](https://github.com/nervosnetwork
 
 Using [GitHubBox.com](https://codesandbox.io/docs/importing#using-githubboxcom), you can preview and interact with example code online through codesandbox.
 
-Change the GitHub URL: https://github.com/nervosnetwork/lumos/tree/develop/examples/cardano-lock-namiwallet  
-To: https://githubbox.com/nervosnetwork/lumos/tree/develop/examples/cardano-lock-namiwallet
+Change the GitHub URL: https://github.com/ckb-js/lumos/tree/develop/examples/cardano-lock-namiwallet  
+To: https://githubbox.com/ckb-js/lumos/tree/develop/examples/cardano-lock-namiwallet
 
 Note that due to the incompatibility of namiwallet and iframe, you need to open the result in a new window:  
 ![codesandbox](./codesandbox.png)

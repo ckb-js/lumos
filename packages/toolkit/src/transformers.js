@@ -47,7 +47,7 @@ function transformObject(debugPath, object, keys) {
   return result;
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformScript(
   script,
@@ -67,7 +67,7 @@ export function TransformScript(
   return script;
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformOutPoint(
   outPoint,
@@ -95,7 +95,7 @@ function toInvoke(transform) {
   };
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformCellInput(
   cellInput,
@@ -114,7 +114,7 @@ export function TransformCellInput(
   return cellInput;
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformCellOutput(
   cellOutput,
@@ -134,10 +134,10 @@ export function TransformCellOutput(
   return cellOutput;
 }
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */ function TransformCellDep(
   cellDep,
   { validation = true, debugPath = "cell_dep" } = {}
@@ -164,7 +164,7 @@ function toInvokeArray(invokeFunction) {
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformRawTransaction(
   rawTransaction,
@@ -188,7 +188,7 @@ export function TransformRawTransaction(
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformTransaction(
   transaction,
@@ -213,7 +213,7 @@ export function TransformTransaction(
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformRawHeader(
   rawHeader,
@@ -241,7 +241,7 @@ export function TransformRawHeader(
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformHeader(
   header,
@@ -270,7 +270,7 @@ export function TransformHeader(
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformUncleBlock(
   uncleBlock,
@@ -290,7 +290,7 @@ export function TransformUncleBlock(
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformBlock(
   block,
@@ -312,7 +312,7 @@ export function TransformBlock(
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformCellbaseWitness(
   cellbaseWitness,
@@ -332,7 +332,7 @@ export function TransformCellbaseWitness(
 }
 
 /**
- * @deprecated please follow the [migration-guide]{@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19}
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 export function TransformWitnessArgs(
   witnessArgs,
