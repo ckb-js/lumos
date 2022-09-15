@@ -1,4 +1,4 @@
-import nearley from "nearley";
+import { Parser as NearleyParser, Grammar as NearleyGrammar } from "nearley";
 import {
   Struct,
   Vector,
@@ -12,12 +12,13 @@ import {
 } from "./type";
 import { nonNull, toMolTypeMap } from "./utils";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const grammar = require("./grammar/mol.js");
 
 export const createParser = (): Parser => {
   return {
     parse: (data) => {
-      const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
+      const parser = new NearleyParser(NearleyGrammar.fromCompiled(grammar));
       parser.feed(data);
       const results = parser.results[0].filter(
         (result: MolType | null) => !!result

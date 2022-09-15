@@ -15,7 +15,7 @@ import {
 } from "@ckb-lumos/codec/lib/molecule";
 import { createFixedHexBytesCodec } from "@ckb-lumos/codec/lib/blockchain";
 import { byte, CodecMap, MolType, MolTypeMap } from "./type";
-import { nonNull } from "./utils";
+import { nonNull, toMolTypeMap } from "./utils";
 import { bytes, number } from "@ckb-lumos/codec";
 
 function createHexBytesCodec(): BytesCodec<string, BytesLike> {
@@ -97,9 +97,8 @@ export const toCodec = (
       }
       break;
     case "union":
-      const itemMolTypes = molType.items;
       const unionCodecs: Record<string, BytesCodec> = {};
-      itemMolTypes.forEach((itemMolTypeName) => {
+      molType.items.forEach((itemMolTypeName) => {
         if (itemMolTypeName === byte) {
           unionCodecs[itemMolTypeName] = createFixedHexBytesCodec(1);
         } else {
@@ -158,7 +157,15 @@ export const toCodec = (
  * @param molTypeMap
  * @returns
  */
-export const createCodecMap = (molTypeMap: MolTypeMap): CodecMap => {
+export const createCodecMap = (
+  molTypeInfo: MolTypeMap | MolType[]
+): CodecMap => {
+  const molTypeMap = ((data) => {
+    if (Array.isArray(data)) {
+      return toMolTypeMap(data as MolType[]);
+    }
+    return data as MolTypeMap;
+  })(molTypeInfo);
   const result = new Map<string, BytesCodec>();
   for (const entry of molTypeMap) {
     toCodec(entry[0], molTypeMap, result);

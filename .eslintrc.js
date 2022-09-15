@@ -21,6 +21,7 @@ module.exports = {
   ],
   "rules": {
     "no-var": "error",
+    "no-case-declarations" : "warn",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
