@@ -15,6 +15,7 @@
     "parcel": "^2.2.1"
   },
   "alias": {
-    "process": false
+    "process": false,
+    "stream": false
   }
 }
