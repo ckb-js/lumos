@@ -107,18 +107,18 @@ test("lockScriptInfos", (t) => {
   __tests__.resetLockScriptInfos();
   t.is(__tests__.getLockScriptInfos().infos.length, 0);
   __tests__.generateLockScriptInfos({ config: AGGRON4 });
-  t.is(__tests__.getLockScriptInfos().infos.length, 3);
+  t.is(__tests__.getLockScriptInfos().infos.length, 4);
   const configCodeHash = __tests__.getLockScriptInfos().configHashCode;
   t.not(configCodeHash, 0);
 
   // run again, won't change
   __tests__.generateLockScriptInfos({ config: AGGRON4 });
-  t.is(__tests__.getLockScriptInfos().infos.length, 3);
+  t.is(__tests__.getLockScriptInfos().infos.length, 4);
   t.is(__tests__.getLockScriptInfos().configHashCode, configCodeHash);
 
   // using LINA
   __tests__.generateLockScriptInfos({ config: LINA });
-  t.is(__tests__.getLockScriptInfos().infos.length, 3);
+  t.is(__tests__.getLockScriptInfos().infos.length, 4);
   t.not(__tests__.getLockScriptInfos().configHashCode, configCodeHash);
 });
 
