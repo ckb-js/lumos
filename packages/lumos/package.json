@@ -1,9 +1,9 @@
 {
   "name": "@ckb-lumos/lumos",
-  "version": "0.19.0-alpha.2",
+  "version": "0.19.0-alpha.3",
   "description": "A root package for Lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
-  "homepage": "https://github.com/nervosnetwork/lumos#readme",
+  "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "browser": "lib/lumos.min.js",
@@ -20,7 +20,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nervosnetwork/lumos.git"
+    "url": "git+https://github.com/ckb-js/lumos.git"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
@@ -34,18 +34,18 @@
     "release": "npm publish"
   },
   "bugs": {
-    "url": "https://github.com/nervosnetwork/lumos/issues"
+    "url": "https://github.com/ckb-js/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "^0.19.0-alpha.2",
-    "@ckb-lumos/bi": "^0.19.0-alpha.1",
-    "@ckb-lumos/ckb-indexer": "^0.19.0-alpha.2",
-    "@ckb-lumos/common-scripts": "^0.19.0-alpha.2",
-    "@ckb-lumos/config-manager": "^0.19.0-alpha.2",
-    "@ckb-lumos/hd": "^0.19.0-alpha.2",
-    "@ckb-lumos/helpers": "^0.19.0-alpha.2",
-    "@ckb-lumos/rpc": "^0.19.0-alpha.2",
-    "@ckb-lumos/toolkit": "^0.19.0-alpha.2"
+    "@ckb-lumos/base": "^0.19.0-alpha.3",
+    "@ckb-lumos/bi": "^0.19.0-alpha.3",
+    "@ckb-lumos/ckb-indexer": "^0.19.0-alpha.3",
+    "@ckb-lumos/common-scripts": "^0.19.0-alpha.3",
+    "@ckb-lumos/config-manager": "^0.19.0-alpha.3",
+    "@ckb-lumos/hd": "^0.19.0-alpha.3",
+    "@ckb-lumos/helpers": "^0.19.0-alpha.3",
+    "@ckb-lumos/rpc": "^0.19.0-alpha.3",
+    "@ckb-lumos/toolkit": "^0.19.0-alpha.3"
   },
   "devDependencies": {
     "buffer": "^6.0.3",

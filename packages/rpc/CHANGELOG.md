@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-# [0.19.0-alpha.2](https://github.com/nervosnetwork/lumos/compare/v0.19.0-alpha.1...v0.19.0-alpha.2) (2022-09-04)
+# [0.19.0-alpha.3](https://github.com/ckb-js/lumos/compare/v0.19.0-alpha.2...v0.19.0-alpha.3) (2022-09-15)
 
 **Note:** Version bump only for package @ckb-lumos/rpc
 
@@ -11,15 +11,23 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-# [0.19.0-alpha.1](https://github.com/nervosnetwork/lumos/compare/v0.18.0...v0.19.0-alpha.1) (2022-08-17)
+# [0.19.0-alpha.2](https://github.com/ckb-js/lumos/compare/v0.19.0-alpha.1...v0.19.0-alpha.2) (2022-09-04)
+
+**Note:** Version bump only for package @ckb-lumos/rpc
+
+
+
+
+
+# [0.19.0-alpha.1](https://github.com/ckb-js/lumos/compare/v0.18.0...v0.19.0-alpha.1) (2022-08-17)
 
 
 ### Bug Fixes
 
-* incompatible types in indexer and rpc ([#385](https://github.com/nervosnetwork/lumos/issues/385)) ([b8e4d10](https://github.com/nervosnetwork/lumos/commit/b8e4d108cf41643989b329368376462e70abdeb3))
+* incompatible types in indexer and rpc ([#385](https://github.com/ckb-js/lumos/issues/385)) ([b8e4d10](https://github.com/ckb-js/lumos/commit/b8e4d108cf41643989b329368376462e70abdeb3))
 
 
-* refactor!: camelize exposed APIs (#378) ([7c17f90](https://github.com/nervosnetwork/lumos/commit/7c17f901257b15934339022730db05c6912914f5)), closes [#378](https://github.com/nervosnetwork/lumos/issues/378)
+* refactor!: camelize exposed APIs (#378) ([7c17f90](https://github.com/ckb-js/lumos/commit/7c17f901257b15934339022730db05c6912914f5)), closes [#378](https://github.com/ckb-js/lumos/issues/378)
 
 
 ### BREAKING CHANGES
@@ -30,10 +38,10 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-# [0.19.0-alpha.0](https://github.com/nervosnetwork/lumos/compare/v0.18.0...v0.19.0-alpha.0) (2022-08-11)
+# [0.19.0-alpha.0](https://github.com/ckb-js/lumos/compare/v0.18.0...v0.19.0-alpha.0) (2022-08-11)
 
 
-* refactor!: camelize exposed APIs (#378) ([7c17f90](https://github.com/nervosnetwork/lumos/commit/7c17f901257b15934339022730db05c6912914f5)), closes [#378](https://github.com/nervosnetwork/lumos/issues/378)
+* refactor!: camelize exposed APIs (#378) ([7c17f90](https://github.com/ckb-js/lumos/commit/7c17f901257b15934339022730db05c6912914f5)), closes [#378](https://github.com/ckb-js/lumos/issues/378)
 
 
 ### BREAKING CHANGES

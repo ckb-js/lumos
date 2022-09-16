@@ -4,9 +4,12 @@
   "version": "1.0.0",
   "license": "MIT",
   "workspaces": [
-    "../",
     "../packages/*",
-    "./*"
+    "cardano-lock-namiwallet",
+    "omni-lock-metamask",
+    "omni-lock-secp256k1-blake160",
+    "pw-lock-metamask",
+    "secp256k1-transfer"
   ],
   "devDependencies": {
     "parcel": "^2.2.1"
