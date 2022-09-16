@@ -1,19 +1,10 @@
 import "bulma/css/bulma.css";
-import React, { useEffect, useMemo, FC, ReactNode } from "react";
-import { useList, useSetState, useAsync } from "react-use";
+import React, { useEffect, FC, ReactNode } from "react";
+import { useList, useSetState } from "react-use";
 import ReactDOM from "react-dom";
 import { nanoid } from "nanoid";
 import { BI } from "@ckb-lumos/lumos";
-import {
-  fetchAddressBalance,
-  createUnsignedTxSkeleton,
-  generateAccountFromPrivateKey,
-  transfer,
-  Account,
-  getPaidTransactionFee,
-  MIN_CELL_CAPACITY,
-  signTransaction,
-} from "./lib";
+import { fetchAddressBalance, generateAccountFromPrivateKey, transfer, Account, MIN_CELL_CAPACITY } from "./lib";
 
 type TransferTarget = {
   capacity: BI;
@@ -29,36 +20,22 @@ export function App() {
     accountInfo: null as Account | null,
     balance: BI.from(0),
     txHash: "",
+    fee: BI.from(0),
   });
-  const [transferTargets, transferTargetsActions] = useList([createTransferTarget()]);
+  const [transferTargets, transferTargetsActions] = useList<TransferTarget>([createTransferTarget()]);
 
-  // Step 1: get the unsigned transaction skeleton
-  // `useAsync` method can keep the transaction is newest from state
-  const { value: unsignedTxSkeleton } = useAsync(async () => {
-    if (!state.accountInfo) {
-      return null;
-    }
-    const skeleton = await createUnsignedTxSkeleton({ targets: transferTargets, address: state.accountInfo.address });
-    return skeleton;
-  }, [state.accountInfo, state.privateKey, transferTargets]);
-
-  // Step 2: sign the transaction and send it to CKB test network
   // this method will be called when you click "Transfer" button
   const doTransfer = () => {
     if (!state.accountInfo) {
       return;
     }
 
-    const tx = signTransaction(unsignedTxSkeleton, state.privateKey);
-    transfer(tx).then((txHash) => {
-      setState({ txHash });
-    });
+    transfer({ targets: transferTargets, address: state.accountInfo.address }, state.privateKey).then(
+      ({ txHash, fee }) => {
+        setState({ txHash: txHash, fee });
+      }
+    );
   };
-
-  // recalculate when transaction changes
-  const transactionFee = useMemo(() => (unsignedTxSkeleton ? getPaidTransactionFee(unsignedTxSkeleton) : BI.from(0)), [
-    unsignedTxSkeleton,
-  ]);
 
   // fetch and update account info and balance when private key changes
   useEffect(() => {
@@ -140,7 +117,7 @@ export function App() {
                 Add New Transfer Target
               </div>
             </th>
-            <th>Transaction fee {(transactionFee.toNumber() / 1e8).toString()}</th>
+            <th>Transaction fee {(state.fee.toNumber() / 1e8).toString()}</th>
             <th>
               <button className="button is-primary" onClick={doTransfer}>
                 Transfer!
