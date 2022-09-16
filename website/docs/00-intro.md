@@ -8,11 +8,11 @@ sidebar_position: 1
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-In this tutorial, we will develop a simple HD wallet to help manage assets on CKB. and we need to implement some logic that most wallets have
+In this tutorial, we will develop a simple HD wallet to help manage assets on CKB. And we need to implement some logic that most wallets have
 
  - Generate private key and address
  - Check CKB balance
- - Transfer CKB to others
+ - Transfer CKB to other address
 
 This simple example can help to understand how to develop CKB dapp with `Lumos`.
 
@@ -84,20 +84,16 @@ yarn add @ckb-lumos/lumos
 ```
 
 ### 2. Generate a wallet account
-
-Run the following command to create a new file：
-
-``` shell
-touch wallet.ts
-```
-
 For a wallet, the most important and commonly used function is view account. This tutorial generates private key and address by `@ckb-lumos/hd`
 
 :::tip
 If you don't know much about HD Wallet, this [article](https://learnmeabitcoin.com/technical/hd-wallets) has a very good explanation
 :::
 
+Create the `wallet.ts` file in the root directory
+
 ``` ts
+// wallet.ts
 import { hd } from '@ckb-lumos/lumos';
 const { mnemonic, ExtendedPrivateKey } = hd;
 
@@ -211,9 +207,14 @@ The unit of capacity in CKB is Shannon, 1CKB = 10^8 Shannon, so here we have to 
 :::
 
 ``` ts
+// write this at the end of previous wallet.ts file
 console.log(`address: ${address}`)
 getCapacities(address).then(capacities => console.log(`balance: ${capacities.div(10 ** 8).toString()} CKB`))
 ```
+
+:::tip
+can use `npx ts-node wallet.ts` command to run it
+:::
 
 Maybe you'll get an output like this
 ```
