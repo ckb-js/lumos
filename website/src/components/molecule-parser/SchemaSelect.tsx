@@ -1,53 +1,51 @@
-import React, { useState } from "react"
+import React, { SyntheticEvent, useState } from "react"
 import InputLabel from "@mui/material/InputLabel"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
 import MenuItem from "@mui/material/MenuItem"
 import { CodecMap } from "@ckb-lumos/molecule"
 import { SectionContainer } from "./SectionContainer"
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 
 type Props = {
-  codecMap: CodecMap
-  onSelectCodec: (name: string) => void
+  codecMap: CodecMap,
+  onSelectCodec: (name: string) => void,
+  onNextStep: () => void
+}
+
+const creatCodecOptionsFromMap = (codecMap: CodecMap): string[] =>{
+  const codecMapIterator = codecMap.keys()
+  let nextCodec = codecMapIterator.next()
+  let items: string[] = []
+  while (!nextCodec.done) {
+    items.push(nextCodec.value)
+    nextCodec = codecMapIterator.next()
+  }
+  return items
 }
 
 export const SchemaSelect: React.FC<Props> = (props) => {
-  const [selected, setSelected] = useState<string>("none")
-  const codecMapIterator = props.codecMap.keys()
+  const [selected, setSelected] = useState<string | null>(null)
 
-  const handleChange = (event: SelectChangeEvent) => {
-    const value = event.target.value as string
-    setSelected(value)
-    props.onSelectCodec(value)
+  const handleChange = (event: SyntheticEvent<Element, Event>, newValue: string | null) => {
+    setSelected(newValue as string)
+    props.onSelectCodec(newValue as string)
+    props.onNextStep()
   }
+  const top100Films = creatCodecOptionsFromMap(props.codecMap)
   return (
     <SectionContainer>
       <InputLabel style={{ fontSize: "20px", fontWeight: "700" }}>Input schema(mol): </InputLabel>
-      <Select
-        labelId="simple-select-label"
-        id="simple-select"
-        placeholder="please select one codec"
-        label="Codec"
-        value={selected}
-        onChange={handleChange}
-        style={{ display: "block", width: "60%", marginLeft: "20%", marginTop: "0.5rem" }}
-      >
-        <MenuItem value="none"> </MenuItem>
-        {(() => {
-          let nextCodec = codecMapIterator.next()
-          let items: JSX.Element[] = []
-          while (!nextCodec.done) {
-            const element = (
-              <MenuItem key={nextCodec.value} value={nextCodec.value}>
-                {nextCodec.value}
-              </MenuItem>
-            )
-            nextCodec = codecMapIterator.next()
-            items.push(element)
-          }
-          return items
-        })()}
-      </Select>
-      <br></br>
+      <Autocomplete
+      disablePortal
+      id="combo-box"
+      style={{ marginTop: '0.5rem'}}
+      options={top100Films}
+      value={selected}
+      onChange={handleChange}
+      sx={{ width: 300 }}
+      renderInput={(params) => <TextField {...params} label="Codec" />}
+    />
     </SectionContainer>
   )
 }

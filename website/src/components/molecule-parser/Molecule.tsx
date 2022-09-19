@@ -23,7 +23,8 @@ const InputArea = styled(TextareaAutosize)(({ theme }) => ({
 }))
 
 type Props = {
-  updateCodecMap: (token: CodecMap) => void
+  updateCodecMap: (token: CodecMap) => void,
+  onNextStep: () => void
 }
 
 export const Molecule: React.FC<Props> = (props) => {
@@ -50,6 +51,7 @@ export const Molecule: React.FC<Props> = (props) => {
       setParseSuccess(true)
       setShowAlert(true)
       props.updateCodecMap(codecMap)
+      props.onNextStep()
     } catch (error: any) {
       setParseSuccess(false)
       setShowAlert(true)
