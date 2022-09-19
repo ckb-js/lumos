@@ -327,6 +327,7 @@ test("should unpack Transaction", (t) => {
               args: "0x1234",
               hashType: "0x00",
             },
+            type: undefined,
           },
         ],
         outputsData: ["0xabcdef"],
@@ -434,7 +435,6 @@ test("should unpack Block", (t) => {
       transactions: [
         {
           raw: {
-            type: undefined,
             version: 0,
             cellDeps: [
               {
@@ -468,6 +468,7 @@ test("should unpack Block", (t) => {
                   args: "0x1234",
                   hashType: "0x00",
                 },
+                type: undefined,
               },
             ],
             outputsData: ["0xabcdef"],

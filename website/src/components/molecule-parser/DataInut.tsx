@@ -7,7 +7,7 @@ import TextareaAutosize from "@mui/material/TextareaAutosize"
 import { BytesCodec } from "@ckb-lumos/codec/lib/base"
 import { deepNumerifyBI, BITranslatedUnpackType } from "@ckb-lumos/molecule/lib/utils"
 import { SectionContainer } from "./SectionContainer"
-import ReactJson from "react-json-view"
+import { JSONTree } from 'react-json-tree';
 
 const InputArea = styled(TextareaAutosize)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -32,15 +32,12 @@ const isBlank = (data: BITranslatedUnpackType): boolean => {
   if (!data) {
     return true
   }
-  if (typeof data === "object" && Object.keys(data).length === 0) {
-    return true
-  }
   return false
 }
 
 export const DataInput: React.FC<Props> = (props) => {
   const [inputData, setInputData] = useState<string>("")
-  const [result, setResult] = useState<BITranslatedUnpackType>({})
+  const [result, setResult] = useState<BITranslatedUnpackType>(undefined)
   const [errorMsg, setErrorMsg] = useState<string>("")
   const handleDecode = () => {
     if (!props.codec) {
@@ -52,7 +49,7 @@ export const DataInput: React.FC<Props> = (props) => {
       setResult(deepNumerifyBI(result) as any)
       setErrorMsg("")
     } catch (error: any) {
-      setResult({})
+      setResult(undefined)
       setErrorMsg((error as Error).message)
     }
   }
@@ -72,7 +69,7 @@ export const DataInput: React.FC<Props> = (props) => {
       </Button>
       {!isBlank(result) && (
         <Paper>
-          {typeof result === "object" ? <ReactJson src={result} /> : result}
+          {typeof result === "object" ? <JSONTree data={result} /> : result}
         </Paper>
       )}
       {errorMsg && (

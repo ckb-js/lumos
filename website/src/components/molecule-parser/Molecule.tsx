@@ -3,10 +3,12 @@ import Button from "@mui/material/Button"
 import InputLabel from "@mui/material/InputLabel"
 import { styled } from "@mui/material/styles"
 import TextareaAutosize from "@mui/material/TextareaAutosize"
-import { CodecMap, createParser, createCodecMap, toMolTypeMap } from "@ckb-lumos/molecule"
+import { CodecMap, createParser, createCodecMap } from "@ckb-lumos/molecule"
 import Snackbar from "@mui/material/Snackbar"
 import MuiAlert, { AlertProps } from "@mui/material/Alert"
 import { SectionContainer } from "./SectionContainer"
+import { primitiveSchema } from "@site/src/constants/primitiveSchema"
+import { mergeBuiltinCodecs } from "@site/src/constants/builtinCodecs"
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
@@ -38,8 +40,13 @@ export const Molecule: React.FC<Props> = (props) => {
   const handleConfirm = () => {
     const parser = createParser()
     try {
-      const molTypes = parser.parse(inputMol)
-      const codecMap = createCodecMap(toMolTypeMap(molTypes))
+      // get user input schema, and append with primitive schema
+      const userMolTypes = parser.parse(inputMol + primitiveSchema)
+      
+      // get user input codecs(including primitive codedcs), and append with builtin codecs
+      const userCodecMap = createCodecMap(userMolTypes)
+      const codecMap = mergeBuiltinCodecs(userCodecMap)
+      
       setParseSuccess(true)
       setShowAlert(true)
       props.updateCodecMap(codecMap)
