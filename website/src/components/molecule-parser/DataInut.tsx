@@ -1,79 +1,83 @@
-import React, { useState } from 'react';
-import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
-import { styled } from '@mui/material/styles';
-import TextareaAutosize from '@mui/material/TextareaAutosize';
-import { BytesCodec } from '@ckb-lumos/codec/lib/base';
-import  { deepHexifyBI } from '@ckb-lumos/molecule/lib/utils'
+import React, { useState } from "react"
+import Button from "@mui/material/Button"
+import Paper from "@mui/material/Paper"
+import InputLabel from "@mui/material/InputLabel"
+import { styled } from "@mui/material/styles"
+import TextareaAutosize from "@mui/material/TextareaAutosize"
+import { BytesCodec } from "@ckb-lumos/codec/lib/base"
+import { deepNumerifyBI, BITranslatedUnpackType } from "@ckb-lumos/molecule/lib/utils"
+import { SectionContainer } from "./SectionContainer"
+import ReactJson from "react-json-view"
 
-const Label = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-  ...theme.typography.h5,
-  padding: theme.spacing(1),
-  textAlign: 'center',
-  marginLeft: '20%',
-  marginRight: '20%',
-  color: theme.palette.text.secondary,
-}));
 const InputArea = styled(TextareaAutosize)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
   ...theme.typography.body1,
-  marginTop: '1rem',
-  marginLeft: '20%',
-  marginRight: '20%',
-  width: '60%',
+  width: "100%",
+  marginTop: "0.5rem",
   color: theme.palette.text.secondary,
-}));
+}))
 
 type Props = {
-  codec: BytesCodec | undefined,
+  codec: BytesCodec | undefined
 }
 
 const formatInput = (input: string): string => {
-  if(!input.startsWith('0x')){
-    return '0x' + input
+  if (!input.startsWith("0x")) {
+    return "0x" + input
   }
   return input
 }
 
+const isBlank = (data: BITranslatedUnpackType): boolean => {
+  if (!data) {
+    return true
+  }
+  if (typeof data === "object" && Object.keys(data).length === 0) {
+    return true
+  }
+  return false
+}
+
 export const DataInput: React.FC<Props> = (props) => {
   const [inputData, setInputData] = useState<string>("")
-  const [result, setResult] = useState<string>("")
+  const [result, setResult] = useState<BITranslatedUnpackType>({})
   const [errorMsg, setErrorMsg] = useState<string>("")
   const handleDecode = () => {
-    if(!props.codec){
+    if (!props.codec) {
       setErrorMsg("please select codec")
       return
     }
     try {
       const result = props.codec.unpack(formatInput(inputData))
-      setResult(JSON.stringify(deepHexifyBI(result)))
+      setResult(deepNumerifyBI(result) as any)
       setErrorMsg("")
     } catch (error: any) {
+      setResult({})
       setErrorMsg((error as Error).message)
     }
-    
   }
   const handleChange = (e: any) => {
     setInputData(e.target.value)
   }
   return (
-    <div>
-      <Label>please input your data here:</Label>
-      <br></br>
-      <InputArea
-        minRows={3}
-        maxRows={10}
-        value={inputData}
-        onChange={handleChange}
-        placeholder="Input data here."
-      />
-      <br></br>
-      <Button variant="contained" style={{ margin: 'auto', display: 'block' }} onClick={handleDecode}>Decode!</Button>  
-      <Paper style={{ marginLeft: '20%', marginRight: '20%'}}>{result}</Paper>
-      {errorMsg && <Paper style={{ marginLeft: '20%', marginRight: '20%', color: 'red'}}>{"error: " + errorMsg}</Paper>}
-    </div>
-  );
+    <SectionContainer>
+      <InputLabel style={{ fontSize: "20px", fontWeight: "700" }}>Input data: </InputLabel>
+      <InputArea minRows={3} maxRows={10} value={inputData} onChange={handleChange} placeholder="0x..." />
+      <Button
+        variant="contained"
+        style={{ margin: "auto", display: "block", marginBottom: "0.5rem" }}
+        onClick={handleDecode}
+      >
+        Decode!
+      </Button>
+      {!isBlank(result) && (
+        <Paper>
+          {typeof result === "object" ? <ReactJson src={result} /> : result}
+        </Paper>
+      )}
+      {errorMsg && (
+        <Paper style={{ color: "red" }}>{"error: " + errorMsg}</Paper>
+      )}
+    </SectionContainer>
+  )
 }
-
-

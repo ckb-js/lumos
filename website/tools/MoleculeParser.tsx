@@ -5,8 +5,9 @@ import { SchemaSelect } from "@site/src/components/molecule-parser/SchemaSelect"
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import { CodecMap } from "@ckb-lumos/molecule";
+import { withThemed } from "@site/src/components/ThemedWrapper";
 
-export const MoleculeParser: React.FC = () => {
+const _MoleculeParser: React.FC = () => {
   const [codecMap, setCodecMap] = useState<CodecMap>(new Map());
   const [selectedCodecName, setSelectedCodecName] = useState<string>("");
   const handleCodecMap = (codecMap: CodecMap) => {
@@ -25,3 +26,5 @@ export const MoleculeParser: React.FC = () => {
     </Box>
   );
 };
+
+export const MoleculeParser = withThemed(_MoleculeParser)

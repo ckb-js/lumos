@@ -1,7 +1,7 @@
 import { MolType, MolTypeMap } from "./type";
 import { BI } from "@ckb-lumos/bi";
 
-type UnpackType =
+export type UnpackType =
   | string
   | number
   | BI
@@ -9,21 +9,14 @@ type UnpackType =
   | { [property: string]: UnpackType }
   | UnpackType[];
 
-type BIHexifiedFUnpackType =
+export type BITranslatedUnpackType =
   | string
   | number
   | undefined
-  | { [property: string]: BIHexifiedFUnpackType }
-  | BIHexifiedFUnpackType[];
+  | { [property: string]: BITranslatedUnpackType }
+  | BITranslatedUnpackType[];
 
-/**
- * Unpack result is either number, string, object, or BI
- * convert { field: BI } to { field: HexString } in order to compare unpack results in tests
- *
- * eg: { capacity: BI.from(10) } ==> { capacity: "0xa" }
- * @param data
- */
-export const deepHexifyBI = (data: UnpackType): BIHexifiedFUnpackType => {
+export const deepTranslateBI = (fnName: keyof BI) => (data: UnpackType): BITranslatedUnpackType => {
   if (
     Object.prototype.toString.call(data) === "[object Number]" ||
     Object.prototype.toString.call(data) === "[object String]"
@@ -33,17 +26,37 @@ export const deepHexifyBI = (data: UnpackType): BIHexifiedFUnpackType => {
     const isBI = BI.isBI(data);
 
     if (isBI) {
-      return (data as BI).toHexString();
+      return (BI.prototype[fnName] as (() => string)).call(data)
     }
     const keys = Object.keys(data as Record<string, unknown>);
     let result: Record<string, unknown> = {};
     keys.forEach((key) => {
       const value = (data as Record<string, UnpackType>)[key];
-      result = Object.assign(result, { [key]: deepHexifyBI(value) });
+      // TODO: not sure if there is a performance issue
+      result = Object.assign(result, { [key]: deepTranslateBI(fnName)(value) });
     });
-    return result as BIHexifiedFUnpackType;
+    return result as BITranslatedUnpackType;
   }
 };
+
+/**
+ * Unpack result is either number, string, object, or BI
+ * convert { field: BI } to { field: HexString } in order to compare unpack results in tests
+ *
+ * eg: { capacity: BI.from(10) } ==> { capacity: "0xa" }
+ * @param data
+ */
+ export const deepHexifyBI = deepTranslateBI("toHexString")
+
+/**
+ * Unpack result is either number, string, object, or BI
+ * convert { field: BI } to { field: string } in order to compare unpack results in tests
+ *
+ * eg: { capacity: BI.from(10) } ==> { capacity: "10" }
+ * @param data
+ */
+ export const deepNumerifyBI = deepTranslateBI("toString")
+
 
 // TODO: assert not null/undefined
 export function nonNull(data: unknown): void {
