@@ -8,7 +8,7 @@ import Snackbar from "@mui/material/Snackbar"
 import MuiAlert, { AlertProps } from "@mui/material/Alert"
 import { SectionContainer } from "./SectionContainer"
 import { primitiveSchema } from "@site/src/constants/primitiveSchema"
-import { mergeBuiltinCodecs } from "@site/src/constants/builtinCodecs"
+import { builtinCodecs, mergeBuiltinCodecs } from "@site/src/constants/builtinCodecs"
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />
@@ -41,10 +41,10 @@ export const Molecule: React.FC<Props> = (props) => {
     const parser = createParser()
     try {
       // get user input schema, and append with primitive schema
-      const userMolTypes = parser.parse(inputMol + primitiveSchema)
+      const userMolTypes = parser.parse(primitiveSchema + inputMol, { skipDependenciesCheck: true })
       
       // get user input codecs(including primitive codedcs), and append with builtin codecs
-      const userCodecMap = createCodecMap(userMolTypes)
+      const userCodecMap = createCodecMap(userMolTypes, builtinCodecs)
       const codecMap = mergeBuiltinCodecs(userCodecMap)
       
       setParseSuccess(true)

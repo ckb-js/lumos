@@ -1,5 +1,4 @@
 import { AnyCodec } from "@ckb-lumos/codec/lib/base";
-
 export const byte = "byte";
 
 export type BaseType = {
@@ -52,6 +51,11 @@ export type MolTypeMap = Map<string, MolType>;
 // key is type name
 export type CodecMap = Map<string, AnyCodec>;
 
+
+export type ParseOptions = {
+  skipDependenciesCheck: boolean;
+};
+
 export interface Parser {
-  parse(data: string): MolType[];
+  parse(data: string, options: ParseOptions): MolType[];
 }

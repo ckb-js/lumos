@@ -9,6 +9,7 @@ import {
   MolType,
   MolTypeMap,
   Parser,
+  ParseOptions,
 } from "./type";
 import { nonNull, toMolTypeMap } from "./utils";
 
@@ -17,13 +18,18 @@ const grammar = require("./grammar/mol.js");
 
 export const createParser = (): Parser => {
   return {
-    parse: (data) => {
+    parse: (
+      data,
+      options: ParseOptions = {
+        skipDependenciesCheck: false,
+      }
+    ) => {
       const parser = new NearleyParser(NearleyGrammar.fromCompiled(grammar));
       parser.feed(data);
       const results = parser.results[0].filter(
         (result: MolType | null) => !!result
       ) as MolType[];
-      validateParserResults(results);
+      validateParserResults(results, options);
       return results;
     },
   };
@@ -33,9 +39,11 @@ export const createParser = (): Parser => {
  */
 export const byte = "byte";
 
-const validateParserResults = (results: MolType[]) => {
+const validateParserResults = (results: MolType[], options: ParseOptions) => {
   checkDuplicateNames(results);
-  checkDependencies(results);
+  if (!options.skipDependenciesCheck) {
+    checkDependencies(results);
+  }
 };
 
 const checkDuplicateNames = (results: MolType[]) => {

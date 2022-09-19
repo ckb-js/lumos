@@ -35,10 +35,14 @@ function createHexBytesCodec(): BytesCodec<string, BytesLike> {
 export const toCodec = (
   key: string,
   molTypeMap: MolTypeMap,
-  result: CodecMap
+  result: CodecMap,
+  refs?: CodecMap,
 ): BytesCodec => {
-  if (result.has(key)) {
+  if (result.has(key) ) {
     return result.get(key)!;
+  }
+  if (refs?.has(key) ) {
+    return refs.get(key)!;
   }
   const molType: MolType = molTypeMap.get(key)!;
   nonNull(molType);
@@ -76,7 +80,7 @@ export const toCodec = (
       } else if (molType.item === byte) {
         codec = createFixedHexBytesCodec(molType.item_count);
       } else {
-        const itemMolType = toCodec(molType.item, molTypeMap, result);
+        const itemMolType = toCodec(molType.item, molTypeMap, result, refs);
         codec = array(itemMolType as FixedBytesCodec, molType.item_count);
       }
       break;
@@ -85,7 +89,7 @@ export const toCodec = (
       if (molType.item === byte) {
         codec = byteVecOf(createHexBytesCodec());
       } else {
-        const itemMolType = toCodec(molType.item, molTypeMap, result);
+        const itemMolType = toCodec(molType.item, molTypeMap, result, refs);
         codec = vector(itemMolType);
       }
       break;
@@ -94,7 +98,7 @@ export const toCodec = (
       if (molType.item === byte) {
         codec = option(createFixedHexBytesCodec(1));
       } else {
-        const itemMolType = toCodec(molType.item, molTypeMap, result);
+        const itemMolType = toCodec(molType.item, molTypeMap, result, refs);
         codec = option(itemMolType);
       }
       break;
@@ -105,7 +109,7 @@ export const toCodec = (
         if (itemMolTypeName === byte) {
           unionCodecs[itemMolTypeName] = createFixedHexBytesCodec(1);
         } else {
-          const itemMolType = toCodec(itemMolTypeName, molTypeMap, result);
+          const itemMolType = toCodec(itemMolTypeName, molTypeMap, result, refs);
           unionCodecs[itemMolTypeName] = itemMolType;
         }
       });
@@ -119,7 +123,7 @@ export const toCodec = (
         if (field.type === byte) {
           tableCodecs[field.name] = createFixedHexBytesCodec(1);
         } else {
-          const itemMolType = toCodec(field.type, molTypeMap, result);
+          const itemMolType = toCodec(field.type, molTypeMap, result, refs);
           tableCodecs[field.name] = itemMolType;
         }
       });
@@ -136,7 +140,7 @@ export const toCodec = (
         if (field.type === byte) {
           structCodecs[field.name] = createFixedHexBytesCodec(1);
         } else {
-          const itemMolType = toCodec(field.type, molTypeMap, result);
+          const itemMolType = toCodec(field.type, molTypeMap, result, refs);
           structCodecs[field.name] = itemMolType as FixedBytesCodec;
         }
       });
@@ -164,7 +168,8 @@ export const toCodec = (
  * @returns
  */
 export const createCodecMap = (
-  molTypeInfo: MolTypeMap | MolType[]
+  molTypeInfo: MolTypeMap | MolType[],
+  refs?: CodecMap,
 ): CodecMap => {
   const molTypeMap = ((data) => {
     if (Array.isArray(data)) {
@@ -174,7 +179,7 @@ export const createCodecMap = (
   })(molTypeInfo);
   const result = new Map<string, BytesCodec>();
   for (const entry of molTypeMap) {
-    toCodec(entry[0], molTypeMap, result);
+    toCodec(entry[0], molTypeMap, result, refs);
   }
   return result;
 };
