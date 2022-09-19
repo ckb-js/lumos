@@ -1,4 +1,4 @@
-import { blockchain } from '@ckb-lumos/base';
+import { blockchain } from "@ckb-lumos/base";
 import test from "ava";
 import { toMolTypeMap, deepHexifyBI } from "../src/utils";
 import { CodecMap, MolType } from "../src/type";
@@ -18,23 +18,12 @@ test("test codec with refs", (t) => {
   const tokens: MolType[] = [
     { item: "Bytes", name: "BytesVec", type: "vector" },
   ];
-  const refs: CodecMap = new Map([
-    ["Bytes", blockchain.Bytes]
-  ])
+  const refs: CodecMap = new Map([["Bytes", blockchain.Bytes]]);
   const codecMap = createCodecMap(tokens, refs);
-  t.deepEqual(codecMap.get('BytesVec')!.unpack("0x0e00000008000000020000001234"), ['0x1234']);
-});
-
-
-test("test codec with refs", (t) => {
-  const tokens: MolType[] = [
-    { item: "Bytes", name: "BytesVec", type: "vector" },
-  ];
-  const refs: CodecMap = new Map([
-    ["Bytes", blockchain.Bytes]
-  ])
-  const codecMap = createCodecMap(tokens, refs);
-  t.truthy(codecMap.get("BytesVec")!.unpack("0x3d0000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80108000000aabbccdd44332211") === 1);
+  t.deepEqual(
+    codecMap.get("BytesVec")!.unpack("0x0e00000008000000020000001234"),
+    ["0x1234"]
+  );
 });
 
 // https://github.com/nervosnetwork/ckb/blob/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol

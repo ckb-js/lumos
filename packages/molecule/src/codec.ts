@@ -36,12 +36,12 @@ export const toCodec = (
   key: string,
   molTypeMap: MolTypeMap,
   result: CodecMap,
-  refs?: CodecMap,
+  refs?: CodecMap
 ): BytesCodec => {
-  if (result.has(key) ) {
+  if (result.has(key)) {
     return result.get(key)!;
   }
-  if (refs?.has(key) ) {
+  if (refs?.has(key)) {
     return refs.get(key)!;
   }
   const molType: MolType = molTypeMap.get(key)!;
@@ -109,7 +109,12 @@ export const toCodec = (
         if (itemMolTypeName === byte) {
           unionCodecs[itemMolTypeName] = createFixedHexBytesCodec(1);
         } else {
-          const itemMolType = toCodec(itemMolTypeName, molTypeMap, result, refs);
+          const itemMolType = toCodec(
+            itemMolTypeName,
+            molTypeMap,
+            result,
+            refs
+          );
           unionCodecs[itemMolTypeName] = itemMolType;
         }
       });
@@ -169,7 +174,7 @@ export const toCodec = (
  */
 export const createCodecMap = (
   molTypeInfo: MolTypeMap | MolType[],
-  refs?: CodecMap,
+  refs?: CodecMap
 ): CodecMap => {
   const molTypeMap = ((data) => {
     if (Array.isArray(data)) {

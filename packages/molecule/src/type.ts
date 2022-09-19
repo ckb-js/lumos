@@ -51,11 +51,10 @@ export type MolTypeMap = Map<string, MolType>;
 // key is type name
 export type CodecMap = Map<string, AnyCodec>;
 
-
 export type ParseOptions = {
   skipDependenciesCheck: boolean;
 };
 
 export interface Parser {
-  parse(data: string, options: ParseOptions): MolType[];
+  parse(data: string, options?: ParseOptions): MolType[];
 }
