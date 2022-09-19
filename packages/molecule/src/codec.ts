@@ -44,7 +44,7 @@ export const toCodec = (
   nonNull(molType);
   let codec = null;
   switch (molType.type) {
-    case "array":
+    case "array": {
       if (molType.name.startsWith("Uint")) {
         switch (molType.name) {
           case "Uint8":
@@ -80,7 +80,8 @@ export const toCodec = (
         codec = array(itemMolType as FixedBytesCodec, molType.item_count);
       }
       break;
-    case "vector":
+    }
+    case "vector": {
       if (molType.item === byte) {
         codec = byteVecOf(createHexBytesCodec());
       } else {
@@ -88,7 +89,8 @@ export const toCodec = (
         codec = vector(itemMolType);
       }
       break;
-    case "option":
+    }
+    case "option": {
       if (molType.item === byte) {
         codec = option(createFixedHexBytesCodec(1));
       } else {
@@ -96,7 +98,8 @@ export const toCodec = (
         codec = option(itemMolType);
       }
       break;
-    case "union":
+    }
+    case "union": {
       const unionCodecs: Record<string, BytesCodec> = {};
       molType.items.forEach((itemMolTypeName) => {
         if (itemMolTypeName === byte) {
@@ -108,7 +111,8 @@ export const toCodec = (
       });
       codec = union(unionCodecs, Object.keys(unionCodecs));
       break;
-    case "table":
+    }
+    case "table": {
       const tableFields = molType.fields;
       const tableCodecs: Record<string, BytesCodec> = {};
       tableFields.forEach((field) => {
@@ -124,7 +128,8 @@ export const toCodec = (
         tableFields.map((field) => field.name)
       );
       break;
-    case "struct":
+    }
+    case "struct": {
       const structFields = molType.fields;
       const structCodecs: Record<string, FixedBytesCodec> = {};
       structFields.forEach((field) => {
@@ -140,6 +145,7 @@ export const toCodec = (
         structFields.map((field) => field.name)
       );
       break;
+    }
     default:
       throw new Error(`Not supportted molecule type ${molType}.`);
   }

@@ -68,17 +68,18 @@ const checkDependencies = (results: MolType[]) => {
     const type = molItem.type;
     switch (type) {
       case "array":
-      case "struct":
+      case "struct": {
         assertFixedMolType(molItem.name, map);
         break;
+      }
       case "vector":
-      case "option":
+      case "option": {
         if ((molItem as Vector).item !== byte) {
           nonNull(map.get((molItem as Vector).item));
         }
         break;
-        5;
-      case "union":
+      }
+      case "union": {
         const unionDeps = (molItem as Union).items;
         unionDeps.forEach((dep: string) => {
           if (dep !== byte) {
@@ -86,7 +87,8 @@ const checkDependencies = (results: MolType[]) => {
           }
         });
         break;
-      case "table":
+      }
+      case "table": {
         const tableDeps = (molItem as Table).fields.map(
           (field: Field) => field.type
         );
@@ -96,6 +98,7 @@ const checkDependencies = (results: MolType[]) => {
           }
         });
         break;
+      }
       default:
         break;
     }
@@ -110,12 +113,13 @@ const assertFixedMolType = (name: string, map: MolTypeMap) => {
   nonNull(molItem);
   const type = molItem.type;
   switch (type) {
-    case "array":
+    case "array": {
       if ((molItem as Array).item !== byte) {
         assertFixedMolType(molItem.name, map);
       }
       break;
-    case "struct":
+    }
+    case "struct": {
       const fields = (molItem as Struct).fields;
       fields.forEach((field: Field) => {
         if (field.type !== byte) {
@@ -123,6 +127,7 @@ const assertFixedMolType = (name: string, map: MolTypeMap) => {
         }
       });
       break;
+    }
     default:
       throw new Error(`Type ${name} should be fixed length.`);
   }

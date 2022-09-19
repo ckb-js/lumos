@@ -12,7 +12,6 @@ module.exports = {
         "plugin:@typescript-eslint/recommended"
       ],
       rules: {
-        "no-case-declarations" : "warn",
         "@typescript-eslint/no-explicit-any": "error",
         "@typescript-eslint/explicit-module-boundary-types": "error",
         "no-constant-condition": ["error", { "checkLoops": false }]
