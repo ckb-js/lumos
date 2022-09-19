@@ -1,3 +1,9 @@
+import {
+  CodecBaseParseError,
+  CodecExecuteError,
+  isCodecExecuteError,
+} from "./error";
+
 import escapeStringRegexp from "escape-string-regexp";
 
 const HEX_DECIMAL_REGEX = /^0x([0-9a-fA-F])+$/;
@@ -82,4 +88,19 @@ export function assertMinBufferLength(
 export function isObjectLike(x: unknown): x is Record<string, unknown> {
   if (!x) return false;
   return typeof x === "object";
+}
+
+export function trackCodeExecuteError<T>(
+  path: string | number | symbol,
+  fn: () => T
+): T {
+  try {
+    return fn();
+  } catch (e) {
+    const readableError = isCodecExecuteError(e)
+      ? e
+      : new CodecExecuteError(e as CodecBaseParseError);
+    readableError.updateKey(path);
+    throw readableError;
+  }
 }

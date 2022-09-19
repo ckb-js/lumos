@@ -1,6 +1,50 @@
 import { Cell, Header } from "@ckb-lumos/base";
 import { LocktimeCell } from "../src";
 
+export const charlesOmnilockInputs: Cell[] = [
+  {
+    cellOutput: {
+      capacity: "0x174876e800",
+      lock: {
+        codeHash:
+          "0x1bf147d1c95a5ad51016bd426c33f364257e685af54df26fc69ec40e3ae267d1",
+        hashType: "data",
+        args: "0x00e3e0a82b199dceadb55e223c6e4b8e511d57d24900",
+      },
+      type: undefined,
+    },
+    data: "0x",
+    outPoint: {
+      txHash:
+        "0x486ead64a7c2c1a3132c2e03d2af364050f4f0f6dfafad291daa7db6aed53e10",
+      index: "0x0",
+    },
+    blockHash:
+      "0x1111111111111111111111111111111111111111111111111111111111111111",
+    blockNumber: "0x1",
+  },
+  {
+    cellOutput: {
+      capacity: "0x174876e800",
+      lock: {
+        codeHash:
+          "0x1bf147d1c95a5ad51016bd426c33f364257e685af54df26fc69ec40e3ae267d1",
+        hashType: "data",
+        args: "0x00e3e0a82b199dceadb55e223c6e4b8e511d57d24900",
+      },
+      type: undefined,
+    },
+    data: "0x",
+    outPoint: {
+      txHash:
+        "0x486ead64a7c2c1a3132c2e03d2af364050f4f0f6dfafad291daa7db6aed53e10",
+      index: "0x1",
+    },
+    blockHash:
+      "0x1111111111111111111111111111111111111111111111111111111111111111",
+    blockNumber: "0x1",
+  },
+];
 export const bobSecpInputs: Cell[] = [
   {
     cellOutput: {

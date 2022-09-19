@@ -1,3 +1,4 @@
+import escapeStringRegexp from "escape-string-regexp";
 import {
   array,
   dynvec,
@@ -10,9 +11,10 @@ import {
 } from "../src/molecule/layout";
 import { Bytes, createFixedHexBytesCodec } from "../src/blockchain";
 import { bytify } from "../src/bytes";
-import test from "ava";
-import { Uint16, Uint32, Uint8 } from "../src/number";
+import test, { ExecutionContext } from "ava";
+import { Uint16, Uint16BE, Uint32, Uint8 } from "../src/number";
 import { byteOf } from "../src/molecule";
+import { CodecExecuteError } from "../src/error";
 
 test("test layout-array", (t) => {
   const codec = array(Uint8, 4);
@@ -213,4 +215,172 @@ test("test fixed hex bytes", (t) => {
   t.deepEqual(hexBytes, bytify([0x12, 0x34, 0x56]));
   t.truthy(hexStr === createFixedHexBytesCodec(3).unpack(hexBytes));
   t.throws(() => createFixedHexBytesCodec(4).pack(hexStr));
+});
+
+const expectThrowCodecError = (
+  t: ExecutionContext<any>,
+  fn: () => any,
+  message: string
+) => {
+  t.throws(fn, {
+    instanceOf: CodecExecuteError,
+    message: new RegExp(`${escapeStringRegexp(message)}.*`, "m"),
+  });
+};
+
+test("test simple array codec error", (t) => {
+  const codec = array(Uint8, 3);
+  expectThrowCodecError(
+    t,
+    () => codec.pack([0x1, 0xfff, 0x3]),
+    `Expect type Uint8 at input[1] but got error: Value must be between 0 and 255, but got`
+  );
+});
+
+test("test simple struct error", (t) => {
+  const codec = struct({ f1: Uint8, f2: Uint16, f3: Uint32 }, [
+    "f1",
+    "f2",
+    "f3",
+  ]);
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ f1: 0x114514, f2: 0x0, f3: 0x0 }),
+    `Expect type Uint8 at input.f1 but got error: Value must be between 0 and 255, but got`
+  );
+
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ f1: 0x0, f2: 0x114514, f3: 0x0 }),
+    `Expect type Uint16LE at input.f2 but got error: Value must be between 0 and 65535, but got`
+  );
+
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ f1: 0x0, f2: 0x0, f3: 0x1145141919810 }),
+    `Expect type Uint32LE at input.f3 but got error: Value must be between 0 and 4294967295, but got`
+  );
+});
+
+test("test simple fixedvec", (t) => {
+  const codec = fixvec(Uint16);
+  expectThrowCodecError(
+    t,
+    () => codec.pack([0x1, 0x2, 0x1145141919810]),
+    `Expect type Uint16LE at input[2] but got error: Value must be between 0 and 65535, but got`
+  );
+});
+
+test("test simple dynvec", (t) => {
+  const codec = dynvec(dynvec(Uint16BE));
+  expectThrowCodecError(
+    t,
+    () => codec.pack([[0x1, 0x2, 0x1145141919810]]),
+    `Expect type Uint16BE at input[0][2] but got error: Value must be between 0 and 65535, but got`
+  );
+});
+
+test("simple table", (t) => {
+  const codec = table({ f1: Uint8, f2: Uint8, f3: Uint8 }, ["f1", "f2", "f3"]);
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ f1: 0x1, f2: 0xffff, f3: 0x1 }),
+    `Expect type Uint8 at input.f2 but got error: Value must be between 0 and 255, but got`
+  );
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ f1: 0x1, f2: 0x2, f3: 0x2333 }),
+    `Expect type Uint8 at input.f3 but got error: Value must be between 0 and 255, but got`
+  );
+});
+
+test("Simple option", (t) => {
+  const codec = option(Uint8);
+  expectThrowCodecError(
+    t,
+    () => codec.pack(0x23333),
+    `Expect type Uint8 at input? but got error: Value must be between 0 and 255, but got`
+  );
+});
+
+test("nested type", (t) => {
+  const codec = table(
+    {
+      byteField: Uint8,
+      arrayField: array(Uint8, 3),
+      structField: struct({ f1: Uint8, f2: Uint8 }, ["f1", "f2"]),
+      fixedVec: fixvec(Uint8),
+      dynVec: dynvec(dynvec(Uint8)),
+      option: option(Uint8),
+    },
+    ["byteField", "arrayField", "structField", "fixedVec", "dynVec", "option"]
+  );
+
+  const validInput: Parameters<typeof codec["pack"]>[0] = {
+    byteField: 0x1,
+    arrayField: [0x2, 0x3, 0x4],
+    structField: { f1: 0x5, f2: 0x6 },
+    fixedVec: [0x7, 0x8, 0x9],
+    dynVec: [
+      [0xa, 0xb, 0xc],
+      [0xd, 0xe, 0xf],
+    ],
+    option: 0x10,
+  };
+
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ ...validInput, byteField: 0x2333 }),
+    `Expect type Uint8 at input.byteField but got error: Value must be between 0 and 255, but got`
+  );
+
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ ...validInput, arrayField: [0x1, 0x2, 0x2333] }),
+    `Expect type Uint8 at input.arrayField[2] but got error: Value must be between 0 and 255, but got`
+  );
+
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ ...validInput, structField: { f1: 0x1, f2: 0x2333 } }),
+    `Expect type Uint8 at input.structField.f2 but got error: Value must be between 0 and 255, but got`
+  );
+
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ ...validInput, fixedVec: [0x1, 0x2, 0x2333] }),
+    `Expect type Uint8 at input.fixedVec[2] but got error: Value must be between 0 and 255, but got`
+  );
+
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ ...validInput, dynVec: [[0x1, 0x2, 0x2333]] }),
+    `Expect type Uint8 at input.dynVec[0][2] but got error: Value must be between 0 and 255, but got`
+  );
+
+  expectThrowCodecError(
+    t,
+    () => codec.pack({ ...validInput, option: 0x2333 }),
+    `Expect type Uint8 at input.option? but got error: Value must be between 0 and 255, but got`
+  );
+});
+
+test("nested error in wrong union type", (t) => {
+  const codec = dynvec(
+    union({ Bytes3: array(Uint8, 3), Bytes4: array(Uint8, 3) }, [
+      "Bytes3",
+      "Bytes4",
+    ])
+  );
+  expectThrowCodecError(
+    t,
+    () => codec.pack([{ type: "Bytes2" as any, value: [0x1, 0x2, 0x3] }]),
+    `Expect type Union(Bytes3 | Bytes4) at input[0] but got error: Unknown union type: Bytes2`
+  );
+
+  expectThrowCodecError(
+    t,
+    () => codec.pack([{ type: 114514 as any, value: [0x1, 0x2, 0x3] }]),
+    `Expect type Union(Bytes3 | Bytes4) at input[0] but got error: Invalid type in union, type must be a string`
+  );
 });

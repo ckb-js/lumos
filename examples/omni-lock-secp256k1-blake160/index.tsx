@@ -59,8 +59,8 @@ export function App() {
     const pubkeyHash = key.privateKeyToBlake160(pk);
 
     const omniLock: Script = {
-      codeHash: CONFIG.SCRIPTS.OMNI_LOCK.CODE_HASH,
-      hashType: CONFIG.SCRIPTS.OMNI_LOCK.HASH_TYPE,
+      codeHash: CONFIG.SCRIPTS.OMNILOCK.CODE_HASH,
+      hashType: CONFIG.SCRIPTS.OMNILOCK.HASH_TYPE,
       // omni flag       pubkey hash   omni lock flags
       // chain identity   eth addr      function flag()
       // 00: Nervos       👇            00: owner
