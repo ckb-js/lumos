@@ -1,6 +1,7 @@
-import { blockchain } from "@ckb-lumos/base";
 import test from "ava";
-import { toMolTypeMap, deepHexifyBI } from "../src/utils";
+import { deepHexifyBI } from "@ckb-lumos/codec/lib/utils";
+import { blockchain } from "@ckb-lumos/base";
+import { toMolTypeMap } from "../src/utils";
 import { CodecMap, MolType } from "../src/type";
 import { createCodecMap } from "../src/codec";
 import { BI } from "@ckb-lumos/bi";

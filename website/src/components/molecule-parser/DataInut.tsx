@@ -5,7 +5,7 @@ import InputLabel from "@mui/material/InputLabel"
 import { styled } from "@mui/material/styles"
 import TextareaAutosize from "@mui/material/TextareaAutosize"
 import { BytesCodec } from "@ckb-lumos/codec/lib/base"
-import { deepNumerifyBI, BITranslatedUnpackType } from "@ckb-lumos/molecule/lib/utils"
+import { deepDecimalizeBI, BITranslatedUnpackType } from "@ckb-lumos/codec/lib/utils"
 import { SectionContainer } from "./SectionContainer"
 import { JSONTree } from "react-json-tree"
 import { deepStringifyNumber } from "./utils"
@@ -47,7 +47,7 @@ export const DataInput: React.FC<Props> = (props) => {
     }
     try {
       const result = props.codec.unpack(formatInput(inputData))
-      setResult(deepNumerifyBI(deepStringifyNumber(result)) as any)
+      setResult(deepDecimalizeBI(deepStringifyNumber(result)) as any)
       setErrorMsg("")
     } catch (error: any) {
       setResult(undefined)

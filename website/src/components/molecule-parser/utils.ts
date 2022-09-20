@@ -1,5 +1,5 @@
 import { BI } from "@ckb-lumos/bi"
-import { UnpackType } from "@ckb-lumos/molecule/lib/utils"
+import { UnpackType } from "@ckb-lumos/codec/lib/utils"
 
 export const deepStringifyNumber = (data: UnpackType): UnpackType => {
   if (
