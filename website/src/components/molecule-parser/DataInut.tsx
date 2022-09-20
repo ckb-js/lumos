@@ -7,7 +7,7 @@ import TextareaAutosize from "@mui/material/TextareaAutosize"
 import { BytesCodec } from "@ckb-lumos/codec/lib/base"
 import { deepNumerifyBI, BITranslatedUnpackType } from "@ckb-lumos/molecule/lib/utils"
 import { SectionContainer } from "./SectionContainer"
-import { JSONTree } from 'react-json-tree';
+import { JSONTree } from "react-json-tree"
 
 const InputArea = styled(TextareaAutosize)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -69,12 +69,14 @@ export const DataInput: React.FC<Props> = (props) => {
       </Button>
       {!isBlank(result) && (
         <Paper>
-          {typeof result === "object" ? <JSONTree data={result} /> : result}
+          {typeof result === "object" ? (
+            <JSONTree data={result} shouldExpandNode={() => true} hideRoot={true} />
+          ) : (
+            result
+          )}
         </Paper>
       )}
-      {errorMsg && (
-        <Paper style={{ color: "red" }}>{"error: " + errorMsg}</Paper>
-      )}
+      {errorMsg && <Paper style={{ color: "red" }}>{"error: " + errorMsg}</Paper>}
     </SectionContainer>
   )
 }

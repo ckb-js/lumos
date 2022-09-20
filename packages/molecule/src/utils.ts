@@ -60,7 +60,7 @@ export const deepTranslateBI =
  * Unpack result is either number, string, object, or BI
  * convert { field: BI } to { field: HexString } in order to compare unpack results in tests
  *
- * eg: { capacity: BI.from(10) } ==> { capacity: "0xa" }
+ * e.g. { capacity: BI.from(10) } ==> { capacity: "0xa" }
  * @param data
  */
 export const deepHexifyBI = deepTranslateBI("toHexString");
@@ -69,7 +69,7 @@ export const deepHexifyBI = deepTranslateBI("toHexString");
  * Unpack result is either number, string, object, or BI
  * convert { field: BI } to { field: string } in order to compare unpack results in tests
  *
- * eg: { capacity: BI.from(10) } ==> { capacity: "10" }
+ * e.g. { capacity: BI.from(10) } ==> { capacity: "10" }
  * @param data
  */
 export const deepNumerifyBI = deepTranslateBI("toString");
