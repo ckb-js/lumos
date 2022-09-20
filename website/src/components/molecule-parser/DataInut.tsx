@@ -8,6 +8,7 @@ import { BytesCodec } from "@ckb-lumos/codec/lib/base"
 import { deepNumerifyBI, BITranslatedUnpackType } from "@ckb-lumos/molecule/lib/utils"
 import { SectionContainer } from "./SectionContainer"
 import { JSONTree } from "react-json-tree"
+import { deepStringifyNumber } from "./utils"
 
 const InputArea = styled(TextareaAutosize)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -46,7 +47,7 @@ export const DataInput: React.FC<Props> = (props) => {
     }
     try {
       const result = props.codec.unpack(formatInput(inputData))
-      setResult(deepNumerifyBI(result) as any)
+      setResult(deepNumerifyBI(deepStringifyNumber(result)) as any)
       setErrorMsg("")
     } catch (error: any) {
       setResult(undefined)

@@ -11,7 +11,7 @@ import {
 } from "@ckb-lumos/codec";
 import { BytesCodec, FixedBytesCodec } from "@ckb-lumos/codec/lib/base";
 
-import type * as api from './api';
+import type * as api from "./api";
 import { BI } from "@ckb-lumos/bi";
 
 const { Uint128LE, Uint8, Uint32LE, Uint64LE } = number;
@@ -20,8 +20,10 @@ const { bytify, hexify } = bytes;
 
 type TransactionCodecType = PackParam<typeof BaseTransaction>;
 type TransactionUnpackResultType = UnpackResult<typeof BaseTransaction>;
+type RawTransactionUnpackResultType = UnpackResult<typeof RawTransaction>;
 type HeaderCodecType = PackParam<typeof BaseHeader>;
 type HeaderUnpackResultType = UnpackResult<typeof BaseHeader>;
+type RawHeaderUnpackResultType = UnpackResult<typeof RawHeader>;
 
 export function createFixedHexBytesCodec(
   byteLength: number
@@ -250,7 +252,8 @@ export const BaseHeader = struct(
 );
 
 export const Header = createBytesCodec({
-  pack: (header: api.Header) => BaseHeader.pack(transformHeaderCodecType(header)),
+  pack: (header: api.Header) =>
+    BaseHeader.pack(transformHeaderCodecType(header)),
   unpack: (buf) => deTransformHeaderCodecType(BaseHeader.unpack(buf)),
 });
 
@@ -345,13 +348,13 @@ export function transformTransactionCodecType(
 
 export function deTransformTransactionCodecType(
   data: TransactionUnpackResultType
-): api.Transaction {
+): RawTransactionUnpackResultType & { witnesses: string[] } {
   return {
     cellDeps: data.raw.cellDeps.map((cellDep) => {
       return {
         outPoint: {
           txHash: cellDep.outPoint.txHash,
-          index: BI.from(cellDep.outPoint.index).toHexString(),
+          index: cellDep.outPoint.index,
         },
         depType: cellDep.depType,
       };
@@ -361,20 +364,20 @@ export function deTransformTransactionCodecType(
       return {
         previousOutput: {
           txHash: input.previousOutput.txHash,
-          index: BI.from(input.previousOutput.index).toHexString(),
+          index: input.previousOutput.index,
         },
-        since: input.since.toHexString(),
+        since: input.since,
       };
     }),
     outputs: data.raw.outputs.map((output) => {
       return {
-        capacity: output.capacity.toHexString(),
+        capacity: output.capacity,
         lock: output.lock,
         type: output.type,
       };
     }),
     outputsData: data.raw.outputsData,
-    version: BI.from(data.raw.version).toHexString(),
+    version: data.raw.version,
     witnesses: data.witnesses,
   };
 }
@@ -399,19 +402,19 @@ export function transformHeaderCodecType(data: api.Header): HeaderCodecType {
 
 export function deTransformHeaderCodecType(
   data: HeaderUnpackResultType
-): api.Header {
+): RawHeaderUnpackResultType & { nonce: BI; hash: string } {
   return {
-    timestamp: data.raw.timestamp.toHexString(),
-    number: data.raw.number.toHexString(),
-    epoch: data.raw.epoch.toHexString(),
-    compactTarget: BI.from(data.raw.compactTarget).toHexString(),
+    timestamp: data.raw.timestamp,
+    number: data.raw.number,
+    epoch: data.raw.epoch,
+    compactTarget: data.raw.compactTarget,
     dao: data.raw.dao,
     parentHash: data.raw.parentHash,
     proposalsHash: data.raw.proposalsHash,
     transactionsRoot: data.raw.transactionsRoot,
     extraHash: data.raw.extraHash,
-    version: BI.from(data.raw.version).toHexString(),
-    nonce: data.nonce.toHexString(),
+    version: data.raw.version,
+    nonce: data.nonce,
     hash: "",
   };
 }
