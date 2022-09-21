@@ -20,46 +20,65 @@ export type BITranslatedUnpackType =
   | { [property: string]: BITranslatedUnpackType }
   | BITranslatedUnpackType[];
 
-export const deepTranslateBI =
-  (fnName: keyof BI) =>
-  (data: UnpackType): BITranslatedUnpackType => {
-    if (
-      Object.prototype.toString.call(data) === "[object Number]" ||
-      Object.prototype.toString.call(data) === "[object String]"
-    ) {
-      return data as number | string;
-    } else if (Object.prototype.toString.call(data) === "[object Object]") {
-      const isBI = BI.isBI(data);
+type PredMapTo<T, From, To> = T extends From ? To : T;
 
-      if (isBI) {
-        return (BI.prototype[fnName] as () => string).call(data);
-      }
-      const keys = Object.keys(data as Record<string, unknown>);
-      let result: Record<string, unknown> = {};
-      keys.forEach((key) => {
-        const value = (data as Record<string, UnpackType>)[key];
-        // TODO: not sure if there is a performance issue
-        result = Object.assign(result, {
-          [key]: deepTranslateBI(fnName)(value),
-        });
-      });
-      return result as BITranslatedUnpackType;
-    } else if (Object.prototype.toString.call(data) === "[object Array]") {
-      // TODO: not sure if there is a performance issue
-      return (data as BITranslatedUnpackType[]).map((item) =>
-        deepTranslateBI(fnName)(item)
-      );
-    } else if (Object.prototype.toString.call(data) === "[object Undefined]") {
-      return undefined;
-    } else {
-      throw new Error(
-        `UnpackType should not contain types other than string|number|object|array|undefined. recieved ${JSON.stringify(
-          data
-        )}, type is ${Object.prototype.toString.call(data)}`
-      );
+type ObjectLike = Record<string, unknown>;
+type Mapable = ObjectLike | ArrayLike<unknown> | unknown;
+type DeepPredMapObjectTo<
+  T extends Mapable,
+  From /* map from */,
+  To /* map to */
+> = T extends ObjectLike
+  ? {
+      [K in keyof T]: DeepPredMapObjectTo<T[K], From, To>;
     }
-  };
+  : T extends ArrayLike<infer P>
+  ? P extends Array<unknown>
+    ? Array<DeepPredMapObjectTo<P, From, To>>
+    : PredMapTo<T, From, To>
+  : PredMapTo<T, From, To>;
 
+export function predMap<T, From, To>(
+  origin: T,
+  pred: (x: unknown) => x is From,
+  map: (from: From) => To
+): PredMapTo<T, From, To> {
+  if (pred(origin)) {
+    return map(origin) as PredMapTo<T, From, To>;
+  }
+  return origin as PredMapTo<T, From, To>;
+}
+
+export function deepMapObject<T extends Mapable, From, To>(
+  data: T,
+  pred: (x: unknown) => x is From,
+  mapping: (from: From) => To
+): DeepPredMapObjectTo<T, From, To> {
+  if (Object.prototype.toString.call(data) === "[object Object]") {
+    const needTransform = pred(data);
+    if (needTransform) {
+      return mapping(data as From) as DeepPredMapObjectTo<T, From, To>;
+    }
+    const keys = Object.keys(data as Record<string, unknown>);
+    let result: Record<string, unknown> = {};
+    keys.forEach((key) => {
+      const value = (data as Record<string, DeepPredMapObjectTo<T, From, To>>)[
+        key
+      ];
+      // TODO: not sure if there is a performance issue
+      result = Object.assign(result, {
+        [key]: deepMapObject(value, pred, mapping),
+      });
+    });
+    return result as DeepPredMapObjectTo<T, From, To>;
+  } else if (Object.prototype.toString.call(data) === "[object Array]") {
+    // TODO: not sure if there is a performance issue
+    return (data as Array<unknown>).map((item) =>
+      deepMapObject(item, pred, mapping)
+    ) as DeepPredMapObjectTo<T, From, To>;
+  }
+  return predMap(data, pred, mapping) as DeepPredMapObjectTo<T, From, To>;
+}
 /**
  * Unpack result is either number, string, object, or BI
  * convert { field: BI } to { field: HexString } in order to compare unpack results in tests
@@ -67,7 +86,12 @@ export const deepTranslateBI =
  * e.g. { capacity: BI.from(10) } ==> { capacity: "0xa" }
  * @param data
  */
-export const deepHexifyBI = deepTranslateBI("toHexString");
+export const deepHexifyBI = (data: unknown): unknown =>
+  deepMapObject(
+    data,
+    (item): item is BI => BI.isBI(item),
+    (item) => BI.from(item).toHexString()
+  );
 
 /**
  * Unpack result is either number, string, object, or BI
@@ -76,7 +100,12 @@ export const deepHexifyBI = deepTranslateBI("toHexString");
  * e.g. { capacity: BI.from(10) } ==> { capacity: "10" }
  * @param data
  */
-export const deepDecimalizeBI = deepTranslateBI("toString");
+export const deepDecimalizeBI = (data: unknown): unknown =>
+  deepMapObject(
+    data,
+    (item): item is BI => BI.isBI(item),
+    (item) => BI.from(item).toString()
+  );
 
 const HEX_DECIMAL_REGEX = /^0x([0-9a-fA-F])+$/;
 const HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();
