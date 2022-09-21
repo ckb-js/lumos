@@ -98,15 +98,12 @@ import { hd } from '@ckb-lumos/lumos';
 const { mnemonic, ExtendedPrivateKey } = hd;
 
 export const generateFirstHDPrivateKey = () => {
-  const m = mnemonic.generateMnemonic()
-  const seed = mnemonic.mnemonicToSeedSync(m)
-  console.log('my mnemonic ', seed);
+  const myMnemonic = mnemonic.generateMnemonic();
+  const seed = mnemonic.mnemonicToSeedSync(myMnemonic);
+  console.log("my mnemonic ", seed);
 
   const extendedPrivKey = ExtendedPrivateKey.fromSeed(seed);
-  return extendedPrivKey.privateKeyInfo(
-    AddressType.Receving,
-    0,
-  ).privateKey
+  return extendedPrivKey.privateKeyInfo(AddressType.Receiving, 0).privateKey;
 }
 ```
 
