@@ -5,10 +5,9 @@ import InputLabel from "@mui/material/InputLabel"
 import { styled } from "@mui/material/styles"
 import TextareaAutosize from "@mui/material/TextareaAutosize"
 import { BytesCodec } from "@ckb-lumos/codec/lib/base"
-import { deepDecimalizeBI, BITranslatedUnpackType } from "@ckb-lumos/codec/lib/utils"
 import { SectionContainer } from "./SectionContainer"
 import { JSONTree } from "react-json-tree"
-import { deepStringifyNumber } from "./utils"
+import { BITranslatedUnpackType, deepStringifyNumber } from "./utils"
 
 const InputArea = styled(TextareaAutosize)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -47,7 +46,7 @@ export const DataInput: React.FC<Props> = (props) => {
     }
     try {
       const result = props.codec.unpack(formatInput(inputData))
-      setResult(deepDecimalizeBI(deepStringifyNumber(result)) as any)
+      setResult(deepStringifyNumber(result))
       setErrorMsg("")
     } catch (error: any) {
       setResult(undefined)

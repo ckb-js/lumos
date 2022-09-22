@@ -1,7 +1,21 @@
 import { BI } from "@ckb-lumos/bi"
-import { UnpackType } from "@ckb-lumos/codec/lib/utils"
 
-export const deepStringifyNumber = (data: UnpackType): UnpackType => {
+export type UnpackType =
+  | string
+  | number
+  | BI
+  | undefined
+  | { [property: string]: UnpackType }
+  | UnpackType[];
+
+export type BITranslatedUnpackType =
+  | string
+  | number
+  | undefined
+  | { [property: string]: BITranslatedUnpackType }
+  | BITranslatedUnpackType[];
+
+export const deepStringifyNumber = (data: UnpackType): BITranslatedUnpackType => {
   if (
     Object.prototype.toString.call(data) === "[object Number]" ||
     Object.prototype.toString.call(data) === "[object String]"
@@ -11,7 +25,7 @@ export const deepStringifyNumber = (data: UnpackType): UnpackType => {
     const isBI = BI.isBI(data)
 
     if (isBI) {
-      return data as BI
+      return data.toString()
     }
     const keys = Object.keys(data as Record<string, unknown>)
     let result: Record<string, unknown> = {}
@@ -22,7 +36,7 @@ export const deepStringifyNumber = (data: UnpackType): UnpackType => {
         [key]: deepStringifyNumber(value),
       })
     })
-    return result as UnpackType
+    return result as BITranslatedUnpackType
   } else if (Object.prototype.toString.call(data) === "[object Array]") {
     // TODO: not sure if there is a performance issue
     return (data as UnpackType[]).map((item) => deepStringifyNumber(item))

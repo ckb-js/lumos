@@ -46,8 +46,8 @@
     "release": "npm publish"
   },
   "dependencies": {
-    "@ckb-lumos/bi": "^0.19.0-alpha.1",
-    "@ckb-lumos/codec": "^0.19.0-alpha.1",
+    "@ckb-lumos/bi": "^0.19.0-alpha.3",
+    "@ckb-lumos/codec": "^0.19.0-alpha.3",
     "@types/nearley": "^2.11.2",
     "moo": "^0.5.1",
     "nearley": "^2.20.1"
