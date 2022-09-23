@@ -8,9 +8,9 @@ export function nonNull(data: unknown): void {
 }
 
 export const toMolTypeMap = (results: MolType[]): MolTypeMap => {
-  const map = new Map<string, MolType>();
+  const map: MolTypeMap = {};
   results.forEach((result) => {
-    map.set(result.name, result);
+    map[result.name] = result;
   });
   return map;
 };

@@ -18,7 +18,7 @@ const STEP = {
 
 const _MoleculeParser: React.FC = () => {
   const [step, setStep] = useState<number>(STEP.fisrt)
-  const [codecMap, setCodecMap] = useState<CodecMap>(new Map())
+  const [codecMap, setCodecMap] = useState<CodecMap>({})
   const [selectedCodecName, setSelectedCodecName] = useState<string>("")
   const handleCodecMap = (codecMap: CodecMap) => {
     setCodecMap(codecMap)
@@ -33,7 +33,7 @@ const _MoleculeParser: React.FC = () => {
         {step > STEP.fisrt && (
           <SchemaSelect codecMap={codecMap} onSelectCodec={handleSelectCodec} onNextStep={() => setStep(STEP.third)} />
         )}
-        {step > STEP.second && <DataInput codec={codecMap.get(selectedCodecName)} />}
+        {step > STEP.second && <DataInput codec={codecMap[selectedCodecName]} />}
       </Stack>
     </Box>
   )

@@ -38,13 +38,13 @@ export const toCodec = (
   result: CodecMap,
   refs?: CodecMap
 ): BytesCodec => {
-  if (result.has(key)) {
-    return result.get(key)!;
+  if (result[key]) {
+    return result[key];
   }
-  if (refs?.has(key)) {
-    return refs.get(key)!;
+  if (refs && refs[key]) {
+    return refs[key];
   }
-  const molType: MolType = molTypeMap.get(key)!;
+  const molType: MolType = molTypeMap[key];
   nonNull(molType);
   let codec = null;
   switch (molType.type) {
@@ -159,8 +159,8 @@ export const toCodec = (
       throw new Error(`Not supportted molecule type ${molType}.`);
   }
   nonNull(codec);
-  if (!result.has(key)) {
-    result.set(key, codec);
+  if (!result[key]) {
+    result[key] = codec;
   } else {
     console.error(`Existing codec: ${key} has been added to result.`);
   }
@@ -182,9 +182,9 @@ export const createCodecMap = (
     }
     return data as MolTypeMap;
   })(molTypeInfo);
-  const result = new Map<string, BytesCodec>();
-  for (const entry of molTypeMap) {
-    toCodec(entry[0], molTypeMap, result, refs);
+  const result: CodecMap = {};
+  for (const key in molTypeMap) {
+    result[key] = toCodec(key, molTypeMap, result, refs);
   }
   return result;
 };

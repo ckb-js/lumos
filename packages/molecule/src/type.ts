@@ -46,15 +46,16 @@ export type Table = {
 export type MolType = Array | Vector | Option | Union | Struct | Table;
 
 // key is type name
-export type MolTypeMap = Map<string, MolType>;
+export type MolTypeMap = Record<string, MolType>;
 
 // key is type name
-export type CodecMap = Map<string, AnyCodec>;
+export type CodecMap = Record<string, AnyCodec>;
 
 export type ParseOptions = {
-  skipDependenciesCheck: boolean;
+  skipDependenciesCheck?: boolean;
+  refs: Record<string, AnyCodec>;
 };
 
 export interface Parser {
-  parse(data: string, options?: ParseOptions): MolType[];
+  parse(data: string, option?: ParseOptions): Record<string, AnyCodec>;
 }

@@ -46,10 +46,7 @@ export const Molecule: React.FC<Props> = (props) => {
     const parser = createParser()
     try {
       // get user input schema, and append with primitive schema
-      const userMolTypes = parser.parse(inputMol + primitiveSchema, { skipDependenciesCheck: true })
-
-      // get user input codecs(including primitive codedcs), and append with builtin codecs
-      const userCodecMap = createCodecMap(userMolTypes, builtinCodecs)
+      const userCodecMap = parser.parse(inputMol, { refs: builtinCodecs })
       const codecMap = mergeBuiltinCodecs(userCodecMap)
 
       setParseSuccess(true)

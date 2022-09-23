@@ -1,7 +1,5 @@
 import React, { SyntheticEvent, useState } from "react"
 import InputLabel from "@mui/material/InputLabel"
-import Select, { SelectChangeEvent } from "@mui/material/Select"
-import MenuItem from "@mui/material/MenuItem"
 import { CodecMap } from "@ckb-lumos/molecule"
 import { SectionContainer } from "./SectionContainer"
 import TextField from '@mui/material/TextField';
@@ -14,14 +12,7 @@ type Props = {
 }
 
 const creatCodecOptionsFromMap = (codecMap: CodecMap): string[] =>{
-  const codecMapIterator = codecMap.keys()
-  let nextCodec = codecMapIterator.next()
-  let items: string[] = []
-  while (!nextCodec.done) {
-    items.push(nextCodec.value)
-    nextCodec = codecMapIterator.next()
-  }
-  return items
+  return Object.keys(codecMap)
 }
 
 export const SchemaSelect: React.FC<Props> = (props) => {

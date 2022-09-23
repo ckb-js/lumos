@@ -1,4 +1,5 @@
 import test from "ava";
+import { blockchain } from "@ckb-lumos/base";
 import { createParser } from "../src";
 
 test("should parse sample", (t) => {
@@ -7,10 +8,43 @@ test("should parse sample", (t) => {
     /* Basic Types */
     array Uint8 [byte; 1]; // one byte Uint
   `);
-  t.deepEqual(result, [
-    { item: "byte", item_count: 1, name: "Uint8", type: "array" },
-  ]);
+  t.deepEqual(result.Uint8.unpack("0x01"), 1);
 });
+
+test("should parse sample wrong refs", (t) => {
+  const parser = createParser();
+  t.throws(() => {
+    parser.parse(
+      `
+    vector OutPointVec <OutPoint>;
+  `,
+      { refs: { Script: blockchain.Script } }
+    );
+  });
+});
+
+test("should parse sample with refs", (t) => {
+  const parser = createParser();
+  const result = parser.parse(
+    `
+    vector OutPointVec <OutPoint>;
+  `,
+    { refs: { OutPoint: blockchain.OutPoint } }
+  );
+  t.deepEqual(
+    result.OutPointVec.unpack(
+      "0x01000000a98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a730001000000"
+    ),
+    [
+      {
+        txHash:
+          "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7300",
+        index: 1,
+      },
+    ]
+  );
+});
+
 test("should parse blockchain.mol", (t) => {
   const parser = createParser();
   // https://github.com/nervosnetwork/ckb/blob/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol
@@ -18,6 +52,8 @@ test("should parse blockchain.mol", (t) => {
   /* Basic Types */
 
   // as a byte array in little endian.
+  array Uint8 [byte; 1];
+  array Uint16 [byte; 2];
   array Uint32 [byte; 4];
   array Uint64 [byte; 8];
   array Uint128 [byte; 16];
@@ -133,155 +169,5 @@ test("should parse blockchain.mol", (t) => {
       output_type:            BytesOpt,          // Type args for output
   }
   `);
-  t.deepEqual(result, [
-    { type: "array", name: "Uint32", item: "byte", item_count: 4 },
-    { type: "array", name: "Uint64", item: "byte", item_count: 8 },
-    { type: "array", name: "Uint128", item: "byte", item_count: 16 },
-    { type: "array", name: "Byte32", item: "byte", item_count: 32 },
-    { type: "array", name: "Uint256", item: "byte", item_count: 32 },
-    { type: "vector", name: "Bytes", item: "byte" },
-    { type: "option", name: "BytesOpt", item: "Bytes" },
-    { type: "vector", name: "BytesVec", item: "Bytes" },
-    { type: "vector", name: "Byte32Vec", item: "Byte32" },
-    { type: "option", name: "ScriptOpt", item: "Script" },
-    { type: "array", name: "ProposalShortId", item: "byte", item_count: 10 },
-    { type: "vector", name: "UncleBlockVec", item: "UncleBlock" },
-    { type: "vector", name: "TransactionVec", item: "Transaction" },
-    { type: "vector", name: "ProposalShortIdVec", item: "ProposalShortId" },
-    { type: "vector", name: "CellDepVec", item: "CellDep" },
-    { type: "vector", name: "CellInputVec", item: "CellInput" },
-    { type: "vector", name: "CellOutputVec", item: "CellOutput" },
-    {
-      type: "table",
-      name: "Script",
-      fields: [
-        { name: "code_hash", type: "Byte32" },
-        { name: "hash_type", type: "byte" },
-        { name: "args", type: "Bytes" },
-      ],
-    },
-    {
-      type: "struct",
-      name: "OutPoint",
-      fields: [
-        { name: "tx_hash", type: "Byte32" },
-        { name: "index", type: "Uint32" },
-      ],
-    },
-    {
-      type: "struct",
-      name: "CellInput",
-      fields: [
-        { name: "since", type: "Uint64" },
-        { name: "previous_output", type: "OutPoint" },
-      ],
-    },
-    {
-      type: "table",
-      name: "CellOutput",
-      fields: [
-        { name: "capacity", type: "Uint64" },
-        { name: "lock", type: "Script" },
-        { name: "type_", type: "ScriptOpt" },
-      ],
-    },
-    {
-      type: "struct",
-      name: "CellDep",
-      fields: [
-        { name: "out_point", type: "OutPoint" },
-        { name: "dep_type", type: "byte" },
-      ],
-    },
-    {
-      type: "table",
-      name: "RawTransaction",
-      fields: [
-        { name: "version", type: "Uint32" },
-        { name: "cell_deps", type: "CellDepVec" },
-        { name: "header_deps", type: "Byte32Vec" },
-        { name: "inputs", type: "CellInputVec" },
-        { name: "outputs", type: "CellOutputVec" },
-        { name: "outputs_data", type: "BytesVec" },
-      ],
-    },
-    {
-      type: "table",
-      name: "Transaction",
-      fields: [
-        { name: "raw", type: "RawTransaction" },
-        { name: "witnesses", type: "BytesVec" },
-      ],
-    },
-    {
-      type: "struct",
-      name: "RawHeader",
-      fields: [
-        { name: "version", type: "Uint32" },
-        { name: "compact_target", type: "Uint32" },
-        { name: "timestamp", type: "Uint64" },
-        { name: "number", type: "Uint64" },
-        { name: "epoch", type: "Uint64" },
-        { name: "parent_hash", type: "Byte32" },
-        { name: "transactions_root", type: "Byte32" },
-        { name: "proposals_hash", type: "Byte32" },
-        { name: "extra_hash", type: "Byte32" },
-        { name: "dao", type: "Byte32" },
-      ],
-    },
-    {
-      type: "struct",
-      name: "Header",
-      fields: [
-        { name: "raw", type: "RawHeader" },
-        { name: "nonce", type: "Uint128" },
-      ],
-    },
-    {
-      type: "table",
-      name: "UncleBlock",
-      fields: [
-        { name: "header", type: "Header" },
-        { name: "proposals", type: "ProposalShortIdVec" },
-      ],
-    },
-    {
-      type: "table",
-      name: "Block",
-      fields: [
-        { name: "header", type: "Header" },
-        { name: "uncles", type: "UncleBlockVec" },
-        { name: "transactions", type: "TransactionVec" },
-        { name: "proposals", type: "ProposalShortIdVec" },
-      ],
-    },
-    {
-      type: "table",
-      name: "BlockV1",
-      fields: [
-        { name: "header", type: "Header" },
-        { name: "uncles", type: "UncleBlockVec" },
-        { name: "transactions", type: "TransactionVec" },
-        { name: "proposals", type: "ProposalShortIdVec" },
-        { name: "extension", type: "Bytes" },
-      ],
-    },
-    {
-      type: "table",
-      name: "CellbaseWitness",
-      fields: [
-        { name: "lock", type: "Script" },
-        { name: "message", type: "Bytes" },
-      ],
-    },
-    {
-      type: "table",
-      name: "WitnessArgs",
-      fields: [
-        { name: "lock", type: "BytesOpt" },
-        { name: "input_type", type: "BytesOpt" },
-        { name: "output_type", type: "BytesOpt" },
-      ],
-    },
-  ]);
+  t.deepEqual(result.Uint8.unpack("0x01"), 1);
 });

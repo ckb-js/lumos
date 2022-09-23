@@ -1,4 +1,5 @@
 import { Parser as NearleyParser, Grammar as NearleyGrammar } from "nearley";
+import { createCodecMap } from "./codec";
 import {
   Struct,
   Vector,
@@ -20,7 +21,8 @@ export const createParser = (): Parser => {
   return {
     parse: (
       data,
-      options: ParseOptions = {
+      option: ParseOptions = {
+        refs: {},
         skipDependenciesCheck: false,
       }
     ) => {
@@ -29,8 +31,8 @@ export const createParser = (): Parser => {
       const results = parser.results[0].filter(
         (result: MolType | null) => !!result
       ) as MolType[];
-      validateParserResults(results, options);
-      return results;
+      validateParserResults(results, option);
+      return createCodecMap(results, option.refs);
     },
   };
 };
@@ -39,9 +41,10 @@ export const createParser = (): Parser => {
  */
 export const byte = "byte";
 
-const validateParserResults = (results: MolType[], options: ParseOptions) => {
+const validateParserResults = (results: MolType[], option: ParseOptions) => {
   checkDuplicateNames(results);
-  if (!options.skipDependenciesCheck) {
+  // skip check is refs presents
+  if (!option.skipDependenciesCheck && !option.refs) {
     checkDependencies(results);
   }
 };
@@ -70,8 +73,8 @@ const checkDuplicateNames = (results: MolType[]) => {
 };
 const checkDependencies = (results: MolType[]) => {
   const map = toMolTypeMap(results);
-  for (const entry of map) {
-    const molItem = map.get(entry[0])!;
+  for (const key in map) {
+    const molItem = map[key];
     nonNull(molItem);
     const type = molItem.type;
     switch (type) {
@@ -83,7 +86,7 @@ const checkDependencies = (results: MolType[]) => {
       case "vector":
       case "option": {
         if ((molItem as Vector).item !== byte) {
-          nonNull(map.get((molItem as Vector).item));
+          nonNull(map[(molItem as Vector).item]);
         }
         break;
       }
@@ -91,7 +94,7 @@ const checkDependencies = (results: MolType[]) => {
         const unionDeps = (molItem as Union).items;
         unionDeps.forEach((dep: string) => {
           if (dep !== byte) {
-            nonNull(map.get(dep));
+            nonNull(map[dep]);
           }
         });
         break;
@@ -102,9 +105,10 @@ const checkDependencies = (results: MolType[]) => {
         );
         tableDeps.forEach((dep: string) => {
           if (dep !== byte) {
-            nonNull(map.get(dep));
+            nonNull(map[dep]);
           }
         });
+
         break;
       }
       default:
@@ -117,7 +121,7 @@ const checkDependencies = (results: MolType[]) => {
  * mol type `array` and `struct` should have fixed byte length
  */
 const assertFixedMolType = (name: string, map: MolTypeMap) => {
-  const molItem = map.get(name)!;
+  const molItem = map[name];
   nonNull(molItem);
   const type = molItem.type;
   switch (type) {
