@@ -75,13 +75,10 @@ jobs:
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_BODY: ${{ github.event.commits[0].message }}
         with:
           tag_name: v${{ env.CURRENT_VERSION }}
           # Copy Pull Request's tile and body to Release Note
           release_name: ${{ env.CURRENT_VERSION }}
-          body: |
-            ${{ env.RELEASE_BODY }}
           draft: false
           prerelease: steps.tag_check.prerelease_check.prerelease == 'true'
           
