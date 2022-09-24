@@ -3,11 +3,11 @@ import Button from "@mui/material/Button"
 import InputLabel from "@mui/material/InputLabel"
 import { styled } from "@mui/material/styles"
 import TextareaAutosize from "@mui/material/TextareaAutosize"
-import { CodecMap, createParser, createCodecMap } from "@ckb-lumos/molecule"
+import { CodecMap, createParser } from "@ckb-lumos/molecule"
 import Snackbar from "@mui/material/Snackbar"
 import MuiAlert, { AlertProps } from "@mui/material/Alert"
 import { SectionContainer } from "./SectionContainer"
-import { primitiveSchema } from "@site/src/constants/primitiveSchema"
+import { blockchainSchema } from "@site/src/constants/blockchainSchema"
 import { builtinCodecs, mergeBuiltinCodecs } from "@site/src/constants/builtinCodecs"
 import HelpIcon from "@mui/icons-material/HelpOutlined"
 import IconButton from "@mui/material/IconButton"
@@ -46,7 +46,7 @@ export const Molecule: React.FC<Props> = (props) => {
     const parser = createParser()
     try {
       // get user input schema, and append with primitive schema
-      const userCodecMap = parser.parse(inputMol, { refs: builtinCodecs })
+      const userCodecMap = parser.parse(inputMol + blockchainSchema, { refs: builtinCodecs })
       const codecMap = mergeBuiltinCodecs(userCodecMap)
 
       setParseSuccess(true)

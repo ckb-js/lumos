@@ -7,7 +7,13 @@ import TextareaAutosize from "@mui/material/TextareaAutosize"
 import { BytesCodec } from "@ckb-lumos/codec/lib/base"
 import { SectionContainer } from "./SectionContainer"
 import { JSONTree } from "react-json-tree"
-import { BITranslatedUnpackType, deepStringifyNumber } from "./utils"
+
+export type UnpackType =
+  | string
+  | number
+  | undefined
+  | { [property: string]: UnpackType }
+  | UnpackType[];
 
 const InputArea = styled(TextareaAutosize)(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
@@ -28,7 +34,7 @@ const formatInput = (input: string): string => {
   return input
 }
 
-const isBlank = (data: BITranslatedUnpackType): boolean => {
+const isBlank = (data: UnpackType): boolean => {
   if (!data) {
     return true
   }
@@ -37,7 +43,7 @@ const isBlank = (data: BITranslatedUnpackType): boolean => {
 
 export const DataInput: React.FC<Props> = (props) => {
   const [inputData, setInputData] = useState<string>("")
-  const [result, setResult] = useState<BITranslatedUnpackType>(undefined)
+  const [result, setResult] = useState<UnpackType>(undefined)
   const [errorMsg, setErrorMsg] = useState<string>("")
   const handleDecode = () => {
     if (!props.codec) {
@@ -46,7 +52,7 @@ export const DataInput: React.FC<Props> = (props) => {
     }
     try {
       const result = props.codec.unpack(formatInput(inputData))
-      setResult(deepStringifyNumber(result))
+      setResult(result)
       setErrorMsg("")
     } catch (error: any) {
       setResult(undefined)
