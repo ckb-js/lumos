@@ -26,7 +26,7 @@
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --declarationMap --emitDeclarationOnly",
     "build:js": "npm run build:old && babel --root-mode upward src/blockchain.ts --out-file lib/blockchain.js --source-maps",
-    "build:old": "shx mkdir -p lib && shx cp -r src/*.d.ts lib && cp -r src/*.js lib",
+    "build:old": "shx mkdir -p lib && shx cp -r src/*.d.ts lib && shx cp -r src/*.js lib",
     "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.js\"",
     "test:ts": "ava **/*.test.ts --timeout=2m",

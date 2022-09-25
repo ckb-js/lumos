@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion, @typescript-eslint/explicit-module-boundary-types */
+
 import * as omnilock from "./omnilock";
 import { Set } from "immutable";
 import {
@@ -155,8 +157,15 @@ export function isAcpAddress(address: Address, config: Config): boolean {
   return isAcpScript(script, config);
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
-export function hashWitness(hasher: any, witness: HexString): void {
+/**
+ * Hash a witness in a hasher
+ * @param hasher The hasher object which should have a `update` method.
+ * @param witness witness data, the inputs to hasher will derived from it
+ */
+export function hashWitness(
+  hasher: { update: (value: HexString | ArrayBuffer) => unknown },
+  witness: HexString
+): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
   const witnessHexString = BI.from(bytes.bytify(witness).length).toString(16);
