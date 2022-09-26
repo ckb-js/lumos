@@ -69,6 +69,17 @@ jobs:
           github_repo: ${{ github.repository }}
           git_commit_sha: ${{ github.sha }}
           git_tag_prefix: "v"
+
+      - name: Run generate-changelog
+        id: generate-changelog
+        uses: autowarefoundation/autoware-github-actions/generate-changelog@v1
+
+      - name: Show result
+        run: |
+          echo "$CHANGELOG"
+        env:
+          CHANGELOG: ${{ steps.generate-changelog.outputs.changelog }}
+
       - name: Create Release
         id: create_release
         if: steps.tag_check.outputs.exists_tag == 'false'
@@ -77,7 +88,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ env.CURRENT_VERSION }}
-          # Copy Pull Request's tile and body to Release Note
+          body: ${{ env.CHANGELOG }}
           release_name: ${{ env.CURRENT_VERSION }}
           draft: false
           prerelease: steps.tag_check.prerelease_check.prerelease == 'true'
