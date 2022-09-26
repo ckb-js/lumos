@@ -64,7 +64,7 @@ test("simple", (t) => {
 
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
-  t.assert(
+  t.true(
     validateTransaction(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
@@ -72,11 +72,39 @@ test("simple", (t) => {
       "ckb-blake2b-256"
     )
   );
+
+  t.false(
+    validateTransaction(
+      [
+        new Uint8Array(
+          "KFC CRAZY THURSDAY V ME 50".split("").map((it) => it.charCodeAt(0))
+        ),
+      ],
+      txSkeleton,
+      txSkeleton.get("witnesses").toArray(),
+      "ckb-blake2b-256"
+    )
+  );
+});
+
+test("not enough extraData", (t) => {
+  let txSkeleton = createTestRawTransaction();
+  txSkeleton = common.prepareSigningEntries(txSkeleton, {
+    config: AGGRON4,
+  });
+  t.throws(() => {
+    validateTransaction(
+      getMessageForSigning(txSkeleton.signingEntries),
+      txSkeleton,
+      [],
+      "ckb-blake2b-256"
+    );
+  });
 });
 
 test("multiple source input locks", (t) => {
   const lockScript = parseAddress(
-    // just a random private key
+    // just an another private key
     "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqwgr55hchmr4jgarqrf6qaxxvnwqtgtexck4783d",
     {
       config: AGGRON4,
@@ -110,35 +138,25 @@ test("multiple source input locks", (t) => {
     validateTransaction(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
+
+      // TODO: now we get it from witness
+      // when https://github.com/ckb-js/lumos/issues/430 implemented,
+      // we should get it from txSkeleton.signingEntries[number].witnessInput
       txSkeleton.get("witnesses").toArray(),
       "ckb-blake2b-256"
     )
   );
 });
 
-test("extra custom witnesses", (t) => {
+test("unknown hasher", (t) => {
   let txSkeleton = createTestRawTransaction();
-
-  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-    return witnesses.push(
-      hexify(
-        blockchain.WitnessArgs.pack({
-          lock: SECP_SIGNATURE_PLACEHOLDER,
-          inputType: "0x114514",
-          outputType: "0x",
-        })
-      )
-    );
-  });
-
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
-
-  t.assert(
+  t.throws(() => {
     validateTransaction(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
       txSkeleton.get("witnesses").toArray(),
-      "ckb-blake2b-256"
-    )
-  );
+      "unknown" as any
+    );
+  });
 });

@@ -4,13 +4,8 @@ import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
 import blake2b from "blake2b";
 import pick from "lodash.pick";
 import { blockchain } from "@ckb-lumos/base";
-// FIXME: can not import this path, because it may cause circular dependency
-// import { SECP_SIGNATURE_PLACEHOLDER } from "@ckb-lumos/common-scripts/lib/helper";
 
-export const SECP_SIGNATURE_PLACEHOLDER =
-  "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
-const { WitnessArgs, RawTransaction } = blockchain;
+const { RawTransaction } = blockchain;
 
 type HashAlgorithm = "ckb-blake2b-256" | "ckb-blake2b-160";
 
@@ -57,34 +52,25 @@ function createHasher(algorithm: HashAlgorithm): Hasher {
         undefined,
         Buffer.from("ckb-default-hash")
       );
+    default:
+      throw new Error(`Unsupported hash algorithm: ${algorithm}`);
   }
-}
-
-/**
- * Group transaction inputs by cells lock
- * @param inputs the inputs of the transaction
- * @returns An array. the item is a list of current group item index in inputs
- */
-function groupInputs(inputs: TransactionSkeletonType["inputs"]): number[][] {
-  const groupedInputs = new Map<string, number[]>();
-  for (let i = 0; i < inputs.size; i++) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const input = inputs.get(i)!;
-    const { lock } = input.cellOutput;
-    const key = `${lock.hashType}-${lock.codeHash}-${lock.args}`;
-    const group = groupedInputs.get(key) || [];
-    group.push(i);
-    groupedInputs.set(key, group);
-  }
-  return Array.from(groupedInputs.values());
 }
 
 function getWitnessLength(witnesses: Uint8Array) {
   return number.Uint64.pack(witnesses.length).buffer;
 }
 
+/**
+ * Validate an transaction.
+ * @param messagesForSigning the message for signing. Each item in it means hash(rawTransaction | extraData).
+ * @param rawTransaction raw transaction object
+ * @param extraData the extra data for validate
+ * @param hashAlgorithm hash algorithm for signing. @default "ckb-blake2b-256"
+ * @returns the validate result. unless all messages equals, it will return false.
+ */
 export function validateTransaction(
-  messageForSigning: BytesLike[],
+  messagesForSigning: BytesLike[],
   rawTransaction: TransactionSkeletonType,
   extraData: BytesLike[],
   hashAlgorithm: HashAlgorithm = "ckb-blake2b-256"
@@ -106,53 +92,22 @@ export function validateTransaction(
     )
     .digest();
 
-  const witnesses = extraData.map((it) => bytify(it));
+  if (extraData.length < messagesForSigning.length) {
+    throw new Error(
+      "extraData length must be greater than messageForSigning length"
+    );
+  }
 
-  const inputGroups = groupInputs(rawTransaction.get("inputs"));
-  for (const group of inputGroups) {
+  for (let i = 0; i < messagesForSigning.length; i++) {
     const hasher = createHasher(hashAlgorithm);
-    const firstIndex = group[0];
-    const witness = witnesses.at(firstIndex);
-    if (!witness) {
-      continue;
-    }
-
-    const witnessArgs = WitnessArgs.unpack(witness);
-    witnessArgs.lock = SECP_SIGNATURE_PLACEHOLDER;
+    const message = hexify(messagesForSigning[i]);
+    const witness = bytify(extraData[i]);
+    const witnessLength = getWitnessLength(witness);
     hasher.update(txHash);
-
-    const witnessWithPlaceholder = WitnessArgs.pack(witnessArgs);
-
-    const witnessLengthBuffer = getWitnessLength(witnessWithPlaceholder);
-
-    hasher.update(witnessLengthBuffer);
-    hasher.update(witnessWithPlaceholder);
-
-    // Hash other inputs in same group
-    for (const index of group.slice(1)) {
-      const witness = witnesses.at(index);
-      if (!witness) {
-        throw new Error(`Witness not found in index ${index}`);
-      }
-      const witnessLengthBuffer = getWitnessLength(witness);
-      hasher.update(witnessLengthBuffer);
-      hasher.update(witness);
-    }
-
-    // Hash the witness which do not in any input group
-    for (const witness of witnesses.slice(tx.inputs.length)) {
-      const witnessLengthBuffer = getWitnessLength(witness);
-      hasher.update(witnessLengthBuffer);
-      hasher.update(witness);
-    }
-
+    hasher.update(witnessLength);
+    hasher.update(witness);
     const actual = hasher.digest();
-    const message = messageForSigning.at(firstIndex);
-    if (!message) {
-      throw new Error(`Messages for signing not found in index ${firstIndex}`);
-    }
-    const expected = hexify(message);
-    if (actual !== expected) {
+    if (actual !== message) {
       return false;
     }
   }
