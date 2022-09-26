@@ -5,7 +5,7 @@ import { parseAddress, TransactionSkeletonInterface } from "@ckb-lumos/helpers";
 import { common } from "@ckb-lumos/common-scripts";
 import { SECP_SIGNATURE_PLACEHOLDER } from "@ckb-lumos/common-scripts/lib/helper";
 import { blockchain } from "@ckb-lumos/base";
-import { validateTransaction } from "../src/validate";
+import { validateP2PKHMessage } from "../src/validate";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 
 const { AGGRON4 } = predefined;
@@ -65,7 +65,7 @@ test("simple", (t) => {
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.true(
-    validateTransaction(
+    validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
       txSkeleton.get("witnesses").toArray(),
@@ -74,7 +74,7 @@ test("simple", (t) => {
   );
 
   t.false(
-    validateTransaction(
+    validateP2PKHMessage(
       [
         new Uint8Array(
           "KFC CRAZY THURSDAY V ME 50".split("").map((it) => it.charCodeAt(0))
@@ -93,7 +93,7 @@ test("not enough extraData", (t) => {
     config: AGGRON4,
   });
   t.throws(() => {
-    validateTransaction(
+    validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
       [],
@@ -135,7 +135,7 @@ test("multiple source input locks", (t) => {
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
 
   t.assert(
-    validateTransaction(
+    validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
 
@@ -152,7 +152,7 @@ test("unknown hasher", (t) => {
   let txSkeleton = createTestRawTransaction();
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
   t.throws(() => {
-    validateTransaction(
+    validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
       txSkeleton.get("witnesses").toArray(),

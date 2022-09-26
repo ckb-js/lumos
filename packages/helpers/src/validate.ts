@@ -62,17 +62,17 @@ function getWitnessLength(witnesses: Uint8Array) {
 }
 
 /**
- * Validate an transaction.
- * @param messagesForSigning the message for signing. Each item in it means hash(rawTransaction | extraData).
+ * Validate a P2PKH(Pay to public key hash) message
+ * @param messagesForSigning the message digest for signing. Each item in it means hash(rawTransaction | extraData).
  * @param rawTransaction raw transaction object
- * @param extraData the extra data for validate
- * @param hashAlgorithm hash algorithm for signing. @default "ckb-blake2b-256"
+ * @param hashContentExceptRawTx content to be hashed other than rawTransaction, is generally processed witness
+ * @param hashAlgorithm hash algorithm for signing. Default is `"ckb-blake2b-256"`
  * @returns the validate result. unless all messages equals, it will return false.
  */
-export function validateTransaction(
+export function validateP2PKHMessage(
   messagesForSigning: BytesLike[],
   rawTransaction: TransactionSkeletonType,
-  extraData: BytesLike[],
+  hashContentExceptRawTx: BytesLike[],
   hashAlgorithm: HashAlgorithm = "ckb-blake2b-256"
 ): boolean {
   const rawTxHasher = createHasher(hashAlgorithm);
@@ -92,7 +92,7 @@ export function validateTransaction(
     )
     .digest();
 
-  if (extraData.length < messagesForSigning.length) {
+  if (hashContentExceptRawTx.length < messagesForSigning.length) {
     throw new Error(
       "extraData length must be greater than messageForSigning length"
     );
@@ -101,7 +101,7 @@ export function validateTransaction(
   for (let i = 0; i < messagesForSigning.length; i++) {
     const hasher = createHasher(hashAlgorithm);
     const message = hexify(messagesForSigning[i]);
-    const witness = bytify(extraData[i]);
+    const witness = bytify(hashContentExceptRawTx[i]);
     const witnessLength = getWitnessLength(witness);
     hasher.update(txHash);
     hasher.update(witnessLength);
