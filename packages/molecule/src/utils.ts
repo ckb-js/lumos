@@ -1,10 +1,7 @@
 import { MolType, MolTypeMap } from "./type";
 
-// TODO: assert not null/undefined
-export function nonNull(data: unknown): void {
-  if (!data) {
-    throw new Error(`${data} does not exist.`);
-  }
+export function nonNull<T>(data: T): asserts data is NonNullable<T> {
+  if (data === null || data === undefined) throw new Error("NonNullable");
 }
 
 export const toMolTypeMap = (results: MolType[]): MolTypeMap => {

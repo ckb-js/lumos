@@ -2,7 +2,6 @@ import { AnyCodec, number } from "@ckb-lumos/codec"
 import { blockchain } from "@ckb-lumos/base"
 import { CodecMap } from "@ckb-lumos/molecule"
 import { BIish, BI } from "@ckb-lumos/bi/lib"
-import numeral from "numeral"
 
 function enhanceUnpackBIish(codec: AnyCodec, afterUnpack: (arg: BIish) => string) {
   return {
@@ -11,7 +10,7 @@ function enhanceUnpackBIish(codec: AnyCodec, afterUnpack: (arg: BIish) => string
   }
 }
 
-const humanizeBigInteger = (x: BIish) => numeral(BI.from(x).toString()).format("0,0")
+const humanizeBigInteger = (x: BIish) => BI.from(x).toString()
 
 /**
  * built-in re-writable codecs
@@ -32,7 +31,6 @@ export const builtinCodecs: CodecMap = {
 
   HashType: blockchain.HashType,
   DepType: blockchain.DepType,
-
 }
 
 /**
