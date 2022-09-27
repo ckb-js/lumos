@@ -7,7 +7,10 @@ import { createCodecMap } from "../src/codec";
 import { BI } from "@ckb-lumos/bi";
 
 test.before(() => {
-  JSBI.prototype["valueOf"] = () => 0;
+  // override valueOf of jsbi to make it comparable under ava test evironment
+  JSBI.prototype["valueOf"] = function () {
+    return this.toString();
+  };
 });
 
 test("test simple codec", (t) => {
