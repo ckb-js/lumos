@@ -9,10 +9,13 @@ import {
 import { predefined } from "@ckb-lumos/config-manager";
 import { bob, alice } from "./account_info";
 import { bobAcpCells, aliceAcpCells } from "./inputs";
-import { Cell, values } from "@ckb-lumos/base";
+import { Cell, values, blockchain, Script } from "@ckb-lumos/base";
 const { AGGRON4 } = predefined;
-import { checkLimit } from "../src/anyone_can_pay";
+import { checkLimit, prepareSigningEntries } from "../src/anyone_can_pay";
 import { BI } from "@ckb-lumos/bi";
+import { hexify } from "@ckb-lumos/codec/lib/bytes";
+import { SECP_SIGNATURE_PLACEHOLDER } from "../src/helper";
+
 test.before(() => {
   // @ts-ignore: Unreachable code error
   BigInt = () => {
@@ -402,4 +405,78 @@ test("checkLimit, only capacity", (t) => {
 test("checkLimit, no limit", (t) => {
   const args = bob.blake160;
   t.notThrows(() => checkLimit(args, BI.from(BI.from(0))));
+});
+
+const emptyWitness = hexify(
+  blockchain.WitnessArgs.pack({ lock: SECP_SIGNATURE_PLACEHOLDER })
+);
+
+test("hashContentExceptRawTx in return value of `prepareSigningEntries` should be correct", (t) => {
+  const lockScript: Script = {
+    codeHash: AGGRON4.SCRIPTS.ANYONE_CAN_PAY.CODE_HASH,
+    hashType: AGGRON4.SCRIPTS.ANYONE_CAN_PAY.HASH_TYPE,
+    args: "0x",
+  };
+  let txSkeleton = TransactionSkeleton()
+    .update("inputs", (inputs) => {
+      return inputs.push(
+        {
+          cellOutput: {
+            capacity: "0x114514",
+            lock: lockScript,
+            type: undefined,
+          },
+          data: "0x",
+          outPoint: {
+            txHash:
+              "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
+            index: "0x0",
+          },
+        },
+        {
+          cellOutput: {
+            capacity: "0x191981",
+            lock: lockScript,
+            type: undefined,
+          },
+          data: "0x",
+          outPoint: {
+            txHash:
+              "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
+            index: "0x0",
+          },
+        }
+      );
+    })
+    .update("outputs", (outputs) => {
+      return outputs.push({
+        cellOutput: {
+          capacity: "0x114514",
+          lock: lockScript,
+          type: undefined,
+        },
+
+        data: "0x",
+      });
+    })
+    .update("witnesses", (witnesses) =>
+      witnesses.push(
+        emptyWitness,
+        emptyWitness,
+        hexify(
+          blockchain.WitnessArgs.pack({
+            lock: SECP_SIGNATURE_PLACEHOLDER,
+            inputType: "0xAADD",
+            outputType: "0xDDDD",
+          })
+        )
+      )
+    );
+
+  const tx = prepareSigningEntries(txSkeleton, { config: AGGRON4 });
+
+  t.is(
+    hexify(tx.signingEntries.get(0)!.hashContentExceptRawTx),
+    "0x55000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000550000001000000055000000550000004100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006100000010000000550000005b00000041000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000aadd02000000dddd"
+  );
 });

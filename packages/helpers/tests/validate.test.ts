@@ -14,10 +14,14 @@ const emptyWitness = hexify(
   blockchain.WitnessArgs.pack({ lock: SECP_SIGNATURE_PLACEHOLDER })
 );
 
-function getMessageForSigning(
-  signingEntries: TransactionSkeletonInterface["signingEntries"]
-) {
-  return signingEntries.map((it) => it.message).toArray();
+function getMessageForSigning(txSkeleton: TransactionSkeletonInterface) {
+  return txSkeleton.signingEntries.map((it) => it.message).toArray();
+}
+
+function getHashContentExceptTx(txSkeleton: TransactionSkeletonInterface) {
+  return txSkeleton.signingEntries
+    .map((it) => it.hashContentExceptRawTx)
+    .toArray();
 }
 
 function createTestRawTransaction() {
@@ -66,9 +70,9 @@ test("simple", (t) => {
 
   t.true(
     validateP2PKHMessage(
-      getMessageForSigning(txSkeleton.signingEntries),
+      getMessageForSigning(txSkeleton),
       txSkeleton,
-      txSkeleton.get("witnesses").toArray(),
+      getHashContentExceptTx(txSkeleton),
       "ckb-blake2b-256"
     )
   );
@@ -81,7 +85,7 @@ test("simple", (t) => {
         ),
       ],
       txSkeleton,
-      txSkeleton.get("witnesses").toArray(),
+      getHashContentExceptTx(txSkeleton),
       "ckb-blake2b-256"
     )
   );
@@ -94,7 +98,7 @@ test("not enough extraData", (t) => {
   });
   t.throws(() => {
     validateP2PKHMessage(
-      getMessageForSigning(txSkeleton.signingEntries),
+      getMessageForSigning(txSkeleton),
       txSkeleton,
       [],
       "ckb-blake2b-256"
@@ -136,13 +140,13 @@ test("multiple source input locks", (t) => {
 
   t.assert(
     validateP2PKHMessage(
-      getMessageForSigning(txSkeleton.signingEntries),
+      getMessageForSigning(txSkeleton),
       txSkeleton,
 
       // TODO: now we get it from witness
       // when https://github.com/ckb-js/lumos/issues/430 implemented,
       // we should get it from txSkeleton.signingEntries[number].witnessInput
-      txSkeleton.get("witnesses").toArray(),
+      getHashContentExceptTx(txSkeleton),
       "ckb-blake2b-256"
     )
   );
@@ -153,9 +157,9 @@ test("unknown hasher", (t) => {
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
   t.throws(() => {
     validateP2PKHMessage(
-      getMessageForSigning(txSkeleton.signingEntries),
+      getMessageForSigning(txSkeleton),
       txSkeleton,
-      txSkeleton.get("witnesses").toArray(),
+      getHashContentExceptTx(txSkeleton),
       "unknown" as any
     );
   });

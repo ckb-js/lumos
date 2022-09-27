@@ -20,6 +20,7 @@ import {
 const { CKBHasher, ckbHash } = utils;
 import { Config } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
+import { bytify } from "@ckb-lumos/codec/lib/bytes";
 
 export function addCellDep(
   txSkeleton: TransactionSkeletonType,
@@ -218,6 +219,7 @@ export function prepareSigningEntries(
           `The first witness in the script group starting at input index ${i} does not exist, maybe some other part has invalidly tampered the transaction?`
         );
       }
+      let hashContentExceptRawTx = bytify(witnesses.get(i)!);
       hashWitness(hasher, witnesses.get(i)!);
       for (let j = i + 1; j < inputs.size && j < witnesses.size; j++) {
         const otherInput = inputs.get(j)!;
@@ -228,16 +230,25 @@ export function prepareSigningEntries(
             })
           )
         ) {
+          hashContentExceptRawTx = Uint8Array.from([
+            ...hashContentExceptRawTx,
+            ...bytify(witnesses.get(j)!),
+          ]);
           hashWitness(hasher, witnesses.get(j)!);
         }
       }
       for (let j = inputs.size; j < witnesses.size; j++) {
+        hashContentExceptRawTx = Uint8Array.from([
+          ...hashContentExceptRawTx,
+          ...bytify(witnesses.get(j)!),
+        ]);
         hashWitness(hasher, witnesses.get(j)!);
       }
       const signingEntry = {
         type: "witness_args_lock",
         index: i,
         message: hasher.digestHex(),
+        hashContentExceptRawTx,
       };
       signingEntries = signingEntries.push(signingEntry);
     }

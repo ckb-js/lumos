@@ -318,7 +318,12 @@ export interface TransactionSkeletonInterface {
   outputs: List<Cell>;
   witnesses: List<HexString>;
   fixedEntries: List<{ field: string; index: number }>;
-  signingEntries: List<{ type: string; index: number; message: string }>;
+  signingEntries: List<{
+    type: string;
+    index: number;
+    message: string;
+    hashContentExceptRawTx: ArrayBuffer;
+  }>;
   inputSinces: ImmutableMap<number, PackedSince>;
 }
 
@@ -424,7 +429,12 @@ export interface TransactionSkeletonObject {
   outputs: Cell[];
   witnesses: HexString[];
   fixedEntries: Array<{ field: string; index: number }>;
-  signingEntries: Array<{ type: string; index: number; message: string }>;
+  signingEntries: Array<{
+    type: string;
+    index: number;
+    message: string;
+    hashContentExceptRawTx: ArrayBuffer;
+  }>;
   inputSinces: Map<number, PackedSince>;
 }
 
