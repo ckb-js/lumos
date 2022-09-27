@@ -8,6 +8,7 @@ const { calculateTxFee } = __tests__;
 import { predefined } from "@ckb-lumos/config-manager";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { BI } from "@ckb-lumos/bi";
+import { bytify } from "@ckb-lumos/codec/lib/bytes";
 const { AGGRON4 } = predefined;
 
 const FROMADDRESS = "ckt1qyqptxys5l9vk39ft0hswscxgseawc77y2wqlr558h";
@@ -538,6 +539,10 @@ test("deploy with data by multisig", async (t) => {
     index: 0,
     message:
       "0x156e0322b21018c83ad7dfbc32f35128d0e374d43308643febf9453b262123c7",
+
+    hashContentExceptRawTx: bytify(
+      "0xd600000010000000d6000000d6000000c2000000000202033d35d87fac0008ba5b12ee1c599b102fc8f5fdf899dbe610c43186696e1f88cb7b59252d4c92afdac055df68fdd47c6a5965b9ab21cd6825d8696a7600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    ),
   };
   t.deepEqual(txSkeleton.get("signingEntries").get(0), signingEntries);
 });
