@@ -17,7 +17,7 @@ const emptyWitness = hexify(
 function getMessageForSigning(
   signingEntries: TransactionSkeletonInterface["signingEntries"]
 ) {
-  return signingEntries.map((it) => it.message).toArray();
+  return signingEntries.get(0)!.message;
 }
 
 function createTestRawTransaction() {
@@ -68,81 +68,18 @@ test("simple", (t) => {
     validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
-      txSkeleton.get("witnesses").toArray(),
+      txSkeleton.get("witnesses").get(0)!,
       "ckb-blake2b-256"
     )
   );
 
   t.false(
     validateP2PKHMessage(
-      [
-        new Uint8Array(
-          "KFC CRAZY THURSDAY V ME 50".split("").map((it) => it.charCodeAt(0))
-        ),
-      ],
+      new Uint8Array(
+        "KFC CRAZY THURSDAY V ME 50".split("").map((it) => it.charCodeAt(0))
+      ),
       txSkeleton,
-      txSkeleton.get("witnesses").toArray(),
-      "ckb-blake2b-256"
-    )
-  );
-});
-
-test("not enough extraData", (t) => {
-  let txSkeleton = createTestRawTransaction();
-  txSkeleton = common.prepareSigningEntries(txSkeleton, {
-    config: AGGRON4,
-  });
-  t.throws(() => {
-    validateP2PKHMessage(
-      getMessageForSigning(txSkeleton.signingEntries),
-      txSkeleton,
-      [],
-      "ckb-blake2b-256"
-    );
-  });
-});
-
-test("multiple source input locks", (t) => {
-  const lockScript = parseAddress(
-    // just an another private key
-    "ckt1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqwgr55hchmr4jgarqrf6qaxxvnwqtgtexck4783d",
-    {
-      config: AGGRON4,
-    }
-  );
-
-  let txSkeleton = createTestRawTransaction();
-  txSkeleton = txSkeleton.update("inputs", (inputs) => {
-    return inputs.push({
-      cellOutput: {
-        capacity: "0x1919810",
-        lock: lockScript,
-        type: undefined,
-      },
-      data: "0x",
-      outPoint: {
-        txHash:
-          "0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37",
-        index: "0x1",
-      },
-    });
-  });
-
-  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-    witnesses.push(emptyWitness)
-  );
-
-  txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
-
-  t.assert(
-    validateP2PKHMessage(
-      getMessageForSigning(txSkeleton.signingEntries),
-      txSkeleton,
-
-      // TODO: now we get it from witness
-      // when https://github.com/ckb-js/lumos/issues/430 implemented,
-      // we should get it from txSkeleton.signingEntries[number].witnessInput
-      txSkeleton.get("witnesses").toArray(),
+      txSkeleton.get("witnesses").get(0)!,
       "ckb-blake2b-256"
     )
   );
@@ -155,7 +92,7 @@ test("unknown hasher", (t) => {
     validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
-      txSkeleton.get("witnesses").toArray(),
+      txSkeleton.get("witnesses").get(0)!,
       "unknown" as any
     );
   });

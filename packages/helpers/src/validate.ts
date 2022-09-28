@@ -62,40 +62,32 @@ function getWitnessLength(witnesses: Uint8Array) {
 
 /**
  * Validate a P2PKH(Pay to public key hash) message
- * @param messagesForSigning the message digest for signing. Each item in it means hash(rawTransaction | extraData).
+ * @param messagesForSigning the message digest for signing. means hash(rawTransaction | extraData).
  * @param rawTransaction raw transaction object
  * @param hashContentExceptRawTx content to be hashed other than rawTransaction, is generally processed witness
  * @param hashAlgorithm hash algorithm for signing. Default is `"ckb-blake2b-256"`
  * @returns the validate result. unless all messages equals, it will return false.
  */
 export function validateP2PKHMessage(
-  messagesForSigning: BytesLike[],
+  messagesForSigning: BytesLike,
   rawTransaction: TransactionSkeletonType,
-  hashContentExceptRawTx: BytesLike[],
+  hashContentExceptRawTx: BytesLike,
   hashAlgorithm: HashAlgorithm = "ckb-blake2b-256"
 ): boolean {
   const rawTxHasher = createHasher(hashAlgorithm);
   const tx = createTransactionFromSkeleton(rawTransaction);
   const txHash = rawTxHasher.update(RawTransaction.pack(tx)).digest();
 
-  if (hashContentExceptRawTx.length < messagesForSigning.length) {
-    throw new Error(
-      "extraData length must be greater than messageForSigning length"
-    );
-  }
-
-  for (let i = 0; i < messagesForSigning.length; i++) {
-    const hasher = createHasher(hashAlgorithm);
-    const message = hexify(messagesForSigning[i]);
-    const witness = bytify(hashContentExceptRawTx[i]);
-    const witnessLength = getWitnessLength(witness);
-    hasher.update(txHash);
-    hasher.update(witnessLength);
-    hasher.update(witness);
-    const actual = hasher.digest();
-    if (actual !== message) {
-      return false;
-    }
+  const hasher = createHasher(hashAlgorithm);
+  const message = hexify(messagesForSigning);
+  const witness = bytify(hashContentExceptRawTx);
+  const witnessLength = getWitnessLength(witness);
+  hasher.update(txHash);
+  hasher.update(witnessLength);
+  hasher.update(witness);
+  const actual = hasher.digest();
+  if (actual !== message) {
+    return false;
   }
 
   return true;
