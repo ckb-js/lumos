@@ -2,7 +2,6 @@ import { BytesLike, number } from "@ckb-lumos/codec";
 import { createTransactionFromSkeleton, TransactionSkeletonType } from ".";
 import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
 import blake2b from "blake2b";
-import pick from "lodash.pick";
 import { blockchain } from "@ckb-lumos/base";
 
 const { RawTransaction } = blockchain;
@@ -77,20 +76,7 @@ export function validateP2PKHMessage(
 ): boolean {
   const rawTxHasher = createHasher(hashAlgorithm);
   const tx = createTransactionFromSkeleton(rawTransaction);
-  const txHash = rawTxHasher
-    .update(
-      RawTransaction.pack(
-        pick(tx, [
-          "cellDeps",
-          "headerDeps",
-          "inputs",
-          "outputs",
-          "outputsData",
-          "version",
-        ])
-      )
-    )
-    .digest();
+  const txHash = rawTxHasher.update(RawTransaction.pack(tx)).digest();
 
   if (hashContentExceptRawTx.length < messagesForSigning.length) {
     throw new Error(
