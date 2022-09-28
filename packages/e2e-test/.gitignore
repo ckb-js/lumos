@@ -1,0 +1,7 @@
+/lib
+/indexer-store*
+ckb-indexer*
+COPYING
+nohup.out
+tmp/*
+!tmp/.gitkeep
