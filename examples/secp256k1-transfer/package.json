@@ -1,10 +1,11 @@
 {
   "private": true,
   "name": "@lumos-examples/secp256k1-transfer",
-  "version": "0.19.0-alpha.0",
+  "version": "0.19.0-alpha.3",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "parcel src/index.html",
     "lint": "tsc --noEmit"
   },
   "keywords": [],
@@ -14,12 +15,16 @@
     "@ckb-lumos/lumos": "0.19.0-alpha.3",
     "@types/react": "^17.0.34",
     "@types/react-dom": "^17.0.11",
+    "bulma": "^0.9.4",
+    "nanoid": "^4.0.0",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-use": "^17.4.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.16.0",
-    "@babel/core": "^7.16.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.16.0"
+    "parcel": "^2.7.0",
+    "postcss": "^8.4.16",
+    "process": "^0.11.10",
+    "typescript": "^4.7.4"
   }
 }
