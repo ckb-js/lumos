@@ -14,7 +14,7 @@ import {
 } from "@ckb-lumos/base";
 import { bech32, bech32m } from "bech32";
 import { List, Map as ImmutableMap, Record } from "immutable";
-import { Config, getConfig } from "@ckb-lumos/config-manager";
+import { Config, getConfig, predefined } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
 import {
   parseDeprecatedCkb2019Address,
@@ -154,6 +154,13 @@ export function generateAddress(
  * @deprecated please migrate to {@link encodeToAddress}, the short format address will be removed in the future */
 export const scriptToAddress = generateAddress;
 
+/**
+ * @deprecated please migrate to {@link encodeToConfigAddress}
+ * @param args
+ * @param scriptType
+ * @param param2
+ * @returns
+ */
 function generatePredefinedAddress(
   args: HexString,
   scriptType: string,
@@ -176,6 +183,12 @@ function generatePredefinedAddress(
   return generateAddress(script, { config });
 }
 
+/**
+ * @deprecated please migrate to {@link encodeToConfigAddress}
+ * @param args
+ * @param param1
+ * @returns
+ */
 export function generateSecp256k1Blake160Address(
   args: HexString,
   { config = undefined }: Options = {}
@@ -183,6 +196,11 @@ export function generateSecp256k1Blake160Address(
   return generatePredefinedAddress(args, "SECP256K1_BLAKE160", { config });
 }
 
+/**
+ * @deprecated please migrate to {@link encodeToConfigAddress}
+ * @param args
+ * @param config
+ */
 export function generateSecp256k1Blake160MultisigAddress(
   args: HexString,
   { config = undefined }: Options = {}
@@ -207,6 +225,11 @@ export function parseAddress(
 
 export const addressToScript = parseAddress;
 
+/**
+ * parse a lock script to an address
+ * @param script
+ * @param config
+ */
 export function encodeToAddress(
   script: Script,
   { config = undefined }: Options = {}
@@ -231,6 +254,60 @@ export function encodeToAddress(
   data.push(...hexToByteArray(script.args));
 
   return bech32m.encode(config.PREFIX, bech32m.toWords(data), BECH32_LIMIT);
+}
+
+type PredefinedScriptName = keyof typeof predefined.LINA.SCRIPTS;
+
+export function encodeToConfigAddress(
+  args: HexString,
+  scriptType: PredefinedScriptName
+): string;
+export function encodeToConfigAddress<C extends Config>(
+  args: HexString,
+  scriptType: keyof C["SCRIPTS"],
+  options: { config?: C }
+): string;
+/**
+ * encode a script to an address with args and a key of config
+ * @example
+ * ```ts
+ * // parse a predefined lock to an address
+ * encodeToConfigAddress('0x12345678123456781234567812345678', 'SECP256K1_BLAKE160');
+ * // parse a custom lock to an address
+ * encodeToConfigAddress('0x12345678123456781234567812345678', 'MY_CUSTOM_LOCK', {
+ *   SCRIPTS: {
+ *     MY_CUSTOM_LOCK: {...}
+ *   }
+ * })
+ * ```
+ * @param args script args
+ * @param scriptType a key of `config.SCRIPTS`
+ * @param options
+ * @returns
+ */
+export function encodeToConfigAddress<C extends Config>(
+  args: HexString,
+  scriptType: keyof C["SCRIPTS"],
+  options?: { config?: C }
+): string {
+  const config = (options?.config || getConfig()) as C;
+  const template = config.SCRIPTS[scriptType as string];
+
+  if (!template) {
+    const availableKeys = Object.keys(config.SCRIPTS);
+    throw new Error(
+      // prettier-ignore
+      `Invalid script type: ${String(scriptType)}, only support: ${availableKeys}`
+    );
+  }
+
+  const script: Script = {
+    codeHash: template.CODE_HASH,
+    hashType: template.HASH_TYPE,
+    args,
+  };
+
+  return encodeToAddress(script, { config });
 }
 
 export interface TransactionSkeletonInterface {
