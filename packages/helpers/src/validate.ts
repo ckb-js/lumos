@@ -1,8 +1,8 @@
 import { BytesLike, number } from "@ckb-lumos/codec";
 import { createTransactionFromSkeleton, TransactionSkeletonType } from ".";
 import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
-import blake2b from "blake2b";
 import { blockchain } from "@ckb-lumos/base";
+import { CKBHasher } from "@ckb-lumos/base/lib/utils";
 
 const { RawTransaction } = blockchain;
 
@@ -10,47 +10,16 @@ type HashAlgorithm = "ckb-blake2b-256" | "ckb-blake2b-160";
 
 interface Hasher {
   update(data: BytesLike): Hasher;
-  digest(): string;
-}
-
-class Blake2bHasher implements Hasher {
-  constructor(
-    outlength: number,
-    key: Uint8Array | undefined,
-    salt: Uint8Array | undefined,
-    personal: Uint8Array | undefined
-  ) {
-    this.hasher = blake2b(outlength, key, salt, personal);
-  }
-  private hasher: blake2b.Blake2b;
-
-  update(data: BytesLike) {
-    this.hasher.update(bytify(data));
-    return this;
-  }
-
-  digest() {
-    return hexify(this.hasher.digest());
-  }
+  digestHex(): string;
 }
 
 function createHasher(algorithm: HashAlgorithm): Hasher {
   switch (algorithm) {
     case "ckb-blake2b-256":
-      return new Blake2bHasher(
-        32,
-        undefined,
-        undefined,
-        Buffer.from("ckb-default-hash")
-      );
+      return new CKBHasher({ outLength: 32 });
 
     case "ckb-blake2b-160":
-      return new Blake2bHasher(
-        20,
-        undefined,
-        undefined,
-        Buffer.from("ckb-default-hash")
-      );
+      return new CKBHasher({ outLength: 20 });
     default:
       throw new Error(`Unsupported hash algorithm: ${algorithm}`);
   }
@@ -76,7 +45,7 @@ export function validateP2PKHMessage(
 ): boolean {
   const rawTxHasher = createHasher(hashAlgorithm);
   const tx = createTransactionFromSkeleton(rawTransaction);
-  const txHash = rawTxHasher.update(RawTransaction.pack(tx)).digest();
+  const txHash = rawTxHasher.update(RawTransaction.pack(tx)).digestHex();
 
   const hasher = createHasher(hashAlgorithm);
   const message = hexify(messagesForSigning);
@@ -85,7 +54,7 @@ export function validateP2PKHMessage(
   hasher.update(txHash);
   hasher.update(witnessLength);
   hasher.update(witness);
-  const actual = hasher.digest();
+  const actual = hasher.digestHex();
   if (actual !== message) {
     return false;
   }

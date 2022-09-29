@@ -7,8 +7,15 @@ const blockchain = require("./blockchain");
 
 const { bytify, hexify, bytifyRawString } = bytes;
 class CKBHasher {
-  constructor() {
-    this.hasher = blake2b(32, null, null, bytifyRawString("ckb-default-hash"));
+  constructor(options = {}) {
+    const { outLength = 32 } = options;
+    this.outLength = outLength;
+    this.hasher = blake2b(
+      outLength,
+      null,
+      null,
+      bytifyRawString("ckb-default-hash")
+    );
   }
 
   update(data) {
@@ -17,7 +24,7 @@ class CKBHasher {
   }
 
   digestHex() {
-    const out = new Uint8Array(32);
+    const out = new Uint8Array(this.outLength);
     this.hasher.digest(out);
     return hexify(out.buffer);
   }
