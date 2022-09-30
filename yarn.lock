@@ -3158,11 +3158,6 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
-"@types/blake2b@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@types/blake2b/-/blake2b-2.1.0.tgz#d906320255d84f9c05fc6f3a28db81c952ee989b"
-  integrity sha512-Mv8N0qtdb72iW1XJR/4Yp01frtibnv8BpFUZDROnzd7hVEX4cEN/xHgU2ZfsnOnTDt+fHJVc0uRIWcNz6uIB2A==
-
 "@types/bn.js@*":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-5.1.0.tgz#32c5d271503a12653c62cf4d2b45e6eab8cebc68"
@@ -3337,13 +3332,6 @@
   version "4.5.6"
   resolved "https://registry.yarnpkg.com/@types/lodash.isequal/-/lodash.isequal-4.5.6.tgz#ff42a1b8e20caa59a97e446a77dc57db923bc02b"
   integrity sha512-Ww4UGSe3DmtvLLJm2F16hDwEQSv7U0Rr8SujLUA2wHI2D2dm8kPu6Et+/y303LfjTIwSBKXB/YTUcAKpem/XEg==
-  dependencies:
-    "@types/lodash" "*"
-
-"@types/lodash.pick@^4.4.7":
-  version "4.4.7"
-  resolved "https://registry.yarnpkg.com/@types/lodash.pick/-/lodash.pick-4.4.7.tgz#4a700075758692ce6ee48bee08e6fd4004d5da53"
-  integrity sha512-HgdyKz7/1+oeoVzbpu1XiX/Bti9AUksHtOILH38T07aKvqoirzcdOsrO2+Yg3L51Hv/8m1MetvHZEUGeABiTiQ==
   dependencies:
     "@types/lodash" "*"
 
@@ -8235,11 +8223,6 @@ lodash.merge@^4.6.2:
   version "4.6.2"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
-
-lodash.pick@^4.4.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/lodash.pick/-/lodash.pick-4.4.0.tgz#52f05610fff9ded422611441ed1fc123a03001b3"
-  integrity sha512-hXt6Ul/5yWjfklSGvLQl8vM//l3FtyHZeuelpzK6mm99pNvN9yTDruNZPEJZD1oWrqo+izBmB7oUfWgcCX7s4Q==
 
 lodash.template@^4.5.0:
   version "4.5.0"
