@@ -20,7 +20,6 @@ import {
 const { CKBHasher, ckbHash } = utils;
 import { Config } from "@ckb-lumos/config-manager";
 import { BI } from "@ckb-lumos/bi";
-import { bytify } from "@ckb-lumos/codec/lib/bytes";
 
 export function addCellDep(
   txSkeleton: TransactionSkeletonType,
@@ -159,13 +158,15 @@ export function isAcpAddress(address: Address, config: Config): boolean {
 }
 
 /**
- * Hash a witness in a hasher
+ * Hash a witness with a hasher
  * @param hasher The hasher object which should have a `update` method.
  * @param witness witness data, the inputs to hasher will derived from it
+ * @param onUpdateHash calls when update data into hasher. **This method will only invoked once with contacted each input bytes**
  */
 export function hashWitness(
   hasher: { update: (value: HexString | ArrayBuffer) => unknown },
-  witness: HexString
+  witness: HexString,
+  onUpdateHash?: (input: Uint8Array) => void
 ): void {
   const lengthBuffer = new ArrayBuffer(8);
   const view = new DataView(lengthBuffer);
@@ -181,6 +182,7 @@ export function hashWitness(
   }
   hasher.update(lengthBuffer);
   hasher.update(witness);
+  onUpdateHash?.(bytes.concat(lengthBuffer, witness));
 }
 /* eslint-enable camelcase, @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 
@@ -219,8 +221,13 @@ export function prepareSigningEntries(
           `The first witness in the script group starting at input index ${i} does not exist, maybe some other part has invalidly tampered the transaction?`
         );
       }
-      let hashContentExceptRawTx = bytify(witnesses.get(i)!);
-      hashWitness(hasher, witnesses.get(i)!);
+      let hashContentExceptRawTx = new Uint8Array();
+
+      const onUpdateHasher = (input: Uint8Array) => {
+        hashContentExceptRawTx = bytes.concat(hashContentExceptRawTx, input);
+      };
+
+      hashWitness(hasher, witnesses.get(i)!, onUpdateHasher);
       for (let j = i + 1; j < inputs.size && j < witnesses.size; j++) {
         const otherInput = inputs.get(j)!;
         if (
@@ -230,19 +237,11 @@ export function prepareSigningEntries(
             })
           )
         ) {
-          hashContentExceptRawTx = Uint8Array.from([
-            ...hashContentExceptRawTx,
-            ...bytify(witnesses.get(j)!),
-          ]);
-          hashWitness(hasher, witnesses.get(j)!);
+          hashWitness(hasher, witnesses.get(j)!, onUpdateHasher);
         }
       }
       for (let j = inputs.size; j < witnesses.size; j++) {
-        hashContentExceptRawTx = Uint8Array.from([
-          ...hashContentExceptRawTx,
-          ...bytify(witnesses.get(j)!),
-        ]);
-        hashWitness(hasher, witnesses.get(j)!);
+        hashWitness(hasher, witnesses.get(j)!, onUpdateHasher);
       }
       const signingEntry = {
         type: "witness_args_lock",

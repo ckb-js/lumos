@@ -10,8 +10,8 @@ import { common } from "@ckb-lumos/common-scripts";
 import { SECP_SIGNATURE_PLACEHOLDER } from "@ckb-lumos/common-scripts/lib/helper";
 import { blockchain } from "@ckb-lumos/base";
 import { validateP2PKHMessage } from "../src/validate";
-import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
-import { number, bytes } from "@ckb-lumos/codec";
+import { hexify } from "@ckb-lumos/codec/lib/bytes";
+import { bytes } from "@ckb-lumos/codec";
 
 const { AGGRON4 } = predefined;
 
@@ -26,9 +26,7 @@ function getMessageForSigning(
 }
 
 function getHashContentExpectRawTx(tx: TransactionSkeletonType) {
-  const witness = tx.witnesses.get(0)!;
-  const witnessLengthBuffer = number.Uint64.pack(bytify(witness).length).buffer;
-  return bytes.concat(witnessLengthBuffer, witness);
+  return tx.signingEntries.get(0)!.hashContentExceptRawTx;
 }
 
 function createTestRawTransaction() {
@@ -77,7 +75,7 @@ test("simple", (t) => {
 
   t.true(
     validateP2PKHMessage(
-      getMessageForSigning(txSkeleton),
+      getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
       getHashContentExpectRawTx(txSkeleton),
       "ckb-blake2b-256"
@@ -99,7 +97,7 @@ test("unknown hasher", (t) => {
   txSkeleton = common.prepareSigningEntries(txSkeleton, { config: AGGRON4 });
   t.throws(() => {
     validateP2PKHMessage(
-      getMessageForSigning(txSkeleton),
+      getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
       getHashContentExpectRawTx(txSkeleton),
       "unknown" as any

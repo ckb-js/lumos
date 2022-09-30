@@ -33,7 +33,6 @@ import {
   SECP_SIGNATURE_PLACEHOLDER,
 } from "./helper";
 import { CellCollectorConstructor, CellCollectorType } from "./type";
-import { bytify } from "@ckb-lumos/codec/lib/bytes";
 const { ScriptValue } = values;
 const { CKBHasher, ckbHash } = utils;
 
@@ -516,8 +515,13 @@ export function prepareSigningEntries(
           `The first witness in the script group starting at input index ${i} does not exist, maybe some other part has invalidly tampered the transaction?`
         );
       }
-      let hashContentExceptRawTx = bytify(witnesses.get(i)!);
-      hashWitness(hasher, witnesses.get(i)!);
+      let hashContentExceptRawTx = new Uint8Array();
+
+      const onUpdateHasher = (input: Uint8Array) => {
+        hashContentExceptRawTx = bytes.concat(hashContentExceptRawTx, input);
+      };
+
+      hashWitness(hasher, witnesses.get(i)!, onUpdateHasher);
       for (let j = i + 1; j < inputs.size && j < witnesses.size; j++) {
         const otherInput = inputs.get(j)!;
         if (
@@ -527,19 +531,11 @@ export function prepareSigningEntries(
             })
           )
         ) {
-          hashContentExceptRawTx = Uint8Array.from([
-            ...hashContentExceptRawTx,
-            ...bytify(witnesses.get(j)!),
-          ]);
-          hashWitness(hasher, witnesses.get(j)!);
+          hashWitness(hasher, witnesses.get(j)!, onUpdateHasher);
         }
       }
       for (let j = inputs.size; j < witnesses.size; j++) {
-        hashContentExceptRawTx = Uint8Array.from([
-          ...hashContentExceptRawTx,
-          ...bytify(witnesses.get(j)!),
-        ]);
-        hashWitness(hasher, witnesses.get(j)!);
+        hashWitness(hasher, witnesses.get(j)!, onUpdateHasher);
       }
       const signingEntry = {
         type: "witness_args_lock",

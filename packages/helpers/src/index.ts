@@ -322,7 +322,7 @@ export interface TransactionSkeletonInterface {
     type: string;
     index: number;
     message: string;
-    hashContentExceptRawTx: ArrayBuffer;
+    hashContentExceptRawTx: Uint8Array;
   }>;
   inputSinces: ImmutableMap<number, PackedSince>;
 }
@@ -433,7 +433,7 @@ export interface TransactionSkeletonObject {
     type: string;
     index: number;
     message: string;
-    hashContentExceptRawTx: ArrayBuffer;
+    hashContentExceptRawTx: Uint8Array;
   }>;
   inputSinces: Map<number, PackedSince>;
 }
