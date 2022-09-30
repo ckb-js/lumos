@@ -36,6 +36,10 @@ test("ckbHash", (t) => {
   const result = ckbHash(message);
   t.is(result, messageDigest);
 });
+test("CKBHasher, ckb-blake2b-160", (t) => {
+  const result = new CKBHasher({ outLength: 20 }).update(message).digestHex();
+  t.is(result, "0x6bfd1c42e8470458ea48c7f073fb89a0bcaea1ec");
+});
 
 const script = {
   codeHash:
