@@ -62,11 +62,13 @@
     "versionup:minor": "lerna version minor --conventional-commits --no-git-tag-version",
     "versionup:major": "lerna version major --conventional-commits --no-git-tag-version",
     "versionup:prerelease": "lerna version prerelease --conventional-commits --no-git-tag-version --conventional-prerelease --force-publish",
-    "postversionup": "npm run commit-version",
-    "postversionup:patch": "npm run commit-version",
-    "postversionup:minor": "npm run commit-version",
-    "postversionup:major": "npm run commit-version",
-    "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\""
+    "postversionup": "npm run create-publish-branch",
+    "postversionup:patch": "npm run create-publish-branch",
+    "postversionup:minor": "npm run create-publish-branch",
+    "postversionup:major": "npm run create-publish-branch",
+    "postversionup:prerelease": "npm run create-publish-branch",
+    "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\"",
+    "create-publish-branch": "node ./scripts/create_publish_branch.js"
   },
   "husky": {
     "hooks": {
