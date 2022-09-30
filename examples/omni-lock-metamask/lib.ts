@@ -120,7 +120,7 @@ export async function transfer(options: Options): Promise<string> {
       "0x" +
         "00".repeat(
           SerializeRcLockWitnessLock({
-            signature: new Uint8Array(65),
+            signature: new Uint8Array(65).buffer,
           }).byteLength
         )
     );
@@ -155,8 +155,8 @@ export async function transfer(options: Options): Promise<string> {
   signedMessage = "0x" + signedMessage.slice(2, -2) + v.toString(16).padStart(2, "0");
 
   const signedWitness = bytes.hexify(blockchain.WitnessArgs.pack({
-    lock: bytes.hexify( SerializeRcLockWitnessLock({
-      signature: bytes.bytify(signedMessage),
+    lock: bytes.hexify(SerializeRcLockWitnessLock({
+      signature: bytes.bytify(signedMessage).buffer,
     })),
   }))
 

@@ -12,12 +12,14 @@ import {
   PayloadInBatchException,
 } from "./exceptions";
 import axios from "axios";
+import { RPCConfig } from "./types/common";
 // import { MethodInBatchNotFoundException, PayloadInBatchException, IdNotMatchedInBatchException } from './exceptions'
 
 export const ParamsFormatter = paramsFormatter;
 export const ResultFormatter = resultFormatter;
 
 export class CKBRPC extends Base {
+  #config: RPCConfig;
   #node: CKBComponents.Node = {
     url: "",
   };
@@ -38,9 +40,10 @@ export class CKBRPC extends Base {
     return this.#resultFormatter;
   }
 
-  constructor(url: string) {
+  constructor(url: string, config: RPCConfig = { timeout: 30000 }) {
     super();
     this.setNode({ url });
+    this.#config = config;
 
     Object.defineProperties(this, {
       addMethod: {
@@ -59,7 +62,7 @@ export class CKBRPC extends Base {
     });
 
     Object.keys(this.rpcProperties).forEach((name) => {
-      this.addMethod({ name, ...this.rpcProperties[name] });
+      this.addMethod({ name, ...this.rpcProperties[name] }, config);
     });
   }
 
@@ -68,8 +71,11 @@ export class CKBRPC extends Base {
     return this.node;
   }
 
-  public addMethod = (options: CKBComponents.Method): void => {
-    const method = new Method(this.node, options);
+  public addMethod = (
+    options: CKBComponents.Method,
+    config?: RPCConfig
+  ): void => {
+    const method = new Method(this.node, options, config);
 
     Object.defineProperty(this, options.name, {
       value: method.call,
@@ -137,6 +143,7 @@ export class CKBRPC extends Base {
             url: ctx.#node.url,
             httpAgent: ctx.#node.httpAgent,
             httpsAgent: ctx.#node.httpsAgent,
+            timeout: ctx.#config.timeout,
           });
 
           return batchRes.data.map((res: any, i: number) => {

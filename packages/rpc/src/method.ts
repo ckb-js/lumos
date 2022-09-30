@@ -1,9 +1,11 @@
 import axios from "axios";
 import { IdNotMatchException, ResponseException } from "./exceptions";
 import { CKBComponents } from "./types/api";
+import { RPCConfig } from "./types/common";
 
 export class Method {
   #name: string;
+  #config: RPCConfig;
 
   get name(): string {
     return this.#name;
@@ -18,10 +20,16 @@ export class Method {
 
   #node: CKBComponents.Node;
 
-  constructor(node: CKBComponents.Node, options: CKBComponents.Method) {
+  constructor(
+    node: CKBComponents.Node,
+    options: CKBComponents.Method,
+    config: RPCConfig = { timeout: 30000 }
+  ) {
     this.#node = node;
     this.#options = options;
     this.#name = options.name;
+    this.#config = config;
+
     Object.defineProperty(this.call, "name", {
       value: options.name,
       configurable: false,
@@ -41,6 +49,7 @@ export class Method {
       url: this.#node.url,
       httpAgent: this.#node.httpAgent,
       httpsAgent: this.#node.httpsAgent,
+      timeout: this.#config.timeout,
     }).then((res) => {
       if (res.data.id !== payload.id) {
         throw new IdNotMatchException(payload.id, res.data.id);
