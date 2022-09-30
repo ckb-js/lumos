@@ -22,6 +22,7 @@ jobs:
         run: |
           yarn --ignore-engines --frozen-lockfile
           yarn build
+          git diff --exit-code
 
       - name: Prettier check
         run: yarn lint
