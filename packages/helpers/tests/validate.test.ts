@@ -1,12 +1,17 @@
 import test from "ava";
 import { helpers } from "@ckb-lumos/lumos";
 import { predefined } from "@ckb-lumos/config-manager";
-import { parseAddress, TransactionSkeletonInterface } from "@ckb-lumos/helpers";
+import {
+  parseAddress,
+  TransactionSkeletonInterface,
+  TransactionSkeletonType,
+} from "@ckb-lumos/helpers";
 import { common } from "@ckb-lumos/common-scripts";
 import { SECP_SIGNATURE_PLACEHOLDER } from "@ckb-lumos/common-scripts/lib/helper";
 import { blockchain } from "@ckb-lumos/base";
 import { validateP2PKHMessage } from "../src/validate";
-import { hexify } from "@ckb-lumos/codec/lib/bytes";
+import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
+import { number, bytes } from "@ckb-lumos/codec";
 
 const { AGGRON4 } = predefined;
 
@@ -18,6 +23,12 @@ function getMessageForSigning(
   signingEntries: TransactionSkeletonInterface["signingEntries"]
 ) {
   return signingEntries.get(0)!.message;
+}
+
+function getHashContentExpectRawTx(tx: TransactionSkeletonType) {
+  const witness = tx.witnesses.get(0)!;
+  const witnessLengthBuffer = number.Uint64.pack(bytify(witness).length).buffer;
+  return bytes.concat(witnessLengthBuffer, witness);
 }
 
 function createTestRawTransaction() {
@@ -68,18 +79,16 @@ test("simple", (t) => {
     validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
-      txSkeleton.get("witnesses").get(0)!,
+      getHashContentExpectRawTx(txSkeleton),
       "ckb-blake2b-256"
     )
   );
 
   t.false(
     validateP2PKHMessage(
-      new Uint8Array(
-        "KFC CRAZY THURSDAY V ME 50".split("").map((it) => it.charCodeAt(0))
-      ),
+      bytes.bytifyRawString("KFC CRAZY THURSDAY V ME 50"),
       txSkeleton,
-      txSkeleton.get("witnesses").get(0)!,
+      getHashContentExpectRawTx(txSkeleton),
       "ckb-blake2b-256"
     )
   );
@@ -92,7 +101,7 @@ test("unknown hasher", (t) => {
     validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
       txSkeleton,
-      txSkeleton.get("witnesses").get(0)!,
+      getHashContentExpectRawTx(txSkeleton),
       "unknown" as any
     );
   });

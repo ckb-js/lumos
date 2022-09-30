@@ -1,6 +1,5 @@
-import { BytesLike, number } from "@ckb-lumos/codec";
+import { BytesLike, bytes } from "@ckb-lumos/codec";
 import { createTransactionFromSkeleton, TransactionSkeletonType } from ".";
-import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
 import { blockchain } from "@ckb-lumos/base";
 import { CKBHasher } from "@ckb-lumos/base/lib/utils";
 
@@ -25,10 +24,6 @@ function createHasher(algorithm: HashAlgorithm): Hasher {
   }
 }
 
-function getWitnessLength(witnesses: Uint8Array) {
-  return number.Uint64.pack(witnesses.length).buffer;
-}
-
 /**
  * Validate a P2PKH(Pay to public key hash) message
  * @param messagesForSigning the message digest for signing. means hash(rawTransaction | extraData).
@@ -39,25 +34,17 @@ function getWitnessLength(witnesses: Uint8Array) {
  */
 export function validateP2PKHMessage(
   messagesForSigning: BytesLike,
-  rawTransaction: TransactionSkeletonType,
+  txSkeleton: TransactionSkeletonType,
   hashContentExceptRawTx: BytesLike,
   hashAlgorithm: HashAlgorithm = "ckb-blake2b-256"
 ): boolean {
   const rawTxHasher = createHasher(hashAlgorithm);
-  const tx = createTransactionFromSkeleton(rawTransaction);
+  const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = rawTxHasher.update(RawTransaction.pack(tx)).digestHex();
 
   const hasher = createHasher(hashAlgorithm);
-  const message = hexify(messagesForSigning);
-  const witness = bytify(hashContentExceptRawTx);
-  const witnessLength = getWitnessLength(witness);
   hasher.update(txHash);
-  hasher.update(witnessLength);
-  hasher.update(witness);
+  hasher.update(hashContentExceptRawTx);
   const actual = hasher.digestHex();
-  if (actual !== message) {
-    return false;
-  }
-
-  return true;
+  return bytes.equal(messagesForSigning, actual);
 }

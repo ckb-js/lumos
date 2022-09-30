@@ -3,8 +3,12 @@ import { Script, Input } from "./api";
 import { Hash, HexNumber, HexString } from "./primitive";
 import { BytesLike } from "@ckb-lumos/codec";
 
+type CKBHasherOptions = {
+  outLength?: number;
+};
+
 export class CKBHasher {
-  constructor(options?: { outLength?: number });
+  constructor(options?: CKBHasherOptions);
   update(data: string | ArrayBuffer): this;
 
   digestHex(): Hash;
