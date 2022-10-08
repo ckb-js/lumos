@@ -5,6 +5,7 @@ import { createP2PKHMessageGroup } from "../src/p2pkh";
 import { txObject, txSkeletonFromJson } from "./helper";
 import p2pkhJson from "./p2pkh.json";
 import { bytes } from "@ckb-lumos/codec";
+import { hexify } from "@ckb-lumos/codec/lib/bytes";
 
 test("omni lock [g1]", (t) => {
   const SIGNATURE_PLACEHOLDER = "0x" + "00".repeat(85);
@@ -82,6 +83,10 @@ test("seck256k1 [g1, g1]", (t) => {
   t.is(messageGroup[0].index, 0);
   t.deepEqual(messageGroup[0].lock, signLock);
   t.is(messageGroup[0].message, p2pkhJson["SECP256K1_[G1_G1]"].MESSAGE);
+  t.is(
+    hexify(messageGroup[0].hashContentExceptRawTx),
+    "0x550000000000000055000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000550000000000000055000000100000005500000055000000410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  );
 });
 
 test("seck256k1 [g1, g2], test createP2PKHMessageGroup by multiple locks", (t) => {

@@ -56,6 +56,7 @@ type Group = {
   index: number;
   lock: Script;
   message: Hash;
+  hashContentExceptRawTx: Uint8Array;
 };
 
 type ThunkOrValue<T> = T | (() => T);
@@ -115,6 +116,8 @@ export function createP2PKHMessageGroup(
     }
     messageHasher.update(bytes.bytify(rawTxHash));
 
+    let hashContentExceptRawTx = new Uint8Array(0);
+
     const lengthBuffer = new ArrayBuffer(8);
     const view = new DataView(lengthBuffer);
     const witnessHexString = BI.from(
@@ -133,10 +136,21 @@ export function createP2PKHMessageGroup(
     messageHasher.update(new Uint8Array(lengthBuffer));
     messageHasher.update(bytes.bytify(firstWitness));
 
+    hashContentExceptRawTx = bytes.concat(
+      hashContentExceptRawTx,
+      lengthBuffer,
+      firstWitness
+    );
+
     for (let i = 1; i < indexes.length; i++) {
       const witness = tx.witnesses.get(indexes[i])!;
       messageHasher.update(new Uint8Array(lengthBuffer));
       messageHasher.update(bytes.bytify(witness));
+      hashContentExceptRawTx = bytes.concat(
+        hashContentExceptRawTx,
+        lengthBuffer,
+        witness
+      );
     }
 
     for (
@@ -147,12 +161,19 @@ export function createP2PKHMessageGroup(
       const witness = tx.witnesses.get(i)!;
       messageHasher.update(new Uint8Array(lengthBuffer));
       messageHasher.update(bytes.bytify(witness));
+
+      hashContentExceptRawTx = bytes.concat(
+        hashContentExceptRawTx,
+        lengthBuffer,
+        witness
+      );
     }
 
     const digested = messageHasher.digest();
     const g: Group = {
       index: firstIndex,
       lock: tx.inputs.get(firstIndex)!.cellOutput.lock,
+      hashContentExceptRawTx,
       message:
         "0x" +
         Array.prototype.map
