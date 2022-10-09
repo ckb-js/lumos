@@ -1,97 +1,87 @@
 import anyTest, { TestInterface } from "ava";
-import {
-  generateHDAccount,
-  loadConfig,
-  findCells,
-  waitTransactionCommitted,
-  HDAccount,
-  waitBlockByNumber,
-  daoDeposit,
-  defaultIndexer,
-  defaultRPC,
-} from "../src/utils";
+import { generateHDAccount, HDAccount } from "../src/utils";
+import { CKB_RPC_URL, INDEXER_RPC_URL } from "../src/constants";
+import { E2EProvider } from "../src/e2eProvider";
 import { join } from "path";
-import { FaucetProvider } from "../src/faucetProvider";
 import { FileFaucetQueue } from "../src/faucetQueue";
-import { BI } from "@ckb-lumos/bi";
 import { Cell, Script } from "@ckb-lumos/base";
 import { encodeToAddress } from "@ckb-lumos/helpers";
 import { Config } from "@ckb-lumos/config-manager";
+import { RPC } from "@ckb-lumos/rpc";
+import { Indexer } from "@ckb-lumos/ckb-indexer";
 
 interface TestContext {
-  account: HDAccount;
-  cellsMap: Record<HDAccount["address"], Cell[]>;
-  faucetProvider: FaucetProvider;
+  accounts: Record<
+    string,
+    HDAccount & {
+      cells: Cell[];
+    }
+  >;
   config: Config;
 }
-
 const test = anyTest as TestInterface<TestContext>;
-const rpc = defaultRPC;
-const ckbIndexer = defaultIndexer;
+
+const rpc = new RPC(CKB_RPC_URL);
+const indexer = new Indexer(INDEXER_RPC_URL, CKB_RPC_URL);
+
+const faucetQueue = new FileFaucetQueue(join(__dirname, "../tmp/"));
+const e2eProvider = new E2EProvider({ indexer, rpc, faucetQueue: faucetQueue });
 
 test.before(async (t) => {
-  const config = await loadConfig();
+  const config = await e2eProvider.loadLocalConfig();
   const alice = generateHDAccount();
-  const faucetProvider = new FaucetProvider({
-    queue: new FileFaucetQueue(join(__dirname, "../tmp/")),
-  });
 
-  const txHashes = await Promise.all([
-    faucetProvider.claimCKB(alice.address, 1000),
-    faucetProvider.claimCKB(alice.address, 1000),
+  await Promise.all([
+    e2eProvider.claimCKB({ claimer: alice.address }),
+    e2eProvider.claimCKB({ claimer: alice.address }),
   ]);
 
-  await Promise.all(txHashes.map((txHash) => waitTransactionCommitted(txHash)));
+  await e2eProvider.waitForBlock({
+    relative: true,
+    value: 1,
+  });
 
-  const currentBlockNumber = await rpc.getTipBlockNumber();
-  await waitBlockByNumber(BI.from(currentBlockNumber).add(1).toNumber());
+  await Promise.all([
+    e2eProvider.claimCKB({ claimer: alice.address }),
+    e2eProvider.claimCKB({ claimer: alice.address }),
+    e2eProvider.claimCKB({ claimer: alice.address }),
+  ]);
 
-  await Promise.all(
-    (
-      await Promise.all([
-        faucetProvider.claimCKB(alice.address, 1000),
-        faucetProvider.claimCKB(alice.address, 1000),
-        faucetProvider.claimCKB(alice.address, 1000),
-      ])
-    ).map((txHash) => waitTransactionCommitted(txHash))
+  await e2eProvider.waitTransactionCommitted(
+    await e2eProvider.daoDeposit({ fromPk: alice.privKey })
   );
 
-  await waitTransactionCommitted(await daoDeposit({ fromPk: alice.privKey }));
-
-  const cells = await findCells(ckbIndexer, {
+  const aliceCells = await e2eProvider.findCells({
     lock: alice.lockScript,
     order: "asc",
   });
 
   t.context = {
-    account: alice,
-    cellsMap: { [alice.address]: cells },
-    faucetProvider,
+    accounts: {
+      alice: {
+        ...alice,
+        cells: aliceCells,
+      },
+    },
     config,
   };
 });
 
-test.after(async (t) => {
-  t.context.faucetProvider.end();
-});
-
 test("Test query cells by lock script", async (t) => {
-  const alice = t.context.account;
-  const aliceCells = t.context.cellsMap[alice.address];
-  const cells = await findCells(ckbIndexer, { lock: alice.lockScript });
+  const alice = t.context.accounts["alice"];
+  const cells = await e2eProvider.findCells({ lock: alice.lockScript });
 
-  t.deepEqual(cells.length, aliceCells.length);
-  t.deepEqual(cells, aliceCells);
+  t.deepEqual(cells.length, alice.cells.length);
+  t.deepEqual(cells, alice.cells);
 });
 
 test("Test query cells by lock script script and between block range", async (t) => {
-  const alice = t.context.account;
-  const aliceCells = t.context.cellsMap[alice.address];
+  const alice = t.context.accounts["alice"];
 
-  const fromBlock = aliceCells[2].blockNumber!;
-  const toBlock = aliceCells[4].blockNumber!;
+  const fromBlock = alice.cells[2].blockNumber!;
+  const toBlock = alice.cells[4].blockNumber!;
 
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     lock: alice.lockScript,
     fromBlock,
     toBlock,
@@ -104,48 +94,44 @@ test("Test query cells by lock script script and between block range", async (t)
 });
 
 test("Test query cells by lock script and skip the first 2 cells", async (t) => {
-  const alice = t.context.account;
-  const aliceCells = t.context.cellsMap[alice.address];
+  const alice = t.context.accounts["alice"];
 
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     lock: alice.lockScript,
     skip: 2,
   });
 
-  t.deepEqual(cells.length, aliceCells.length - 2);
-  t.deepEqual(cells, aliceCells.slice(2));
+  t.deepEqual(cells.length, alice.cells.length - 2);
+  t.deepEqual(cells, alice.cells.slice(2));
 });
 
 test("Test query cells by lock script and return the cells in desc order", async (t) => {
-  const alice = t.context.account;
-  const aliceCells = t.context.cellsMap[alice.address];
+  const alice = t.context.accounts["alice"];
 
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     lock: alice.lockScript,
     order: "desc",
   });
 
-  t.deepEqual(cells.length, aliceCells.length);
-  t.deepEqual(cells, [...aliceCells].reverse());
+  t.deepEqual(cells.length, alice.cells.length);
+  t.deepEqual(cells, [...alice.cells].reverse());
 });
 
 test("Test query cells by lock script, return the cells in desc order then skip the first 2 cells", async (t) => {
-  const alice = t.context.account;
-  const aliceCells = t.context.cellsMap[alice.address];
+  const alice = t.context.accounts["alice"];
 
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     lock: alice.lockScript,
     skip: 2,
     order: "desc",
   });
 
-  t.deepEqual(cells.length, aliceCells.length - 2);
-  t.deepEqual(cells, [...aliceCells].reverse().slice(2));
+  t.deepEqual(cells.length, alice.cells.length - 2);
+  t.deepEqual(cells, [...alice.cells].reverse().slice(2));
 });
 
 test("Test query cells by lock script with argsLen as number", async (t) => {
-  const alice = t.context.account;
-  const aliceCells = t.context.cellsMap[alice.address];
+  const alice = t.context.accounts["alice"];
 
   const alicePrefixLock: Script = {
     ...alice.lockScript,
@@ -153,30 +139,28 @@ test("Test query cells by lock script with argsLen as number", async (t) => {
   };
 
   const alicePrefixAccount = encodeToAddress(alicePrefixLock);
-  await waitTransactionCommitted(
-    await t.context.faucetProvider.claimCKB(alicePrefixAccount)
-  );
+  await e2eProvider.claimCKB({ claimer: alicePrefixAccount });
 
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     lock: alicePrefixLock,
     argsLen: 20,
   });
 
-  t.deepEqual(cells.length, aliceCells.length);
-  t.deepEqual(cells, aliceCells);
+  t.deepEqual(cells.length, alice.cells.length);
+  t.deepEqual(cells, alice.cells);
 
-  const cells2 = await findCells(ckbIndexer, {
+  const cells2 = await e2eProvider.findCells({
     lock: alicePrefixLock,
     argsLen: "any",
   });
 
-  t.deepEqual(cells2.length, aliceCells.length + 1);
+  t.deepEqual(cells2.length, alice.cells.length + 1);
 });
 
 test("Test query cells by non exist lock script", async (t) => {
   const nonExistAccount = generateHDAccount();
 
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     lock: nonExistAccount.lockScript,
   });
 
@@ -184,7 +168,7 @@ test("Test query cells by non exist lock script", async (t) => {
 });
 
 test("Test query cells by type script", async (t) => {
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     type: {
       codeHash: t.context.config.SCRIPTS["DAO"]!.CODE_HASH,
       hashType: t.context.config.SCRIPTS["DAO"]!.HASH_TYPE,
@@ -196,10 +180,9 @@ test("Test query cells by type script", async (t) => {
 });
 
 test("Test query cells by both lock and type script and return nonempty result", async (t) => {
-  const alice = t.context.account;
-  const aliceCells = t.context.cellsMap[alice.address];
+  const alice = t.context.accounts["alice"];
 
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     lock: alice.lockScript,
     type: {
       codeHash: t.context.config.SCRIPTS["DAO"]!.CODE_HASH,
@@ -208,44 +191,42 @@ test("Test query cells by both lock and type script and return nonempty result",
     },
   });
 
-  const withTypeCells = aliceCells.filter((cell) => cell.cellOutput.type);
+  const withTypeCells = alice.cells.filter((cell) => cell.cellOutput.type);
 
   t.deepEqual(cells.length, withTypeCells.length);
   t.deepEqual(cells, withTypeCells);
 });
 
 test("Test query cells by both lock and empty type script", async (t) => {
-  const alice = t.context.account;
-  const aliceCells = t.context.cellsMap[alice.address];
+  const alice = t.context.accounts["alice"];
 
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     lock: alice.lockScript,
     type: "empty",
   });
 
-  const withTypeCells = aliceCells.filter((cell) => cell.cellOutput.type);
+  const withTypeCells = alice.cells.filter((cell) => cell.cellOutput.type);
 
-  t.deepEqual(cells.length, aliceCells.length - withTypeCells.length);
+  t.deepEqual(cells.length, alice.cells.length - withTypeCells.length);
   t.deepEqual(
     cells,
-    aliceCells.filter((cell) => cell.cellOutput.type === null)
+    alice.cells.filter((cell) => cell.cellOutput.type === null)
   );
 });
 
 test("Test query cells by lock and script length range and return empty result", async (t) => {
-  const alice = t.context.account;
-  const aliceCells = t.context.cellsMap[alice.address];
+  const alice = t.context.accounts["alice"];
 
-  const cells = await findCells(ckbIndexer, {
+  const cells = await e2eProvider.findCells({
     lock: alice.lockScript,
     scriptLenRange: ["0x0", "0x1"],
   });
 
-  const withTypeCells = aliceCells.filter((cell) => cell.cellOutput.type);
+  const withTypeCells = alice.cells.filter((cell) => cell.cellOutput.type);
 
-  t.deepEqual(cells.length, aliceCells.length - withTypeCells.length);
+  t.deepEqual(cells.length, alice.cells.length - withTypeCells.length);
   t.deepEqual(
     cells,
-    aliceCells.filter((cell) => cell.cellOutput.type === null)
+    alice.cells.filter((cell) => cell.cellOutput.type === null)
   );
 });
