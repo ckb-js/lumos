@@ -1,0 +1,29 @@
+version: '3.3'
+services:
+  ckb:
+    image: lumos/ckb-dev:v0.103.0
+    build: ckb
+    ports:
+      - '8128:8114'
+    networks:
+      - internal_network
+      - external_network
+
+  ckb-indexer:
+    image: nervos/ckb-indexer:0.4.1
+    ports:
+      - '8130:8116'
+    environment:
+      - RUST_LOG=info
+    command: -s /tmp/ckb-indexer-test -c http://ckb:8114 -l 0.0.0.0:8116
+    depends_on:
+      - ckb
+    networks:
+      - internal_network
+      - external_network
+
+networks:
+  internal_network:
+    internal: true
+  external_network:
+
