@@ -37,7 +37,7 @@
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "posttest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml down)",
     "pretest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml up -d)",
-    "test:e2e": "ava **/*.e2e.test.ts --timeout=5m"
+    "test:e2e": "ava **/*.e2e.test.ts --timeout=10m"
   },
   "bugs": {
     "url": "https://github.com/ckb-js/lumos/issues"

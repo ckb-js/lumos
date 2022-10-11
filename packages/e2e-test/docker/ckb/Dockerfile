@@ -1,4 +1,4 @@
-FROM nervos/ckb:v0.103.0
+FROM nervos/ckb:merge-indexer-customize
 
 ENV CKB_CHAIN=dev
 ENV BA_ARG=0x839f6f4d6fdf773d3e015f8b19fe5c4ccb07723d

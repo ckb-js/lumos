@@ -111,6 +111,11 @@ const toUncleBlock = (uncleBlock: RPC.UncleBlock): CKBComponents.UncleBlock => {
   };
 };
 
+const toTip = (tip: RPC.Tip): CKBComponents.Tip => ({
+  blockHash: tip.block_hash,
+  blockNumber: tip.block_number,
+});
+
 const toBlock = (block: RPC.Block): CKBComponents.Block => {
   if (!block) return block;
   const { header, uncles = [], transactions = [], ...rest } = block;
@@ -553,6 +558,89 @@ const toRawTxPool = (rawTxPool: RPC.RawTxPool): CKBComponents.RawTxPool => {
   return { proposed, pending };
 };
 
+const toIndexerCell = (
+  indexerCell: RPC.IndexerCell
+): CKBComponents.IndexerCell => {
+  if (!indexerCell) return indexerCell;
+  return {
+    blockNumber: indexerCell.block_number,
+    outPoint: toOutPoint(indexerCell.out_point),
+    output: toOutput(indexerCell.output),
+    outputData: indexerCell.output_data,
+    txIndex: indexerCell.tx_index,
+  };
+};
+
+const toGetCellsResult = (
+  getCellsResult: RPC.GetLiveCellsResult
+): CKBComponents.GetLiveCellsResult => ({
+  lastCursor: getCellsResult.last_cursor,
+  objects: getCellsResult.objects.map((object) => toIndexerCell(object)),
+});
+
+const isUngroupedIndexerTransaction = (
+  value: RPC.GroupedIndexerTransaction | RPC.UngroupedIndexerTransaction
+): value is RPC.UngroupedIndexerTransaction => {
+  if ((value as RPC.GroupedIndexerTransaction).cells) {
+    return false;
+  }
+
+  return true;
+};
+
+const toIndexerTransaction = (
+  indexerTransaction:
+    | RPC.GroupedIndexerTransaction
+    | RPC.UngroupedIndexerTransaction
+):
+  | CKBComponents.GroupedIndexerTransaction
+  | CKBComponents.UngroupedIndexerTransaction => {
+  if (!indexerTransaction) return indexerTransaction;
+  if (isUngroupedIndexerTransaction(indexerTransaction)) {
+    return {
+      txHash: indexerTransaction.tx_hash,
+      blockNumber: indexerTransaction.block_number,
+      ioIndex: indexerTransaction.io_index,
+      ioType: indexerTransaction.io_type,
+      txIndex: indexerTransaction.tx_index,
+    };
+  }
+
+  return {
+    txHash: indexerTransaction.tx_hash,
+    txIndex: indexerTransaction.tx_index,
+    blockNumber: indexerTransaction.block_number,
+    cells: indexerTransaction.cells,
+  };
+};
+
+const toGetTransactionsResult = <Goruped extends boolean = false>(
+  getTransactionsResult: RPC.GetTransactionsResult<Goruped>
+): CKBComponents.GetTransactionsResult<Goruped> => {
+  if (!getTransactionsResult) return getTransactionsResult;
+
+  return {
+    lastCursor: getTransactionsResult.last_cursor,
+    objects: getTransactionsResult.objects.map(
+      (object) =>
+        toIndexerTransaction(
+          object
+        ) as CKBComponents.IndexerTransaction<Goruped>
+    ),
+  };
+};
+
+const toCellsCapacity = (
+  cellsCapacity: RPC.CellsCapacity
+): CKBComponents.CellsCapacity => {
+  if (!cellsCapacity) return cellsCapacity;
+  return {
+    capacity: cellsCapacity.capacity,
+    blockHash: cellsCapacity.block_hash,
+    blockNumber: cellsCapacity.block_number,
+  };
+};
+
 export {
   toNumber,
   toHash,
@@ -566,6 +654,7 @@ export {
   toTransaction,
   toUncleBlock,
   toBlock,
+  toTip,
   toAlertMessage,
   toBlockchainInfo,
   toLocalNodeInfo,
@@ -595,5 +684,8 @@ export {
   toTransactionProof,
   toConsensus,
   toRawTxPool,
+  toCellsCapacity,
+  toGetCellsResult,
+  toGetTransactionsResult,
 };
 /* eslint-enable camelcase */

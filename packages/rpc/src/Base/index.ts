@@ -3,6 +3,7 @@ import experimentalRpc from "./experimental";
 import netRpc from "./net";
 import poolRpc from "./pool";
 import statsRpc from "./stats";
+import indexerRpc from "./indexer";
 import { CKBComponents } from "../types/api";
 
 export interface RpcPropertes {
@@ -12,6 +13,7 @@ export interface RpcPropertes {
 export const rpcProperties: RpcPropertes = {
   ...chainRpc,
   ...experimentalRpc,
+  ...indexerRpc,
   // skip minerRpc
   ...netRpc,
   ...poolRpc,
@@ -365,6 +367,61 @@ export interface Base {
    *                           is_intial_block_download, median time, warnings
    */
   getBlockchainInfo: () => Promise<CKBComponents.BlockchainInfo>;
+
+  /* Indexer */
+
+  /**
+   * @method getIndexerTip
+   * @memberof DefaultRPC
+   * @description rpc to get tip info of the longest blockchain
+   * @return {Promise<object>} tip info, including block number, block hash
+   */
+  getIndexerTip: () => Promise<CKBComponents.Tip>;
+
+  /**
+   * @method getCells
+   * @memberof DefaultRPC
+   * @description rpc to get a cell by script
+   * @param {object} searchKey
+   * @param {string} order - order cells by blocknumber "asc" or "desc"
+   * @param {string} limit - limit the number of cells returned per call
+   * @param {string} [cursor]
+   * @return {Promise<object>} CKBComponents.GetLiveCellsResult
+   */
+  getCells: <WithData extends boolean = true>(
+    searchKey: CKBComponents.GetCellsSearchKey<WithData>,
+    order: CKBComponents.Order,
+    limit: CKBComponents.Hash | bigint,
+    cursor?: CKBComponents.Hash256
+  ) => Promise<CKBComponents.GetLiveCellsResult<WithData>>;
+
+  /**
+   * @method getTransactions
+   * @memberof DefaultRPC
+   * @description rpc to get a transactions by script
+   * @param {object} searchKey
+   * @param {string} order - order cells by blocknumber "asc" or "desc"
+   * @param {string} limit - limit the number of cells returned per call
+   * @param {string} [cursor]
+   * @return {Promise<object>} CKBComponents.GetTransactionsResult
+   */
+  getTransactions: <Group extends boolean = false>(
+    searchKey: CKBComponents.GetTransactionsSearchKey<Group>,
+    order: CKBComponents.Order,
+    limit: CKBComponents.Hash | bigint,
+    cursor?: CKBComponents.Hash256
+  ) => Promise<CKBComponents.GetTransactionsResult<Group>>;
+
+  /**
+   * @method getCellsCapacity
+   * @memberof DefaultRPC
+   * @description rpc to get capacities by script
+   * @param {object} searchKey
+   * @return {Promise<object>} CKBComponents.CellsCapacity
+   */
+  getCellsCapacity: (
+    searchKey: CKBComponents.SearchKey
+  ) => Promise<CKBComponents.CellsCapacity>;
 
   /* skip Subscription */
 }

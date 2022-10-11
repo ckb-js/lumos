@@ -83,6 +83,9 @@ export const formatter = {
     }
     return type;
   },
+  toOrder: (order: CKBComponents.Order) => {
+    return order;
+  },
   toCellDep: (cellDep: CKBComponents.CellDep): RPC.CellDep => {
     if (!cellDep) return cellDep;
     const { outPoint, depType = "code", ...rest } = cellDep;
@@ -159,6 +162,42 @@ export const formatter = {
       block_hash,
       witnesses_root,
       ...rest,
+    };
+  },
+  toSearchFilter: (data: CKBComponents.SearchFilter): RPC.SearchFilter => {
+    if (!data) return data;
+    return {
+      script: data.script ? formatter.toScript(data.script) : data.script,
+      output_data_len_range: data.outputDataLenRange,
+      output_capacity_range: data.outputCapacityRange,
+      block_range: data.blockRange,
+      script_len_range: data.scriptLenRange,
+    };
+  },
+  toSearchKey: (data: CKBComponents.SearchKey): RPC.SearchKey => {
+    if (!data) return data;
+    return {
+      script: formatter.toScript(data.script),
+      script_type: data.scriptType,
+      filter: data.filter ? formatter.toSearchFilter(data.filter) : data.filter,
+    };
+  },
+  toGetCellsSearchKey: (
+    data: CKBComponents.GetCellsSearchKey
+  ): RPC.GetCellsSearchKey => {
+    if (!data) return data;
+    return {
+      ...formatter.toSearchKey(data),
+      with_data: data.withData,
+    };
+  },
+  toGetTransactionsSearchKey: (
+    data: CKBComponents.GetTransactionsSearchKey
+  ): RPC.GetTransactionsSearchKey => {
+    if (!data) return data;
+    return {
+      ...formatter.toSearchKey(data),
+      group_by_transaction: data.groupByTransaction,
     };
   },
 };
