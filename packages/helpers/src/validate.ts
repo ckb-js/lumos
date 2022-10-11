@@ -1,9 +1,6 @@
 import { BytesLike, bytes } from "@ckb-lumos/codec";
-import { createTransactionFromSkeleton, TransactionSkeletonType } from ".";
-import { blockchain } from "@ckb-lumos/base";
+import { blockchain, RawTransaction } from "@ckb-lumos/base";
 import { CKBHasher } from "@ckb-lumos/base/lib/utils";
-
-const { RawTransaction } = blockchain;
 
 type HashAlgorithm = "ckb-blake2b-256" | "ckb-blake2b-160";
 
@@ -34,13 +31,14 @@ function createHasher(algorithm: HashAlgorithm): Hasher {
  */
 export function validateP2PKHMessage(
   messagesForSigning: BytesLike,
-  txSkeleton: TransactionSkeletonType,
+  rawTransaction: RawTransaction,
   hashContentExceptRawTx: BytesLike,
   hashAlgorithm: HashAlgorithm = "ckb-blake2b-256"
 ): boolean {
   const rawTxHasher = createHasher(hashAlgorithm);
-  const tx = createTransactionFromSkeleton(txSkeleton);
-  const txHash = rawTxHasher.update(RawTransaction.pack(tx)).digestHex();
+  const txHash = rawTxHasher
+    .update(blockchain.RawTransaction.pack(rawTransaction))
+    .digestHex();
 
   const hasher = createHasher(hashAlgorithm);
   hasher.update(txHash);

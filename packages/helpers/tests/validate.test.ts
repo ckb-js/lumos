@@ -12,6 +12,7 @@ import { blockchain } from "@ckb-lumos/base";
 import { validateP2PKHMessage } from "../src/validate";
 import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
 import { number, bytes } from "@ckb-lumos/codec";
+import { createTransactionFromSkeleton } from "../src";
 
 const { AGGRON4 } = predefined;
 
@@ -78,7 +79,7 @@ test("simple", (t) => {
   t.true(
     validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
-      txSkeleton,
+      createTransactionFromSkeleton(txSkeleton),
       getHashContentExpectRawTx(txSkeleton),
       "ckb-blake2b-256"
     )
@@ -87,7 +88,7 @@ test("simple", (t) => {
   t.false(
     validateP2PKHMessage(
       bytes.bytifyRawString("KFC CRAZY THURSDAY V ME 50"),
-      txSkeleton,
+      createTransactionFromSkeleton(txSkeleton),
       getHashContentExpectRawTx(txSkeleton),
       "ckb-blake2b-256"
     )
@@ -100,7 +101,7 @@ test("unknown hasher", (t) => {
   t.throws(() => {
     validateP2PKHMessage(
       getMessageForSigning(txSkeleton.signingEntries),
-      txSkeleton,
+      createTransactionFromSkeleton(txSkeleton),
       getHashContentExpectRawTx(txSkeleton),
       "unknown" as any
     );
