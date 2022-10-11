@@ -21,6 +21,8 @@ import {
   IndexerEmitter,
   OutputToVerify,
   SearchKey,
+  IndexerRpcAdapter,
+  GetTransactionsSearchKey,
   SearchKeyFilter,
   Terminator,
   OtherQueryOptions,
@@ -47,20 +49,29 @@ export class CkbIndexer implements Indexer {
   medianTimeEmitters: EventEmitter[] = [];
   emitters: IndexerEmitter[] = [];
   isSubscribeRunning = false;
-  constructor(public ckbIndexerUrl: string, public ckbRpcUrl: string) {
-    this.uri = ckbRpcUrl;
+  constructor(public ckbIndexerUrl: string, public ckbRpcUrl?: string) {
+    this.uri = ckbRpcUrl || ckbIndexerUrl;
     this.ckbIndexerUri = ckbIndexerUrl;
   }
 
   private getCkbRpc(): CKBRPC {
-    return new CKBRPC(this.ckbRpcUrl);
+    return new CKBRPC(this.uri);
   }
-  private getIndexerRpc(): CKBIndexerRpc {
+
+  private getIndexerRpc(): IndexerRpcAdapter {
+    if (this.uri === this.ckbIndexerUri) {
+      const rpc = this.getCkbRpc();
+      return {
+        ...rpc,
+        getTip: rpc.getIndexerTip,
+      };
+    }
+
     return new CKBIndexerRpc(this.ckbIndexerUri);
   }
 
   public async tip(): Promise<IndexerType.Tip> {
-    return await this.getIndexerRpc().getTip();
+    return this.getIndexerRpc().getTip();
   }
 
   asyncSleep(timeout: number): Promise<void> {
@@ -138,16 +149,16 @@ export class CkbIndexer implements Indexer {
     };
   }
 
-  public async getTransactions(
-    searchKey: SearchKey,
+  public async getTransactions<Group extends boolean = false>(
+    searchKey: GetTransactionsSearchKey<Group>,
     searchKeyFilter: SearchKeyFilter = {}
-  ): Promise<IndexerTransactionList> {
-    let infos: IndexerTransaction[] = [];
+  ): Promise<IndexerTransactionList<Group>> {
+    let infos: IndexerTransaction<Group>[] = [];
     let cursor: string | undefined = searchKeyFilter.lastCursor;
     const sizeLimit = searchKeyFilter.sizeLimit || 100;
     const order = searchKeyFilter.order || "asc";
     while (true) {
-      const res = await this.getIndexerRpc().getTransactions(
+      const res = await this.getIndexerRpc().getTransactions<Group>(
         searchKey,
         order,
         `0x${sizeLimit.toString(16)}`,
@@ -299,7 +310,7 @@ export class CkbIndexer implements Indexer {
 
         // batch request by block
         const transactionResponse: OutputToVerify[] = await requestBatch(
-          this.ckbRpcUrl,
+          this.uri,
           requestData
         ).then((response: GetTransactionRPCResult[]) => {
           return response.map(
