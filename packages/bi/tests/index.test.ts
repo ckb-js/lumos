@@ -292,7 +292,7 @@ test("parseUnit", (t) => {
     { value: "0.00000001", unit: 8, result: BI.from(1) },
     { value: "-0.0000001", unit: 8, result: BI.from(-10) },
     { value: "0.0000001", unit: 7, result: BI.from(1) },
-    { value: "1.1", unit: 18, result: BI.from(11e17) },
+    { value: "1.1", unit: 18, result: BI.from(10).pow(17).mul(11) },
   ];
   for (const { value, unit, result } of testCases) {
     t.is(parseUnit(value, <Unit>unit).eq(result), true);
