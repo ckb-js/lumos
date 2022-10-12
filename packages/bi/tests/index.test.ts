@@ -1,5 +1,5 @@
 import test from "ava";
-import { isBIish, BI, toJSBI } from "../src/index";
+import { isBIish, BI, toJSBI, parseUnit, formatUnit, Unit } from "../src/index";
 import JSBI from "jsbi";
 
 test("validate if a value is BIish", (t) => {
@@ -210,4 +210,91 @@ test("from JSBI", (t) => {
   const jsbi = JSBI.BigInt(2);
   t.is(toJSBI(bi) instanceof JSBI, true);
   t.is(JSBI.equal(toJSBI(bi), jsbi), true);
+});
+
+const invalidUnits = ["whatever", -1, 0.1];
+
+test("formatUnit", (t) => {
+  const invalidValues = ["100.01", "1.0.1", "-.4", "100.0"];
+  for (const invalidValue of invalidValues) {
+    t.throws(
+      () => {
+        formatUnit(invalidValue, "ckb");
+      },
+      { instanceOf: Error }
+    );
+  }
+
+  for (const invalidUint of invalidUnits) {
+    t.throws(
+      () => {
+        formatUnit("1", <Unit>invalidUint);
+      },
+      { instanceOf: Error }
+    );
+  }
+
+  const testCases = [
+    { value: 123000000, unit: "shannon", result: "123000000" },
+    { value: "0x40", unit: "shannon", result: "64" },
+    { value: 123000000, unit: 0, result: "123000000" },
+    { value: 123000000, unit: 2, result: "1230000.0" },
+    { value: 123000000, unit: "ckb", result: "1.23" },
+    { value: BI.from(2), unit: "ckb", result: "0.00000002" },
+    { value: -123404320, unit: 7, result: "-12.340432" },
+  ];
+  for (const { value, unit, result } of testCases) {
+    t.is(formatUnit(value, <Unit>unit), result);
+  }
+});
+
+test("parseUnit", (t) => {
+  const invalidValues = [".", "-", "-.4", "1.0.", "", " "];
+  for (const invalidValue of invalidValues) {
+    t.throws(
+      () => {
+        parseUnit(invalidValue, "ckb");
+      },
+      { instanceOf: Error }
+    );
+  }
+
+  for (const invalidUint of invalidUnits) {
+    t.throws(
+      () => {
+        parseUnit("1", <Unit>invalidUint);
+      },
+      { instanceOf: Error }
+    );
+  }
+
+  const decimalExceeds = [
+    { value: "1.01", unit: "shannon" },
+    { value: "-0.1", unit: "shannon" },
+    { value: "0.000000001", unit: "ckb" },
+  ];
+  for (const { value, unit } of decimalExceeds) {
+    t.throws(
+      () => {
+        parseUnit(value, <Unit>unit);
+      },
+      { instanceOf: Error }
+    );
+  }
+
+  const testCases = [
+    { value: "1", unit: "ckb", result: BI.from(1e8) },
+    { value: "-01.00", unit: "ckb", result: BI.from(-1e8) },
+    { value: "-0.04", unit: "ckb", result: BI.from(-4e6) },
+    { value: "123.321", unit: "ckb", result: BI.from(123321e5) },
+    { value: "0.00000001", unit: "ckb", result: BI.from(1) },
+    { value: "100000000", unit: "shannon", result: BI.from(1e8) },
+    { value: "0.00000001", unit: 8, result: BI.from(1) },
+    { value: "-0.0000001", unit: 8, result: BI.from(-10) },
+    { value: "0.0000001", unit: 7, result: BI.from(1) },
+    { value: "1.1", unit: 18, result: BI.from(10).pow(17).mul(11) },
+  ];
+  for (const { value, unit, result } of testCases) {
+    t.is(parseUnit(value, <Unit>unit).eq(result), true);
+  }
 });
