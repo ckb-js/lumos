@@ -185,3 +185,154 @@ export function toJSBI(value: BIish): JSBI {
     return JSBI.BigInt(value.toString());
   }
 }
+
+export type Unit = "shannon" | "ckb" | number;
+
+const validUnitNames = ["shannon", "ckb"];
+
+export const maxDecimals = 8;
+
+const zeros = Array(maxDecimals).fill("0").join("");
+
+const negativeOne = BI.from(-1);
+
+export function formatUnit(value: BIish, unit: Unit): string {
+  const decimals = parseDecimals(unit);
+  return formatFixed(value, decimals);
+}
+
+export function parseUint(value: string, unit: Unit): BI {
+  const decimals = parseDecimals(unit);
+  return parseFixed(value, decimals);
+}
+
+function formatFixed(value: BIish, decimals: number): string {
+  if (!isValidDecimalSize(decimals)) {
+    throw new Error(
+      `decimal size must be within the range of [0-${maxDecimals}]`
+    );
+  }
+
+  const multiplier = "1" + zeros.substring(0, decimals);
+
+  value = BI.from(value);
+  const isNegative = value.isNegative();
+  if (isNegative) {
+    value = value.mul(negativeOne);
+  }
+
+  const wholePart = value.div(multiplier).toString();
+  let result = wholePart;
+  if (multiplier.length > 1) {
+    let decimalPart = value.mod(multiplier).toString();
+    while (decimalPart.length < multiplier.length - 1) {
+      decimalPart = "0" + decimalPart;
+    }
+    // remove trailing zeros
+    decimalPart = decimalPart.match(/^([0-9]*[1-9]|0)(0*)/)![1];
+    result += "." + decimalPart;
+  }
+
+  if (isNegative) {
+    result = "-" + result;
+  }
+
+  return result;
+}
+
+function parseFixed(value: string, decimals: number): BI {
+  if (!isValidDecimalSize(decimals)) {
+    throw new Error(
+      `decimal size must be within the range of [0-${maxDecimals}]`
+    );
+  }
+
+  // check if value represents a valid decimal number
+  if (!value.match(/^-?\d+(\.\d{1,})?$/)) {
+    throw new Error("invalid decimal string");
+  }
+
+  const multiplier = "1" + zeros.substring(0, decimals);
+
+  const isNegative = value.substring(0, 1) === "-";
+
+  if (isNegative) {
+    value = value.substring(1);
+  }
+
+  let wholePart, decimalPart;
+  const valueParts = value.split(".");
+  if (valueParts.length === 1) {
+    wholePart = valueParts[0];
+    decimalPart = "0";
+  } else if (valueParts.length === 2) {
+    wholePart = valueParts[0];
+    decimalPart = valueParts[1];
+  } else {
+    throw new Error("too many decimal points (should not happen)");
+  }
+
+  // remove leading zeros of whole part
+  while (wholePart.length > 0 && wholePart[0] === "0") {
+    wholePart = wholePart.substring(1);
+  }
+  if (wholePart === "") {
+    wholePart = "0";
+  }
+
+  // remove trailing zeros of decimal part
+  while (
+    decimalPart.length > 0 &&
+    decimalPart[decimalPart.length - 1] === "0"
+  ) {
+    decimalPart = decimalPart.substring(0, decimalPart.length - 1);
+  }
+  if (decimalPart.length > multiplier.length - 1) {
+    throw new Error("decimal part exceeds max decimals");
+  }
+  if (decimalPart === "") {
+    decimalPart = "0";
+  }
+
+  // pad decimal part with zeros to get to shannon
+  while (decimalPart.length < multiplier.length - 1) {
+    decimalPart += "0";
+  }
+
+  const wholeValue = BI.from(wholePart);
+  const decimalValue = BI.from(decimalPart);
+
+  let shannons = wholeValue.mul(multiplier).add(decimalValue);
+  if (isNegative) {
+    shannons = shannons.mul(negativeOne);
+  }
+
+  return shannons;
+}
+
+function parseDecimals(unit: Unit): number {
+  let decimals = 0;
+  if (typeof unit === "string") {
+    if (validUnitNames.indexOf(unit) === -1) {
+      throw new Error(
+        `invalid unit name, supported names are ${validUnitNames.join(", ")}`
+      );
+    }
+    if (unit === "ckb") {
+      decimals = maxDecimals;
+    }
+  } else {
+    if (isValidDecimalSize(unit)) {
+      decimals = unit;
+    } else {
+      throw new Error(
+        `unit of integer must be within the range of [0-${maxDecimals}]`
+      );
+    }
+  }
+  return decimals;
+}
+
+function isValidDecimalSize(decimals: number): boolean {
+  return Number.isInteger(decimals) && decimals >= 0 && decimals <= maxDecimals;
+}
