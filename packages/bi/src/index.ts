@@ -190,9 +190,7 @@ export type Unit = "shannon" | "ckb" | number;
 
 const validUnitNames = ["shannon", "ckb"];
 
-export const maxDecimals = 8;
-
-const zeros = Array(maxDecimals).fill("0").join("");
+export const ckbDecimals = 8;
 
 const negativeOne = BI.from(-1);
 
@@ -201,19 +199,17 @@ export function formatUnit(value: BIish, unit: Unit): string {
   return formatFixed(value, decimals);
 }
 
-export function parseUint(value: string, unit: Unit): BI {
+export function parseUnit(value: string, unit: Unit): BI {
   const decimals = parseDecimals(unit);
   return parseFixed(value, decimals);
 }
 
 function formatFixed(value: BIish, decimals: number): string {
   if (!isValidDecimalSize(decimals)) {
-    throw new Error(
-      `decimal size must be within the range of [0-${maxDecimals}]`
-    );
+    throw new Error(`decimal size must be a non-negative integer`);
   }
 
-  const multiplier = "1" + zeros.substring(0, decimals);
+  const multiplier = "1" + Array(decimals).fill("0").join("");
 
   value = BI.from(value);
   const isNegative = value.isNegative();
@@ -242,9 +238,7 @@ function formatFixed(value: BIish, decimals: number): string {
 
 function parseFixed(value: string, decimals: number): BI {
   if (!isValidDecimalSize(decimals)) {
-    throw new Error(
-      `decimal size must be within the range of [0-${maxDecimals}]`
-    );
+    throw new Error(`decimal size must be a non-negative integer`);
   }
 
   // check if value represents a valid decimal number
@@ -252,7 +246,7 @@ function parseFixed(value: string, decimals: number): BI {
     throw new Error("invalid decimal string");
   }
 
-  const multiplier = "1" + zeros.substring(0, decimals);
+  const multiplier = "1" + Array(decimals).fill("0").join("");
 
   const isNegative = value.substring(0, 1) === "-";
 
@@ -319,20 +313,18 @@ function parseDecimals(unit: Unit): number {
       );
     }
     if (unit === "ckb") {
-      decimals = maxDecimals;
+      decimals = ckbDecimals;
     }
   } else {
     if (isValidDecimalSize(unit)) {
       decimals = unit;
     } else {
-      throw new Error(
-        `unit of integer must be within the range of [0-${maxDecimals}]`
-      );
+      throw new Error(`unit of integer must be a non-negative integer`);
     }
   }
   return decimals;
 }
 
 function isValidDecimalSize(decimals: number): boolean {
-  return Number.isInteger(decimals) && decimals >= 0 && decimals <= maxDecimals;
+  return Number.isInteger(decimals) && decimals >= 0;
 }

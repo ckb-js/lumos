@@ -1,13 +1,5 @@
 import test from "ava";
-import {
-  isBIish,
-  BI,
-  toJSBI,
-  parseUint,
-  formatUnit,
-  maxDecimals,
-  Unit,
-} from "../src/index";
+import { isBIish, BI, toJSBI, parseUnit, formatUnit, Unit } from "../src/index";
 import JSBI from "jsbi";
 
 test("validate if a value is BIish", (t) => {
@@ -220,7 +212,7 @@ test("from JSBI", (t) => {
   t.is(JSBI.equal(toJSBI(bi), jsbi), true);
 });
 
-const invalidUnits = ["whatever", -1, 0.1, 9, maxDecimals + 1];
+const invalidUnits = ["whatever", -1, 0.1];
 
 test("formatUnit", (t) => {
   const invalidValues = ["100.01", "1.0.1", "-.4", "100.0"];
@@ -256,12 +248,12 @@ test("formatUnit", (t) => {
   }
 });
 
-test("parseUint", (t) => {
+test("parseUnit", (t) => {
   const invalidValues = [".", "-", "-.4", "1.0.", "", " "];
   for (const invalidValue of invalidValues) {
     t.throws(
       () => {
-        parseUint(invalidValue, "ckb");
+        parseUnit(invalidValue, "ckb");
       },
       { instanceOf: Error }
     );
@@ -270,7 +262,7 @@ test("parseUint", (t) => {
   for (const invalidUint of invalidUnits) {
     t.throws(
       () => {
-        parseUint("1", <Unit>invalidUint);
+        parseUnit("1", <Unit>invalidUint);
       },
       { instanceOf: Error }
     );
@@ -284,7 +276,7 @@ test("parseUint", (t) => {
   for (const { value, unit } of decimalExceeds) {
     t.throws(
       () => {
-        parseUint(value, <Unit>unit);
+        parseUnit(value, <Unit>unit);
       },
       { instanceOf: Error }
     );
@@ -296,12 +288,13 @@ test("parseUint", (t) => {
     { value: "-0.04", unit: "ckb", result: BI.from(-4e6) },
     { value: "123.321", unit: "ckb", result: BI.from(123321e5) },
     { value: "0.00000001", unit: "ckb", result: BI.from(1) },
+    { value: "100000000", unit: "shannon", result: BI.from(1e8) },
     { value: "0.00000001", unit: 8, result: BI.from(1) },
     { value: "-0.0000001", unit: 8, result: BI.from(-10) },
     { value: "0.0000001", unit: 7, result: BI.from(1) },
-    { value: "100000000", unit: "shannon", result: BI.from(1e8) },
+    { value: "1.1", unit: 18, result: BI.from(11e17) },
   ];
   for (const { value, unit, result } of testCases) {
-    t.is(parseUint(value, <Unit>unit).eq(result), true);
+    t.is(parseUnit(value, <Unit>unit).eq(result), true);
   }
 });
