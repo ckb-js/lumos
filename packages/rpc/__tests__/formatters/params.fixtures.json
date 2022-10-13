@@ -371,5 +371,158 @@
         "witnesses_root": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       }
     }
+  ],
+  "toOrder": [
+    {
+      "param": null,
+      "expected": null
+    },
+    {
+      "param": "asc",
+      "expected": "asc"
+    },
+    {
+      "param": "desc",
+      "expected": "desc"
+    }
+  ],
+  "toSearchFilter": [
+    {
+      "param": null,
+      "expected": null
+    },
+    {
+      "param": {
+        "outputDataLenRange": ["0x1", "0x2"],
+        "outputCapacityRange": ["0x1", "0x2"],
+        "blockRange": ["0x1", "0x2"],
+        "scriptLenRange": [0, 1]
+      },
+      "expected": {
+        "output_data_len_range": ["0x1", "0x2"],
+        "output_capacity_range": ["0x1", "0x2"],
+        "block_range": ["0x1", "0x2"],
+        "script_len_range": [0, 1]
+      }
+    }
+  ],
+  "toSearchKey": [
+    {
+      "param": null,
+      "expected": null
+    },
+    {
+      "param": {
+        "script": {
+          "codeHash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hashType": "type",
+          "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
+        },
+        "scriptType": "lock"
+      },
+      "expected": {
+        "script": {
+          "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hash_type": "type",
+          "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
+        },
+        "script_type": "lock"
+      }
+    },
+    {
+      "param": {
+        "script": {
+          "codeHash": "0x123456789012345678901234567890123456789001234567890012345678901234",
+          "hashType": "data",
+          "args": "0x1234567890123456789012345678901234567890"
+        },
+        "scriptType": "lock",
+        "filter": {
+          "outputDataLenRange": ["0x1", "0x2"]
+        }
+      },
+      "expected": {
+        "script": {
+          "args": "0x1234567890123456789012345678901234567890",
+          "code_hash":
+            "0x123456789012345678901234567890123456789001234567890012345678901234",
+          "hash_type": "data"
+        },
+        "script_type": "lock",
+        "filter": {
+          "output_data_len_range": ["0x1", "0x2"]
+        }
+      }
+    }
+  ],
+  "toGetCellsSearchKey": [
+    {
+      "param": null,
+      "expected": null
+    },
+    {
+      "param": {
+        "script": {
+          "codeHash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hashType": "type",
+          "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
+        },
+        "scriptType": "lock",
+        "withData": true
+      },
+      "expected": {
+        "script": {
+          "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hash_type": "type",
+          "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
+        },
+        "script_type": "lock",
+        "with_data": true
+      }
+    }
+  ],
+  "toGetTransactionsSearchKey": [
+    {
+      "param": null,
+      "expected": null
+    },
+    {
+      "param": {
+        "script": {
+          "codeHash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hashType": "type",
+          "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
+        },
+        "scriptType": "lock",
+        "groupByTransaction": true
+      },
+      "expected": {
+        "script": {
+          "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hash_type": "type",
+          "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
+        },
+        "script_type": "lock",
+        "group_by_transaction": true
+      }
+    },
+    {
+      "param": {
+        "script": {
+          "codeHash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hashType": "type",
+          "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
+        },
+        "scriptType": "lock"
+      },
+      "expected": {
+        "script": {
+          "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          "hash_type": "type",
+          "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
+        },
+        "script_type": "lock"
+      }
+    }
   ]
 }

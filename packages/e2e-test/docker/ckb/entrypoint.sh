@@ -7,6 +7,6 @@ fi
 
 cp /var/ckb-miner.toml /var/lib/ckb/ckb-miner.toml
 
-exec /bin/ckb run &
+exec /bin/ckb run --indexer &
 sleep 3
 exec /bin/ckb miner
