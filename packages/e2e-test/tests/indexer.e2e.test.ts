@@ -1,6 +1,6 @@
 import anyTest, { TestInterface } from "ava";
 import { generateHDAccount, HDAccount } from "../src/utils";
-import { CKB_RPC_URL, INDEXER_RPC_URL } from "../src/constants";
+import { CKB_RPC_URL } from "../src/constants";
 import { E2EProvider } from "../src/e2eProvider";
 import { join } from "path";
 import { FileFaucetQueue } from "../src/faucetQueue";
@@ -22,7 +22,7 @@ interface TestContext {
 const test = anyTest as TestInterface<TestContext>;
 
 const rpc = new RPC(CKB_RPC_URL);
-const indexer = new Indexer(INDEXER_RPC_URL, CKB_RPC_URL);
+const indexer = new Indexer(CKB_RPC_URL);
 
 const faucetQueue = new FileFaucetQueue(join(__dirname, "../tmp/"));
 const e2eProvider = new E2EProvider({ indexer, rpc, faucetQueue: faucetQueue });
