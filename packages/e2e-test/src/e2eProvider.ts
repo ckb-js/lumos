@@ -7,7 +7,7 @@ import {
   Block,
   Script,
 } from "@ckb-lumos/base";
-import { Indexer, CellCollector } from "@ckb-lumos/ckb-indexer";
+import { Indexer } from "@ckb-lumos/ckb-indexer";
 import {
   CKBIndexerQueryOptions,
   OtherQueryOptions,
@@ -207,11 +207,7 @@ export class E2EProvider {
     queries: CKBIndexerQueryOptions,
     otherQueryOptions?: OtherQueryOptions
   ): Promise<Cell[]> {
-    const cellCollector = new CellCollector(
-      this.indexer,
-      queries,
-      otherQueryOptions
-    );
+    const cellCollector = this.indexer.collector(queries, otherQueryOptions);
 
     const cells: Cell[] = [];
     for await (const cell of cellCollector.collect()) {

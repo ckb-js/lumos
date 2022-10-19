@@ -1,5 +1,4 @@
 export const CKB_RPC_URL = "http://127.0.0.1:8128/rpc";
-export const INDEXER_RPC_URL = "http://127.0.0.1:8130";
 
 // from docker/ckb/dev.toml [[genesis.system_cells]]
 export const GENESIS_CELL_PRIVATEKEYS = [

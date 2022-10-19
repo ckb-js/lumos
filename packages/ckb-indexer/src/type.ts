@@ -8,6 +8,7 @@ import {
   Output,
   TransactionWithStatus,
   Script,
+  Tip,
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
 import { BIish } from "@ckb-lumos/bi";
@@ -114,9 +115,7 @@ export type GroupedIndexerTransaction = {
 
 export interface IndexerTransactionList<Grouped extends boolean = false> {
   lastCursor: string | undefined;
-  objects: Grouped extends true
-    ? GroupedIndexerTransaction[]
-    : UngroupedIndexerTransaction[];
+  objects: IndexerTransaction<Grouped>[];
 }
 
 export interface GetCellsResults {
@@ -159,4 +158,22 @@ export interface JsonRprRequestBody {
   jsonrpc: string;
   method: string;
   params: string[];
+}
+
+export interface IndexerRpc {
+  getTip: () => Promise<Tip>;
+
+  getCells<WithData extends boolean = true>(
+    searchKey: GetCellsSearchKey<WithData>,
+    order: Order,
+    limit: HexString,
+    cursor?: string
+  ): Promise<GetLiveCellsResult<WithData>>;
+
+  getTransactions<Grouped extends boolean = false>(
+    searchKey: GetTransactionsSearchKey<Grouped>,
+    order: Order,
+    limit: HexString,
+    cursor?: string
+  ): Promise<IndexerTransactionList<Grouped>>;
 }
