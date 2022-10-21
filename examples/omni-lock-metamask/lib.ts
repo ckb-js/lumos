@@ -1,25 +1,7 @@
-import { bytes } from '@ckb-lumos/codec';
-import { blockchain } from '@ckb-lumos/base';
-import { BI, Cell, config, helpers, Indexer, RPC, utils, commons } from "@ckb-lumos/lumos";
+import { bytes } from "@ckb-lumos/codec";
+import { blockchain } from "@ckb-lumos/base";
+import { BI, Cell, helpers, Indexer, RPC, utils, config, commons } from "@ckb-lumos/lumos";
 import { SerializeRcLockWitnessLock } from "./generated/omni";
-
-export const CONFIG = config.createConfig({
-  PREFIX: "ckt",
-  SCRIPTS: {
-    ...config.predefined.AGGRON4.SCRIPTS,
-    // for more about Omni lock, please check https://github.com/XuJiandong/docs-bank/blob/master/omni_lock.md
-    OMNI_LOCK: {
-      CODE_HASH: "0x79f90bb5e892d80dd213439eeab551120eb417678824f282b4ffb5f21bad2e1e",
-      HASH_TYPE: "type",
-      TX_HASH: "0x9154df4f7336402114d04495175b37390ce86a4906d2d4001cf02c3e6d97f39c",
-      INDEX: "0x0",
-      DEP_TYPE: "code",
-    },
-  },
-});
-
-config.initializeConfig(CONFIG);
-
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
@@ -53,6 +35,7 @@ interface Options {
 }
 
 export async function transfer(options: Options): Promise<string> {
+  const CONFIG = config.getConfig();
   let tx = helpers.TransactionSkeleton({});
   const fromScript = helpers.parseAddress(options.from);
   const toScript = helpers.parseAddress(options.to);
@@ -97,10 +80,10 @@ export async function transfer(options: Options): Promise<string> {
       // omni lock dep
       {
         outPoint: {
-          txHash: CONFIG.SCRIPTS.OMNI_LOCK.TX_HASH,
-          index: CONFIG.SCRIPTS.OMNI_LOCK.INDEX,
+          txHash: CONFIG.SCRIPTS.OMNILOCK.TX_HASH,
+          index: CONFIG.SCRIPTS.OMNILOCK.INDEX,
         },
-        depType: CONFIG.SCRIPTS.OMNI_LOCK.DEP_TYPE,
+        depType: CONFIG.SCRIPTS.OMNILOCK.DEP_TYPE,
       },
       // SECP256K1 lock is depended by omni lock
       {
@@ -116,16 +99,15 @@ export async function transfer(options: Options): Promise<string> {
   const messageForSigning = (() => {
     const hasher = new utils.CKBHasher();
 
-    const SECP_SIGNATURE_PLACEHOLDER = (
+    const SECP_SIGNATURE_PLACEHOLDER =
       "0x" +
-        "00".repeat(
-          SerializeRcLockWitnessLock({
-            signature: new Uint8Array(65).buffer,
-          }).byteLength
-        )
-    );
+      "00".repeat(
+        SerializeRcLockWitnessLock({
+          signature: new Uint8Array(65).buffer,
+        }).byteLength
+      );
     const newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
-    const witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs))
+    const witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
 
     // fill txSkeleton's witness with 0
     for (let i = 0; i < tx.inputs.toArray().length; i++) {
@@ -154,11 +136,15 @@ export async function transfer(options: Options): Promise<string> {
   if (v >= 27) v -= 27;
   signedMessage = "0x" + signedMessage.slice(2, -2) + v.toString(16).padStart(2, "0");
 
-  const signedWitness = bytes.hexify(blockchain.WitnessArgs.pack({
-    lock: bytes.hexify(SerializeRcLockWitnessLock({
-      signature: bytes.bytify(signedMessage).buffer,
-    })),
-  }))
+  const signedWitness = bytes.hexify(
+    blockchain.WitnessArgs.pack({
+      lock: bytes.hexify(
+        SerializeRcLockWitnessLock({
+          signature: bytes.bytify(signedMessage).buffer,
+        })
+      ),
+    })
+  );
 
   tx = tx.update("witnesses", (witnesses) => witnesses.set(0, signedWitness));
 
