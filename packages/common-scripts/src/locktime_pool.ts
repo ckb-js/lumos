@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   parseAddress,
   Options,
@@ -56,6 +55,13 @@ export interface LocktimeCell extends Cell {
   depositBlockHash?: Hash;
   withdrawBlockHash?: Hash;
   sinceValidationInfo?: SinceValidationInfo;
+}
+
+function assertNonNullable<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error("value is null or undefined");
+  }
+  return value;
 }
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
@@ -265,7 +271,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
             !validateSince(
               since!,
               this.tipSinceValidationInfo!,
-              sinceValidationInfo!
+              assertNonNullable(sinceValidationInfo)
             ))
         ) {
           continue;
