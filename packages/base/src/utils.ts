@@ -1,54 +1,80 @@
-const blake2b = require("blake2b");
-const isEqual = require("lodash.isequal");
-const { xxHash32 } = require("js-xxhash");
-const { bytes, number } = require("@ckb-lumos/codec");
-const { BI } = require("@ckb-lumos/bi");
-const blockchain = require("./blockchain");
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import blake2b, { Blake2b } from "blake2b";
+import isEqual from "lodash.isequal";
+import { xxHash32 } from "js-xxhash";
+import { bytes, number, BytesLike } from "@ckb-lumos/codec";
+import { BI, BIish } from "@ckb-lumos/bi";
+import * as blockchain from "./blockchain";
+import { Script, Input } from "./api";
+import { Hash, HexNumber, HexString } from "./primitive";
+
+type CKBHasherOptions = {
+  outLength?: number;
+};
 
 const { bytify, hexify, bytifyRawString } = bytes;
 class CKBHasher {
-  constructor(options = {}) {
+  hasher: Blake2b;
+  outLength: number;
+
+  constructor(options: CKBHasherOptions = {}) {
     const { outLength = 32 } = options;
     this.outLength = outLength;
     this.hasher = blake2b(
       outLength,
-      null,
-      null,
+      undefined,
+      undefined,
       bytifyRawString("ckb-default-hash")
     );
   }
 
-  update(data) {
+  update(data: string | ArrayBuffer): this {
     this.hasher.update(bytify(data));
     return this;
   }
 
-  digestHex() {
+  digestHex(): Hash {
     const out = new Uint8Array(this.outLength);
     this.hasher.digest(out);
     return hexify(out.buffer);
   }
 }
 
-function ckbHash(data) {
+function ckbHash(data: BytesLike): Hash {
   const hasher = new CKBHasher();
   hasher.update(bytes.bytify(data));
   return hasher.digestHex();
 }
 
-function computeScriptHash(script) {
+/**
+ * compute lock/type hash
+ *
+ * @param script
+ * @param options @deprecated this option has no effect
+ */
+function computeScriptHash(
+  script: Script,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  options?: { validate?: boolean }
+): string {
   return ckbHash(blockchain.Script.pack(script));
 }
 
-function hashCode(buffer) {
+function hashCode(buffer: Buffer): number {
   return xxHash32(buffer, 0);
 }
 
-function toBigUInt64LE(num) {
+/**
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
+ * convert bigint to BigUInt64 little-endian hex string
+ * @param num
+ */
+function toBigUInt64LE(num: BIish): HexString {
   return toBigUInt64LECompatible(num);
 }
 
-function toBigUInt64LECompatible(num) {
+function toBigUInt64LECompatible(num: BIish): HexString {
   num = BI.from(num);
   const buf = Buffer.alloc(8);
   buf.writeUInt32LE(num.and("0xffffffff").toNumber(), 0);
@@ -57,24 +83,39 @@ function toBigUInt64LECompatible(num) {
   return `0x${buf.toString("hex")}`;
 }
 
-function readBigUInt64LE(hex) {
+/**
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
+ * convert BigUInt64 little-endian hex string to bigint
+ *
+ * @param hex BigUInt64 little-endian hex string
+ */
+function readBigUInt64LE(hex: HexString): bigint {
   return readBigUInt64LECompatible(hex).toBigInt();
 }
 
-function readBigUInt64LECompatible(hex) {
+/**
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
+ */
+function readBigUInt64LECompatible(hex: HexString): BI {
   const buf = Buffer.from(hex.slice(2), "hex");
   return BI.from(buf.readUInt32LE()).add(BI.from(buf.readUInt32LE(4)).shl(32));
 }
 
 // const U128_MIN = BigInt(0);
 // const U128_MAX = BigInt("340282366920938463463374607431768211455");
-function toBigUInt128LE(u128) {
+/**
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
+ * convert bigint to BigUInt128 little-endian hex string
+ *
+ * @param u128
+ */
+function toBigUInt128LE(u128: BIish): string {
   return toBigUInt128LECompatible(u128);
 }
 
 const U128_MIN_COMPATIBLE = BI.from(0);
 const U128_MAX_COMPATIBLE = BI.from("340282366920938463463374607431768211455");
-function toBigUInt128LECompatible(num) {
+function toBigUInt128LECompatible(num: BIish): HexNumber {
   num = BI.from(num);
   if (num.lt(U128_MIN_COMPATIBLE)) {
     throw new Error(`u128 ${num} too small`);
@@ -97,11 +138,20 @@ function toBigUInt128LECompatible(num) {
   return `0x${buf.toString("hex")}`;
 }
 
-function readBigUInt128LE(leHex) {
+/**
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
+ * convert BigUInt64 little-endian hex string to bigint
+ *
+ * @param leHex BigUInt128 little-endian hex string
+ */
+function readBigUInt128LE(leHex: HexString): bigint {
   return readBigUInt128LECompatible(leHex).toBigInt();
 }
 
-function readBigUInt128LECompatible(leHex) {
+/**
+ * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
+ */
+function readBigUInt128LECompatible(leHex: HexString): BI {
   if (leHex.length < 34 || !leHex.startsWith("0x")) {
     throw new Error(`leHex format error`);
   }
@@ -115,26 +165,26 @@ function readBigUInt128LECompatible(leHex) {
     .add(BI.from(buf.readUInt32LE(12)).shl(96));
 }
 
-function assertHexString(debugPath, str) {
+function assertHexString(debugPath: string, str: string): void {
   if (!/^0x([0-9a-fA-F][0-9a-fA-F])*$/.test(str)) {
     throw new Error(`${debugPath} must be a hex string!`);
   }
 }
 
-function assertHexadecimal(debugPath, str) {
+function assertHexadecimal(debugPath: string, str: string): void {
   if (!/^0x(0|[0-9a-fA-F]+)$/.test(str)) {
     throw new Error(`${debugPath} must be a hexadecimal!`);
   }
 }
 
-function isDeepEqual(a, b) {
+function isDeepEqual(a: any, b: any): boolean {
   return isEqual(a, b);
 }
 // Buffer.from('TYPE_ID')
 const TYPE_ID_CODE_HASH =
   "0x00000000000000000000000000000000000000000000000000545950455f4944";
 
-function generateTypeIdArgs(input, outputIndex) {
+function generateTypeIdArgs(input: Input, outputIndex: HexNumber): HexString {
   const outPointBuf = blockchain.CellInput.pack(input);
   const outputIndexBuf = bytes.hexify(number.Uint64LE.pack(outputIndex));
   const ckbHasher = new CKBHasher();
@@ -143,7 +193,7 @@ function generateTypeIdArgs(input, outputIndex) {
   return ckbHasher.digestHex();
 }
 
-function generateTypeIdScript(input, outputIndex = "0x0") {
+function generateTypeIdScript(input: Input, outputIndex = "0x0"): Script {
   blockchain.CellInput.pack(input);
   assertHexadecimal("outputIndex", outputIndex);
 
@@ -155,23 +205,23 @@ function generateTypeIdScript(input, outputIndex = "0x0") {
   };
 }
 
-function toCamel(s) {
+function toCamel(s: string): string {
   return s.replace(/([-_][a-z])/gi, ($1) => {
     return $1.toUpperCase().replace("-", "").replace("_", "");
   });
 }
 
-function deepCamel(data) {
+function deepCamel(data: any): any {
   if (Object.prototype.toString.call(data) === "[object Array]") {
     if (data.length === 0) {
       return data;
     } else {
-      return data.map((item) => deepCamel(item));
+      return data.map((item: any) => deepCamel(item));
     }
   }
-  let result = {};
+  const result: any = {};
   if (Object.prototype.toString.call(data) === "[object Object]") {
-    for (let key in data) {
+    for (const key in data) {
       const value = data[key];
       if (
         Object.prototype.toString.call(value) === "[object Object]" ||
@@ -187,17 +237,17 @@ function deepCamel(data) {
   return data;
 }
 
-function deepCamelizeDepGroup(data) {
+function deepCamelizeDepGroup(data: any): any {
   if (Object.prototype.toString.call(data) === "[object Array]") {
     if (data.length === 0) {
       return data;
     } else {
-      return data.map((item) => deepCamelizeDepGroup(item));
+      return data.map((item: any) => deepCamelizeDepGroup(item));
     }
   }
-  let result = {};
+  const result: any = {};
   if (Object.prototype.toString.call(data) === "[object Object]") {
-    for (let key in data) {
+    for (const key in data) {
       const value = data[key];
       if (
         Object.prototype.toString.call(value) === "[object Object]" ||
@@ -213,11 +263,11 @@ function deepCamelizeDepGroup(data) {
   return data;
 }
 
-function deepCamelizeTransaction(data) {
+function deepCamelizeTransaction(data: any) {
   return deepCamelizeDepGroup(deepCamel(data));
 }
 
-module.exports = {
+export {
   CKBHasher,
   ckbHash,
   deepCamel,

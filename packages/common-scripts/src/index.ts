@@ -16,12 +16,8 @@ export {
   dao,
   locktimePool,
   common,
-  LocktimeCell,
-  MultisigScript,
-  FromInfo,
   sudt,
   anyoneCanPay,
-  LockScriptInfo,
   parseFromInfo,
   createP2PKHMessageGroup,
   deploy,
@@ -37,3 +33,5 @@ export default {
   sudt,
   anyoneCanPay,
 };
+
+export type { LocktimeCell, MultisigScript, FromInfo, LockScriptInfo };

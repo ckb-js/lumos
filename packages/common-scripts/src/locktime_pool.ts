@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   parseAddress,
   Options,
@@ -264,7 +265,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
             !validateSince(
               since!,
               this.tipSinceValidationInfo!,
-              sinceValidationInfo
+              sinceValidationInfo!
             ))
         ) {
           continue;

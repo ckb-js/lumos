@@ -1,30 +1,64 @@
-const { BI, isBIish } = require("@ckb-lumos/bi");
-function parseSince(since) {
+import { BIish, BI, isBIish } from "@ckb-lumos/bi";
+import { HexNumber, PackedSince, HexString } from "./primitive";
+
+export type SinceType = "epochNumber" | "blockNumber" | "blockTimestamp";
+
+export interface EpochSinceValue {
+  length: number;
+  index: number;
+  number: number;
+}
+export interface SinceValidationInfo {
+  blockNumber: HexNumber;
+  epoch: HexNumber;
+  median_timestamp: HexNumber;
+}
+
+/**
+ * Parse since and get relative or not, type, and value of since
+ *
+ * @param since
+ */
+function parseSince(since: PackedSince):
+  | {
+      relative: boolean;
+      type: "epochNumber";
+      value: EpochSinceValue;
+    }
+  | {
+      relative: boolean;
+      type: "blockNumber" | "blockTimestamp";
+      value: bigint;
+    } {
   const result = parseSinceCompatible(since);
 
   if (result.type === "epochNumber") return result;
   return { ...result, value: result.value.toBigInt() };
 }
 
-function parseSinceCompatible(since) {
-  since = BI.from(since);
-  const flag = since.shr(56);
+type SinceParseResult =
+  | { relative: boolean; type: "epochNumber"; value: EpochSinceValue }
+  | { relative: boolean; type: "blockNumber" | "blockTimestamp"; value: BI };
+
+function parseSinceCompatible(since: PackedSince): SinceParseResult {
+  const sinceBI = BI.from(since);
+  const flag = sinceBI.shr(56);
   const metricFlag = flag.shr(5).and("0b11");
-  let type;
-  let value;
+  let type: "blockNumber" | "epochNumber" | "blockTimestamp";
+  let value: BI | EpochSinceValue;
   if (metricFlag.eq(0b00)) {
     type = "blockNumber";
-    value = since.and("0xFFFFFFFFFFFFFF");
+    value = sinceBI.and("0xFFFFFFFFFFFFFF");
   } else if (metricFlag.eq(0b01)) {
     type = "epochNumber";
     value = {
-      length: since.shr(40).and(0xffff).toNumber(),
-      index: since.shr(24).and(0xffff).toNumber(),
-      number: since.and(0xffffff).toNumber(),
+      length: sinceBI.shr(40).and(0xffff).toNumber(),
+      index: sinceBI.shr(24).and(0xffff).toNumber(),
+      number: sinceBI.and(0xffffff).toNumber(),
     };
   } else if (metricFlag.eq(0b10)) {
     type = "blockTimestamp";
-    value = since.and("0xFFFFFFFFFFFFFF");
+    value = sinceBI.and("0xFFFFFFFFFFFFFF");
   } else {
     throw new Error("Invalid metric flag!");
   }
@@ -33,10 +67,24 @@ function parseSinceCompatible(since) {
     relative: !flag.and("0x80").eq(0),
     type,
     value,
-  };
+  } as SinceParseResult;
 }
 
-function generateSince({ relative, type, value }) {
+function generateSince({
+  relative,
+  type,
+  value,
+}:
+  | {
+      relative: boolean;
+      type: SinceType;
+      value: BIish;
+    }
+  | {
+      relative: boolean;
+      type: "epochNumber";
+      value: EpochSinceValue;
+    }): string {
   let flag = BI.from(0);
 
   if (relative) {
@@ -60,16 +108,26 @@ function generateSince({ relative, type, value }) {
   return _toHex(flag.shl(56).add(v));
 }
 
-function parseEpoch(epoch) {
-  epoch = BI.from(epoch);
+/**
+ * parse epoch from blockHeader.epoch
+ *
+ * @param epoch
+ */
+function parseEpoch(epoch: HexString): EpochSinceValue {
+  const epochBI = BI.from(epoch);
   return {
-    length: epoch.shr(40).and(0xffff).toNumber(),
-    index: epoch.shr(24).and(0xffff).toNumber(),
-    number: epoch.and(0xffffff).toNumber(),
+    length: epochBI.shr(40).and(0xffff).toNumber(),
+    index: epochBI.shr(24).and(0xffff).toNumber(),
+    number: epochBI.and(0xffffff).toNumber(),
   };
 }
 
-function maximumAbsoluteEpochSince(...args) {
+/**
+ * return maximum since of args
+ *
+ * @param args sinces in absolute-epoch-number format
+ */
+function maximumAbsoluteEpochSince(...args: PackedSince[]): string {
   const parsedArgs = args.map((arg) => parseAbsoluteEpochSince(arg));
   const maxNumber = Math.max(...parsedArgs.map((arg) => arg.number));
   const maxArgs = parsedArgs.filter((arg) => arg.number === maxNumber);
@@ -89,7 +147,16 @@ function maximumAbsoluteEpochSince(...args) {
   return generateAbsoluteEpochSince(max);
 }
 
-function generateAbsoluteEpochSince({ length, index, number }) {
+/**
+ * generate absolute-epoch-number format since
+ *
+ * @param params
+ */
+function generateAbsoluteEpochSince({
+  length,
+  index,
+  number,
+}: EpochSinceValue): PackedSince {
   return generateSince({
     relative: false,
     type: "epochNumber",
@@ -97,24 +164,47 @@ function generateAbsoluteEpochSince({ length, index, number }) {
   });
 }
 
-function generateHeaderEpoch({ length, index, number }) {
+/**
+ * generate header epoch from epoch since value
+ *
+ * @param params
+ */
+function generateHeaderEpoch({
+  length,
+  index,
+  number,
+}: EpochSinceValue): HexString {
   return _toHex(
     BI.from(length).shl(40).add(BI.from(index).shl(24)).add(number)
   );
 }
 
-function parseAbsoluteEpochSince(since) {
+/**
+ * Will throw an error if since not in absolute-epoch-number format
+ *
+ * @param since
+ */
+function parseAbsoluteEpochSince(since: PackedSince): EpochSinceValue {
   const { relative, type, value } = parseSinceCompatible(since);
 
   if (!(relative === false && type === "epochNumber")) {
     throw new Error("Since format error!");
   }
 
-  return value;
+  return value as EpochSinceValue;
 }
 
-function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
-  const { value } = parseSinceCompatible(since);
+/**
+ * Will throw an error if since not in absolute-epoch-number format
+ *
+ * @param since
+ * @param tipHeaderEpoch
+ */
+function validateAbsoluteEpochSince(
+  since: PackedSince,
+  tipHeaderEpoch: HexString
+): boolean {
+  const value = parseSinceCompatible(since).value as EpochSinceValue;
   const headerEpochParams = parseEpoch(tipHeaderEpoch);
   return (
     BI.from(value.number).lt(headerEpochParams.number) ||
@@ -125,7 +215,18 @@ function validateAbsoluteEpochSince(since, tipHeaderEpoch) {
   );
 }
 
-function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
+/**
+ * Compare since with tipHeader, check since is valid or not.
+ *
+ * @param since
+ * @param tipHeader
+ * @param sinceHeader can left empty if absolute since
+ */
+function validateSince(
+  since: PackedSince,
+  tipSinceValidationInfo: SinceValidationInfo,
+  cellSinceValidationInfo: SinceValidationInfo
+): boolean {
   const { relative, type, value } = parseSinceCompatible(since);
 
   if (!relative) {
@@ -149,20 +250,34 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
     if (type === "epochNumber") {
       const tipHeaderEpoch = parseEpoch(tipSinceValidationInfo.epoch);
       const sinceHeaderEpoch = parseEpoch(cellSinceValidationInfo.epoch);
-      const added = {
-        number: BI.from(value.number).add(sinceHeaderEpoch.number),
-        index: BI.from(value.index)
+      const added: Record<keyof EpochSinceValue, BI> = {
+        number: BI.from((value as EpochSinceValue).number).add(
+          sinceHeaderEpoch.number
+        ),
+        index: BI.from((value as EpochSinceValue).index)
           .mul(sinceHeaderEpoch.length)
-          .add(BI.from(sinceHeaderEpoch.index).mul(value.length)),
-        length: BI.from(value.length).mul(sinceHeaderEpoch.length),
+          .add(
+            BI.from(sinceHeaderEpoch.index).mul(
+              (value as EpochSinceValue).length
+            )
+          ),
+        length: BI.from((value as EpochSinceValue).length).mul(
+          sinceHeaderEpoch.length
+        ),
       };
 
-      if (value.length === 0 && sinceHeaderEpoch.length !== 0) {
-        added.index = sinceHeaderEpoch.index;
-        added.length = sinceHeaderEpoch.length;
-      } else if (sinceHeaderEpoch.length === 0 && value.length !== 0) {
-        added.index = BI.from(value.index);
-        added.length = BI.from(value.length);
+      if (
+        (value as EpochSinceValue).length === 0 &&
+        sinceHeaderEpoch.length !== 0
+      ) {
+        added.index = BI.from(sinceHeaderEpoch.index);
+        added.length = BI.from(sinceHeaderEpoch.length);
+      } else if (
+        sinceHeaderEpoch.length === 0 &&
+        (value as EpochSinceValue).length !== 0
+      ) {
+        added.index = BI.from((value as EpochSinceValue).index);
+        added.length = BI.from((value as EpochSinceValue).length);
       }
 
       if (
@@ -201,13 +316,15 @@ function validateSince(since, tipSinceValidationInfo, cellSinceValidationInfo) {
         .lte(tipSinceValidationInfo.median_timestamp);
     }
   }
+
+  return false;
 }
 
-function _toHex(num) {
+function _toHex(num: number | BI) {
   return "0x" + num.toString(16);
 }
 
-module.exports = {
+export {
   parseSince,
   parseSinceCompatible,
   parseEpoch,
