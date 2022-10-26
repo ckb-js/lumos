@@ -54,6 +54,9 @@ export interface IndexerOptions {
   rpcOptions?: object;
 }
 
+/**
+ * @deprecated please use CellProvider
+ */
 export declare class Indexer {
   uri: string;
 

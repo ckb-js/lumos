@@ -1,8 +1,8 @@
 import {
   Cell,
   CellCollector,
+  CellProvider,
   HexString,
-  Indexer,
   Script,
   Output,
   utils,
@@ -26,6 +26,7 @@ import {
   SearchKeyFilter,
   Terminator,
   OtherQueryOptions,
+  GetCellable,
 } from "./type";
 import { BI } from "@ckb-lumos/bi";
 import { RPC as CKBIndexerRpc } from "./rpc";
@@ -42,7 +43,7 @@ function defaultLogger(level: string, message: string) {
 }
 
 /** CkbIndexer.collector will not get cell with blockHash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get blockHash if you need. */
-export class CkbIndexer implements Indexer {
+export class CkbIndexer implements CellProvider, GetCellable {
   static version = "0.4.1";
   uri: string;
   ckbIndexerUri: string;

@@ -90,6 +90,14 @@ export declare type Terminator = (
   cell: Cell
 ) => TerminatorResult;
 
+export interface GetCellable {
+  getCells(
+    searchKey: SearchKey,
+    terminator?: Terminator,
+    searchKeyFilter?: SearchKeyFilter
+  ): Promise<GetCellsResults>;
+}
+
 export type HexNum = string;
 export type IOType = "input" | "output" | "both";
 export type Bytes32 = string;
