@@ -260,11 +260,11 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
         if (
           parseSinceCompatible(since!).type === "blockTimestamp" ||
           (this.tipHeader &&
-            sinceValidationInfo &&
             !validateSince(
               since!,
               this.tipSinceValidationInfo!,
-              sinceValidationInfo
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              sinceValidationInfo!
             ))
         ) {
           continue;
