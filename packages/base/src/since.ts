@@ -113,7 +113,7 @@ function generateSince({
  *
  * @param epoch
  */
-function parseEpoch(epoch: HexString): EpochSinceValue {
+function parseEpoch(epoch: BIish): EpochSinceValue {
   const epochBI = BI.from(epoch);
   return {
     length: epochBI.shr(40).and(0xffff).toNumber(),
