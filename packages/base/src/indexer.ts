@@ -4,6 +4,7 @@ import { assertHexadecimal } from "./utils";
 import { Cell, Script, Transaction, TransactionWithStatus } from "./api";
 import { Hexadecimal, HexString } from "./primitive";
 import { Logger } from "./logger";
+import { isScriptWrapper } from "./helpers";
 
 /**
  * argsLen: if argsLen = 20, it means collected cells cell.cellOutput.lock.args should be 20-byte length, and prefix match to lock.args.
@@ -127,34 +128,34 @@ class TransactionCollector {
       throw new Error("Either lock or type script must be provided!");
     }
     // Wrap the plain `Script` into `ScriptWrapper`.
-    if (lock && !(lock as ScriptWrapper).script) {
+    if (lock && !isScriptWrapper(lock)) {
       validators.ValidateScript(lock);
-      this.lock = { script: lock as Script, ioType: "both", argsLen: argsLen };
-    } else if (lock && (lock as ScriptWrapper).script) {
-      validators.ValidateScript((lock as ScriptWrapper).script);
-      this.lock = lock as ScriptWrapper;
+      this.lock = { script: lock, ioType: "both", argsLen: argsLen };
+    } else if (lock && lock.script) {
+      validators.ValidateScript(lock.script);
+      this.lock = lock;
       // check ioType, argsLen
-      if (!(lock as ScriptWrapper).argsLen) {
+      if (!lock.argsLen) {
         this.lock.argsLen = argsLen;
       }
-      if (!(lock as ScriptWrapper).ioType) {
+      if (!lock.ioType) {
         this.lock.ioType = "both";
       }
     }
     if (type === "empty") {
       this.type = type;
-    } else if (type && !(type as ScriptWrapper).script) {
+    } else if (type && !isScriptWrapper(type)) {
       validators.ValidateScript(type);
-      this.type = { script: type as Script, ioType: "both", argsLen: argsLen };
-    } else if (type && (type as ScriptWrapper).script) {
-      validators.ValidateScript((type as ScriptWrapper).script);
-      this.type = type as Script;
+      this.type = { script: type, ioType: "both", argsLen: argsLen };
+    } else if (type && type.script) {
+      validators.ValidateScript(type.script);
+      this.type = type;
       // check ioType, argsLen
-      if (!(type as ScriptWrapper).argsLen) {
-        (this.type as unknown as ScriptWrapper).argsLen = argsLen;
+      if (!type.argsLen) {
+        this.type.argsLen = argsLen;
       }
-      if (!(type as ScriptWrapper).ioType) {
-        (this.type as unknown as ScriptWrapper).ioType = "both";
+      if (!type.ioType) {
+        this.type.ioType = "both";
       }
     }
     if (fromBlock) {

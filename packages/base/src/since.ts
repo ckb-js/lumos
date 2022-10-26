@@ -44,7 +44,7 @@ function parseSinceCompatible(since: PackedSince): SinceParseResult {
   const sinceBI = BI.from(since);
   const flag = sinceBI.shr(56);
   const metricFlag = flag.shr(5).and("0b11");
-  let type: "blockNumber" | "epochNumber" | "blockTimestamp";
+  let type: SinceType | undefined;
   let value: BI | EpochSinceValue;
   if (metricFlag.eq(0b00)) {
     type = "blockNumber";
@@ -113,7 +113,7 @@ function generateSince({
  *
  * @param epoch
  */
-function parseEpoch(epoch: HexString): EpochSinceValue {
+function parseEpoch(epoch: BIish): EpochSinceValue {
   const epochBI = BI.from(epoch);
   return {
     length: epochBI.shr(40).and(0xffff).toNumber(),

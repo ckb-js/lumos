@@ -51,12 +51,11 @@ function ckbHash(data: BytesLike): Hash {
  * compute lock/type hash
  *
  * @param script
- * @param options @deprecated this option has no effect
+ * @param _options @deprecated this option has no effect
  */
 function computeScriptHash(
   script: Script,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  options?: { validate?: boolean }
+  _options?: { validate?: boolean }
 ): string {
   return ckbHash(blockchain.Script.pack(script));
 }

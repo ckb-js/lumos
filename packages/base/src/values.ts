@@ -27,10 +27,9 @@ class Value {
 class ScriptValue extends Value {
   /**
    * @param script
-   * @param options @deprecated this parameter is unused and takes no effect, please remove it.
+   * @param _options @deprecated this parameter is unused and takes no effect, please remove it.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(script: Script, options: { validate?: boolean } = {}) {
+  constructor(script: Script, _options: { validate?: boolean } = {}) {
     super(blockchain.Script.pack(script));
   }
 }
@@ -38,10 +37,9 @@ class ScriptValue extends Value {
 class OutPointValue extends Value {
   /**
    * @param outPoint
-   * @param options @deprecated this parameter is unused and takes no effect, please remove it.
+   * @param _options @deprecated this parameter is unused and takes no effect, please remove it.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(outPoint: OutPoint, options: { validate?: boolean } = {}) {
+  constructor(outPoint: OutPoint, _options: { validate?: boolean } = {}) {
     super(blockchain.OutPoint.pack(outPoint));
   }
 }
@@ -49,12 +47,11 @@ class OutPointValue extends Value {
 class RawTransactionValue extends Value {
   /**
    * @param rawTransaction
-   * @param options @deprecated this parameter is unused and takes no effect, please remove it.
+   * @param _options @deprecated this parameter is unused and takes no effect, please remove it.
    */
   constructor(
     rawTransaction: RawTransaction,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options: { validate?: boolean } = {}
+    _options: { validate?: boolean } = {}
   ) {
     super(blockchain.RawTransaction.pack(rawTransaction));
   }
@@ -63,10 +60,9 @@ class RawTransactionValue extends Value {
 class TransactionValue extends Value {
   /**
    * @param transaction
-   * @param options @deprecated this parameter is unused and takes no effect, please remove it.
+   * @param _options @deprecated this parameter is unused and takes no effect, please remove it.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(transaction: Transaction, options: { validate?: boolean } = {}) {
+  constructor(transaction: Transaction, _options: { validate?: boolean } = {}) {
     super(blockchain.Transaction.pack(transaction));
   }
 }

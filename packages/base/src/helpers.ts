@@ -4,6 +4,19 @@ import { BI } from "@ckb-lumos/bi";
 import { Cell, Script } from "./api";
 import { QueryOptions, ScriptWrapper } from "./indexer";
 
+/**
+ * return if the input is a script wrapper
+ * @param maybeWrapped
+ */
+export function isScriptWrapper(
+  maybeWrapped: Script | ScriptWrapper | null
+): maybeWrapped is ScriptWrapper {
+  return (
+    maybeWrapped !== null &&
+    (maybeWrapped as ScriptWrapper).script !== undefined
+  );
+}
+
 export function isCellMatchQueryOptions(
   cell: Cell,
   {
@@ -19,32 +32,24 @@ export function isCellMatchQueryOptions(
   let wrappedType: "empty" | ScriptWrapper | Script | null = null;
 
   // Wrap the plain `Script` into `ScriptWrapper`.
-  if (lock && !(lock as ScriptWrapper).script) {
-    wrappedLock = { script: lock as Script, argsLen: argsLen };
-  } else if (lock && (lock as ScriptWrapper).script) {
-    wrappedLock = lock as ScriptWrapper;
+  if (lock && !isScriptWrapper(lock)) {
+    wrappedLock = { script: lock, argsLen: argsLen };
+  } else if (lock) {
+    wrappedLock = lock;
     // check argsLen
-    if (!(lock as ScriptWrapper).argsLen) {
+    if (!lock.argsLen) {
       wrappedLock.argsLen = argsLen;
     }
   }
   if (type && type === "empty") {
     wrappedType = type;
-  } else if (
-    type &&
-    typeof type === "object" &&
-    !(type as ScriptWrapper).script
-  ) {
-    wrappedType = { script: type as Script, argsLen: argsLen };
-  } else if (
-    type &&
-    typeof type === "object" &&
-    (type as ScriptWrapper).script
-  ) {
+  } else if (type && typeof type === "object" && !isScriptWrapper(type)) {
+    wrappedType = { script: type, argsLen: argsLen };
+  } else if (type && typeof type === "object" && isScriptWrapper(type)) {
     wrappedType = type;
     // check argsLen
-    if (!(type as ScriptWrapper).argsLen) {
-      (wrappedType as ScriptWrapper).argsLen = argsLen;
+    if (!type.argsLen) {
+      wrappedType.argsLen = argsLen;
     }
   }
 
@@ -104,7 +109,7 @@ export function isCellMatchQueryOptions(
       !new ScriptValue(cell.cellOutput.type, {
         validate: false,
       }).equals(
-        new ScriptValue((wrappedType as ScriptWrapper).script, {
+        new ScriptValue(wrappedType.script, {
           validate: false,
         })
       )
