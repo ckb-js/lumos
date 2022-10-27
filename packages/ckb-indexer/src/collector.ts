@@ -6,7 +6,7 @@ import {
   GetCellsResults,
   Order,
   OtherQueryOptions,
-  GetCellable,
+  TerminableCellFetcher,
 } from "./type";
 import {
   generateSearchKey,
@@ -24,7 +24,7 @@ interface GetBlockHashRPCResult {
 /** CellCollector will not get cell with blockHash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get blockHash if you need. */
 export class CKBCellCollector implements BaseCellCollector {
   constructor(
-    public getCellable: GetCellable,
+    public terminableCellFetcher: TerminableCellFetcher,
     public queries: CKBIndexerQueryOptions,
     public otherQueryOptions?: OtherQueryOptions
   ) {
@@ -171,7 +171,7 @@ export class CKBCellCollector implements BaseCellCollector {
     if (lastCursor) {
       searchKeyFilter.lastCursor = lastCursor;
     }
-    const result = await this.getCellable.getCells(
+    const result = await this.terminableCellFetcher.getCells(
       generateSearchKey(this.queries),
       undefined,
       searchKeyFilter

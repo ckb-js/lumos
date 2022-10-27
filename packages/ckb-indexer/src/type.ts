@@ -90,12 +90,14 @@ export declare type Terminator = (
   cell: Cell
 ) => TerminatorResult;
 
-export interface GetCellable {
-  getCells(
-    searchKey: SearchKey,
-    terminator?: Terminator,
-    searchKeyFilter?: SearchKeyFilter
-  ): Promise<GetCellsResults>;
+export declare type GetCellWithTerminator = (
+  searchKey: SearchKey,
+  terminator?: Terminator,
+  searchKeyFilter?: SearchKeyFilter
+) => Promise<GetCellsResults>;
+
+export interface TerminableCellFetcher {
+  getCells: GetCellWithTerminator;
 }
 
 export type HexNum = string;
@@ -168,20 +170,22 @@ export interface JsonRprRequestBody {
   params: string[];
 }
 
+export declare type GetTipRpc = () => Promise<Tip>;
+export declare type GetCellsRpc = <WithData extends boolean = true>(
+  searchKey: GetCellsSearchKey<WithData>,
+  order: Order,
+  limit: HexString,
+  cursor?: string
+) => Promise<GetLiveCellsResult<WithData>>;
+export declare type GetTransactionsRpc = <Grouped extends boolean = false>(
+  searchKey: GetTransactionsSearchKey<Grouped>,
+  order: Order,
+  limit: HexString,
+  cursor?: string
+) => Promise<IndexerTransactionList<Grouped>>;
+
 export interface IndexerRpc {
-  getTip: () => Promise<Tip>;
-
-  getCells<WithData extends boolean = true>(
-    searchKey: GetCellsSearchKey<WithData>,
-    order: Order,
-    limit: HexString,
-    cursor?: string
-  ): Promise<GetLiveCellsResult<WithData>>;
-
-  getTransactions<Grouped extends boolean = false>(
-    searchKey: GetTransactionsSearchKey<Grouped>,
-    order: Order,
-    limit: HexString,
-    cursor?: string
-  ): Promise<IndexerTransactionList<Grouped>>;
+  getTip: GetTipRpc;
+  getCells: GetCellsRpc;
+  getTransactions: GetTransactionsRpc;
 }
