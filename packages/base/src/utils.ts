@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import blake2b, { Blake2b } from "blake2b";
 import isEqual from "lodash.isequal";
 import { xxHash32 } from "js-xxhash";
@@ -55,6 +53,7 @@ function ckbHash(data: BytesLike): Hash {
  */
 function computeScriptHash(
   script: Script,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _options?: { validate?: boolean }
 ): string {
   return ckbHash(blockchain.Script.pack(script));
@@ -176,6 +175,7 @@ function assertHexadecimal(debugPath: string, str: string): void {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
 function isDeepEqual(a: any, b: any): boolean {
   return isEqual(a, b);
 }
@@ -210,14 +210,18 @@ function toCamel(s: string): string {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
 function deepCamel(data: any): any {
   if (Object.prototype.toString.call(data) === "[object Array]") {
     if (data.length === 0) {
       return data;
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return data.map((item: any) => deepCamel(item));
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const result: any = {};
   if (Object.prototype.toString.call(data) === "[object Object]") {
     for (const key in data) {
@@ -236,14 +240,18 @@ function deepCamel(data: any): any {
   return data;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
 function deepCamelizeDepGroup(data: any): any {
   if (Object.prototype.toString.call(data) === "[object Array]") {
     if (data.length === 0) {
       return data;
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return data.map((item: any) => deepCamelizeDepGroup(item));
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const result: any = {};
   if (Object.prototype.toString.call(data) === "[object Object]") {
     for (const key in data) {
@@ -262,7 +270,8 @@ function deepCamelizeDepGroup(data: any): any {
   return data;
 }
 
-function deepCamelizeTransaction(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+function deepCamelizeTransaction(data: any): any {
   return deepCamelizeDepGroup(deepCamel(data));
 }
 
