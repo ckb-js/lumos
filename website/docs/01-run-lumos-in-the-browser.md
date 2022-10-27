@@ -9,13 +9,14 @@ sidebar_position: 2
 
 Lumos was originally run on NodeJS only. To run on browser, we replaced native indexer with ckb-indexer, added BI which is a big number library, and a series of other upgrades.
 
+Also, we need polyfill the NodeJS API(such as `crypto`), and change your build toolchain config to support.
+
 The following example of getting the balance will show you how to use lumos in your web project.
 
 ```shell
 npm install @ckb-lumos/lumos
 # yarn add @ckb-lumos/lumos
 ```
-
 ```ts
 import { Script, Indexer, BI } from "@ckb-lumos/lumos";
 
@@ -36,6 +37,122 @@ main();
 ```
 
 please refer to [ckb-indexer-collector example](https://github.com/ckb-js/lumos/blob/develop/examples/ckb-indexer-collector.ts) for a complete example.
+
+
+### Polyfill NodeJS API
+#### Webpack
+
+In Webpack V5, it's doesn't provide default polyfills for NodeJS API. You need to add the following config to your `webpack.config.js`.([Webpack `resolve.fallback` official document](https://webpack.js.org/configuration/resolve/#resolvefallback))
+
+- install `crypto-browserify` and `buffer` dependencies.
+``` bash
+npm install -D crypto-browserify buffer
+# or use yarn
+yarn install -D crypto-browserify buffer
+```
+- add `resolve.fallback` to tell Webpack where to find the polyfills.
+- add `webpack.ProvidePlugin` to tell Webpack to inject the polyfills to the global scope.
+
+Update your `webpack.config.js`:
+```js
+module.exports = {
+   // ...other config
+   resolve: {
+      fallback: {
+         crypto: require.resolve("crypto-browserify"),
+         buffer: require.resolve("buffer"),
+         path: false,
+         fs: false,
+         stream: false,
+      },
+   },
+
+   plugins: [
+    // ...your origin plugin for webpack
+    new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
+   ],
+}
+```
+
+#### create-react-app
+[Create React App](https://create-react-app.dev/) build system based on Webpack, but need some patch via `react-app-rewired`
+
+First install `react-app-rewired`, `crypto-browserify` and `buffer` dependencies.
+
+``` bash
+npm install -D react-app-rewired crypto-browserify buffer
+# or use yarn
+yarn install -D react-app-rewired crypto-browserify buffer
+```
+
+Then create a `config-overrides.js` file in yout root directory of project. and add the following code to it.
+
+```js
+const webpack = require('webpack');
+module.exports = function override(config, env) {
+  config.resolve.fallback = {
+    ...config.resolve.fallback,
+    crypto: require.resolve("crypto-browserify"),
+    buffer: require.resolve("buffer"),
+    path: false,
+    fs: false,
+    stream: false,
+  };
+
+  config.plugins = [
+    ...config.plugins,
+    new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
+  ]
+
+  return config;
+};
+```
+
+Finally, override the `scripts` field in `package.json` to use `react-app-rewired`.
+
+```json
+{
+  "scripts": {
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test"
+  }
+}
+```
+
+Also, [eject `create-react-app`](https://create-react-app.dev/docs/available-scripts/#npm-run-eject) is available,
+after do it, see [Webpack polyfills Section](#Webpack) to config.
+
+#### Vite
+Please follow these step.
+
+- add [rollup-plugin-polyfill-node](https://www.npmjs.com/package/rollup-plugin-polyfill-node) and 
+[@rollup/plugin-inject](https://www.npmjs.com/package/@rollup/plugin-inject)
+
+```
+npm install -D rollup-plugin-polyfill-node @rollup/plugin-inject
+```
+- config `vite.config.js`
+
+``` js
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import inject from "@rollup/plugin-inject";
+import nodePolyfills from "rollup-plugin-polyfill-node";
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    // add node polyfills
+    nodePolyfills(),
+
+    // inject Buffer to global
+    inject({
+      Buffer: ["buffer", "Buffer"],
+    }),
+  ],
+});
+```
 
 ### ckb-indexer
 
