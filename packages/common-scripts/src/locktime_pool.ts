@@ -263,6 +263,7 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
             !validateSince(
               since!,
               this.tipSinceValidationInfo!,
+              // TODO: modify the parameter type of `validateSince`
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               sinceValidationInfo!
             ))
