@@ -53,7 +53,6 @@ function ckbHash(data: BytesLike): Hash {
  */
 function computeScriptHash(
   script: Script,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _options?: { validate?: boolean }
 ): string {
   return ckbHash(blockchain.Script.pack(script));
