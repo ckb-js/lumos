@@ -28,9 +28,8 @@
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "test:ts": "ava **/*.test.ts --timeout=2m",
     "clean": "shx rm -rf lib",
-    "test": "ava **/*.test.ts --timeout=2m"
+    "test": "ava **/*.test.{js,ts} --timeout=2m"
   },
   "devDependencies": {
     "rollup": "^1.32.0",
