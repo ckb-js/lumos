@@ -10,7 +10,7 @@ test("serialize script", (t) => {
     args: "0xaabbccdd44332211",
     hashType: "type",
   };
-  const serializedHex = bytes.hexify(blockchain.Script.pack(value))
+  const serializedHex = bytes.hexify(blockchain.Script.pack(value));
   t.deepEqual(
     serializedHex,
     "0x3d0000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80108000000aabbccdd44332211"
@@ -24,7 +24,7 @@ test("serialize ckb2021 script", (t) => {
     args: "0xaabbccdd44332211",
     hashType: "data1",
   };
-  const serializedHex = bytes.hexify(blockchain.Script.pack(value))
+  const serializedHex = bytes.hexify(blockchain.Script.pack(value));
   t.deepEqual(
     serializedHex,
     "0x3d0000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80208000000aabbccdd44332211"
@@ -35,9 +35,9 @@ test("serialize outpoint", (t) => {
   const value: api.OutPoint = {
     txHash:
       "0x4565f957aa65ca5d094ede05cbeaedcee70f5a71200ae2e31b643d2952c929bc",
-    index: '0x03',
+    index: "0x03",
   };
-  const serializedHex = bytes.hexify(blockchain.OutPoint.pack(value))
+  const serializedHex = bytes.hexify(blockchain.OutPoint.pack(value));
   t.deepEqual(
     serializedHex,
     "0x4565f957aa65ca5d094ede05cbeaedcee70f5a71200ae2e31b643d2952c929bc03000000"
@@ -53,7 +53,7 @@ test("serialize cellinput", (t) => {
       index: "0x10",
     },
   };
-  const serializedHex = bytes.hexify(blockchain.CellInput.pack(value))
+  const serializedHex = bytes.hexify(blockchain.CellInput.pack(value));
   t.deepEqual(
     serializedHex,
     "0x341200a060000000a98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da10000000"
@@ -76,7 +76,7 @@ test("serialize celloutput", (t) => {
       hashType: "type",
     },
   };
-  const serializedHex = bytes.hexify(blockchain.CellOutput.pack(value))
+  const serializedHex = bytes.hexify(blockchain.CellOutput.pack(value));
 
   t.deepEqual(
     serializedHex,
@@ -94,7 +94,7 @@ test("serialize celloutput without type", (t) => {
       hashType: "data",
     },
   };
-  const serializedHex = bytes.hexify(blockchain.CellOutput.pack(value))
+  const serializedHex = bytes.hexify(blockchain.CellOutput.pack(value));
   t.deepEqual(
     serializedHex,
     "0x4f00000010000000180000004f000000100000000000000037000000100000003000000031000000a98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a73da00020000001234"
@@ -110,7 +110,7 @@ test("serialize celldep", (t) => {
       index: "0x11",
     },
   };
-  const serializedHex = bytes.hexify(blockchain.CellDep.pack(value))
+  const serializedHex = bytes.hexify(blockchain.CellDep.pack(value));
 
   t.deepEqual(
     serializedHex,
@@ -158,7 +158,7 @@ test("serialize transaction", (t) => {
     outputsData: ["0xabcdef"],
     witnesses: ["0x31313131"],
   };
-  const serializedHex = bytes.hexify(blockchain.Transaction.pack(value))
+  const serializedHex = bytes.hexify(blockchain.Transaction.pack(value));
 
   t.deepEqual(
     serializedHex,
@@ -183,9 +183,9 @@ test("serialize header", (t) => {
     version: "0x0",
     epoch: "0x7080612000287",
     dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
-    hash: '',
+    hash: "",
   };
-  const serializedHex = bytes.hexify(blockchain.Header.pack(value))
+  const serializedHex = bytes.hexify(blockchain.Header.pack(value));
 
   t.deepEqual(
     serializedHex,
@@ -211,11 +211,11 @@ test("serialize uncle block", (t) => {
       version: "0x0",
       epoch: "0x7080612000287",
       dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
-      hash: '',
+      hash: "",
     },
     proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"],
   };
-  const serializedHex = bytes.hexify(blockchain.UncleBlock.pack(value))
+  const serializedHex = bytes.hexify(blockchain.UncleBlock.pack(value));
 
   t.deepEqual(
     serializedHex,
@@ -241,7 +241,7 @@ test("serialize block", (t) => {
       version: "0x0",
       epoch: "0x7080612000287",
       dao: "0x40b4d9a3ddc9e730736c7342a2f023001240f362253b780000b6ca2f1e790107",
-      hash: '',
+      hash: "",
     },
     transactions: [
       {
@@ -287,7 +287,7 @@ test("serialize block", (t) => {
     uncles: [],
     proposals: ["0x12345678901234567890", "0xabcdeabcdeabcdeabcde"],
   };
-  const serializedHex = bytes.hexify(blockchain.Block.pack(value))
+  const serializedHex = bytes.hexify(blockchain.Block.pack(value));
 
   t.deepEqual(
     serializedHex,
@@ -321,7 +321,7 @@ test("serialize witness args", (t) => {
     inputType: "0x4678",
     outputType: "0x2312",
   };
-  const serializedHex = bytes.hexify(blockchain.WitnessArgs.pack(value))
+  const serializedHex = bytes.hexify(blockchain.WitnessArgs.pack(value));
 
   t.deepEqual(
     serializedHex,
@@ -331,7 +331,7 @@ test("serialize witness args", (t) => {
 
 test("serialize empty witness args", (t) => {
   const value: api.WitnessArgs = {};
-  const serializedHex = bytes.hexify(blockchain.WitnessArgs.pack(value))
+  const serializedHex = bytes.hexify(blockchain.WitnessArgs.pack(value));
 
   t.deepEqual(serializedHex, "0x10000000100000001000000010000000");
 });
@@ -340,7 +340,7 @@ test("normalize and serialize only one witness args", (t) => {
   const value: api.WitnessArgs = {
     lock: "0x1234",
   };
-  const serializedHex = bytes.hexify(blockchain.WitnessArgs.pack(value))
+  const serializedHex = bytes.hexify(blockchain.WitnessArgs.pack(value));
 
   t.deepEqual(serializedHex, "0x16000000100000001600000016000000020000001234");
 });

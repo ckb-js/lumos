@@ -11,7 +11,7 @@ import {
 } from "@ckb-lumos/codec";
 import { BytesCodec, FixedBytesCodec } from "@ckb-lumos/codec/lib/base";
 
-import type * as api from './api';
+import type * as api from "./api";
 import { BI } from "@ckb-lumos/bi";
 
 const { Uint128LE, Uint8, Uint32LE, Uint64LE } = number;
@@ -250,7 +250,8 @@ export const BaseHeader = struct(
 );
 
 export const Header = createBytesCodec({
-  pack: (header: api.Header) => BaseHeader.pack(transformHeaderCodecType(header)),
+  pack: (header: api.Header) =>
+    BaseHeader.pack(transformHeaderCodecType(header)),
   unpack: (buf) => deTransformHeaderCodecType(BaseHeader.unpack(buf)),
 });
 

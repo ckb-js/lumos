@@ -1,8 +1,24 @@
-const { ScriptValue } = require("./values");
-const { BI } = require("@ckb-lumos/bi");
+import { ScriptValue } from "./values";
+import { BI } from "@ckb-lumos/bi";
 
-function isCellMatchQueryOptions(
-  cell,
+import { Cell, Script } from "./api";
+import { QueryOptions, ScriptWrapper } from "./indexer";
+
+/**
+ * return if the input is a script wrapper
+ * @param maybeWrapped
+ */
+export function isScriptWrapper(
+  maybeWrapped: Script | ScriptWrapper | null
+): maybeWrapped is ScriptWrapper {
+  return (
+    maybeWrapped !== null &&
+    (maybeWrapped as ScriptWrapper).script !== undefined
+  );
+}
+
+export function isCellMatchQueryOptions(
+  cell: Cell,
   {
     lock = undefined,
     type = undefined,
@@ -10,14 +26,15 @@ function isCellMatchQueryOptions(
     data = "any",
     fromBlock = undefined,
     toBlock = undefined,
-  }
-) {
-  let wrappedLock = null;
-  let wrappedType = null;
+  }: QueryOptions
+): boolean {
+  let wrappedLock: ScriptWrapper | null = null;
+  let wrappedType: "empty" | ScriptWrapper | Script | null = null;
+
   // Wrap the plain `Script` into `ScriptWrapper`.
-  if (lock && !lock.script) {
+  if (lock && !isScriptWrapper(lock)) {
     wrappedLock = { script: lock, argsLen: argsLen };
-  } else if (lock && lock.script) {
+  } else if (lock) {
     wrappedLock = lock;
     // check argsLen
     if (!lock.argsLen) {
@@ -26,9 +43,9 @@ function isCellMatchQueryOptions(
   }
   if (type && type === "empty") {
     wrappedType = type;
-  } else if (type && typeof type === "object" && !type.script) {
+  } else if (type && typeof type === "object" && !isScriptWrapper(type)) {
     wrappedType = { script: type, argsLen: argsLen };
-  } else if (type && typeof type === "object" && type.script) {
+  } else if (type && typeof type === "object" && isScriptWrapper(type)) {
     wrappedType = type;
     // check argsLen
     if (!type.argsLen) {
@@ -91,7 +108,11 @@ function isCellMatchQueryOptions(
       !cell.cellOutput.type ||
       !new ScriptValue(cell.cellOutput.type, {
         validate: false,
-      }).equals(new ScriptValue(wrappedType.script, { validate: false }))
+      }).equals(
+        new ScriptValue(wrappedType.script, {
+          validate: false,
+        })
+      )
     ) {
       return false;
     }
@@ -116,7 +137,3 @@ function isCellMatchQueryOptions(
 
   return true;
 }
-
-module.exports = {
-  isCellMatchQueryOptions,
-};

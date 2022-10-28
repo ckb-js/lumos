@@ -110,7 +110,7 @@ export interface LiveCell {
   output: Output;
 }
 export interface CellWithStatus {
-  cell:  LiveCell | null;
+  cell: LiveCell | null;
   status: "live" | "unknown";
 }
 

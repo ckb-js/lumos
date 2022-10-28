@@ -23,14 +23,11 @@ export {
   UnsupportedCipher,
   IncorrectPassword,
   InvalidKeystore,
-  HexStringWithoutPrefix,
   Keychain,
   AddressType,
   ExtendedPublicKey,
   AccountExtendedPublicKey,
   ExtendedPrivateKey,
-  PrivateKeyInfo,
-  PublicKeyInfo,
   key,
   XPubStore,
 };
@@ -49,3 +46,5 @@ export default {
   key,
   XPubStore,
 };
+
+export type { HexStringWithoutPrefix, PrivateKeyInfo, PublicKeyInfo };

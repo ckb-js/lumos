@@ -3,7 +3,6 @@ export {
   createArrayCodec,
   createObjectCodec,
   createNullableCodec,
-  ObjectCodec,
-  ArrayCodec,
-  NullableCodec,
 } from "./nested";
+
+export type { ObjectCodec, ArrayCodec, NullableCodec } from "./nested";
