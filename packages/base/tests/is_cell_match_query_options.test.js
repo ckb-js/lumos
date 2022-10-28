@@ -85,9 +85,9 @@ function filterIndex(cells, queryOptions) {
 }
 
 test.before(() => {
-  BigInt = () => {
+  BigInt = (() => {
     throw new Error("can not find bigint");
-  };
+  });
 });
 
 test("filter by lock", (t) => {
