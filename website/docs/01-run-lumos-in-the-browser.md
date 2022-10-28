@@ -60,7 +60,7 @@ module.exports = {
    resolve: {
       fallback: {
          crypto: require.resolve("crypto-browserify"),
-         buffer: require.resolve("buffer"),
+         buffer: require.resolve("buffer/"),
          path: false,
          fs: false,
          stream: false,
@@ -93,7 +93,7 @@ module.exports = function override(config, env) {
   config.resolve.fallback = {
     ...config.resolve.fallback,
     crypto: require.resolve("crypto-browserify"),
-    buffer: require.resolve("buffer"),
+    buffer: require.resolve("buffer/"),
     path: false,
     fs: false,
     stream: false,
