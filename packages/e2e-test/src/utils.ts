@@ -6,26 +6,26 @@ import { getConfig } from "@ckb-lumos/config-manager";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 
 // secp256k1 private key is 32-bytes length
-export const generateFirstHDPrivateKey = (): string => hexify(randomBytes(32));
+export const generateRandomPrivateKey = (): string => hexify(randomBytes(32));
 
 export function asyncSleep(ms: number): Promise<unknown> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export interface HDAccount {
+export interface Account {
   lockScript: Script;
   address: string;
   pubKey: string;
   privKey: string;
 }
 
-export const randomSecp256k1Lock = (privKey?: string): HDAccount => {
+export const randomSecp256k1Account = (privKey?: string): Account => {
   const _privKey = (() => {
     if (privKey) {
       return privKey;
     }
 
-    return generateFirstHDPrivateKey();
+    return generateRandomPrivateKey();
   })();
 
   const pubKey = key.privateToPublic(_privKey);

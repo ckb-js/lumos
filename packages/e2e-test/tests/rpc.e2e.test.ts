@@ -1,5 +1,5 @@
 import anyTest, { TestInterface } from "ava";
-import { randomSecp256k1Lock, HDAccount } from "../src/utils";
+import { randomSecp256k1Account, Account } from "../src/utils";
 import { CKB_RPC_URL } from "../src/constants";
 import { E2EProvider } from "../src/e2eProvider";
 import { join } from "path";
@@ -12,7 +12,7 @@ import { Indexer } from "@ckb-lumos/ckb-indexer";
 interface TestContext {
   accounts: Record<
     string,
-    HDAccount & {
+    Account & {
       cells: Cell[];
     }
   >;
@@ -29,7 +29,7 @@ const e2eProvider = new E2EProvider({ indexer, rpc, faucetQueue: faucetQueue });
 
 test.before(async (t) => {
   const config = await e2eProvider.loadLocalConfig();
-  const alice = randomSecp256k1Lock();
+  const alice = randomSecp256k1Account();
 
   await e2eProvider.claimCKB({ claimer: alice.address });
   await e2eProvider.claimCKB({ claimer: alice.address });
