@@ -8,6 +8,14 @@ RUN cd ckb-light-client \
     && git checkout develop \
     && cargo build --release
 
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+    curl
+
+RUN curl -sSLf "$(curl -sSLf https://api.github.com/repos/tomwright/dasel/releases/latest | grep browser_download_url | grep linux_amd64 | grep -v .gz | cut -d\" -f 4)" -L -o dasel && chmod +x dasel
+RUN mv ./dasel /usr/local/bin/dasel
+
 FROM ubuntu:bionic
 
 COPY --from=light-client-docker-builder \
@@ -20,13 +28,13 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
     curl
 
+COPY --from=light-client-docker-builder \
+     /ckb-light-client/target/release/ckb-light-client \
+     /usr/local/bin/dasel \
+     /usr/local/bin/
+
 WORKDIR /home
 
-COPY --from=light-client-docker-builder /ckb-light-client/target/release/ckb-light-client /home/
-COPY ./config.toml /home/
-COPY ./dev.toml /home/
-COPY ./entrypoint.sh /home/
-COPY ./dasel_linux_386 /usr/local/bin/dasel
-
+COPY ./config.toml ./dev.toml ./entrypoint.sh /home/
 
 ENTRYPOINT ["/home/entrypoint.sh"]

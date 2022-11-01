@@ -6,7 +6,6 @@ if ! [ -f ckb.toml ]; then
 fi
 
 cp /var/ckb-miner.toml /var/lib/ckb/ckb-miner.toml
-dasel put bool -f ckb.toml -p toml -m '.store.block_filter_enable' true
 
 exec /bin/ckb run --indexer &
 sleep 3

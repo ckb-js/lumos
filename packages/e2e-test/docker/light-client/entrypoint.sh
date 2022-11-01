@@ -9,6 +9,6 @@ dasel put string -f ./config.toml -p toml -m '.network.bootnodes.[]' "/ip4/$ckb_
 
 echo "connect to /ip4/$ckb_host/tcp/8115/p2p/$peer_id"
 
-sleep 10
+sleep 3
 export RUST_LOG=info,ckb_light_client=trace
-exec ./ckb-light-client run --config-file ./config.toml
+exec ckb-light-client run --config-file ./config.toml
