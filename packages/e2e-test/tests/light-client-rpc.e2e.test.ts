@@ -1,5 +1,5 @@
 import anyTest, { TestInterface } from "ava";
-import { asyncSleep, generateHDAccount, HDAccount } from "../src/utils";
+import { asyncSleep, randomSecp256k1Lock, HDAccount } from "../src/utils";
 import { CKB_RPC_URL, LIGHT_CLIENT_RPC_URL } from "../src/constants";
 import { E2EProvider } from "../src/e2eProvider";
 import { join } from "path";
@@ -64,7 +64,7 @@ async function waitLightClientSync(
 
 test.before(async (t) => {
   const config = await e2eProvider.loadLocalConfig();
-  const alice = generateHDAccount();
+  const alice = randomSecp256k1Lock();
 
   await waitLightClientPrepared(lightClientRPC);
 
@@ -112,7 +112,7 @@ test("light client get_tip_header rpc", async (t) => {
 });
 
 test("test setScripts", async (t) => {
-  const bob = generateHDAccount();
+  const bob = randomSecp256k1Lock();
 
   const beforeScripts = await lightClientRPC.getScripts();
   const listeningBob = beforeScripts.some((script) =>

@@ -1,5 +1,5 @@
 import anyTest, { TestInterface } from "ava";
-import { generateHDAccount, HDAccount } from "../src/utils";
+import { randomSecp256k1Lock, HDAccount } from "../src/utils";
 import { CKB_RPC_URL } from "../src/constants";
 import { E2EProvider } from "../src/e2eProvider";
 import { join } from "path";
@@ -29,7 +29,7 @@ const e2eProvider = new E2EProvider({ indexer, rpc, faucetQueue: faucetQueue });
 
 test.before(async (t) => {
   const config = await e2eProvider.loadLocalConfig();
-  const alice = generateHDAccount();
+  const alice = randomSecp256k1Lock();
 
   await e2eProvider.claimCKB({ claimer: alice.address });
   await e2eProvider.claimCKB({ claimer: alice.address });

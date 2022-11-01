@@ -19,7 +19,7 @@ export interface HDAccount {
   privKey: string;
 }
 
-export const generateHDAccount = (privKey?: string): HDAccount => {
+export const randomSecp256k1Lock = (privKey?: string): HDAccount => {
   const _privKey = (() => {
     if (privKey) {
       return privKey;
