@@ -13,6 +13,7 @@ import {
   OtherQueryOptions,
 } from "@ckb-lumos/ckb-indexer/lib/type";
 import { common, dao } from "@ckb-lumos/common-scripts";
+import retry from "async-retry";
 import {
   TransactionSkeleton,
   parseAddress,
@@ -110,7 +111,9 @@ export class E2EProvider {
       amount,
     });
 
-    await this.waitTransactionCommitted(txHash);
+    await retry(async () => await this.waitTransactionCommitted(txHash), {
+      retries: 3,
+    });
     onRelease();
     return txHash;
   }

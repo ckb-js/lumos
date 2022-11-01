@@ -1,4 +1,4 @@
-FROM nervos/ckb:merge-indexer-customize
+FROM nervos/ckb:v0.105.0
 
 ENV CKB_CHAIN=dev
 ENV BA_ARG=0x839f6f4d6fdf773d3e015f8b19fe5c4ccb07723d
@@ -11,5 +11,6 @@ EXPOSE 8114 8115
 COPY --chown=ckb ./entrypoint.sh /bin/
 COPY --chown=ckb ./dev.toml /var/
 COPY --chown=ckb ./ckb-miner.toml /var/
+COPY --chown=ckb ./dasel_linux_386 /usr/local/bin/dasel
 
 ENTRYPOINT ["/bin/entrypoint.sh"]
