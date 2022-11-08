@@ -1,9 +1,10 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require("prism-react-renderer/themes/github");
-const darkCodeTheme = require("prism-react-renderer/themes/dracula");
-const versioningBranchs = require("./versioning-branches");
+const lightCodeTheme = require("prism-react-renderer/themes/github")
+const darkCodeTheme = require("prism-react-renderer/themes/dracula")
+const webpack = require("webpack")
+const versioningBranchs = require("./versioning-branches")
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -41,8 +42,7 @@ const config = {
           routeBasePath: "/",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/ckb-js/lumos/tree/develop/website",
+          editUrl: "https://github.com/ckb-js/lumos/tree/develop/website",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -61,6 +61,25 @@ const config = {
         sidebarPath: require.resolve("./sidebars.js"),
       },
     ],
+    () => ({
+      name: "node-polyfill",
+      configureWebpack(config) {
+        console.log(config.target);
+        return {
+          target: 'browserslist:modern',
+          resolve: {
+            fallback: {
+              crypto: require.resolve("crypto-browserify"),
+              buffer: require.resolve("buffer/"),
+              path: false,
+              fs: false,
+              stream: false,
+            },
+          },
+          plugins: [new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] })],
+        }
+      },
+    }),
   ],
 
   themeConfig:
@@ -86,9 +105,7 @@ const config = {
             label: "API",
             position: "left",
             target: "_blank",
-            items: [
-              ...versioningBranchs,
-            ]
+            items: [...versioningBranchs],
           },
           {
             href: "https://github.com/ckb-js/lumos",
@@ -102,6 +119,6 @@ const config = {
         darkTheme: darkCodeTheme,
       },
     }),
-};
+}
 
-module.exports = config;
+module.exports = config
