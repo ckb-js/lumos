@@ -13,7 +13,7 @@ export function parseMultiVersionAddress(
       | undefined;
     const ckb2021 = helpers.encodeToAddress(script, { config });
 
-    if (script.hash_type === "data1") {
+    if (script.hashType === "data1") {
       return {
         name,
         script,

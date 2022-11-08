@@ -24,12 +24,12 @@ export const ScriptToAddress: React.FC = () => {
 
   const parsed = useMemo<{ mainnet: ParseResult; testnet: ParseResult }>(() => {
     const mainnet = parseMultiVersionAddress(
-      { code_hash: codeHash, hash_type: hashType, args },
+      { codeHash, hashType, args },
       MAINNET_CONFIG
     );
 
     const testnet = parseMultiVersionAddress(
-      { code_hash: codeHash, hash_type: hashType, args },
+      { codeHash, hashType, args },
       TESTNET_CONFIG
     );
 

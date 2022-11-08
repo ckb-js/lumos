@@ -49,8 +49,8 @@ export const AddressToScript: React.FC = () => {
             <Divider />
           </Box>
 
-          <div>Code Hash: {parsed.script.code_hash}</div>
-          <div>Hash Type: {parsed.script.hash_type}</div>
+          <div>Code Hash: {parsed.script.codeHash}</div>
+          <div>Hash Type: {parsed.script.hashType}</div>
           <div>Args: {parsed.script.args}</div>
         </Box>
       )}
