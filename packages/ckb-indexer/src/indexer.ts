@@ -51,6 +51,9 @@ export class CkbIndexer implements CellProvider, TerminableCellFetcher {
   medianTimeEmitters: EventEmitter[] = [];
   emitters: IndexerEmitter[] = [];
   isSubscribeRunning = false;
+
+  constructor(ckbRpcUrl: string);
+  constructor(ckbIndexerUrl: string, ckbRpcUrl: string);
   constructor(public ckbIndexerUrl: string, public ckbRpcUrl?: string) {
     this.uri = ckbRpcUrl || ckbIndexerUrl;
     this.ckbIndexerUri = ckbIndexerUrl;

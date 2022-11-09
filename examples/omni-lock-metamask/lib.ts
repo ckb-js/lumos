@@ -1,12 +1,9 @@
 import { bytes } from "@ckb-lumos/codec";
 import { blockchain } from "@ckb-lumos/base";
-import { BI, Cell, helpers, Indexer, RPC, utils, config, commons } from "@ckb-lumos/lumos";
-import { SerializeRcLockWitnessLock } from "./generated/omni";
+import { BI, Cell, helpers, Indexer, RPC, config, commons } from "@ckb-lumos/lumos";
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
-const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
-const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
-
+const indexer = new Indexer(CKB_RPC_URL);
 // prettier-ignore
 interface EthereumRpc {
     (payload: { method: 'personal_sign'; params: [string /*from*/, string /*message*/] }): Promise<string>;
@@ -33,6 +30,13 @@ interface Options {
   to: string;
   amount: string;
 }
+const SECP_SIGNATURE_PLACEHOLDER = bytes.hexify(
+  new Uint8Array(
+    commons.omnilock.OmnilockWitnessLock.pack({
+      signature: new Uint8Array(65).buffer,
+    }).byteLength
+  )
+);
 
 export async function transfer(options: Options): Promise<string> {
   const CONFIG = config.getConfig();
@@ -96,40 +100,18 @@ export async function transfer(options: Options): Promise<string> {
     )
   );
 
-  const messageForSigning = (() => {
-    const hasher = new utils.CKBHasher();
+  const witness = bytes.hexify(blockchain.WitnessArgs.pack({ lock: SECP_SIGNATURE_PLACEHOLDER }));
 
-    const SECP_SIGNATURE_PLACEHOLDER =
-      "0x" +
-      "00".repeat(
-        SerializeRcLockWitnessLock({
-          signature: new Uint8Array(65).buffer,
-        }).byteLength
-      );
-    const newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
-    const witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
+  // fill txSkeleton's witness with placeholder
+  for (let i = 0; i < tx.inputs.toArray().length; i++) {
+    tx = tx.update("witnesses", (witnesses) => witnesses.push(witness));
+  }
 
-    // fill txSkeleton's witness with 0
-    for (let i = 0; i < tx.inputs.toArray().length; i++) {
-      tx = tx.update("witnesses", (witnesses) => witnesses.push(witness));
-    }
-
-    // locks you want to sign
-    const signLock = tx.inputs.get(0)?.cellOutput.lock!;
-
-    const messageGroup = commons.createP2PKHMessageGroup(tx, [signLock], {
-      hasher: {
-        update: (message) => hasher.update(message.buffer),
-        digest: () => new Uint8Array(bytes.bytify(hasher.digestHex())),
-      },
-    });
-
-    return messageGroup[0];
-  })();
+  tx = commons.omnilock.prepareSigningEntries(tx, { config: CONFIG });
 
   let signedMessage = await ethereum.request({
     method: "personal_sign",
-    params: [ethereum.selectedAddress, messageForSigning.message],
+    params: [ethereum.selectedAddress, tx.signingEntries.get(0).message],
   });
 
   let v = Number.parseInt(signedMessage.slice(-2), 16);
@@ -138,11 +120,9 @@ export async function transfer(options: Options): Promise<string> {
 
   const signedWitness = bytes.hexify(
     blockchain.WitnessArgs.pack({
-      lock: bytes.hexify(
-        SerializeRcLockWitnessLock({
-          signature: bytes.bytify(signedMessage).buffer,
-        })
-      ),
+      lock: commons.omnilock.OmnilockWitnessLock.pack({
+        signature: bytes.bytify(signedMessage).buffer,
+      }),
     })
   );
 

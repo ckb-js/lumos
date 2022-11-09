@@ -1,5 +1,5 @@
-import { bytes } from '@ckb-lumos/codec';
-import { blockchain } from '@ckb-lumos/base';
+import { bytes } from "@ckb-lumos/codec";
+import { blockchain } from "@ckb-lumos/base";
 import { BI, Cell, config, helpers, RPC, commons, Indexer } from "@ckb-lumos/lumos";
 import {
   COSESign1Builder,
@@ -14,7 +14,7 @@ import {
   BigNum,
   Int,
 } from "@emurgo/cardano-message-signing-asmjs";
-import { SerializeCardanoWitnessLock } from "./generated/cardano";
+import { CardanoWitnessLock } from "./CardanoWitnessLock";
 
 export const CONFIG = config.createConfig({
   PREFIX: "ckt",
@@ -33,9 +33,8 @@ export const CONFIG = config.createConfig({
 config.initializeConfig(CONFIG);
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
-const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
-const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const indexer = new Indexer(CKB_RPC_URL);
 
 export interface Cardano {
   nami: {
@@ -57,7 +56,7 @@ export async function detectCardano(): Promise<Cardano> {
   const start = Date.now();
   while (true) {
     if (Date.now() - start > 5000) {
-      throw new Error("It seems you dont have NamiWallet installed");
+      throw new Error("It seems you don't have NamiWallet installed");
     }
     if (window.cardano) return window.cardano;
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -134,16 +133,15 @@ export async function transfer(options: Options): Promise<string> {
   let builder = COSESign1Builder.new(headers, Buffer.from(payload, "hex"), false);
   let toSign = builder.make_data_to_sign().to_bytes();
 
-  const placeHolder = (
+  const placeHolder =
     "0x" +
-      "00".repeat(
-        SerializeCardanoWitnessLock({
-          pubkey: new Uint8Array(32),
-          signature: new Uint8Array(64),
-          sig_structure: toSign.buffer,
-        }).byteLength
-      )
-  );
+    "00".repeat(
+      CardanoWitnessLock.pack({
+        pubkey: new Uint8Array(32),
+        signature: new Uint8Array(64),
+        sig_structure: toSign.buffer,
+      }).byteLength
+    );
 
   const tmpWitnessArgs = blockchain.WitnessArgs.pack({ lock: placeHolder });
   const witness = bytes.hexify(tmpWitnessArgs);
@@ -169,14 +167,14 @@ export async function transfer(options: Options): Promise<string> {
   const CBORPubkey = signedKey.header(label)!;
 
   const signedWitnessArgs = bytes.hexify(
-    SerializeCardanoWitnessLock({
+    CardanoWitnessLock.pack({
       pubkey: CBORPubkey.as_bytes()!.buffer,
       signature: COSESignature.signature().buffer,
       sig_structure: toSign.buffer,
     })
   );
 
-  const signedWitness = bytes.hexify(blockchain.WitnessArgs.pack({ lock: signedWitnessArgs }))
+  const signedWitness = bytes.hexify(blockchain.WitnessArgs.pack({ lock: signedWitnessArgs }));
   tx = tx.update("witnesses", (witnesses) => witnesses.set(0, signedWitness));
 
   const signedTx = helpers.createTransactionFromSkeleton(tx);

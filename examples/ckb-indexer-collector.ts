@@ -5,8 +5,7 @@ import { Script, Indexer, helpers, config, BI } from "@ckb-lumos/lumos";
 config.initializeConfig(config.predefined.AGGRON4);
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
-const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
-const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const indexer = new Indexer(CKB_RPC_URL);
 
 async function capacityOf(lock: Script): Promise<BI> {
   const collector = indexer.collector({ lock });
