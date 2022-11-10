@@ -8,6 +8,7 @@ import {
   Output,
   TransactionWithStatus,
   Script,
+  Tip,
 } from "@ckb-lumos/base";
 import { EventEmitter } from "events";
 import { BIish } from "@ckb-lumos/bi";
@@ -89,6 +90,16 @@ export declare type Terminator = (
   cell: Cell
 ) => TerminatorResult;
 
+export declare type GetCellWithTerminator = (
+  searchKey: SearchKey,
+  terminator?: Terminator,
+  searchKeyFilter?: SearchKeyFilter
+) => Promise<GetCellsResults>;
+
+export interface TerminableCellFetcher {
+  getCells: GetCellWithTerminator;
+}
+
 export type HexNum = string;
 export type IOType = "input" | "output" | "both";
 export type Bytes32 = string;
@@ -114,9 +125,7 @@ export type GroupedIndexerTransaction = {
 
 export interface IndexerTransactionList<Grouped extends boolean = false> {
   lastCursor: string | undefined;
-  objects: Grouped extends true
-    ? GroupedIndexerTransaction[]
-    : UngroupedIndexerTransaction[];
+  objects: IndexerTransaction<Grouped>[];
 }
 
 export interface GetCellsResults {
@@ -159,4 +168,24 @@ export interface JsonRprRequestBody {
   jsonrpc: string;
   method: string;
   params: string[];
+}
+
+export declare type GetTipRpc = () => Promise<Tip>;
+export declare type GetCellsRpc = <WithData extends boolean = true>(
+  searchKey: GetCellsSearchKey<WithData>,
+  order: Order,
+  limit: HexString,
+  cursor?: string
+) => Promise<GetLiveCellsResult<WithData>>;
+export declare type GetTransactionsRpc = <Grouped extends boolean = false>(
+  searchKey: GetTransactionsSearchKey<Grouped>,
+  order: Order,
+  limit: HexString,
+  cursor?: string
+) => Promise<IndexerTransactionList<Grouped>>;
+
+export interface IndexerRpc {
+  getTip: GetTipRpc;
+  getCells: GetCellsRpc;
+  getTransactions: GetTransactionsRpc;
 }

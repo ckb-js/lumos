@@ -1,8 +1,8 @@
 import {
   Cell,
   CellCollector,
+  CellProvider,
   HexString,
-  Indexer,
   Script,
   Output,
   utils,
@@ -21,9 +21,13 @@ import {
   IndexerEmitter,
   OutputToVerify,
   SearchKey,
+  IndexerRpc,
+  GetTransactionsSearchKey,
   SearchKeyFilter,
   Terminator,
   OtherQueryOptions,
+  TerminableCellFetcher,
+  GetCellsRpc,
 } from "./type";
 import { BI } from "@ckb-lumos/bi";
 import { RPC as CKBIndexerRpc } from "./rpc";
@@ -40,22 +44,35 @@ function defaultLogger(level: string, message: string) {
 }
 
 /** CkbIndexer.collector will not get cell with blockHash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get blockHash if you need. */
-export class CkbIndexer implements Indexer {
+export class CkbIndexer implements CellProvider, TerminableCellFetcher {
   static version = "0.4.1";
   uri: string;
   ckbIndexerUri: string;
   medianTimeEmitters: EventEmitter[] = [];
   emitters: IndexerEmitter[] = [];
   isSubscribeRunning = false;
-  constructor(public ckbIndexerUrl: string, public ckbRpcUrl: string) {
-    this.uri = ckbRpcUrl;
+
+  constructor(ckbRpcUrl: string);
+  constructor(ckbIndexerUrl: string, ckbRpcUrl: string);
+  constructor(public ckbIndexerUrl: string, public ckbRpcUrl?: string) {
+    this.uri = ckbRpcUrl || ckbIndexerUrl;
     this.ckbIndexerUri = ckbIndexerUrl;
   }
 
   private getCkbRpc(): CKBRPC {
-    return new CKBRPC(this.ckbRpcUrl);
+    return new CKBRPC(this.uri);
   }
-  private getIndexerRpc(): CKBIndexerRpc {
+
+  /* c8 ignore next 12 */
+  private getIndexerRpc(): IndexerRpc {
+    if (this.uri === this.ckbIndexerUri) {
+      const rpc = this.getCkbRpc();
+      return {
+        ...rpc,
+        getTip: rpc.getIndexerTip,
+      };
+    }
+
     return new CKBIndexerRpc(this.ckbIndexerUri);
   }
 
@@ -96,58 +113,23 @@ export class CkbIndexer implements Indexer {
     terminator: Terminator = DefaultTerminator,
     searchKeyFilter: SearchKeyFilter = {}
   ): Promise<GetCellsResults> {
-    const infos: Cell[] = [];
-    let cursor: string | undefined = searchKeyFilter.lastCursor;
-    const sizeLimit = searchKeyFilter.sizeLimit || 100;
-    const order = searchKeyFilter.order || "asc";
-    const index = 0;
-    while (true) {
-      const res: GetLiveCellsResult = await this.getIndexerRpc().getCells(
-        searchKey,
-        order,
-        `0x${sizeLimit.toString(16)}`,
-        cursor
-      );
-      const liveCells = res.objects;
-      cursor = res.lastCursor;
-      for (const liveCell of liveCells) {
-        const cell: Cell = {
-          cellOutput: liveCell.output,
-          data: liveCell.outputData,
-          outPoint: liveCell.outPoint ? liveCell.outPoint : undefined,
-          blockNumber: liveCell.blockNumber,
-        };
-        const { stop, push } = terminator(index, cell);
-        if (push) {
-          infos.push(cell);
-        }
-        if (stop) {
-          return {
-            objects: infos,
-            lastCursor: cursor,
-          };
-        }
-      }
-      if (liveCells.length <= sizeLimit) {
-        break;
-      }
-    }
-    return {
-      objects: infos,
-      lastCursor: cursor,
-    };
+    return new TerminableCellAdapter(this.getIndexerRpc()).getCells(
+      searchKey,
+      terminator,
+      searchKeyFilter
+    );
   }
 
-  public async getTransactions(
-    searchKey: SearchKey,
+  public async getTransactions<Group extends boolean = false>(
+    searchKey: GetTransactionsSearchKey<Group>,
     searchKeyFilter: SearchKeyFilter = {}
-  ): Promise<IndexerTransactionList> {
-    let infos: IndexerTransaction[] = [];
+  ): Promise<IndexerTransactionList<Group>> {
+    let infos: IndexerTransaction<Group>[] = [];
     let cursor: string | undefined = searchKeyFilter.lastCursor;
     const sizeLimit = searchKeyFilter.sizeLimit || 100;
     const order = searchKeyFilter.order || "asc";
     while (true) {
-      const res = await this.getIndexerRpc().getTransactions(
+      const res = await this.getIndexerRpc().getTransactions<Group>(
         searchKey,
         order,
         `0x${sizeLimit.toString(16)}`,
@@ -299,7 +281,7 @@ export class CkbIndexer implements Indexer {
 
         // batch request by block
         const transactionResponse: OutputToVerify[] = await requestBatch(
-          this.ckbRpcUrl,
+          this.uri,
           requestData
         ).then((response: GetTransactionRPCResult[]) => {
           return response.map(
@@ -418,5 +400,56 @@ export class CkbIndexer implements Indexer {
     const medianTimeEmitter = new EventEmitter();
     this.medianTimeEmitters.push(medianTimeEmitter);
     return medianTimeEmitter;
+  }
+}
+
+export class TerminableCellAdapter implements TerminableCellFetcher {
+  constructor(private getCellsableRpc: { getCells: GetCellsRpc }) {}
+
+  async getCells(
+    searchKey: SearchKey,
+    terminator: Terminator = DefaultTerminator,
+    searchKeyFilter: SearchKeyFilter = {}
+  ): Promise<GetCellsResults> {
+    const infos: Cell[] = [];
+    let cursor: string | undefined = searchKeyFilter.lastCursor;
+    const sizeLimit = searchKeyFilter.sizeLimit || 100;
+    const order = searchKeyFilter.order || "asc";
+    const index = 0;
+    while (true) {
+      const res: GetLiveCellsResult = await this.getCellsableRpc.getCells(
+        searchKey,
+        order,
+        `0x${sizeLimit.toString(16)}`,
+        cursor
+      );
+      const liveCells = res.objects;
+      cursor = res.lastCursor;
+      for (const liveCell of liveCells) {
+        const cell: Cell = {
+          cellOutput: liveCell.output,
+          data: liveCell.outputData,
+          outPoint: liveCell.outPoint ? liveCell.outPoint : undefined,
+          blockNumber: liveCell.blockNumber,
+        };
+        const { stop, push } = terminator(index, cell);
+        if (push) {
+          infos.push(cell);
+        }
+        if (stop) {
+          return {
+            objects: infos,
+            lastCursor: cursor,
+          };
+        }
+      }
+      if (liveCells.length <= sizeLimit) {
+        break;
+      }
+    }
+    return {
+      objects: infos,
+      lastCursor: cursor,
+    };
   }
 }

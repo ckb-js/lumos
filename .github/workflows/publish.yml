@@ -1,10 +1,9 @@
 name: publish
 on:
-  # When Release Pull Request is merged
   push:
     branches:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
-      - 'next/v[0-9]+.[0-9]+.[0-9]+*'
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+      - "next/v[0-9]+.[0-9]+.[0-9]+*"
 
 permissions:
   contents: write # for checkout and tag
@@ -12,7 +11,97 @@ permissions:
   packages: write # for publish
 
 jobs:
+  test-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v1
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install project dependencies and build
+        run: |
+          yarn --ignore-engines --frozen-lockfile
+          yarn build
+          git diff --exit-code
+
+      - name: Prettier check
+        run: yarn lint
+
+      - name: Run test with coverage
+        run: yarn test-coverage
+
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+          files: ./coverage/cobertura-coverage.xml
+          verbose: true # optional (default = false)
+
+  test-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: actions/cache@v1
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install project dependencies and build
+        run: |
+          yarn --ignore-engines --frozen-lockfile
+          yarn build
+      - name: e2e test
+        run: yarn e2e-test
+
+  lint-staged:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: actions/cache@v1
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install project dependencies and build
+        run: |
+          yarn --ignore-engines --frozen-lockfile
+          yarn build
+      - name: Get changed files
+        uses: tj-actions/changed-files@v17.3
+        id: changed-files
+        with:
+          files: |
+            packages/**/src/**/*.ts
+            packages/**/tests/**/*.ts
+      - name: Show all matching files
+        run: |
+          echo "${{ steps.changed-files.outputs.all_changed_files }};"
+      - name: Run lint for changed files
+        if: ${{ steps.changed-files.outputs.all_changed_files != '' }}
+        run: |
+          yarn eslint -c .eslintrc.next.js ${{ steps.changed-files.outputs.all_changed_files }}
   publish:
+    needs: [test-unit, test-e2e, lint-staged]
     name: Publish
     runs-on: ubuntu-latest
     steps:
@@ -31,7 +120,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install
-        run: yarn install
+        run: yarn --frozen-lockfile --frozen-lockfile
       # Define ${CURRENT_VERSION}
       - name: Set Current Version
         run: |
@@ -92,7 +181,7 @@ jobs:
           release_name: ${{ env.CURRENT_VERSION }}
           draft: false
           prerelease: ${{ steps.tag_check.prerelease_check.prerelease }}
-          
+
       - name: Publish
         if: steps.tag_check.outputs.exists_tag == 'false'
         run: |

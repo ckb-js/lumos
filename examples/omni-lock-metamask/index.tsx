@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { helpers, Script } from "@ckb-lumos/lumos";
+import { helpers, Script, config, commons } from "@ckb-lumos/lumos";
 import ReactDOM from "react-dom";
-import { asyncSleep, capacityOf, CONFIG, ethereum, transfer } from "./lib";
+import { asyncSleep, capacityOf, ethereum, transfer } from "./lib";
 
-const app = document.getElementById("root");
-ReactDOM.render(<App />, app);
+// use testnet config
+config.initializeConfig(config.predefined.AGGRON4);
 
 export function App() {
   const [ethAddr, setEthAddr] = useState("");
@@ -29,22 +29,13 @@ export function App() {
     ethereum
       .enable()
       .then(([ethAddr]: string[]) => {
-        const omniLock: Script = {
-          codeHash: CONFIG.SCRIPTS.OMNI_LOCK.CODE_HASH,
-          hashType: CONFIG.SCRIPTS.OMNI_LOCK.HASH_TYPE,
-          // omni flag       pubkey hash   omni lock flags
-          // chain identity   eth addr      function flag()
-          // 00: Nervos       👇            00: owner
-          // 01: Ethereum     👇            01: administrator
-          //      👇          👇            👇
-          args: `0x01${ethAddr.substring(2)}00`,
-        };
+        const omniLockScript = commons.omnilock.createOmnilockScript({ auth: { flag: "ETHEREUM", content: ethAddr } });
 
-        const omniAddr = helpers.generateAddress(omniLock);
+        const omniAddr = helpers.encodeToAddress(omniLockScript);
 
         setEthAddr(ethAddr);
         setOmniAddr(omniAddr);
-        setOmniLock(omniLock);
+        setOmniLock(omniLockScript);
 
         return omniAddr;
       })
@@ -58,7 +49,10 @@ export function App() {
 
     transfer({ amount: transferAmount, from: omniAddr, to: transferAddr })
       .then(setTxHash)
-      .catch((e) => alert(e.message || JSON.stringify(e)))
+      .catch((e) => {
+        console.log(e);
+        alert(e.message || JSON.stringify(e));
+      })
       .finally(() => setIsSendingTx(false));
   }
 
@@ -95,3 +89,6 @@ export function App() {
     </div>
   );
 }
+
+const app = document.getElementById("root");
+ReactDOM.render(<App />, app);

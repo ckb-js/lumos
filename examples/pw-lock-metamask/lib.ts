@@ -1,7 +1,7 @@
 import { BI, Cell, config, helpers, Indexer, RPC, commons } from "@ckb-lumos/lumos";
 import { default as createKeccak } from "keccak";
-import { bytes } from '@ckb-lumos/codec';
-import { blockchain } from '@ckb-lumos/base'
+import { bytes } from "@ckb-lumos/codec";
+import { blockchain } from "@ckb-lumos/base";
 
 export const CONFIG = config.createConfig({
   PREFIX: "ckt",
@@ -21,9 +21,8 @@ export const CONFIG = config.createConfig({
 config.initializeConfig(CONFIG);
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
-const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
-const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const indexer = new Indexer(CKB_RPC_URL);
 
 // prettier-ignore
 interface EthereumRpc {
@@ -117,7 +116,7 @@ export async function transfer(options: Options): Promise<string> {
   const messageForSigning = (() => {
     const SECP_SIGNATURE_PLACEHOLDER = "0x" + "00".repeat(65);
     const newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
-    const witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs))
+    const witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
 
     // fill txSkeleton's witness with 0
     for (let i = 0; i < tx.inputs.toArray().length; i++) {
@@ -150,9 +149,11 @@ export async function transfer(options: Options): Promise<string> {
   if (v >= 27) v -= 27;
   signedMessage = "0x" + signedMessage.slice(2, -2) + v.toString(16).padStart(2, "0");
 
-  const signedWitness = bytes.hexify(blockchain.WitnessArgs.pack({
-    lock: signedMessage,
-  }))
+  const signedWitness = bytes.hexify(
+    blockchain.WitnessArgs.pack({
+      lock: signedMessage,
+    })
+  );
 
   tx = tx.update("witnesses", (witnesses) => witnesses.set(0, signedWitness));
 

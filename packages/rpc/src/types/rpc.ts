@@ -28,6 +28,7 @@ export namespace RPC {
   export type ProposalWindow = CKBComponents.ProposalWindow;
   export type EpochNumberWithFraction = CKBComponents.EpochNumberWithFraction;
   export type JsonBytes = CKBComponents.JsonBytes;
+  export type IOType = CKBComponents.IOType;
 
   export enum TransactionStatus {
     Pending = "pending",
@@ -341,6 +342,77 @@ export namespace RPC {
     max_block_proposals_limit: string;
     primary_epoch_reward_halving_interval: string;
     permanent_difficulty_in_dummy: boolean;
+  }
+
+  export interface Tip {
+    block_hash: Hash256;
+    block_number: BlockNumber;
+  }
+
+  export interface IndexerCell {
+    block_number: BlockNumber;
+    out_point: OutPoint;
+    output: CellOutput;
+    output_data: string;
+    tx_index: string;
+  }
+
+  export type IndexerTransaction<Goruped extends boolean = false> =
+    Goruped extends true
+      ? GroupedIndexerTransaction
+      : UngroupedIndexerTransaction;
+  export interface UngroupedIndexerTransaction {
+    tx_hash: Hash256;
+    block_number: BlockNumber;
+    io_index: string;
+    io_type: IOType;
+    tx_index: string;
+  }
+
+  export interface GroupedIndexerTransaction {
+    tx_hash: Hash256;
+    block_number: BlockNumber;
+    tx_index: string;
+    cells: Array<[IOType, string]>;
+  }
+
+  export interface GetTransactionsResult<Goruped extends boolean = false> {
+    last_cursor: Hash256;
+    objects: IndexerTransaction<Goruped>[];
+  }
+
+  export interface GetLiveCellsResult {
+    last_cursor: Hash256;
+    objects: IndexerCell[];
+  }
+
+  export interface CellsCapacity {
+    capacity: Capacity;
+    block_hash: Hash256;
+    block_number: BlockNumber;
+  }
+
+  export type HexadecimalRange = [string, string];
+  export type ScriptType = "type" | "lock";
+
+  export interface SearchFilter {
+    script?: Script;
+    output_data_len_range?: HexadecimalRange; //empty
+    output_capacity_range?: HexadecimalRange; //empty
+    block_range?: HexadecimalRange; //fromBlock-toBlock
+    script_len_range?: HexadecimalRange;
+  }
+  export interface SearchKey {
+    script: Script;
+    script_type: ScriptType;
+    filter?: SearchFilter;
+  }
+  export interface GetCellsSearchKey extends SearchKey {
+    with_data?: boolean;
+  }
+
+  export interface GetTransactionsSearchKey extends SearchKey {
+    group_by_transaction?: boolean;
   }
 }
 /* eslint-enable camelcase */

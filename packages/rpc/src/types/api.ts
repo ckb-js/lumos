@@ -88,6 +88,7 @@ export namespace CKBComponents {
   export type TxPoolVerbosity = api.TxPoolVerbosity;
   export type RawTxPool = api.RawTxPool;
   export type Consensus = api.Consensus;
+  export type QueryOptions = api.QueryOptions;
 
   export interface TransactionPoint {
     blockNumber: BlockNumber;
@@ -169,4 +170,102 @@ export namespace CKBComponents {
   }
 
   export type TxPoolIds = Record<"pending" | "proposed", Array<Hash256>>;
+  export interface Tip {
+    blockNumber: BlockNumber;
+    blockHash: Hash256;
+  }
+
+  export type ScriptType = "type" | "lock";
+  export type Order = "asc" | "desc";
+  export type IOType = "input" | "output" | "both";
+
+  export interface IndexerCell {
+    blockNumber: BlockNumber;
+    outPoint: OutPoint;
+    output: {
+      capacity: Capacity;
+      lock: Script;
+      type?: Script;
+    };
+    outputData: string;
+    txIndex: string;
+  }
+
+  export interface IndexerCellWithoutData
+    extends Omit<IndexerCell, "outputData"> {
+    outputData: null;
+  }
+
+  export interface GetCellsResult<WithData extends boolean = true> {
+    lastCursor: string;
+    objects: WithData extends true ? IndexerCell[] : IndexerCellWithoutData[];
+  }
+
+  export type IndexerTransaction<Goruped extends boolean = false> =
+    Goruped extends true
+      ? GroupedIndexerTransaction
+      : UngroupedIndexerTransaction;
+
+  export type UngroupedIndexerTransaction = {
+    txHash: Hash256;
+    blockNumber: BlockNumber;
+    ioIndex: Number;
+    ioType: IOType;
+    txIndex: Number;
+  };
+
+  export type GroupedIndexerTransaction = {
+    txHash: Hash256;
+    blockNumber: BlockNumber;
+    txIndex: Number;
+    cells: Array<[IOType, Number]>;
+  };
+
+  export interface GetTransactionsResult<Goruped extends boolean = false> {
+    lastCursor: Hash256;
+    objects: IndexerTransaction<Goruped>[];
+  }
+
+  export interface CKBIndexerQueryOptions extends QueryOptions {
+    outputDataLenRange?: HexadecimalRange;
+    outputCapacityRange?: HexadecimalRange;
+    scriptLenRange?: HexadecimalRange;
+    bufferSize?: number;
+    withData?: boolean;
+    groupByTransaction?: boolean;
+  }
+
+  export type HexadecimalRange = [string, string];
+  export interface SearchFilter {
+    script?: Script;
+    scriptLenRange?: HexadecimalRange;
+    outputDataLenRange?: HexadecimalRange; //empty
+    outputCapacityRange?: HexadecimalRange; //empty
+    blockRange?: HexadecimalRange; //fromBlock-toBlock
+  }
+  export interface SearchKey {
+    script: Script;
+    scriptType: ScriptType;
+    filter?: SearchFilter;
+  }
+  export interface GetLiveCellsResult<WithData extends boolean = true> {
+    lastCursor: string;
+    objects: WithData extends true ? IndexerCell[] : IndexerCellWithoutData[];
+  }
+
+  export interface GetCellsSearchKey<WithData extends boolean = boolean>
+    extends SearchKey {
+    withData?: WithData;
+  }
+
+  export interface GetTransactionsSearchKey<Group extends boolean = boolean>
+    extends SearchKey {
+    groupByTransaction?: Group;
+  }
+
+  export interface CellsCapacity {
+    capacity: Capacity;
+    blockHash: Hash256;
+    blockNumber: BlockNumber;
+  }
 }

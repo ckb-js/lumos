@@ -1,1 +1,2 @@
-export { groupBy, identity, Grouped } from "./groupBy";
+export { groupBy, identity } from "./groupBy";
+export type { Grouped } from "./groupBy";

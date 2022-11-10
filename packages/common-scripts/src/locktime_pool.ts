@@ -56,7 +56,6 @@ export interface LocktimeCell extends Cell {
   withdrawBlockHash?: Hash;
   sinceValidationInfo?: SinceValidationInfo;
 }
-
 export const CellCollector: CellCollectorConstructor = class CellCollector
   implements CellCollectorType
 {
@@ -264,7 +263,9 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
             !validateSince(
               since!,
               this.tipSinceValidationInfo!,
-              sinceValidationInfo
+              // TODO: modify the parameter type of `validateSince`
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              sinceValidationInfo!
             ))
         ) {
           continue;

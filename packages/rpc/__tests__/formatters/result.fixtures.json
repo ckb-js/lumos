@@ -1852,5 +1852,209 @@
         }
       }
     }
+  ],
+  "toTip": [
+    {
+      "result": {
+        "block_hash": "0x03935a4b5e3c03a9c1deb93a39183a9a116c16cff3dc9ab129e847487da0e2b8",
+        "block_number": "0x1"
+      },
+      "expected": {
+        "blockHash": "0x03935a4b5e3c03a9c1deb93a39183a9a116c16cff3dc9ab129e847487da0e2b8",
+        "blockNumber": "0x1"
+      }
+    }
+  ],
+  "toGetCellsResult": [
+    {
+      "result": {
+        "last_cursor": "0x",
+        "objects": [null]
+      },
+      "expected": {
+        "lastCursor": "0x",
+        "objects": [null]
+      }
+    },
+    {
+      "result": {
+        "last_cursor": "0x",
+        "objects": [
+          {
+            "block_number": "0x1",
+            "out_point": {
+              "index": "0",
+              "tx_hash": "0x41524669872de0ce874f926a9799b6944198571094fe94dc7ffa623a97c4f19f"
+            },
+            "output": {
+              "capacity": "5000000000000",
+              "lock": {
+                "args": "0x",
+                "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                "hash_type": "data"
+              }
+            },
+            "output_data": "0x",
+            "tx_index": "0x1"
+          }
+        ]
+      },
+      "expected": {
+        "lastCursor": "0x",
+        "objects": [
+          {
+            "blockNumber": "0x1",
+            "outPoint": {
+              "index": "0",
+              "txHash": "0x41524669872de0ce874f926a9799b6944198571094fe94dc7ffa623a97c4f19f"
+            },
+            "output": {
+              "capacity": "5000000000000",
+              "lock": {
+                "args": "0x",
+                "codeHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                "hashType": "data"
+              }
+            },
+            "outputData": "0x",
+            "txIndex": "0x1"
+          }
+        ]
+      }
+    }
+  ],
+  "toGetTransactionsResult": [
+    {
+      "result": null,
+      "expected": null
+    },
+    {
+      "result": {
+        "last_cursor": "0x",
+        "objects": [null]
+      },
+      "expected": {
+        "lastCursor": "0x",
+        "objects": [null]
+      }
+    },
+    {
+      "result": {
+        "last_cursor": "0x",
+        "objects": [
+          {
+              "block_number": "0x1",
+              "io_index": "0x1",
+              "io_type": "output",
+              "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "tx_index": "0x4"
+          },
+          {
+            "block_number": "0x2",
+            "io_index": "0x0",
+            "io_type": "input",
+            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "tx_index": "0x5"
+          }
+        ]
+      },
+      "expected": {
+        "lastCursor": "0x",
+        "objects": [
+          {
+              "blockNumber": "0x1",
+              "ioIndex": "0x1",
+              "ioType": "output",
+              "txHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+              "txIndex": "0x4"
+          },
+          {
+            "blockNumber": "0x2",
+            "ioIndex": "0x0",
+            "ioType": "input",
+            "txHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "txIndex": "0x5"
+          }
+        ]
+      }
+    },
+    {
+      "result": {
+        "last_cursor": "0x",
+        "objects": [
+          {
+            "block_number": "0x1",
+            "cells": [
+              ["input", "0x1"],
+              ["output", "0x1"]
+            ],
+            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "tx_index": "0x4"
+          },
+          {
+            "block_number": "0x2",
+            "cells": [
+              ["input", "0x0"],
+              ["output", "0x0"]
+            ],
+            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "tx_index": "0x5"
+          }
+        ]
+      },
+      "expected": {
+        "lastCursor": "0x",
+        "objects": [
+          {
+            "blockNumber": "0x1",
+            "cells": [
+              ["input", "0x1"],
+              ["output", "0x1"]
+            ],
+            "txHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "txIndex": "0x4"
+          },
+          {
+            "blockNumber": "0x2",
+            "cells": [
+              ["input", "0x0"],
+              ["output", "0x0"]
+            ],
+            "txHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+            "txIndex": "0x5"
+          }
+        ]
+      }
+    }
+  ],
+  "toCellsCapacity": [
+    {
+      "result": {
+        "capacity": "0xeeee",
+        "block_hash": "0x03935a4b5e3c03a9c1deb93a39183a9a116c16cff3dc9ab129e847487da0e2b8",
+        "block_number": "0x1"
+      },
+      "expected": {
+        "capacity": "0xeeee",
+        "blockHash": "0x03935a4b5e3c03a9c1deb93a39183a9a116c16cff3dc9ab129e847487da0e2b8",
+        "blockNumber": "0x1"
+      }
+    },
+    {
+      "result": {
+        "capacity": "0x",
+        "block_hash": "0x",
+        "block_number": "0x"
+      },
+      "expected": {
+        "capacity": "0x",
+        "blockHash": "0x",
+        "blockNumber": "0x"
+      }
+    },
+    {
+      "result": null,
+      "expected": null
+    }
   ]
 }

@@ -1,0 +1,53 @@
+{
+  "name": "@ckb-lumos/e2e-test",
+  "version": "0.19.0",
+  "description": "CKB E2E test",
+  "private": true,
+  "homepage": "https://github.com/ckb-js/lumos#readme",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckb-js/lumos.git"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "@ckb-lumos/base": "^0.19.0",
+    "@ckb-lumos/bi": "^0.19.0",
+    "@ckb-lumos/ckb-indexer": "^0.19.0",
+    "@ckb-lumos/rpc": "^0.19.0",
+    "@ckb-lumos/toolkit": "^0.19.0",
+    "events": "^3.3.0"
+  },
+  "devDependencies": {
+    "@ckb-lumos/testkit": "^0.19.0",
+    "@types/request": "^2.48.8",
+    "@types/sinon": "^10.0.6",
+    "find-process": "^1.4.7",
+    "request": "^2.88.2",
+    "sinon": "^12.0.1",
+    "ts-node": "^10.4.0"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "posttest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml down)",
+    "pretest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml up -d)",
+    "test:e2e": "ava **/*.e2e.test.ts --timeout=10m"
+  },
+  "bugs": {
+    "url": "https://github.com/ckb-js/lumos/issues"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  }
+}

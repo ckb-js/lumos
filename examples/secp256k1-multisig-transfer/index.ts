@@ -1,16 +1,5 @@
-import { bytes } from '@ckb-lumos/codec';
-import {
-  Indexer,
-  helpers,
-  Script,
-  RPC,
-  hd,
-  config,
-  Cell,
-  commons,
-  WitnessArgs,
-  BI,
-} from "@ckb-lumos/lumos";
+import { bytes } from "@ckb-lumos/codec";
+import { Indexer, helpers, Script, RPC, hd, config, Cell, commons, WitnessArgs, BI } from "@ckb-lumos/lumos";
 import { values, blockchain } from "@ckb-lumos/base";
 import { parseFromInfo, MultisigScript } from "@ckb-lumos/common-scripts/lib/from_info";
 import { BIish } from "@ckb-lumos/bi";
@@ -20,9 +9,8 @@ const { ScriptValue } = values;
 const { AGGRON4 } = config.predefined;
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
-const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
-const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const indexer = new Indexer(CKB_RPC_URL);
 
 const ALICE = {
   PRIVATE_KEY: "0x2c56a92a03d767542222432e4f2a0584f01e516311f705041d86b1af7573751f",
@@ -153,7 +141,7 @@ export async function transfer(options: Options): Promise<string> {
     };
 
     if (witness !== "0x") {
-      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness))
+      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
       const lock = witnessArgs.lock;
       if (!!lock && !!newWitnessArgs.lock && !bytes.equal(lock, newWitnessArgs.lock)) {
         throw new Error("Lock field in first witness is set aside for signature!");
@@ -167,7 +155,7 @@ export async function transfer(options: Options): Promise<string> {
         newWitnessArgs.outputType = outputType;
       }
     }
-    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs))
+    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
     txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
   }
 
