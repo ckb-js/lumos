@@ -1,10 +1,11 @@
 {
-  "name": "@ckb-lumos/e2e-test",
-  "version": "0.19.0",
-  "description": "CKB E2E test",
-  "private": true,
+  "name": "@ckb-lumos/light-client",
+  "version": "0.19.0-alpha.3",
+  "description": "CKB light client",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "engines": {
     "node": ">=12.0.0"
   },
@@ -12,34 +13,32 @@
     "type": "git",
     "url": "git+https://github.com/ckb-js/lumos.git"
   },
-  "directories": {
-    "test": "tests"
-  },
+  "files": [
+    "lib",
+    "src"
+  ],
   "dependencies": {
-    "@ckb-lumos/base": "^0.19.0",
-    "@ckb-lumos/bi": "^0.19.0",
-    "@ckb-lumos/ckb-indexer": "^0.19.0",
-    "@ckb-lumos/rpc": "^0.19.0",
-    "@ckb-lumos/toolkit": "^0.19.0",
-    "async-retry": "^1.3.3",
+    "@ckb-lumos/base": "^0.19.0-alpha.3",
+    "@ckb-lumos/ckb-indexer": "^0.19.0-alpha.3",
+    "cross-fetch": "^3.1.5",
     "events": "^3.3.0"
   },
   "devDependencies": {
-    "@ckb-lumos/testkit": "^0.19.0",
-    "@types/async-retry": "^1.4.5",
+    "@ckb-lumos/testkit": "^0.19.0-alpha.3",
     "@types/request": "^2.48.8",
     "@types/sinon": "^10.0.6",
-    "find-process": "^1.4.7",
-    "request": "^2.88.2",
     "sinon": "^12.0.1",
     "ts-node": "^10.4.0"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "posttest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml down)",
-    "pretest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml up -d)",
-    "test:e2e": "ava **/*.e2e.test.ts --timeout=10m"
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
   },
   "bugs": {
     "url": "https://github.com/ckb-js/lumos/issues"
@@ -51,5 +50,8 @@
     "require": [
       "ts-node/register"
     ]
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

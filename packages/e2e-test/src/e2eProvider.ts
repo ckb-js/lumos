@@ -13,6 +13,7 @@ import {
   OtherQueryOptions,
 } from "@ckb-lumos/ckb-indexer/lib/type";
 import { common, dao } from "@ckb-lumos/common-scripts";
+import retry from "async-retry";
 import {
   TransactionSkeleton,
   parseAddress,
@@ -29,7 +30,7 @@ import {
 } from "@ckb-lumos/config-manager";
 import { RPC } from "@ckb-lumos/rpc";
 import { BI, BIish } from "@ckb-lumos/bi";
-import { asyncSleep, generateHDAccount } from "./utils";
+import { asyncSleep, randomSecp256k1Account } from "./utils";
 import { FaucetQueue } from "./faucetQueue";
 
 type LockScriptLike = Address | Script;
@@ -110,7 +111,9 @@ export class E2EProvider {
       amount,
     });
 
-    await this.waitTransactionCommitted(txHash);
+    await retry(async () => await this.waitTransactionCommitted(txHash), {
+      retries: 3,
+    });
     onRelease();
     return txHash;
   }
@@ -222,7 +225,7 @@ export class E2EProvider {
     fromPk: HexString;
     amount: BIish;
   }): Promise<string> {
-    const from = generateHDAccount(options.fromPk);
+    const from = randomSecp256k1Account(options.fromPk);
 
     let txSkeleton = TransactionSkeleton({ cellProvider: this.indexer });
 
@@ -248,7 +251,7 @@ export class E2EProvider {
     amount?: BIish;
   }): Promise<string> {
     const { fromPk, amount = BI.from(1000 * 10 ** 8) } = options;
-    const from = generateHDAccount(fromPk);
+    const from = randomSecp256k1Account(fromPk);
 
     let txSkeleton = TransactionSkeleton({ cellProvider: this.indexer });
 
