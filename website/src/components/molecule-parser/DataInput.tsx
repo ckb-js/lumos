@@ -54,7 +54,7 @@ export const DataInput: React.FC<Props> = (props) => {
       const result = props.codec.unpack(formatInput(inputData))
       setResult(result)
       setErrorMsg("")
-    } catch (error: any) {
+    } catch (error: unknown) {
       setResult(undefined)
       setErrorMsg((error as Error).message)
     }

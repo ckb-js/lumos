@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { DataInput } from "@site/src/components/molecule-parser/DataInut"
+import { DataInput } from "@site/src/components/molecule-parser/DataInput"
 import { Molecule } from "@site/src/components/molecule-parser/Molecule"
 import { SchemaSelect } from "@site/src/components/molecule-parser/SchemaSelect"
 import Stack from "@mui/material/Stack"
