@@ -1,0 +1,124 @@
+name = "ckb_dev"
+
+[genesis]
+version = 0
+parent_hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+timestamp = 0
+compact_target = 0x20010000
+uncles_hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+nonce = "0x0"
+
+[genesis.genesis_cell]
+message = "ckb_dev"
+
+[genesis.genesis_cell.lock]
+code_hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+args = "0x"
+hash_type = "data"
+
+# An array list paths to system cell files, which is absolute or relative to
+# the directory containing this config file.
+[[genesis.system_cells]]
+file = { bundled = "specs/cells/secp256k1_blake160_sighash_all" }
+create_type_id = true
+capacity = 100_000_0000_0000
+[[genesis.system_cells]]
+file = { bundled = "specs/cells/dao" }
+create_type_id = true
+capacity = 16_000_0000_0000
+[[genesis.system_cells]]
+file = { bundled = "specs/cells/secp256k1_data" }
+create_type_id = false
+capacity = 1_048_617_0000_0000
+[[genesis.system_cells]]
+file = { bundled = "specs/cells/secp256k1_blake160_multisig_all" }
+create_type_id = true
+capacity = 100_000_0000_0000
+
+[genesis.system_cells_lock]
+code_hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+args = "0x"
+hash_type = "data"
+
+# Dep group cells
+[[genesis.dep_groups]]
+name = "secp256k1_blake160_sighash_all"
+files = [
+  { bundled = "specs/cells/secp256k1_data" },
+  { bundled = "specs/cells/secp256k1_blake160_sighash_all" },
+]
+[[genesis.dep_groups]]
+name = "secp256k1_blake160_multisig_all"
+files = [
+  { bundled = "specs/cells/secp256k1_data" },
+  { bundled = "specs/cells/secp256k1_blake160_multisig_all" },
+]
+
+# For first 11 block
+[genesis.bootstrap_lock]
+code_hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+args = "0x"
+hash_type = "type"
+
+# Burn
+[[genesis.issued_cells]]
+capacity = 8_400_000_000_00000000
+lock.code_hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+lock.args = "0x62e907b15cbf27d5425399ebf6f0fb50ebb88f18"
+lock.hash_type = "data"
+
+# alice
+# issue for random generated private key:0xfd686a48908e8caf97723578bf85f746e1e1d8956cb132f6a2e92e7234a2a245
+# address: ckt1qyqw8yx5hx6vwcm7eqren0d0v39wvfwdhy3q2807pp
+[[genesis.issued_cells]]
+capacity = 20_000_000_000_00000000
+lock.code_hash = "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8"
+lock.args = "0xe390d4b9b4c7637ec80799bdaf644ae625cdb922"
+lock.hash_type = "type"
+
+# bob
+# issue for random generated private key:0x5368b818f59570b5bc078a6a564f098a191dcb8938d95c413be5065fd6c42d32
+# address: ckt1qyqtdhd6s7a44a0s2wc6uk7tcl6duq68nalqvzxw09
+[[genesis.issued_cells]]
+capacity = 20_000_000_000_00000000
+lock.code_hash = "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8"
+lock.args = "0xb6ddba87bb5af5f053b1ae5bcbc7f4de03479f7e"
+lock.hash_type = "type"
+
+# charlie
+# issue for random generated private key:0xd6013cd867d286ef84cc300ac6546013837df2b06c9f53c83b4c33c2417f6a07
+# address: ckt1qyqxek9w28u3htxhjyqjd7yqzw9nptzaxq2shqlft0
+[[genesis.issued_cells]]
+capacity = 20_000_000_000_00000000
+lock.code_hash = "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8"
+lock.args = "0x6cd8ae51f91bacd7910126f880138b30ac5d3015"
+lock.hash_type = "type"
+
+# issue for random generated private key: 0x13b08bb054d5dd04013156dced8ba2ce4d8cc5973e10d905a228ea1abc267e60
+[[genesis.issued_cells]]
+capacity = 20_000_000_000_00000000
+lock.code_hash = "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8"
+lock.args = "0xcf055e9d2d50fd94120fa6d981728a9be55bff3b"
+lock.hash_type = "type"
+
+# issue for random generated private key: 0xa6b023fec4fc492c23c0e999ab03b01a6ca5524a3560725887a8de4362f9c9cc
+[[genesis.issued_cells]]
+capacity = 20_000_000_000_00000000
+lock.code_hash = "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8"
+lock.args = "0xafe0a2b3785bf631f19a31a4bfda90b0ddb07678"
+lock.hash_type = "type"
+
+[params]
+initial_primary_epoch_reward = 1_917_808_21917808
+secondary_epoch_reward = 613_698_63013698
+max_block_cycles = 10_000_000_000
+cellbase_maturity = 0
+primary_epoch_reward_halving_interval = 8760
+epoch_duration_target = 1
+genesis_epoch_length = 1
+# For development and testing purposes only.
+# Keep difficulty be permanent if the pow is Dummy. (default: false)
+permanent_difficulty_in_dummy = true
+
+[pow]
+func = "Dummy"

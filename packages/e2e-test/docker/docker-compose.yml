@@ -1,16 +1,32 @@
 version: '3.3'
 services:
   ckb:
-    image: lumos/ckb-dev:v0.103.0
+    image: lumos/ckb-dev
     build: ckb
     ports:
       - '8128:8114'
     networks:
-      - internal_network
-      - external_network
+      nn:
+        ipv4_address: 192.168.3.100
+
+  light-client:
+    image: lumos/ckb-light-client-dev
+    build: light-client
+    ports:
+      - '9000:9000'
+    environment:
+      - ckb_host=192.168.3.100
+    depends_on:
+      - ckb
+    restart: always
+    networks:
+      nn:
+        ipv4_address: 192.168.3.101
 
 networks:
-  internal_network:
-    internal: true
-  external_network:
-
+  nn: 
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.3.0/24

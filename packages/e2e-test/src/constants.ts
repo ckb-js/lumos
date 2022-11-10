@@ -1,4 +1,5 @@
 export const CKB_RPC_URL = "http://127.0.0.1:8128/rpc";
+export const LIGHT_CLIENT_RPC_URL = "http://127.0.0.1:9000";
 
 // from docker/ckb/dev.toml [[genesis.system_cells]]
 export const GENESIS_CELL_PRIVATEKEYS = [
