@@ -1,14 +1,12 @@
 import { Transaction } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
-import { blockchain } from "@ckb-lumos/base";
 import { BI, config, helpers, Indexer, RPC, commons, hd, Hash } from "@ckb-lumos/lumos";
 
 export const CONFIG = config.predefined.AGGRON4;
 config.initializeConfig(CONFIG);
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
-const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
-const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const indexer = new Indexer(CKB_RPC_URL);
 
 export function asyncSleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

@@ -1,9 +1,0 @@
-import blockchain;
-
-array Byte64 [byte; 64];
-
-table CardanoWitnessLock {
-    pubkey: Byte32,
-    signature: Byte64,
-    sig_structure: Bytes,
-}

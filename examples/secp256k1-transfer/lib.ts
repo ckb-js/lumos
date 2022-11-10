@@ -1,26 +1,13 @@
-import { bytes } from '@ckb-lumos/codec';
-import {
-  Indexer,
-  helpers,
-  Address,
-  Script,
-  RPC,
-  hd,
-  config,
-  Cell,
-  commons,
-  WitnessArgs,
-  BI,
-} from "@ckb-lumos/lumos";
-import { values , blockchain} from "@ckb-lumos/base";
+import { bytes } from "@ckb-lumos/codec";
+import { Indexer, helpers, Address, Script, RPC, hd, config, Cell, commons, WitnessArgs, BI } from "@ckb-lumos/lumos";
+import { values, blockchain } from "@ckb-lumos/base";
 const { ScriptValue } = values;
 
 export const { AGGRON4 } = config.predefined;
 
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
-const CKB_INDEXER_URL = "https://testnet.ckb.dev/indexer";
 const rpc = new RPC(CKB_RPC_URL);
-const indexer = new Indexer(CKB_INDEXER_URL, CKB_RPC_URL);
+const indexer = new Indexer(CKB_RPC_URL);
 
 type Account = {
   lockScript: Script;
@@ -128,11 +115,10 @@ export async function transfer(options: Options): Promise<string> {
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
     const newWitnessArgs: WitnessArgs = {
       /* 65-byte zeros in hex */
-      lock:
-        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      lock: "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
     };
     if (witness !== "0x") {
-      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness))
+      const witnessArgs = blockchain.WitnessArgs.unpack(bytes.bytify(witness));
       const lock = witnessArgs.lock;
       if (!!lock && !!newWitnessArgs.lock && !bytes.equal(lock, newWitnessArgs.lock)) {
         throw new Error("Lock field in first witness is set aside for signature!");
@@ -146,7 +132,7 @@ export async function transfer(options: Options): Promise<string> {
         newWitnessArgs.outputType = outputType;
       }
     }
-    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs))
+    witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
     txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
   }
 

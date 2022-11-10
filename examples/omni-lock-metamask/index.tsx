@@ -49,7 +49,10 @@ export function App() {
 
     transfer({ amount: transferAmount, from: omniAddr, to: transferAddr })
       .then(setTxHash)
-      .catch((e) => alert(e.message || JSON.stringify(e)))
+      .catch((e) => {
+        console.log(e);
+        alert(e.message || JSON.stringify(e));
+      })
       .finally(() => setIsSendingTx(false));
   }
 
