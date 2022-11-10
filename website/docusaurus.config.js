@@ -63,10 +63,8 @@ const config = {
     ],
     () => ({
       name: "node-polyfill",
-      configureWebpack(config) {
-        console.log(config.target);
+      configureWebpack() {
         return {
-          target: 'browserslist:modern',
           resolve: {
             fallback: {
               crypto: require.resolve("crypto-browserify"),
