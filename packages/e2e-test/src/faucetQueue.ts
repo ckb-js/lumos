@@ -13,6 +13,10 @@ export interface FaucetQueue {
 }
 
 export class FileFaucetQueue implements FaucetQueue {
+  static getInstance(): FileFaucetQueue {
+    return new FileFaucetQueue(join(__dirname, "../tmp/"));
+  }
+
   constructor(
     private dirPath: string,
     private keys: Array<string> = GENESIS_CELL_PRIVATEKEYS

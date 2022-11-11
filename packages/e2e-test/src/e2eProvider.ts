@@ -13,7 +13,6 @@ import {
   OtherQueryOptions,
 } from "@ckb-lumos/ckb-indexer/lib/type";
 import { common, dao } from "@ckb-lumos/common-scripts";
-import retry from "async-retry";
 import {
   TransactionSkeleton,
   parseAddress,
@@ -105,17 +104,21 @@ export class E2EProvider {
     const { claimer, amount = BI.from(1000 * 10 ** 8) } = options;
     const { value: idlePk, onRelease } = await this.faucetQueue.pop();
 
-    const txHash = await this.transferCKB({
-      to: typeof claimer === "string" ? claimer : encodeToAddress(claimer),
-      fromPk: idlePk,
-      amount,
-    });
+    try {
+      const txHash = await this.transferCKB({
+        to: typeof claimer === "string" ? claimer : encodeToAddress(claimer),
+        fromPk: idlePk,
+        amount,
+      });
 
-    await retry(async () => await this.waitTransactionCommitted(txHash), {
-      retries: 3,
-    });
-    onRelease();
-    return txHash;
+      await this.waitTransactionCommitted(txHash);
+      onRelease();
+      return txHash;
+    } catch {
+      onRelease();
+      await asyncSleep(3000);
+      return this.claimCKB(options);
+    }
   }
 
   // wait for transaction status to be committed
@@ -133,13 +136,20 @@ export class E2EProvider {
     }
 
     let duration = 0;
-    while (tx.txStatus.status !== "committed") {
+    while (
+      tx.txStatus.status === "pending" ||
+      tx.txStatus.status === "proposed"
+    ) {
       if (duration > timeout) {
         throw new Error(`wait transaction committed timeout ${txHash}`);
       }
       await asyncSleep(this.pollIntervalMs);
       duration += this.pollIntervalMs;
       tx = await this.rpc.getTransaction(txHash);
+    }
+
+    if (tx.txStatus.status !== "committed") {
+      throw new Error("transaction status is not committed");
     }
 
     let rpcTip = Number(await this.rpc.getTipBlockNumber());
