@@ -2,7 +2,6 @@ import anyTest, { TestInterface } from "ava";
 import { randomSecp256k1Account, Account } from "../src/utils";
 import { CKB_RPC_URL } from "../src/constants";
 import { E2EProvider } from "../src/e2eProvider";
-import { join } from "path";
 import { FileFaucetQueue } from "../src/faucetQueue";
 import { Cell } from "@ckb-lumos/base";
 import { Config } from "@ckb-lumos/config-manager";
@@ -23,9 +22,11 @@ const test = anyTest as TestInterface<TestContext>;
 
 const rpc = new RPC(CKB_RPC_URL);
 const indexer = new Indexer(CKB_RPC_URL);
-
-const faucetQueue = new FileFaucetQueue(join(__dirname, "../tmp/"));
-const e2eProvider = new E2EProvider({ indexer, rpc, faucetQueue: faucetQueue });
+const e2eProvider = new E2EProvider({
+  indexer,
+  rpc,
+  faucetQueue: FileFaucetQueue.getInstance(),
+});
 
 test.before(async (t) => {
   const config = await e2eProvider.loadLocalConfig();

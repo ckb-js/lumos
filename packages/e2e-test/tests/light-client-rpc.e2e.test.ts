@@ -2,7 +2,6 @@ import anyTest, { TestInterface } from "ava";
 import { asyncSleep, randomSecp256k1Account, Account } from "../src/utils";
 import { CKB_RPC_URL, LIGHT_CLIENT_RPC_URL } from "../src/constants";
 import { E2EProvider } from "../src/e2eProvider";
-import { join } from "path";
 import { FileFaucetQueue } from "../src/faucetQueue";
 import { Cell } from "@ckb-lumos/base";
 import { Config } from "@ckb-lumos/config-manager";
@@ -29,8 +28,11 @@ const test = anyTest as TestInterface<TestContext>;
 const rpc = new RPC(CKB_RPC_URL);
 const indexer = new Indexer(CKB_RPC_URL);
 const lightClientRPC = new LightClientRPC(LIGHT_CLIENT_RPC_URL);
-const faucetQueue = new FileFaucetQueue(join(__dirname, "../tmp/"));
-const e2eProvider = new E2EProvider({ indexer, rpc, faucetQueue: faucetQueue });
+const e2eProvider = new E2EProvider({
+  indexer,
+  rpc,
+  faucetQueue: FileFaucetQueue.getInstance(),
+});
 
 async function waitLightClientPrepared(lightClientRpc: LightClientRPC) {
   while (true) {
