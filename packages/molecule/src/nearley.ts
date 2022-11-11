@@ -71,7 +71,7 @@ const checkDuplicateNames = (results: MolType[]) => {
     }
   });
 };
-const checkDependencies = (results: MolType[]) => {
+export const checkDependencies = (results: MolType[]): void => {
   const map = toMolTypeMap(results);
   for (const key in map) {
     const molItem = map[key];

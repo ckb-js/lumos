@@ -29,7 +29,7 @@ test("should parse sample with refs", (t) => {
     `
     vector OutPointVec <OutPoint>;
   `,
-    { refs: { OutPoint: blockchain.OutPoint } }
+    { refs: { OutPoint: blockchain.OutPoint }, skipDependenciesCheck: false }
   );
   t.deepEqual(
     result.OutPointVec.unpack(
@@ -48,7 +48,8 @@ test("should parse sample with refs", (t) => {
 test("should parse blockchain.mol", (t) => {
   const parser = createParser();
   // https://github.com/nervosnetwork/ckb/blob/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol
-  const result = parser.parse(`
+  const result = parser.parse(
+    `
   /* Basic Types */
 
   // as a byte array in little endian.
@@ -168,6 +169,8 @@ test("should parse blockchain.mol", (t) => {
       input_type:             BytesOpt,          // Type args for input
       output_type:            BytesOpt,          // Type args for output
   }
-  `);
+  `,
+    { refs: {}, skipDependenciesCheck: false }
+  );
   t.deepEqual(result.Uint8.unpack("0x01"), 1);
 });

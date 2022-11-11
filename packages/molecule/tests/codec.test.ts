@@ -5,6 +5,7 @@ import { toMolTypeMap } from "../src/utils";
 import { CodecMap, MolType } from "../src/type";
 import { createCodecMap } from "../src/codec";
 import { BI } from "@ckb-lumos/bi";
+import { checkDependencies } from "../src/nearley";
 
 test.before(() => {
   // override valueOf of jsbi to make it comparable under ava test evironment
@@ -16,10 +17,30 @@ test.before(() => {
 test("test simple codec", (t) => {
   const tokens: MolType[] = [
     { item: "byte", item_count: 1, name: "Uint8", type: "array" },
+    { item: "byte", item_count: 64, name: "Uint512", type: "array" },
+    { type: "option", name: "NumberOpt", item: "byte" },
+    { type: "union", name: "PingPayload", items: ["byte", "Uint8"] },
   ];
   const codecMap = createCodecMap(toMolTypeMap(tokens));
   t.truthy(codecMap["Uint8"].unpack("0x01") === 1);
+  t.truthy(
+    codecMap["Uint512"]
+      .unpack(
+        "0x01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      )
+      .toNumber() === 1
+  );
   t.truthy(codecMap["Uint8"].unpack("0xff") === 255);
+});
+
+test("should UnitXX throw error if decimals not supported", (t) => {
+  const tokens: MolType[] = [
+    { item: "byte", item_count: 1, name: "Uint88", type: "array" },
+  ];
+
+  t.throws(() => {
+    createCodecMap(toMolTypeMap(tokens));
+  });
 });
 
 test("test codec with refs", (t) => {
@@ -185,6 +206,7 @@ const ast: MolType[] = [
     ],
   },
 ];
+checkDependencies(ast);
 const codecMap = createCodecMap(toMolTypeMap(ast));
 // below test cases come from:
 // https://github.com/ckb-js/lumos/blob/e33aaa10d831edd58e904cb2215ea3148c37fba3/packages/base/tests/serialize.test.ts
