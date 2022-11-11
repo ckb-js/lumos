@@ -11,9 +11,7 @@ export function assertHexDecimal(str: string, byteLength?: number): void {
   if (byteLength) {
     let regex = HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP.get(byteLength);
     if (!regex) {
-      const newRegex = RegExp(
-        String.raw`^0x([0-9a-fA-F]){1,${byteLength * 2}}$`
-      );
+      const newRegex = new RegExp(`^0x([0-9a-fA-F]){1,${byteLength * 2}}$`);
       HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP.set(byteLength, newRegex);
       regex = newRegex;
     }
@@ -34,8 +32,8 @@ export function assertHexString(str: string, byteLength?: number): void {
   if (byteLength) {
     let regex = HEX_STRING_WITH_BYTELENGTH_REGEX_MAP.get(byteLength);
     if (!regex) {
-      const newRegex = RegExp(
-        String.raw`^0x([0-9a-fA-F][0-9a-fA-F]){${byteLength}}$`
+      const newRegex = new RegExp(
+        `^0x([0-9a-fA-F][0-9a-fA-F]){${byteLength}}$`
       );
       HEX_STRING_WITH_BYTELENGTH_REGEX_MAP.set(byteLength, newRegex);
       regex = newRegex;

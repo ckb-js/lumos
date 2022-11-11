@@ -1,0 +1,13 @@
+---
+title: Molecule Parser
+---
+
+import { MoleculeParser } from "./MoleculeParser";
+
+[Rfc-008](https://github.com/nervosnetwork/rfcs/blob/e419bb7ea79ebf996a104b1a7e844c792c8ab3c5/rfcs/0008-serialization/0008-serialization.md) has defined the data serialization standard on CKB.  
+
+This tool provides an online decoder for serialized data with known schemas.
+
+Since it is very commonly used on chain, we have added [blockchain.mol](https://github.com/nervosnetwork/ckb/blob/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol) as built-in schemas to this tool.
+
+<MoleculeParser />
