@@ -5,10 +5,10 @@ and [CKB Light Client](https://github.com/nervosnetwork/ckb-light-client) both c
 cells, so they both work as Lumos' CellCollector
 
 :::info
-To make the CKB client role as an indexer, make sure the **CKB client >= 0.105.0**
+To make the [CKB client](https://github.com/nervosnetwork/ckb/releases) role as an indexer, make sure the **CKB client >= 0.105.0**
 with [indexer on](https://github.com/nervosnetwork/ckb/pull/3609)
 
-To make the Light client role as an indexer, make sure scripts you care about has
+To make the [Light client](https://github.com/nervosnetwork/ckb-light-client) role as an indexer, make sure scripts you care about has
 been [set_scripts](https://github.com/nervosnetwork/ckb-light-client#set_scripts)
 :::
 
