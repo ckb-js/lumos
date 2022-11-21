@@ -6,12 +6,14 @@ export enum FetchFlag {
   Fetched = "fetched",
   Fetching = "fetching",
   Added = "added",
+  NotFound = "not_found",
 }
 
 export type FetchHeaderResult =
   | { status: FetchFlag.Fetched; data: Header }
   | { status: FetchFlag.Fetching; firstSent: string }
-  | { status: FetchFlag.Added; timestamp: string };
+  | { status: FetchFlag.Added; timestamp: string }
+  | { status: FetchFlag.NotFound };
 
 export type TransactionWithHeader = {
   transaction: Transaction;
@@ -21,7 +23,8 @@ export type TransactionWithHeader = {
 export type FetchTransactionResult =
   | { status: FetchFlag.Fetched; data: TransactionWithHeader }
   | { status: FetchFlag.Fetching; firstSent: string }
-  | { status: FetchFlag.Added; timestamp: string };
+  | { status: FetchFlag.Added; timestamp: string }
+  | { status: FetchFlag.NotFound };
 
 export type LightClientScript = {
   script: Script;
