@@ -20,6 +20,7 @@ import {
   FetchHeaderResult,
   FetchTransactionResult,
   LightClientScript,
+  TransactionWithHeader,
 } from "./type";
 import fetch from "cross-fetch";
 
@@ -40,11 +41,21 @@ export class LightClientRPC {
     return utils.deepCamel(await request(this.uri, "fetch_header", params));
   }
 
+  async getHeader(blockHash: string): Promise<Header> {
+    const params = [blockHash];
+    return utils.deepCamel(await request(this.uri, "get_header", params));
+  }
+
   async fetchTransaction(txHash: string): Promise<FetchTransactionResult> {
     const params = [txHash];
     return utils.deepCamel(
       await request(this.uri, "fetch_transaction", params)
     );
+  }
+
+  async getTransaction(txHash: string): Promise<TransactionWithHeader> {
+    const params = [txHash];
+    return utils.deepCamel(await request(this.uri, "get_transaction", params));
   }
 
   async sendTransaction(

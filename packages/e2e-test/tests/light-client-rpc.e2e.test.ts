@@ -91,6 +91,29 @@ async function waitLightClientFetchTransaction(
   }
 }
 
+async function waitLightClientFetchHeader(
+  lightClientRpc: LightClientRPC,
+  blockHash: string
+) {
+  let notFoundCount = 0;
+  while (true) {
+    const result = await lightClientRpc.fetchHeader(blockHash);
+
+    if (result.status === FetchFlag.NotFound) {
+      if (notFoundCount > 3) {
+        throw new Error("block not found");
+      }
+      notFoundCount++;
+    }
+
+    if (result.status === FetchFlag.Fetched) {
+      return result.data;
+    }
+
+    await asyncSleep(3000);
+  }
+}
+
 test.before(async (t) => {
   const config = await e2eProvider.loadLocalConfig();
   const alice = randomSecp256k1Account();
@@ -223,6 +246,32 @@ test.serial("light-client get_cells_capacity rpc", async (t) => {
 
   t.deepEqual(result.capacity, capacity.toHexString());
 });
+
+test.serial("light-client fetch_header & get_header rpc", async (t) => {
+  const tipHeader = await lightClientRPC.getTipHeader();
+  const header = await waitLightClientFetchHeader(
+    lightClientRPC,
+    tipHeader.hash
+  );
+  t.deepEqual(header, tipHeader);
+
+  const gotHeader = await lightClientRPC.getHeader(tipHeader.hash);
+  t.deepEqual(gotHeader, tipHeader);
+});
+
+test.serial(
+  "light-client fetch_transaction & get_transaction rpc",
+  async (t) => {
+    const alice = randomSecp256k1Account();
+    const txHash = await e2eProvider.claimCKB({ claimer: alice.address });
+
+    const tx = await waitLightClientFetchTransaction(lightClientRPC, txHash);
+    t.deepEqual(tx.transaction.hash, txHash);
+
+    const gotTx = await lightClientRPC.getTransaction(txHash);
+    t.deepEqual(gotTx.transaction.hash, txHash);
+  }
+);
 
 test.serial("light-client send_transaction rpc", async (t) => {
   const alice = randomSecp256k1Account();
