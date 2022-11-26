@@ -379,6 +379,14 @@ export function createTransactionFromSkeleton(
 type Promisable<T> = Promise<T> | T;
 export type LiveCellFetcher = (outPoint: OutPoint) => Promisable<Cell>;
 
+/**
+ * create a {@link TransactionSkeleton} from a {@link Transaction}
+ * @example
+ * ```js
+ * const fetcher = new RPC('localhost:8114').getLiveCell
+ * const skeleton = await createTransactionSkeleton({ transaction, fetcher });
+ * ```
+ */
 export async function createTransactionSkeleton(
   transaction: Transaction,
   fetcher: LiveCellFetcher
