@@ -127,18 +127,13 @@ test.before(async (t) => {
   await Promise.all([
     e2eProvider.claimCKB({ claimer: alice.address }),
     e2eProvider.claimCKB({ claimer: alice.address }),
+    e2eProvider.claimCKB({ claimer: alice.address }),
   ]);
 
   await e2eProvider.waitForBlock({
     relative: true,
     value: 1,
   });
-
-  await Promise.all([e2eProvider.claimCKB({ claimer: alice.address })]);
-
-  await e2eProvider.waitTransactionCommitted(
-    await e2eProvider.daoDeposit({ fromPk: alice.privKey })
-  );
 
   const aliceCells = await e2eProvider.findCells({
     lock: alice.lockScript,
@@ -172,6 +167,58 @@ test("light-client get_genesis_block rpc", async (t) => {
     "0x0000000000000000000000000000000000000000000000000000000000000000"
   );
   t.deepEqual(res.uncles.length, 0);
+});
+
+test.serial("light-client get_transactions rpc", async (t) => {
+  const alice = t.context.accounts["alice"];
+
+  const beforeScripts = await lightClientRPC.getScripts();
+  await lightClientRPC.setScripts([
+    ...beforeScripts,
+    { script: alice.lockScript, scriptType: "lock", blockNumber: "0x0" },
+  ]);
+
+  await waitLightClientSync(
+    lightClientRPC,
+    parseInt(alice.cells[alice.cells.length - 1].blockNumber || "0x0")
+  );
+
+  const unGrouped = await lightClientRPC.getTransactions(
+    {
+      script: alice.lockScript,
+      scriptType: "lock",
+    },
+    "asc",
+    "0x64"
+  );
+
+  t.deepEqual(unGrouped.objects.length, alice.cells.length);
+  t.deepEqual(
+    unGrouped.objects.map((obj) => obj.blockNumber),
+    alice.cells.map((cell) => cell.blockNumber)
+  );
+
+  const grouped = await lightClientRPC.getTransactions(
+    {
+      script: alice.lockScript,
+      scriptType: "lock",
+      groupByTransaction: true,
+    },
+    "asc",
+    "0x64"
+  );
+
+  t.deepEqual(grouped.objects.length, alice.cells.length);
+  grouped.objects.map((obj) =>
+    obj.cells.map(([ioType]) => {
+      t.deepEqual(ioType, "output");
+    })
+  );
+
+  t.deepEqual(
+    grouped.objects.map((o) => o.transaction),
+    unGrouped.objects.map((o) => o.transaction)
+  );
 });
 
 test.serial("test setScripts", async (t) => {

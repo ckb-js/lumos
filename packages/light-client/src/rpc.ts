@@ -4,7 +4,6 @@ import { ParamsFormatter } from "@ckb-lumos/rpc";
 
 import {
   GetLiveCellsResult,
-  IndexerTransactionList,
   Order,
   SearchKey,
   GetCellsSearchKey,
@@ -21,6 +20,7 @@ import {
   FetchTransactionResult,
   LightClientScript,
   TransactionWithHeader,
+  LightClientTransactionList,
 } from "./type";
 import fetch from "cross-fetch";
 
@@ -108,7 +108,7 @@ export class LightClientRPC {
     order: Order,
     limit: HexString,
     cursor?: string
-  ): Promise<IndexerTransactionList<Grouped>> {
+  ): Promise<LightClientTransactionList<Grouped>> {
     const params = [
       toGetTransactionsSearchKey(searchKey),
       order,
