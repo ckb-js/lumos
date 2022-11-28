@@ -383,7 +383,8 @@ export type LiveCellFetcher = (outPoint: OutPoint) => Promisable<Cell>;
  * create a {@link TransactionSkeleton} from a {@link Transaction}
  * @example
  * ```js
- * const fetcher = new RPC('localhost:8114').getLiveCell
+ * const rpc = new RPC('localhost:8114')
+ * const fetcher = (outPoint: OutPoint) => rpc.getLiveCell(outPoint)
  * const skeleton = await createTransactionSkeleton({ transaction, fetcher });
  * ```
  */
