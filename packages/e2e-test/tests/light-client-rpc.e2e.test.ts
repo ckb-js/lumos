@@ -194,7 +194,7 @@ test.serial("light-client get_transactions rpc", async (t) => {
 
   t.deepEqual(ungrouped.objects.length, alice.cells.length);
   t.deepEqual(
-    unGrouped.objects.map((obj) => obj.blockNumber),
+    ungrouped.objects.map((obj) => obj.blockNumber),
     alice.cells.map((cell) => cell.blockNumber)
   );
 
