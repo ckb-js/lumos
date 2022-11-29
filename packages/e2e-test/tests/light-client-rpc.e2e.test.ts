@@ -217,7 +217,7 @@ test.serial("light-client get_transactions rpc", async (t) => {
 
   t.deepEqual(
     grouped.objects.map((o) => o.transaction),
-    unGrouped.objects.map((o) => o.transaction)
+    ungrouped.objects.map((o) => o.transaction)
   );
 });
 
