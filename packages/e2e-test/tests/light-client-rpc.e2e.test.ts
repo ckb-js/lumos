@@ -183,7 +183,7 @@ test.serial("light-client get_transactions rpc", async (t) => {
     parseInt(alice.cells[alice.cells.length - 1].blockNumber || "0x0")
   );
 
-  const unGrouped = await lightClientRPC.getTransactions(
+  const ungrouped = await lightClientRPC.getTransactions(
     {
       script: alice.lockScript,
       scriptType: "lock",
