@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/hd",
-  "version": "0.20.0-alpha.0",
+  "version": "0.20.0-alpha.1",
   "description": "HD wallet manager in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -19,8 +19,8 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "^0.20.0-alpha.0",
-    "@ckb-lumos/bi": "^0.20.0-alpha.0",
+    "@ckb-lumos/base": "0.20.0-alpha.1",
+    "@ckb-lumos/bi": "0.20.0-alpha.1",
     "bn.js": "^5.1.3",
     "elliptic": "^6.5.4",
     "sha3": "^2.1.3",
