@@ -43,7 +43,6 @@
     "@ckb-lumos/config-manager": "^0.20.0-alpha.0",
     "@ckb-lumos/hd": "^0.20.0-alpha.0",
     "@ckb-lumos/helpers": "^0.20.0-alpha.0",
-    "@ckb-lumos/molecule": "^0.20.0-alpha.0",
     "@ckb-lumos/rpc": "^0.20.0-alpha.0",
     "@ckb-lumos/toolkit": "^0.20.0-alpha.0"
   },
