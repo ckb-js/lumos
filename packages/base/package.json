@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/base",
-  "version": "0.20.0-alpha.0",
+  "version": "0.20.0-alpha.1",
   "description": "Base data structures and utilities used in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -48,9 +48,9 @@
     ]
   },
   "dependencies": {
-    "@ckb-lumos/bi": "^0.20.0-alpha.0",
-    "@ckb-lumos/codec": "^0.20.0-alpha.0",
-    "@ckb-lumos/toolkit": "^0.20.0-alpha.0",
+    "@ckb-lumos/bi": "0.20.0-alpha.1",
+    "@ckb-lumos/codec": "0.20.0-alpha.1",
+    "@ckb-lumos/toolkit": "0.20.0-alpha.1",
     "@types/blake2b": "^2.1.0",
     "@types/lodash.isequal": "^4.5.5",
     "blake2b": "^2.1.3",

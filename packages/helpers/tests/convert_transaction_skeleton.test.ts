@@ -4,6 +4,9 @@ import {
   createTransactionFromSkeleton,
   objectToTransactionSkeleton,
   transactionSkeletonToObject,
+  createTransactionSkeleton,
+  LiveCellFetcher,
+  TransactionSkeletonObject,
 } from "../src";
 import { TransactionSkeleton } from "../lib";
 import { Cell } from "@ckb-lumos/base";
@@ -88,4 +91,37 @@ test("createTransactionFromSkeleton, invalid input", (t) => {
     error.message,
     "cannot find OutPoint in Inputs[0] when createTransactionFromSkeleton"
   );
+});
+
+test("createTransactionSkeleton", async (t) => {
+  const txSkeletonObject: TransactionSkeletonObject = require("./fixtures/tx_skeleton.json");
+  const txSkeleton = objectToTransactionSkeleton(txSkeletonObject);
+  const tx = createTransactionFromSkeleton(txSkeleton);
+
+  const mockFetcher: LiveCellFetcher = (outPoint) =>
+    txSkeletonObject.inputs.find(
+      (input) =>
+        input.outPoint?.txHash === outPoint.txHash &&
+        input.outPoint?.index === outPoint.index
+    ) ?? {
+      outPoint,
+      cellOutput: {
+        capacity: "0x",
+        lock: {
+          codeHash: "0x",
+          args: "0x",
+          hashType: "type",
+        },
+      },
+      data: "0x",
+    };
+
+  const checkedTxSkeleton = await createTransactionSkeleton(tx, mockFetcher);
+  t.true(checkedTxSkeleton instanceof Record);
+  const transedTx = createTransactionFromSkeleton(checkedTxSkeleton);
+  t.deepEqual(tx, transedTx);
+  t.deepEqual(txSkeleton.toJS().inputs, checkedTxSkeleton.toJS().inputs);
+  t.deepEqual(txSkeleton.toJS().outputs, checkedTxSkeleton.toJS().outputs);
+  t.deepEqual(txSkeleton.toJS().cellDeps, checkedTxSkeleton.toJS().cellDeps);
+  t.deepEqual(txSkeleton.toJS().witnesses, checkedTxSkeleton.toJS().witnesses);
 });

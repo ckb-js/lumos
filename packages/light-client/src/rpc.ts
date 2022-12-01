@@ -1,13 +1,17 @@
-import { HexString, utils, Header } from "@ckb-lumos/base";
+import { HexString, utils, Header, Block } from "@ckb-lumos/base";
+import { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
+import { ParamsFormatter } from "@ckb-lumos/rpc";
+
 import {
   GetLiveCellsResult,
-  IndexerTransactionList,
   Order,
+  SearchKey,
   GetCellsSearchKey,
   GetTransactionsSearchKey,
 } from "@ckb-lumos/ckb-indexer/lib/type";
 import {
   toScript,
+  toSearchKey,
   toGetCellsSearchKey,
   toGetTransactionsSearchKey,
 } from "@ckb-lumos/ckb-indexer/lib/paramsFormatter";
@@ -15,6 +19,8 @@ import {
   FetchHeaderResult,
   FetchTransactionResult,
   LightClientScript,
+  TransactionWithHeader,
+  LightClientTransactionList,
 } from "./type";
 import fetch from "cross-fetch";
 
@@ -35,9 +41,9 @@ export class LightClientRPC {
     return utils.deepCamel(await request(this.uri, "fetch_header", params));
   }
 
-  async removeHeaders(blockHashes?: string[]): Promise<string[]> {
-    const params = [blockHashes];
-    return utils.deepCamel(await request(this.uri, "remove_headers", params));
+  async getHeader(blockHash: string): Promise<Header> {
+    const params = [blockHash];
+    return utils.deepCamel(await request(this.uri, "get_header", params));
   }
 
   async fetchTransaction(txHash: string): Promise<FetchTransactionResult> {
@@ -47,11 +53,16 @@ export class LightClientRPC {
     );
   }
 
-  async removeTransactions(txHashes?: string[]): Promise<string[]> {
-    const params = [txHashes];
-    return utils.deepCamel(
-      await request(this.uri, "remove_transactions", params)
-    );
+  async getTransaction(txHash: string): Promise<TransactionWithHeader> {
+    const params = [txHash];
+    return utils.deepCamel(await request(this.uri, "get_transaction", params));
+  }
+
+  async sendTransaction(
+    tx: CKBComponents.RawTransaction
+  ): Promise<CKBComponents.Hash> {
+    const params = [ParamsFormatter.toRawTransaction(tx)];
+    return utils.deepCamel(await request(this.uri, "send_transaction", params));
   }
 
   async getScripts(): Promise<Array<LightClientScript>> {
@@ -79,12 +90,25 @@ export class LightClientRPC {
     return utils.deepCamel(await request(this.uri, "get_cells", params));
   }
 
+  async getCellsCapacity(
+    searchKey: SearchKey
+  ): Promise<CKBComponents.CellsCapacity> {
+    const params = [toSearchKey(searchKey)];
+    return utils.deepCamel(
+      await request(this.uri, "get_cells_capacity", params)
+    );
+  }
+
+  async getGenesisBlock(): Promise<Block> {
+    return utils.deepCamel(await request(this.uri, "get_genesis_block"));
+  }
+
   async getTransactions<Grouped extends boolean = false>(
     searchKey: GetTransactionsSearchKey<Grouped>,
     order: Order,
     limit: HexString,
     cursor?: string
-  ): Promise<IndexerTransactionList<Grouped>> {
+  ): Promise<LightClientTransactionList<Grouped>> {
     const params = [
       toGetTransactionsSearchKey(searchKey),
       order,

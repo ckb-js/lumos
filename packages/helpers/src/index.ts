@@ -11,6 +11,7 @@ import {
   Transaction,
   WitnessArgs,
   blockchain,
+  OutPoint,
 } from "@ckb-lumos/base";
 import { bech32, bech32m } from "bech32";
 import { List, Map as ImmutableMap, Record } from "immutable";
@@ -373,6 +374,60 @@ export function createTransactionFromSkeleton(
     validators.ValidateTransaction(tx);
   }
   return tx;
+}
+
+type Promisable<T> = Promise<T> | T;
+export type LiveCellFetcher = (outPoint: OutPoint) => Promisable<Cell>;
+
+/**
+ * create a {@link TransactionSkeleton} from a {@link Transaction}
+ * @example
+ * ```js
+ * const rpc = new RPC('localhost:8114')
+ * const fetcher = (outPoint: OutPoint) => rpc.getLiveCell(outPoint)
+ * const skeleton = await createTransactionSkeleton({ transaction, fetcher });
+ * ```
+ */
+export async function createTransactionSkeleton(
+  transaction: Transaction,
+  fetcher: LiveCellFetcher
+): Promise<TransactionSkeletonType> {
+  let txSkeleton = TransactionSkeleton();
+  txSkeleton = txSkeleton.update("cellDeps", (cellDeps) =>
+    cellDeps.push(...transaction.cellDeps)
+  );
+
+  txSkeleton = txSkeleton.update("headerDeps", (headerDeps) =>
+    headerDeps.push(...transaction.headerDeps)
+  );
+
+  const inputCells = await Promise.all(
+    transaction.inputs.map((input) => fetcher(input.previousOutput))
+  );
+  txSkeleton = txSkeleton.update("inputs", (inputs) =>
+    inputs.push(...inputCells)
+  );
+
+  txSkeleton = txSkeleton.update("inputSinces", (inputSinces) =>
+    transaction.inputs.reduce(
+      (map, input, i) => map.set(i, input.since),
+      inputSinces
+    )
+  );
+
+  const outputCells: Array<Cell> = transaction.outputs.map((output, index) => ({
+    cellOutput: output,
+    data: transaction.outputsData[index] ?? "0x",
+  }));
+
+  txSkeleton = txSkeleton.update("outputs", (outputs) =>
+    outputs.push(...outputCells)
+  );
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
+    witnesses.push(...transaction.witnesses)
+  );
+
+  return txSkeleton;
 }
 
 export function sealTransaction(
