@@ -146,7 +146,7 @@ Let's see an example of how to implement a `UTF8String` codec. If we want to sto
 then the corresponding molecule structure should be a `vector UTF8String <byte>`
 
 ```ts
-import { byteVecOf } from "@ckb-lumos/codec";
+import { byteVecOf, bytes } from "@ckb-lumos/codec";
 import { Buffer } from "buffer"; // https://github.com/feross/buffer
 
 const UTF8String = byteVecOf<string>({
@@ -154,7 +154,7 @@ const UTF8String = byteVecOf<string>({
     return Uint8Array.from(Buffer.from(str, "utf8")).buffer;
   },
   unpack: (buf) => {
-    return Buffer.from(buf).toString("utf8");
+    return Buffer.from(bytes.bytify(buf)).toString("utf8");
   },
 });
 ```

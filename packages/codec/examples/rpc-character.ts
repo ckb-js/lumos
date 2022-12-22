@@ -1,4 +1,4 @@
-import { molecule, number } from "../src";
+import { molecule, number, bytes } from "../src";
 
 const { byteOf, byteVecOf, option, struct, table, union, vector } = molecule;
 const { Uint32, Uint8 } = number;
@@ -66,7 +66,7 @@ const SwordMaterial = byteOf<Material>({
 
 const UTF8String = byteVecOf<string>({
   pack: (str) => Uint8Array.from(Buffer.from(str, "utf8")),
-  unpack: (buf) => Buffer.from(buf).toString("utf8"),
+  unpack: (buf) => Buffer.from(bytes.bytify(buf)).toString("utf8"),
 });
 
 /***** molecule binding *****/
