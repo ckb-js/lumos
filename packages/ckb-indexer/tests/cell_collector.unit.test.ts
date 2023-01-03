@@ -23,7 +23,7 @@ const lockScript: Script = {
   hashType: "type",
   args: "0xbde8b19b4505dd1d1310223edecea20adc4e240e",
 };
-
+// convertParams tests
 test("convertParams# should set outputDataLenRange according to data", (t) => {
   const query = {
     lock: lockScript,
@@ -103,6 +103,7 @@ test("convertParams# should support multiple cell queies", (t) => {
   t.deepEqual(cellCollector.queries.scriptLenRange, ["0x0", "0x1", "0xff"]);
 });
 
+// validateQueryOption tests
 test("validateQueryOption#should throw error if lock and type not provided", (t) => {
   t.throws(
     () => {
@@ -117,24 +118,6 @@ test("validateQueryOption#should throw error if lock and type not provided", (t)
       new CellCollector(indexer, {
         type: "empty",
       });
-    },
-    undefined,
-    "throw error if lock is not provided and type is empty"
-  );
-});
-
-test("validateQueryOption#validate should support multiple queries", (t) => {
-  t.throws(
-    () => {
-      new CellCollector(indexer, [{ lock: lockScript }, {}]);
-    },
-    undefined,
-    "throw error if lock and query both not provided in query[1]"
-  );
-
-  t.throws(
-    () => {
-      new CellCollector(indexer, [{ lock: lockScript }, { type: "empty" }]);
     },
     undefined,
     "throw error if lock is not provided and type is empty"
@@ -242,4 +225,22 @@ test("validateQueryOption#validate scriptLenRange", (t) => {
     new CellCollector(indexer, wrongQuery2);
   });
   t.is(error2.message, "scriptLenRange[1] must be a hexadecimal!");
+});
+
+test("validateQueryOption#validate should support multiple queries", (t) => {
+  t.throws(
+    () => {
+      new CellCollector(indexer, [{ lock: lockScript }, {}]);
+    },
+    undefined,
+    "throw error if lock and query both not provided in queryOption[1]"
+  );
+
+  t.throws(
+    () => {
+      new CellCollector(indexer, [{ lock: lockScript }, { type: "empty" }]);
+    },
+    undefined,
+    "throw error if lock is not provided and type is empty in queryOption[1]"
+  );
 });

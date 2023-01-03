@@ -21,6 +21,7 @@ test.before(() => {
   };
 });
 
+// count tests
 test("get count correct", async (t) => {
   const type = {
     codeHash:
@@ -31,6 +32,34 @@ test("get count correct", async (t) => {
   const cellCollector = new CellCollector(indexer, { lock: type });
   const count = await cellCollector.count();
   t.is(count, 1);
+});
+
+test("get count correct with multiple tests", async (t) => {
+  const type = {
+    codeHash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hashType: "type" as HashType,
+    args: "0xa178db16d8228db82911fdb536df1916e761e205",
+  };
+  const cellCollector = new CellCollector(indexer, [
+    { lock: type },
+    {
+      lock: {
+        ...type,
+        args: "0x7ae354c3586ea3e7da6f30af80046fbe0cdce2fd",
+      },
+    },
+  ]);
+  const count = await cellCollector.count();
+  t.is(count, 2);
+
+  const cellCollect2 = new CellCollector(indexer, [
+    { lock: type },
+    { lock: type },
+  ]);
+
+  const count2 = await cellCollect2.count();
+  t.is(count2, 1);
 });
 
 test("query cells with block hash", async (t) => {
@@ -76,7 +105,7 @@ test("query cells with block hash and multiple query options", async (t) => {
     queryWithBlockHash.desc
   );
 
-  // also we should test multiple query options but they are same
+  // also we should test multiple query options when they are same
 
   const cellCollector2 = new CellCollector(
     indexer,
@@ -219,4 +248,15 @@ test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
     { instanceOf: Error }
   );
   t.is(error.message, "toBlock must be a hexadecimal!");
+});
+
+test("throw error when use multiple queryOptions with different argsLen", (t) => {
+  const error = t.throws(
+    () => {
+      const queryOptions = {};
+      new CellCollector(indexer, [{ lock }, queryOptions]);
+    },
+    { instanceOf: Error }
+  );
+  t.is(error.message, "Either lock or type script must be provided!");
 });
