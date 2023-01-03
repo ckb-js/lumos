@@ -26,6 +26,7 @@ export class CKBCellCollector implements BaseCellCollector {
   constructor(
     public terminableCellFetcher: TerminableCellFetcher,
     public queries: CKBIndexerQueryOptions,
+    // public queries: CKBIndexerQueryOptions | CKBIndexerQueryOptions[],
     public otherQueryOptions?: OtherQueryOptions
   ) {
     const defaultQuery: CKBIndexerQueryOptions = {

@@ -1,11 +1,12 @@
 import test from "ava";
 import { Indexer, CellCollector } from "../src";
-const {
+import {
   lock,
   type,
   cellCollectorTestCases,
   queryWithBlockHash,
-} = require("./test_cases.js");
+  queryWithBlockHashMultiple,
+} from "./test_cases";
 import { HashType, Cell } from "@ckb-lumos/base";
 import { OtherQueryOptions } from "../src/type";
 
@@ -53,6 +54,51 @@ test("query cells with block hash", async (t) => {
   );
 });
 
+test("query cells with block hash and multiple query options", async (t) => {
+  const otherQueryOptions: OtherQueryOptions = {
+    withBlockHash: true,
+    ckbRpcUrl: nodeUri,
+  };
+
+  const cellCollector = new CellCollector(
+    indexer,
+    queryWithBlockHashMultiple.queryOption,
+    otherQueryOptions
+  );
+
+  const cells: Cell[] = [];
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+  t.deepEqual(
+    cells,
+    queryWithBlockHash.expectedResult,
+    queryWithBlockHash.desc
+  );
+
+  // also we should test multiple query options but they are same
+
+  const cellCollector2 = new CellCollector(
+    indexer,
+    [
+      queryWithBlockHashMultiple.queryOption[0],
+      queryWithBlockHashMultiple.queryOption[0],
+    ],
+    otherQueryOptions
+  );
+
+  const cells2: Cell[] = [];
+  for await (const cell of cellCollector2.collect()) {
+    cells2.push(cell);
+  }
+
+  t.deepEqual(
+    cells2,
+    queryWithBlockHash.expectedResult,
+    queryWithBlockHash.desc
+  );
+});
+
 test("query cells with different queryOptions", async (t) => {
   for (const queryCase of cellCollectorTestCases) {
     const cellCollector = new CellCollector(indexer, queryCase.queryOption);
@@ -62,6 +108,24 @@ test("query cells with different queryOptions", async (t) => {
     }
     t.deepEqual(cells, queryCase.expectedResult, queryCase.desc);
   }
+});
+
+test("query cells with multiple queryOptions", async (t) => {
+  const singleQuery = cellCollectorTestCases
+    .slice(1, 3)
+    .map((c) => c.queryOption);
+
+  const expectedResult = cellCollectorTestCases
+    .slice(1, 3)
+    .flatMap((c) => c.expectedResult);
+
+  let cells: Cell[] = [];
+  const cellCollector = new CellCollector(indexer, singleQuery);
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+
+  t.deepEqual(cells, expectedResult);
 });
 
 test("wrap plain Script into ScriptWrapper ", (t) => {
@@ -78,7 +142,7 @@ test("wrap plain Script into ScriptWrapper ", (t) => {
   t.deepEqual(cellCollector.queries.type, type);
 });
 
-test("pass Scrip to CellCollector", (t) => {
+test("pass Script to CellCollector", (t) => {
   const argsLen = 20;
   const wrappedLock = { script: lock, argsLen: argsLen };
   const wrappedType = { script: type, argsLen: argsLen };

@@ -86,6 +86,23 @@ test("convertParams# should match scriptLenRange if type is 'empty' and scriptLe
   t.deepEqual(cellCollect2.queries.scriptLenRange, ["0x0", "0xff"]);
 });
 
+test("convertParams# should support multiple cell queies", (t) => {
+  const cellCollector = new CellCollector(indexer, [
+    {
+      lock: lockScript,
+      data: "0x",
+    },
+    {
+      lock: lockScript,
+      scriptLenRange: ["0x0", "0xff"],
+      type: "empty",
+      order: "asc",
+    },
+  ]);
+
+  t.deepEqual(cellCollector.queries.scriptLenRange, ["0x0", "0x1", "0xff"]);
+});
+
 test("validateQueryOption#should throw error if lock and type not provided", (t) => {
   t.throws(
     () => {
@@ -100,6 +117,24 @@ test("validateQueryOption#should throw error if lock and type not provided", (t)
       new CellCollector(indexer, {
         type: "empty",
       });
+    },
+    undefined,
+    "throw error if lock is not provided and type is empty"
+  );
+});
+
+test("validateQueryOption#validate should support multiple queries", (t) => {
+  t.throws(
+    () => {
+      new CellCollector(indexer, [{ lock: lockScript }, {}]);
+    },
+    undefined,
+    "throw error if lock and query both not provided in query[1]"
+  );
+
+  t.throws(
+    () => {
+      new CellCollector(indexer, [{ lock: lockScript }, { type: "empty" }]);
     },
     undefined,
     "throw error if lock is not provided and type is empty"
