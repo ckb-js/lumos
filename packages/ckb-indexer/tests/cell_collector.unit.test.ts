@@ -23,6 +23,7 @@ const lockScript: Script = {
   hashType: "type",
   args: "0xbde8b19b4505dd1d1310223edecea20adc4e240e",
 };
+
 // convertParams tests
 test("convertParams# should set outputDataLenRange according to data", (t) => {
   const query = {
@@ -31,7 +32,7 @@ test("convertParams# should set outputDataLenRange according to data", (t) => {
   };
   const cellCollect = new CellCollector(indexer, query);
   cellCollect.convertQueryOptionToSearchKey();
-  t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x1"]);
+  t.deepEqual(cellCollect.queries[0].outputDataLenRange, ["0x0", "0x1"]);
 });
 
 test("convertParams# should not set outputDataRange if data is not defined", (t) => {
@@ -40,7 +41,7 @@ test("convertParams# should not set outputDataRange if data is not defined", (t)
   };
   const cellCollect = new CellCollector(indexer, query);
   cellCollect.convertQueryOptionToSearchKey();
-  t.deepEqual(cellCollect.queries.outputDataLenRange, undefined);
+  t.deepEqual(cellCollect.queries[0].outputDataLenRange, undefined);
 });
 
 test("convertParams# should match outputDataRange if data and outputData both defined", (t) => {
@@ -52,7 +53,7 @@ test("convertParams# should match outputDataRange if data and outputData both de
   };
   const cellCollect = new CellCollector(indexer, query);
   cellCollect.convertQueryOptionToSearchKey();
-  t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x2"]);
+  t.deepEqual(cellCollect.queries[0].outputDataLenRange, ["0x0", "0x2"]);
 
   const notMatchQuery = {
     lock: lockScript,
@@ -73,7 +74,7 @@ test("convertParams# should match scriptLenRange if type is 'empty' and scriptLe
   });
   cellCollect.convertQueryOptionToSearchKey();
 
-  t.deepEqual(cellCollect.queries.scriptLenRange, ["0x0", "0x1"]);
+  t.deepEqual(cellCollect.queries[0].scriptLenRange, ["0x0", "0x1"]);
 
   const cellCollect2 = new CellCollector(indexer, {
     lock: lockScript,
@@ -83,7 +84,7 @@ test("convertParams# should match scriptLenRange if type is 'empty' and scriptLe
   });
   cellCollect2.convertQueryOptionToSearchKey();
 
-  t.deepEqual(cellCollect2.queries.scriptLenRange, ["0x0", "0xff"]);
+  t.deepEqual(cellCollect2.queries[0].scriptLenRange, ["0x0", "0xff"]);
 });
 
 test("convertParams# should support multiple cell queies", (t) => {
@@ -100,7 +101,10 @@ test("convertParams# should support multiple cell queies", (t) => {
     },
   ]);
 
-  t.deepEqual(cellCollector.queries.scriptLenRange, ["0x0", "0x1", "0xff"]);
+  t.deepEqual(
+    cellCollector.queries.flatMap((query) => query.scriptLenRange),
+    ["0x0", "0x1", "0xff"]
+  );
 });
 
 // validateQueryOption tests

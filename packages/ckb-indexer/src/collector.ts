@@ -222,7 +222,7 @@ export class CKBCellCollector implements BaseCellCollector {
     let counter = 0;
 
     for (const queryIndex of this.queries.keys()) {
-      let query = this.queries[queryIndex];
+      const query = this.queries[queryIndex];
       let cells: Cell[] = await getCellWithCursor(query);
       let buffer: Promise<Cell[]> = getCellWithCursor(query);
       let index = 0;

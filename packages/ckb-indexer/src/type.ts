@@ -130,7 +130,6 @@ export interface IndexerTransactionList<Grouped extends boolean = false> {
 
 export interface GetCellsResults {
   lastCursor: string;
-  lastQueryIndex: number;
   objects: Cell[];
 }
 

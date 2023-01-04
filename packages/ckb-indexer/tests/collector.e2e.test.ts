@@ -167,8 +167,8 @@ test("wrap plain Script into ScriptWrapper ", (t) => {
     argsLen: argsLen,
   };
   const cellCollector = new CellCollector(indexer, queryOptions);
-  t.deepEqual(cellCollector.queries.lock, lock);
-  t.deepEqual(cellCollector.queries.type, type);
+  t.deepEqual(cellCollector.queries[0].lock, lock);
+  t.deepEqual(cellCollector.queries[0].type, type);
 });
 
 test("pass Script to CellCollector", (t) => {
@@ -181,8 +181,8 @@ test("pass Script to CellCollector", (t) => {
     argsLen: argsLen,
   };
   const cellCollector = new CellCollector(indexer, queryOptions);
-  t.deepEqual(cellCollector.queries.lock, lock);
-  t.deepEqual(cellCollector.queries.type, type);
+  t.deepEqual(cellCollector.queries[0].lock, lock);
+  t.deepEqual(cellCollector.queries[0].type, type);
 });
 test("throw error when pass null lock and null type to CellCollector", (t) => {
   const error = t.throws(
