@@ -20,6 +20,7 @@ export interface QueryOptions {
   fromBlock?: Hexadecimal;
   /** `toBlock` itself is included in range query. */
   toBlock?: Hexadecimal;
+
   skip?: number;
   order?: "asc" | "desc";
 }
