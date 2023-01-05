@@ -26,8 +26,8 @@ test("checks correct password", (t) => {
 });
 
 test("store key", (t) => {
-  keystore.save("./");
-  const loaded = Keystore.load(`./${keystore.id}.json`);
+  keystore.save("./tests/");
+  const loaded = Keystore.load(`./tests/${keystore.id}.json`);
   t.is(loaded.id, keystore.id);
 });
 
