@@ -25,6 +25,12 @@ test("checks correct password", (t) => {
   t.true(keystore.checkPassword(password));
 });
 
+test("store key", (t) => {
+  keystore.save("./");
+  const loaded = Keystore.load(`./${keystore.id}.json`);
+  t.is(loaded.id, keystore.id);
+});
+
 test("decrypts", (t) => {
   t.is(
     keystore.decrypt(password),
