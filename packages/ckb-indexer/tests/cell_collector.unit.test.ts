@@ -91,7 +91,8 @@ test("convertParams# should support multiple cell queies", (t) => {
   const cellCollector = new CellCollector(indexer, [
     {
       lock: lockScript,
-      data: "0x",
+      type: "empty",
+      order: "asc",
     },
     {
       lock: lockScript,
@@ -103,7 +104,7 @@ test("convertParams# should support multiple cell queies", (t) => {
 
   t.deepEqual(
     cellCollector.queries.flatMap((query) => query.scriptLenRange),
-    ["0x0", "0x1", "0xff"]
+    ["0x0", "0x1", "0x0", "0xff"]
   );
 });
 

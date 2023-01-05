@@ -2,7 +2,7 @@ import { stub, spy } from "sinon";
 import test from "ava";
 import fs from "fs";
 import path from "path";
-const { indexerSubscribeTestCases } = require("./test_cases.js");
+import { indexerSubscribeTestCases } from "./test_cases";
 import { Indexer } from "../src";
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
