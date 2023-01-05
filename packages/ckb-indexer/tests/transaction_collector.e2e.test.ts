@@ -1,10 +1,10 @@
 import test from "ava";
 import { Indexer, TransactionCollector } from "../src";
-import {
+const {
   lock,
   transactionCollectorHashTestCases,
   transactionCollectorCollectTestCases,
-} from "./test_cases";
+} = require("./test_cases");
 
 import { QueryOptions, utils } from "@ckb-lumos/base";
 
