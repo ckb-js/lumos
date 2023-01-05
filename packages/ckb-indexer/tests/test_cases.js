@@ -8171,6 +8171,20 @@ const cellCollectorTestCases = [
   },
 ];
 
+
+const queryWithBlockHashMultiple = {
+  queryOption: [
+  {
+    lock: lock,
+  },
+  {
+      lock: lockInNervosDAO,
+      type: type,
+  }
+  ],
+  expectedResult: cellsWithBlockHash,
+}
+
 module.exports = {
   lock,
   type,
@@ -8178,5 +8192,6 @@ module.exports = {
   transactionCollectorHashTestCases,
   cellCollectorTestCases,
   queryWithBlockHash,
+  queryWithBlockHashMultiple,
   transactionCollectorCollectTestCases,
 };

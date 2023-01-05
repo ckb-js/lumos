@@ -188,8 +188,8 @@ export class CKBCellCollector implements BaseCellCollector {
   }
 
   private shouldSkipped(
-    cell: Cell,
     query: CKBIndexerQueryOptions,
+    cell: Cell,
     skippedCount = 0
   ) {
     if (query.skip && skippedCount < query.skip) {
@@ -211,56 +211,12 @@ export class CKBCellCollector implements BaseCellCollector {
   }
 
   async count(): Promise<number> {
-    let counter = 0;
-    const visitedCell = new Set<string>();
+    let result = 0;
 
-    for (const query of this.queries) {
-      let lastCursor: undefined | string = undefined;
-      const getCellWithCursor = async (
-        query: CKBIndexerQueryOptions
-      ): Promise<Cell[]> => {
-        const result: GetCellsResults = await this.getLiveCell(
-          query,
-          lastCursor
-        );
-        lastCursor = result.lastCursor;
-        return result.objects;
-      };
-
-      let cells: Cell[] = await getCellWithCursor(query);
-      let buffer: Promise<Cell[]> = getCellWithCursor(query);
-      let index = 0;
-      let skippedCount = 0;
-      while (true) {
-        const cell = cells[index];
-        const key = `${cell.outPoint?.txHash}-${cell.outPoint?.index}`;
-        if (visitedCell.has(key)) {
-          index++;
-          continue;
-        } else {
-          visitedCell.add(key);
-        }
-
-        if (!this.shouldSkipped(cell, query, skippedCount)) {
-          counter += 1;
-        } else {
-          skippedCount++;
-        }
-        index++;
-        //reset index and exchange `cells` and `buffer` after count last cell
-        if (index === cells.length) {
-          index = 0;
-          cells = await buffer;
-          // break if can not get more cells
-          if (cells.length === 0) {
-            break;
-          }
-          buffer = getCellWithCursor(query);
-        }
-      }
+    for await (const _cell of this.collect()) {
+      result++;
     }
-
-    return counter;
+    return result;
   }
 
   // eslint-disable-next-line
@@ -317,69 +273,61 @@ export class CKBCellCollector implements BaseCellCollector {
     return result;
   }
 
-  /**
-   * collect cells without blockHash by default.if you need blockHash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
-   * don't use OtherQueryOption if you don't need blockHash,cause it will slowly your collect.
-   */
   async *collect(): AsyncGenerator<Cell> {
+    let visitedCellKey = new Set<string>();
+
+    for (const query of this.queries) {
+      for await (let cell of this.collectBySingleQuery(query)) {
+        const key = `${cell.outPoint?.txHash}-${cell.outPoint?.index}`;
+        if (visitedCellKey.has(key)) {
+          continue;
+        } else {
+          visitedCellKey.add(key);
+          yield cell;
+        }
+      }
+    }
+  }
+
+  private async *collectBySingleQuery(
+    query: CKBIndexerQueryOptions
+  ): AsyncGenerator<Cell> {
+    //TODO: fix return type
     const withBlockHash =
       this.otherQueryOptions &&
       "withBlockHash" in this.otherQueryOptions &&
       this.otherQueryOptions.withBlockHash;
-
-    const visitedCell = new Set<string>();
-
-    for (const queryIndex of this.queries.keys()) {
-      let lastCursor: undefined | string = undefined;
-      const getCellWithCursor = async (
-        query: CKBIndexerQueryOptions
-      ): Promise<Cell[]> => {
-        const result: GetCellsResults = await (withBlockHash
-          ? this.getLiveCellWithBlockHash(query, lastCursor)
-          : this.getLiveCell(query, lastCursor));
-        lastCursor = result.lastCursor;
-        return result.objects;
-      };
-      const query = this.queries[queryIndex];
-      let cells = await getCellWithCursor(query);
-
-      if (cells.length === 0) {
-        // exhausted all of queries
-        if (queryIndex === this.queries.length - 1) {
-          return;
-        }
-
-        continue;
+    let lastCursor: undefined | string = undefined;
+    const getCellWithCursor = async (): Promise<Cell[]> => {
+      const result: GetCellsResults = await (withBlockHash
+        ? this.getLiveCellWithBlockHash(query, lastCursor)
+        : this.getLiveCell(query, lastCursor));
+      lastCursor = result.lastCursor;
+      return result.objects;
+    };
+    let cells: Cell[] = await getCellWithCursor();
+    if (cells.length === 0) {
+      return;
+    }
+    let buffer: Promise<Cell[]> = getCellWithCursor();
+    let index = 0;
+    let skippedCount = 0;
+    while (true) {
+      if (!this.shouldSkipped(query, cells[index], skippedCount)) {
+        yield cells[index];
+      } else {
+        skippedCount++;
       }
-      let buffer: Promise<Cell[]> = getCellWithCursor(query);
-      let index = 0;
-      let skippedCount = 0;
-      while (true) {
-        const cell = cells[index];
-        const key = `${cell.outPoint?.txHash}-${cell.outPoint?.index}`;
-        if (visitedCell.has(key)) {
-          index++;
-          continue;
-        } else {
-          visitedCell.add(key);
+      index++;
+      //reset index and exchange `cells` and `buffer` after yield last cell
+      if (index === cells.length) {
+        index = 0;
+        cells = await buffer;
+        // break if can not get more cells
+        if (cells.length === 0) {
+          break;
         }
-
-        if (!this.shouldSkipped(cell, query, skippedCount)) {
-          yield cell;
-        } else {
-          skippedCount++;
-        }
-        index++;
-        //reset index and exchange `cells` and `buffer` after yield last cell
-        if (index === cells.length) {
-          index = 0;
-          cells = await buffer;
-          // break if can not get more cells
-          if (cells.length === 0) {
-            break;
-          }
-          buffer = getCellWithCursor(query);
-        }
+        buffer = getCellWithCursor();
       }
     }
   }
