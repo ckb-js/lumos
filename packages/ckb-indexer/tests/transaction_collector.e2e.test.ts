@@ -4,7 +4,7 @@ const {
   lock,
   transactionCollectorHashTestCases,
   transactionCollectorCollectTestCases,
-} = require("./test_cases");
+} = require("./test_cases.js");
 
 import { QueryOptions, utils } from "@ckb-lumos/base";
 

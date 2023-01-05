@@ -224,3 +224,14 @@ test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
   );
   t.is(error.message, "toBlock must be a hexadecimal!");
 });
+
+test("throw error when use multiple queryOptions with different argsLen", (t) => {
+  const error = t.throws(
+    () => {
+      const queryOptions = {};
+      new CellCollector(indexer, [{ lock }, queryOptions]);
+    },
+    { instanceOf: Error }
+  );
+  t.is(error.message, "Either lock or type script must be provided!");
+});

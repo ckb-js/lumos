@@ -274,10 +274,10 @@ export class CKBCellCollector implements BaseCellCollector {
   }
 
   async *collect(): AsyncGenerator<Cell> {
-    let visitedCellKey = new Set<string>();
+    const visitedCellKey = new Set<string>();
 
     for (const query of this.queries) {
-      for await (let cell of this.collectBySingleQuery(query)) {
+      for await (const cell of this.collectBySingleQuery(query)) {
         const key = `${cell.outPoint?.txHash}-${cell.outPoint?.index}`;
         if (visitedCellKey.has(key)) {
           continue;
