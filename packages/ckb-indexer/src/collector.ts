@@ -179,12 +179,12 @@ export class CKBCellCollector implements BaseCellCollector {
       order: query.order as Order,
       lastCursor,
     };
-    const result = await this.terminableCellFetcher.getCells(
+    const counter = await this.terminableCellFetcher.getCells(
       generateSearchKey(query),
       undefined,
       searchKeyFilter
     );
-    return result;
+    return counter;
   }
 
   private shouldSkipped(
@@ -273,6 +273,10 @@ export class CKBCellCollector implements BaseCellCollector {
     return result;
   }
 
+  /**
+   * collect cells without blockHash by default.if you need blockHash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
+   * don't use OtherQueryOption if you don't need blockHash,cause it will slowly your collect.
+   */
   async *collect(): AsyncGenerator<Cell> {
     const visitedCellKey = new Set<string>();
 
