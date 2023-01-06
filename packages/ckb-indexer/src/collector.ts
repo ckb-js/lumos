@@ -45,91 +45,92 @@ export class CKBCellCollector implements BaseCellCollector {
     this.queries = (Array.isArray(queries) ? queries : [queries]).map(
       (query) => ({ ...defaultQuery, ...query })
     );
-    this.validateQueryOption(this.queries);
+
+    this.queries.forEach((query) => {
+      this.validateQueryOption(query);
+    });
     this.convertQueryOptionToSearchKey();
   }
 
-  public validateQueryOption(queries: CKBIndexerQueryOptions[]): void {
-    queries.forEach((query) => {
-      if (!query.lock && (!query.type || query.type === "empty")) {
-        throw new Error("Either lock or type script must be provided!");
-      }
+  public validateQueryOption(queries: CKBIndexerQueryOptions): void {
+    if (!queries.lock && (!queries.type || queries.type === "empty")) {
+      throw new Error("Either lock or type script must be provided!");
+    }
 
-      if (query.lock) {
-        if (!instanceOfScriptWrapper(query.lock)) {
-          validators.ValidateScript(query.lock);
-        } else if (instanceOfScriptWrapper(query.lock)) {
-          validators.ValidateScript(query.lock.script);
-        }
+    if (queries.lock) {
+      if (!instanceOfScriptWrapper(queries.lock)) {
+        validators.ValidateScript(queries.lock);
+      } else if (instanceOfScriptWrapper(queries.lock)) {
+        validators.ValidateScript(queries.lock.script);
       }
+    }
 
-      if (query.type && query.type !== "empty") {
-        if (
-          typeof query.type === "object" &&
-          !instanceOfScriptWrapper(query.type)
-        ) {
-          validators.ValidateScript(query.type);
-        } else if (
-          typeof query.type === "object" &&
-          instanceOfScriptWrapper(query.type)
-        ) {
-          validators.ValidateScript(query.type.script);
-        }
+    if (queries.type && queries.type !== "empty") {
+      if (
+        typeof queries.type === "object" &&
+        !instanceOfScriptWrapper(queries.type)
+      ) {
+        validators.ValidateScript(queries.type);
+      } else if (
+        typeof queries.type === "object" &&
+        instanceOfScriptWrapper(queries.type)
+      ) {
+        validators.ValidateScript(queries.type.script);
       }
+    }
 
-      if (query.fromBlock) {
-        utils.assertHexadecimal("fromBlock", query.fromBlock);
-      }
-      if (query.toBlock) {
-        utils.assertHexadecimal("toBlock", query.toBlock);
-      }
-      if (query.order !== "asc" && query.order !== "desc") {
-        throw new Error("Order must be either asc or desc!");
-      }
-      if (query.outputCapacityRange) {
-        utils.assertHexadecimal(
-          "outputCapacityRange[0]",
-          query.outputCapacityRange[0]
-        );
-        utils.assertHexadecimal(
-          "outputCapacityRange[1]",
-          query.outputCapacityRange[1]
-        );
-      }
+    if (queries.fromBlock) {
+      utils.assertHexadecimal("fromBlock", queries.fromBlock);
+    }
+    if (queries.toBlock) {
+      utils.assertHexadecimal("toBlock", queries.toBlock);
+    }
+    if (queries.order !== "asc" && queries.order !== "desc") {
+      throw new Error("Order must be either asc or desc!");
+    }
+    if (queries.outputCapacityRange) {
+      utils.assertHexadecimal(
+        "outputCapacityRange[0]",
+        queries.outputCapacityRange[0]
+      );
+      utils.assertHexadecimal(
+        "outputCapacityRange[1]",
+        queries.outputCapacityRange[1]
+      );
+    }
 
-      if (query.outputDataLenRange) {
-        utils.assertHexadecimal(
-          "outputDataLenRange[0]",
-          query.outputDataLenRange[0]
-        );
-        utils.assertHexadecimal(
-          "outputDataLenRange[1]",
-          query.outputDataLenRange[1]
-        );
-      }
-      if (query.scriptLenRange) {
-        utils.assertHexadecimal("scriptLenRange[0]", query.scriptLenRange[0]);
-        utils.assertHexadecimal("scriptLenRange[1]", query.scriptLenRange[1]);
-      }
+    if (queries.outputDataLenRange) {
+      utils.assertHexadecimal(
+        "outputDataLenRange[0]",
+        queries.outputDataLenRange[0]
+      );
+      utils.assertHexadecimal(
+        "outputDataLenRange[1]",
+        queries.outputDataLenRange[1]
+      );
+    }
+    if (queries.scriptLenRange) {
+      utils.assertHexadecimal("scriptLenRange[0]", queries.scriptLenRange[0]);
+      utils.assertHexadecimal("scriptLenRange[1]", queries.scriptLenRange[1]);
+    }
 
-      if (query.outputDataLenRange && query.data && query.data !== "any") {
-        const dataLen = getHexStringBytes(query.data);
-        if (
-          dataLen < Number(query.outputDataLenRange[0]) ||
-          dataLen >= Number(query.outputDataLenRange[1])
-        ) {
-          throw new Error("data length not match outputDataLenRange");
-        }
+    if (queries.outputDataLenRange && queries.data && queries.data !== "any") {
+      const dataLen = getHexStringBytes(queries.data);
+      if (
+        dataLen < Number(queries.outputDataLenRange[0]) ||
+        dataLen >= Number(queries.outputDataLenRange[1])
+      ) {
+        throw new Error("data length not match outputDataLenRange");
       }
+    }
 
-      if (query.skip && typeof query.skip !== "number") {
-        throw new Error("skip must be a number!");
-      }
+    if (queries.skip && typeof queries.skip !== "number") {
+      throw new Error("skip must be a number!");
+    }
 
-      if (query.bufferSize && typeof query.bufferSize !== "number") {
-        throw new Error("bufferSize must be a number!");
-      }
-    });
+    if (queries.bufferSize && typeof queries.bufferSize !== "number") {
+      throw new Error("bufferSize must be a number!");
+    }
   }
 
   public convertQueryOptionToSearchKey(): void {
