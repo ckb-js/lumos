@@ -104,8 +104,11 @@ test("convertParams# should support multiple cell queies", (t) => {
   ]);
 
   t.deepEqual(
-    cellCollector.queries.flatMap((query) => query.scriptLenRange),
-    ["0x0", "0x1", "0x0", "0xff"]
+    cellCollector.queries.map((query) => query.scriptLenRange),
+    [
+      ["0x0", "0x1"],
+      ["0x0", "0xff"],
+    ]
   );
 });
 
