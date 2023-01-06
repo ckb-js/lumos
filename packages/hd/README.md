@@ -32,3 +32,19 @@ const accountExtendedPublicKey = xpub.toAccountExtendedPublicKey()
 // save xpub file.
 xpub.save("your path")
 ```
+## Browsers
+
+This package enforces key management by importing `crypto`, `fs` and `path` packages, which are not available in browser environment. If you want to use '@lumos/hd' in your front-end project, please include polyfill to your project module bundle. Here is a webpack example:
+
+```js
+resolve: {
+  ...
+  fallback: {
+    fs: false,
+    path: require.resolve('path-browserify'),
+    crypto: require.resolve('crypto-browserify'),
+  }
+}
+```
+
+You'll need to install `path-browserify` and `crypto-browserify` also.

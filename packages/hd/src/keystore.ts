@@ -1,9 +1,6 @@
 import crypto from "crypto";
 import { Keccak } from "sha3";
 import { v4 as uuid } from "uuid";
-import fs from "fs";
-import Path from "path";
-
 import { ExtendedPrivateKey } from "./extended_key";
 import { HexString } from "@ckb-lumos/base";
 
@@ -55,7 +52,7 @@ interface Crypto {
 export default class Keystore {
   crypto: Crypto;
   id: string;
-  version: number = 3;
+  version = 3;
   origin: string | undefined;
 
   constructor(theCrypto: Crypto, id: string, origin?: string) {
@@ -74,16 +71,20 @@ export default class Keystore {
   }
 
   /**
+   * @deprecated
    * Load keystore file from path.
    *
    * @param path
    */
   static load(path: string): Keystore {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require("fs");
     const json = fs.readFileSync(path, "utf-8");
     return this.fromJson(json);
   }
 
   /**
+   * @deprecated
    * Keystore file default name is `${id}.json`.
    *
    * @param dir
@@ -96,6 +97,10 @@ export default class Keystore {
       overwrite = false,
     }: { name?: string; overwrite?: boolean } = {}
   ): void {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require("fs");
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Path = require("path");
     const path: string = Path.join(dir, name);
     if (!overwrite && fs.existsSync(path)) {
       throw new Error("Keystore file already exists!");
