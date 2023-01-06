@@ -180,12 +180,12 @@ export class CKBCellCollector implements BaseCellCollector {
       order: query.order as Order,
       lastCursor,
     };
-    const counter = await this.terminableCellFetcher.getCells(
+    const result = await this.terminableCellFetcher.getCells(
       generateSearchKey(query),
       undefined,
       searchKeyFilter
     );
-    return counter;
+    return result;
   }
 
   private shouldSkipped(
@@ -212,12 +212,12 @@ export class CKBCellCollector implements BaseCellCollector {
   }
 
   async count(): Promise<number> {
-    let result = 0;
+    let counter = 0;
 
     for await (const _cell of this.collect()) {
-      result++;
+      counter++;
     }
-    return result;
+    return counter;
   }
 
   // eslint-disable-next-line
