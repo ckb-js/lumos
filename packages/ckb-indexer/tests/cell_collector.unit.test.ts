@@ -1,8 +1,9 @@
 import test from "ava";
 import { Indexer, CellCollector } from "../src";
-import { HexadecimalRange, Script, utils } from "@ckb-lumos/base";
-import { spy, SinonSpy } from "sinon";
+import { HexadecimalRange, Script, utils, Cell } from "@ckb-lumos/base";
+import { spy, SinonSpy, stub } from "sinon";
 import { validators } from "@ckb-lumos/toolkit";
+import { CKBIndexerQueryOptions } from "../src/type";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
 const indexUri = "http://127.0.0.1:8120";
@@ -24,6 +25,7 @@ const lockScript: Script = {
   args: "0xbde8b19b4505dd1d1310223edecea20adc4e240e",
 };
 
+// convertParams tests
 test("convertParams# should set outputDataLenRange according to data", (t) => {
   const query = {
     lock: lockScript,
@@ -31,7 +33,7 @@ test("convertParams# should set outputDataLenRange according to data", (t) => {
   };
   const cellCollect = new CellCollector(indexer, query);
   cellCollect.convertQueryOptionToSearchKey();
-  t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x1"]);
+  t.deepEqual(cellCollect.queries[0].outputDataLenRange, ["0x0", "0x1"]);
 });
 
 test("convertParams# should not set outputDataRange if data is not defined", (t) => {
@@ -40,7 +42,7 @@ test("convertParams# should not set outputDataRange if data is not defined", (t)
   };
   const cellCollect = new CellCollector(indexer, query);
   cellCollect.convertQueryOptionToSearchKey();
-  t.deepEqual(cellCollect.queries.outputDataLenRange, undefined);
+  t.deepEqual(cellCollect.queries[0].outputDataLenRange, undefined);
 });
 
 test("convertParams# should match outputDataRange if data and outputData both defined", (t) => {
@@ -52,7 +54,7 @@ test("convertParams# should match outputDataRange if data and outputData both de
   };
   const cellCollect = new CellCollector(indexer, query);
   cellCollect.convertQueryOptionToSearchKey();
-  t.deepEqual(cellCollect.queries.outputDataLenRange, ["0x0", "0x2"]);
+  t.deepEqual(cellCollect.queries[0].outputDataLenRange, ["0x0", "0x2"]);
 
   const notMatchQuery = {
     lock: lockScript,
@@ -73,7 +75,7 @@ test("convertParams# should match scriptLenRange if type is 'empty' and scriptLe
   });
   cellCollect.convertQueryOptionToSearchKey();
 
-  t.deepEqual(cellCollect.queries.scriptLenRange, ["0x0", "0x1"]);
+  t.deepEqual(cellCollect.queries[0].scriptLenRange, ["0x0", "0x1"]);
 
   const cellCollect2 = new CellCollector(indexer, {
     lock: lockScript,
@@ -83,9 +85,34 @@ test("convertParams# should match scriptLenRange if type is 'empty' and scriptLe
   });
   cellCollect2.convertQueryOptionToSearchKey();
 
-  t.deepEqual(cellCollect2.queries.scriptLenRange, ["0x0", "0xff"]);
+  t.deepEqual(cellCollect2.queries[0].scriptLenRange, ["0x0", "0xff"]);
 });
 
+test("convertParams# should support multiple cell queies", (t) => {
+  const cellCollector = new CellCollector(indexer, [
+    {
+      lock: lockScript,
+      type: "empty",
+      order: "asc",
+    },
+    {
+      lock: lockScript,
+      scriptLenRange: ["0x0", "0xff"],
+      type: "empty",
+      order: "asc",
+    },
+  ]);
+
+  t.deepEqual(
+    cellCollector.queries.map((query) => query.scriptLenRange),
+    [
+      ["0x0", "0x1"],
+      ["0x0", "0xff"],
+    ]
+  );
+});
+
+// validateQueryOption tests
 test("validateQueryOption#should throw error if lock and type not provided", (t) => {
   t.throws(
     () => {
@@ -207,4 +234,134 @@ test("validateQueryOption#validate scriptLenRange", (t) => {
     new CellCollector(indexer, wrongQuery2);
   });
   t.is(error2.message, "scriptLenRange[1] must be a hexadecimal!");
+});
+
+test("validateQueryOption#validate should support multiple queries", (t) => {
+  t.throws(
+    () => {
+      new CellCollector(indexer, [{ lock: lockScript }, {}]);
+    },
+    undefined,
+    "throw error if lock and query both not provided in queryOption[1]"
+  );
+
+  t.throws(
+    () => {
+      new CellCollector(indexer, [{ lock: lockScript }, { type: "empty" }]);
+    },
+    undefined,
+    "throw error if lock is not provided and type is empty in queryOption[1]"
+  );
+});
+
+test("getLiveCell#should call terminableCellFetcher", async (t) => {
+  const results = {
+    lastCursor: "Paimon",
+    objects: [],
+  };
+  const mockGetCells = stub().resolves(results);
+  const mockCellFetcher: any = {
+    getCells: mockGetCells,
+  };
+  const query: CKBIndexerQueryOptions = {
+    lock: lockScript,
+    bufferSize: 7,
+    order: "asc" as const,
+  };
+
+  const cellCollector: any = new CellCollector(mockCellFetcher, query);
+  const liveCell = await cellCollector.getLiveCell(query, "Lumine");
+  t.deepEqual(liveCell, results);
+  t.deepEqual(mockGetCells.lastCall.args[0].script, query.lock);
+  t.deepEqual(mockGetCells.lastCall.args[0].scriptType, "lock");
+  t.deepEqual(mockGetCells.lastCall.args[2], {
+    sizeLimit: 7,
+    order: "asc",
+    lastCursor: "Lumine",
+  });
+});
+
+test("shouldSkip#shouldSkip should works well", (t) => {
+  const cellCollector: any = new CellCollector(indexer, []);
+
+  // if skippedCount < query.skip, skip current cell
+  t.true(cellCollector.shouldSkipped({ skip: 5 }, {}, 0));
+
+  // type does not match
+  t.true(
+    cellCollector.shouldSkipped(
+      { type: "empty" },
+      { cellOutput: { type: "data" } }
+    )
+  );
+
+  // data does not match
+  t.true(cellCollector.shouldSkipped({ data: "Nahida" }, { data: "Klee" }));
+
+  /// args len does not match it's in query
+  t.true(
+    cellCollector.shouldSkipped(
+      { argsLen: 77 },
+      { cellOutput: { lock: lockScript } }
+    )
+  );
+});
+
+// The CellCollector#collect method also be covered by E2E tests
+test("collect#should return and uniq the returning of `collectBySingleQuery`", async (t) => {
+  const cellCollector: any = new CellCollector(indexer, [
+    { lock: lockScript },
+    { lock: lockScript },
+  ]);
+
+  const mockCells: Cell[] = [
+    {
+      cellOutput: {
+        capacity: "0x66858222c400",
+        lock: {
+          codeHash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hashType: "type",
+          args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+        },
+      },
+      outPoint: {
+        txHash:
+          "0xe2fb199810d49a4d8beec56718ba2593b665db9d52299a0f9e6e75416d73ff5c",
+        index: "0x22c",
+      },
+      data: "0x",
+    },
+    {
+      cellOutput: {
+        capacity: "0x1ad91ea879",
+        lock: {
+          codeHash:
+            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+          hashType: "type",
+          args: "0xa528f2b9a51118b193178db4cf2f3db92e7df323",
+        },
+      },
+      outPoint: {
+        txHash:
+          "0xdd01a213077bdb161c7f5ef5071e15b911ba5d1692148f8c7a009873610eedbf",
+        index: "0x0",
+      },
+      data: "0x",
+    },
+  ];
+
+  cellCollector.collectBySingleQuery = async function* () {
+    for (const cell of mockCells) {
+      yield cell;
+    }
+  };
+
+  const cells: Cell[] = [];
+
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+
+  t.deepEqual(cells, mockCells);
 });

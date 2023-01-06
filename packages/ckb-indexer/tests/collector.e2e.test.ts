@@ -1,4 +1,5 @@
 import test from "ava";
+import uniqBy from "lodash.uniqby";
 import { Indexer, CellCollector } from "../src";
 const {
   lock,
@@ -30,6 +31,34 @@ test("get count correct", async (t) => {
   const cellCollector = new CellCollector(indexer, { lock: type });
   const count = await cellCollector.count();
   t.is(count, 1);
+});
+
+test("get count correct with multiple tests", async (t) => {
+  const type = {
+    codeHash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    hashType: "type" as HashType,
+    args: "0xa178db16d8228db82911fdb536df1916e761e205",
+  };
+  const cellCollector = new CellCollector(indexer, [
+    { lock: type },
+    {
+      lock: {
+        ...type,
+        args: "0x7ae354c3586ea3e7da6f30af80046fbe0cdce2fd",
+      },
+    },
+  ]);
+  const count = await cellCollector.count();
+  t.is(count, 2);
+
+  const cellCollect2 = new CellCollector(indexer, [
+    { lock: type },
+    { lock: type },
+  ]);
+
+  const count2 = await cellCollect2.count();
+  t.is(count2, 1);
 });
 
 test("query cells with block hash", async (t) => {
@@ -64,6 +93,45 @@ test("query cells with different queryOptions", async (t) => {
   }
 });
 
+test("query cells with multiple queryOptions", async (t) => {
+  // FIXME why use the Array#map method will cause out of memory?
+  const singleQuery: any[] = [];
+  let expectedResult: any[] = [];
+
+  for (const queryCase of cellCollectorTestCases) {
+    singleQuery.push(queryCase.queryOption);
+    expectedResult.push(...queryCase.expectedResult);
+  }
+
+  expectedResult = uniqBy(
+    expectedResult,
+    (cell: Cell) => `${cell.outPoint?.txHash}-${cell.outPoint?.index}`
+  );
+
+  let cells: Cell[] = [];
+  const cellCollector = new CellCollector(indexer, singleQuery);
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+
+  t.deepEqual(cells, expectedResult);
+});
+
+test("implectly query duplicate queryOption", async (t) => {
+  const cellCollector = new CellCollector(indexer, [
+    cellCollectorTestCases[0].queryOption,
+    cellCollectorTestCases[0].queryOption,
+  ]);
+
+  let cells: Cell[] = [];
+
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+
+  t.deepEqual(cells, cellCollectorTestCases[0].expectedResult);
+});
+
 test("wrap plain Script into ScriptWrapper ", (t) => {
   const argsLen = 20;
   const wrappedLock = { script: lock, argsLen: argsLen };
@@ -74,11 +142,11 @@ test("wrap plain Script into ScriptWrapper ", (t) => {
     argsLen: argsLen,
   };
   const cellCollector = new CellCollector(indexer, queryOptions);
-  t.deepEqual(cellCollector.queries.lock, lock);
-  t.deepEqual(cellCollector.queries.type, type);
+  t.deepEqual(cellCollector.queries[0].lock, lock);
+  t.deepEqual(cellCollector.queries[0].type, type);
 });
 
-test("pass Scrip to CellCollector", (t) => {
+test("pass Script to CellCollector", (t) => {
   const argsLen = 20;
   const wrappedLock = { script: lock, argsLen: argsLen };
   const wrappedType = { script: type, argsLen: argsLen };
@@ -88,8 +156,8 @@ test("pass Scrip to CellCollector", (t) => {
     argsLen: argsLen,
   };
   const cellCollector = new CellCollector(indexer, queryOptions);
-  t.deepEqual(cellCollector.queries.lock, lock);
-  t.deepEqual(cellCollector.queries.type, type);
+  t.deepEqual(cellCollector.queries[0].lock, lock);
+  t.deepEqual(cellCollector.queries[0].type, type);
 });
 test("throw error when pass null lock and null type to CellCollector", (t) => {
   const error = t.throws(
@@ -155,4 +223,15 @@ test("throw error when pass wrong fromBlock(toBlock) to CellCollector", (t) => {
     { instanceOf: Error }
   );
   t.is(error.message, "toBlock must be a hexadecimal!");
+});
+
+test("throw error when use multiple queryOptions with different argsLen", (t) => {
+  const error = t.throws(
+    () => {
+      const queryOptions = {};
+      new CellCollector(indexer, [{ lock }, queryOptions]);
+    },
+    { instanceOf: Error }
+  );
+  t.is(error.message, "Either lock or type script must be provided!");
 });

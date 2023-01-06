@@ -23,9 +23,10 @@ interface GetBlockHashRPCResult {
 
 /** CellCollector will not get cell with blockHash by default, please use OtherQueryOptions.withBlockHash and OtherQueryOptions.CKBRpcUrl to get blockHash if you need. */
 export class CKBCellCollector implements BaseCellCollector {
+  public queries: CKBIndexerQueryOptions[];
   constructor(
     public terminableCellFetcher: TerminableCellFetcher,
-    public queries: CKBIndexerQueryOptions,
+    queries: CKBIndexerQueryOptions | CKBIndexerQueryOptions[],
     public otherQueryOptions?: OtherQueryOptions
   ) {
     const defaultQuery: CKBIndexerQueryOptions = {
@@ -41,8 +42,13 @@ export class CKBCellCollector implements BaseCellCollector {
       outputCapacityRange: undefined,
       bufferSize: undefined,
     };
-    this.queries = { ...defaultQuery, ...this.queries };
-    this.validateQueryOption(this.queries);
+    this.queries = (Array.isArray(queries) ? queries : [queries]).map(
+      (query) => ({ ...defaultQuery, ...query })
+    );
+
+    this.queries.forEach((query) => {
+      this.validateQueryOption(query);
+    });
     this.convertQueryOptionToSearchKey();
   }
 
@@ -128,108 +134,88 @@ export class CKBCellCollector implements BaseCellCollector {
   }
 
   public convertQueryOptionToSearchKey(): void {
-    const queryLock = this.queries.lock;
-    // unWrap `ScriptWrapper` into `Script`.
-    if (queryLock) {
-      if (instanceOfScriptWrapper(queryLock)) {
-        validators.ValidateScript(queryLock.script);
-        this.queries.lock = queryLock.script;
+    this.queries.forEach((query) => {
+      const queryLock = query.lock;
+      // unWrap `ScriptWrapper` into `Script`.
+      if (queryLock) {
+        if (instanceOfScriptWrapper(queryLock)) {
+          validators.ValidateScript(queryLock.script);
+          query.lock = queryLock.script;
+        }
       }
-    }
 
-    // unWrap `ScriptWrapper` into `Script`.
-    if (this.queries.type && this.queries.type !== "empty") {
-      if (
-        typeof this.queries.type === "object" &&
-        instanceOfScriptWrapper(this.queries.type)
-      ) {
-        validators.ValidateScript(this.queries.type.script);
-        this.queries.type = this.queries.type.script;
+      // unWrap `ScriptWrapper` into `Script`.
+      if (query.type && query.type !== "empty") {
+        if (
+          typeof query.type === "object" &&
+          instanceOfScriptWrapper(query.type)
+        ) {
+          validators.ValidateScript(query.type.script);
+          query.type = query.type.script;
+        }
       }
-    }
 
-    if (!this.queries.outputDataLenRange) {
-      if (this.queries.data && this.queries.data !== "any") {
-        const dataLenRange = getHexStringBytes(this.queries.data);
-        this.queries.outputDataLenRange = [
-          "0x" + dataLenRange.toString(16),
-          "0x" + (dataLenRange + 1).toString(16),
-        ];
+      if (!query.outputDataLenRange) {
+        if (query.data && query.data !== "any") {
+          const dataLenRange = getHexStringBytes(query.data);
+          query.outputDataLenRange = [
+            "0x" + dataLenRange.toString(16),
+            "0x" + (dataLenRange + 1).toString(16),
+          ];
+        }
       }
-    }
 
-    if (!this.queries.scriptLenRange && this.queries.type === "empty") {
-      this.queries.scriptLenRange = ["0x0", "0x1"];
-    }
+      if (!query.scriptLenRange && query.type === "empty") {
+        query.scriptLenRange = ["0x0", "0x1"];
+      }
+    });
   }
 
-  private async getLiveCell(lastCursor?: string): Promise<GetCellsResults> {
+  private async getLiveCell(
+    query: CKBIndexerQueryOptions,
+    lastCursor?: string
+  ): Promise<GetCellsResults> {
     const searchKeyFilter: SearchKeyFilter = {
-      sizeLimit: this.queries.bufferSize,
-      order: this.queries.order as Order,
+      sizeLimit: query.bufferSize,
+      order: query.order as Order,
+      lastCursor,
     };
-    if (lastCursor) {
-      searchKeyFilter.lastCursor = lastCursor;
-    }
     const result = await this.terminableCellFetcher.getCells(
-      generateSearchKey(this.queries),
+      generateSearchKey(query),
       undefined,
       searchKeyFilter
     );
     return result;
   }
 
-  private shouldSkipped(cell: Cell, skippedCount = 0) {
-    if (this.queries.skip && skippedCount < this.queries.skip) {
+  private shouldSkipped(
+    query: CKBIndexerQueryOptions,
+    cell: Cell,
+    skippedCount = 0
+  ) {
+    if (query.skip && skippedCount < query.skip) {
       return true;
     }
-    if (cell && this.queries.type === "empty" && cell.cellOutput.type) {
+    if (cell && query.type === "empty" && cell.cellOutput.type) {
       return true;
     }
-    if (this.queries.data !== "any" && cell.data !== this.queries.data) {
+    if (query.data !== "any" && cell.data !== query.data) {
       return true;
     }
     if (
-      this.queries.argsLen !== -1 &&
-      this.queries.argsLen !== "any" &&
-      getHexStringBytes(cell.cellOutput.lock.args) !== this.queries.argsLen
+      query.argsLen !== -1 &&
+      query.argsLen !== "any" &&
+      getHexStringBytes(cell.cellOutput.lock.args) !== query.argsLen
     ) {
       return true;
     }
   }
 
   async count(): Promise<number> {
-    let lastCursor: undefined | string = undefined;
-    const getCellWithCursor = async (): Promise<Cell[]> => {
-      const result: GetCellsResults = await this.getLiveCell(lastCursor);
-      lastCursor = result.lastCursor;
-      return result.objects;
-    };
     let counter = 0;
-    let cells: Cell[] = await getCellWithCursor();
-    if (cells.length === 0) {
-      return 0;
-    }
-    let buffer: Promise<Cell[]> = getCellWithCursor();
-    let index = 0;
-    let skippedCount = 0;
-    while (true) {
-      if (!this.shouldSkipped(cells[index], skippedCount)) {
-        counter += 1;
-      } else {
-        skippedCount++;
-      }
-      index++;
-      //reset index and exchange `cells` and `buffer` after count last cell
-      if (index === cells.length) {
-        index = 0;
-        cells = await buffer;
-        // break if can not get more cells
-        if (cells.length === 0) {
-          break;
-        }
-        buffer = getCellWithCursor();
-      }
+
+    for await (const _cell of this.collect()) {
+      counter++;
     }
     return counter;
   }
@@ -255,11 +241,14 @@ export class CKBCellCollector implements BaseCellCollector {
     return result;
   }
 
-  private async getLiveCellWithBlockHash(lastCursor?: string) {
+  private async getLiveCellWithBlockHash(
+    query: CKBIndexerQueryOptions,
+    lastCursor?: string
+  ) {
     if (!this.otherQueryOptions) {
       throw new Error("CKB Rpc URL must provide");
     }
-    const result: GetCellsResults = await this.getLiveCell(lastCursor);
+    const result: GetCellsResults = await this.getLiveCell(query, lastCursor);
     if (result.objects.length === 0) {
       return result;
     }
@@ -285,10 +274,29 @@ export class CKBCellCollector implements BaseCellCollector {
     return result;
   }
 
-  /** collect cells without blockHash by default.if you need blockHash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
+  /**
+   * collect cells without blockHash by default.if you need blockHash, please add OtherQueryOptions.withBlockHash and OtherQueryOptions.ckbRpcUrl when constructor CellCollect.
    * don't use OtherQueryOption if you don't need blockHash,cause it will slowly your collect.
    */
-  async *collect(): AsyncGenerator<Cell, void, unknown> {
+  async *collect(): AsyncGenerator<Cell> {
+    const visitedCellKey = new Set<string>();
+
+    for (const query of this.queries) {
+      for await (const cell of this.collectBySingleQuery(query)) {
+        const key = `${cell.outPoint?.txHash}-${cell.outPoint?.index}`;
+        if (visitedCellKey.has(key)) {
+          continue;
+        } else {
+          visitedCellKey.add(key);
+          yield cell;
+        }
+      }
+    }
+  }
+
+  private async *collectBySingleQuery(
+    query: CKBIndexerQueryOptions
+  ): AsyncGenerator<Cell> {
     //TODO: fix return type
     const withBlockHash =
       this.otherQueryOptions &&
@@ -297,8 +305,8 @@ export class CKBCellCollector implements BaseCellCollector {
     let lastCursor: undefined | string = undefined;
     const getCellWithCursor = async (): Promise<Cell[]> => {
       const result: GetCellsResults = await (withBlockHash
-        ? this.getLiveCellWithBlockHash(lastCursor)
-        : this.getLiveCell(lastCursor));
+        ? this.getLiveCellWithBlockHash(query, lastCursor)
+        : this.getLiveCell(query, lastCursor));
       lastCursor = result.lastCursor;
       return result.objects;
     };
@@ -310,7 +318,7 @@ export class CKBCellCollector implements BaseCellCollector {
     let index = 0;
     let skippedCount = 0;
     while (true) {
-      if (!this.shouldSkipped(cells[index], skippedCount)) {
+      if (!this.shouldSkipped(query, cells[index], skippedCount)) {
         yield cells[index];
       } else {
         skippedCount++;
