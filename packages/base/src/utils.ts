@@ -49,12 +49,8 @@ function ckbHash(data: BytesLike): Hash {
  * compute lock/type hash
  *
  * @param script
- * @param _options @deprecated this option has no effect
  */
-function computeScriptHash(
-  script: Script,
-  _options?: { validate?: boolean }
-): string {
+function computeScriptHash(script: Script): string {
   return ckbHash(blockchain.Script.pack(script));
 }
 
