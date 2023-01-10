@@ -74,7 +74,7 @@ test("load and check password, loads private key", (t) => {
 
 // test vector:
 // https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition#test-vectors
-test.skip("load test vector keystore", (t) => {
+test("load test vector keystore", (t) => {
   const startTime = new Date();
   const json = {
     crypto: {
