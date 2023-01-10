@@ -34,17 +34,25 @@ xpub.save("your path")
 ```
 ## Browsers
 
-This package enforces key management by importing `crypto`, `fs` and `path` packages, which are not available in browser environment. If you want to use '@lumos/hd' in your front-end project, please include polyfill to your project module bundle. Here is a webpack example:
+This package enforces key management by importing `buffer`, `stream`, `crypto`, `fs` and `path` packages, which are not available in browser environment. If you want to use '@lumos/hd' in your front-end project, please include polyfill to your project module bundle. Here is a webpack example:
 
 ```js
 resolve: {
   ...
   fallback: {
     fs: false,
+    buffer: require.resolve('buffer/'),
+    stream: require.resolve('stream-browserify'),
     path: require.resolve('path-browserify'),
     crypto: require.resolve('crypto-browserify'),
-  }
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
+      Buffer: ['buffer', 'Buffer'],
+    }),
+  ],
 }
 ```
 
-You'll need to install `path-browserify` and `crypto-browserify` also.
+You'll need to install `buffer`, `stream-browserify`, `path-browserify` and `crypto-browserify` also.

@@ -44,6 +44,54 @@ test("load and check password, loads private key", (t) => {
   t.is(extendedPrivateKey.chainCode, fixture.chainCode);
 });
 
+/**
+ * test vector:
+ * https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition#test-vectors
+ * Address: 008aeeda4d805471df9b2a5b0f38a0c3bcba786b
+ * ICAP: XE542A5PZHH8PYIZUBEJEO0MFWRAPPIL67
+ * UUID: 3198bc9c-6672-5ab3-d9954942343ae5b6
+ * Password: testpassword
+ * Scrypt: https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition#scrypt
+ * Secret: 7a28b5ba57c53603b0b07b56bba752f7784bf506fa95edc395f5cf6c7514fe9d
+ * Derived key: fac192ceb5fd772906bea3e118a69e8bbb5cc24229e20d8766fd298291bba6bd
+ * MAC Body bb5cc24229e20d8766fd298291bba6bdd172bf743a674da9cdad04534d56926ef8358534d458fffccd4e6ad2fbde479c
+ * MAC: 2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097
+ * Cipher key: fac192ceb5fd772906bea3e118a69e8b
+ */
+test("load test vector keystore", (t) => {
+  const json = {
+    crypto: {
+      cipher: "aes-128-ctr",
+      cipherparams: {
+        iv: "83dbcc02d8ccb40e466191a123791e0e",
+      },
+      ciphertext:
+        "d172bf743a674da9cdad04534d56926ef8358534d458fffccd4e6ad2fbde479c",
+      kdf: "scrypt",
+      kdfparams: {
+        dklen: 32,
+        n: 262144,
+        p: 8,
+        r: 1,
+        salt: "ab0c7876052600dd703518d6fc3fe8984592145b591fc8fb5c6d43190334ba19",
+      },
+      mac: "2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097",
+    },
+    id: "3198bc9c-6672-5ab3-d995-4942343ae5b6",
+    version: 3,
+  };
+  const keystore = Keystore.fromJson(JSON.stringify(json));
+  t.true(keystore.checkPassword("testpassword"));
+  t.deepEqual(
+    keystore.decrypt("testpassword"),
+    "0x7a28b5ba57c53603b0b07b56bba752f7784bf506fa95edc395f5cf6c7514fe9d"
+  );
+  t.deepEqual(
+    keystore.derivedKey("testpassword").toString("hex"),
+    "fac192ceb5fd772906bea3e118a69e8bbb5cc24229e20d8766fd298291bba6bd"
+  );
+});
+
 // 'load ckb cli light keystore'
 test("load ckb cli light keystore, checks correct password", (t) => {
   const password = "123";
@@ -81,7 +129,6 @@ test("load ckb cli standard keystore, loads private key", (t) => {
 test("load ckb cli origin keystore", (t) => {
   const keystoreString =
     '{"origin":"ckb-cli", "address":"ea22142fa5be326e834681144ca30326f99a6d5a","crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"29304e5bcbb1885ef5cdcb40b5312b58"},"ciphertext":"93054530a8fbe5b11995acda856585d7362ac7d2b1e4f268c633d997be2d6532c4962501d0835bf52a4693ae7a091ac9bac9297793f4116ef7c123edb00dbc85","kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"724327e67ca321ccf15035bb78a0a05c816bebbe218a0840abdc26da8453c1f4"},"mac":"1d0e5660ffbfc1f9ff4da97aefcfc2153c0ec1b411e35ffee26ee92815cc06f9"},"id":"43c1116e-efd5-4c9e-a86a-3ec0ab163122","version":3}';
-
   const keystore = Keystore.fromJson(keystoreString);
   t.is(keystore.origin, "ckb-cli");
 });

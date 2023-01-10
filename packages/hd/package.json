@@ -23,6 +23,7 @@
     "@ckb-lumos/bi": "0.20.0-alpha.1",
     "bn.js": "^5.1.3",
     "elliptic": "^6.5.4",
+    "scrypt-js": "^3.0.1",
     "sha3": "^2.1.3",
     "uuid": "^8.3.0"
   },
@@ -33,7 +34,7 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
-    "test": "ava **/*.test.ts --timeout=2m",
+    "test": "ava **/*.test.ts --timeout=5m",
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
