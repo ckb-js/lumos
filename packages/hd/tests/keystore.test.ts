@@ -44,8 +44,20 @@ test("load and check password, loads private key", (t) => {
   t.is(extendedPrivateKey.chainCode, fixture.chainCode);
 });
 
-// test vector:
-// https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition#test-vectors
+/**
+ * test vector:
+ * https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition#test-vectors
+ * Address: 008aeeda4d805471df9b2a5b0f38a0c3bcba786b
+ * ICAP: XE542A5PZHH8PYIZUBEJEO0MFWRAPPIL67
+ * UUID: 3198bc9c-6672-5ab3-d9954942343ae5b6
+ * Password: testpassword
+ * Scrypt: https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition#scrypt
+ * Secret: 7a28b5ba57c53603b0b07b56bba752f7784bf506fa95edc395f5cf6c7514fe9d
+ * Derived key: fac192ceb5fd772906bea3e118a69e8bbb5cc24229e20d8766fd298291bba6bd
+ * MAC Body bb5cc24229e20d8766fd298291bba6bdd172bf743a674da9cdad04534d56926ef8358534d458fffccd4e6ad2fbde479c
+ * MAC: 2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097
+ * Cipher key: fac192ceb5fd772906bea3e118a69e8b
+ */
 test("load test vector keystore", (t) => {
   const json = {
     crypto: {
@@ -70,6 +82,14 @@ test("load test vector keystore", (t) => {
   };
   const keystore = Keystore.fromJson(JSON.stringify(json));
   t.true(keystore.checkPassword("testpassword"));
+  t.deepEqual(
+    keystore.decrypt("testpassword"),
+    "0x7a28b5ba57c53603b0b07b56bba752f7784bf506fa95edc395f5cf6c7514fe9d"
+  );
+  t.deepEqual(
+    keystore.derivedKey("testpassword").toString("hex"),
+    "fac192ceb5fd772906bea3e118a69e8bbb5cc24229e20d8766fd298291bba6bd"
+  );
 });
 
 // 'load ckb cli light keystore'
