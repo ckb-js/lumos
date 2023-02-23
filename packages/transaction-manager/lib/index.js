@@ -163,6 +163,7 @@ class TransactionManager {
       fromBlock = null,
       toBlock = null,
       skip = null,
+      outputDataLenRange = null,
     } = {},
     { usePendingOutputs = true } = {}
   ) {
@@ -197,6 +198,7 @@ class TransactionManager {
       fromBlock,
       toBlock,
       skip,
+      outputDataLenRange,
     });
     const filteredCreatedCells = this._filterCells(this.createdCells, {
       lock,

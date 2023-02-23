@@ -6,6 +6,7 @@ import {
   Indexer,
   CellCollector,
 } from "@ckb-lumos/base";
+import { HexadecimalRange } from "@ckb-lumos/ckb-indexer/lib/type";
 
 declare class TransactionManager {
   constructor(
@@ -29,7 +30,7 @@ declare class TransactionManager {
    * @param options
    */
   collector(
-    queryOptions?: QueryOptions,
+    queryOptions?: QueryOptions & { outputDataLenRange?: HexadecimalRange },
     options?: { usePendingOutputs?: boolean }
   ): CellCollector;
 }
