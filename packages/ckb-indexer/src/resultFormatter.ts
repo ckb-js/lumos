@@ -1,7 +1,8 @@
-import { OutPoint, Script } from "@ckb-lumos/base";
+import { OutPoint, Script, TransactionWithStatus } from "@ckb-lumos/base";
 import type * as IndexerType from "./indexerType";
 import type * as RPCType from "./rpcType";
 import { SearchFilter, SearchKey } from "./type";
+import { toTransaction } from "@ckb-lumos/rpc/lib/resultFormatter";
 
 const toTip = (tip: RPCType.Tip): IndexerType.Tip => ({
   blockHash: tip.block_hash,
@@ -38,6 +39,13 @@ const toSearchKey = (data: RPCType.SearchKey): SearchKey => ({
   filter: data.filter ? toSearchFilter(data.filter) : data.filter,
 });
 
+const toTransactionWithStatus = (
+  data: RPCType.TransactionWithStatus
+): TransactionWithStatus => ({
+  transaction: toTransaction(data.transaction),
+  txStatus: data.tx_status,
+});
+
 export {
   toTip,
   toScript,
@@ -45,4 +53,5 @@ export {
   toCellOutPut,
   toSearchKey,
   toSearchFilter,
+  toTransactionWithStatus,
 };

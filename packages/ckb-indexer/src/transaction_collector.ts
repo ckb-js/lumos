@@ -18,8 +18,10 @@ import {
   GetTransactionRPCResult,
   JsonRprRequestBody,
 } from "./type";
+import type * as RPCType from "./rpcType";
 import { CkbIndexer } from "./indexer";
 import * as services from "./services";
+import { toTransactionWithStatus } from "./resultFormatter";
 
 interface GetTransactionDetailResult {
   objects: TransactionWithStatus[];
@@ -304,9 +306,9 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     );
     const transactionList: TransactionWithStatus[] = await services
       .requestBatch(this.CKBRpcUrl, getDetailRequestData)
-      .then((response: GetTransactionRPCResult[]) => {
+      .then((response: RPCType.GetTransactionRPCResult[]) => {
         return response.map(
-          (item: GetTransactionRPCResult): TransactionWithStatus => {
+          (item: RPCType.GetTransactionRPCResult): TransactionWithStatus => {
             if (!this.filterOptions.skipMissing && !item.result) {
               throw new Error(
                 `Transaction ${
@@ -314,7 +316,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
                 } is missing!`
               );
             }
-            return { ...item.result };
+            return { ...toTransactionWithStatus(item.result) };
           }
         );
       });
