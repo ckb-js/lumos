@@ -20,7 +20,7 @@ declare class TransactionManager {
 
   stop(): void;
 
-  send_transaction(tx: Transaction): Promise<Hash>;
+  sendTransaction(tx: Transaction): Promise<Hash>;
 
   /**
    * If set `usePendingOutputs` to false, will not use pending outputs, default to true.

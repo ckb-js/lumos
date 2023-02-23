@@ -250,7 +250,9 @@ class TransactionManagerCellCollector {
     }
     if (this.usePendingOutputs) {
       for (const cell of this.filteredCreatedCells) {
-        yield cell;
+        if (!this.spentCells.has(new values.OutPointValue(cell.outPoint))) {
+          yield cell;
+        }
       }
     }
   }
