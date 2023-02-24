@@ -53,6 +53,5 @@ export {
   toCellOutPut,
   toSearchKey,
   toSearchFilter,
-  toTransactionWithStatus,
   toTransactionRPCResult,
 };

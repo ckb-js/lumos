@@ -21,10 +21,8 @@ import {
 import type * as RPCType from "./rpcType";
 import { CkbIndexer } from "./indexer";
 import * as services from "./services";
-import {
-  toTransactionRPCResult,
-  toTransactionWithStatus,
-} from "./resultFormatter";
+import { toTransactionRPCResult } from "./resultFormatter";
+import { toTransactionWithStatus } from "@ckb-lumos/rpc/lib/resultFormatter";
 
 interface GetTransactionDetailResult {
   objects: TransactionWithStatus[];

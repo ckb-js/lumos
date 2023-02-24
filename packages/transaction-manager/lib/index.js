@@ -68,9 +68,13 @@ class TransactionManager {
       /* Second, remove all transactions that have already been committed */
       const output = tx.outputs[0];
       if (output) {
-        const transactionCollector = new TransactionCollector(this.indexer, {
-          lock: output.lock,
-        });
+        const transactionCollector = new TransactionCollector(
+          this.indexer,
+          {
+            lock: output.lock,
+          },
+          this.indexer.uri
+        );
         const txHashes = await transactionCollector.getTransactionHashes();
         // remove witnesses property because it's redundant for calculating txHash
         delete tx.witnesses;
