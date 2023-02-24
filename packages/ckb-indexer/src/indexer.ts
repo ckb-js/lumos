@@ -12,7 +12,6 @@ import { requestBatch } from "./services";
 import { CKBCellCollector } from "./collector";
 import { EventEmitter } from "events";
 import {
-  GetTransactionRPCResult,
   CKBIndexerQueryOptions,
   GetCellsResults,
   GetLiveCellsResult,
@@ -34,6 +33,8 @@ import { RPC as CKBIndexerRpc } from "./rpc";
 import { CKBRPC } from "@ckb-lumos/rpc";
 import { validators } from "@ckb-lumos/toolkit";
 import type * as IndexerType from "./indexerType";
+import type * as RPCType from "./rpcType";
+import { toOutput } from "@ckb-lumos/rpc/lib/resultFormatter";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -283,15 +284,18 @@ export class CkbIndexer implements CellProvider, TerminableCellFetcher {
         const transactionResponse: OutputToVerify[] = await requestBatch(
           this.uri,
           requestData
-        ).then((response: GetTransactionRPCResult[]) => {
+        ).then((response: RPCType.GetTransactionRPCResult[]) => {
           return response.map(
-            (item: GetTransactionRPCResult, index: number) => {
+            (item: RPCType.GetTransactionRPCResult, index: number) => {
               const cellIndex = tx.inputs[index].previousOutput.index;
               const outputCell =
                 item.result.transaction.outputs[parseInt(cellIndex)];
               const outputData =
-                item.result.transaction.outputsData[parseInt(cellIndex)];
-              return { output: outputCell, outputData } as OutputToVerify;
+                item.result.transaction.outputs_data[parseInt(cellIndex)];
+              return {
+                output: toOutput(outputCell),
+                outputData,
+              } as OutputToVerify;
             }
           );
         });

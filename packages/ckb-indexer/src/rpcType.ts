@@ -1,10 +1,4 @@
-import {
-  HexString,
-  HexNumber,
-  Hash,
-  Hexadecimal,
-  TxStatus,
-} from "@ckb-lumos/base";
+import { HexString, HexNumber, Hash, Hexadecimal } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
 
 export type Tip = {
@@ -49,13 +43,8 @@ export interface GetTransactionsSearchKey extends SearchKey {
   group_by_transaction?: boolean;
 }
 
-export interface TransactionWithStatus {
-  transaction: RPC.Transaction;
-  tx_status: TxStatus;
-}
-
 export interface GetTransactionRPCResult {
   jsonrpc: string;
   id: number;
-  result: TransactionWithStatus;
+  result: RPC.TransactionWithStatus;
 }

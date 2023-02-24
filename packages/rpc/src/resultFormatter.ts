@@ -286,16 +286,12 @@ const toCellsIncludingOutPoint = (
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const toTransactionWithStatus = (txWithStatus: RPC.TransactionWithStatus) => {
   if (!txWithStatus) return txWithStatus;
-  const {
-    transaction,
-    tx_status: { block_hash: blockHash, status },
-    ...rest
-  } = txWithStatus;
+  const { transaction, tx_status: txStatus, ...rest } = txWithStatus;
   return {
     transaction: toTransaction(transaction),
     txStatus: {
-      blockHash,
-      status,
+      blockHash: txStatus?.block_hash,
+      status: txStatus?.status,
     },
     ...rest,
   };

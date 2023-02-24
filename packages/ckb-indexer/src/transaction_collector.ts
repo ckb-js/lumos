@@ -21,7 +21,10 @@ import {
 import type * as RPCType from "./rpcType";
 import { CkbIndexer } from "./indexer";
 import * as services from "./services";
-import { toTransactionWithStatus } from "./resultFormatter";
+import {
+  toTransactionRPCResult,
+  toTransactionWithStatus,
+} from "./resultFormatter";
 
 interface GetTransactionDetailResult {
   objects: TransactionWithStatus[];
@@ -137,15 +140,15 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   public async fetchResolvedTransaction(
     txIoTypeInputOutPointList: JsonRprRequestBody[]
   ): Promise<GetTransactionRPCResult[]> {
-    let resolvedTransaction: GetTransactionRPCResult[] = [];
+    let resolvedTransaction: RPCType.GetTransactionRPCResult[] = [];
     if (txIoTypeInputOutPointList.length <= 0) {
-      return resolvedTransaction;
+      return resolvedTransaction.map(toTransactionRPCResult);
     }
     resolvedTransaction = await services.requestBatch(
       this.CKBRpcUrl,
       txIoTypeInputOutPointList
     );
-    return resolvedTransaction;
+    return resolvedTransaction.map(toTransactionRPCResult);
   }
 
   public getResolvedCell(
