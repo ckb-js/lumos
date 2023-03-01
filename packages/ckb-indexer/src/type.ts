@@ -15,6 +15,7 @@ import { BIish } from "@ckb-lumos/bi";
 
 export type ScriptType = "type" | "lock";
 export type Order = "asc" | "desc";
+export type ScriptSearchMode = "prefix" | "exact";
 
 export interface CKBIndexerQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;
@@ -23,6 +24,7 @@ export interface CKBIndexerQueryOptions extends QueryOptions {
   bufferSize?: number;
   withData?: boolean;
   groupByTransaction?: boolean;
+  scriptSearchMode?: ScriptSearchMode;
 }
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
@@ -36,6 +38,7 @@ export interface SearchFilter {
 export interface SearchKey {
   script: Script;
   scriptType: ScriptType;
+  scriptSearchMode?: ScriptSearchMode;
   filter?: SearchFilter;
 }
 export interface GetLiveCellsResult<WithData extends boolean = true> {

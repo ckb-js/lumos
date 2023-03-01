@@ -21,6 +21,7 @@ export type CellOutput = {
 
 export type HexadecimalRange = [Hexadecimal, Hexadecimal];
 export type ScriptType = "type" | "lock";
+export type ScriptSearchMode = "prefix" | "exact";
 
 export interface SearchFilter {
   script?: Script;
@@ -33,6 +34,7 @@ export interface SearchKey {
   script: Script;
   script_type: ScriptType;
   filter?: SearchFilter;
+  script_search_mode?: ScriptSearchMode;
 }
 export interface GetCellsSearchKey extends SearchKey {
   with_data?: boolean;

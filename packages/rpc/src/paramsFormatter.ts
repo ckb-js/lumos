@@ -180,6 +180,7 @@ export const formatter = {
       script: formatter.toScript(data.script),
       script_type: data.scriptType,
       filter: data.filter ? formatter.toSearchFilter(data.filter) : data.filter,
+      script_search_mode: data.scriptSearchMode ? data.scriptSearchMode : "prefix",
     };
   },
   toGetCellsSearchKey: (

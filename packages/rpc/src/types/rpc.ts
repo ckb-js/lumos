@@ -394,6 +394,7 @@ export namespace RPC {
 
   export type HexadecimalRange = [string, string];
   export type ScriptType = "type" | "lock";
+  export type ScriptSearchMode = "prefix" | "exact";
 
   export interface SearchFilter {
     script?: Script;
@@ -406,6 +407,7 @@ export namespace RPC {
     script: Script;
     script_type: ScriptType;
     filter?: SearchFilter;
+    script_search_mode?: ScriptSearchMode;
   }
   export interface GetCellsSearchKey extends SearchKey {
     with_data?: boolean;
