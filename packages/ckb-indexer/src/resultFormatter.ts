@@ -36,7 +36,7 @@ const toSearchKey = (data: RPCType.SearchKey): SearchKey => ({
   script: toScript(data.script),
   scriptType: data.script_type,
   filter: data.filter ? toSearchFilter(data.filter) : data.filter,
-  scriptSearchMode: data.script_search_mode
+  scriptSearchMode: data.script_search_mode,
 });
 
 export {

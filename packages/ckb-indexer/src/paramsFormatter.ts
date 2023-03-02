@@ -27,7 +27,7 @@ const toSearchKey = (data: SearchKey): RPCType.SearchKey => ({
   script: toScript(data.script),
   script_type: data.scriptType,
   filter: data.filter ? toSearchFilter(data.filter) : data.filter,
-  script_search_mode: data.scriptSearchMode ? data.scriptSearchMode : "prefix"
+  script_search_mode: data.scriptSearchMode ? data.scriptSearchMode : "prefix",
 });
 
 const toGetCellsSearchKey = (
