@@ -66,7 +66,7 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
     script,
     script_type,
     filter,
-    script_search_mode
+    script_search_mode,
   });
 };
 
