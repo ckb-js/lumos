@@ -82,8 +82,5 @@
   },
   "website/{docs,src}/**/*.{js,ts,md}": [
     "prettier --write"
-  ],
-  "dependencies": {
-    "@nervosnetwork/ckb-sdk-core": "^0.103.1"
-  }
+  ]
 }

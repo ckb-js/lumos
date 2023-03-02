@@ -3,25 +3,6 @@ const nodeUri = "https://testnet.ckb.dev/rpc";
 const indexUri = "https://testnet.ckb.dev/indexer";
 const indexer = new Indexer(indexUri, nodeUri);
 
-
-const bootstrap = async () => {
-    const cellCollector = indexer.collector({
-        lock: {
-            codeHash:
-            "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-            hashType: "type",
-            args: "0x5f58632a123e7e731db0b59ce50fe16579c7d941",
-        },
-        scriptSearchMode: "prefix",
-    });
-
-    for await (const cell of cellCollector.collect()) {
-        console.log(cell);
-    }
-}
-
-bootstrap()
-
 const exact_cell_collector = async () => {
     const cellCollector = indexer.collector({
         lock: {
