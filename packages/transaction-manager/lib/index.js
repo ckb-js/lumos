@@ -68,9 +68,13 @@ class TransactionManager {
       /* Second, remove all transactions that have already been committed */
       const output = tx.outputs[0];
       if (output) {
-        const transactionCollector = new TransactionCollector(this.indexer, {
-          lock: output.lock,
-        });
+        const transactionCollector = new TransactionCollector(
+          this.indexer,
+          {
+            lock: output.lock,
+          },
+          this.indexer.uri
+        );
         const txHashes = await transactionCollector.getTransactionHashes();
         // remove witnesses property because it's redundant for calculating txHash
         delete tx.witnesses;
@@ -163,6 +167,7 @@ class TransactionManager {
       fromBlock = null,
       toBlock = null,
       skip = null,
+      outputDataLenRange = null,
     } = {},
     { usePendingOutputs = true } = {}
   ) {
@@ -197,6 +202,7 @@ class TransactionManager {
       fromBlock,
       toBlock,
       skip,
+      outputDataLenRange,
     });
     const filteredCreatedCells = this._filterCells(this.createdCells, {
       lock,
@@ -250,7 +256,9 @@ class TransactionManagerCellCollector {
     }
     if (this.usePendingOutputs) {
       for (const cell of this.filteredCreatedCells) {
-        yield cell;
+        if (!this.spentCells.has(new values.OutPointValue(cell.outPoint))) {
+          yield cell;
+        }
       }
     }
   }
