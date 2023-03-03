@@ -316,7 +316,7 @@ test("nested type", (t) => {
     ["byteField", "arrayField", "structField", "fixedVec", "dynVec", "option"]
   );
 
-  const validInput: Parameters<typeof codec["pack"]>[0] = {
+  const validInput: Parameters<(typeof codec)["pack"]>[0] = {
     byteField: 0x1,
     arrayField: [0x2, 0x3, 0x4],
     structField: { f1: 0x5, f2: 0x6 },
