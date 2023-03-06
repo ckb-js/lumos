@@ -1,5 +1,4 @@
 import axios from "axios";
-import fetchAdapter from "@vespaiach/axios-fetch-adapter";
 
 /* istanbul ignore next */
 export function initAxiosWebworkerAdapter(): void {
@@ -7,6 +6,8 @@ export function initAxiosWebworkerAdapter(): void {
     "ServiceWorkerGlobalScope" in globalThis &&
     globalThis instanceof globalThis?.ServiceWorkerGlobalScope
   ) {
-    axios.defaults.adapter = fetchAdapter;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fetchAdapter = require("@vespaiach/axios-fetch-adapter");
+    axios.defaults.adapter = fetchAdapter.default;
   }
 }
