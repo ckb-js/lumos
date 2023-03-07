@@ -33,7 +33,7 @@ declare class TransactionManager {
    * @param options
    */
   collector(
-    queryOptions?: QueryOptions &{  outputDataLenRange?: HexadecimalRange },
+    queryOptions?: QueryOptions & { outputDataLenRange?: HexadecimalRange },
     options?: { usePendingOutputs?: boolean }
   ): CellCollector;
 }
