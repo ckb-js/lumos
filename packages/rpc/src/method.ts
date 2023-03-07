@@ -1,8 +1,10 @@
 import axios from "axios";
 import { IdNotMatchException, ResponseException } from "./exceptions";
+import { initAxiosWebworkerAdapter } from "./initAxiosWebworkerAdapter";
 import { CKBComponents } from "./types/api";
 import { RPCConfig } from "./types/common";
 
+initAxiosWebworkerAdapter();
 export class Method {
   #name: string;
   #config: RPCConfig;
