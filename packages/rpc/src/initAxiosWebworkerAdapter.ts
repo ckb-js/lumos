@@ -5,6 +5,7 @@ import axios from "axios";
 // this is a hack for passing unit tests
 /** @internal */
 export function initAxiosWebworkerAdapter(): void {
+  /* istanbul ignore next */
   if (
     // @ts-ignore
     "ServiceWorkerGlobalScope" in globalThis &&
