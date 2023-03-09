@@ -10,6 +10,7 @@ test("should generateSearchKey works fine", async (t) => {
       hashType: "data",
       args: "0x1234567890123456789012345678901234567890",
     },
+    scriptSearchMode: "prefix",
     scriptType: "lock",
     filter: {
       script: undefined,

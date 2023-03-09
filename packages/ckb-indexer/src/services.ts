@@ -19,6 +19,7 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   let script: RPCType.Script | undefined = undefined;
   const filter: RPCType.SearchFilter = {};
   let script_type: RPCType.ScriptType | undefined = undefined;
+  let script_search_mode: RPCType.ScriptSearchMode = "prefix";
   if (queries.lock) {
     const lock = UnwrapScriptWrapper(queries.lock);
     script = toScript(lock);
@@ -52,6 +53,9 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   if (queries.scriptLenRange) {
     filter.script_len_range = queries.scriptLenRange;
   }
+  if (queries.scriptSearchMode) {
+    script_search_mode = queries.scriptSearchMode;
+  }
   if (!script) {
     throw new Error("Either lock or type script must be provided!");
   }
@@ -62,6 +66,7 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
     script,
     script_type,
     filter,
+    script_search_mode,
   });
 };
 

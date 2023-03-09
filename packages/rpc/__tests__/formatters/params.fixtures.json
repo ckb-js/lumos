@@ -358,7 +358,9 @@
         "blockHash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "proof": {
           "indices": ["0x0"],
-          "lemmas": ["0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
+          "lemmas": [
+            "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ]
         },
         "witnessesRoot": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       },
@@ -366,7 +368,9 @@
         "block_hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "proof": {
           "indices": ["0x0"],
-          "lemmas": ["0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
+          "lemmas": [
+            "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ]
         },
         "witnesses_root": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       }
@@ -426,6 +430,7 @@
           "hash_type": "type",
           "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
         },
+        "script_search_mode": "prefix",
         "script_type": "lock"
       }
     },
@@ -444,11 +449,11 @@
       "expected": {
         "script": {
           "args": "0x1234567890123456789012345678901234567890",
-          "code_hash":
-            "0x123456789012345678901234567890123456789001234567890012345678901234",
+          "code_hash": "0x123456789012345678901234567890123456789001234567890012345678901234",
           "hash_type": "data"
         },
         "script_type": "lock",
+        "script_search_mode": "prefix",
         "filter": {
           "output_data_len_range": ["0x1", "0x2"]
         }
@@ -476,6 +481,7 @@
           "hash_type": "type",
           "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
         },
+        "script_search_mode": "prefix",
         "script_type": "lock",
         "with_data": true
       }
@@ -502,6 +508,7 @@
           "hash_type": "type",
           "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
         },
+        "script_search_mode": "prefix",
         "script_type": "lock",
         "group_by_transaction": true
       }
@@ -521,6 +528,7 @@
           "hash_type": "type",
           "args": "0xc42b01124359ceacd4440cc461685cfdd659a051"
         },
+        "script_search_mode": "prefix",
         "script_type": "lock"
       }
     }

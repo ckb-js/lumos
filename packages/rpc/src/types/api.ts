@@ -178,6 +178,7 @@ export namespace CKBComponents {
   export type ScriptType = "type" | "lock";
   export type Order = "asc" | "desc";
   export type IOType = "input" | "output" | "both";
+  export type ScriptSearchMode = "prefix" | "exact";
 
   export interface IndexerCell {
     blockNumber: BlockNumber;
@@ -247,6 +248,7 @@ export namespace CKBComponents {
     script: Script;
     scriptType: ScriptType;
     filter?: SearchFilter;
+    scriptSearchMode?: ScriptSearchMode;
   }
   export interface GetLiveCellsResult<WithData extends boolean = true> {
     lastCursor: string;
