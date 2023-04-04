@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@ckb-lumos/debugger",
-  "version": "0.20.0-alpha.1",
+  "version": "0.20.0-alpha.2",
   "description": "ckb-standard-debugger wrapper for lumos, check tx without launching a full node",
   "author": "",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -21,12 +21,12 @@
     "contracts"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0-alpha.1",
-    "@ckb-lumos/bi": "0.20.0-alpha.1",
-    "@ckb-lumos/codec": "0.20.0-alpha.1",
-    "@ckb-lumos/config-manager": "0.20.0-alpha.1",
-    "@ckb-lumos/helpers": "0.20.0-alpha.1",
-    "@ckb-lumos/rpc": "0.20.0-alpha.1",
+    "@ckb-lumos/base": "0.20.0-alpha.2",
+    "@ckb-lumos/bi": "0.20.0-alpha.2",
+    "@ckb-lumos/codec": "0.20.0-alpha.2",
+    "@ckb-lumos/config-manager": "0.20.0-alpha.2",
+    "@ckb-lumos/helpers": "0.20.0-alpha.2",
+    "@ckb-lumos/rpc": "0.20.0-alpha.2",
     "@types/download": "^8.0.1",
     "@types/object-hash": "^2.2.1",
     "debug": "^4.3.4",
@@ -35,7 +35,7 @@
     "object-hash": "^3.0.0"
   },
   "devDependencies": {
-    "@ckb-lumos/experiment-tx-assembler": "0.20.0-alpha.1"
+    "@ckb-lumos/experiment-tx-assembler": "0.20.0-alpha.2"
   },
   "bin": {
     "download-ckb-debugger": "bin/download-ckb-debugger.js"

@@ -5,7 +5,7 @@ WORKDIR /
 RUN git clone https://github.com/nervosnetwork/ckb-light-client.git
 
 RUN cd ckb-light-client \
-    && git checkout develop \
+    && git checkout c99b36f8f3668c49e3633cf1fe9fc5b4d6a9ecc0 \
     && cargo build --release
 
 RUN set -eux; \
