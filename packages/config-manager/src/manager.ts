@@ -42,9 +42,9 @@ export function validateConfig(config: Config): void {
 
     assertHash(`SCRIPTS.${scriptName}.CODE_HASH`, scriptConfig.CODE_HASH);
     const hashType = scriptConfig.HASH_TYPE;
-    if (hashType !== "type" && hashType !== "data") {
+    if (hashType !== "type" && hashType !== "data" && hashType !== "data1") {
       throw new Error(
-        `SCRIPTS.${scriptName}.HASH_TYPE must either be data or type!`
+        `SCRIPTS.${scriptName}.HASH_TYPE must be type, data or data1!`
       );
     }
     assertHash(`SCRIPTS.${scriptName}.TX_HASH`, scriptConfig.TX_HASH);
