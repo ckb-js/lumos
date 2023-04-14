@@ -109,7 +109,7 @@ to [BI Test Cases](https://github.com/ckb-js/lumos/blob/develop/packages/bi/test
 3. Example code additions
 
    Added `secp256k1-transfer`, `secp256k1-multisig-transfer`, `pw-lock-metamask`, `omni-lock-metamask` and other sample
-   code, please refer to [lumos/example](https://[github.com/ckb-js/lumos/tree/develop/examples)
+   code, please refer to [lumos/example](https://github.com/ckb-js/lumos/tree/develop/examples)
 
 4. Online tools
 
