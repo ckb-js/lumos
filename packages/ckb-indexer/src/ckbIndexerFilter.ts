@@ -4,18 +4,18 @@ import { bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 import { decodeCursor } from "./indexerCursor";
 
-export interface CkbIndexerFilterOptions {
+interface CkbIndexerFilterOptions {
   searchKey: SearchKey;
-  order: "desc" | "asc";
-  limit: number;
+  order?: "desc" | "asc";
+  limit?: number;
   afterCursor?: string;
 }
 
-export function filterByIndexerFilterProtocol(payload: {
+function filterByIndexerFilterProtocol(payload: {
   cells: Cell[];
-  options: CkbIndexerFilterOptions;
+  params: CkbIndexerFilterOptions;
 }): Cell[] {
-  const { cells, options } = payload;
+  const { cells, params: options } = payload;
 
   let filteredCells = cells.filter((cell) => filterBy(cell, options.searchKey));
 
@@ -39,7 +39,7 @@ export function filterByIndexerFilterProtocol(payload: {
   return filteredCells;
 }
 
-export function filterBy(cell: Cell, searchKey: SearchKey): boolean {
+function filterBy(cell: Cell, searchKey: SearchKey): boolean {
   const isExactMode = searchKey.scriptSearchMode === "exact";
   const { cellOutput } = cell;
   const { scriptType, script, filter } = searchKey;
@@ -69,11 +69,11 @@ export function filterBy(cell: Cell, searchKey: SearchKey): boolean {
     // Prefix mode
   } else {
     if (scriptType === "lock") {
-      if (checkScriptWithPrefixMode(cellOutput.lock, script)) {
+      if (!checkScriptWithPrefixMode(cellOutput.lock, script)) {
         return false;
       }
     } else {
-      if (checkScriptWithPrefixMode(cellOutput.type, script)) {
+      if (!checkScriptWithPrefixMode(cellOutput.type, script)) {
         return false;
       }
     }
@@ -100,7 +100,7 @@ export function filterBy(cell: Cell, searchKey: SearchKey): boolean {
     } else {
       if (
         filter.script &&
-        checkScriptWithPrefixMode(cellOutput.lock, filter.script)
+        !checkScriptWithPrefixMode(cellOutput.lock, filter.script)
       ) {
         return false;
       }
@@ -129,7 +129,7 @@ export function filterBy(cell: Cell, searchKey: SearchKey): boolean {
       }
     }
     if (filter.outputDataLenRange) {
-      const dataLen = BI.from(cell.data.length);
+      const dataLen = BI.from(bytes.bytify(cell.data).length);
       const fromDataLen = BI.from(filter.outputDataLenRange[0]);
       const toDataLen = BI.from(filter.outputDataLenRange[1]);
       if (dataLen.lt(fromDataLen) || dataLen.gte(toDataLen)) {
@@ -142,13 +142,12 @@ export function filterBy(cell: Cell, searchKey: SearchKey): boolean {
 }
 
 function isCellAfterCursor(payload: { cell: Cell; cursor: string }): boolean {
+  const { cell } = payload;
   const cursor = decodeCursor(payload.cursor);
-  const cellBlockNumber = BI.from(
-    payload.cell.blockNumber || Number.MAX_SAFE_INTEGER
-  );
+  const cellBlockNumber = BI.from(cell.blockNumber || Number.MAX_SAFE_INTEGER);
   const cellTxIndex = BI.from(payload.cell.txIndex || Number.MAX_SAFE_INTEGER);
   const cellOutputIndex = BI.from(
-    payload.cell.outPoint?.index || Number.MAX_SAFE_INTEGER
+    cell.outPoint?.index || Number.MAX_SAFE_INTEGER
   );
 
   const blockNumber = BI.from(cursor.blockNumber);
@@ -167,7 +166,7 @@ function isCellAfterCursor(payload: { cell: Cell; cursor: string }): boolean {
   if (
     cellBlockNumber.eq(blockNumber) &&
     cellTxIndex.eq(txIndex) &&
-    cellOutputIndex.lt(outputIndex)
+    cellOutputIndex.lte(outputIndex)
   ) {
     return false;
   }
@@ -178,17 +177,22 @@ function isCellAfterCursor(payload: { cell: Cell; cursor: string }): boolean {
 function checkScriptWithPrefixMode(
   script: Script | undefined,
   filterScript: Script
-) {
+): boolean {
   if (!script) {
     return false;
   }
   if (
-    Buffer.from(script.codeHash).indexOf(Buffer.from(filterScript.codeHash)) !==
-    0
+    Buffer.from(bytes.bytify(script.codeHash)).indexOf(
+      bytes.bytify(filterScript.codeHash)
+    ) !== 0
   ) {
     return false;
   }
-  if (Buffer.from(script.args).indexOf(Buffer.from(filterScript.args)) !== 0) {
+  if (
+    Buffer.from(bytes.bytify(script.args)).indexOf(
+      bytes.bytify(filterScript.args)
+    ) !== 0
+  ) {
     return false;
   }
   if (script.hashType !== filterScript.hashType) {
@@ -200,11 +204,11 @@ function checkScriptWithPrefixMode(
 function checkScriptLenRange(
   script: Script | undefined,
   scriptLenRange: HexadecimalRange
-) {
+): boolean {
   const scriptLen = script
     ? BI.from(
-        Buffer.from(script.codeHash).length +
-          Buffer.from(script.args).length +
+        bytes.bytify(script.codeHash).length +
+          bytes.bytify(script.args).length +
           1 /* hashType length is 1 */
       )
     : BI.from(0);
@@ -215,3 +219,12 @@ function checkScriptLenRange(
   }
   return true;
 }
+
+export {
+  isCellAfterCursor,
+  filterBy,
+  checkScriptWithPrefixMode,
+  checkScriptLenRange,
+  filterByIndexerFilterProtocol,
+};
+export type { CkbIndexerFilterOptions };
