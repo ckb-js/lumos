@@ -295,8 +295,9 @@ test("shouldSkip#shouldSkip should works well", (t) => {
     )
   );
 
-  // data does not match
-  t.true(cellCollector.shouldSkipped({ data: "Nahida" }, { data: "Klee" }));
+  // fitler data by prefix
+  t.true(cellCollector.shouldSkipped({ data: "0x12" }, { data: "0x1234" }));
+  t.false(cellCollector.shouldSkipped({ data: "0x5678" }, { data: "0x1234" }));
 
   /// args len does not match it's in query
   t.true(

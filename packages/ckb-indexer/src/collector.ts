@@ -14,6 +14,7 @@ import {
   instanceOfScriptWrapper,
 } from "./services";
 import fetch from "cross-fetch";
+import { bytes } from "@ckb-lumos/codec";
 
 interface GetBlockHashRPCResult {
   jsonrpc: string;
@@ -199,16 +200,23 @@ export class CKBCellCollector implements BaseCellCollector {
     if (cell && query.type === "empty" && cell.cellOutput.type) {
       return true;
     }
-    if (query.data !== "any" && cell.data !== query.data) {
+    if (
+      !!query.data &&
+      query.data !== "any" &&
+      Buffer.from(bytes.bytify(cell.data)).indexOf(bytes.bytify(query.data)) ===
+        0
+    ) {
       return true;
     }
     if (
+      query.argsLen !== undefined &&
       query.argsLen !== -1 &&
       query.argsLen !== "any" &&
       getHexStringBytes(cell.cellOutput.lock.args) !== query.argsLen
     ) {
       return true;
     }
+    return false;
   }
 
   async count(): Promise<number> {
