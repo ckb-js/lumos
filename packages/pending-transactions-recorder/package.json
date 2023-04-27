@@ -1,0 +1,48 @@
+{
+  "name": "@ckb-lumos/pending-transactions-recorder",
+  "version": "0.20.0-alpha.2",
+  "description": "Pending Transactions Recorder for lumos",
+  "homepage": "https://github.com/ckb-js/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "index.d.ts",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckb-js/lumos.git"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"{lib,tests}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.ts\"",
+    "test": "ava **/*.test.ts --timeout=2m",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --declarationMap --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
+  },
+  "bugs": {
+    "url": "https://github.com/ckb-js/lumos/issues"
+  },
+  "dependencies": {
+    "@ckb-lumos/base": "0.20.0-alpha.2",
+    "@ckb-lumos/ckb-indexer": "0.20.0-alpha.2",
+    "@ckb-lumos/rpc": "0.20.0-alpha.2",
+    "@ckb-lumos/toolkit": "0.20.0-alpha.2",
+    "immutable": "^4.0.0-rc.12"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -115,6 +115,7 @@ packages/rpc/lib
 packages/bi/lib
 packages/experiment-tx-assembler/lib
 packages/molecule/lib
+packages/pending-transactions-recorder/lib
 
 # knex config
 packages/sql-indexer/knexfile.ts
