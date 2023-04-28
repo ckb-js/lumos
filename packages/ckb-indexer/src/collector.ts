@@ -17,7 +17,7 @@ import fetch from "cross-fetch";
 import { bytes } from "@ckb-lumos/codec";
 import {
   instanceOfDataWithSearchMode,
-  unWrapDataWrapper,
+  unwrapDataWrapper,
 } from "./ckbIndexerFilter";
 
 interface GetBlockHashRPCResult {
@@ -120,7 +120,7 @@ export class CKBCellCollector implements BaseCellCollector {
     }
 
     if (queries.outputDataLenRange && queries.data && queries.data !== "any") {
-      const dataLen = getHexStringBytes(unWrapDataWrapper(queries.data));
+      const dataLen = getHexStringBytes(unwrapDataWrapper(queries.data));
       if (
         dataLen < Number(queries.outputDataLenRange[0]) ||
         dataLen >= Number(queries.outputDataLenRange[1])
@@ -162,7 +162,7 @@ export class CKBCellCollector implements BaseCellCollector {
 
       if (!query.outputDataLenRange) {
         if (query.data && query.data !== "any") {
-          const dataLenRange = getHexStringBytes(unWrapDataWrapper(query.data));
+          const dataLenRange = getHexStringBytes(unwrapDataWrapper(query.data));
           query.outputDataLenRange = [
             "0x" + dataLenRange.toString(16),
             "0x" + (dataLenRange + 1).toString(16),
@@ -213,29 +213,24 @@ export class CKBCellCollector implements BaseCellCollector {
       return true;
     }
 
-    if (!!query.data && query.data !== "any") {
-      if (
-        instanceOfDataWithSearchMode(query.data) &&
-        query.data.searchMode === "exact" &&
-        !bytes.equal(bytes.bytify(cell.data), bytes.bytify(query.data.data))
-      ) {
-        return true;
-      } else if (
-        instanceOfDataWithSearchMode(query.data) &&
-        query.data.searchMode === "exact" &&
-        Buffer.from(bytes.bytify(cell.data)).indexOf(
-          bytes.bytify(query.data.data)
-        ) !== 0
-      ) {
-        return true;
-      } else if (
-        Buffer.from(bytes.bytify(cell.data)).indexOf(
-          bytes.bytify(query.data as string)
-        ) !== 0
-      ) {
-        return true;
-      }
+    if (!query.data || query.data === "any") {
+      return false;
     }
+
+    const expectDataPrefix = bytes.bytify(unwrapDataWrapper(query.data));
+    const actualDataPrefix = bytes
+      .bytify(cell.data)
+      .slice(0, expectDataPrefix.length);
+    if (
+      instanceOfDataWithSearchMode(query.data) &&
+      query.data.searchMode === "exact" &&
+      !bytes.equal(expectDataPrefix, actualDataPrefix)
+    ) {
+      return true;
+    } else if (!bytes.equal(expectDataPrefix, actualDataPrefix)) {
+      return true;
+    }
+
     return false;
   }
 

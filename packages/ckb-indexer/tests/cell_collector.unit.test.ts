@@ -297,16 +297,28 @@ test("shouldSkip#shouldSkip should works well", (t) => {
 
   // fitler data
   t.false(cellCollector.shouldSkipped({ data: "0x12" }, { data: "0x1234" }));
-  t.true(
+  t.false(
     cellCollector.shouldSkipped(
-      { data: { data: "0x12", searchMode: "exact" } },
+      { data: { data: "0x12", searchMode: "prefix" } }, // correct prefix
       { data: "0x1234" }
     )
   );
-  t.true(cellCollector.shouldSkipped({ data: "0x5678" }, { data: "0x1234" }));
   t.true(
     cellCollector.shouldSkipped(
-      { data: { data: "0x5678", searchMode: "exact" } },
+      { data: { data: "0x66", searchMode: "prefix" } }, // wrong prefix
+      { data: "0x1234" }
+    )
+  );
+  t.false(
+    cellCollector.shouldSkipped(
+      { data: { data: "0x12", searchMode: "exact" } }, // correct prefix, but not exactly the same
+      { data: "0x1234" }
+    )
+  );
+  t.true(cellCollector.shouldSkipped({ data: "0x5678" }, { data: "0x1234" })); // wrong prefix
+  t.true(
+    cellCollector.shouldSkipped(
+      { data: { data: "0x5678", searchMode: "exact" } }, // not same at all
       { data: "0x1234" }
     )
   );

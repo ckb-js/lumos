@@ -6,7 +6,7 @@ import { toScript } from "./paramsFormatter";
 import type * as RPCType from "./rpcType";
 import { toSearchKey } from "./resultFormatter";
 import {
-  unWrapScriptWrapper,
+  unwrapScriptWrapper,
   instanceOfScriptWrapper,
 } from "./ckbIndexerFilter";
 
@@ -16,15 +16,15 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   let script_type: RPCType.ScriptType | undefined = undefined;
   let script_search_mode: RPCType.ScriptSearchMode = "prefix";
   if (queries.lock) {
-    const lock = unWrapScriptWrapper(queries.lock);
+    const lock = unwrapScriptWrapper(queries.lock);
     script = toScript(lock);
     script_type = "lock";
     if (queries.type && typeof queries.type !== "string") {
-      const type = unWrapScriptWrapper(queries.type);
+      const type = unwrapScriptWrapper(queries.type);
       filter.script = toScript(type);
     }
   } else if (queries.type && typeof queries.type !== "string") {
-    const type = unWrapScriptWrapper(queries.type);
+    const type = unwrapScriptWrapper(queries.type);
     script = toScript(type);
     script_type = "type";
   }

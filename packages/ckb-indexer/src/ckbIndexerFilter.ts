@@ -97,19 +97,21 @@ function filterByQueryOptions(cells: Cell[], options: QueryOptions): Cell[] {
       options.data.searchMode === "prefix"
     ) {
       const dataSearch = options.data as DataWithSearchMode;
-      filteredCells = filteredCells.filter(
-        (cell) =>
-          Buffer.from(bytes.bytify(cell.data)).indexOf(
-            bytes.bytify(dataSearch.data)
-          ) === 0
-      );
+      filteredCells = filteredCells.filter((cell) => {
+        const expectPrefix = bytes.bytify(dataSearch.data);
+        const actualPrefix = bytes
+          .bytify(cell.data)
+          .slice(0, expectPrefix.length);
+        return bytes.equal(expectPrefix, actualPrefix);
+      });
     } else {
-      filteredCells = filteredCells.filter(
-        (cell) =>
-          Buffer.from(bytes.bytify(cell.data)).indexOf(
-            bytes.bytify(options.data as string)
-          ) === 0
-      );
+      filteredCells = filteredCells.filter((cell) => {
+        const expectPrefix = bytes.bytify(options.data as string);
+        const actualPrefix = bytes
+          .bytify(cell.data)
+          .slice(0, expectPrefix.length);
+        return bytes.equal(expectPrefix, actualPrefix);
+      });
     }
   }
 
@@ -124,6 +126,9 @@ function filterByQueryOptions(cells: Cell[], options: QueryOptions): Cell[] {
   return filteredCells;
 }
 
+/**
+ * @internal
+ */
 function filterBy(cell: Cell, searchKey: SearchKey): boolean {
   const isExactMode = searchKey.scriptSearchMode === "exact";
   const { cellOutput } = cell;
@@ -164,62 +169,63 @@ function filterBy(cell: Cell, searchKey: SearchKey): boolean {
     }
   }
 
-  // Filter is always in prefix mode
-  if (filter) {
-    // filter type script if scriptType is "lock"
-    if (scriptType === "lock") {
-      if (
-        filter.script &&
-        !checkScriptWithPrefixMode(cellOutput.type, filter.script)
-      ) {
-        return false;
-      }
-
-      if (
-        filter.scriptLenRange &&
-        !checkScriptLenRange(cellOutput.type, filter.scriptLenRange)
-      ) {
-        return false;
-      }
-      // filter lock script if scriptType is "type"
-    } else {
-      if (
-        filter.script &&
-        !checkScriptWithPrefixMode(cellOutput.lock, filter.script)
-      ) {
-        return false;
-      }
-      if (
-        filter.scriptLenRange &&
-        !checkScriptLenRange(cellOutput.lock, filter.scriptLenRange)
-      ) {
-        return false;
-      }
+  // the "exact" mode works only on "SearchKey.script",
+  // not on "SearchKey.filter.script"
+  // the "SearchKey.filter.script" is always in prefix mode
+  if (!filter) return true;
+  // filter type script if scriptType is "lock"
+  if (scriptType === "lock") {
+    if (
+      filter.script &&
+      !checkScriptWithPrefixMode(cellOutput.type, filter.script)
+    ) {
+      return false;
     }
 
-    if (filter.blockRange) {
-      const blockNumber = BI.from(cell.blockNumber || Number.MAX_SAFE_INTEGER);
-      const fromBlock = BI.from(filter.blockRange[0]);
-      const toBlock = BI.from(filter.blockRange[1]);
-      if (blockNumber.lt(fromBlock) || blockNumber.gte(toBlock)) {
-        return false;
-      }
+    if (
+      filter.scriptLenRange &&
+      !checkScriptLenRange(cellOutput.type, filter.scriptLenRange)
+    ) {
+      return false;
     }
-    if (filter.outputCapacityRange) {
-      const capacity = BI.from(cellOutput.capacity);
-      const fromCapacity = BI.from(filter.outputCapacityRange[0]);
-      const toCapacity = BI.from(filter.outputCapacityRange[1]);
-      if (capacity.lt(fromCapacity) || capacity.gte(toCapacity)) {
-        return false;
-      }
+    // filter lock script if scriptType is "type"
+  } else {
+    if (
+      filter.script &&
+      !checkScriptWithPrefixMode(cellOutput.lock, filter.script)
+    ) {
+      return false;
     }
-    if (filter.outputDataLenRange) {
-      const dataLen = BI.from(bytes.bytify(cell.data).length);
-      const fromDataLen = BI.from(filter.outputDataLenRange[0]);
-      const toDataLen = BI.from(filter.outputDataLenRange[1]);
-      if (dataLen.lt(fromDataLen) || dataLen.gte(toDataLen)) {
-        return false;
-      }
+    if (
+      filter.scriptLenRange &&
+      !checkScriptLenRange(cellOutput.lock, filter.scriptLenRange)
+    ) {
+      return false;
+    }
+  }
+
+  if (filter.blockRange) {
+    const blockNumber = BI.from(cell.blockNumber || Number.MAX_SAFE_INTEGER);
+    const fromBlock = BI.from(filter.blockRange[0]);
+    const toBlock = BI.from(filter.blockRange[1]);
+    if (blockNumber.lt(fromBlock) || blockNumber.gte(toBlock)) {
+      return false;
+    }
+  }
+  if (filter.outputCapacityRange) {
+    const capacity = BI.from(cellOutput.capacity);
+    const fromCapacity = BI.from(filter.outputCapacityRange[0]);
+    const toCapacity = BI.from(filter.outputCapacityRange[1]);
+    if (capacity.lt(fromCapacity) || capacity.gte(toCapacity)) {
+      return false;
+    }
+  }
+  if (filter.outputDataLenRange) {
+    const dataLen = BI.from(bytes.bytify(cell.data).length);
+    const fromDataLen = BI.from(filter.outputDataLenRange[0]);
+    const toDataLen = BI.from(filter.outputDataLenRange[1]);
+    if (dataLen.lt(fromDataLen) || dataLen.gte(toDataLen)) {
+      return false;
     }
   }
 
@@ -266,20 +272,23 @@ function checkScriptWithPrefixMode(
   if (!script) {
     return false;
   }
-  if (
-    Buffer.from(bytes.bytify(script.codeHash)).indexOf(
-      bytes.bytify(filterScript.codeHash)
-    ) !== 0
-  ) {
+
+  const expectCodeHashPrefix = bytes.bytify(filterScript.codeHash);
+  const actualCodeHashPrefix = bytes
+    .bytify(script.codeHash)
+    .slice(0, expectCodeHashPrefix.length);
+  if (!bytes.equal(expectCodeHashPrefix, actualCodeHashPrefix)) {
     return false;
   }
-  if (
-    Buffer.from(bytes.bytify(script.args)).indexOf(
-      bytes.bytify(filterScript.args)
-    ) !== 0
-  ) {
+
+  const expectArgsPrefix = bytes.bytify(filterScript.args);
+  const actualArgsPrefix = bytes
+    .bytify(script.args)
+    .slice(0, expectArgsPrefix.length);
+  if (!bytes.equal(expectArgsPrefix, actualArgsPrefix)) {
     return false;
   }
+
   if (script.hashType !== filterScript.hashType) {
     return false;
   }
@@ -292,8 +301,7 @@ function checkScriptLenRange(
 ): boolean {
   const scriptLen = script
     ? BI.from(
-        bytes.bytify(script.codeHash).length +
-          bytes.bytify(script.args).length +
+        bytes.concat(script.codeHash, script.args).length +
           1 /* hashType length is 1 */
       )
     : BI.from(0);
@@ -315,14 +323,14 @@ function instanceOfDataWithSearchMode(
   return typeof object === "object" && object != null && "data" in object;
 }
 
-const unWrapScriptWrapper = (inputScript: ScriptWrapper | Script): Script => {
+const unwrapScriptWrapper = (inputScript: ScriptWrapper | Script): Script => {
   if (instanceOfScriptWrapper(inputScript)) {
     return inputScript.script;
   }
   return inputScript;
 };
 
-const unWrapDataWrapper = (input: DataWithSearchMode | string): string => {
+const unwrapDataWrapper = (input: DataWithSearchMode | string): string => {
   if (instanceOfDataWithSearchMode(input)) {
     return input.data;
   }
@@ -336,6 +344,6 @@ export {
   convertQueryOptionToSearchKey,
   instanceOfDataWithSearchMode,
   instanceOfScriptWrapper,
-  unWrapScriptWrapper,
-  unWrapDataWrapper,
+  unwrapScriptWrapper,
+  unwrapDataWrapper,
 };
