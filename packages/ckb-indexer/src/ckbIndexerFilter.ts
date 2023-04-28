@@ -1,39 +1,124 @@
-import { Cell, HexadecimalRange, Script, blockchain } from "@ckb-lumos/base";
+import {
+  Cell,
+  DataWithSearchMode,
+  HexadecimalRange,
+  QueryOptions,
+  Script,
+  ScriptWrapper,
+  blockchain,
+} from "@ckb-lumos/base";
 import { SearchKey } from "./type";
 import { bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 import { decodeCursor } from "./indexerCursor";
 
-interface CkbIndexerFilterOptions {
-  searchKey: SearchKey;
-  order?: "desc" | "asc";
-  limit?: number;
-  afterCursor?: string;
+function convertQueryOptionToSearchKey(queryOptions: QueryOptions): SearchKey {
+  let searchKeyLock: Script | undefined;
+  let searchKeyType: Script | undefined;
+  let searchKey: SearchKey;
+
+  const queryLock = queryOptions.lock;
+  const queryType = queryOptions.type;
+  if (queryLock) {
+    if (instanceOfScriptWrapper(queryLock)) {
+      searchKeyLock = queryLock.script;
+    } else {
+      searchKeyLock = queryLock;
+    }
+  }
+  if (queryType && queryType !== "empty") {
+    if (instanceOfScriptWrapper(queryType)) {
+      searchKeyType = queryType.script;
+    } else {
+      searchKeyType = queryType;
+    }
+  }
+
+  if (searchKeyLock) {
+    searchKey = {
+      script: searchKeyLock,
+      scriptType: "lock",
+      scriptSearchMode: instanceOfScriptWrapper(queryLock)
+        ? queryLock.searchMode
+        : "prefix",
+      filter: {
+        script: searchKeyType,
+      },
+    };
+  } else if (searchKeyType) {
+    searchKey = {
+      script: searchKeyType,
+      scriptType: "type",
+      scriptSearchMode: instanceOfScriptWrapper(queryLock)
+        ? queryLock.searchMode
+        : "prefix",
+      filter: {
+        script: searchKeyLock,
+      },
+    };
+  } else {
+    throw new Error("query.lock and query.type can't be both empty");
+  }
+
+  if (queryOptions.fromBlock || queryOptions.toBlock) {
+    searchKey.filter!.blockRange = [
+      queryOptions.fromBlock || "0x0",
+      queryOptions.toBlock
+        ? BI.from(queryOptions.toBlock).add(1).toHexString()
+        : "0x" + Number.MAX_SAFE_INTEGER.toString(16),
+    ];
+  }
+
+  return searchKey;
 }
 
-function filterByIndexerFilterProtocol(payload: {
-  cells: Cell[];
-  params: CkbIndexerFilterOptions;
-}): Cell[] {
-  const { cells, params: options } = payload;
+function filterByQueryOptions(cells: Cell[], options: QueryOptions): Cell[] {
+  const searchKey = convertQueryOptionToSearchKey(options);
+  let filteredCells = cells.filter((cell) => filterBy(cell, searchKey));
 
-  let filteredCells = cells.filter((cell) => filterBy(cell, options.searchKey));
+  if (options.argsLen && options.argsLen !== "any") {
+    filteredCells = filteredCells.filter(
+      (cell) =>
+        bytes.bytify(cell.cellOutput.lock.args).length === options.argsLen
+    );
+  }
+
+  if (!!options.data && options.data !== "any") {
+    if (
+      instanceOfDataWithSearchMode(options.data) &&
+      options.data.searchMode === "exact"
+    ) {
+      const dataSearch = options.data as DataWithSearchMode;
+      filteredCells = filteredCells.filter((cell) =>
+        bytes.equal(bytes.bytify(cell.data), bytes.bytify(dataSearch.data))
+      );
+    } else if (
+      instanceOfDataWithSearchMode(options.data) &&
+      options.data.searchMode === "prefix"
+    ) {
+      const dataSearch = options.data as DataWithSearchMode;
+      filteredCells = filteredCells.filter(
+        (cell) =>
+          Buffer.from(bytes.bytify(cell.data)).indexOf(
+            bytes.bytify(dataSearch.data)
+          ) === 0
+      );
+    } else {
+      filteredCells = filteredCells.filter(
+        (cell) =>
+          Buffer.from(bytes.bytify(cell.data)).indexOf(
+            bytes.bytify(options.data as string)
+          ) === 0
+      );
+    }
+  }
 
   if (options.order === "desc") {
     filteredCells.reverse();
   }
 
-  if (options.afterCursor) {
-    filteredCells = filteredCells.filter((cell) =>
-      isCellAfterCursor({
-        cell,
-        cursor: options.afterCursor!,
-      })
-    );
-  }
-
-  if (options.limit) {
-    filteredCells = filteredCells.slice(0, options.limit);
+  if (options.skip) {
+    filteredCells = filteredCells.slice(options.skip);
   }
 
   return filteredCells;
@@ -220,11 +305,37 @@ function checkScriptLenRange(
   return true;
 }
 
+function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
+  return typeof object === "object" && object != null && "script" in object;
+}
+
+function instanceOfDataWithSearchMode(
+  object: unknown
+): object is DataWithSearchMode {
+  return typeof object === "object" && object != null && "data" in object;
+}
+
+const unWrapScriptWrapper = (inputScript: ScriptWrapper | Script): Script => {
+  if (instanceOfScriptWrapper(inputScript)) {
+    return inputScript.script;
+  }
+  return inputScript;
+};
+
+const unWrapDataWrapper = (input: DataWithSearchMode | string): string => {
+  if (instanceOfDataWithSearchMode(input)) {
+    return input.data;
+  }
+  return input;
+};
+
 export {
   isCellAfterCursor,
   filterBy,
-  checkScriptWithPrefixMode,
-  checkScriptLenRange,
-  filterByIndexerFilterProtocol,
+  filterByQueryOptions,
+  convertQueryOptionToSearchKey,
+  instanceOfDataWithSearchMode,
+  instanceOfScriptWrapper,
+  unWrapScriptWrapper,
+  unWrapDataWrapper,
 };
-export type { CkbIndexerFilterOptions };

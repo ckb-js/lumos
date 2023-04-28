@@ -9,7 +9,6 @@ import { HashType } from "@ckb-lumos/base";
 // get cells from ckb node testnet
 const fixtures = require("./indexerCursorFixtures.json");
 
-console.log("fixtures", fixtures);
 test("should encode/decode cursor works fine when search type is 'lock'", async (t) => {
   fixtures.searchTypeIsLock.forEach((fixture: any) => {
     const lastCell = fixture.result.objects[0];

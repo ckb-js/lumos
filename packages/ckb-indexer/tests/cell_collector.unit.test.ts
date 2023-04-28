@@ -295,9 +295,21 @@ test("shouldSkip#shouldSkip should works well", (t) => {
     )
   );
 
-  // fitler data by prefix
-  t.true(cellCollector.shouldSkipped({ data: "0x12" }, { data: "0x1234" }));
-  t.false(cellCollector.shouldSkipped({ data: "0x5678" }, { data: "0x1234" }));
+  // fitler data
+  t.false(cellCollector.shouldSkipped({ data: "0x12" }, { data: "0x1234" }));
+  t.true(
+    cellCollector.shouldSkipped(
+      { data: { data: "0x12", searchMode: "exact" } },
+      { data: "0x1234" }
+    )
+  );
+  t.true(cellCollector.shouldSkipped({ data: "0x5678" }, { data: "0x1234" }));
+  t.true(
+    cellCollector.shouldSkipped(
+      { data: { data: "0x5678", searchMode: "exact" } },
+      { data: "0x1234" }
+    )
+  );
 
   /// args len does not match it's in query
   t.true(

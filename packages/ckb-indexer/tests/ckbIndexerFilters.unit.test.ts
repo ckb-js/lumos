@@ -1,12 +1,5 @@
 import test from "ava";
-import {
-  checkScriptLenRange,
-  checkScriptWithPrefixMode,
-  isCellAfterCursor,
-  filterBy,
-  filterByIndexerFilterProtocol,
-  CkbIndexerFilterOptions,
-} from "../src/ckbIndexerFilter";
+import { isCellAfterCursor, filterBy } from "../src/ckbIndexerFilter";
 import { Cell, Script } from "@ckb-lumos/base";
 import { encodeCursor } from "../src/indexerCursor";
 import { BI } from "@ckb-lumos/bi";
@@ -16,32 +9,6 @@ const dummyScript: Script = {
   hashType: "type",
   args: "0x",
 };
-
-test("should checkScriptLenRange work fine", async (t) => {
-  t.true(checkScriptLenRange(undefined, ["0x0", "0x1"]));
-  t.false(checkScriptLenRange(dummyScript, ["0x0", "0x1"]));
-  t.true(checkScriptLenRange(dummyScript, ["0x0", "0x22"]));
-});
-
-test("should checkScriptWithPrefixMode work fine", async (t) => {
-  t.false(checkScriptWithPrefixMode(undefined, dummyScript));
-  t.true(checkScriptWithPrefixMode(dummyScript, dummyScript));
-  t.true(
-    checkScriptWithPrefixMode(
-      {
-        ...dummyScript,
-        args: "0x1234",
-      },
-      dummyScript
-    )
-  );
-  t.false(
-    checkScriptWithPrefixMode(dummyScript, {
-      ...dummyScript,
-      codeHash: "0x1234",
-    })
-  );
-});
 
 test("should isCellAfterCursor work fine", async (t) => {
   const mockCell: Required<Cell> = createMockCell();
@@ -174,110 +141,6 @@ test("should filterBy function filters cell with searchKey", async (t) => {
       script: script1,
       filter: { outputDataLenRange: ["0x10", "0x11"] },
     })
-  );
-});
-
-test("should filterByIndexerFilterProtocol function filters cells with indexer filter options", async (t) => {
-  const cells = [
-    createMockCell({
-      data: "0x12",
-      blockNumber: "0x1",
-      cellOutput: {
-        capacity: "0x12",
-        lock: dummyScript,
-        type: dummyScript,
-      },
-    }),
-    createMockCell({
-      data: "0x34",
-      blockNumber: "0x2",
-    }),
-  ];
-
-  const indexerFilter: CkbIndexerFilterOptions = {
-    searchKey: { script: dummyScript, scriptType: "lock" },
-  };
-
-  t.deepEqual(
-    filterByIndexerFilterProtocol({ cells, params: indexerFilter }),
-    cells
-  );
-
-  // limit
-  t.deepEqual(
-    filterByIndexerFilterProtocol({
-      cells,
-      params: { ...indexerFilter, limit: 1 },
-    }),
-    cells.slice(0, 1)
-  );
-
-  // desc
-  t.deepEqual(
-    filterByIndexerFilterProtocol({
-      cells,
-      params: { ...indexerFilter, order: "desc" },
-    }),
-    [...cells].reverse()
-  );
-
-  // after cursor
-  t.deepEqual(
-    filterByIndexerFilterProtocol({
-      cells,
-      params: { ...indexerFilter, afterCursor: cursorOfCell(cells[0]) },
-    }),
-    cells.slice(1)
-  );
-  t.deepEqual(
-    filterByIndexerFilterProtocol({
-      cells,
-      params: { ...indexerFilter, afterCursor: cursorOfCell(cells[1]) },
-    }),
-    []
-  );
-
-  // script len
-  t.deepEqual(
-    filterByIndexerFilterProtocol({
-      cells,
-      params: {
-        searchKey: {
-          script: dummyScript,
-          scriptType: "lock",
-          filter: { scriptLenRange: ["0x0", "0x1"] },
-        },
-      },
-    }),
-    [cells[1]]
-  );
-  t.deepEqual(
-    filterByIndexerFilterProtocol({
-      cells,
-      params: {
-        searchKey: {
-          script: dummyScript,
-          scriptType: "type",
-          filter: { scriptLenRange: ["0x0", "0x1"] },
-        },
-      },
-    }),
-    []
-  );
-
-  // filter script (always prefix mode in filter)
-  t.deepEqual(
-    filterByIndexerFilterProtocol({
-      cells,
-      params: {
-        searchKey: {
-          script: dummyScript,
-          scriptType: "lock",
-          filter: { script: { ...dummyScript, codeHash: "0x00" } },
-        },
-      },
-    }),
-    [cells[0]]
   );
 });
 

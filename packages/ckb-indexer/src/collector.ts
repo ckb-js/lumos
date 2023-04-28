@@ -15,6 +15,10 @@ import {
 } from "./services";
 import fetch from "cross-fetch";
 import { bytes } from "@ckb-lumos/codec";
+import {
+  instanceOfDataWithSearchMode,
+  unWrapDataWrapper,
+} from "./ckbIndexerFilter";
 
 interface GetBlockHashRPCResult {
   jsonrpc: string;
@@ -116,7 +120,7 @@ export class CKBCellCollector implements BaseCellCollector {
     }
 
     if (queries.outputDataLenRange && queries.data && queries.data !== "any") {
-      const dataLen = getHexStringBytes(queries.data);
+      const dataLen = getHexStringBytes(unWrapDataWrapper(queries.data));
       if (
         dataLen < Number(queries.outputDataLenRange[0]) ||
         dataLen >= Number(queries.outputDataLenRange[1])
@@ -158,7 +162,7 @@ export class CKBCellCollector implements BaseCellCollector {
 
       if (!query.outputDataLenRange) {
         if (query.data && query.data !== "any") {
-          const dataLenRange = getHexStringBytes(query.data);
+          const dataLenRange = getHexStringBytes(unWrapDataWrapper(query.data));
           query.outputDataLenRange = [
             "0x" + dataLenRange.toString(16),
             "0x" + (dataLenRange + 1).toString(16),
@@ -201,20 +205,36 @@ export class CKBCellCollector implements BaseCellCollector {
       return true;
     }
     if (
-      !!query.data &&
-      query.data !== "any" &&
-      Buffer.from(bytes.bytify(cell.data)).indexOf(bytes.bytify(query.data)) ===
-        0
-    ) {
-      return true;
-    }
-    if (
       query.argsLen !== undefined &&
       query.argsLen !== -1 &&
       query.argsLen !== "any" &&
       getHexStringBytes(cell.cellOutput.lock.args) !== query.argsLen
     ) {
       return true;
+    }
+
+    if (!!query.data && query.data !== "any") {
+      if (
+        instanceOfDataWithSearchMode(query.data) &&
+        query.data.searchMode === "exact" &&
+        !bytes.equal(bytes.bytify(cell.data), bytes.bytify(query.data.data))
+      ) {
+        return true;
+      } else if (
+        instanceOfDataWithSearchMode(query.data) &&
+        query.data.searchMode === "exact" &&
+        Buffer.from(bytes.bytify(cell.data)).indexOf(
+          bytes.bytify(query.data.data)
+        ) !== 0
+      ) {
+        return true;
+      } else if (
+        Buffer.from(bytes.bytify(cell.data)).indexOf(
+          bytes.bytify(query.data as string)
+        ) !== 0
+      ) {
+        return true;
+      }
     }
     return false;
   }
