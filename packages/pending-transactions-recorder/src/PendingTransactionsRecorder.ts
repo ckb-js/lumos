@@ -1,4 +1,3 @@
-import { Set } from "immutable";
 import {
   blockchain,
   Transaction,
@@ -6,6 +5,7 @@ import {
   utils,
   OutPoint,
   Cell,
+  Hash,
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
 import isEqual from "lodash.isequal";
@@ -16,24 +16,28 @@ import {
   filterByIndexerFilterProtocol,
 } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
 
-const getTxHashesByLocks = async (
-  lock: Script,
-  rpc: RPC
-): Promise<String[]> => {
-  // TODO: set limit to 100, at most 100 pending transactions on a lock
-  const reponse = await rpc.getTransactions(
-    { script: lock, scriptType: "lock" },
-    "asc",
-    "0x64"
-  );
-  return reponse.objects.map((res) => res.txHash);
+// https://github.com/nervosnetwork/ckb/blob/develop/rpc/README.md#type-status
+type TRANSACTION_STATUS =
+  | "pending"
+  | "proposed"
+  | "committed"
+  | "unknown"
+  | "rejected";
+
+// TODO: batch get transactions
+const isTxCompleted = async (txHash: Hash, rpc: RPC): Promise<boolean> => {
+  const reponse = await rpc.getTransaction(txHash);
+  return txStatusIsCompleted(reponse.txStatus.status as TRANSACTION_STATUS);
 };
 
-interface TransactionManager {
+const txStatusIsCompleted = (txStatus: TRANSACTION_STATUS): boolean =>
+  txStatus === "committed" || txStatus === "rejected";
+
+interface TransactionRecorder {
   stop(): void;
   sendTransaction(tx: Transaction): Promise<string>;
-  getCells(locks: Script[]): Promise<PendingCell[]>;
-  filterSpentCells(cells: PendingCell[]): Promise<PendingCell[]>;
+  getCells(locks: Script[]): Cell[];
+  filterSpentCells(cells: Cell[]): Cell[];
 }
 
 type Props = {
@@ -44,7 +48,7 @@ type Props = {
   };
 };
 
-export class DefaultTransactionManager implements TransactionManager {
+export class PendingTransactionsRecorder implements TransactionRecorder {
   running: boolean;
   pollIntervalSeconds: number;
   rpc: RPC;
@@ -58,8 +62,8 @@ export class DefaultTransactionManager implements TransactionManager {
     void this.start();
   }
 
-  async getCells(locks: Script[]): Promise<PendingCell[]> {
-    const cells = await this.txRecorderDb.getPendingCells();
+  getCells(locks: Script[]): Cell[] {
+    const cells = this.txRecorderDb.getPendingCells();
     const createdCells = cells.filter((cell) =>
       locks.some((lock) =>
         isEqual(
@@ -71,8 +75,8 @@ export class DefaultTransactionManager implements TransactionManager {
     return this.filterSpentCells(createdCells);
   }
 
-  async filterSpentCells(cells: PendingCell[]): Promise<PendingCell[]> {
-    const spentCellOutpoints = await this.txRecorderDb.getSpentCellOutpoints();
+  filterSpentCells(cells: Cell[]): Cell[] {
+    const spentCellOutpoints = this.txRecorderDb.getSpentCellOutpoints();
     console.log(
       "filterring spent cells, spent:",
       spentCellOutpoints,
@@ -81,7 +85,7 @@ export class DefaultTransactionManager implements TransactionManager {
     );
     return cells.filter(
       (cell) =>
-        !!cell.outPoint &&
+        !cell.outPoint ||
         !spentCellOutpoints.some((outpoint) =>
           bytes.equal(
             blockchain.OutPoint.pack(outpoint),
@@ -115,43 +119,21 @@ export class DefaultTransactionManager implements TransactionManager {
   }
 
   private async updatePendingTransactions(): Promise<void> {
-    let filteredTransactions = Set<Transaction>();
-    const txs = await this.txRecorderDb.getTransactions();
-    for await (let tx of txs) {
-      /* remove all transactions that have already been committed */
-      const output = tx.outputs[0];
-      if (output) {
-        const txHashes = await getTxHashesByLocks(output.lock, this.rpc);
-        console.log("txHashes", txHashes, "from lock:", output.lock, "deteted");
-        const targetTxHash = utils.ckbHash(blockchain.RawTransaction.pack(tx));
-        if (txHashes.includes(targetTxHash)) {
-          continue;
-        }
+    const txs = this.txRecorderDb.getTransactions();
+    for await (const tx of txs) {
+      /* remove all transactions that have already been completed */
+      const txCompleted = await isTxCompleted(tx.hash, this.rpc);
+      if (txCompleted) {
+        this.txRecorderDb.deleteTransactionByHash(tx.hash);
+        console.log("tx: ", tx.hash, " is deteted");
       }
-      filteredTransactions = filteredTransactions.add(tx);
     }
-    await this.txRecorderDb.setTransactions(filteredTransactions.toArray());
-    const updatePendingCells = filteredTransactions.map((transactionValue) => {
-      const tx = transactionValue;
-      tx.outputs.forEach((output, i) => {
-        const outPoint = {
-          txHash: tx.hash!,
-          index: "0x" + i.toString(16),
-        };
-        this.txRecorderDb.addPendingCell({
-          outPoint,
-          cellOutput: output,
-          data: tx.outputsData[i],
-        });
-      });
-    });
-    await Promise.all(updatePendingCells);
   }
 
   async sendTransaction(tx: Transaction): Promise<string> {
     // check if the input tx is valid
     blockchain.Transaction.pack(tx);
-    const spentCellOutpoints = await this.txRecorderDb.getSpentCellOutpoints();
+    const spentCellOutpoints = this.txRecorderDb.getSpentCellOutpoints();
     tx.inputs.forEach((input) => {
       if (
         spentCellOutpoints.some((spentCell) =>
@@ -167,29 +149,12 @@ export class DefaultTransactionManager implements TransactionManager {
       }
     });
     const txHash = await this.rpc.sendTransaction(tx);
-    tx.hash = txHash;
-    await this.txRecorderDb.addTransaction(tx);
-    const addSpentCells = tx.inputs.map((input) => {
-      return this.txRecorderDb.addSpentCellOutpoint(input.previousOutput);
-    });
-    await Promise.all(addSpentCells);
-
-    for (let i = 0; i < tx.outputs.length; i++) {
-      const op = {
-        txHash: txHash,
-        index: `0x${i.toString(16)}`,
-      };
-      await this.txRecorderDb.addPendingCell({
-        outPoint: op,
-        cellOutput: tx.outputs[i],
-        data: tx.outputsData[i],
-      });
-    }
+    this.txRecorderDb.addTransaction({ ...tx, hash: txHash });
     return txHash;
   }
 
-  async collector(options: CkbIndexerFilterOptions): Promise<PendingCellCollector> {
-    const pendingCells: Cell[] = await this.txRecorderDb.getPendingCells();
+  collector(options: CkbIndexerFilterOptions): PendingCellCollector {
+    const pendingCells: Cell[] = this.txRecorderDb.getPendingCells();
 
     const filteredCreatedCells = filterByIndexerFilterProtocol({
       cells: pendingCells,
@@ -197,7 +162,7 @@ export class DefaultTransactionManager implements TransactionManager {
     });
 
     return new PendingCellCollector(
-      await this.txRecorderDb.getSpentCellOutpoints(),
+      this.txRecorderDb.getSpentCellOutpoints(),
       filteredCreatedCells as PendingCell[]
     );
   }
