@@ -10,7 +10,6 @@ import {
 import { SearchKey } from "./type";
 import { bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
-import { decodeCursor } from "./indexerCursor";
 
 function convertQueryOptionToSearchKey(queryOptions: QueryOptions): SearchKey {
   let searchKeyLock: Script | undefined;
@@ -232,39 +231,6 @@ function filterBy(cell: Cell, searchKey: SearchKey): boolean {
   return true;
 }
 
-function isCellAfterCursor(payload: { cell: Cell; cursor: string }): boolean {
-  const { cell } = payload;
-  const cursor = decodeCursor(payload.cursor);
-  const cellBlockNumber = BI.from(cell.blockNumber || Number.MAX_SAFE_INTEGER);
-  const cellTxIndex = BI.from(payload.cell.txIndex || Number.MAX_SAFE_INTEGER);
-  const cellOutputIndex = BI.from(
-    cell.outPoint?.index || Number.MAX_SAFE_INTEGER
-  );
-
-  const blockNumber = BI.from(cursor.blockNumber);
-  const txIndex = BI.from(cursor.txIndex);
-  const outputIndex = BI.from(cursor.outputIndex);
-
-  // sequencially compare blockNumber, txIndex, outputIndex
-  if (cellBlockNumber.lt(blockNumber)) {
-    return false;
-  }
-
-  if (cellBlockNumber.eq(blockNumber) && cellTxIndex.lt(txIndex)) {
-    return false;
-  }
-
-  if (
-    cellBlockNumber.eq(blockNumber) &&
-    cellTxIndex.eq(txIndex) &&
-    cellOutputIndex.lte(outputIndex)
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
 function checkScriptWithPrefixMode(
   script: Script | undefined,
   filterScript: Script
@@ -338,7 +304,6 @@ const unwrapDataWrapper = (input: DataWithSearchMode | string): string => {
 };
 
 export {
-  isCellAfterCursor,
   filterBy,
   filterByQueryOptions,
   convertQueryOptionToSearchKey,
