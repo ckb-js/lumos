@@ -10,11 +10,14 @@ import {
 import { RPC } from "@ckb-lumos/rpc";
 import isEqual from "lodash.isequal";
 import { bytes } from "@ckb-lumos/codec";
-import { RecorderDb, PendingCell } from "./RecorderDb";
+import type { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
+import { RecorderDb, PendingCell, InMemoryRecorderDb } from "./RecorderDb";
 import {
   CkbIndexerFilterOptions,
   filterByIndexerFilterProtocol,
 } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
+
+type OutputsValidator = CKBComponents.OutputsValidator;
 
 // https://github.com/nervosnetwork/ckb/blob/develop/rpc/README.md#type-status
 type TRANSACTION_STATUS =
@@ -42,22 +45,22 @@ interface TransactionRecorder {
 
 type Props = {
   rpcUrl: string;
-  txRecorderDb: RecorderDb;
   options?: {
     pollIntervalSeconds?: number;
   };
 };
 
 export class PendingTransactionsRecorder implements TransactionRecorder {
-  running: boolean;
-  pollIntervalSeconds: number;
-  rpc: RPC;
-  txRecorderDb: RecorderDb;
+  private running: boolean;
+  private pollIntervalSeconds: number;
+  private rpc: RPC;
+  private txRecorderDb: RecorderDb;
+
   constructor(payload: Props) {
     this.rpc = new RPC(payload.rpcUrl);
     this.running = false;
     this.pollIntervalSeconds = payload?.options?.pollIntervalSeconds || 10;
-    this.txRecorderDb = payload.txRecorderDb;
+    this.txRecorderDb = new InMemoryRecorderDb();
 
     void this.start();
   }
@@ -77,12 +80,6 @@ export class PendingTransactionsRecorder implements TransactionRecorder {
 
   filterSpentCells(cells: Cell[]): Cell[] {
     const spentCellOutpoints = this.txRecorderDb.getSpentCellOutpoints();
-    console.log(
-      "filterring spent cells, spent:",
-      spentCellOutpoints,
-      "cells:",
-      cells.map((cell) => cell.outPoint)
-    );
     return cells.filter(
       (cell) =>
         !cell.outPoint ||
@@ -130,7 +127,10 @@ export class PendingTransactionsRecorder implements TransactionRecorder {
     }
   }
 
-  async sendTransaction(tx: Transaction): Promise<string> {
+  async sendTransaction(
+    tx: Transaction,
+    validator: OutputsValidator = "passthrough"
+  ): Promise<string> {
     // check if the input tx is valid
     blockchain.Transaction.pack(tx);
     const spentCellOutpoints = this.txRecorderDb.getSpentCellOutpoints();
@@ -148,7 +148,7 @@ export class PendingTransactionsRecorder implements TransactionRecorder {
         );
       }
     });
-    const txHash = await this.rpc.sendTransaction(tx);
+    const txHash = await this.rpc.sendTransaction(tx, validator);
     this.txRecorderDb.addTransaction({ ...tx, hash: txHash });
     return txHash;
   }

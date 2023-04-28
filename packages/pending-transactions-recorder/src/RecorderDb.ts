@@ -7,7 +7,7 @@ export type PendingCell = Pick<
 
 type TransactionWithHash = Required<Transaction>;
 
-export interface RecorderStorageScheme {
+interface RecorderStorageScheme {
   transactions: TransactionWithHash[];
   spentCellOutpoints: OutPoint[];
   pendingCells: PendingCell[];
