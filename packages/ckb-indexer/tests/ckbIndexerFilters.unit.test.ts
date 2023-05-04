@@ -105,6 +105,22 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     createCell({ capacity: BI.from(100) }),
     createCell({ blockNumber: BI.from(200) }),
     createCell({ type: dummyScript }),
+    createCell({
+      lock: {
+        ...dummyScript,
+        args: "0x1234",
+      },
+    }),
+    createCell({
+      lock: {
+        ...dummyScript,
+        args: "0x12345678",
+      },
+      type: {
+        ...dummyScript,
+        args: "0x1234",
+      },
+    }),
   ];
 
   // must provide lock or type in query options
@@ -116,7 +132,7 @@ test("should filterByQueryOptions return expected cells", async (t) => {
       searchMode: "exact",
     },
   });
-  t.deepEqual(cells1, originalCells);
+  t.deepEqual(cells1, originalCells.slice(0, 4));
 
   const cells2 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
@@ -140,7 +156,10 @@ test("should filterByQueryOptions return expected cells", async (t) => {
   t.deepEqual(cells4, [originalCells[2]]);
 
   const cells5 = filterByQueryOptions(originalCells, {
-    type: dummyScript,
+    type: {
+      script: dummyScript,
+      searchMode: "exact",
+    },
   });
   t.deepEqual(cells5, [originalCells[3]]);
 
@@ -181,10 +200,45 @@ test("should filterByQueryOptions return expected cells", async (t) => {
   t.deepEqual(cells10, []);
 
   const cells11 = filterByQueryOptions(originalCells, {
-    type: dummyScript,
-    scriptSearchMode: "exact",
+    type: {
+      script: dummyScript,
+      searchMode: "exact",
+    },
   });
   t.deepEqual(cells11, [originalCells[3]]);
+
+  const cells12 = filterByQueryOptions(originalCells, {
+    lock: dummyScript,
+    argsLen: 2,
+  });
+  t.deepEqual(cells12, [originalCells[4]]);
+
+  const cells13 = filterByQueryOptions(originalCells, {
+    lock: {
+      script: dummyScript,
+      searchMode: "exact",
+    },
+    order: "desc",
+  });
+  t.deepEqual(cells13, originalCells.slice(0, 4).reverse());
+
+  const cells14 = filterByQueryOptions(originalCells, {
+    lock: {
+      script: dummyScript,
+      searchMode: "exact",
+    },
+    skip: 1,
+  });
+  t.deepEqual(cells14, originalCells.slice(1, 4));
+
+  const cells15 = filterByQueryOptions(originalCells, {
+    type: {
+      script: dummyScript,
+      searchMode: "prefix",
+    },
+    argsLen: 4,
+  });
+  t.deepEqual(cells15, [originalCells[5]]);
 });
 
 function createCell(payload: {

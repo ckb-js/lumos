@@ -48,12 +48,11 @@ function convertQueryOptionToSearchKey(
     searchKey = {
       script: searchKeyType,
       scriptType: "type",
-      scriptSearchMode: instanceOfScriptWrapper(queryLock)
-        ? queryLock.searchMode || "prefix"
+      scriptSearchMode: instanceOfScriptWrapper(queryType)
+        ? queryType.searchMode || "prefix"
         : "prefix",
       filter: {},
     };
-    searchKeyLock && (searchKey.filter.script = searchKeyLock);
   } else {
     throw new Error("query.lock and query.type can't be both empty");
   }
