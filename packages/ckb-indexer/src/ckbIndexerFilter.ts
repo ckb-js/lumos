@@ -2,19 +2,20 @@ import {
   Cell,
   DataWithSearchMode,
   HexadecimalRange,
-  QueryOptions,
   Script,
   ScriptWrapper,
   blockchain,
 } from "@ckb-lumos/base";
-import { SearchKey } from "./type";
+import { CKBIndexerQueryOptions, SearchKey } from "./type";
 import { bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 
-function convertQueryOptionToSearchKey(queryOptions: QueryOptions): SearchKey {
+function convertQueryOptionToSearchKey(
+  queryOptions: CKBIndexerQueryOptions
+): SearchKey {
   let searchKeyLock: Script | undefined;
   let searchKeyType: Script | undefined;
-  let searchKey: SearchKey;
+  let searchKey: Required<SearchKey>;
 
   const queryLock = queryOptions.lock;
   const queryType = queryOptions.type;
@@ -38,40 +39,70 @@ function convertQueryOptionToSearchKey(queryOptions: QueryOptions): SearchKey {
       script: searchKeyLock,
       scriptType: "lock",
       scriptSearchMode: instanceOfScriptWrapper(queryLock)
-        ? queryLock.searchMode
+        ? queryLock.searchMode || "prefix"
         : "prefix",
-      filter: {
-        script: searchKeyType,
-      },
+      filter: {},
     };
+    searchKeyType && (searchKey.filter.script = searchKeyType);
   } else if (searchKeyType) {
     searchKey = {
       script: searchKeyType,
       scriptType: "type",
       scriptSearchMode: instanceOfScriptWrapper(queryLock)
-        ? queryLock.searchMode
+        ? queryLock.searchMode || "prefix"
         : "prefix",
-      filter: {
-        script: searchKeyLock,
-      },
+      filter: {},
     };
+    searchKeyLock && (searchKey.filter.script = searchKeyLock);
   } else {
     throw new Error("query.lock and query.type can't be both empty");
   }
 
-  if (queryOptions.fromBlock || queryOptions.toBlock) {
-    searchKey.filter!.blockRange = [
-      queryOptions.fromBlock || "0x0",
-      queryOptions.toBlock
-        ? BI.from(queryOptions.toBlock).add(1).toHexString()
+  const {
+    fromBlock,
+    toBlock,
+    outputDataLenRange,
+    outputCapacityRange,
+    scriptLenRange,
+  } = queryOptions;
+
+  if (fromBlock || toBlock) {
+    searchKey.filter.blockRange = [
+      fromBlock || "0x0",
+      toBlock
+        ? BI.from(toBlock).add(1).toHexString()
         : "0x" + Number.MAX_SAFE_INTEGER.toString(16),
+    ];
+  }
+
+  if (outputDataLenRange) {
+    searchKey.filter.outputDataLenRange = [
+      outputDataLenRange[0],
+      BI.from(outputDataLenRange[1]).add(1).toHexString(),
+    ];
+  }
+
+  if (outputCapacityRange) {
+    searchKey.filter.outputCapacityRange = [
+      outputCapacityRange[0],
+      BI.from(outputCapacityRange[1]).add(1).toHexString(),
+    ];
+  }
+
+  if (scriptLenRange) {
+    searchKey.filter.scriptLenRange = [
+      scriptLenRange[0],
+      BI.from(scriptLenRange[1]).add(1).toHexString(),
     ];
   }
 
   return searchKey;
 }
 
-function filterByQueryOptions(cells: Cell[], options: QueryOptions): Cell[] {
+function filterByQueryOptions(
+  cells: Cell[],
+  options: CKBIndexerQueryOptions
+): Cell[] {
   const searchKey = convertQueryOptionToSearchKey(options);
   let filteredCells = cells.filter((cell) => filterBy(cell, searchKey));
 
@@ -203,26 +234,30 @@ function filterBy(cell: Cell, searchKey: SearchKey): boolean {
     }
   }
 
-  if (filter.blockRange) {
+  const { blockRange, outputCapacityRange, outputDataLenRange } = filter;
+
+  if (blockRange) {
     const blockNumber = BI.from(cell.blockNumber || Number.MAX_SAFE_INTEGER);
-    const fromBlock = BI.from(filter.blockRange[0]);
-    const toBlock = BI.from(filter.blockRange[1]);
+    const fromBlock = BI.from(blockRange[0]);
+    const toBlock = BI.from(blockRange[1]);
     if (blockNumber.lt(fromBlock) || blockNumber.gte(toBlock)) {
       return false;
     }
   }
-  if (filter.outputCapacityRange) {
+
+  if (outputCapacityRange) {
     const capacity = BI.from(cellOutput.capacity);
-    const fromCapacity = BI.from(filter.outputCapacityRange[0]);
-    const toCapacity = BI.from(filter.outputCapacityRange[1]);
+    const fromCapacity = BI.from(outputCapacityRange[0]);
+    const toCapacity = BI.from(outputCapacityRange[1]);
     if (capacity.lt(fromCapacity) || capacity.gte(toCapacity)) {
       return false;
     }
   }
-  if (filter.outputDataLenRange) {
+
+  if (outputDataLenRange) {
     const dataLen = BI.from(bytes.bytify(cell.data).length);
-    const fromDataLen = BI.from(filter.outputDataLenRange[0]);
-    const toDataLen = BI.from(filter.outputDataLenRange[1]);
+    const fromDataLen = BI.from(outputDataLenRange[0]);
+    const toDataLen = BI.from(outputDataLenRange[1]);
     if (dataLen.lt(fromDataLen) || dataLen.gte(toDataLen)) {
       return false;
     }
