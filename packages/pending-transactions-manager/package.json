@@ -1,7 +1,7 @@
 {
-  "name": "@ckb-lumos/pending-transactions-recorder",
+  "name": "@ckb-lumos/pending-transactions-manager",
   "version": "0.20.0-alpha.2",
-  "description": "Pending Transactions Recorder for lumos",
+  "description": "Pending Transactions Manager for lumos",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",

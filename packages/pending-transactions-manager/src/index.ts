@@ -1,21 +1,23 @@
 import {
   blockchain,
   Transaction,
-  Script,
-  utils,
   OutPoint,
   Cell,
   Hash,
+  CellCollector,
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
-import isEqual from "lodash.isequal";
 import { bytes } from "@ckb-lumos/codec";
 import type { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
-import { RecorderDb, PendingCell, InMemoryRecorderDb } from "./RecorderDb";
 import {
-  CkbIndexerFilterOptions,
-  filterByIndexerFilterProtocol,
-} from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
+  TransactionStorage,
+  PendingCell,
+  createInMemoryPendingTransactionStorage,
+} from "./PendingTransactionStorage";
+import { filterByQueryOptions } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
+import { Promisable } from "./storage";
+import { CKBIndexerQueryOptions } from "@ckb-lumos/ckb-indexer/lib/type";
+import { CkbIndexer } from "@ckb-lumos/ckb-indexer/lib/indexer";
 
 type OutputsValidator = CKBComponents.OutputsValidator;
 
@@ -36,60 +38,37 @@ const isTxCompleted = async (txHash: Hash, rpc: RPC): Promise<boolean> => {
 const txStatusIsCompleted = (txStatus: TRANSACTION_STATUS): boolean =>
   txStatus === "committed" || txStatus === "rejected";
 
-interface TransactionRecorder {
+interface TransactionManager {
   stop(): void;
-  sendTransaction(tx: Transaction): Promise<string>;
-  getCells(locks: Script[]): Cell[];
-  filterSpentCells(cells: Cell[]): Cell[];
+  sendTransaction(tx: Transaction): Promisable<string>;
+  collector(queryOptions: CKBIndexerQueryOptions): Promisable<CellCollector>;
 }
 
 type Props = {
   rpcUrl: string;
   options?: {
     pollIntervalSeconds?: number;
+    // default to in memory storage
+    txStorage?: TransactionStorage;
   };
 };
 
-export class PendingTransactionsRecorder implements TransactionRecorder {
+export class PendingTransactionsManager implements TransactionManager {
   private running: boolean;
   private pollIntervalSeconds: number;
   private rpc: RPC;
-  private txRecorderDb: RecorderDb;
+  private indexer: CkbIndexer;
+  private txStorage: TransactionStorage;
 
   constructor(payload: Props) {
     this.rpc = new RPC(payload.rpcUrl);
+    this.indexer = new CkbIndexer(payload.rpcUrl);
     this.running = false;
     this.pollIntervalSeconds = payload?.options?.pollIntervalSeconds || 10;
-    this.txRecorderDb = new InMemoryRecorderDb();
+    this.txStorage =
+      payload.options?.txStorage || createInMemoryPendingTransactionStorage();
 
     void this.start();
-  }
-
-  getCells(locks: Script[]): Cell[] {
-    const cells = this.txRecorderDb.getPendingCells();
-    const createdCells = cells.filter((cell) =>
-      locks.some((lock) =>
-        isEqual(
-          utils.computeScriptHash(cell.cellOutput.lock),
-          utils.computeScriptHash(lock)
-        )
-      )
-    );
-    return this.filterSpentCells(createdCells);
-  }
-
-  filterSpentCells(cells: Cell[]): Cell[] {
-    const spentCellOutpoints = this.txRecorderDb.getSpentCellOutpoints();
-    return cells.filter(
-      (cell) =>
-        !cell.outPoint ||
-        !spentCellOutpoints.some((outpoint) =>
-          bytes.equal(
-            blockchain.OutPoint.pack(outpoint),
-            blockchain.OutPoint.pack(cell.outPoint!)
-          )
-        )
-    );
   }
 
   private start(): void {
@@ -116,12 +95,12 @@ export class PendingTransactionsRecorder implements TransactionRecorder {
   }
 
   private async updatePendingTransactions(): Promise<void> {
-    const txs = this.txRecorderDb.getTransactions();
+    const txs = await this.txStorage.getTransactions();
     for await (const tx of txs) {
       /* remove all transactions that have already been completed */
       const txCompleted = await isTxCompleted(tx.hash, this.rpc);
       if (txCompleted) {
-        this.txRecorderDb.deleteTransactionByHash(tx.hash);
+        this.txStorage.deleteTransactionByHash(tx.hash);
         console.log("tx: ", tx.hash, " is deteted");
       }
     }
@@ -131,9 +110,7 @@ export class PendingTransactionsRecorder implements TransactionRecorder {
     tx: Transaction,
     validator: OutputsValidator = "passthrough"
   ): Promise<string> {
-    // check if the input tx is valid
-    blockchain.Transaction.pack(tx);
-    const spentCellOutpoints = this.txRecorderDb.getSpentCellOutpoints();
+    const spentCellOutpoints = await this.txStorage.getSpentCellOutpoints();
     tx.inputs.forEach((input) => {
       if (
         spentCellOutpoints.some((spentCell) =>
@@ -149,51 +126,57 @@ export class PendingTransactionsRecorder implements TransactionRecorder {
       }
     });
     const txHash = await this.rpc.sendTransaction(tx, validator);
-    this.txRecorderDb.addTransaction({ ...tx, hash: txHash });
+    await this.txStorage.addTransaction({ ...tx, hash: txHash });
     return txHash;
   }
 
-  collector(options: CkbIndexerFilterOptions): PendingCellCollector {
-    const pendingCells: Cell[] = this.txRecorderDb.getPendingCells();
-
-    const filteredCreatedCells = filterByIndexerFilterProtocol({
-      cells: pendingCells,
-      params: options,
-    });
+  async collector(
+    options: CKBIndexerQueryOptions
+  ): Promise<PendingCellCollector> {
+    const pendingCells: Cell[] = await this.txStorage.getPendingCells();
+    const filteredCreatedCells = filterByQueryOptions(pendingCells, options);
 
     return new PendingCellCollector(
-      this.txRecorderDb.getSpentCellOutpoints(),
+      this.indexer.collector(options),
+      await this.txStorage.getSpentCellOutpoints(),
       filteredCreatedCells as PendingCell[]
     );
   }
 }
 
-class PendingCellCollector {
+class PendingCellCollector implements CellCollector {
   spentCells: OutPoint[];
   filteredPendingCells: PendingCell[];
-  constructor(spentCells: OutPoint[], filteredPendingCells: PendingCell[]) {
+  liveCellCollector: CellCollector;
+  constructor(
+    liveCellCollector: CellCollector,
+    spentCells: OutPoint[],
+    filteredPendingCells: PendingCell[]
+  ) {
     this.spentCells = spentCells;
     this.filteredPendingCells = filteredPendingCells;
+    this.liveCellCollector = liveCellCollector;
   }
 
-  getUnspentPendingCells(): PendingCell[] {
-    return this.filteredPendingCells.filter((cell) => {
-      return !this.spentCells.some((spentCell) => {
-        bytes.equal(
-          blockchain.OutPoint.pack(cell.outPoint),
-          blockchain.OutPoint.pack(spentCell)
-        );
-      });
-    });
+  cellIsSpent(cell: Cell): boolean {
+    return this.spentCells.some((spent) =>
+      bytes.equal(
+        blockchain.OutPoint.pack(spent),
+        blockchain.OutPoint.pack(cell.outPoint!)
+      )
+    );
   }
 
-  count() {
-    return this.getUnspentPendingCells().length;
-  }
-
-  *collect() {
+  async *collect(): AsyncGenerator<Cell> {
+    for await (const cell of this.liveCellCollector.collect()) {
+      if (!this.cellIsSpent(cell)) {
+        yield cell;
+      }
+    }
     for (const cell of this.filteredPendingCells) {
-      yield cell;
+      if (!this.cellIsSpent(cell)) {
+        yield cell;
+      }
     }
   }
 }
