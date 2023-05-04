@@ -239,6 +239,12 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     argsLen: 4,
   });
   t.deepEqual(cells15, [originalCells[5]]);
+
+  const cells16 = filterByQueryOptions(originalCells, {
+    lock: dummyScript,
+    type: "empty",
+  });
+  t.deepEqual(cells16, [...originalCells.slice(0, 3), originalCells[4]]);
 });
 
 function createCell(payload: {

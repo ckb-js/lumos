@@ -95,6 +95,10 @@ function convertQueryOptionToSearchKey(
     ];
   }
 
+  if (queryType === "empty") {
+    searchKey.filter.scriptLenRange = ["0x0", "0x1"];
+  }
+
   return searchKey;
 }
 
