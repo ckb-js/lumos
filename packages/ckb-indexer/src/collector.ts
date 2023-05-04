@@ -16,6 +16,7 @@ import {
 import fetch from "cross-fetch";
 import { bytes } from "@ckb-lumos/codec";
 import {
+  filterByQueryOptions,
   instanceOfDataWithSearchMode,
   unwrapDataWrapper,
 } from "./ckbIndexerFilter";
@@ -341,7 +342,11 @@ export class CKBCellCollector implements BaseCellCollector {
     let index = 0;
     let skippedCount = 0;
     while (true) {
-      if (!this.shouldSkipped(query, cells[index], skippedCount)) {
+      const shouldSkip = this.shouldSkipped(query, cells[index], skippedCount);
+      // filter by ckb indexer query options
+      const shouldBeFilterd =
+        filterByQueryOptions([cells[index]], query).length === 0;
+      if (!shouldSkip && !shouldBeFilterd) {
         yield cells[index];
       } else {
         skippedCount++;
