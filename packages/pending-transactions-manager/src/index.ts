@@ -101,7 +101,6 @@ export class PendingTransactionsManager implements TransactionManager {
       const txCompleted = await isTxCompleted(tx.hash, this.rpc);
       if (txCompleted) {
         this.txStorage.deleteTransactionByHash(tx.hash);
-        console.log("tx: ", tx.hash, " is deteted");
       }
     }
   }

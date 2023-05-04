@@ -39,8 +39,7 @@
     "@ckb-lumos/base": "0.20.0-alpha.2",
     "@ckb-lumos/ckb-indexer": "0.20.0-alpha.2",
     "@ckb-lumos/rpc": "0.20.0-alpha.2",
-    "@ckb-lumos/toolkit": "0.20.0-alpha.2",
-    "immutable": "^4.0.0-rc.12"
+    "@ckb-lumos/toolkit": "0.20.0-alpha.2"
   },
   "publishConfig": {
     "access": "public"
