@@ -277,11 +277,8 @@ function checkScriptWithPrefixMode(
     return false;
   }
 
-  const expectCodeHashPrefix = bytes.bytify(filterScript.codeHash);
-  const actualCodeHashPrefix = bytes
-    .bytify(script.codeHash)
-    .slice(0, expectCodeHashPrefix.length);
-  if (!bytes.equal(expectCodeHashPrefix, actualCodeHashPrefix)) {
+  // codeHash should always be 32 bytes, so it only supports exact match mode
+  if (!bytes.equal(filterScript.codeHash, script.codeHash)) {
     return false;
   }
 

@@ -9,123 +9,133 @@ const dummyScript: Script = {
   args: "0x",
 };
 
-test("should filterBy function filters cell with searchKey", async (t) => {
-  const script1: Script = { ...dummyScript, args: "0x1234" };
-  const script2: Script = { ...dummyScript, args: "0x5678" };
+const lockScript: Script = { ...dummyScript, args: "0x1234" };
+const typeScript: Script = { ...dummyScript, args: "0x5678" };
 
-  const mockCell: Required<Cell> = {
-    blockNumber: "0x2",
-    outPoint: {
-      txHash: "0x",
-      index: "0x2",
-    },
-    cellOutput: {
-      capacity: "0x2",
-      lock: script1,
-      type: script2,
-    },
-    data: "0x1234",
-    txIndex: "0x2",
-    blockHash: "",
-  };
+const mockCell: Required<Cell> = {
+  blockNumber: "0x2",
+  outPoint: {
+    txHash: "0x",
+    index: "0x2",
+  },
+  cellOutput: {
+    capacity: "0x2",
+    lock: lockScript,
+    type: typeScript,
+  },
+  data: "0x1234",
+  txIndex: "0x2",
+  blockHash: "",
+};
 
-  t.true(filterBy(mockCell, { scriptType: "lock", script: script1 }));
-  t.true(filterBy(mockCell, { scriptType: "type", script: script2 }));
-  t.false(filterBy(mockCell, { scriptType: "type", script: script1 }));
-  t.false(filterBy(mockCell, { scriptType: "lock", script: script2 }));
+test("filter by correct script type", async (t) => {
+  t.true(filterBy(mockCell, { scriptType: "lock", script: lockScript }));
+  t.true(filterBy(mockCell, { scriptType: "type", script: typeScript }));
+});
 
-  // should pass filter prefix mode
+test("filter by wrong script type", async (t) => {
+  t.false(filterBy(mockCell, { scriptType: "type", script: lockScript }));
+  t.false(filterBy(mockCell, { scriptType: "lock", script: typeScript }));
+});
+
+test("filter default to prefix mode", async (t) => {
   t.true(
     filterBy(mockCell, {
       scriptType: "lock",
-      script: { ...script1, args: "0x12" },
+      script: { ...lockScript, args: "0x12" },
     })
   );
-  // should be blocked by filter in exact mode
+});
+
+test("filter explicitly set to exact mode", async (t) => {
   t.false(
     filterBy(mockCell, {
       scriptType: "lock",
-      script: { ...script1, args: "0x12" },
+      script: { ...lockScript, args: "0x12" },
       scriptSearchMode: "exact",
     })
   );
+});
 
-  // filter with block range
+test("filter with block range", async (t) => {
   t.true(
     filterBy(mockCell, {
       scriptType: "lock",
-      script: script1,
+      script: lockScript,
       filter: { blockRange: ["0x1", "0x3"] },
     })
   );
   t.false(
     filterBy(mockCell, {
       scriptType: "lock",
-      script: script1,
+      script: lockScript,
       filter: { blockRange: ["0x10", "0x11"] },
     })
   );
+});
 
-  // filter with output capacity range
+test("filter with output capacity range", async (t) => {
   t.true(
     filterBy(mockCell, {
       scriptType: "lock",
-      script: script1,
+      script: lockScript,
       filter: { outputCapacityRange: ["0x1", "0x3"] },
     })
   );
   t.false(
     filterBy(mockCell, {
       scriptType: "lock",
-      script: script1,
+      script: lockScript,
       filter: { outputCapacityRange: ["0x10", "0x11"] },
     })
   );
+});
 
-  // filter with output data length range
+test("filter with output data length range", async (t) => {
   t.true(
     filterBy(mockCell, {
       scriptType: "lock",
-      script: script1,
+      script: lockScript,
       filter: { outputDataLenRange: ["0x1", "0x3"] },
     })
   );
   t.false(
     filterBy(mockCell, {
       scriptType: "lock",
-      script: script1,
+      script: lockScript,
       filter: { outputDataLenRange: ["0x10", "0x11"] },
     })
   );
 });
 
-test("should filterByQueryOptions return expected cells", async (t) => {
-  const originalCells: Cell[] = [
-    createCell({ dataLen: 10 }),
-    createCell({ capacity: BI.from(100) }),
-    createCell({ blockNumber: BI.from(200) }),
-    createCell({ type: dummyScript }),
-    createCell({
-      lock: {
-        ...dummyScript,
-        args: "0x1234",
-      },
-    }),
-    createCell({
-      lock: {
-        ...dummyScript,
-        args: "0x12345678",
-      },
-      type: {
-        ...dummyScript,
-        args: "0x1234",
-      },
-    }),
-  ];
+const originalCells: Cell[] = [
+  createCell({ dataLen: 10 }),
+  createCell({ capacity: BI.from(100) }),
+  createCell({ blockNumber: BI.from(200) }),
+  createCell({ type: dummyScript }),
+  createCell({
+    lock: {
+      ...dummyScript,
+      args: "0x1234",
+    },
+  }),
+  createCell({
+    lock: {
+      ...dummyScript,
+      args: "0x12345678",
+    },
+    type: {
+      ...dummyScript,
+      args: "0x1234",
+    },
+  }),
+];
 
-  // must provide lock or type in query options
+test("must provide lock or type in query options", async (t) => {
   t.throws(() => filterByQueryOptions(originalCells, {}));
+});
 
+test("should filter lock with exact mode", async (t) => {
   const cells1 = filterByQueryOptions(originalCells, {
     lock: {
       script: dummyScript,
@@ -133,13 +143,17 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     },
   });
   t.deepEqual(cells1, originalCells.slice(0, 4));
+});
 
+test("should filter with output data len range", async (t) => {
   const cells2 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     outputDataLenRange: [BI.from(10).toHexString(), BI.from(200).toHexString()],
   });
   t.deepEqual(cells2, [originalCells[0]]);
+});
 
+test("should filter with output capacity range", async (t) => {
   const cells3 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     outputCapacityRange: [
@@ -148,13 +162,17 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     ],
   });
   t.deepEqual(cells3, [originalCells[1]]);
+});
 
+test("should filter with from block", async (t) => {
   const cells4 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     fromBlock: BI.from(10).toHexString(),
   });
   t.deepEqual(cells4, [originalCells[2]]);
+});
 
+test("should filter type with exact mode", async (t) => {
   const cells5 = filterByQueryOptions(originalCells, {
     type: {
       script: dummyScript,
@@ -162,25 +180,33 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     },
   });
   t.deepEqual(cells5, [originalCells[3]]);
+});
 
+test("should filter script len range", async (t) => {
   const cells6 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     scriptLenRange: [BI.from(100).toHexString(), BI.from(200).toHexString()],
   });
   t.deepEqual(cells6, []);
+});
 
+test("should filter by data", async (t) => {
   const cells7 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     data: "0x00000000000000000000",
   });
   t.deepEqual(cells7, [originalCells[0]]);
+});
 
+test("should filter by data with default prefix mode", async (t) => {
   const cells8 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     data: "0x00",
   });
   t.deepEqual(cells8, [originalCells[0]]);
+});
 
+test("should filter by data with explicitly prefix mode", async (t) => {
   const cells9 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     data: {
@@ -189,7 +215,9 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     },
   });
   t.deepEqual(cells9, [originalCells[0]]);
+});
 
+test("should filter by data with explicitly exact mode", async (t) => {
   const cells10 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     data: {
@@ -198,21 +226,19 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     },
   });
   t.deepEqual(cells10, []);
+});
 
-  const cells11 = filterByQueryOptions(originalCells, {
-    type: {
-      script: dummyScript,
-      searchMode: "exact",
-    },
-  });
-  t.deepEqual(cells11, [originalCells[3]]);
+// test case 11 is removed due to duplicated with test case 3
 
+test("should filter with lock script args len", async (t) => {
   const cells12 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     argsLen: 2,
   });
   t.deepEqual(cells12, [originalCells[4]]);
+});
 
+test("should filter by type with exact mode then reverse", async (t) => {
   const cells13 = filterByQueryOptions(originalCells, {
     lock: {
       script: dummyScript,
@@ -221,7 +247,9 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     order: "desc",
   });
   t.deepEqual(cells13, originalCells.slice(0, 4).reverse());
+});
 
+test("should filter by type with exact mode then skip 1", async (t) => {
   const cells14 = filterByQueryOptions(originalCells, {
     lock: {
       script: dummyScript,
@@ -230,7 +258,9 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     skip: 1,
   });
   t.deepEqual(cells14, originalCells.slice(1, 4));
+});
 
+test("should filter by type with prefix mode and lock script args length", async (t) => {
   const cells15 = filterByQueryOptions(originalCells, {
     type: {
       script: dummyScript,
@@ -239,7 +269,9 @@ test("should filterByQueryOptions return expected cells", async (t) => {
     argsLen: 4,
   });
   t.deepEqual(cells15, [originalCells[5]]);
+});
 
+test("should filter with empty type script", async (t) => {
   const cells16 = filterByQueryOptions(originalCells, {
     lock: dummyScript,
     type: "empty",
