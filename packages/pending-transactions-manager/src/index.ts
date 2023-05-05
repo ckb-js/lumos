@@ -17,7 +17,6 @@ import {
 import { filterByQueryOptions } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
 import { Promisable } from "./storage";
 import { CKBIndexerQueryOptions } from "@ckb-lumos/ckb-indexer/lib/type";
-import { CkbIndexer } from "@ckb-lumos/ckb-indexer/lib/indexer";
 
 type OutputsValidator = CKBComponents.OutputsValidator;
 
@@ -47,9 +46,11 @@ interface TransactionManager {
 type Props = {
   rpcUrl: string;
   options?: {
+    cellCollector?: CellCollector;
     pollIntervalSeconds?: number;
     // default to in memory storage
     txStorage?: TransactionStorage;
+    usePendingCells?: boolean;
   };
 };
 
@@ -57,12 +58,14 @@ export class PendingTransactionsManager implements TransactionManager {
   private running: boolean;
   private pollIntervalSeconds: number;
   private rpc: RPC;
-  private indexer: CkbIndexer;
+  private cellCollector: CellCollector | undefined;
   private txStorage: TransactionStorage;
+  private usePendingCells: boolean;
 
   constructor(payload: Props) {
     this.rpc = new RPC(payload.rpcUrl);
-    this.indexer = new CkbIndexer(payload.rpcUrl);
+    this.cellCollector = payload.options?.cellCollector;
+    this.usePendingCells = payload.options?.usePendingCells || true;
     this.running = false;
     this.pollIntervalSeconds = payload?.options?.pollIntervalSeconds || 10;
     this.txStorage =
@@ -136,9 +139,10 @@ export class PendingTransactionsManager implements TransactionManager {
     const filteredCreatedCells = filterByQueryOptions(pendingCells, options);
 
     return new PendingCellCollector(
-      this.indexer.collector(options),
       await this.txStorage.getSpentCellOutpoints(),
-      filteredCreatedCells as PendingCell[]
+      filteredCreatedCells as PendingCell[],
+      this.usePendingCells,
+      this.cellCollector
     );
   }
 }
@@ -146,15 +150,19 @@ export class PendingTransactionsManager implements TransactionManager {
 class PendingCellCollector implements CellCollector {
   spentCells: OutPoint[];
   filteredPendingCells: PendingCell[];
-  liveCellCollector: CellCollector;
+  liveCellCollector: CellCollector | undefined;
+  usePendingCells: boolean;
+
   constructor(
-    liveCellCollector: CellCollector,
     spentCells: OutPoint[],
-    filteredPendingCells: PendingCell[]
+    filteredPendingCells: PendingCell[],
+    usePendingCells: boolean,
+    liveCellCollector?: CellCollector
   ) {
     this.spentCells = spentCells;
     this.filteredPendingCells = filteredPendingCells;
     this.liveCellCollector = liveCellCollector;
+    this.usePendingCells = usePendingCells;
   }
 
   cellIsSpent(cell: Cell): boolean {
@@ -167,14 +175,18 @@ class PendingCellCollector implements CellCollector {
   }
 
   async *collect(): AsyncGenerator<Cell> {
-    for await (const cell of this.liveCellCollector.collect()) {
-      if (!this.cellIsSpent(cell)) {
-        yield cell;
+    if (this.liveCellCollector) {
+      for await (const cell of this.liveCellCollector.collect()) {
+        if (!this.cellIsSpent(cell)) {
+          yield cell;
+        }
       }
     }
-    for (const cell of this.filteredPendingCells) {
-      if (!this.cellIsSpent(cell)) {
-        yield cell;
+    if (this.usePendingCells) {
+      for (const cell of this.filteredPendingCells) {
+        if (!this.cellIsSpent(cell)) {
+          yield cell;
+        }
       }
     }
   }

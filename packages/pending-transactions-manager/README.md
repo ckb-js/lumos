@@ -5,8 +5,13 @@
 You can create a `PendingTransactionsManager` by passing a `rpcUrl` and an optional `options` object.
 
 ```ts
+  delcare const queryOptions: CkbIndexerQueryOptions;
+  const rpcUrl = "https://testnet.ckb.dev" 
   const manager = new PendingTransactionsManager({
-    rpcUrl: "https://testnet.ckb.dev",
+    rpcUrl,
+    options: {
+      cellCollector: new Indexer(rpcUrl).collector(queryOptions),
+    }
   });
 
   const cellCollector = await manager.collector(queryOptions);
