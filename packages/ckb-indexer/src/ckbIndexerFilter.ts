@@ -162,7 +162,7 @@ function filterByQueryOptions(
 /**
  * @internal
  */
-function filterBy(cell: Cell, searchKey: SearchKey): boolean {
+export function filterBy(cell: Cell, searchKey: SearchKey): boolean {
   const isExactMode = searchKey.scriptSearchMode === "exact";
   const { cellOutput } = cell;
   const { scriptType, script, filter } = searchKey;
@@ -342,7 +342,6 @@ const unwrapDataWrapper = (input: DataWithSearchMode | string): string => {
 };
 
 export {
-  filterBy,
   filterByQueryOptions,
   convertQueryOptionToSearchKey,
   instanceOfDataWithSearchMode,
