@@ -24,10 +24,6 @@ const dummyOutpoint1: OutPoint = {
   txHash: dummyTxHash1,
   index: "0x0",
 };
-const sentDummyOutpoint: OutPoint = {
-  txHash: sentDummyTxHash,
-  index: "0x0",
-};
 
 let service: PendingTransactionsManager;
 test.beforeEach(() => {
@@ -72,22 +68,77 @@ test("should collect cells", async (t) => {
         capacity: "0x0",
         lock: dummyLock,
       },
+      {
+        capacity: "0x0",
+        lock: dummyLock,
+      },
     ],
-    outputsData: ["0x"],
+    outputsData: ["0x", "0x"],
   });
 
   const txHash = await service.sendTransaction(mockTx);
   t.deepEqual(txHash, sentDummyTxHash);
 
-  const cellCollector = await service.collector({ lock: dummyLock });
-  const cells: Cell[] = [];
+  let cellCollector = await service.collector({ lock: dummyLock });
+  let cells: Cell[] = [];
+  for await (const cell of cellCollector.collect()) {
+    cells.push(cell);
+  }
+  t.deepEqual(cells.length, 2);
+  t.deepEqual(cells[0], {
+    cellOutput: mockTx.outputs[0],
+    outPoint: {
+      txHash: sentDummyTxHash,
+      index: "0x0",
+    },
+    data: "0x",
+  });
+  t.deepEqual(cells[1], {
+    cellOutput: mockTx.outputs[0],
+    outPoint: {
+      txHash: sentDummyTxHash,
+      index: "0x1",
+    },
+    data: "0x",
+  });
+});
+
+test("should skip 1 collected cells", async (t) => {
+  const mockTx = createMockTx({
+    inputs: [
+      {
+        previousOutput: dummyOutpoint1,
+        since: "0x0",
+      },
+    ],
+    outputs: [
+      {
+        capacity: "0x0",
+        lock: dummyLock,
+      },
+      {
+        capacity: "0x0",
+        lock: dummyLock,
+      },
+    ],
+    outputsData: ["0x", "0x"],
+  });
+
+  const txHash = await service.sendTransaction(mockTx);
+  t.deepEqual(txHash, sentDummyTxHash);
+
+  let cellCollector = await service.collector({ lock: dummyLock, skip: 1 });
+  let cells: Cell[] = [];
   for await (const cell of cellCollector.collect()) {
     cells.push(cell);
   }
   t.deepEqual(cells.length, 1);
   t.deepEqual(cells[0], {
     cellOutput: mockTx.outputs[0],
-    outPoint: sentDummyOutpoint,
+    outPoint: {
+      txHash: sentDummyTxHash,
+      index: "0x1",
+    },
     data: "0x",
   });
 });

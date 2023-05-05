@@ -136,14 +136,19 @@ export class PendingTransactionsManager implements TransactionManager {
     options: CKBIndexerQueryOptions
   ): Promise<PendingCellCollector> {
     const pendingCells: Cell[] = await this.txStorage.getPendingCells();
-    const filteredCreatedCells = filterByQueryOptions(pendingCells, options);
+    // don't skip here, deal with skip in the collector
+    const filteredCreatedCells = filterByQueryOptions(pendingCells, {
+      ...options,
+      skip: 0,
+    });
 
-    return new PendingCellCollector(
-      await this.txStorage.getSpentCellOutpoints(),
-      filteredCreatedCells as PendingCell[],
-      this.usePendingCells,
-      this.cellCollector
-    );
+    return new PendingCellCollector({
+      spentCells: await this.txStorage.getSpentCellOutpoints(),
+      filteredPendingCells: filteredCreatedCells as PendingCell[],
+      shouldSkipCount: options.skip || 0,
+      usePendingCells: this.usePendingCells,
+      liveCellCollector: this.cellCollector,
+    });
   }
 }
 
@@ -152,17 +157,29 @@ class PendingCellCollector implements CellCollector {
   filteredPendingCells: PendingCell[];
   liveCellCollector: CellCollector | undefined;
   usePendingCells: boolean;
+  shouldSkipCount: number;
+  skippedCount = 0;
 
-  constructor(
-    spentCells: OutPoint[],
-    filteredPendingCells: PendingCell[],
-    usePendingCells: boolean,
-    liveCellCollector?: CellCollector
-  ) {
+  constructor(payload: {
+    spentCells: OutPoint[];
+    filteredPendingCells: PendingCell[];
+    shouldSkipCount: number;
+    usePendingCells: boolean;
+    liveCellCollector?: CellCollector;
+  }) {
+    const {
+      spentCells,
+      filteredPendingCells,
+      shouldSkipCount,
+      usePendingCells,
+      liveCellCollector,
+    } = payload;
+
     this.spentCells = spentCells;
     this.filteredPendingCells = filteredPendingCells;
     this.liveCellCollector = liveCellCollector;
     this.usePendingCells = usePendingCells;
+    this.shouldSkipCount = shouldSkipCount;
   }
 
   cellIsSpent(cell: Cell): boolean {
@@ -178,14 +195,22 @@ class PendingCellCollector implements CellCollector {
     if (this.liveCellCollector) {
       for await (const cell of this.liveCellCollector.collect()) {
         if (!this.cellIsSpent(cell)) {
-          yield cell;
+          if (this.skippedCount >= this.shouldSkipCount) {
+            yield cell;
+          } else {
+            this.skippedCount++;
+          }
         }
       }
     }
     if (this.usePendingCells) {
       for (const cell of this.filteredPendingCells) {
         if (!this.cellIsSpent(cell)) {
-          yield cell;
+          if (this.skippedCount >= this.shouldSkipCount) {
+            yield cell;
+          } else {
+            this.skippedCount++;
+          }
         }
       }
     }
