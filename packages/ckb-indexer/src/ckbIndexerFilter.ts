@@ -107,7 +107,9 @@ function filterByQueryOptions(
   options: CKBIndexerQueryOptions
 ): Cell[] {
   const searchKey = convertQueryOptionToSearchKey(options);
-  let filteredCells = cells.filter((cell) => filterBy(cell, searchKey));
+  let filteredCells = cells.filter((cell) =>
+    filterBySearchKey(cell, searchKey)
+  );
 
   if (options.argsLen && options.argsLen !== "any") {
     filteredCells = filteredCells.filter(
@@ -162,7 +164,7 @@ function filterByQueryOptions(
 /**
  * @internal
  */
-export function filterBy(cell: Cell, searchKey: SearchKey): boolean {
+export function filterBySearchKey(cell: Cell, searchKey: SearchKey): boolean {
   const isExactMode = searchKey.scriptSearchMode === "exact";
   const { cellOutput } = cell;
   const { scriptType, script, filter } = searchKey;
