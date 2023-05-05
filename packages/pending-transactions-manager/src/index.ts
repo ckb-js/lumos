@@ -41,7 +41,10 @@ const txStatusIsCompleted = (txStatus: TRANSACTION_STATUS): boolean =>
 interface TransactionManager {
   stop(): void;
   sendTransaction(tx: Transaction): Promisable<string>;
-  collector(queryOptions: CKBIndexerQueryOptions): Promisable<CellCollector>;
+  collector(
+    queryOptions: CKBIndexerQueryOptions,
+    usePendingCells?: boolean
+  ): Promisable<CellCollector>;
 }
 
 type CellCollectorProvider = (
@@ -63,7 +66,6 @@ type Props = {
     pollIntervalSeconds?: number;
     // default to in memory storage
     txStorage?: TransactionStorage;
-    usePendingCells?: boolean;
   };
 };
 
@@ -73,12 +75,10 @@ export class PendingTransactionsManager implements TransactionManager {
   private rpc: RPC;
   private cellCollectorProvider: CellCollectorProvider;
   private txStorage: TransactionStorage;
-  private usePendingCells: boolean;
 
   constructor(payload: Props) {
     this.rpc = new RPC(payload.rpcUrl);
     this.cellCollectorProvider = payload.cellCollectorProvider;
-    this.usePendingCells = payload.options?.usePendingCells || true;
     this.running = false;
     this.pollIntervalSeconds = payload?.options?.pollIntervalSeconds || 10;
     this.txStorage =
@@ -146,7 +146,8 @@ export class PendingTransactionsManager implements TransactionManager {
   }
 
   async collector(
-    options: CKBIndexerQueryOptions
+    options: CKBIndexerQueryOptions,
+    usePendingCells = true
   ): Promise<PendingCellCollector> {
     const pendingCells: Cell[] = await this.txStorage.getPendingCells();
     // don't skip here, deal with skip in the collector
@@ -173,7 +174,7 @@ export class PendingTransactionsManager implements TransactionManager {
       spentCells: await this.txStorage.getSpentCellOutpoints(),
       filteredPendingCells: filteredCreatedCells as PendingCell[],
       shouldSkipCount: options.skip || 0,
-      usePendingCells: this.usePendingCells,
+      usePendingCells,
       // don't skip here, deal with skip in the collector
       liveCellCollector,
     });
