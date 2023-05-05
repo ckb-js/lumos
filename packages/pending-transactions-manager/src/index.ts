@@ -17,6 +17,7 @@ import {
 import { filterByQueryOptions } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
 import { Promisable } from "./storage";
 import { CKBIndexerQueryOptions } from "@ckb-lumos/ckb-indexer/lib/type";
+import { Indexer } from "@ckb-lumos/ckb-indexer";
 
 type OutputsValidator = CKBComponents.OutputsValidator;
 
@@ -43,10 +44,22 @@ interface TransactionManager {
   collector(queryOptions: CKBIndexerQueryOptions): Promisable<CellCollector>;
 }
 
+type CellCollectorProvider = (
+  queryOptions: CKBIndexerQueryOptions
+) => CellCollector | string;
+
+function isCellCollector(
+  collectorProvider: CellCollectorProvider
+): collectorProvider is (
+  queryOptions: CKBIndexerQueryOptions
+) => CellCollector {
+  return typeof collectorProvider === "function";
+}
+
 type Props = {
   rpcUrl: string;
+  cellCollectorProvider: CellCollectorProvider;
   options?: {
-    cellCollector?: CellCollector;
     pollIntervalSeconds?: number;
     // default to in memory storage
     txStorage?: TransactionStorage;
@@ -58,13 +71,13 @@ export class PendingTransactionsManager implements TransactionManager {
   private running: boolean;
   private pollIntervalSeconds: number;
   private rpc: RPC;
-  private cellCollector: CellCollector | undefined;
+  private cellCollectorProvider: CellCollectorProvider;
   private txStorage: TransactionStorage;
   private usePendingCells: boolean;
 
   constructor(payload: Props) {
     this.rpc = new RPC(payload.rpcUrl);
-    this.cellCollector = payload.options?.cellCollector;
+    this.cellCollectorProvider = payload.cellCollectorProvider;
     this.usePendingCells = payload.options?.usePendingCells || true;
     this.running = false;
     this.pollIntervalSeconds = payload?.options?.pollIntervalSeconds || 10;
@@ -137,17 +150,32 @@ export class PendingTransactionsManager implements TransactionManager {
   ): Promise<PendingCellCollector> {
     const pendingCells: Cell[] = await this.txStorage.getPendingCells();
     // don't skip here, deal with skip in the collector
-    const filteredCreatedCells = filterByQueryOptions(pendingCells, {
+    const optionsWithoutSkip = {
       ...options,
       skip: 0,
-    });
+    };
+    const filteredCreatedCells = filterByQueryOptions(
+      pendingCells,
+      optionsWithoutSkip
+    );
+
+    let liveCellCollector: CellCollector;
+
+    if (isCellCollector(this.cellCollectorProvider)) {
+      liveCellCollector = this.cellCollectorProvider(optionsWithoutSkip);
+    } else {
+      liveCellCollector = new Indexer(
+        this.cellCollectorProvider as unknown as string
+      ).collector(optionsWithoutSkip);
+    }
 
     return new PendingCellCollector({
       spentCells: await this.txStorage.getSpentCellOutpoints(),
       filteredPendingCells: filteredCreatedCells as PendingCell[],
       shouldSkipCount: options.skip || 0,
       usePendingCells: this.usePendingCells,
-      liveCellCollector: this.cellCollector,
+      // don't skip here, deal with skip in the collector
+      liveCellCollector,
     });
   }
 }

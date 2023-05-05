@@ -29,14 +29,7 @@ let service: PendingTransactionsManager;
 test.beforeEach(() => {
   service = new PendingTransactionsManager({
     rpcUrl: "https://testnet.ckb.dev",
-  });
-  // @ts-ignore
-  service.rpc = {
-    sendTransaction: sinon.fake.resolves(sentDummyTxHash),
-  };
-  // @ts-ignore
-  service.indexer = {
-    collector: () => {
+    cellCollectorProvider: () => {
       return new CKBCellCollector(
         {
           // @ts-ignore
@@ -47,6 +40,10 @@ test.beforeEach(() => {
         }
       );
     },
+  });
+  // @ts-ignore
+  service.rpc = {
+    sendTransaction: sinon.fake.resolves(sentDummyTxHash),
   };
   // @ts-ignore
   service.updatePendingTransactions = sinon.mock();
