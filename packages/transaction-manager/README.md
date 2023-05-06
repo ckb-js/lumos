@@ -1,24 +1,68 @@
-# `@ckb-lumos/transaction-manager`
-
-TransactionManager is a tool for manager uncommitted cells, you can `send_transaction` via this tool and get uncommitted outputs by `collector`.
+# `@ckb-lumos/pending-transactions-manager`
 
 ## Usage
 
-```javascript
-const TransactionManager = require("@ckb-lumos/transaction-manager");
-const { Indexer } = require("@ckb-lumos/ckb-indexer");
+You can create a `PendingTransactionsManager` by passing a `rpcUrl` and an optional `options` object.
 
-// generate a new `TransactionManager` instance and start.
-const indexer = new Indexer("http://127.0.0.1:8114");
-const transactionManager = new TransactionManager(indexer);
-transactionManager.start();
+```ts
+  delcare const queryOptions: CkbIndexerQueryOptions;
+  const manager = new PendingTransactionsManager({
+    rpcUrl: "https://testnet.ckb.dev",
+    cellCollectorProvider: "https://testnet.ckb.dev",
+  });
 
-// now you send transaction via `transactionManager`.
-const txHash = await transactionManager.send_transaction(transaction);
+  const cellCollector = await manager.collector(queryOptions);
+  for await (const cell of cellCollector.collect()) {
+    // do something with the cell
+  }
+```
 
-// you can get uncommitted cells by `transactionManager.collector`.
-const collector = transactionManager.collector({ lock });
-for await (const cell of collector.collect()) {
-  console.log(cell);
-}
+By default the pending transactions are stored in memory, which means the pending tx infos will be lost if the user refreshes the browser.
+
+To persist the transactions, you can pass a `txStorage` option to the `PendingTransactionsManager` constructor.
+
+```ts
+  const manager = new PendingTransactionsManager({
+    rpcUrl: "https://testnet.ckb.dev",
+    cellCollectorProvider: "https://testnet.ckb.dev",
+    options: {
+      txStorage:  new PendingTransactionStorage(YOUR_STORAGE),
+    },
+  });
+```
+
+Especially in browser enviroment, if you want to use `localStorage` as the storage, you can create a `PendingTransactionStorage` instance like this:
+
+
+```ts
+  const manager = new PendingTransactionsManager({
+    rpcUrl: "https://testnet.ckb.dev",
+    cellCollectorProvider: "https://testnet.ckb.dev",
+    options: {
+      txStorage:  new PendingTransactionStorage(createBrowserStorage()),
+    },
+  });
+
+  function createBrowserStorage() {
+    const store: Storage = window.localStorage;
+    return {
+      getItem(key) {
+        const value = store.getItem(key) as string | undefined;
+        if (!value) return value as undefined;
+        // deep clone to avoid the value being modified by the caller
+        return JSON.parse(JSON.stringify(value));
+      },
+      hasItem(key) {
+        return !!store.getItem(key);
+      },
+      removeItem(key) {
+        store.removeItem(key);
+        return true;
+      },
+      setItem(key, value) {
+        store.setItem(key, value);
+      },
+    };
+  }
+
 ```

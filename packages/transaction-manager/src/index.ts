@@ -175,7 +175,6 @@ export class PendingTransactionsManager implements TransactionManager {
       filteredPendingCells: filteredCreatedCells as PendingCell[],
       shouldSkipCount: options.skip || 0,
       usePendingCells,
-      // don't skip here, deal with skip in the collector
       liveCellCollector,
     });
   }

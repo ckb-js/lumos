@@ -1,12 +1,11 @@
 {
-  "name": "@ckb-lumos/transaction-manager",
+  "name": "@ckb-lumos/transactions-manager",
   "version": "0.20.0-alpha.2",
-  "description": "Pending Transaction Manager for lumos",
-  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "description": "Pending Transactions Manager for lumos",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "index.d.ts",
+  "types": "lib/index.d.ts",
   "engines": {
     "node": ">=12.0.0"
   },
@@ -16,16 +15,22 @@
   },
   "files": [
     "lib",
-    "index.d.ts"
+    "src"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ckb-js/lumos.git"
   },
   "scripts": {
-    "fmt": "prettier --write \"{lib,tests}/**/*.js\" index.d.ts package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.js\"",
-    "test": "ava **/*.test.js"
+    "fmt": "prettier --write \"{lib,tests}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{lib,tests}/**/*.ts\"",
+    "test": "ava **/*.test.ts --timeout=2m",
+    "build": "npm run build:types && npm run build:js",
+    "build:types": "tsc --declaration --declarationMap --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
+    "clean": "rm -rf lib",
+    "prepublishOnly": "yarn run clean && yarn run build",
+    "release": "npm publish"
   },
   "bugs": {
     "url": "https://github.com/ckb-js/lumos/issues"
@@ -34,10 +39,21 @@
     "@ckb-lumos/base": "0.20.0-alpha.2",
     "@ckb-lumos/ckb-indexer": "0.20.0-alpha.2",
     "@ckb-lumos/rpc": "0.20.0-alpha.2",
-    "@ckb-lumos/toolkit": "0.20.0-alpha.2",
-    "immutable": "^4.0.0-rc.12"
+    "@ckb-lumos/toolkit": "0.20.0-alpha.2"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "devDependencies": {
+    "@types/sinon": "^10.0.14",
+    "sinon": "^15.0.4"
   }
 }
