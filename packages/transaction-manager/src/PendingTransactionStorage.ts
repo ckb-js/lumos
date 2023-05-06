@@ -18,11 +18,14 @@ export interface TransactionStorage {
   getTransactions(): Promisable<TransactionWithHash[]>;
   setTransactions(transactions: TransactionWithHash[]): Promisable<void>;
   addTransaction(tx: TransactionWithHash): Promisable<void>;
-  deleteTransactionByHash(txHash: Hash): Promisable<void>;
+  deleteTransactionByHash(txHash: Hash): Promisable<boolean>;
 
   // generated from pending transactions
   getPendingCells(): Promisable<PendingCell[]>;
   getSpentCellOutpoints(): Promisable<OutPoint[]>;
+
+  // remove transaction if pending cell is on chain
+  deleteTransactionByCell(cell: Cell): Promisable<boolean>;
 }
 
 export class PendingTransactionStorage implements TransactionStorage {
@@ -47,13 +50,22 @@ export class PendingTransactionStorage implements TransactionStorage {
     await this.updatePendingCells();
   }
 
-  async deleteTransactionByHash(txHash: Hash): Promise<void> {
+  async deleteTransactionByHash(txHash: Hash): Promise<boolean> {
     const transactions = await this.getTransactions();
+    const exists = transactions.some((tx) => tx.hash === txHash);
+    if (!exists) return false;
     await this.storage.setItem(
       "transactions",
       transactions.filter((tx) => tx.hash !== txHash)
     );
     await this.updatePendingCells();
+    return true;
+  }
+
+  async deleteTransactionByCell(cell: Cell): Promise<boolean> {
+    if (!cell.outPoint) return false;
+    const txHash = cell.outPoint.txHash;
+    return await this.deleteTransactionByHash(txHash);
   }
 
   async getPendingCells(): Promise<PendingCell[]> {

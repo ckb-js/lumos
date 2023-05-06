@@ -8,7 +8,6 @@ You can create a `PendingTransactionsManager` by passing a `rpcUrl` and an optio
   delcare const queryOptions: CkbIndexerQueryOptions;
   const manager = new PendingTransactionsManager({
     rpcUrl: "https://testnet.ckb.dev",
-    cellCollectorProvider: "https://testnet.ckb.dev",
   });
 
   const cellCollector = await manager.collector(queryOptions);
@@ -17,6 +16,8 @@ You can create a `PendingTransactionsManager` by passing a `rpcUrl` and an optio
   }
 ```
 
+> Note: `CkbIndexerQueryOptions` used in `transaction-manager` is a partial type of `CkbIndexerQueryOptions` used in `@ckb-lumos/indexer`. The field `skip` is supressed when generating a cell collector `collector(queryOptions)`, and when `usePendingCells` is set to `true`, the field `fromBlock` and `toBlock` are ignored, pending cells will be returned regardless of the block number. The order of the returned cells are on-chain cells come first, followed by pending cells when `order` is set to `asc`(default value is `asc`)， and vice versa.
+
 By default the pending transactions are stored in memory, which means the pending tx infos will be lost if the user refreshes the browser.
 
 To persist the transactions, you can pass a `txStorage` option to the `PendingTransactionsManager` constructor.
@@ -24,7 +25,6 @@ To persist the transactions, you can pass a `txStorage` option to the `PendingTr
 ```ts
   const manager = new PendingTransactionsManager({
     rpcUrl: "https://testnet.ckb.dev",
-    cellCollectorProvider: "https://testnet.ckb.dev",
     options: {
       txStorage:  new PendingTransactionStorage(YOUR_STORAGE),
     },
@@ -37,7 +37,6 @@ Especially in browser enviroment, if you want to use `localStorage` as the stora
 ```ts
   const manager = new PendingTransactionsManager({
     rpcUrl: "https://testnet.ckb.dev",
-    cellCollectorProvider: "https://testnet.ckb.dev",
     options: {
       txStorage:  new PendingTransactionStorage(createBrowserStorage()),
     },

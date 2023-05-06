@@ -1,5 +1,5 @@
 import test from "ava";
-import { PendingTransactionsManager } from "../src";
+import { TransactionsManager } from "../src";
 import * as sinon from "sinon";
 import {
   Cell,
@@ -25,9 +25,9 @@ const dummyOutpoint1: OutPoint = {
   index: "0x0",
 };
 
-let service: PendingTransactionsManager;
+let service: TransactionsManager;
 test.beforeEach(() => {
-  service = new PendingTransactionsManager({
+  service = new TransactionsManager({
     rpcUrl: "https://testnet.ckb.dev",
     cellCollectorProvider: () => {
       return new CKBCellCollector(
@@ -100,7 +100,7 @@ test("should collect cells", async (t) => {
   });
 });
 
-test("should skip 1 collected cells", async (t) => {
+test("should 'skip' be ignored when collect cells", async (t) => {
   const mockTx = createMockTx({
     inputs: [
       {
@@ -129,15 +129,7 @@ test("should skip 1 collected cells", async (t) => {
   for await (const cell of cellCollector.collect()) {
     cells.push(cell);
   }
-  t.deepEqual(cells.length, 1);
-  t.deepEqual(cells[0], {
-    cellOutput: mockTx.outputs[0],
-    outPoint: {
-      txHash: sentDummyTxHash,
-      index: "0x1",
-    },
-    data: "0x",
-  });
+  t.deepEqual(cells.length, 2);
 });
 
 function createMockTx(payload: {

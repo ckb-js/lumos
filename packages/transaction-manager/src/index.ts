@@ -69,7 +69,7 @@ type Props = {
   };
 };
 
-export class PendingTransactionsManager implements TransactionManager {
+export class TransactionsManager implements TransactionManager {
   private running: boolean;
   private pollIntervalSeconds: number;
   private rpc: RPC;
@@ -145,12 +145,16 @@ export class PendingTransactionsManager implements TransactionManager {
     return txHash;
   }
 
+  async removePendingCell(cell: Cell): Promise<boolean> {
+    return await this.txStorage.deleteTransactionByCell(cell);
+  }
+
   async collector(
     options: CKBIndexerQueryOptions,
     usePendingCells = true
   ): Promise<PendingCellCollector> {
     const pendingCells: Cell[] = await this.txStorage.getPendingCells();
-    // don't skip here, deal with skip in the collector
+    // ignore skip here
     const optionsWithoutSkip = {
       ...options,
       skip: 0,
@@ -173,9 +177,10 @@ export class PendingTransactionsManager implements TransactionManager {
     return new PendingCellCollector({
       spentCells: await this.txStorage.getSpentCellOutpoints(),
       filteredPendingCells: filteredCreatedCells as PendingCell[],
-      shouldSkipCount: options.skip || 0,
       usePendingCells,
       liveCellCollector,
+      order: options.order,
+      removePendingCell: this.removePendingCell,
     });
   }
 }
@@ -183,31 +188,39 @@ export class PendingTransactionsManager implements TransactionManager {
 class PendingCellCollector implements CellCollector {
   spentCells: OutPoint[];
   filteredPendingCells: PendingCell[];
-  liveCellCollector: CellCollector | undefined;
+  liveCellCollector: CellCollector;
   usePendingCells: boolean;
-  shouldSkipCount: number;
-  skippedCount = 0;
+  removePendingCell: (cell: Cell) => Promise<boolean>;
+  /**
+   * @param order - default to asc, return on-chain cells first, then pending cells, and vice versa
+   */
+  order: "asc" | "desc";
 
   constructor(payload: {
     spentCells: OutPoint[];
     filteredPendingCells: PendingCell[];
-    shouldSkipCount: number;
     usePendingCells: boolean;
-    liveCellCollector?: CellCollector;
+    liveCellCollector: CellCollector;
+    removePendingCell: (cell: Cell) => Promise<boolean>;
+    order?: "asc" | "desc";
   }) {
     const {
       spentCells,
       filteredPendingCells,
-      shouldSkipCount,
       usePendingCells,
       liveCellCollector,
+      removePendingCell,
     } = payload;
 
+    this.order = payload.order || "asc";
     this.spentCells = spentCells;
-    this.filteredPendingCells = filteredPendingCells;
+    this.filteredPendingCells =
+      payload.order === "desc"
+        ? filteredPendingCells.reverse()
+        : filteredPendingCells;
     this.liveCellCollector = liveCellCollector;
     this.usePendingCells = usePendingCells;
-    this.shouldSkipCount = shouldSkipCount;
+    this.removePendingCell = removePendingCell;
   }
 
   cellIsSpent(cell: Cell): boolean {
@@ -220,24 +233,33 @@ class PendingCellCollector implements CellCollector {
   }
 
   async *collect(): AsyncGenerator<Cell> {
-    if (this.liveCellCollector) {
-      for await (const cell of this.liveCellCollector.collect()) {
-        if (!this.cellIsSpent(cell)) {
-          if (this.skippedCount >= this.shouldSkipCount) {
+    // order is desc, return pending cells first, then on-chain cells
+    if (this.order === "desc") {
+      if (this.usePendingCells) {
+        for (const cell of this.filteredPendingCells) {
+          if (!this.cellIsSpent(cell)) {
             yield cell;
-          } else {
-            this.skippedCount++;
           }
         }
       }
-    }
-    if (this.usePendingCells) {
-      for (const cell of this.filteredPendingCells) {
+      for await (const cell of this.liveCellCollector.collect()) {
+        const isPendingCell = await this.removePendingCell(cell);
+        if (!this.cellIsSpent(cell) && !isPendingCell) {
+          yield cell;
+        }
+      }
+      // orser is asc, return on-chain cells first, then pending cells
+    } else {
+      for await (const cell of this.liveCellCollector.collect()) {
+        await this.removePendingCell(cell);
         if (!this.cellIsSpent(cell)) {
-          if (this.skippedCount >= this.shouldSkipCount) {
+          yield cell;
+        }
+      }
+      if (this.usePendingCells) {
+        for (const cell of this.filteredPendingCells) {
+          if (!this.cellIsSpent(cell)) {
             yield cell;
-          } else {
-            this.skippedCount++;
           }
         }
       }
