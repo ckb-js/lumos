@@ -7,7 +7,9 @@ You can create a `PendingTransactionsManager` by passing a `rpcUrl` and an optio
 ```ts
   delcare const queryOptions: CkbIndexerQueryOptions;
   const manager = new PendingTransactionsManager({
-    rpcUrl: "https://testnet.ckb.dev",
+    providers: {
+      rpcUrl: "https://testnet.ckb.dev",
+    }
   });
 
   const cellCollector = await manager.collector(queryOptions);
@@ -24,7 +26,9 @@ To persist the transactions, you can pass a `txStorage` option to the `PendingTr
 
 ```ts
   const manager = new PendingTransactionsManager({
-    rpcUrl: "https://testnet.ckb.dev",
+    providers: {
+      rpcUrl: "https://testnet.ckb.dev",
+    }
     options: {
       txStorage:  new PendingTransactionStorage(YOUR_STORAGE),
     },
@@ -36,7 +40,9 @@ Especially in browser enviroment, if you want to use `localStorage` as the stora
 
 ```ts
   const manager = new PendingTransactionsManager({
-    rpcUrl: "https://testnet.ckb.dev",
+    providers: {
+      rpcUrl: "https://testnet.ckb.dev",
+    }
     options: {
       txStorage:  new PendingTransactionStorage(createBrowserStorage()),
     },

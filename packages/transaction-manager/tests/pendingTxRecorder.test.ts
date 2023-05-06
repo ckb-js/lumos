@@ -28,28 +28,26 @@ const dummyOutpoint1: OutPoint = {
 let service: TransactionsManager;
 test.beforeEach(() => {
   service = new TransactionsManager({
-    rpcUrl: "https://testnet.ckb.dev",
-    cellCollectorProvider: () => {
-      return new CKBCellCollector(
-        {
-          // @ts-ignore
-          getCells: () => Promise.resolve({ objects: [] }),
-        },
-        {
-          lock: dummyLock,
-        }
-      );
+    providers: {
+      transactionSender: {
+        sendTransaction: () =>
+          Promise.resolve(sentDummyTxHash) as Promise<string>,
+      },
+      cellCollectorProvider: () => {
+        return new CKBCellCollector(
+          {
+            // @ts-ignore
+            getCells: () => Promise.resolve({ objects: [] }),
+          },
+          {
+            lock: dummyLock,
+          }
+        );
+      },
     },
   });
   // @ts-ignore
-  service.rpc = {
-    sendTransaction: sinon.fake.resolves(sentDummyTxHash),
-  };
-  // @ts-ignore
   service.updatePendingTransactions = sinon.mock();
-});
-test.afterEach(() => {
-  service.stop();
 });
 
 test("should collect cells", async (t) => {

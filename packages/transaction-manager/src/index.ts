@@ -3,7 +3,6 @@ import {
   Transaction,
   OutPoint,
   Cell,
-  Hash,
   CellCollector,
 } from "@ckb-lumos/base";
 import { RPC } from "@ckb-lumos/rpc";
@@ -21,25 +20,7 @@ import { Indexer } from "@ckb-lumos/ckb-indexer";
 
 type OutputsValidator = CKBComponents.OutputsValidator;
 
-// https://github.com/nervosnetwork/ckb/blob/develop/rpc/README.md#type-status
-type TRANSACTION_STATUS =
-  | "pending"
-  | "proposed"
-  | "committed"
-  | "unknown"
-  | "rejected";
-
-// TODO: batch get transactions
-const isTxCompleted = async (txHash: Hash, rpc: RPC): Promise<boolean> => {
-  const reponse = await rpc.getTransaction(txHash);
-  return txStatusIsCompleted(reponse.txStatus.status as TRANSACTION_STATUS);
-};
-
-const txStatusIsCompleted = (txStatus: TRANSACTION_STATUS): boolean =>
-  txStatus === "committed" || txStatus === "rejected";
-
 interface TransactionManager {
-  stop(): void;
   sendTransaction(tx: Transaction): Promisable<string>;
   collector(
     queryOptions: CKBIndexerQueryOptions,
@@ -47,78 +28,61 @@ interface TransactionManager {
   ): Promisable<CellCollector>;
 }
 
-type CellCollectorProvider = (
-  queryOptions: CKBIndexerQueryOptions
-) => CellCollector | string;
-
-function isCellCollector(
-  collectorProvider: CellCollectorProvider
-): collectorProvider is (
-  queryOptions: CKBIndexerQueryOptions
-) => CellCollector {
-  return typeof collectorProvider === "function";
+interface TransactionSender {
+  sendTransaction(
+    tx: Transaction,
+    outputsValidator?: "passthrough" | "default"
+  ): Promisable<string>;
 }
 
-type Props = {
-  rpcUrl: string;
-  cellCollectorProvider: CellCollectorProvider;
-  options?: {
-    pollIntervalSeconds?: number;
-    // default to in memory storage
-    txStorage?: TransactionStorage;
-  };
+type CellCollectorProvider = (
+  queryOptions: CKBIndexerQueryOptions
+) => CellCollector;
+
+type Options = {
+  pollIntervalSeconds?: number;
+  // default to in memory storage
+  txStorage?: TransactionStorage;
 };
 
+type ServiceProviders = {
+  transactionSender: TransactionSender;
+  cellCollectorProvider: CellCollectorProvider;
+};
+
+type ServiceEndPoint = {
+  rpcUrl: string;
+};
+
+function isServiceEndPoint(
+  providers: ServiceEndPoint | ServiceProviders
+): providers is ServiceEndPoint {
+  return typeof providers === "object" && "rpcUrl" in providers;
+}
+
 export class TransactionsManager implements TransactionManager {
-  private running: boolean;
-  private pollIntervalSeconds: number;
-  private rpc: RPC;
+  private transactionSender: TransactionSender;
   private cellCollectorProvider: CellCollectorProvider;
   private txStorage: TransactionStorage;
 
-  constructor(payload: Props) {
-    this.rpc = new RPC(payload.rpcUrl);
-    this.cellCollectorProvider = payload.cellCollectorProvider;
-    this.running = false;
-    this.pollIntervalSeconds = payload?.options?.pollIntervalSeconds || 10;
+  constructor(payload: {
+    providers: ServiceEndPoint | ServiceProviders;
+    options?: Options;
+  }) {
+    if (isServiceEndPoint(payload.providers)) {
+      const { rpcUrl } = payload.providers;
+
+      this.transactionSender = new RPC(rpcUrl);
+      this.cellCollectorProvider = new Indexer(rpcUrl).collector;
+    } else {
+      const { transactionSender, cellCollectorProvider } = payload.providers;
+
+      this.transactionSender = transactionSender;
+      this.cellCollectorProvider = cellCollectorProvider;
+    }
+
     this.txStorage =
       payload.options?.txStorage || createInMemoryPendingTransactionStorage();
-
-    void this.start();
-  }
-
-  private start(): void {
-    this.running = true;
-    void this.watchPendingTransactions();
-  }
-
-  stop(): void {
-    this.running = false;
-  }
-
-  private async watchPendingTransactions(): Promise<void> {
-    try {
-      await this.updatePendingTransactions();
-    } catch (e) {
-      console.error(e);
-    }
-    if (this.running) {
-      setTimeout(
-        () => this.watchPendingTransactions(),
-        this.pollIntervalSeconds * 1000
-      );
-    }
-  }
-
-  private async updatePendingTransactions(): Promise<void> {
-    const txs = await this.txStorage.getTransactions();
-    for await (const tx of txs) {
-      /* remove all transactions that have already been completed */
-      const txCompleted = await isTxCompleted(tx.hash, this.rpc);
-      if (txCompleted) {
-        this.txStorage.deleteTransactionByHash(tx.hash);
-      }
-    }
   }
 
   async sendTransaction(
@@ -140,7 +104,7 @@ export class TransactionsManager implements TransactionManager {
         );
       }
     });
-    const txHash = await this.rpc.sendTransaction(tx, validator);
+    const txHash = await this.transactionSender.sendTransaction(tx, validator);
     await this.txStorage.addTransaction({ ...tx, hash: txHash });
     return txHash;
   }
@@ -163,17 +127,7 @@ export class TransactionsManager implements TransactionManager {
       pendingCells,
       optionsWithoutSkip
     );
-
-    let liveCellCollector: CellCollector;
-
-    if (isCellCollector(this.cellCollectorProvider)) {
-      liveCellCollector = this.cellCollectorProvider(optionsWithoutSkip);
-    } else {
-      liveCellCollector = new Indexer(
-        this.cellCollectorProvider as unknown as string
-      ).collector(optionsWithoutSkip);
-    }
-
+    const liveCellCollector = this.cellCollectorProvider(optionsWithoutSkip);
     return new PendingCellCollector({
       spentCells: await this.txStorage.getSpentCellOutpoints(),
       filteredPendingCells: filteredCreatedCells as PendingCell[],
