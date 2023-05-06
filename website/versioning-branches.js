@@ -15,12 +15,12 @@ const parseURL = (branchName) => branchName.replaceAll("_", "").replaceAll(".", 
 module.exports = branches.map((branch) =>
   typeof branch === "string"
     ? {
-        href: `https://lumos-website-git-${parseURL(branch)}-cryptape.vercel.app/api/`,
+        href: `https://lumos-website-git-${parseURL(branch)}-magickbase.vercel.app/api/`,
         label: branch,
         target: "_blank",
       }
     : {
-        href: `https://lumos-website-git-${parseURL(branch.branchName)}-cryptape.vercel.app/api/`,
+        href: `https://lumos-website-git-${parseURL(branch.branchName)}-magickbase.vercel.app/api/`,
         label: branch.label,
         target: "_blank",
       }
