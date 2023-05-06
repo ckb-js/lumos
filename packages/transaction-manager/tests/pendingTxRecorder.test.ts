@@ -1,6 +1,5 @@
 import test from "ava";
 import { TransactionsManager } from "../src";
-import * as sinon from "sinon";
 import {
   Cell,
   Input,
@@ -46,8 +45,6 @@ test.beforeEach(() => {
       },
     },
   });
-  // @ts-ignore
-  service.updatePendingTransactions = sinon.mock();
 });
 
 test("should collect cells", async (t) => {
