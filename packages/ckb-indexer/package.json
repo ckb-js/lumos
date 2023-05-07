@@ -34,8 +34,7 @@
     "find-process": "^1.4.7",
     "lodash.uniqby": "^4.7.0",
     "request": "^2.88.2",
-    "sinon": "^15.0.4",
-    "ts-node": "^10.4.0"
+    "sinon": "^15.0.4"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",

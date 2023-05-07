@@ -28,8 +28,7 @@
     "@ckb-lumos/testkit": "0.20.0-alpha.2",
     "@types/request": "^2.48.8",
     "@types/sinon": "^10.0.6",
-    "sinon": "^15.0.4",
-    "ts-node": "^10.4.0"
+    "sinon": "^15.0.4"
   },
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
