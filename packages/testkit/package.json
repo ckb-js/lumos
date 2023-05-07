@@ -39,7 +39,7 @@
     "fmt": "prettier --write \"{src,tests,example}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,example}/**/*.ts\"",
     "clean": "rm -rf lib",
-    "prepublishOnly": "yarn run clean && yarn run build",
+    "prepublishOnly": "npm run clean && npm run build",
     "release": "npm publish",
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",

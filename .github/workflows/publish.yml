@@ -185,8 +185,7 @@ jobs:
       - name: Publish
         if: steps.tag_check.outputs.exists_tag == 'false'
         run: |
-          yarn run build
-          yarn run build-release
+          npm run build
           yarn lerna publish from-package --yes --dist-tag $([ $PRERELEASE == 'true' ] && echo 'next' || echo 'latest')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

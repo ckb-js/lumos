@@ -26,15 +26,15 @@
     "url": "https://github.com/ckb-js/lumos/issues"
   },
   "scripts": {
-    "doc": "../../node_modules/.bin/typedoc --out docs --mode modules --includeDeclarations --excludeExternals --ignoreCompilerErrors --theme default",
+    "doc": "npx typedoc --out docs --mode modules --includeDeclarations --excludeExternals --ignoreCompilerErrors --theme default",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "test": "../../node_modules/.bin/jest",
+    "test": "npx jest",
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib",
-    "prepublishOnly": "yarn run clean && yarn run build",
+    "prepublishOnly": "npm run clean && npm run build",
     "release": "npm publish"
   },
   "dependencies": {

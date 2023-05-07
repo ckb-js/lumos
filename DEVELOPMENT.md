@@ -3,7 +3,7 @@
 ## Publish
 
 1. [Local] Checkout release branch: `git checkout v<version>` or `git checkout next/v<version>`
-2. [Local] Run `yarn run versionup` or `yarn run versionup:prerelease`
+2. [Local] Run `npm run versionup` or `npm run versionup:prerelease`
    - Update CHANGELOG.md and `package.json`'s `version`, and `lerna.json`'s `version`
    - It does not git tag
 3. [Local] Submit to Release Pull Request

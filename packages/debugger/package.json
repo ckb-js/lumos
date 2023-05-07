@@ -52,7 +52,7 @@
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib",
-    "prepublishOnly": "yarn run clean && yarn run build",
+    "prepublishOnly": "npm run clean && npm run build",
     "release": "npm publish"
   },
   "bugs": {

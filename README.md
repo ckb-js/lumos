@@ -47,19 +47,19 @@ sudo apt install build-essential
 ### Build
 
 ```bash
-yarn run build
+npm run build
 ```
 
 ### Test (ava)
 
 ```bash
-yarn run test
+npm run test
 ```
 
 ### Test Coverage (c8)
 
 ```bash
-yarn run test-coverage
+npm run test-coverage
 ```
 
 ### Format & Lint
@@ -71,5 +71,5 @@ yarn run lint
 ### Clean
 
 ```bash
-yarn run clean
+npm run clean
 ```

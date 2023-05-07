@@ -16,7 +16,7 @@
     "lib"
   ],
   "scripts": {
-    "build": "yarn run build:js",
+    "build": "npm run build:js",
     "build:js": "babel -s --plugins @babel/plugin-proposal-export-namespace-from --plugins @babel/plugin-transform-modules-commonjs src --out-dir lib",
     "clean": "rm -rf lib",
     "test": "ava",

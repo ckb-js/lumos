@@ -29,7 +29,7 @@
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "build:umd": "webpack",
     "clean": "rm -rf lib",
-    "prepublishOnly": "yarn run clean && yarn run build && yarn run build:umd",
+    "prepublishOnly": "npm run clean && npm run build && npm run build:umd",
     "release": "npm publish"
   },
   "bugs": {
