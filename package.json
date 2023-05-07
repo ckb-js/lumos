@@ -6,13 +6,6 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "resolutions": {
-    "lerna/**/json-schema": "^0.4.0",
-    "@strictsoftware/typedoc-plugin-monorepo/highlight.js": "^10.4.1",
-    "ava/trim-off-newlines": "^1.0.3",
-    "ava/**/ansi-regex": "^5.0.1",
-    "lerna/**/ansi-regex": "^5.0.1"
-  },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
     "@babel/cli": "^7.16.7",
@@ -39,7 +32,7 @@
     "sinon": "^15.0.4",
     "ts-node": "^8.10.2",
     "typedoc": "^0.17.7",
-    "typescript": "3.9.5"
+    "typescript": "5.0.4"
   },
   "scripts": {
     "docs": "typedoc .",

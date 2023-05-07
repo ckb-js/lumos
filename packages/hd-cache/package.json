@@ -25,7 +25,7 @@
     "@ckb-lumos/config-manager": "0.20.0-alpha.2",
     "@ckb-lumos/hd": "0.20.0-alpha.2",
     "@ckb-lumos/rpc": "0.20.0-alpha.2",
-    "immutable": "^4.0.0-rc.12"
+    "immutable": "^4.3.0"
   },
   "devDependencies": {
     "@types/sinon": "^10.0.6",

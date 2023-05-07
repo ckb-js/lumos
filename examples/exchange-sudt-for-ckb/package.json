@@ -15,7 +15,7 @@
   "dependencies": {
     "@ckb-lumos/lumos": "0.20.0-alpha.1",
     "bulma": "^0.9.4",
-    "immutable": "^4.1.0",
+    "immutable": "^4.3.0",
     "react-use": "^17.4.0",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",

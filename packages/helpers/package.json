@@ -43,7 +43,7 @@
     "@ckb-lumos/config-manager": "0.20.0-alpha.2",
     "@ckb-lumos/toolkit": "0.20.0-alpha.2",
     "bech32": "^2.0.0",
-    "immutable": "^4.0.0-rc.12"
+    "immutable": "^4.3.0"
   },
   "ava": {
     "extensions": [
