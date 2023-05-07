@@ -54,6 +54,7 @@
     "nearley": "^2.20.1"
   },
   "devDependencies": {
-    "shx": "^0.3.4"
+    "@ckb-lumos/base": "0.20.0-alpha.2",
+    "jsbi": "^4.1.0"
   }
 }

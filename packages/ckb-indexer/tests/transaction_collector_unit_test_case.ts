@@ -1,5 +1,5 @@
 import { HashType, TransactionWithStatus } from "@ckb-lumos/base";
-import { IndexerTransactionList } from "@ckb-lumos/ckb-indexer/src/type";
+import type { IndexerTransactionList } from "../src/type";
 export const queryOption = {
   lock: {
     codeHash:

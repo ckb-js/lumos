@@ -27,6 +27,10 @@
     "@ckb-lumos/rpc": "0.20.0-alpha.2",
     "immutable": "^4.0.0-rc.12"
   },
+  "devDependencies": {
+    "@types/sinon": "^10.0.6",
+    "sinon": "^15.0.4"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ckb-js/lumos.git"

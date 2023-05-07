@@ -39,13 +39,11 @@
   "dependencies": {
     "@ckb-lumos/base": "0.20.0-alpha.2",
     "@ckb-lumos/bi": "0.20.0-alpha.2",
+    "@ckb-lumos/codec": "0.20.0-alpha.2",
     "@ckb-lumos/config-manager": "0.20.0-alpha.2",
     "@ckb-lumos/toolkit": "0.20.0-alpha.2",
     "bech32": "^2.0.0",
     "immutable": "^4.0.0-rc.12"
-  },
-  "devDependencies": {
-    "typescript": "^3.9.6"
   },
   "ava": {
     "extensions": [

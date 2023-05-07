@@ -65,7 +65,7 @@ npm run test-coverage
 ### Format & Lint
 
 ```bash
-yarn run lint
+npm run lint
 ```
 
 ### Clean

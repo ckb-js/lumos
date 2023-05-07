@@ -35,7 +35,9 @@
     "object-hash": "^3.0.0"
   },
   "devDependencies": {
-    "@ckb-lumos/experiment-tx-assembler": "0.20.0-alpha.2"
+    "@ckb-lumos/common-scripts": "0.20.0-alpha.2",
+    "@ckb-lumos/experiment-tx-assembler": "0.20.0-alpha.2",
+    "@ckb-lumos/hd": "0.20.0-alpha.2"
   },
   "bin": {
     "download-ckb-debugger": "bin/download-ckb-debugger.js"
