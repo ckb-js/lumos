@@ -158,7 +158,7 @@ class PendingCellCollector implements CellCollector {
     this.spentCells = spentCells;
     this.filteredPendingCells =
       payload.order === "desc"
-        ? filteredPendingCells.reverse()
+        ? [...filteredPendingCells].reverse()
         : filteredPendingCells;
     this.liveCellCollector = liveCellCollector;
     this.usePendingCells = usePendingCells;
