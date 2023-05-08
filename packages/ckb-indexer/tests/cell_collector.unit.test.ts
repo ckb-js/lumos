@@ -281,57 +281,6 @@ test("getLiveCell#should call terminableCellFetcher", async (t) => {
   });
 });
 
-test("shouldSkip#shouldSkip should works well", (t) => {
-  const cellCollector: any = new CellCollector(indexer, []);
-
-  // if skippedCount < query.skip, skip current cell
-  t.true(cellCollector.shouldSkipped({ skip: 5 }, {}, 0));
-
-  // type does not match
-  t.true(
-    cellCollector.shouldSkipped(
-      { type: "empty" },
-      { cellOutput: { type: "data" } }
-    )
-  );
-
-  // fitler data
-  t.false(cellCollector.shouldSkipped({ data: "0x12" }, { data: "0x1234" }));
-  t.false(
-    cellCollector.shouldSkipped(
-      { data: { data: "0x12", searchMode: "prefix" } }, // correct prefix
-      { data: "0x1234" }
-    )
-  );
-  t.true(
-    cellCollector.shouldSkipped(
-      { data: { data: "0x66", searchMode: "prefix" } }, // wrong prefix
-      { data: "0x1234" }
-    )
-  );
-  t.false(
-    cellCollector.shouldSkipped(
-      { data: { data: "0x12", searchMode: "exact" } }, // correct prefix, but not exactly the same
-      { data: "0x1234" }
-    )
-  );
-  t.true(cellCollector.shouldSkipped({ data: "0x5678" }, { data: "0x1234" })); // wrong prefix
-  t.true(
-    cellCollector.shouldSkipped(
-      { data: { data: "0x5678", searchMode: "exact" } }, // not same at all
-      { data: "0x1234" }
-    )
-  );
-
-  /// args len does not match it's in query
-  t.true(
-    cellCollector.shouldSkipped(
-      { argsLen: 77 },
-      { cellOutput: { lock: lockScript } }
-    )
-  );
-});
-
 // The CellCollector#collect method also be covered by E2E tests
 test("collect#should return and uniq the returning of `collectBySingleQuery`", async (t) => {
   const cellCollector: any = new CellCollector(indexer, [

@@ -8,16 +8,11 @@ import {
   OtherQueryOptions,
   TerminableCellFetcher,
 } from "./type";
-import {
-  generateSearchKey,
-  getHexStringBytes,
-  instanceOfScriptWrapper,
-} from "./services";
+import { generateSearchKey, getHexStringBytes } from "./services";
 import fetch from "cross-fetch";
-import { bytes } from "@ckb-lumos/codec";
 import {
   filterByQueryOptions,
-  instanceOfDataWithSearchMode,
+  instanceOfScriptWrapper,
   unwrapDataWrapper,
 } from "./ckbIndexerFilter";
 
@@ -194,47 +189,6 @@ export class CKBCellCollector implements BaseCellCollector {
     return result;
   }
 
-  private shouldSkipped(
-    query: CKBIndexerQueryOptions,
-    cell: Cell,
-    skippedCount = 0
-  ) {
-    if (query.skip && skippedCount < query.skip) {
-      return true;
-    }
-    if (cell && query.type === "empty" && cell.cellOutput.type) {
-      return true;
-    }
-    if (
-      query.argsLen !== undefined &&
-      query.argsLen !== -1 &&
-      query.argsLen !== "any" &&
-      getHexStringBytes(cell.cellOutput.lock.args) !== query.argsLen
-    ) {
-      return true;
-    }
-
-    if (!query.data || query.data === "any") {
-      return false;
-    }
-
-    const expectDataPrefix = bytes.bytify(unwrapDataWrapper(query.data));
-    const actualDataPrefix = bytes
-      .bytify(cell.data)
-      .slice(0, expectDataPrefix.length);
-    if (
-      instanceOfDataWithSearchMode(query.data) &&
-      query.data.searchMode === "exact" &&
-      !bytes.equal(expectDataPrefix, actualDataPrefix)
-    ) {
-      return true;
-    } else if (!bytes.equal(expectDataPrefix, actualDataPrefix)) {
-      return true;
-    }
-
-    return false;
-  }
-
   async count(): Promise<number> {
     let counter = 0;
 
@@ -338,18 +292,16 @@ export class CKBCellCollector implements BaseCellCollector {
     if (cells.length === 0) {
       return;
     }
+    // filter cells by lumos query options
+    cells = filterByQueryOptions(cells, query);
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index = 0;
     let skippedCount = 0;
     while (true) {
-      const shouldSkip = this.shouldSkipped(query, cells[index], skippedCount);
-      // filter by ckb indexer query options
-      const shouldBeFilterd =
-        filterByQueryOptions([cells[index]], query).length === 0;
-      if (!shouldSkip && !shouldBeFilterd) {
-        yield cells[index];
-      } else {
+      if (query.skip && skippedCount < query.skip) {
         skippedCount++;
+      } else {
+        yield cells[index];
       }
       index++;
       //reset index and exchange `cells` and `buffer` after yield last cell

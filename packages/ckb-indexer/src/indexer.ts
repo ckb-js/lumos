@@ -432,7 +432,6 @@ export class TerminableCellAdapter implements TerminableCellFetcher {
           data: liveCell.outputData,
           outPoint: liveCell.outPoint ? liveCell.outPoint : undefined,
           blockNumber: liveCell.blockNumber,
-          txIndex: liveCell.txIndex,
         };
         const { stop, push } = terminator(index, cell);
         if (push) {

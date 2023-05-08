@@ -13,7 +13,11 @@ test("should generateSearchKey works fine", async (t) => {
     scriptSearchMode: "prefix",
     scriptType: "lock",
     filter: {
-      outputDataLenRange: ["0x1", "0x3"],
+      script: undefined,
+      outputCapacityRange: undefined,
+      blockRange: undefined,
+      scriptLenRange: undefined,
+      outputDataLenRange: ["0x1", "0x2"],
     },
   };
   t.deepEqual(
