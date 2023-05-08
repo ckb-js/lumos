@@ -289,11 +289,12 @@ export class CKBCellCollector implements BaseCellCollector {
       return result.objects;
     };
     let cells: Cell[] = await getCellWithCursor();
+    // filter cells by lumos query options
+    cells = filterByLumosQueryOptions(cells, query);
+
     if (cells.length === 0) {
       return;
     }
-    // filter cells by lumos query options
-    cells = filterByLumosQueryOptions(cells, query);
 
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index = 0;
