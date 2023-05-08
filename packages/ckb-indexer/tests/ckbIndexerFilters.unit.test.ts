@@ -175,13 +175,7 @@ test("filterByQueryOptions# should filter with output capacity range", async (t)
   t.deepEqual(cells3, [originalCells[1]]);
 });
 
-test("filterByQueryOptions# should filter with from block", async (t) => {
-  const cells4 = filterByQueryOptions(originalCells, {
-    lock: dummyScript,
-    fromBlock: BI.from(10).toHexString(),
-  });
-  t.deepEqual(cells4, [originalCells[2]]);
-});
+// test case 4 is removed because of `fromBlock` is not supported
 
 test("filterByQueryOptions# should filter type with exact mode", async (t) => {
   const cells5 = filterByQueryOptions(originalCells, {
@@ -249,27 +243,8 @@ test("filterByQueryOptions# should filter with lock script args len", async (t) 
   t.deepEqual(cells12, [originalCells[4]]);
 });
 
-test("filterByQueryOptions# should filter by type with exact mode then reverse", async (t) => {
-  const cells13 = filterByQueryOptions(originalCells, {
-    lock: {
-      script: dummyScript,
-      searchMode: "exact",
-    },
-    order: "desc",
-  });
-  t.deepEqual(cells13, originalCells.slice(0, 4).reverse());
-});
-
-test("filterByQueryOptions# should filter by type with exact mode then skip 1", async (t) => {
-  const cells14 = filterByQueryOptions(originalCells, {
-    lock: {
-      script: dummyScript,
-      searchMode: "exact",
-    },
-    skip: 1,
-  });
-  t.deepEqual(cells14, originalCells.slice(1, 4));
-});
+// test case 13 is removed because of `skip` is not supported
+// test case 14 is removed because of `order` is not supported
 
 test("filterByQueryOptions# should filter by type with prefix mode and lock script args length", async (t) => {
   const cells15 = filterByQueryOptions(originalCells, {

@@ -6,13 +6,44 @@ import {
   ScriptWrapper,
   blockchain,
 } from "@ckb-lumos/base";
-import { CKBIndexerQueryOptions, SearchKey } from "./type";
+import { CKBIndexerQueryOptions, SearchFilter, SearchKey } from "./type";
 import { bytes } from "@ckb-lumos/codec";
 import { BI } from "@ckb-lumos/bi";
 
+/**
+ * @description the following fields are not supported:
+ * 1. `fromBlock` pending cells don't have block number
+ * 2. `toBlock` pending cells don't have block number
+ * 3. `skip` not search key, shoule be implmented in cell collector
+ * 4. `order` not search key, shoule be implmented in cell collector
+ */
+type LumosQueryOptions = Pick<
+  CKBIndexerQueryOptions,
+  | "lock"
+  | "type"
+  | "data"
+  | "argsLen"
+  | "outputDataLenRange"
+  | "outputCapacityRange"
+  | "scriptLenRange"
+>;
+
+/**
+ * @description `blockRange` is not supported, because pending cells don't have block number
+ */
+type LumosSearchFilter = Pick<
+  SearchFilter,
+  "script" | "scriptLenRange" | "outputCapacityRange" | "outputDataLenRange"
+>;
+
+type LumosSearchKey = Pick<
+  SearchKey,
+  "script" | "scriptType" | "scriptSearchMode"
+> & { filter: LumosSearchFilter };
+
 function convertQueryOptionToSearchKey(
-  queryOptions: CKBIndexerQueryOptions
-): SearchKey {
+  queryOptions: LumosQueryOptions
+): LumosSearchKey {
   let searchKeyLock: Script | undefined;
   let searchKeyType: Script | undefined;
   let searchKey: Required<SearchKey>;
@@ -57,22 +88,8 @@ function convertQueryOptionToSearchKey(
     throw new Error("query.lock and query.type can't be both empty");
   }
 
-  const {
-    fromBlock,
-    toBlock,
-    outputDataLenRange,
-    outputCapacityRange,
-    scriptLenRange,
-  } = queryOptions;
-
-  if (fromBlock || toBlock) {
-    searchKey.filter.blockRange = [
-      fromBlock || "0x0",
-      toBlock
-        ? BI.from(toBlock).add(1).toHexString()
-        : "0x" + Number.MAX_SAFE_INTEGER.toString(16),
-    ];
-  }
+  const { outputDataLenRange, outputCapacityRange, scriptLenRange } =
+    queryOptions;
 
   if (outputDataLenRange) {
     searchKey.filter.outputDataLenRange = [
@@ -104,7 +121,7 @@ function convertQueryOptionToSearchKey(
 
 function filterByQueryOptions(
   cells: Cell[],
-  options: CKBIndexerQueryOptions
+  options: LumosQueryOptions
 ): Cell[] {
   const searchKey = convertQueryOptionToSearchKey(options);
   let filteredCells = cells.filter((cell) =>
@@ -148,14 +165,6 @@ function filterByQueryOptions(
         return bytes.equal(expectPrefix, actualPrefix);
       });
     }
-  }
-
-  if (options.order === "desc") {
-    filteredCells.reverse();
-  }
-
-  if (options.skip) {
-    filteredCells = filteredCells.slice(options.skip);
   }
 
   return filteredCells;
