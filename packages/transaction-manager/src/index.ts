@@ -8,11 +8,8 @@ import {
 import { RPC } from "@ckb-lumos/rpc";
 import { bytes } from "@ckb-lumos/codec";
 import type { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
-import {
-  TransactionStorage,
-  PendingCell,
-  createInMemoryPendingTransactionStorage,
-} from "./PendingTransactionStorage";
+import { createInMemoryPendingTransactionStorage } from "./TransactionStorage";
+import type { PendingCell, TransactionStorage } from "./TransactionStorage";
 import { filterByQueryOptions } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
 import { Promisable } from "./storage";
 import { CKBIndexerQueryOptions } from "@ckb-lumos/ckb-indexer/lib/type";
@@ -26,6 +23,7 @@ interface TransactionManager {
     queryOptions: CKBIndexerQueryOptions,
     usePendingCells?: boolean
   ): Promisable<CellCollector>;
+  clearCache(): Promisable<void>;
 }
 
 interface TransactionSender {
@@ -35,9 +33,9 @@ interface TransactionSender {
   ): Promisable<string>;
 }
 
-type CellCollectorProvider = (
-  queryOptions: CKBIndexerQueryOptions
-) => CellCollector;
+interface LumosCellIndexer {
+  collector(options: CKBIndexerQueryOptions): CellCollector;
+}
 
 type Options = {
   pollIntervalSeconds?: number;
@@ -47,7 +45,7 @@ type Options = {
 
 type ServiceProviders = {
   transactionSender: TransactionSender;
-  cellCollectorProvider: CellCollectorProvider;
+  cellCollectorProvider: LumosCellIndexer;
 };
 
 type ServiceEndPoint = {
@@ -62,7 +60,7 @@ function isServiceEndPoint(
 
 export class TransactionsManager implements TransactionManager {
   private transactionSender: TransactionSender;
-  private cellCollectorProvider: CellCollectorProvider;
+  private cellCollectorProvider: LumosCellIndexer;
   private txStorage: TransactionStorage;
 
   constructor(payload: {
@@ -73,7 +71,7 @@ export class TransactionsManager implements TransactionManager {
       const { rpcUrl } = payload.providers;
 
       this.transactionSender = new RPC(rpcUrl);
-      this.cellCollectorProvider = new Indexer(rpcUrl).collector;
+      this.cellCollectorProvider = new Indexer(rpcUrl);
     } else {
       const { transactionSender, cellCollectorProvider } = payload.providers;
 
@@ -85,25 +83,14 @@ export class TransactionsManager implements TransactionManager {
       payload.options?.txStorage || createInMemoryPendingTransactionStorage();
   }
 
+  async clearCache(): Promise<void> {
+    await this.txStorage.setTransactions([]);
+  }
+
   async sendTransaction(
     tx: Transaction,
     validator: OutputsValidator = "passthrough"
   ): Promise<string> {
-    const spentCellOutpoints = await this.txStorage.getSpentCellOutpoints();
-    tx.inputs.forEach((input) => {
-      if (
-        spentCellOutpoints.some((spentCell) =>
-          bytes.equal(
-            blockchain.OutPoint.pack(spentCell),
-            blockchain.OutPoint.pack(input.previousOutput)
-          )
-        )
-      ) {
-        throw new Error(
-          `OutPoint ${input.previousOutput.txHash}@${input.previousOutput.index} has already been spent!`
-        );
-      }
-    });
     const txHash = await this.transactionSender.sendTransaction(tx, validator);
     await this.txStorage.addTransaction({ ...tx, hash: txHash });
     return txHash;
@@ -116,7 +103,7 @@ export class TransactionsManager implements TransactionManager {
   async collector(
     options: CKBIndexerQueryOptions,
     usePendingCells = true
-  ): Promise<PendingCellCollector> {
+  ): Promise<CellCollector> {
     const pendingCells: Cell[] = await this.txStorage.getPendingCells();
     // ignore skip here
     const optionsWithoutSkip = {
@@ -127,7 +114,8 @@ export class TransactionsManager implements TransactionManager {
       pendingCells,
       optionsWithoutSkip
     );
-    const liveCellCollector = this.cellCollectorProvider(optionsWithoutSkip);
+    const liveCellCollector =
+      this.cellCollectorProvider.collector(optionsWithoutSkip);
     return new PendingCellCollector({
       spentCells: await this.txStorage.getSpentCellOutpoints(),
       filteredPendingCells: filteredCreatedCells as PendingCell[],
@@ -140,15 +128,15 @@ export class TransactionsManager implements TransactionManager {
 }
 
 class PendingCellCollector implements CellCollector {
-  spentCells: OutPoint[];
-  filteredPendingCells: PendingCell[];
-  liveCellCollector: CellCollector;
-  usePendingCells: boolean;
-  removePendingCell: (cell: Cell) => Promise<boolean>;
+  private spentCells: OutPoint[];
+  private filteredPendingCells: PendingCell[];
+  private liveCellCollector: CellCollector;
+  private usePendingCells: boolean;
+  private removePendingCell: (cell: Cell) => Promise<boolean>;
   /**
    * @param order - default to asc, return on-chain cells first, then pending cells, and vice versa
    */
-  order: "asc" | "desc";
+  private order: "asc" | "desc";
 
   constructor(payload: {
     spentCells: OutPoint[];
@@ -177,7 +165,7 @@ class PendingCellCollector implements CellCollector {
     this.removePendingCell = removePendingCell;
   }
 
-  cellIsSpent(cell: Cell): boolean {
+  private cellIsSpent(cell: Cell): boolean {
     return this.spentCells.some((spent) =>
       bytes.equal(
         blockchain.OutPoint.pack(spent),

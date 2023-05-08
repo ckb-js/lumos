@@ -6,7 +6,7 @@ export type Promisable<T> = PromiseLike<T> | T;
 export interface Storage<Schema> {
   hasItem<K extends keyof Schema>(key: K): Promisable<boolean>;
   getItem<K extends keyof Schema>(key: K): Promisable<Schema[K] | undefined>;
-  removeItem<K extends keyof Schema>(key: K): Promisable<boolean>;
+  removeItem<K extends keyof Schema>(key: K): Promisable<void>;
   setItem<K extends keyof Schema>(key: K, value: Schema[K]): Promisable<void>;
 }
 
@@ -23,7 +23,7 @@ export function createInMemoryStorage<S>(): Storage<S> {
       return store.has(key);
     },
     removeItem(key) {
-      return store.delete(key);
+      store.delete(key);
     },
     setItem(key, value) {
       store.set(key, value);

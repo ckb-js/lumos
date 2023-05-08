@@ -125,3 +125,4 @@ experiment/*/lib
 # IDE or environment specific files
 .idea
 .parcel-cache
+.DS_Store

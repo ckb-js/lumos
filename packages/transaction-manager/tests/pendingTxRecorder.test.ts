@@ -32,16 +32,17 @@ test.beforeEach(() => {
         sendTransaction: () =>
           Promise.resolve(sentDummyTxHash) as Promise<string>,
       },
-      cellCollectorProvider: () => {
-        return new CKBCellCollector(
-          {
-            // @ts-ignore
-            getCells: () => Promise.resolve({ objects: [] }),
-          },
-          {
-            lock: dummyLock,
-          }
-        );
+      cellCollectorProvider: {
+        collector: () =>
+          new CKBCellCollector(
+            {
+              // @ts-ignore
+              getCells: () => Promise.resolve({ objects: [] }),
+            },
+            {
+              lock: dummyLock,
+            }
+          ),
       },
     },
   });
