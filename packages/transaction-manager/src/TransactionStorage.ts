@@ -14,7 +14,7 @@ interface ManagerStorageScheme {
   pendingCells: PendingCell[];
 }
 
-export interface TransactionStorage {
+export interface TransactionStorageType {
   getTransactions(): Promisable<TransactionWithHash[]>;
   setTransactions(transactions: TransactionWithHash[]): Promisable<void>;
   addTransaction(tx: TransactionWithHash): Promisable<void>;
@@ -28,7 +28,7 @@ export interface TransactionStorage {
   deleteTransactionByCell(cell: Cell): Promisable<boolean>;
 }
 
-export class DefaultTransactionStorage implements TransactionStorage {
+export class TransactionStorageType implements TransactionStorageType {
   private storage: Storage<ManagerStorageScheme>;
 
   constructor(storage: Storage<ManagerStorageScheme>) {
@@ -100,8 +100,8 @@ export class DefaultTransactionStorage implements TransactionStorage {
   }
 }
 
-export function createInMemoryPendingTransactionStorage(): DefaultTransactionStorage {
-  return new DefaultTransactionStorage(
+export function createInMemoryPendingTransactionStorage(): TransactionStorageType {
+  return new TransactionStorageType(
     createInMemoryStorage<ManagerStorageScheme>()
   );
 }

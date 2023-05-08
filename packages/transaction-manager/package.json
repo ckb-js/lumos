@@ -1,5 +1,5 @@
 {
-  "name": "@ckb-lumos/transactions-manager",
+  "name": "@ckb-lumos/transaction-manager",
   "version": "0.20.0-alpha.2",
   "description": "Pending Transactions Manager for lumos",
   "homepage": "https://github.com/ckb-js/lumos#readme",

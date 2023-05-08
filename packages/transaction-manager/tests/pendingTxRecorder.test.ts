@@ -1,5 +1,5 @@
 import test from "ava";
-import { TransactionsManager } from "../src";
+import { TransactionManager } from "../src";
 import {
   Cell,
   Input,
@@ -24,9 +24,9 @@ const dummyOutpoint1: OutPoint = {
   index: "0x0",
 };
 
-let service: TransactionsManager;
+let service: TransactionManager;
 test.beforeEach(() => {
-  service = new TransactionsManager({
+  service = new TransactionManager({
     providers: {
       transactionSender: {
         sendTransaction: () =>

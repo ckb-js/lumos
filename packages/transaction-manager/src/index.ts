@@ -9,7 +9,7 @@ import { RPC } from "@ckb-lumos/rpc";
 import { bytes } from "@ckb-lumos/codec";
 import type { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
 import { createInMemoryPendingTransactionStorage } from "./TransactionStorage";
-import type { PendingCell, TransactionStorage } from "./TransactionStorage";
+import type { PendingCell, TransactionStorageType } from "./TransactionStorage";
 import { filterByLumosQueryOptions } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
 import { Promisable } from "./storage";
 import { CKBIndexerQueryOptions } from "@ckb-lumos/ckb-indexer/lib/type";
@@ -17,7 +17,7 @@ import { Indexer } from "@ckb-lumos/ckb-indexer";
 
 type OutputsValidator = CKBComponents.OutputsValidator;
 
-interface TransactionManager {
+interface TransactionManagerType {
   sendTransaction(tx: Transaction): Promisable<string>;
   collector(
     queryOptions: CKBIndexerQueryOptions,
@@ -40,7 +40,7 @@ interface LumosCellIndexer {
 type Options = {
   pollIntervalSeconds?: number;
   // default to in memory storage
-  txStorage?: TransactionStorage;
+  txStorage?: TransactionStorageType;
 };
 
 type ServiceProviders = {
@@ -58,10 +58,10 @@ function isServiceEndPoint(
   return typeof providers === "object" && "rpcUrl" in providers;
 }
 
-export class TransactionsManager implements TransactionManager {
+export class TransactionManager implements TransactionManagerType {
   private transactionSender: TransactionSender;
   private cellCollectorProvider: LumosCellIndexer;
-  private txStorage: TransactionStorage;
+  private txStorage: TransactionStorageType;
 
   constructor(payload: {
     providers: ServiceEndPoint | ServiceProviders;
@@ -96,10 +96,6 @@ export class TransactionsManager implements TransactionManager {
     return txHash;
   }
 
-  async removePendingCell(cell: Cell): Promise<boolean> {
-    return await this.txStorage.deleteTransactionByCell(cell);
-  }
-
   async collector(
     options: CKBIndexerQueryOptions,
     usePendingCells = true
@@ -122,7 +118,8 @@ export class TransactionsManager implements TransactionManager {
       usePendingCells,
       liveCellCollector,
       order: options.order,
-      removePendingCell: this.removePendingCell,
+      removePendingCell: async (cell: Cell) =>
+        await this.txStorage.deleteTransactionByCell(cell),
     });
   }
 }
