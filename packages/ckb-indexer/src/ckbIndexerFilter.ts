@@ -39,9 +39,9 @@ type LumosSearchFilter = Pick<
 type LumosSearchKey = Pick<
   SearchKey,
   "script" | "scriptType" | "scriptSearchMode"
-> & { filter: LumosSearchFilter };
+> & { filter?: LumosSearchFilter };
 
-function convertQueryOptionToSearchKey(
+function convertQueryOptionToLumosSearchKey(
   queryOptions: LumosQueryOptions
 ): LumosSearchKey {
   let searchKeyLock: Script | undefined;
@@ -91,26 +91,9 @@ function convertQueryOptionToSearchKey(
   const { outputDataLenRange, outputCapacityRange, scriptLenRange } =
     queryOptions;
 
-  if (outputDataLenRange) {
-    searchKey.filter.outputDataLenRange = [
-      outputDataLenRange[0],
-      BI.from(outputDataLenRange[1]).add(1).toHexString(),
-    ];
-  }
-
-  if (outputCapacityRange) {
-    searchKey.filter.outputCapacityRange = [
-      outputCapacityRange[0],
-      BI.from(outputCapacityRange[1]).add(1).toHexString(),
-    ];
-  }
-
-  if (scriptLenRange) {
-    searchKey.filter.scriptLenRange = [
-      scriptLenRange[0],
-      BI.from(scriptLenRange[1]).add(1).toHexString(),
-    ];
-  }
+  searchKey.filter.outputDataLenRange = outputDataLenRange;
+  searchKey.filter.outputCapacityRange = outputCapacityRange;
+  searchKey.filter.scriptLenRange = scriptLenRange;
 
   if (queryType === "empty") {
     searchKey.filter.scriptLenRange = ["0x0", "0x1"];
@@ -119,13 +102,13 @@ function convertQueryOptionToSearchKey(
   return searchKey;
 }
 
-function filterByQueryOptions(
+function filterByLumosQueryOptions(
   cells: Cell[],
   options: LumosQueryOptions
 ): Cell[] {
-  const searchKey = convertQueryOptionToSearchKey(options);
+  const searchKey = convertQueryOptionToLumosSearchKey(options);
   let filteredCells = cells.filter((cell) =>
-    filterBySearchKey(cell, searchKey)
+    filterByLumosSearchKey(cell, searchKey)
   );
 
   if (options.argsLen && options.argsLen !== "any") {
@@ -173,7 +156,10 @@ function filterByQueryOptions(
 /**
  * @internal
  */
-export function filterBySearchKey(cell: Cell, searchKey: SearchKey): boolean {
+export function filterByLumosSearchKey(
+  cell: Cell,
+  searchKey: LumosSearchKey
+): boolean {
   const isExactMode = searchKey.scriptSearchMode === "exact";
   const { cellOutput } = cell;
   const { scriptType, script, filter } = searchKey;
@@ -248,16 +234,7 @@ export function filterBySearchKey(cell: Cell, searchKey: SearchKey): boolean {
     }
   }
 
-  const { blockRange, outputCapacityRange, outputDataLenRange } = filter;
-
-  if (blockRange) {
-    const blockNumber = BI.from(cell.blockNumber || Number.MAX_SAFE_INTEGER);
-    const fromBlock = BI.from(blockRange[0]);
-    const toBlock = BI.from(blockRange[1]);
-    if (blockNumber.lt(fromBlock) || blockNumber.gte(toBlock)) {
-      return false;
-    }
-  }
+  const { outputCapacityRange, outputDataLenRange } = filter;
 
   if (outputCapacityRange) {
     const capacity = BI.from(cellOutput.capacity);
@@ -350,8 +327,8 @@ const unwrapDataWrapper = (input: DataWithSearchMode | string): string => {
 };
 
 export {
-  filterByQueryOptions,
-  convertQueryOptionToSearchKey,
+  filterByLumosQueryOptions,
+  convertQueryOptionToLumosSearchKey,
   instanceOfDataWithSearchMode,
   instanceOfScriptWrapper,
   unwrapScriptWrapper,

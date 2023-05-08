@@ -1,7 +1,7 @@
 import test from "ava";
 import {
-  filterBySearchKey,
-  filterByQueryOptions,
+  filterByLumosSearchKey,
+  filterByLumosQueryOptions,
 } from "../src/ckbIndexerFilter";
 import { Cell, Script } from "@ckb-lumos/base";
 import { BI } from "@ckb-lumos/bi";
@@ -33,25 +33,25 @@ const mockCell: Required<Cell> = {
 
 test("filterBySearchKey# filter by correct script type", async (t) => {
   t.true(
-    filterBySearchKey(mockCell, { scriptType: "lock", script: lockScript })
+    filterByLumosSearchKey(mockCell, { scriptType: "lock", script: lockScript })
   );
   t.true(
-    filterBySearchKey(mockCell, { scriptType: "type", script: typeScript })
+    filterByLumosSearchKey(mockCell, { scriptType: "type", script: typeScript })
   );
 });
 
 test("filterBySearchKey# filter by wrong script type", async (t) => {
   t.false(
-    filterBySearchKey(mockCell, { scriptType: "type", script: lockScript })
+    filterByLumosSearchKey(mockCell, { scriptType: "type", script: lockScript })
   );
   t.false(
-    filterBySearchKey(mockCell, { scriptType: "lock", script: typeScript })
+    filterByLumosSearchKey(mockCell, { scriptType: "lock", script: typeScript })
   );
 });
 
 test("filterBySearchKey# filter default to prefix mode", async (t) => {
   t.true(
-    filterBySearchKey(mockCell, {
+    filterByLumosSearchKey(mockCell, {
       scriptType: "lock",
       script: { ...lockScript, args: "0x12" },
     })
@@ -60,7 +60,7 @@ test("filterBySearchKey# filter default to prefix mode", async (t) => {
 
 test("filterBySearchKey# filter explicitly set to exact mode", async (t) => {
   t.false(
-    filterBySearchKey(mockCell, {
+    filterByLumosSearchKey(mockCell, {
       scriptType: "lock",
       script: { ...lockScript, args: "0x12" },
       scriptSearchMode: "exact",
@@ -68,33 +68,16 @@ test("filterBySearchKey# filter explicitly set to exact mode", async (t) => {
   );
 });
 
-test("filterBySearchKey# filter with block range", async (t) => {
-  t.true(
-    filterBySearchKey(mockCell, {
-      scriptType: "lock",
-      script: lockScript,
-      filter: { blockRange: ["0x1", "0x3"] },
-    })
-  );
-  t.false(
-    filterBySearchKey(mockCell, {
-      scriptType: "lock",
-      script: lockScript,
-      filter: { blockRange: ["0x10", "0x11"] },
-    })
-  );
-});
-
 test("filterBySearchKey# filter with output capacity range", async (t) => {
   t.true(
-    filterBySearchKey(mockCell, {
+    filterByLumosSearchKey(mockCell, {
       scriptType: "lock",
       script: lockScript,
       filter: { outputCapacityRange: ["0x1", "0x3"] },
     })
   );
   t.false(
-    filterBySearchKey(mockCell, {
+    filterByLumosSearchKey(mockCell, {
       scriptType: "lock",
       script: lockScript,
       filter: { outputCapacityRange: ["0x10", "0x11"] },
@@ -104,14 +87,14 @@ test("filterBySearchKey# filter with output capacity range", async (t) => {
 
 test("filterBySearchKey# filter with output data length range", async (t) => {
   t.true(
-    filterBySearchKey(mockCell, {
+    filterByLumosSearchKey(mockCell, {
       scriptType: "lock",
       script: lockScript,
       filter: { outputDataLenRange: ["0x1", "0x3"] },
     })
   );
   t.false(
-    filterBySearchKey(mockCell, {
+    filterByLumosSearchKey(mockCell, {
       scriptType: "lock",
       script: lockScript,
       filter: { outputDataLenRange: ["0x10", "0x11"] },
@@ -142,12 +125,12 @@ const originalCells: Cell[] = [
   }),
 ];
 
-test("filterByQueryOptions# must provide lock or type in query options", async (t) => {
-  t.throws(() => filterByQueryOptions(originalCells, {}));
+test("filterByLumosQueryOptions# must provide lock or type in query options", async (t) => {
+  t.throws(() => filterByLumosQueryOptions(originalCells, {}));
 });
 
-test("filterByQueryOptions# should filter lock with exact mode", async (t) => {
-  const cells1 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter lock with exact mode", async (t) => {
+  const cells1 = filterByLumosQueryOptions(originalCells, {
     lock: {
       script: dummyScript,
       searchMode: "exact",
@@ -156,16 +139,16 @@ test("filterByQueryOptions# should filter lock with exact mode", async (t) => {
   t.deepEqual(cells1, originalCells.slice(0, 4));
 });
 
-test("filterByQueryOptions# should filter with output data len range", async (t) => {
-  const cells2 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter with output data len range", async (t) => {
+  const cells2 = filterByLumosQueryOptions(originalCells, {
     lock: dummyScript,
     outputDataLenRange: [BI.from(10).toHexString(), BI.from(200).toHexString()],
   });
   t.deepEqual(cells2, [originalCells[0]]);
 });
 
-test("filterByQueryOptions# should filter with output capacity range", async (t) => {
-  const cells3 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter with output capacity range", async (t) => {
+  const cells3 = filterByLumosQueryOptions(originalCells, {
     lock: dummyScript,
     outputCapacityRange: [
       BI.from(10).toHexString(),
@@ -177,8 +160,8 @@ test("filterByQueryOptions# should filter with output capacity range", async (t)
 
 // test case 4 is removed because of `fromBlock` is not supported
 
-test("filterByQueryOptions# should filter type with exact mode", async (t) => {
-  const cells5 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter type with exact mode", async (t) => {
+  const cells5 = filterByLumosQueryOptions(originalCells, {
     type: {
       script: dummyScript,
       searchMode: "exact",
@@ -187,32 +170,32 @@ test("filterByQueryOptions# should filter type with exact mode", async (t) => {
   t.deepEqual(cells5, [originalCells[3]]);
 });
 
-test("filterByQueryOptions# should filter script len range", async (t) => {
-  const cells6 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter script len range", async (t) => {
+  const cells6 = filterByLumosQueryOptions(originalCells, {
     lock: dummyScript,
     scriptLenRange: [BI.from(100).toHexString(), BI.from(200).toHexString()],
   });
   t.deepEqual(cells6, []);
 });
 
-test("filterByQueryOptions# should filter by data", async (t) => {
-  const cells7 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter by data", async (t) => {
+  const cells7 = filterByLumosQueryOptions(originalCells, {
     lock: dummyScript,
     data: "0x00000000000000000000",
   });
   t.deepEqual(cells7, [originalCells[0]]);
 });
 
-test("filterByQueryOptions# should filter by data with default prefix mode", async (t) => {
-  const cells8 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter by data with default prefix mode", async (t) => {
+  const cells8 = filterByLumosQueryOptions(originalCells, {
     lock: dummyScript,
     data: "0x00",
   });
   t.deepEqual(cells8, [originalCells[0]]);
 });
 
-test("filterByQueryOptions# should filter by data with explicitly prefix mode", async (t) => {
-  const cells9 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter by data with explicitly prefix mode", async (t) => {
+  const cells9 = filterByLumosQueryOptions(originalCells, {
     lock: dummyScript,
     data: {
       data: "0x00",
@@ -222,8 +205,8 @@ test("filterByQueryOptions# should filter by data with explicitly prefix mode", 
   t.deepEqual(cells9, [originalCells[0]]);
 });
 
-test("filterByQueryOptions# should filter by data with explicitly exact mode", async (t) => {
-  const cells10 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter by data with explicitly exact mode", async (t) => {
+  const cells10 = filterByLumosQueryOptions(originalCells, {
     lock: dummyScript,
     data: {
       data: "0x00",
@@ -235,8 +218,8 @@ test("filterByQueryOptions# should filter by data with explicitly exact mode", a
 
 // test case 11 is removed due to duplicated with test case 3
 
-test("filterByQueryOptions# should filter with lock script args len", async (t) => {
-  const cells12 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter with lock script args len", async (t) => {
+  const cells12 = filterByLumosQueryOptions(originalCells, {
     lock: dummyScript,
     argsLen: 2,
   });
@@ -246,8 +229,8 @@ test("filterByQueryOptions# should filter with lock script args len", async (t) 
 // test case 13 is removed because of `skip` is not supported
 // test case 14 is removed because of `order` is not supported
 
-test("filterByQueryOptions# should filter by type with prefix mode and lock script args length", async (t) => {
-  const cells15 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter by type with prefix mode and lock script args length", async (t) => {
+  const cells15 = filterByLumosQueryOptions(originalCells, {
     type: {
       script: dummyScript,
       searchMode: "prefix",
@@ -257,8 +240,8 @@ test("filterByQueryOptions# should filter by type with prefix mode and lock scri
   t.deepEqual(cells15, [originalCells[5]]);
 });
 
-test("filterByQueryOptions# should filter with empty type script", async (t) => {
-  const cells16 = filterByQueryOptions(originalCells, {
+test("filterByLumosQueryOptions# should filter with empty type script", async (t) => {
+  const cells16 = filterByLumosQueryOptions(originalCells, {
     lock: dummyScript,
     type: "empty",
   });

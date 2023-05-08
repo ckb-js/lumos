@@ -11,7 +11,7 @@ import {
 import { generateSearchKey, getHexStringBytes } from "./services";
 import fetch from "cross-fetch";
 import {
-  filterByQueryOptions,
+  filterByLumosQueryOptions,
   instanceOfScriptWrapper,
   unwrapDataWrapper,
 } from "./ckbIndexerFilter";
@@ -293,7 +293,7 @@ export class CKBCellCollector implements BaseCellCollector {
       return;
     }
     // filter cells by lumos query options
-    cells = filterByQueryOptions(cells, query);
+    cells = filterByLumosQueryOptions(cells, query);
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index = 0;
     let skippedCount = 0;
