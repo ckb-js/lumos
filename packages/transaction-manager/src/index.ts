@@ -10,7 +10,7 @@ import { bytes } from "@ckb-lumos/codec";
 import type { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
 import { createInMemoryPendingTransactionStorage } from "./TransactionStorage";
 import type { PendingCell, TransactionStorage } from "./TransactionStorage";
-import { filterByQueryOptions } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
+import { filterByLumosQueryOptions } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
 import { Promisable } from "./storage";
 import { CKBIndexerQueryOptions } from "@ckb-lumos/ckb-indexer/lib/type";
 import { Indexer } from "@ckb-lumos/ckb-indexer";
@@ -110,7 +110,7 @@ export class TransactionsManager implements TransactionManager {
       ...options,
       skip: 0,
     };
-    const filteredCreatedCells = filterByQueryOptions(
+    const filteredCreatedCells = filterByLumosQueryOptions(
       pendingCells,
       optionsWithoutSkip
     );
