@@ -294,6 +294,7 @@ export class CKBCellCollector implements BaseCellCollector {
     }
     // filter cells by lumos query options
     cells = filterByLumosQueryOptions(cells, query);
+
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index = 0;
     let skippedCount = 0;

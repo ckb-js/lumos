@@ -158,7 +158,13 @@ test("filterByLumosQueryOptions# should filter with output capacity range", asyn
   t.deepEqual(cells3, [originalCells[1]]);
 });
 
-// test case 4 is removed because of `fromBlock` is not supported
+test("filterByLumosQueryOptions# should not filter args when argsLen is -1", async (t) => {
+  const cells4 = filterByLumosQueryOptions(originalCells, {
+    lock: dummyScript,
+    argsLen: -1,
+  });
+  t.deepEqual(cells4, originalCells);
+});
 
 test("filterByLumosQueryOptions# should filter type with exact mode", async (t) => {
   const cells5 = filterByLumosQueryOptions(originalCells, {

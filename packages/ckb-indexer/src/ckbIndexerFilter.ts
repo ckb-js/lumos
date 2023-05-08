@@ -111,7 +111,7 @@ function filterByLumosQueryOptions(
     filterByLumosSearchKey(cell, searchKey)
   );
 
-  if (options.argsLen && options.argsLen !== "any") {
+  if (options.argsLen && options.argsLen !== "any" && options.argsLen !== -1) {
     filteredCells = filteredCells.filter(
       (cell) =>
         bytes.bytify(cell.cellOutput.lock.args).length === options.argsLen
