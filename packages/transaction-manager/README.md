@@ -2,7 +2,7 @@
 
 ## Usage
 
-You can create a `TransactionManager` by passing a `rpcUrl` and an optional `options` object.
+You can create a `TransactionManager` by passing a `providers` with `ServiceEndPoint` or `ServiceProviders` and an optional `options` object.
 
 ```ts
   delcare const queryOptions: CkbIndexerQueryOptions;
@@ -35,7 +35,7 @@ To persist the transactions, you can pass a `txStorage` option to the `Transacti
   });
 ```
 
-Especially in browser enviroment, if you want to use `localStorage` as the storage, you can create a `TransactionStorage` instance like this:
+Especially in browser environment, if you want to use `localStorage` as the storage, you can create a `TransactionStorage` instance like this:
 
 
 ```ts
