@@ -1,12 +1,12 @@
-# `@ckb-lumos/pending-transactions-manager`
+# `@ckb-lumos/transaction-manager`
 
 ## Usage
 
-You can create a `PendingTransactionsManager` by passing a `rpcUrl` and an optional `options` object.
+You can create a `TransactionManager` by passing a `rpcUrl` and an optional `options` object.
 
 ```ts
   delcare const queryOptions: CkbIndexerQueryOptions;
-  const manager = new PendingTransactionsManager({
+  const manager = new TransactionManager({
     providers: {
       rpcUrl: "https://testnet.ckb.dev",
     }
@@ -22,50 +22,52 @@ You can create a `PendingTransactionsManager` by passing a `rpcUrl` and an optio
 
 By default the pending transactions are stored in memory, which means the pending tx infos will be lost if the user refreshes the browser.
 
-To persist the transactions, you can pass a `txStorage` option to the `PendingTransactionsManager` constructor.
+To persist the transactions, you can pass a `txStorage` option to the `TransactionsManager` constructor.
 
 ```ts
-  const manager = new PendingTransactionsManager({
+  const manager = new TransactionManager({
     providers: {
       rpcUrl: "https://testnet.ckb.dev",
     }
     options: {
-      txStorage:  new PendingTransactionStorage(YOUR_STORAGE),
+      txStorage:  new TransactionStorage(YOUR_STORAGE),
     },
   });
 ```
 
-Especially in browser enviroment, if you want to use `localStorage` as the storage, you can create a `PendingTransactionStorage` instance like this:
+Especially in browser enviroment, if you want to use `localStorage` as the storage, you can create a `TransactionStorage` instance like this:
 
 
 ```ts
-  const manager = new PendingTransactionsManager({
+  const manager = new TransactionsManager({
     providers: {
       rpcUrl: "https://testnet.ckb.dev",
     }
     options: {
-      txStorage:  new PendingTransactionStorage(createBrowserStorage()),
+      txStorage:  new TransactionStorage(createBrowserStorage()),
     },
   });
 
   function createBrowserStorage() {
     const store: Storage = window.localStorage;
+    // set a prefix to avoid the key conflicts other libraries
+    const CUSTOM_KEY_PREFIX = '__lumos_store__'
     return {
       getItem(key) {
-        const value = store.getItem(key) as string | undefined;
+        const value = store.getItem(CUSTOM_KEY_PREFIX + key) as string | undefined;
         if (!value) return value as undefined;
         // deep clone to avoid the value being modified by the caller
         return JSON.parse(JSON.stringify(value));
       },
       hasItem(key) {
-        return !!store.getItem(key);
+        return !!store.getItem(CUSTOM_KEY_PREFIX + key);
       },
       removeItem(key) {
-        store.removeItem(key);
+        store.removeItem(CUSTOM_KEY_PREFIX + key);
         return true;
       },
       setItem(key, value) {
-        store.setItem(key, value);
+        store.setItem(CUSTOM_KEY_PREFIX + key, value);
       },
     };
   }

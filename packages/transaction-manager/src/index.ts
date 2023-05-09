@@ -21,7 +21,7 @@ interface TransactionManagerType {
   sendTransaction(tx: Transaction): Promisable<string>;
   collector(
     queryOptions: CKBIndexerQueryOptions,
-    usePendingCells?: boolean
+    options?: { usePendingOutputs?: boolean }
   ): Promisable<CellCollector>;
   clearCache(): Promisable<void>;
 }
@@ -97,13 +97,13 @@ export class TransactionManager implements TransactionManagerType {
   }
 
   async collector(
-    options: CKBIndexerQueryOptions,
-    usePendingCells = true
+    queryOptions: CKBIndexerQueryOptions,
+    options?: { usePendingOutputs?: boolean }
   ): Promise<CellCollector> {
     const pendingCells: Cell[] = await this.txStorage.getPendingCells();
     // ignore skip here
     const optionsWithoutSkip = {
-      ...options,
+      ...queryOptions,
       skip: 0,
     };
     const filteredCreatedCells = filterByLumosQueryOptions(
@@ -115,9 +115,12 @@ export class TransactionManager implements TransactionManagerType {
     return new PendingCellCollector({
       spentCells: await this.txStorage.getSpentCellOutpoints(),
       filteredPendingCells: filteredCreatedCells as PendingCell[],
-      usePendingCells,
+      usePendingCells:
+        options?.usePendingOutputs !== undefined
+          ? options.usePendingOutputs
+          : true,
       liveCellCollector,
-      order: options.order,
+      order: queryOptions.order,
       removePendingCell: async (cell: Cell) =>
         await this.txStorage.deleteTransactionByCell(cell),
     });

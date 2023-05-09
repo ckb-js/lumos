@@ -28,7 +28,7 @@ export interface TransactionStorageType {
   deleteTransactionByCell(cell: Cell): Promisable<boolean>;
 }
 
-export class TransactionStorageType implements TransactionStorageType {
+class TransactionStorage implements TransactionStorageType {
   private storage: Storage<ManagerStorageScheme>;
 
   constructor(storage: Storage<ManagerStorageScheme>) {
@@ -101,7 +101,5 @@ export class TransactionStorageType implements TransactionStorageType {
 }
 
 export function createInMemoryPendingTransactionStorage(): TransactionStorageType {
-  return new TransactionStorageType(
-    createInMemoryStorage<ManagerStorageScheme>()
-  );
+  return new TransactionStorage(createInMemoryStorage<ManagerStorageScheme>());
 }
