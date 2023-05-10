@@ -45,7 +45,7 @@
     "build": "run-p build:*",
     "build-release": "lerna run --scope @ckb-lumos/lumos build:umd",
     "lint": "run-p lint:* && git diff --exit-code",
-    "lint:fmt": "lerna run fmt --parallel",
+    "fmt": "lerna run fmt --parallel",
     "lint:eslint": "lerna run lint --parallel",
     "lint-next": "eslint -c .eslintrc.next.js ",
     "clean": "lerna run clean",
@@ -70,7 +70,8 @@
   "lint-staged": {
     "packages/*/{src,tests}/**/*.{js,ts,md}": [
       "prettier --write",
-      "eslint -c .eslintrc.next.js --fix"
+      "eslint -c .eslintrc.next.js --fix",
+      "git add"
     ]
   },
   "website/{docs,src}/**/*.{js,ts,md}": [
