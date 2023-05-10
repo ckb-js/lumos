@@ -3,7 +3,7 @@
     "packages/*",
     "experiment/*"
   ],
-  "npmClient": "yarn",
+  "npmClient": "pnpm",
   "useWorkspaces": true,
   "version": "0.20.0-alpha.2",
   "command": {
