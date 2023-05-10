@@ -1,27 +1,49 @@
 {
   "name": "@ckb-lumos/e2e-test",
   "version": "0.20.0-alpha.2",
-  "description": "CKB E2E test",
   "private": true,
+  "description": "CKB E2E test",
   "homepage": "https://github.com/ckb-js/lumos#readme",
-  "license": "MIT",
-  "engines": {
-    "node": ">=12.0.0"
+  "bugs": {
+    "url": "https://github.com/ckb-js/lumos/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ckb-js/lumos.git"
   },
+  "license": "MIT",
   "directories": {
     "test": "tests"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "pretest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml up -d)",
+    "test:e2e": "ava **/*.e2e.test.ts --timeout=10m",
+    "posttest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml down)"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   },
   "dependencies": {
     "@ckb-lumos/base": "0.20.0-alpha.2",
     "@ckb-lumos/bi": "0.20.0-alpha.2",
     "@ckb-lumos/ckb-indexer": "0.20.0-alpha.2",
+    "@ckb-lumos/codec": "0.20.0-alpha.2",
+    "@ckb-lumos/common-scripts": "0.20.0-alpha.2",
+    "@ckb-lumos/config-manager": "0.20.0-alpha.2",
+    "@ckb-lumos/hd": "0.20.0-alpha.2",
+    "@ckb-lumos/helpers": "0.20.0-alpha.2",
+    "@ckb-lumos/light-client": "0.20.0-alpha.2",
     "@ckb-lumos/rpc": "0.20.0-alpha.2",
     "@ckb-lumos/toolkit": "0.20.0-alpha.2",
-    "events": "^3.3.0"
+    "events": "^3.3.0",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@ckb-lumos/testkit": "0.20.0-alpha.2",
@@ -31,22 +53,7 @@
     "request": "^2.88.2",
     "sinon": "^15.0.4"
   },
-  "scripts": {
-    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "posttest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml down)",
-    "pretest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml up -d)",
-    "test:e2e": "ava **/*.e2e.test.ts --timeout=10m"
-  },
-  "bugs": {
-    "url": "https://github.com/ckb-js/lumos/issues"
-  },
-  "ava": {
-    "extensions": [
-      "ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ]
+  "engines": {
+    "node": ">=12.0.0"
   }
 }

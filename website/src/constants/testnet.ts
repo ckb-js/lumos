@@ -18,7 +18,7 @@ const TESTNET_SCRIPTS: config.ScriptConfigs = {
     TX_HASH:
       "0x7f96858be0a9d584b4a9ea190e0420835156a6010a5fde15ffcdc9d9c721ccab",
     INDEX: "0x0",
-    DEP_TYPE: "dep_group",
+    DEP_TYPE: "depGroup",
   },
   OMNILOCK: {
     CODE_HASH:

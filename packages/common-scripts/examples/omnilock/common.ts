@@ -6,8 +6,12 @@ import {
 } from "@ckb-lumos/helpers";
 import { key } from "@ckb-lumos/hd";
 import { initializeConfig, predefined } from "@ckb-lumos/config-manager/lib";
+// @ts-ignore
+// eslint-disable-next-line import/no-unresolved
 import { common, omnilock } from "@ckb-lumos/common-scripts";
 import { Script } from "@ckb-lumos/base";
+// @ts-ignore
+// eslint-disable-next-line import/no-unresolved
 import { Indexer } from "@ckb-lumos/ckb-indexer";
 import { RPC } from "@ckb-lumos/rpc";
 

@@ -16,34 +16,34 @@ export type AnyCodec = Codec<any, any>;
 
 export type PackResult<T extends AnyCodec> = T extends Codec<
   infer Packed,
-  infer Unpacked,
-  infer Packable,
-  infer Unpackable
+  any,
+  any,
+  any
 >
   ? Packed
   : never;
 export type PackParam<T extends AnyCodec> = T extends Codec<
-  infer Packed,
-  infer Unpacked,
+  any,
+  any,
   infer Packable,
-  infer Unpackable
+  any
 >
   ? Packable
   : never;
 
 export type UnpackResult<T extends AnyCodec> = T extends Codec<
-  infer Packed,
+  any,
   infer Unpacked,
-  infer Packable,
-  infer Unpackable
+  any,
+  any
 >
   ? Unpacked
   : never;
 
 export type UnpackParam<T extends AnyCodec> = T extends Codec<
-  infer Packed,
-  infer Unpacked,
-  infer Packable,
+  any,
+  any,
+  any,
   infer Unpackable
 >
   ? Unpackable
