@@ -18,9 +18,11 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "pretest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml up -d)",
-    "test:e2e": "ava **/*.e2e.test.ts --timeout=10m",
-    "posttest:e2e": "(nohup docker-compose -f ./docker/docker-compose.yml down)"
+    "start-e2e-node": "(nohup docker-compose -f ./docker/docker-compose.yml up -d)",
+    "stop-e2e-node": "(nohup docker-compose -f ./docker/docker-compose.yml down)",
+    "e2e-test": "ava **/*.e2e.test.ts --timeout=10m",
+    "test:e2e": "run-s start-e2e-node e2e-test stop-e2e-node",
+    "testruns": "npm run -s echo a & echo b"
   },
   "ava": {
     "extensions": [
