@@ -70,6 +70,9 @@ importers:
       prettier:
         specifier: ^2.0.5
         version: 2.0.5
+      shx:
+        specifier: ^0.3.4
+        version: 0.3.4
       sinon:
         specifier: ^15.0.4
         version: 15.0.4
@@ -112,13 +115,6 @@ importers:
       lodash.isequal:
         specifier: ^4.5.0
         version: 4.5.0
-    devDependencies:
-      rollup:
-        specifier: ^1.32.0
-        version: 1.32.0
-      shx:
-        specifier: ^0.3.4
-        version: 0.3.4
 
   packages/bi:
     dependencies:
@@ -15675,15 +15671,6 @@ packages:
     dependencies:
       hash-base: 3.1.0
       inherits: 2.0.4
-    dev: true
-
-  /rollup@1.32.0:
-    resolution: {integrity: sha512-ab2tF5pdDqm2zuI8j02ceyrJSScl9V2C24FgWQ1v1kTFTu1UrG5H0hpP++mDZlEFyZX4k0chtGEHU2i+pAzBgA==}
-    hasBin: true
-    dependencies:
-      '@types/estree': 1.0.1
-      '@types/node': 20.1.0
-      acorn: 7.4.1
     dev: true
 
   /rtl-detect@1.0.4:
