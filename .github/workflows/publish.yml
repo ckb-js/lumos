@@ -15,33 +15,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - uses: actions/cache@v1
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      - uses: pnpm/action-setup@v2
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          version: 8.4.0
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
 
       - name: Install project dependencies and build
         run: |
-          yarn --ignore-engines --frozen-lockfile
-          yarn build
+          pnpm install --frozen-lockfile
+          npm run build
           git diff --exit-code
 
       - name: Prettier check
-        run: yarn lint
+        run: npm run lint
 
       - name: Run test with coverage
-        run: yarn test-coverage
+        run: npm run test-coverage
 
       - uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
           files: ./coverage/cobertura-coverage.xml
           verbose: true # optional (default = false)
 
@@ -49,22 +43,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - uses: actions/cache@v1
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      - uses: pnpm/action-setup@v2
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          version: 8.4.0
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+
       - name: Install project dependencies and build
         run: |
-          yarn --ignore-engines --frozen-lockfile
-          yarn build
+          pnpm install --frozen-lockfile
+          npm run build
       - name: e2e test
-        run: yarn e2e-test
+        run: npm run e2e-test
 
   lint-staged:
     runs-on: ubuntu-latest
@@ -72,20 +63,17 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - uses: actions/cache@v1
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      - uses: pnpm/action-setup@v2
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          version: 8.4.0
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+
       - name: Install project dependencies and build
         run: |
-          yarn --ignore-engines --frozen-lockfile
-          yarn build
+          pnpm install --frozen-lockfile
+          npm run build
       - name: Get changed files
         uses: tj-actions/changed-files@v17.3
         id: changed-files
@@ -99,7 +87,7 @@ jobs:
       - name: Run lint for changed files
         if: ${{ steps.changed-files.outputs.all_changed_files != '' }}
         run: |
-          yarn eslint -c .eslintrc.next.js ${{ steps.changed-files.outputs.all_changed_files }}
+          npx eslint -c .eslintrc.next.js ${{ steps.changed-files.outputs.all_changed_files }}
   publish:
     needs: [test-unit, test-e2e, lint-staged]
     name: Publish
@@ -107,10 +95,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8.4.0
       - name: Setup Node ${{ matrix.node_version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16
+          cache: 'pnpm'
           registry-url: "https://registry.npmjs.org"
       - name: Git Identity
         run: |
@@ -120,7 +112,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install
-        run: yarn --frozen-lockfile --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       # Define ${CURRENT_VERSION}
       - name: Set Current Version
         run: |
@@ -186,7 +178,7 @@ jobs:
         if: steps.tag_check.outputs.exists_tag == 'false'
         run: |
           npm run build
-          yarn lerna publish from-package --yes --dist-tag $([ $PRERELEASE == 'true' ] && echo 'next' || echo 'latest')
+          npx lerna publish from-package --yes --dist-tag $([ $PRERELEASE == 'true' ] && echo 'next' || echo 'latest')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
