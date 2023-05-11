@@ -31,10 +31,6 @@
     "clean": "shx rm -rf lib",
     "test": "ava **/*.test.{js,ts} --timeout=2m"
   },
-  "devDependencies": {
-    "rollup": "^1.32.0",
-    "shx": "^0.3.4"
-  },
   "bugs": {
     "url": "https://github.com/ckb-js/lumos/issues"
   },
