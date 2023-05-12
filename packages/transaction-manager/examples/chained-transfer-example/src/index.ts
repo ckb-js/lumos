@@ -1,3 +1,4 @@
+// TODO move the example to root of the project
 import { Hash } from "@ckb-lumos/base";
 import { BI, parseUnit } from "@ckb-lumos/bi";
 import { initializeConfig, predefined } from "@ckb-lumos/config-manager/lib";
@@ -8,7 +9,7 @@ import {
 } from "@ckb-lumos/helpers";
 import { common } from "@ckb-lumos/common-scripts";
 import { key } from "@ckb-lumos/hd";
-import { TransactionManager } from "@ckb-lumos/transaction-manager";
+import { RPCTransactionManager } from "@ckb-lumos/transaction-manager";
 
 const RPC_URL = "https://testnet.ckb.dev";
 const CONFIG = predefined.AGGRON4;
@@ -31,7 +32,7 @@ const BOB_ADDRESS =
 
 const _61Ckb = parseUnit("61", "ckb");
 
-const txManager = new TransactionManager({ providers: { rpcUrl: RPC_URL } });
+const txManager = new RPCTransactionManager({ rpcUrl: RPC_URL });
 
 async function transfer(): Promise<Hash> {
   let txSkeleton = new TransactionSkeleton({ cellProvider: txManager });
