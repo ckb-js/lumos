@@ -72,7 +72,7 @@ test("should collect cells", async (t) => {
   const txHash = await service.sendTransaction(mockTx);
   t.deepEqual(txHash, sentDummyTxHash);
 
-  let cellCollector = await service.collector({ lock: dummyLock });
+  let cellCollector = service.collector({ lock: dummyLock });
   let cells: Cell[] = [];
   for await (const cell of cellCollector.collect()) {
     cells.push(cell);
@@ -120,7 +120,7 @@ test("should 'skip' be ignored when collect cells", async (t) => {
   const txHash = await service.sendTransaction(mockTx);
   t.deepEqual(txHash, sentDummyTxHash);
 
-  let cellCollector = await service.collector({ lock: dummyLock, skip: 1 });
+  let cellCollector = service.collector({ lock: dummyLock, skip: 1 });
   let cells: Cell[] = [];
   for await (const cell of cellCollector.collect()) {
     cells.push(cell);

@@ -14,6 +14,9 @@ interface ManagerStorageScheme {
   pendingCells: PendingCell[];
 }
 
+/**
+ * @internal
+ */
 export interface TransactionStorageType {
   getTransactions(): Promisable<TransactionWithHash[]>;
   setTransactions(transactions: TransactionWithHash[]): Promisable<void>;

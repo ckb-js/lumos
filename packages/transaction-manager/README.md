@@ -12,7 +12,7 @@ You can create a `TransactionManager` by passing a `providers` with `ServiceEndP
     }
   });
 
-  const cellCollector = await manager.collector(queryOptions);
+  const cellCollector = manager.collector(queryOptions);
   for await (const cell of cellCollector.collect()) {
     // do something with the cell
   }

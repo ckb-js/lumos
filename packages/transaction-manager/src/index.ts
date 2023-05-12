@@ -9,7 +9,7 @@ import { RPC } from "@ckb-lumos/rpc";
 import { bytes } from "@ckb-lumos/codec";
 import type { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
 import { createInMemoryPendingTransactionStorage } from "./TransactionStorage";
-import type { PendingCell, TransactionStorageType } from "./TransactionStorage";
+import type { TransactionStorageType } from "./TransactionStorage";
 import { filterByLumosQueryOptions } from "@ckb-lumos/ckb-indexer/lib/ckbIndexerFilter";
 import { Promisable } from "./storage";
 import { CKBIndexerQueryOptions } from "@ckb-lumos/ckb-indexer/lib/type";
@@ -22,7 +22,7 @@ interface TransactionManagerType {
   collector(
     queryOptions: CKBIndexerQueryOptions,
     options?: { usePendingOutputs?: boolean }
-  ): Promisable<CellCollector>;
+  ): CellCollector;
   clearCache(): Promisable<void>;
 }
 
@@ -96,77 +96,57 @@ export class TransactionManager implements TransactionManagerType {
     return txHash;
   }
 
-  async collector(
+  collector(
     queryOptions: CKBIndexerQueryOptions,
     options?: { usePendingOutputs?: boolean }
-  ): Promise<CellCollector> {
-    const pendingCells: Cell[] = await this.txStorage.getPendingCells();
-    // ignore skip here
+  ): CellCollector {
     const optionsWithoutSkip = {
       ...queryOptions,
       skip: 0,
     };
-    const filteredCreatedCells = filterByLumosQueryOptions(
-      pendingCells,
-      optionsWithoutSkip
-    );
     const liveCellCollector =
       this.cellCollectorProvider.collector(optionsWithoutSkip);
     return new PendingCellCollector({
-      spentCells: await this.txStorage.getSpentCellOutpoints(),
-      filteredPendingCells: filteredCreatedCells as PendingCell[],
-      usePendingCells:
-        options?.usePendingOutputs !== undefined
-          ? options.usePendingOutputs
-          : true,
+      txStorage: this.txStorage,
+      queryOptions: optionsWithoutSkip,
+      usePendingCells: options?.usePendingOutputs === false ? false : true,
       liveCellCollector,
-      order: queryOptions.order,
-      removePendingCell: async (cell: Cell) =>
-        await this.txStorage.deleteTransactionByCell(cell),
     });
   }
 }
 
 class PendingCellCollector implements CellCollector {
-  private spentCells: OutPoint[];
-  private filteredPendingCells: PendingCell[];
+  private txStorage: TransactionStorageType;
+  private queryOptions: CKBIndexerQueryOptions;
   private liveCellCollector: CellCollector;
   private usePendingCells: boolean;
-  private removePendingCell: (cell: Cell) => Promise<boolean>;
   /**
    * @param order - default to asc, return on-chain cells first, then pending cells, and vice versa
    */
   private order: "asc" | "desc";
 
   constructor(payload: {
-    spentCells: OutPoint[];
-    filteredPendingCells: PendingCell[];
-    usePendingCells: boolean;
+    txStorage: TransactionStorageType;
+    queryOptions: CKBIndexerQueryOptions;
     liveCellCollector: CellCollector;
-    removePendingCell: (cell: Cell) => Promise<boolean>;
-    order?: "asc" | "desc";
+    usePendingCells: boolean;
   }) {
-    const {
-      spentCells,
-      filteredPendingCells,
-      usePendingCells,
-      liveCellCollector,
-      removePendingCell,
-    } = payload;
+    const { queryOptions, liveCellCollector, txStorage, usePendingCells } =
+      payload;
 
-    this.order = payload.order || "asc";
-    this.spentCells = spentCells;
-    this.filteredPendingCells =
-      payload.order === "desc"
-        ? [...filteredPendingCells].reverse()
-        : filteredPendingCells;
+    this.order = queryOptions.order === "desc" ? "desc" : "asc";
     this.liveCellCollector = liveCellCollector;
     this.usePendingCells = usePendingCells;
-    this.removePendingCell = removePendingCell;
+    this.txStorage = txStorage;
+    this.queryOptions = queryOptions;
   }
 
-  private cellIsSpent(cell: Cell): boolean {
-    return this.spentCells.some((spent) =>
+  private async removePendingCell(cell: Cell): Promise<boolean> {
+    return await this.txStorage.deleteTransactionByCell(cell);
+  }
+
+  private cellIsSpent(cell: Cell, spentCells: OutPoint[]): boolean {
+    return spentCells.some((spent) =>
       bytes.equal(
         blockchain.OutPoint.pack(spent),
         blockchain.OutPoint.pack(cell.outPoint!)
@@ -175,18 +155,24 @@ class PendingCellCollector implements CellCollector {
   }
 
   async *collect(): AsyncGenerator<Cell> {
+    const pendingCells: Cell[] = await this.txStorage.getPendingCells();
+    const spentCells: OutPoint[] = await this.txStorage.getSpentCellOutpoints();
+    const filteredPendingCells = filterByLumosQueryOptions(
+      pendingCells,
+      this.queryOptions
+    );
     // order is desc, return pending cells first, then on-chain cells
     if (this.order === "desc") {
       if (this.usePendingCells) {
-        for (const cell of this.filteredPendingCells) {
-          if (!this.cellIsSpent(cell)) {
+        for (const cell of filteredPendingCells) {
+          if (!this.cellIsSpent(cell, spentCells)) {
             yield cell;
           }
         }
       }
       for await (const cell of this.liveCellCollector.collect()) {
         const isPendingCell = await this.removePendingCell(cell);
-        if (!this.cellIsSpent(cell) && !isPendingCell) {
+        if (!this.cellIsSpent(cell, spentCells) && !isPendingCell) {
           yield cell;
         }
       }
@@ -194,13 +180,13 @@ class PendingCellCollector implements CellCollector {
     } else {
       for await (const cell of this.liveCellCollector.collect()) {
         await this.removePendingCell(cell);
-        if (!this.cellIsSpent(cell)) {
+        if (!this.cellIsSpent(cell, spentCells)) {
           yield cell;
         }
       }
       if (this.usePendingCells) {
-        for (const cell of this.filteredPendingCells) {
-          if (!this.cellIsSpent(cell)) {
+        for (const cell of filteredPendingCells) {
+          if (!this.cellIsSpent(cell, spentCells)) {
             yield cell;
           }
         }
