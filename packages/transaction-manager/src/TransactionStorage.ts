@@ -1,5 +1,5 @@
 import { Transaction, OutPoint, Cell, Hash } from "@ckb-lumos/base";
-import { Promisable, Storage, createInMemoryStorage } from "./storage";
+import { Promisable, Store, createInMemoryStorage } from "./store";
 
 export type PendingCell = Pick<
   Required<Cell>,
@@ -31,10 +31,13 @@ export interface TransactionStorageType {
   deleteTransactionByCell(cell: Cell): Promisable<boolean>;
 }
 
-class TransactionStorage implements TransactionStorageType {
-  private storage: Storage<ManagerStorageScheme>;
+/**
+ * @internal
+ */
+export class TransactionStorage implements TransactionStorageType {
+  private storage: Store<ManagerStorageScheme>;
 
-  constructor(storage: Storage<ManagerStorageScheme>) {
+  constructor(storage: Store<ManagerStorageScheme>) {
     this.storage = storage;
   }
 

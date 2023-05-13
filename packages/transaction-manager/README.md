@@ -1,75 +1,57 @@
 # `@ckb-lumos/transaction-manager`
 
-## Usage
+`TransactionManager` offer a simple way to query and cache the pending transactions, it means you can get the pending cells without waiting for the transaction to be confirmed.
 
-You can create a `TransactionManager` by passing a `providers` with `ServiceEndPoint` or `ServiceProviders` and an optional `options` object.
+## Quick Start
+
+The easiest way to use the module is to use the `RPCTransactionManager` class, which uses the RPC module to query the pending transactions.
 
 ```ts
-  delcare const queryOptions: CkbIndexerQueryOptions;
-  const manager = new TransactionManager({
-    providers: {
-      rpcUrl: "https://testnet.ckb.dev",
-    }
-  });
+const indexer = new RPCTransactionManager({ rpcUrl: "https://localhost:8114" });
+const collector = indexer.collector({ lock: aliceLock });
 
-  const cellCollector = manager.collector(queryOptions);
-  for await (const cell of cellCollector.collect()) {
-    // do something with the cell
-  }
+for await (const cell of collector.collect()) {
+  // do something with the cell
+}
 ```
 
-> Note: `CkbIndexerQueryOptions` used in `transaction-manager` is a partial type of `CkbIndexerQueryOptions` used in `@ckb-lumos/indexer`. The field `skip` is supressed when generating a cell collector `collector(queryOptions)`, and when `usePendingCells` is set to `true`, the field `fromBlock` and `toBlock` are ignored, pending cells will be returned regardless of the block number. The order of the returned cells are on-chain cells come first, followed by pending cells when `order` is set to `asc`(default value is `asc`)， and vice versa.
+> Tips:
+>
+> The `collector` method accepts the same options as the `CkbIndexerQueryOptions` of the `@ckb-lumos/indexer` module,
+> but it is a little different from the `CkbIndexerQueryOptions` when querying pending cells.
+>
+> - `skip` is suppressed when `collector(queryOptions)`, and when `usePendingCells` is set to `true`
+> - `fromBlock` and `toBlock` are ignored, pending cells will be returned regardless of the block number.
+> - when `order` is set to `desc`, the pending cells will be returned first
 
-By default the pending transactions are stored in memory, which means the pending tx infos will be lost if the user refreshes the browser.
+## A More Advanced Example
 
-To persist the transactions, you can pass a `txStorage` option to the `TransactionsManager` constructor.
+### Custom Cache Storage
 
-```ts
-  const manager = new TransactionManager({
-    providers: {
-      rpcUrl: "https://testnet.ckb.dev",
-    }
-    options: {
-      txStorage:  new TransactionStorage(YOUR_STORAGE),
-    },
-  });
-```
-
-Especially in browser environment, if you want to use `localStorage` as the storage, you can create a `TransactionStorage` instance like this:
-
+`TransactionManager` use an in-memory cache to store the pending transactions by default, but you can also use your own cache storage by passing the `storage` options.
 
 ```ts
-  const manager = new TransactionsManager({
-    providers: {
-      rpcUrl: "https://testnet.ckb.dev",
-    }
-    options: {
-      txStorage:  new TransactionStorage(createBrowserStorage()),
-    },
-  });
+import { Store } from "@ckb-lumos/transaction-manager";
+// set a prefix to avoid the key conflicts other libraries
+const CUSTOM_KEY_PREFIX = "__lumos_store__";
+const storage: Store = {
+  getItem(key) {
+    const customKey = CUSTOM_KEY_PREFIX + key;
+    const value = window.localStorage.getItem(customKey);
+    if (!value) return value;
+    // deep clone to avoid the value being modified by the caller
+    return JSON.parse(value)[customKey];
+  },
+  hasItem(key) {
+    return !!window.localStorage.getItem(CUSTOM_KEY_PREFIX + key);
+  },
+  removeItem(key) {
+    window.localStorage.removeItem(CUSTOM_KEY_PREFIX + key);
+  },
+  setItem(key, value) {
+    window.localStorage.setItem(CUSTOM_KEY_PREFIX + key, JSON.stringify(value));
+  },
+};
 
-  function createBrowserStorage() {
-    const store: Storage = window.localStorage;
-    // set a prefix to avoid the key conflicts other libraries
-    const CUSTOM_KEY_PREFIX = '__lumos_store__'
-    return {
-      getItem(key) {
-        const value = store.getItem(CUSTOM_KEY_PREFIX + key) as string | undefined;
-        if (!value) return value as undefined;
-        // deep clone to avoid the value being modified by the caller
-        return JSON.parse(JSON.stringify(value));
-      },
-      hasItem(key) {
-        return !!store.getItem(CUSTOM_KEY_PREFIX + key);
-      },
-      removeItem(key) {
-        store.removeItem(CUSTOM_KEY_PREFIX + key);
-        return true;
-      },
-      setItem(key, value) {
-        store.setItem(CUSTOM_KEY_PREFIX + key, value);
-      },
-    };
-  }
-
+new RPCTransactionManager({ rpcUrl: "http://localhost:8114", storage });
 ```

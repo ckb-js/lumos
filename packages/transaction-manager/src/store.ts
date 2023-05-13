@@ -1,16 +1,18 @@
 export type Promisable<T> = PromiseLike<T> | T;
+type KeyOf<T> = keyof T & string;
 
 /**
  * key-value storage
  */
-export interface Storage<Schema> {
-  hasItem<K extends keyof Schema>(key: K): Promisable<boolean>;
-  getItem<K extends keyof Schema>(key: K): Promisable<Schema[K] | undefined>;
-  removeItem<K extends keyof Schema>(key: K): Promisable<void>;
-  setItem<K extends keyof Schema>(key: K, value: Schema[K]): Promisable<void>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface Store<Schema = any> {
+  hasItem<K extends KeyOf<Schema>>(key: K): Promisable<boolean>;
+  getItem<K extends KeyOf<Schema>>(key: K): Promisable<Schema[K] | undefined>;
+  removeItem<K extends KeyOf<Schema>>(key: K): Promisable<void>;
+  setItem<K extends KeyOf<Schema>>(key: K, value: Schema[K]): Promisable<void>;
 }
 
-export function createInMemoryStorage<S>(): Storage<S> {
+export function createInMemoryStorage<S>(): Store<S> {
   const store = new Map();
   return {
     getItem(key) {

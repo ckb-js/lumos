@@ -1,5 +1,4 @@
 import test from "ava";
-import { TransactionManager } from "../src";
 import {
   Cell,
   Input,
@@ -9,6 +8,7 @@ import {
   Transaction,
 } from "@ckb-lumos/base";
 import { CKBCellCollector } from "@ckb-lumos/ckb-indexer/lib/collector";
+import { TransactionManager } from "../src";
 
 const dummyLock: Script = {
   codeHash: `0x${"00".repeat(32)}`,
@@ -27,23 +27,21 @@ const dummyOutpoint1: OutPoint = {
 let service: TransactionManager;
 test.beforeEach(() => {
   service = new TransactionManager({
-    providers: {
-      transactionSender: {
-        sendTransaction: () =>
-          Promise.resolve(sentDummyTxHash) as Promise<string>,
-      },
-      cellCollectorProvider: {
-        collector: () =>
-          new CKBCellCollector(
-            {
-              // @ts-ignore
-              getCells: () => Promise.resolve({ objects: [] }),
-            },
-            {
-              lock: dummyLock,
-            }
-          ),
-      },
+    transactionSender: {
+      sendTransaction: () =>
+        Promise.resolve(sentDummyTxHash) as Promise<string>,
+    },
+    indexer: {
+      collector: () =>
+        new CKBCellCollector(
+          {
+            // @ts-ignore
+            getCells: () => Promise.resolve({ objects: [] }),
+          },
+          {
+            lock: dummyLock,
+          }
+        ),
     },
   });
 });
@@ -143,3 +141,8 @@ function createMockTx(payload: {
     witnesses: [],
   };
 }
+
+test.todo("Should custom store works as expected");
+test.todo("Should queryOptions works as expected");
+test.todo("Should delete pending transaction when collected on-chain cell");
+test.todo("Should skip pending cells when usePendingOutputs is false");
