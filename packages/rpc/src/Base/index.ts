@@ -499,7 +499,7 @@ export interface Base {
   /**
    * @method getFeeRateStatics
    * @deprecated Please use {@link Base.getFeeRateStatistics} instead
-   * @param target Specify the number (1 - 101) of confirmed blocks to be counted. If the number is even, automatically add one. If not specified, defaults to 21
+   * @param target Specify the number (1 - 101) of confirmed blocks to be counted. If the number is even, automatically add one. If not specified, defaults to 2
    * @returns the feeRate statistics of confirmed blocks on the chain
    */
   getFeeRateStatics: (
@@ -508,7 +508,7 @@ export interface Base {
 
   /**
    * @method getFeeRateStatistics
-   * @param target Specify the number (1 - 101) of confirmed blocks to be counted. If the number is even, automatically add one. If not specified, defaults to 21
+   * @param target Specify the number (1 - 101) of confirmed blocks to be counted. If the number is even, automatically add one. If not specified, defaults to 2
    * @returns the feeRate statistics of confirmed blocks on the chain If the query finds the corresponding historical data, the corresponding statistics are returned, containing the mean and median, in shannons per kilo-weight. If not, it returns null.
    */
   getFeeRateStatistics: () => Promise<CKBComponents.FeeRateStatistics>;
