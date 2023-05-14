@@ -85,13 +85,13 @@ const schemas: Record<string, MethodSchema> = {
 
   getFeeRateStatistics: {
     method: "get_fee_rate_statistics",
-    paramsFormatters: [],
+    paramsFormatters: [paramsFmts.toOptional(paramsFmts.toNumber)],
     resultFormatters: resultFmts.toNullable(resultFmts.toFeeRateStatistics),
   },
 
   getFeeRateStatics: {
     method: "get_fee_rate_statics",
-    paramsFormatters: [],
+    paramsFormatters: [paramsFmts.toOptional(paramsFmts.toNumber)],
     resultFormatters: resultFmts.toNullable(resultFmts.toFeeRateStatistics),
   },
 };

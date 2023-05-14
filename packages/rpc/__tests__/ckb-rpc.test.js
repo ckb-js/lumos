@@ -1832,7 +1832,21 @@ describe("Test with mock", () => {
       {
         methodName: "getBlockMedianTime",
         result: "0x5cd2b105",
-        resultFormatter: ResultFormatter.toNumber,
+        resultFormatter: ResultFormatter.toNullable(ResultFormatter.toNumber),
+        requestParams: [
+          "0xa5f5c85987a15de25661e5a214f2c1449cd803f071acc7999820f25246471f40",
+        ],
+        expectedParams: {
+          method: "get_block_median_time",
+          params: [
+            "0xa5f5c85987a15de25661e5a214f2c1449cd803f071acc7999820f25246471f40",
+          ],
+        },
+      },
+      {
+        methodName: "getBlockMedianTime",
+        result: null,
+        resultFormatter: ResultFormatter.toNullable(ResultFormatter.toNumber),
         requestParams: [
           "0xa5f5c85987a15de25661e5a214f2c1449cd803f071acc7999820f25246471f40",
         ],
