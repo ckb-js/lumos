@@ -1,0 +1,28 @@
+{
+  "name": "chained-transfer-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@ckb-lumos/base": "0.20.0-alpha.2",
+    "@ckb-lumos/bi": "0.20.0-alpha.2",
+    "@ckb-lumos/ckb-indexer": "0.20.0-alpha.2",
+    "@ckb-lumos/codec": "0.20.0-alpha.2",
+    "@ckb-lumos/common-scripts": "0.20.0-alpha.2",
+    "@ckb-lumos/config-manager": "0.20.0-alpha.2",
+    "@ckb-lumos/hd": "0.20.0-alpha.2",
+    "@ckb-lumos/helpers": "0.20.0-alpha.2",
+    "@ckb-lumos/transaction-manager": "0.20.0-alpha.2"
+  }
+}
