@@ -127,7 +127,7 @@ class PendingCellCollector implements CellCollector {
   }
 
   private async removePendingCell(cell: Cell): Promise<boolean> {
-    return this.txStorage.deleteTransactionByCell(cell);
+    return await this.txStorage.deleteTransactionByCell(cell);
   }
 
   private cellIsSpent(cell: Cell, spentCells: OutPoint[]): boolean {
@@ -140,15 +140,16 @@ class PendingCellCollector implements CellCollector {
   }
 
   async *collect(): AsyncGenerator<Cell> {
-    const pendingCells: Cell[] = await this.txStorage.getPendingCells();
     const spentCells: OutPoint[] = await this.txStorage.getSpentCellOutpoints();
-    const filteredPendingCells = filterByLumosQueryOptions(
-      pendingCells,
-      this.queryOptions
-    );
+
     // order is desc, return pending cells first, then on-chain cells
     if (this.order === "desc") {
       if (this.usePendingCells) {
+        const pendingCells: Cell[] = await this.txStorage.getPendingCells();
+        const filteredPendingCells = filterByLumosQueryOptions(
+          pendingCells,
+          this.queryOptions
+        );
         for (const cell of filteredPendingCells) {
           if (!this.cellIsSpent(cell, spentCells)) {
             yield cell;
@@ -169,6 +170,11 @@ class PendingCellCollector implements CellCollector {
           yield cell;
         }
       }
+      const pendingCells: Cell[] = await this.txStorage.getPendingCells();
+      const filteredPendingCells = filterByLumosQueryOptions(
+        pendingCells,
+        this.queryOptions
+      );
       if (this.usePendingCells) {
         for (const cell of filteredPendingCells) {
           if (!this.cellIsSpent(cell, spentCells)) {
