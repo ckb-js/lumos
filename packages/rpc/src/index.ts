@@ -13,11 +13,11 @@ import {
 } from "./exceptions";
 import axios from "axios";
 import { RPCConfig } from "./types/common";
-// import { MethodInBatchNotFoundException, PayloadInBatchException, IdNotMatchedInBatchException } from './exceptions'
+import { initAxiosWebworkerAdapter } from "./initAxiosWebworkerAdapter";
 
 export const ParamsFormatter = paramsFormatter;
 export const ResultFormatter = resultFormatter;
-
+initAxiosWebworkerAdapter();
 export class CKBRPC extends Base {
   #config: RPCConfig;
   #node: CKBComponents.Node = {

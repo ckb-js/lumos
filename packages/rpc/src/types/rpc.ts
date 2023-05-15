@@ -1,6 +1,7 @@
 /**
  * @see https://github.com/nervosnetwork/ckb/blob/develop/util/jsonrpc-types/src/blockchain.rs
  */
+import { HexNumber, HexString, MerkleProof } from "@ckb-lumos/base";
 import { CKBComponents } from "./api";
 
 /* eslint-disable  @typescript-eslint/no-namespace */
@@ -394,6 +395,7 @@ export namespace RPC {
 
   export type HexadecimalRange = [string, string];
   export type ScriptType = "type" | "lock";
+  export type ScriptSearchMode = "prefix" | "exact";
 
   export interface SearchFilter {
     script?: Script;
@@ -406,6 +408,7 @@ export namespace RPC {
     script: Script;
     script_type: ScriptType;
     filter?: SearchFilter;
+    script_search_mode?: ScriptSearchMode;
   }
   export interface GetCellsSearchKey extends SearchKey {
     with_data?: boolean;
@@ -414,5 +417,41 @@ export namespace RPC {
   export interface GetTransactionsSearchKey extends SearchKey {
     group_by_transaction?: boolean;
   }
+  export interface BlockFilter {
+    data: HexString;
+    hash: Hash;
+  }
+
+  export interface TransactionAndWitnessProof {
+    block_hash: Hash;
+    transactions_proof: MerkleProof;
+    witnesses_proof: MerkleProof;
+  }
+  export interface FeeRateStatistics {
+    mean: HexNumber;
+    median: HexNumber;
+  }
+
+  export type HeaderView = Header & { hash: Hash };
+
+  export interface UncleBlockView {
+    header: HeaderView;
+    proposals: ProposalShortId[];
+  }
+
+  export type TransactionView = Transaction & { hash: Hash };
+  export interface BlockView {
+    header: HeaderView;
+    uncles: UncleBlockView[];
+    transactions: TransactionView[];
+    proposals: ProposalShortId[];
+  }
+
+  export type SerializedBlock = HexString;
+
+  export interface EstimateCycles {
+    cycles: HexNumber;
+  }
 }
+
 /* eslint-enable camelcase */

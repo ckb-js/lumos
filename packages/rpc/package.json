@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/rpc",
-  "version": "0.20.0-alpha.1",
+  "version": "0.20.0-alpha.2",
   "description": "RPC module for CKB",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
@@ -38,12 +38,14 @@
     "release": "npm publish"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0-alpha.1",
-    "@ckb-lumos/bi": "0.20.0-alpha.1",
-    "axios": "0.21.4",
+    "@ckb-lumos/base": "0.20.0-alpha.2",
+    "@ckb-lumos/bi": "0.20.0-alpha.2",
+    "@vespaiach/axios-fetch-adapter": "^0.3.1",
+    "axios": "0.27.2",
     "tslib": "2.3.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.4.0",
     "@types/nock": "^11.1.0",
     "express": "^4.18.1",
     "jest": "^28.1.3",

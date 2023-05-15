@@ -11,6 +11,7 @@ test("should toSearchKey works fine", async (t) => {
         "0x123456789012345678901234567890123456789001234567890012345678901234",
       hash_type: "data",
     },
+    script_search_mode: "prefix",
     script_type: "lock",
     filter: {
       output_data_len_range: ["0x1", "0x2"],
@@ -24,6 +25,7 @@ test("should toSearchKey works fine", async (t) => {
       args: "0x1234567890123456789012345678901234567890",
     },
     scriptType: "lock",
+    scriptSearchMode: "prefix",
     filter: {
       script: undefined,
       outputCapacityRange: undefined,

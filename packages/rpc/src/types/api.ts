@@ -8,7 +8,9 @@ export namespace CKBComponents {
   export type Hash = string;
   export type Number = string;
   export type Hash256 = string;
-  export type UInt32 = number;
+  export type UInt32 = string;
+  export type UInt64 = string;
+
   export type Index = string;
   export type Version = string;
   export type Count = string;
@@ -178,6 +180,7 @@ export namespace CKBComponents {
   export type ScriptType = "type" | "lock";
   export type Order = "asc" | "desc";
   export type IOType = "input" | "output" | "both";
+  export type ScriptSearchMode = "prefix" | "exact";
 
   export interface IndexerCell {
     blockNumber: BlockNumber;
@@ -247,6 +250,7 @@ export namespace CKBComponents {
     script: Script;
     scriptType: ScriptType;
     filter?: SearchFilter;
+    scriptSearchMode?: ScriptSearchMode;
   }
   export interface GetLiveCellsResult<WithData extends boolean = true> {
     lastCursor: string;
@@ -267,5 +271,36 @@ export namespace CKBComponents {
     capacity: Capacity;
     blockHash: Hash256;
     blockNumber: BlockNumber;
+  }
+
+  export interface BlockFilter {
+    data: api.HexString;
+    hash: api.Hash;
+  }
+
+  export interface TransactionAndWitnessProof {
+    blockHash: Hash256;
+    transactionsProof: api.MerkleProof;
+    witnessesProof: api.MerkleProof;
+  }
+
+  export type TransactionView = api.Transaction & { hash: api.Hash };
+
+  export interface BlockView {
+    header: BlockHeader;
+    uncles: UncleBlock[];
+    transactions: TransactionView[];
+    proposals: ProposalShortId[];
+  }
+
+  export type SerializedBlock = api.HexString;
+
+  export interface FeeRateStatistics {
+    mean: UInt64;
+    median: UInt64;
+  }
+
+  export interface EstimateCycles {
+    cycles: UInt64;
   }
 }

@@ -5,7 +5,7 @@ WORKDIR /
 RUN git clone https://github.com/nervosnetwork/ckb-light-client.git
 
 RUN cd ckb-light-client \
-    && git checkout develop \
+    && git checkout c99b36f8f3668c49e3633cf1fe9fc5b4d6a9ecc0 \
     && cargo build --release
 
 RUN set -eux; \
@@ -13,7 +13,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
     curl
 
-RUN curl -sSLf "$(curl -sSLf https://api.github.com/repos/tomwright/dasel/releases/80229218 | grep browser_download_url | grep linux_amd64 | grep -v .gz | cut -d\" -f 4)" -L -o dasel && chmod +x dasel
+RUN curl -sSLf "https://github.com/TomWright/dasel/releases/download/v1.27.3/dasel_linux_amd64" -L -o dasel && chmod +x dasel
 RUN mv ./dasel /usr/local/bin/dasel
 
 FROM ubuntu:bionic
