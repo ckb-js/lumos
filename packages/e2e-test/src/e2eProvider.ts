@@ -53,7 +53,7 @@ export class E2EProvider {
     this.faucetQueue = faucetQueue;
   }
 
-  public async getGenesisSciprtConfig(): Promise<ScriptConfigs> {
+  public async getGenesisScriptConfig(): Promise<ScriptConfigs> {
     const genesisBlock = await this.rpc.getBlockByNumber("0x0");
 
     const secp256k1DepTxHash = genesisBlock.transactions[1].hash;
@@ -83,7 +83,7 @@ export class E2EProvider {
   }
 
   public async loadLocalConfig(): Promise<Config> {
-    const _genesisConfig = await this.getGenesisSciprtConfig();
+    const _genesisConfig = await this.getGenesisScriptConfig();
 
     const CONFIG = createConfig({
       PREFIX: "ckt",
