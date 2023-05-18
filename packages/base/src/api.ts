@@ -88,6 +88,7 @@ export interface Cell {
   outPoint?: OutPoint;
   blockHash?: Hash;
   blockNumber?: HexNumber;
+  txIndex?: HexNumber;
 }
 
 export interface UncleBlock {

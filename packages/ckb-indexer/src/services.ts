@@ -1,35 +1,27 @@
-import { utils, HexString, ScriptWrapper, Script } from "@ckb-lumos/base";
+import { utils, HexString, Script } from "@ckb-lumos/base";
 import { CKBIndexerQueryOptions, SearchKey } from "./type";
 import fetch from "cross-fetch";
 import { BI } from "@ckb-lumos/bi";
 import { toScript } from "./paramsFormatter";
 import type * as RPCType from "./rpcType";
 import { toSearchKey } from "./resultFormatter";
+import { unwrapScriptWrapper } from "./ckbIndexerFilter";
 
-function instanceOfScriptWrapper(object: unknown): object is ScriptWrapper {
-  return typeof object === "object" && object != null && "script" in object;
-}
-const UnwrapScriptWrapper = (inputScript: ScriptWrapper | Script): Script => {
-  if (instanceOfScriptWrapper(inputScript)) {
-    return inputScript.script;
-  }
-  return inputScript;
-};
 const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   let script: RPCType.Script | undefined = undefined;
   const filter: RPCType.SearchFilter = {};
   let script_type: RPCType.ScriptType | undefined = undefined;
   let script_search_mode: RPCType.ScriptSearchMode = "prefix";
   if (queries.lock) {
-    const lock = UnwrapScriptWrapper(queries.lock);
+    const lock = unwrapScriptWrapper(queries.lock);
     script = toScript(lock);
     script_type = "lock";
     if (queries.type && typeof queries.type !== "string") {
-      const type = UnwrapScriptWrapper(queries.type);
+      const type = unwrapScriptWrapper(queries.type);
       filter.script = toScript(type);
     }
   } else if (queries.type && typeof queries.type !== "string") {
-    const type = UnwrapScriptWrapper(queries.type);
+    const type = unwrapScriptWrapper(queries.type);
     script = toScript(type);
     script_type = "type";
   }
@@ -96,9 +88,4 @@ const requestBatch = async (rpcUrl: string, data: unknown): Promise<any> => {
   return result;
 };
 
-export {
-  generateSearchKey,
-  getHexStringBytes,
-  instanceOfScriptWrapper,
-  requestBatch,
-};
+export { generateSearchKey, getHexStringBytes, requestBatch };

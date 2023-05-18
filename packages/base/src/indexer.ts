@@ -6,6 +6,13 @@ import { Hexadecimal, HexString } from "./primitive";
 import { Logger } from "./logger";
 import { isScriptWrapper } from "./helpers";
 
+export type SearchMode = "exact" | "prefix";
+
+export type DataWithSearchMode = {
+  searchMode: SearchMode;
+  data: HexString;
+};
+
 /**
  * argsLen: if argsLen = 20, it means collected cells cell.cellOutput.lock.args should be 20-byte length, and prefix match to lock.args.
  * And if argsLen = -1 (default), means cell.cellOutput.lock.args should equals to lock.args.
@@ -14,7 +21,9 @@ export interface QueryOptions {
   lock?: Script | ScriptWrapper;
   type?: Script | ScriptWrapper | "empty";
   // data = any means any data content is ok
-  data?: string | "any";
+  data?: string | "any" | DataWithSearchMode;
+
+  /** `lock` script args length */
   argsLen?: number | "any";
   /** `fromBlock` itself is included in range query. */
   fromBlock?: Hexadecimal;
@@ -26,6 +35,7 @@ export interface QueryOptions {
 
 export interface ScriptWrapper {
   script: Script;
+  searchMode?: SearchMode;
   ioType?: "input" | "output" | "both";
   argsLen?: number | "any";
 }

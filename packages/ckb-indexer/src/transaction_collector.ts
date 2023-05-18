@@ -19,6 +19,7 @@ import {
   JsonRprRequestBody,
 } from "./type";
 import { CkbIndexer } from "./indexer";
+import { instanceOfScriptWrapper } from "./ckbIndexerFilter";
 import * as services from "./services";
 
 interface GetTransactionDetailResult {
@@ -84,8 +85,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
 
     //if both lock and type, search search them in independent and then get intersection, GetTransactionsResults.lastCursor change to `${lockLastCursor}-${typeLastCursor}`
     if (
-      services.instanceOfScriptWrapper(queries.lock) &&
-      services.instanceOfScriptWrapper(queries.type)
+      instanceOfScriptWrapper(queries.lock) &&
+      instanceOfScriptWrapper(queries.type)
     ) {
       indexerTransactionList =
         await this.getTransactionByLockAndTypeIndependent(searchKeyFilter);
@@ -334,7 +335,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   // only valid after pass flow three validate
   private isCellScriptArgsValid = (targetCell: Output) => {
     if (this.queries.lock) {
-      const lockArgsLen = services.instanceOfScriptWrapper(this.queries.lock)
+      const lockArgsLen = instanceOfScriptWrapper(this.queries.lock)
         ? this.queries.lock.argsLen
         : this.queries.argsLen;
       if (!this.isLockArgsLenMatched(targetCell.lock.args, lockArgsLen)) {
@@ -343,7 +344,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
 
     if (this.queries.type && this.queries.type !== "empty") {
-      const typeArgsLen = services.instanceOfScriptWrapper(this.queries.type)
+      const typeArgsLen = instanceOfScriptWrapper(this.queries.type)
         ? this.queries.type.argsLen
         : this.queries.argsLen;
       if (!this.isLockArgsLenMatched(targetCell.type?.args, typeArgsLen)) {
@@ -381,10 +382,10 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     queries: CKBIndexerQueryOptions
   ) => {
     let result = inputResult;
-    if (services.instanceOfScriptWrapper(queries.lock) && queries.lock.ioType) {
+    if (instanceOfScriptWrapper(queries.lock) && queries.lock.ioType) {
       result = this.filterByIoType(result, queries.lock.ioType);
     }
-    if (services.instanceOfScriptWrapper(queries.type) && queries.type.ioType) {
+    if (instanceOfScriptWrapper(queries.type) && queries.type.ioType) {
       result = this.filterByIoType(result, queries.type.ioType);
     }
     return result;

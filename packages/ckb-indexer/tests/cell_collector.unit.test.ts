@@ -281,32 +281,6 @@ test("getLiveCell#should call terminableCellFetcher", async (t) => {
   });
 });
 
-test("shouldSkip#shouldSkip should works well", (t) => {
-  const cellCollector: any = new CellCollector(indexer, []);
-
-  // if skippedCount < query.skip, skip current cell
-  t.true(cellCollector.shouldSkipped({ skip: 5 }, {}, 0));
-
-  // type does not match
-  t.true(
-    cellCollector.shouldSkipped(
-      { type: "empty" },
-      { cellOutput: { type: "data" } }
-    )
-  );
-
-  // data does not match
-  t.true(cellCollector.shouldSkipped({ data: "Nahida" }, { data: "Klee" }));
-
-  /// args len does not match it's in query
-  t.true(
-    cellCollector.shouldSkipped(
-      { argsLen: 77 },
-      { cellOutput: { lock: lockScript } }
-    )
-  );
-});
-
 // The CellCollector#collect method also be covered by E2E tests
 test("collect#should return and uniq the returning of `collectBySingleQuery`", async (t) => {
   const cellCollector: any = new CellCollector(indexer, [

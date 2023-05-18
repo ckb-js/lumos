@@ -8,12 +8,13 @@ import {
   OtherQueryOptions,
   TerminableCellFetcher,
 } from "./type";
-import {
-  generateSearchKey,
-  getHexStringBytes,
-  instanceOfScriptWrapper,
-} from "./services";
+import { generateSearchKey, getHexStringBytes } from "./services";
 import fetch from "cross-fetch";
+import {
+  filterByLumosQueryOptions,
+  instanceOfScriptWrapper,
+  unwrapDataWrapper,
+} from "./ckbIndexerFilter";
 
 interface GetBlockHashRPCResult {
   jsonrpc: string;
@@ -115,7 +116,7 @@ export class CKBCellCollector implements BaseCellCollector {
     }
 
     if (queries.outputDataLenRange && queries.data && queries.data !== "any") {
-      const dataLen = getHexStringBytes(queries.data);
+      const dataLen = getHexStringBytes(unwrapDataWrapper(queries.data));
       if (
         dataLen < Number(queries.outputDataLenRange[0]) ||
         dataLen >= Number(queries.outputDataLenRange[1])
@@ -157,7 +158,7 @@ export class CKBCellCollector implements BaseCellCollector {
 
       if (!query.outputDataLenRange) {
         if (query.data && query.data !== "any") {
-          const dataLenRange = getHexStringBytes(query.data);
+          const dataLenRange = getHexStringBytes(unwrapDataWrapper(query.data));
           query.outputDataLenRange = [
             "0x" + dataLenRange.toString(16),
             "0x" + (dataLenRange + 1).toString(16),
@@ -186,29 +187,6 @@ export class CKBCellCollector implements BaseCellCollector {
       searchKeyFilter
     );
     return result;
-  }
-
-  private shouldSkipped(
-    query: CKBIndexerQueryOptions,
-    cell: Cell,
-    skippedCount = 0
-  ) {
-    if (query.skip && skippedCount < query.skip) {
-      return true;
-    }
-    if (cell && query.type === "empty" && cell.cellOutput.type) {
-      return true;
-    }
-    if (query.data !== "any" && cell.data !== query.data) {
-      return true;
-    }
-    if (
-      query.argsLen !== -1 &&
-      query.argsLen !== "any" &&
-      getHexStringBytes(cell.cellOutput.lock.args) !== query.argsLen
-    ) {
-      return true;
-    }
   }
 
   async count(): Promise<number> {
@@ -311,17 +289,21 @@ export class CKBCellCollector implements BaseCellCollector {
       return result.objects;
     };
     let cells: Cell[] = await getCellWithCursor();
+    // filter cells by lumos query options
+    cells = filterByLumosQueryOptions(cells, query);
+
     if (cells.length === 0) {
       return;
     }
+
     let buffer: Promise<Cell[]> = getCellWithCursor();
     let index = 0;
     let skippedCount = 0;
     while (true) {
-      if (!this.shouldSkipped(query, cells[index], skippedCount)) {
-        yield cells[index];
-      } else {
+      if (query.skip && skippedCount < query.skip) {
         skippedCount++;
+      } else {
+        yield cells[index];
       }
       index++;
       //reset index and exchange `cells` and `buffer` after yield last cell

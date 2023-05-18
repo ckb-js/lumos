@@ -34,6 +34,7 @@ import { RPC as CKBIndexerRpc } from "./rpc";
 import { CKBRPC } from "@ckb-lumos/rpc";
 import { validators } from "@ckb-lumos/toolkit";
 import type * as IndexerType from "./indexerType";
+import { unwrapDataWrapper } from "./ckbIndexerFilter";
 
 const DefaultTerminator: Terminator = () => {
   return { stop: false, push: true };
@@ -189,7 +190,7 @@ export class CkbIndexer implements CellProvider, TerminableCellFetcher {
     }
     const emitter = new IndexerEmitter();
     emitter.argsLen = queries.argsLen;
-    emitter.outputData = queries.data;
+    emitter.outputData = queries.data && unwrapDataWrapper(queries.data);
     if (queries.fromBlock) {
       utils.assertHexadecimal("fromBlock", queries.fromBlock);
     }
