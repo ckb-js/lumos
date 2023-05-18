@@ -164,9 +164,30 @@ In the previous section we generated account, but for a wallet it's not enough, 
 CKB provides a rpc for searching on-chain data, but many on-chain data are very troublesome to index. so CKB also provides an indexer rpc to help searching easily.
 
 
-:::tip
-You can view the public rpc of the testnet and mainnet [here](https://github.com/cryptape/lumos-ckit-internal/wiki/Public-Node-Entries)
-:::
+<details>
+<summary>Available public PRC</summary>
+
+Mainnet(Lina)
+
+- CKB Node RPC
+    - mainnet.ckbapp.dev
+- CKB Indexer RPC
+    - mainnet.ckbapp.dev/indexer
+- Mercury RPC
+    - mercury-mainnet.ckbapp.dev
+
+Testnet(Aggron)
+
+- CKB Node RPC
+    - testnet.ckbapp.dev
+    - testnetrpc.ckb.dev
+- CKB Indexer RPC
+    - testnet.ckbapp.dev
+    - testnetrpc.ckbapp.dev/indexer
+- Mercury RPC
+    - mercury-testnet.ckbapp.dev
+
+</details>
 
 ``` ts
 import { RPC, Indexer } from '@ckb-lumos/lumos';

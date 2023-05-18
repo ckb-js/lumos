@@ -1,11 +1,26 @@
+/* eslint-disable camelcase, @typescript-eslint/no-explicit-any */
 import { CKBComponents } from "./types/api";
 import { RPC } from "./types/rpc";
 
 const isTxPoolIds = (rawTxPool: RPC.RawTxPool): rawTxPool is RPC.TxPoolIds => {
   return Array.isArray(rawTxPool.pending);
 };
+const toArray =
+  <I, O>(format?: (args: I) => O) =>
+  (arg: I[]): O[] | I[] => {
+    if (typeof format !== "function" || !Array.isArray(arg)) {
+      return arg;
+    }
+    return arg.map(format);
+  };
 
-/* eslint-disable camelcase */
+const toNullable =
+  <I, O>(format?: (args: I) => O) =>
+  (origin: I | null): I | O | null => {
+    if (!format || origin === null) return origin as never;
+    return format(origin);
+  };
+
 const toNumber = (number: RPC.BlockNumber): CKBComponents.BlockNumber =>
   number.toString();
 const toHash = (hash: RPC.Hash256): CKBComponents.Hash256 => hash;
@@ -641,9 +656,62 @@ const toCellsCapacity = (
   };
 };
 
+const toBlockFilter = (
+  blockFilter: RPC.BlockFilter
+): CKBComponents.BlockFilter => {
+  return {
+    hash: blockFilter.hash,
+    data: blockFilter.data,
+  };
+};
+
+const toTransactionAndWitnessProof = (
+  proof: RPC.TransactionAndWitnessProof
+): CKBComponents.TransactionAndWitnessProof => {
+  return {
+    blockHash: proof.block_hash,
+    transactionsProof: proof.transactions_proof,
+    witnessesProof: proof.witnesses_proof,
+  };
+};
+
+const toFeeRateStatistics = (
+  statistics: RPC.FeeRateStatistics
+): CKBComponents.FeeRateStatistics => {
+  return {
+    mean: statistics.mean,
+    median: statistics.median,
+  };
+};
+
+const toForkBlockResult = (
+  result: RPC.BlockView | RPC.SerializedBlock
+): CKBComponents.BlockView | CKBComponents.SerializedBlock => {
+  if (typeof result === "string") {
+    return result;
+  }
+
+  return {
+    header: toHeader(result.header),
+    uncles: result.uncles.map(toUncleBlock),
+    transactions: result.transactions.map(toTransaction),
+    proposals: result.proposals,
+  };
+};
+
+const toEstimateCycles = (
+  cycle: RPC.EstimateCycles
+): CKBComponents.EstimateCycles => {
+  return {
+    cycles: cycle.cycles,
+  };
+};
+
 export {
   toNumber,
   toHash,
+  toArray,
+  toNullable,
   toHeader,
   toScript,
   toInput,
@@ -687,5 +755,10 @@ export {
   toCellsCapacity,
   toGetCellsResult,
   toGetTransactionsResult,
+  toBlockFilter,
+  toTransactionAndWitnessProof,
+  toFeeRateStatistics,
+  toForkBlockResult,
+  toEstimateCycles,
 };
 /* eslint-enable camelcase */
