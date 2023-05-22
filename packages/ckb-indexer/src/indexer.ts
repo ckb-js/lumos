@@ -8,11 +8,10 @@ import {
   utils,
   Block,
 } from "@ckb-lumos/base";
-import { requestBatch } from "./services";
+import { requestBatchTransactionWithStatus } from "./services";
 import { CKBCellCollector } from "./collector";
 import { EventEmitter } from "events";
 import {
-  GetTransactionRPCResult,
   CKBIndexerQueryOptions,
   GetCellsResults,
   GetLiveCellsResult,
@@ -271,31 +270,24 @@ export class CkbIndexer implements CellProvider, TerminableCellFetcher {
       const blockNumber = block.header.number;
       // publish changed events if subscribed script exists in previous output cells , skip the cellbase.
       if (txIndex > 0) {
-        const requestData = tx.inputs.map((input, index) => {
-          return {
-            id: index,
-            jsonrpc: "2.0",
-            method: "get_transaction",
-            params: [input.previousOutput.txHash],
-          };
-        });
+        const inputTxHashes = tx.inputs.map(
+          (input) => input.previousOutput.txHash
+        );
 
         // batch request by block
-        const transactionResponse: OutputToVerify[] = await requestBatch(
-          this.uri,
-          requestData
-        ).then((response: GetTransactionRPCResult[]) => {
-          return response.map(
-            (item: GetTransactionRPCResult, index: number) => {
-              const cellIndex = tx.inputs[index].previousOutput.index;
-              const outputCell =
-                item.result.transaction.outputs[parseInt(cellIndex)];
-              const outputData =
-                item.result.transaction.outputsData[parseInt(cellIndex)];
-              return { output: outputCell, outputData } as OutputToVerify;
+        const transactionResponse: OutputToVerify[] =
+          await requestBatchTransactionWithStatus(this.uri, inputTxHashes).then(
+            (response) => {
+              return response.map((txWithStatus, index: number) => {
+                const cellIndex = tx.inputs[index].previousOutput.index;
+                const outputCell =
+                  txWithStatus.transaction.outputs[parseInt(cellIndex)];
+                const outputData =
+                  txWithStatus.transaction.outputsData[parseInt(cellIndex)];
+                return { output: outputCell, outputData };
+              });
             }
           );
-        });
         transactionResponse.forEach(({ output, outputData }) => {
           this.filterEvents(output, blockNumber, outputData);
         });

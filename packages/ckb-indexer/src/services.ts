@@ -6,6 +6,8 @@ import { toScript } from "./paramsFormatter";
 import type * as RPCType from "./rpcType";
 import { toSearchKey } from "./resultFormatter";
 import { unwrapScriptWrapper } from "./ckbIndexerFilter";
+import { ResultFormatter } from "@ckb-lumos/rpc";
+import { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
 
 const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   let script: RPCType.Script | undefined = undefined;
@@ -67,17 +69,25 @@ const getHexStringBytes = (hexString: HexString): number => {
   return Math.ceil(hexString.substr(2).length / 2);
 };
 
+let id = 0;
+/* istanbul ignore next */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const requestBatch = async (rpcUrl: string, data: unknown): Promise<any> => {
-  const res: Response = await fetch(rpcUrl, {
+async function requestBatch<T = any>(
+  rpcUrl: string,
+  // eslint-disable-next-line
+  data: Record<string, unknown>[]
+): Promise<{ result: T; jsonrpc: string; id: number | string }[]> {
+  if (!data.length) {
+    return [];
+  }
+
+  const res = await fetch(rpcUrl, {
     method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data.map((item) => ({ id: id++, ...item }))),
   });
   if (res.status !== 200) {
-    throw new Error(`indexer request failed with HTTP code ${res.status}`);
+    throw new Error(`Indexer request failed with HTTP code ${res.status}`);
   }
   const result = await res.json();
   if (result.error !== undefined) {
@@ -86,6 +96,38 @@ const requestBatch = async (rpcUrl: string, data: unknown): Promise<any> => {
     );
   }
   return result;
-};
+}
 
-export { generateSearchKey, getHexStringBytes, requestBatch };
+/* istanbul ignore next */
+async function requestBatchTransactionWithStatus(
+  rpcUrl: string,
+  txHashes: string[]
+): Promise<CKBComponents.TransactionWithStatus[]> {
+  if (txHashes.length === 0) {
+    return [];
+  }
+  const requestBody = txHashes.map((txHash, index) => {
+    return {
+      id: index,
+      jsonrpc: "2.0",
+      method: "get_transaction",
+      params: [txHash],
+    };
+  });
+
+  type RpcTransactionWithStatus = Parameters<
+    typeof ResultFormatter.toTransactionWithStatus
+  >[0];
+
+  const res = await requestBatch<RpcTransactionWithStatus>(rpcUrl, requestBody);
+  return res.map((item) =>
+    ResultFormatter.toTransactionWithStatus(item.result)
+  );
+}
+
+export {
+  generateSearchKey,
+  getHexStringBytes,
+  requestBatch,
+  requestBatchTransactionWithStatus,
+};
