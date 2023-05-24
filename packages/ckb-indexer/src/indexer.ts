@@ -278,7 +278,7 @@ export class CkbIndexer implements CellProvider, TerminableCellFetcher {
         const transactionResponse: OutputToVerify[] =
           await requestBatchTransactionWithStatus(this.uri, inputTxHashes).then(
             (response) => {
-              return response.map((txWithStatus, index: number) => {
+              return response.map((txWithStatus, index) => {
                 const cellIndex = tx.inputs[index].previousOutput.index;
                 const outputCell =
                   txWithStatus.transaction.outputs[parseInt(cellIndex)];

@@ -1,4 +1,4 @@
-import { utils, HexString, Script } from "@ckb-lumos/base";
+import { utils, HexString } from "@ckb-lumos/base";
 import { CKBIndexerQueryOptions, SearchKey } from "./type";
 import fetch from "cross-fetch";
 import { BI } from "@ckb-lumos/bi";
@@ -7,6 +7,7 @@ import type * as RPCType from "./rpcType";
 import { toSearchKey } from "./resultFormatter";
 import { unwrapScriptWrapper } from "./ckbIndexerFilter";
 import { ResultFormatter } from "@ckb-lumos/rpc";
+import { RPC as RpcTypes } from "@ckb-lumos/rpc/lib/types/rpc";
 import { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
 
 const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
@@ -115,11 +116,10 @@ async function requestBatchTransactionWithStatus(
     };
   });
 
-  type RpcTransactionWithStatus = Parameters<
-    typeof ResultFormatter.toTransactionWithStatus
-  >[0];
-
-  const res = await requestBatch<RpcTransactionWithStatus>(rpcUrl, requestBody);
+  const res = await requestBatch<RpcTypes.TransactionWithStatus>(
+    rpcUrl,
+    requestBody
+  );
   return res.map((item) =>
     ResultFormatter.toTransactionWithStatus(item.result)
   );
