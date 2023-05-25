@@ -130,6 +130,9 @@ importers:
       '@ckb-lumos/bi':
         specifier: 0.20.0-alpha.2
         version: link:../bi
+      '@ckb-lumos/codec':
+        specifier: 0.20.0-alpha.2
+        version: link:../codec
       '@ckb-lumos/rpc':
         specifier: 0.20.0-alpha.2
         version: link:../rpc
@@ -658,6 +661,9 @@ importers:
       '@ckb-lumos/ckb-indexer':
         specifier: 0.20.0-alpha.2
         version: link:../ckb-indexer
+      '@ckb-lumos/codec':
+        specifier: 0.20.0-alpha.2
+        version: link:../codec
       '@ckb-lumos/rpc':
         specifier: 0.20.0-alpha.2
         version: link:../rpc
@@ -667,6 +673,13 @@ importers:
       immutable:
         specifier: ^4.3.0
         version: 4.3.0
+    devDependencies:
+      '@types/sinon':
+        specifier: ^10.0.14
+        version: 10.0.14
+      sinon:
+        specifier: ^15.0.4
+        version: 15.0.4
 
   website:
     dependencies:
@@ -6450,10 +6463,20 @@ packages:
       '@types/node': 20.1.0
     dev: true
 
+  /@types/sinon@10.0.14:
+    resolution: {integrity: sha512-mn72up6cjaMyMuaPaa/AwKf6WtsSRysQC7wxFkCm1XcOKXPM1z+5Y4H5wjIVBz4gdAkjvZxVVfjA6ba1nHr5WQ==}
+    dependencies:
+      '@types/sinonjs__fake-timers': 8.1.2
+    dev: true
+
   /@types/sinon@10.0.6:
     resolution: {integrity: sha512-6EF+wzMWvBNeGrfP3Nx60hhx+FfwSg1JJBLAAP/IdIUq0EYkqCYf70VT3PhuhPX9eLD+Dp+lNdpb/ZeHG8Yezg==}
     dependencies:
       '@sinonjs/fake-timers': 7.1.2
+    dev: true
+
+  /@types/sinonjs__fake-timers@8.1.2:
+    resolution: {integrity: sha512-9GcLXF0/v3t80caGs5p2rRfkB+a8VBGLJZVih6CNFkx8IZ994wiKKLSRs9nuFwk1HevWs/1mnUmkApGrSGsShA==}
     dev: true
 
   /@types/sockjs@0.3.33:

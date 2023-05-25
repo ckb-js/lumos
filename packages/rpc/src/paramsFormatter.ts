@@ -164,6 +164,17 @@ export const formatter = {
       ...rest,
     };
   },
+
+  toTransactionAndWitnessProof: (
+    proof: CKBComponents.TransactionAndWitnessProof
+  ): RPC.TransactionAndWitnessProof => {
+    return {
+      block_hash: proof.blockHash,
+      witnesses_proof: proof.witnessesProof,
+      transactions_proof: proof.transactionsProof,
+    };
+  },
+
   toSearchFilter: (data: CKBComponents.SearchFilter): RPC.SearchFilter => {
     if (!data) return data;
     return {

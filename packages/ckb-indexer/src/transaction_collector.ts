@@ -15,10 +15,9 @@ import {
   IndexerTransactionList,
   IOType,
   Order,
-  GetTransactionRPCResult,
-  JsonRprRequestBody,
 } from "./type";
 import { CkbIndexer } from "./indexer";
+import { instanceOfScriptWrapper } from "./ckbIndexerFilter";
 import * as services from "./services";
 
 interface GetTransactionDetailResult {
@@ -42,6 +41,10 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     this.filterOptions = { ...defaultOptions, ...this.options };
   }
 
+  /**
+   * @deprecated
+   * @param CKBRpcUrl
+   */
   public static asBaseTransactionCollector(
     CKBRpcUrl: string
   ): typeof BaseTransactionCollector {
@@ -84,8 +87,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
 
     //if both lock and type, search search them in independent and then get intersection, GetTransactionsResults.lastCursor change to `${lockLastCursor}-${typeLastCursor}`
     if (
-      services.instanceOfScriptWrapper(queries.lock) &&
-      services.instanceOfScriptWrapper(queries.type)
+      instanceOfScriptWrapper(queries.lock) &&
+      instanceOfScriptWrapper(queries.type)
     ) {
       indexerTransactionList =
         await this.getTransactionByLockAndTypeIndependent(searchKeyFilter);
@@ -109,9 +112,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   public getResolvedTransactionRequestPayload(
     unresolvedTransactionList: TransactionWithStatus[],
     indexerTransactionList: IndexerTransactionList
-  ): JsonRprRequestBody[] {
-    const requestPayload: JsonRprRequestBody[] = [];
-    let resolvedTransactionRequestId = 0;
+  ): string[] {
+    const requestPayload: string[] = [];
     unresolvedTransactionList.forEach(
       (unresolvedTransaction: TransactionWithStatus, index: number) => {
         const indexerTransaction = indexerTransactionList.objects[index];
@@ -120,35 +122,16 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
             unresolvedTransaction.transaction.inputs[
               Number(indexerTransaction.ioIndex)
             ].previousOutput;
-          requestPayload.push({
-            id: resolvedTransactionRequestId++,
-            jsonrpc: "2.0",
-            method: "get_transaction",
-            params: [unresolvedOutPoint.txHash],
-          });
+          requestPayload.push(unresolvedOutPoint.txHash);
         }
       }
     );
     return requestPayload;
   }
 
-  public async fetchResolvedTransaction(
-    txIoTypeInputOutPointList: JsonRprRequestBody[]
-  ): Promise<GetTransactionRPCResult[]> {
-    let resolvedTransaction: GetTransactionRPCResult[] = [];
-    if (txIoTypeInputOutPointList.length <= 0) {
-      return resolvedTransaction;
-    }
-    resolvedTransaction = await services.requestBatch(
-      this.CKBRpcUrl,
-      txIoTypeInputOutPointList
-    );
-    return resolvedTransaction;
-  }
-
   public getResolvedCell(
     unresolvedTransaction: TransactionWithStatus,
-    resolvedTransactionList: GetTransactionRPCResult[],
+    resolvedTransactionList: TransactionWithStatus[],
     indexerTransaction: IndexerTransaction
   ): Output {
     if (indexerTransaction.ioType !== "input") {
@@ -161,13 +144,13 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
           Number(indexerTransaction.ioIndex)
         ].previousOutput;
       const resolvedTransaction = resolvedTransactionList.find((tx) => {
-        return tx.result.transaction.hash === unresolvedOutPoint.txHash;
+        return tx.transaction.hash === unresolvedOutPoint.txHash;
       });
       if (!resolvedTransaction) {
         throw new Error(`Impossible: can NOT find resolved transaction!`);
       }
       const resolvedCell =
-        resolvedTransaction.result.transaction.outputs[
+        resolvedTransaction.transaction.outputs[
           Number(unresolvedOutPoint.index)
         ];
       return resolvedCell;
@@ -175,9 +158,9 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   }
 
   //filter by ScriptWrapper.argsLen
-  public filterTransaction(
+  private filterTransaction(
     unresolvedTransactionList: TransactionWithStatus[],
-    resolvedTransactionList: GetTransactionRPCResult[],
+    resolvedTransactionList: TransactionWithStatus[],
     indexerTransactionList: IndexerTransactionList
   ): TransactionWithStatus[] {
     const filteredTransactionList = unresolvedTransactionList.filter(
@@ -227,9 +210,11 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       unresolvedTransactionList,
       indexerTransactionList
     );
-    const resolvedTransactionList = await this.fetchResolvedTransaction(
-      requestPayload
-    );
+    const resolvedTransactionList =
+      await services.requestBatchTransactionWithStatus(
+        this.CKBRpcUrl,
+        requestPayload
+      );
     const objects = this.filterTransaction(
       unresolvedTransactionList,
       resolvedTransactionList,
@@ -293,30 +278,22 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     indexerTransactionList: IndexerTransactionList
   ) => {
     const getDetailRequestData = indexerTransactionList.objects.map(
-      (hashItem: IndexerTransaction, index: number) => {
-        return {
-          id: index,
-          jsonrpc: "2.0",
-          method: "get_transaction",
-          params: [hashItem.txHash],
-        };
+      (hashItem: IndexerTransaction) => {
+        return hashItem.txHash;
       }
     );
+
     const transactionList: TransactionWithStatus[] = await services
-      .requestBatch(this.CKBRpcUrl, getDetailRequestData)
-      .then((response: GetTransactionRPCResult[]) => {
-        return response.map(
-          (item: GetTransactionRPCResult): TransactionWithStatus => {
-            if (!this.filterOptions.skipMissing && !item.result) {
-              throw new Error(
-                `Transaction ${
-                  indexerTransactionList.objects[item.id].txHash
-                } is missing!`
-              );
-            }
-            return { ...item.result };
+      .requestBatchTransactionWithStatus(this.CKBRpcUrl, getDetailRequestData)
+      .then((response) => {
+        return response.map((item, index) => {
+          if (!this.filterOptions.skipMissing && !item.transaction) {
+            throw new Error(
+              `Transaction ${indexerTransactionList.objects[index].txHash} is missing!`
+            );
           }
-        );
+          return item;
+        });
       });
     return transactionList;
   };
@@ -334,7 +311,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   // only valid after pass flow three validate
   private isCellScriptArgsValid = (targetCell: Output) => {
     if (this.queries.lock) {
-      const lockArgsLen = services.instanceOfScriptWrapper(this.queries.lock)
+      const lockArgsLen = instanceOfScriptWrapper(this.queries.lock)
         ? this.queries.lock.argsLen
         : this.queries.argsLen;
       if (!this.isLockArgsLenMatched(targetCell.lock.args, lockArgsLen)) {
@@ -343,7 +320,7 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     }
 
     if (this.queries.type && this.queries.type !== "empty") {
-      const typeArgsLen = services.instanceOfScriptWrapper(this.queries.type)
+      const typeArgsLen = instanceOfScriptWrapper(this.queries.type)
         ? this.queries.type.argsLen
         : this.queries.argsLen;
       if (!this.isLockArgsLenMatched(targetCell.type?.args, typeArgsLen)) {
@@ -381,10 +358,10 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     queries: CKBIndexerQueryOptions
   ) => {
     let result = inputResult;
-    if (services.instanceOfScriptWrapper(queries.lock) && queries.lock.ioType) {
+    if (instanceOfScriptWrapper(queries.lock) && queries.lock.ioType) {
       result = this.filterByIoType(result, queries.lock.ioType);
     }
-    if (services.instanceOfScriptWrapper(queries.type) && queries.type.ioType) {
+    if (instanceOfScriptWrapper(queries.type) && queries.type.ioType) {
       result = this.filterByIoType(result, queries.type.ioType);
     }
     return result;

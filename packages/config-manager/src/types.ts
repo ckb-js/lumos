@@ -1,7 +1,7 @@
 /** Deployed script on chain */
 export interface ScriptConfig {
   CODE_HASH: string;
-  HASH_TYPE: "type" | "data";
+  HASH_TYPE: "type" | "data" | "data1";
   TX_HASH: string;
   INDEX: string;
   DEP_TYPE: "depGroup" | "code";

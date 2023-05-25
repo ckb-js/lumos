@@ -21,8 +21,7 @@
     "start-e2e-node": "(nohup docker-compose -f ./docker/docker-compose.yml up -d)",
     "stop-e2e-node": "(nohup docker-compose -f ./docker/docker-compose.yml down)",
     "e2e-test": "ava **/*.e2e.test.ts --timeout=10m",
-    "test:e2e": "run-s start-e2e-node e2e-test stop-e2e-node",
-    "testruns": "npm run -s echo a & echo b"
+    "test:e2e": "run-s start-e2e-node e2e-test stop-e2e-node"
   },
   "ava": {
     "extensions": [

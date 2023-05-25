@@ -115,6 +115,7 @@ packages/rpc/lib
 packages/bi/lib
 packages/experiment-tx-assembler/lib
 packages/molecule/lib
+packages/transaction-manager/lib
 
 # knex config
 packages/sql-indexer/knexfile.ts
@@ -124,3 +125,4 @@ experiment/*/lib
 # IDE or environment specific files
 .idea
 .parcel-cache
+.DS_Store
