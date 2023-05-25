@@ -91,7 +91,7 @@ export function createCKBMockRPC(options: Options): Express {
     }
     return {
       transaction: result,
-      tx_status: { status: "padding", block_hash: blockHash },
+      tx_status: { status: "pending", block_hash: blockHash },
     };
   });
 
