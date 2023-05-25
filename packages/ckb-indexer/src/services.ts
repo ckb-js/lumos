@@ -71,7 +71,8 @@ const getHexStringBytes = (hexString: HexString): number => {
 };
 
 let id = 0;
-/* istanbul ignore next */
+// will be tested in e2e
+/* c8 ignore next 25 */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function requestBatch<T = any>(
   rpcUrl: string,
@@ -99,7 +100,7 @@ async function requestBatch<T = any>(
   return result;
 }
 
-/* istanbul ignore next */
+/* c8 ignore next 23 */
 async function requestBatchTransactionWithStatus(
   rpcUrl: string,
   txHashes: string[]
