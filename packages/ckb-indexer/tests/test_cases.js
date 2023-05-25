@@ -7079,7 +7079,7 @@ const transactionByLock = [
     },
     txStatus: {
       blockHash: '0x92b197aa1fba0f63633922c61c92375c9c074a93e85963554f5499fe1450d0e5',
-      status: 'padding',
+      status: 'pending',
     }
   },
   {
@@ -7115,7 +7115,7 @@ const transactionByLock = [
     },
     txStatus: {
       blockHash: '0x7bb56e1288a1de98bab23d3e0ec7728634b6626ab03cc119ec23005a82ff12ff',
-      status: 'padding',
+      status: 'pending',
     }
   },
   {
@@ -7151,7 +7151,7 @@ const transactionByLock = [
     },
     txStatus: {
       blockHash: '0x21d6e5b949392186a6510c57da615f086f779b713a7f3d54c82a07d443e85c5d',
-      status: 'padding',
+      status: 'pending',
     }
   },
   {
@@ -7187,7 +7187,7 @@ const transactionByLock = [
     },
     txStatus: {
       blockHash: '0x3ea3a5122344ceb335ff776dbfa5f3e5a06b6edd965414f287f0d57f92304c89',
-      status: 'padding',
+      status: 'pending',
     }
   },
   {
@@ -7223,7 +7223,7 @@ const transactionByLock = [
     },
     txStatus: {
       blockHash: '0x1255b3b013addc93fb0301ad2a4150d15e6c1a1c4badbc653fc821b127a37929',
-      status: 'padding',
+      status: 'pending',
     }
   },
   {
@@ -7259,7 +7259,7 @@ const transactionByLock = [
     },
     txStatus: {
       blockHash: '0x2c96b715a2e2fe5602d518d75bc4912e6be16f34d9f1f2f420ff6e6de40c9379',
-      status: 'padding',
+      status: 'pending',
     }
   },
   {
@@ -7295,7 +7295,7 @@ const transactionByLock = [
     },
     txStatus: {
       blockHash: '0x02bfadbf60172d77af71ad141536d14f5ba191b40b5cffb2b2e7905459e8d500',
-      status: 'padding',
+      status: 'pending',
     }
   },
 ]
@@ -7378,10 +7378,10 @@ const transactionsByType = [
       "witnesses": [
         "0x55000000100000005500000055000000410000008b182319299acf5ba26e0d1f38854c69243a2fc8614ebbe813e87b24b2b9aafc35a11be33d65fcd2a3850d37cdb12c61a1693e8ea96e1a9a4a8aeebed297784a00"
       ]
-    }, 
+    },
     txStatus: {
       blockHash: '0x4cc7b42c12e0ed1c87c3ced726e419ba19f755be1739097d6758b6bf60c654ad',
-      status: 'padding',
+      status: 'pending',
     }
   },
   {
@@ -7445,7 +7445,7 @@ const transactionsByType = [
     },
     txStatus: {
       blockHash: '0xd4b10e5af3dac133888f47baeda057f7760fb4f81b2f4dc03a29c228c7dba7a0',
-      status: 'padding',
+      status: 'pending',
     }
   }
 ];
@@ -7512,7 +7512,7 @@ const transactionsByLockAndType = [
     },
     txStatus: {
       blockHash: '0xd4b10e5af3dac133888f47baeda057f7760fb4f81b2f4dc03a29c228c7dba7a0',
-      status: 'padding',
+      status: 'pending',
     }
   }
 ];

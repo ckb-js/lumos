@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import { LocalNode, Block, utils, blockchain } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
 interface Options {
+  // FIXME it actually is RPCBlock
   blocks: Block[];
   localNode: LocalNode;
   // defaults to /rpc
@@ -90,7 +91,7 @@ export function createCKBMockRPC(options: Options): Express {
     }
     return {
       transaction: result,
-      txStatus: { status: "padding", blockHash: blockHash },
+      tx_status: { status: "pending", block_hash: blockHash },
     };
   });
 
@@ -100,8 +101,8 @@ export function createCKBMockRPC(options: Options): Express {
       chain: "ckb_testnet",
       difficulty: "0x1b6f506b",
       epoch: "0x708069a000cc5",
-      isInitialBlockDownload: false,
-      medianTime: "0x17d3723d27d",
+      is_initial_block_download: false,
+      median_time: "0x17d3723d27d",
     };
   });
 

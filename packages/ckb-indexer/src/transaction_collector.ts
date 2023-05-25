@@ -15,8 +15,6 @@ import {
   IndexerTransactionList,
   IOType,
   Order,
-  GetTransactionRPCResult,
-  JsonRprRequestBody,
 } from "./type";
 import { CkbIndexer } from "./indexer";
 import { instanceOfScriptWrapper } from "./ckbIndexerFilter";
@@ -43,6 +41,10 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     this.filterOptions = { ...defaultOptions, ...this.options };
   }
 
+  /**
+   * @deprecated
+   * @param CKBRpcUrl
+   */
   public static asBaseTransactionCollector(
     CKBRpcUrl: string
   ): typeof BaseTransactionCollector {
@@ -110,9 +112,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   public getResolvedTransactionRequestPayload(
     unresolvedTransactionList: TransactionWithStatus[],
     indexerTransactionList: IndexerTransactionList
-  ): JsonRprRequestBody[] {
-    const requestPayload: JsonRprRequestBody[] = [];
-    let resolvedTransactionRequestId = 0;
+  ): string[] {
+    const requestPayload: string[] = [];
     unresolvedTransactionList.forEach(
       (unresolvedTransaction: TransactionWithStatus, index: number) => {
         const indexerTransaction = indexerTransactionList.objects[index];
@@ -121,35 +122,16 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
             unresolvedTransaction.transaction.inputs[
               Number(indexerTransaction.ioIndex)
             ].previousOutput;
-          requestPayload.push({
-            id: resolvedTransactionRequestId++,
-            jsonrpc: "2.0",
-            method: "get_transaction",
-            params: [unresolvedOutPoint.txHash],
-          });
+          requestPayload.push(unresolvedOutPoint.txHash);
         }
       }
     );
     return requestPayload;
   }
 
-  public async fetchResolvedTransaction(
-    txIoTypeInputOutPointList: JsonRprRequestBody[]
-  ): Promise<GetTransactionRPCResult[]> {
-    let resolvedTransaction: GetTransactionRPCResult[] = [];
-    if (txIoTypeInputOutPointList.length <= 0) {
-      return resolvedTransaction;
-    }
-    resolvedTransaction = await services.requestBatch(
-      this.CKBRpcUrl,
-      txIoTypeInputOutPointList
-    );
-    return resolvedTransaction;
-  }
-
   public getResolvedCell(
     unresolvedTransaction: TransactionWithStatus,
-    resolvedTransactionList: GetTransactionRPCResult[],
+    resolvedTransactionList: TransactionWithStatus[],
     indexerTransaction: IndexerTransaction
   ): Output {
     if (indexerTransaction.ioType !== "input") {
@@ -162,13 +144,13 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
           Number(indexerTransaction.ioIndex)
         ].previousOutput;
       const resolvedTransaction = resolvedTransactionList.find((tx) => {
-        return tx.result.transaction.hash === unresolvedOutPoint.txHash;
+        return tx.transaction.hash === unresolvedOutPoint.txHash;
       });
       if (!resolvedTransaction) {
         throw new Error(`Impossible: can NOT find resolved transaction!`);
       }
       const resolvedCell =
-        resolvedTransaction.result.transaction.outputs[
+        resolvedTransaction.transaction.outputs[
           Number(unresolvedOutPoint.index)
         ];
       return resolvedCell;
@@ -176,9 +158,9 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
   }
 
   //filter by ScriptWrapper.argsLen
-  public filterTransaction(
+  private filterTransaction(
     unresolvedTransactionList: TransactionWithStatus[],
-    resolvedTransactionList: GetTransactionRPCResult[],
+    resolvedTransactionList: TransactionWithStatus[],
     indexerTransactionList: IndexerTransactionList
   ): TransactionWithStatus[] {
     const filteredTransactionList = unresolvedTransactionList.filter(
@@ -228,9 +210,11 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
       unresolvedTransactionList,
       indexerTransactionList
     );
-    const resolvedTransactionList = await this.fetchResolvedTransaction(
-      requestPayload
-    );
+    const resolvedTransactionList =
+      await services.requestBatchTransactionWithStatus(
+        this.CKBRpcUrl,
+        requestPayload
+      );
     const objects = this.filterTransaction(
       unresolvedTransactionList,
       resolvedTransactionList,
@@ -294,30 +278,22 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
     indexerTransactionList: IndexerTransactionList
   ) => {
     const getDetailRequestData = indexerTransactionList.objects.map(
-      (hashItem: IndexerTransaction, index: number) => {
-        return {
-          id: index,
-          jsonrpc: "2.0",
-          method: "get_transaction",
-          params: [hashItem.txHash],
-        };
+      (hashItem: IndexerTransaction) => {
+        return hashItem.txHash;
       }
     );
+
     const transactionList: TransactionWithStatus[] = await services
-      .requestBatch(this.CKBRpcUrl, getDetailRequestData)
-      .then((response: GetTransactionRPCResult[]) => {
-        return response.map(
-          (item: GetTransactionRPCResult): TransactionWithStatus => {
-            if (!this.filterOptions.skipMissing && !item.result) {
-              throw new Error(
-                `Transaction ${
-                  indexerTransactionList.objects[item.id].txHash
-                } is missing!`
-              );
-            }
-            return { ...item.result };
+      .requestBatchTransactionWithStatus(this.CKBRpcUrl, getDetailRequestData)
+      .then((response) => {
+        return response.map((item, index) => {
+          if (!this.filterOptions.skipMissing && !item.transaction) {
+            throw new Error(
+              `Transaction ${indexerTransactionList.objects[index].txHash} is missing!`
+            );
           }
-        );
+          return item;
+        });
       });
     return transactionList;
   };
