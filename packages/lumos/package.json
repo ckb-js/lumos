@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/lumos",
-  "version": "0.20.0-alpha.2",
+  "version": "0.20.0-alpha.3",
   "description": "A root package for Lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -36,15 +36,15 @@
     "url": "https://github.com/ckb-js/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0-alpha.2",
-    "@ckb-lumos/bi": "0.20.0-alpha.2",
-    "@ckb-lumos/ckb-indexer": "0.20.0-alpha.2",
-    "@ckb-lumos/common-scripts": "0.20.0-alpha.2",
-    "@ckb-lumos/config-manager": "0.20.0-alpha.2",
-    "@ckb-lumos/hd": "0.20.0-alpha.2",
-    "@ckb-lumos/helpers": "0.20.0-alpha.2",
-    "@ckb-lumos/rpc": "0.20.0-alpha.2",
-    "@ckb-lumos/toolkit": "0.20.0-alpha.2"
+    "@ckb-lumos/base": "0.20.0-alpha.3",
+    "@ckb-lumos/bi": "0.20.0-alpha.3",
+    "@ckb-lumos/ckb-indexer": "0.20.0-alpha.3",
+    "@ckb-lumos/common-scripts": "0.20.0-alpha.3",
+    "@ckb-lumos/config-manager": "0.20.0-alpha.3",
+    "@ckb-lumos/hd": "0.20.0-alpha.3",
+    "@ckb-lumos/helpers": "0.20.0-alpha.3",
+    "@ckb-lumos/rpc": "0.20.0-alpha.3",
+    "@ckb-lumos/toolkit": "0.20.0-alpha.3"
   },
   "devDependencies": {
     "buffer": "^6.0.3",

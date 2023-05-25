@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.20.0-alpha.3](https://github.com/ckb-js/lumos/compare/v0.19.0...v0.20.0-alpha.3) (2023-05-25)
+
+
+### Features
+
+* **ckb-indexer:** fix loadCells DoS vuln. Support the exact search mode ([#491](https://github.com/ckb-js/lumos/issues/491)) ([e73ca05](https://github.com/ckb-js/lumos/commit/e73ca0502b0feb3e98be848f76325a912052d0f0))
+* **rpc:** support rpc runs on service worker ([#493](https://github.com/ckb-js/lumos/issues/493)) ([72830ef](https://github.com/ckb-js/lumos/commit/72830ef3eb85d49b3b77bc37ecbdc58ada2d380c))
+* **rpc:** update rpc methods ([#512](https://github.com/ckb-js/lumos/issues/512)) ([74e1c05](https://github.com/ckb-js/lumos/commit/74e1c054c0abda53a21a1cafe74e950be33a01d2))
+
+
+
+
+
 # [0.20.0-alpha.2](https://github.com/ckb-js/lumos/compare/v0.19.0...v0.20.0-alpha.2) (2023-04-04)
 
 

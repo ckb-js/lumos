@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/e2e-test",
-  "version": "0.20.0-alpha.2",
+  "version": "0.20.0-alpha.3",
   "description": "CKB E2E test",
   "private": true,
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -16,15 +16,15 @@
     "test": "tests"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0-alpha.2",
-    "@ckb-lumos/bi": "0.20.0-alpha.2",
-    "@ckb-lumos/ckb-indexer": "0.20.0-alpha.2",
-    "@ckb-lumos/rpc": "0.20.0-alpha.2",
-    "@ckb-lumos/toolkit": "0.20.0-alpha.2",
+    "@ckb-lumos/base": "0.20.0-alpha.3",
+    "@ckb-lumos/bi": "0.20.0-alpha.3",
+    "@ckb-lumos/ckb-indexer": "0.20.0-alpha.3",
+    "@ckb-lumos/rpc": "0.20.0-alpha.3",
+    "@ckb-lumos/toolkit": "0.20.0-alpha.3",
     "events": "^3.3.0"
   },
   "devDependencies": {
-    "@ckb-lumos/testkit": "0.20.0-alpha.2",
+    "@ckb-lumos/testkit": "0.20.0-alpha.3",
     "@types/request": "^2.48.8",
     "@types/sinon": "^10.0.6",
     "find-process": "^1.4.7",
