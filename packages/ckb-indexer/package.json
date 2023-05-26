@@ -40,10 +40,7 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "stop-e2e-node": "ts-node tests/close-mock-server-and-ckb-indexer.ts",
-    "start-e2e-node": "(nohup ts-node tests/start_mock_rpc.ts &) ; (sleep 5) ; (nohup ts-node tests/start_ckb_indexer.ts &) ; (sleep 10)",
-    "e2e-test": "ava **/*.e2e.test.ts --timeout=2m",
-    "test:e2e": "run-s start-e2e-node e2e-test stop-e2e-node",
+    "test:e2e": "ts-node scripts/e2e-test.ts",
     "test": "ava **/*.unit.test.ts --timeout=2m",
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
