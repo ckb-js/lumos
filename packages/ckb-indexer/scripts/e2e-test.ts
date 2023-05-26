@@ -43,6 +43,7 @@ async function main() {
 
   execSync("ava '**/*.e2e.test.ts' --timeout=2m", {
     cwd: pathTo("/"),
+    stdio: "inherit",
   });
 
   ckbProcess.kill();

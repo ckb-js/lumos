@@ -46,7 +46,8 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           npm run build
-          docker-compose -f ./packages/e2e-test/docker/docker-compose.yml build
+#          TODO uncomment me
+#          docker-compose -f ./packages/e2e-test/docker/docker-compose.yml build
       - name: e2e test
         run: npm run e2e-test
 
