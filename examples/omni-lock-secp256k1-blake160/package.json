@@ -10,7 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/lumos": "0.20.0-alpha.1",
+    "@ckb-lumos/lumos": "0.20.0-alpha.3",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "react": "18.2.0",

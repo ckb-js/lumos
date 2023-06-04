@@ -19,11 +19,11 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@ckb-lumos/lumos": "0.20.0-alpha.2",
-    "@ckb-lumos/codec": "0.20.0-alpha.2",
-    "@ckb-lumos/molecule": "0.20.0-alpha.2",
-    "@ckb-lumos/base": "0.20.0-alpha.2",
-    "@ckb-lumos/bi": "0.20.0-alpha.2",
+    "@ckb-lumos/lumos": "0.20.0-alpha.3",
+    "@ckb-lumos/codec": "0.20.0-alpha.3",
+    "@ckb-lumos/molecule": "0.20.0-alpha.3",
+    "@ckb-lumos/base": "0.20.0-alpha.3",
+    "@ckb-lumos/bi": "0.20.0-alpha.3",
     "@docusaurus/core": "^2.4.0",
     "@docusaurus/preset-classic": "^2.4.0",
     "@docusaurus/theme-common": "^2.4.0",

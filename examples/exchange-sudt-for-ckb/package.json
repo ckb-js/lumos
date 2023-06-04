@@ -13,7 +13,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@ckb-lumos/lumos": "0.20.0-alpha.1",
+    "@ckb-lumos/lumos": "0.20.0-alpha.3",
     "bulma": "^0.9.4",
     "immutable": "^4.3.0",
     "react-use": "^17.4.0",

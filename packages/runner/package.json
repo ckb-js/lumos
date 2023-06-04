@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/runner",
-  "version": "0.20.0-alpha.2",
+  "version": "0.20.0-alpha.3",
   "description": "CKB related binary helper",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "bugs": {
@@ -43,7 +43,7 @@
     ]
   },
   "dependencies": {
-    "@ckb-lumos/utils": "0.20.0-alpha.2",
+    "@ckb-lumos/utils": "0.20.0-alpha.3",
     "@ltd/j-toml": "^1.38.0",
     "@types/detect-port": "^1.3.3",
     "@types/download": "^8.0.1",
