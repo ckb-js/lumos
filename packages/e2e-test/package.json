@@ -43,7 +43,9 @@
     "@ckb-lumos/runner": "0.20.0-alpha.3",
     "@ckb-lumos/toolkit": "0.20.0-alpha.3",
     "@ckb-lumos/utils": "0.20.0-alpha.3",
-    "events": "^3.3.0"
+    "@types/kill-port": "^2.0.0",
+    "events": "^3.3.0",
+    "kill-port": "^2.0.1"
   },
   "devDependencies": {
     "@ckb-lumos/testkit": "0.20.0-alpha.3",

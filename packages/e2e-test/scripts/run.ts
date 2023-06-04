@@ -4,6 +4,7 @@ import { mkdirSync, rmSync } from "node:fs";
 import { retry } from "@ckb-lumos/utils";
 import { RPC } from "@ckb-lumos/rpc";
 import { LightClientRPC } from "@ckb-lumos/light-client";
+import killPort from "kill-port";
 import {
   ckb,
   download,
@@ -13,6 +14,7 @@ import {
 import {
   CKB_RPC_PORT,
   CKB_RPC_URL,
+  LIGHT_CLIENT_RPC_PORT,
   LIGHT_CLIENT_RPC_URL,
 } from "../src/constants";
 
@@ -25,6 +27,10 @@ function pathTo(subPath: string): string {
 }
 
 async function main() {
+  await killPort(CKB_RPC_PORT).catch(() => {});
+  await killPort(LIGHT_CLIENT_RPC_PORT).catch(() => {});
+  await killPort(8118).catch(() => {});
+
   rmSync(CKB_CWD, { recursive: true, force: true });
   rmSync(LIGHT_CLIENT_CWD, { recursive: true, force: true });
   mkdirSync(CKB_CWD, { recursive: true });
