@@ -1,0 +1,64 @@
+{
+  "name": "@ckb-lumos/runner",
+  "version": "0.20.0-alpha.2",
+  "description": "CKB related binary helper",
+  "homepage": "https://github.com/ckb-js/lumos#readme",
+  "bugs": {
+    "url": "https://github.com/ckb-js/lumos/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckb-js/lumos.git"
+  },
+  "license": "MIT",
+  "author": "",
+  "sideEffects": false,
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "scripts": {
+    "build": "npm run build:types && npm run build:js",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "clean": "rm -rf lib",
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "prepublishOnly": "npm run clean && npm run build",
+    "release": "npm publish",
+    "test": "ava **/*.test.ts --timeout=2m"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "dependencies": {
+    "@ckb-lumos/utils": "0.20.0-alpha.2",
+    "@ltd/j-toml": "^1.38.0",
+    "@types/detect-port": "^1.3.3",
+    "@types/download": "^8.0.1",
+    "@types/env-paths": "^2.1.0",
+    "@types/proper-lockfile": "^4.1.2",
+    "detect-port": "^1.5.1",
+    "download": "^8.0.0",
+    "env-paths": "^2.2.1",
+    "hpagent": "^1.2.0",
+    "proper-lockfile": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
