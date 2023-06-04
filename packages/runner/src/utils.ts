@@ -1,7 +1,9 @@
 import { parse, join } from "node:path";
-import { readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 
 export function findFileSync(path: string, target: string): string | undefined {
+  if (!existsSync(path)) return undefined;
+
   const stats = statSync(path);
   const parsed = parse(path);
 
