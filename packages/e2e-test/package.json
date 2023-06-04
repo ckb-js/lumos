@@ -18,10 +18,8 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "start-e2e-node": "(nohup docker-compose -f ./docker/docker-compose.yml up -d)",
-    "stop-e2e-node": "(nohup docker-compose -f ./docker/docker-compose.yml down)",
     "e2e-test": "ava **/*.e2e.test.ts --timeout=10m",
-    "test:e2e": "run-s start-e2e-node e2e-test stop-e2e-node"
+    "test:e2e": "npx ts-node scripts/run.ts"
   },
   "ava": {
     "extensions": [
@@ -42,9 +40,10 @@
     "@ckb-lumos/helpers": "0.20.0-alpha.2",
     "@ckb-lumos/light-client": "0.20.0-alpha.2",
     "@ckb-lumos/rpc": "0.20.0-alpha.2",
+    "@ckb-lumos/runner": "0.20.0-alpha.2",
     "@ckb-lumos/toolkit": "0.20.0-alpha.2",
-    "events": "^3.3.0",
-    "lodash": "^4.17.21"
+    "@ckb-lumos/utils": "0.20.0-alpha.2",
+    "events": "^3.3.0"
   },
   "devDependencies": {
     "@ckb-lumos/testkit": "0.20.0-alpha.2",

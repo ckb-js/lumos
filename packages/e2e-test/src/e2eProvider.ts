@@ -114,7 +114,8 @@ export class E2EProvider {
       await this.waitTransactionCommitted(txHash);
       onRelease();
       return txHash;
-    } catch {
+    } catch (e) {
+      console.error(e);
       onRelease();
       await asyncSleep(3000);
       return this.claimCKB(options);

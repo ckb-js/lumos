@@ -20,6 +20,7 @@ const scopeEnumValues = [
   "debugger",
   "utils",
   "runner",
+  "e2e-test",
 ];
 const Configuration = {
   extends: ["@commitlint/config-conventional"],

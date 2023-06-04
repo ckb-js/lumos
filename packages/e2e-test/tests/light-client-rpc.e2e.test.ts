@@ -3,7 +3,7 @@ import { asyncSleep, randomSecp256k1Account, Account } from "../src/utils";
 import { CKB_RPC_URL, LIGHT_CLIENT_RPC_URL } from "../src/constants";
 import { E2EProvider } from "../src/e2eProvider";
 import { FileFaucetQueue } from "../src/faucetQueue";
-import { Cell } from "@ckb-lumos/base";
+import { Cell, Script } from "@ckb-lumos/base";
 import { Config } from "@ckb-lumos/config-manager";
 import { RPC } from "@ckb-lumos/rpc";
 import { common } from "@ckb-lumos/common-scripts";
@@ -16,7 +16,12 @@ import {
 } from "@ckb-lumos/ckb-indexer";
 import { LightClientRPC } from "@ckb-lumos/light-client";
 import { FetchFlag } from "@ckb-lumos/light-client/lib/type";
-import { isEqual } from "lodash";
+
+function isEqual(a: Script, b: Script) {
+  return (
+    a.codeHash === b.codeHash && a.hashType === b.hashType && a.args === b.args
+  );
+}
 
 interface TestContext {
   accounts: Record<
