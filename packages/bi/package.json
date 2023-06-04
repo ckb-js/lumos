@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/bi",
-  "version": "0.20.0-alpha.2",
+  "version": "0.20.0-alpha.3",
   "description": "Bigint support in lumos",
   "author": "",
   "homepage": "https://github.com/ckb-js/lumos#readme",
