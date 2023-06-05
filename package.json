@@ -32,11 +32,11 @@
     "shx": "^0.3.4",
     "sinon": "^15.0.4",
     "ts-node": "^10.9.1",
-    "typedoc": "^0.17.7",
+    "typedoc": "^0.24.8",
     "typescript": "5.0.4"
   },
   "scripts": {
-    "docs": "typedoc .",
+    "docs": "typedoc",
     "prepare": "husky install",
     "test": "lerna run test --parallel",
     "e2e-test": "npm run e2e-indexer && npm run integration-test",

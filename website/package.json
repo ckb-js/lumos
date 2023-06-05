@@ -8,7 +8,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build-lumos": "cd .. && yarn install && npm run build && npm run docs",
+    "build-lumos": "cd .. && pnpm install && npm run build && npm run docs",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
@@ -19,14 +19,14 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@ckb-lumos/lumos": "0.20.0-alpha.3",
-    "@ckb-lumos/codec": "0.20.0-alpha.3",
-    "@ckb-lumos/molecule": "0.20.0-alpha.3",
     "@ckb-lumos/base": "0.20.0-alpha.3",
     "@ckb-lumos/bi": "0.20.0-alpha.3",
-    "@docusaurus/core": "^2.4.0",
-    "@docusaurus/preset-classic": "^2.4.0",
-    "@docusaurus/theme-common": "^2.4.0",
+    "@ckb-lumos/codec": "0.20.0-alpha.3",
+    "@ckb-lumos/lumos": "0.20.0-alpha.3",
+    "@ckb-lumos/molecule": "0.20.0-alpha.3",
+    "@docusaurus/core": "^2.4.1",
+    "@docusaurus/preset-classic": "^2.4.1",
+    "@docusaurus/theme-common": "^2.4.1",
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
     "@mdx-js/react": "^1.6.22",
@@ -40,7 +40,7 @@
     "react-json-tree": "^0.17.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^2.4.0",
+    "@docusaurus/module-type-aliases": "^2.4.1",
     "@tsconfig/docusaurus": "^1.0.5",
     "@types/numeral": "^2.0.2",
     "eslint-plugin-react": "^7.30.1",

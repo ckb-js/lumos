@@ -1,0 +1,5 @@
+{
+  "framework": "docusaurus-2",
+  "installCommand": "pnpm install",
+  "buildCommand": "npm run build-lumos && npm run build"
+}

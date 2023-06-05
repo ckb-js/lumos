@@ -15,7 +15,6 @@ export function getDefaultDownloadDestination(url: string): string {
 }
 
 /**
- * @internal
  * @param url download URL
  * @param options
  */
@@ -24,7 +23,6 @@ export function download(
   options?: DownloadOptions
 ): Promise<string>;
 /**
- * @internal
  * @param url download URL
  * @param destination download destination directory
  * @param options
@@ -35,7 +33,6 @@ export function download(
   options?: DownloadOptions
 ): Promise<string>;
 /**
- * @internal
  * @param url
  * @param destinationOrOptions
  */
