@@ -1,0 +1,29 @@
+{
+  "name": "@ckb-lumos/bundler",
+  "version": "0.20.0-alpha.3",
+  "homepage": "https://github.com/ckb-js/lumos#readme",
+  "bugs": {
+    "url": "https://github.com/ckb-js/lumos/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckb-js/lumos.git"
+  },
+  "license": "MIT",
+  "author": "",
+  "scripts": {
+    "bundle-stats": "webpack --profile --json > stats.json",
+    "bundle-analyze": "webpack-bundle-analyzer stats.json"
+  },
+  "dependencies": {
+    "@ckb-lumos/lumos": "0.20.0-alpha.3",
+    "@types/webpack-bundle-analyzer": "^4.6.0",
+    "buffer": "^6.0.3",
+    "fork-ts-checker-webpack-plugin": "^6.4.0",
+    "ts-loader": "^9.4.3",
+    "unminified-webpack-plugin": "^3.0.0",
+    "webpack": "^5.64.1",
+    "webpack-bundle-analyzer": "^4.9.0",
+    "webpack-cli": "^4.9.1"
+  }
+}
