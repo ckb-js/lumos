@@ -1,7 +1,7 @@
-import crypto from "crypto";
 import { ec as EC } from "elliptic";
 import BN from "bn.js";
 import { privateToPublic } from "./key";
+import { createHash, createHmac } from "./crypto";
 
 const ec = new EC("secp256k1");
 
@@ -12,11 +12,11 @@ export default class Keychain {
   privateKey: Buffer = EMPTY_BUFFER;
   publicKey: Buffer = EMPTY_BUFFER;
   chainCode: Buffer = EMPTY_BUFFER;
-  index: number = 0;
-  depth: number = 0;
+  index = 0;
+  depth = 0;
   identifier: Buffer = EMPTY_BUFFER;
-  fingerprint: number = 0;
-  parentFingerprint: number = 0;
+  fingerprint = 0;
+  parentFingerprint = 0;
 
   constructor(privateKey: Buffer, chainCode: Buffer) {
     this.privateKey = privateKey;
@@ -33,11 +33,13 @@ export default class Keychain {
   }
 
   public static fromSeed(seed: Buffer): Keychain {
-    const i = crypto
-      .createHmac("sha512", Buffer.from("Bitcoin seed", "utf8"))
+    const i = createHmac("sha512", Buffer.from("Bitcoin seed", "utf8"))
       .update(seed)
       .digest();
-    const keychain = new Keychain(i.slice(0, 32), i.slice(32));
+    const keychain = new Keychain(
+      Buffer.from(i.slice(0, 32)),
+      Buffer.from(i.slice(32))
+    );
     keychain.calculateFingerprint();
     return keychain;
   }
@@ -47,7 +49,7 @@ export default class Keychain {
   public static fromPublicKey(
     publicKey: Buffer,
     chainCode: Buffer,
-    path: String
+    path: string
   ): Keychain {
     const keychain = new Keychain(EMPTY_BUFFER, chainCode);
     keychain.publicKey = publicKey;
@@ -74,7 +76,9 @@ export default class Keychain {
       data = Buffer.concat([this.publicKey, indexBuffer]);
     }
 
-    const i = crypto.createHmac("sha512", this.chainCode).update(data).digest();
+    const i = Buffer.from(
+      createHmac("sha512", this.chainCode).update(data).digest()
+    );
     const il = i.slice(0, 32);
     const ir = i.slice(32);
 
@@ -102,6 +106,7 @@ export default class Keychain {
       return this;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let bip32: Keychain = this;
 
     let entries = path.split("/");
@@ -117,13 +122,13 @@ export default class Keychain {
     return bip32;
   }
 
-  isNeutered(): Boolean {
+  isNeutered(): boolean {
     return this.privateKey === EMPTY_BUFFER;
   }
 
   hash160(data: Buffer): Buffer {
-    const sha256 = crypto.createHash("sha256").update(data).digest();
-    return crypto.createHash("ripemd160").update(sha256).digest();
+    const sha256 = createHash("sha256").update(data).digest();
+    return Buffer.from(createHash("ripemd160").update(sha256).digest());
   }
 
   private static privateKeyAdd(privateKey: Buffer, factor: Buffer): Buffer {

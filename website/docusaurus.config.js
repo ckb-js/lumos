@@ -67,7 +67,6 @@ const config = {
         return {
           resolve: {
             fallback: {
-              crypto: require.resolve("crypto-browserify"),
               buffer: require.resolve("buffer/"),
               path: false,
               fs: false,
