@@ -1,9 +1,9 @@
-import crypto from "crypto";
 import { Keccak } from "sha3";
 import { v4 as uuid } from "uuid";
 import { ExtendedPrivateKey } from "./extended_key";
 import { HexString } from "@ckb-lumos/base";
 import { syncScrypt } from "scrypt-js";
+import { createCipheriv, createDecipheriv, randomBytes } from "./crypto";
 
 export type HexStringWithoutPrefix = string;
 
@@ -123,8 +123,8 @@ export default class Keystore {
 
   // Create an empty keystore object that contains empty private key
   static createEmpty(): Keystore {
-    const salt: Buffer = crypto.randomBytes(32);
-    const iv: Buffer = crypto.randomBytes(16);
+    const salt: Buffer = Buffer.from(randomBytes(32));
+    const iv: Buffer = Buffer.from(randomBytes(16));
     const kdfparams: KdfParams = {
       dklen: 32,
       salt: salt.toString("hex"),
@@ -152,8 +152,8 @@ export default class Keystore {
     password: string,
     options: { salt?: Buffer; iv?: Buffer } = {}
   ): Keystore {
-    const salt: Buffer = options.salt || crypto.randomBytes(32);
-    const iv: Buffer = options.iv || crypto.randomBytes(16);
+    const salt: Buffer = options.salt || Buffer.from(randomBytes(32));
+    const iv: Buffer = options.iv || Buffer.from(randomBytes(16));
     const kdfparams: KdfParams = {
       dklen: 32,
       salt: salt.toString("hex"),
@@ -172,11 +172,7 @@ export default class Keystore {
       )
     );
 
-    const cipher: crypto.Cipher = crypto.createCipheriv(
-      CIPHER,
-      derivedKey.slice(0, 16),
-      iv
-    );
+    const cipher = createCipheriv(CIPHER, derivedKey.slice(0, 16), iv);
     if (!cipher) {
       throw new UnsupportedCipher();
     }
@@ -214,7 +210,7 @@ export default class Keystore {
     if (Keystore.mac(derivedKey, ciphertext) !== this.crypto.mac) {
       throw new IncorrectPassword();
     }
-    const decipher = crypto.createDecipheriv(
+    const decipher = createDecipheriv(
       this.crypto.cipher,
       derivedKey.slice(0, 16),
       Buffer.from(this.crypto.cipherparams.iv, "hex")
@@ -257,7 +253,7 @@ export default class Keystore {
       .digest("hex");
   }
 
-  static scryptOptions(kdfparams: KdfParams): crypto.ScryptOptions {
+  static scryptOptions(kdfparams: KdfParams): ScryptOptions {
     return {
       N: kdfparams.n,
       r: kdfparams.r,
@@ -265,4 +261,14 @@ export default class Keystore {
       maxmem: 128 * (kdfparams.n + kdfparams.p + 2) * kdfparams.r,
     };
   }
+}
+
+interface ScryptOptions {
+  cost?: number | undefined;
+  blockSize?: number | undefined;
+  parallelization?: number | undefined;
+  N?: number | undefined;
+  r?: number | undefined;
+  p?: number | undefined;
+  maxmem?: number | undefined;
 }

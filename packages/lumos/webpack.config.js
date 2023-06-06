@@ -32,7 +32,6 @@ module.exports = {
     fallback: {
       // https://www.npmjs.com/package/buffer#usage
       buffer: require.resolve("buffer/"),
-      crypto: require.resolve("crypto-browserify"),
       path: false,
       fs: false,
       stream: false,
