@@ -12,7 +12,7 @@ can use MetaMask as a signer. This example will show how to use Lumos to send a 
 npm run build
 npm run build-release
 cd examples/omni-lock-metamask
-npm staret
+npm start
 ```
 
 ## Links

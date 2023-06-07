@@ -13,7 +13,7 @@ enter your address(in generator page, "Nervos CKB Address" input in "Default Loc
 
 Then, run this example.
 ```bash
-npm staret
+npm start
 ```
 Visit http://localhost:1234.
 

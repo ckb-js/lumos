@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2
         with:
-          version: 8.4.0
+          version: 8.6.1
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2
         with:
-          version: 8.4.0
+          version: 8.6.1
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
@@ -65,7 +65,7 @@ jobs:
           fetch-depth: 0
       - uses: pnpm/action-setup@v2
         with:
-          version: 8.4.0
+          version: 8.6.1
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
@@ -97,7 +97,7 @@ jobs:
         uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2
         with:
-          version: 8.4.0
+          version: 8.6.1
       - name: Setup Node ${{ matrix.node_version }}
         uses: actions/setup-node@v3
         with:
