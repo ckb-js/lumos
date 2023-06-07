@@ -2,7 +2,7 @@ import { Keccak } from "sha3";
 import { v4 as uuid } from "uuid";
 import { ExtendedPrivateKey } from "./extended_key";
 import { HexString } from "@ckb-lumos/base";
-import { syncScrypt } from "scrypt-js";
+import { scryptSync } from "@ckb-lumos/crypto";
 import { createCipheriv, createDecipheriv, randomBytes } from "./crypto";
 
 export type HexStringWithoutPrefix = string;
@@ -162,14 +162,11 @@ export default class Keystore {
       p: 1,
     };
     const derivedKey: Buffer = Buffer.from(
-      syncScrypt(
-        Buffer.from(password),
-        salt,
-        kdfparams.n,
-        kdfparams.r,
-        kdfparams.p,
-        kdfparams.dklen
-      )
+      scryptSync(Buffer.from(password), salt, kdfparams.dklen, {
+        N: kdfparams.n,
+        r: kdfparams.r,
+        p: kdfparams.p,
+      })
     );
 
     const cipher = createCipheriv(CIPHER, derivedKey.slice(0, 16), iv);
@@ -236,13 +233,15 @@ export default class Keystore {
   derivedKey(password: string): Buffer {
     const { kdfparams } = this.crypto;
     return Buffer.from(
-      syncScrypt(
+      scryptSync(
         Buffer.from(password),
         Buffer.from(kdfparams.salt, "hex"),
-        kdfparams.n,
-        kdfparams.r,
-        kdfparams.p,
-        kdfparams.dklen
+        kdfparams.dklen,
+        {
+          N: kdfparams.n,
+          r: kdfparams.r,
+          p: kdfparams.p,
+        }
       )
     );
   }
