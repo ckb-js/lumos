@@ -21,6 +21,8 @@
   "dependencies": {
     "@ckb-lumos/base": "0.20.0-alpha.3",
     "@ckb-lumos/bi": "0.20.0-alpha.3",
+    "@ckb-lumos/codec": "0.20.0-alpha.3",
+    "@ckb-lumos/crypto": "0.20.0-alpha.3",
     "bn.js": "^5.1.3",
     "elliptic": "^6.5.4",
     "scrypt-js": "^3.0.1",
