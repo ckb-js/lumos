@@ -1,5 +1,4 @@
 import blake2b, { Blake2b } from "blake2b";
-import isEqual from "lodash.isequal";
 import { xxHash32 } from "js-xxhash";
 import { bytes, number, BytesLike } from "@ckb-lumos/codec";
 import { BI, BIish } from "@ckb-lumos/bi";
@@ -170,10 +169,6 @@ function assertHexadecimal(debugPath: string, str: string): void {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-function isDeepEqual(a: any, b: any): boolean {
-  return isEqual(a, b);
-}
 // Buffer.from('TYPE_ID')
 const TYPE_ID_CODE_HASH =
   "0x00000000000000000000000000000000000000000000000000545950455f4944";
@@ -287,6 +282,5 @@ export {
   hashCode,
   assertHexString,
   assertHexadecimal,
-  isDeepEqual,
   generateTypeIdScript,
 };

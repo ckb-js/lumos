@@ -1,7 +1,7 @@
 const test = require("ava");
 const { BI } = require("@ckb-lumos/bi");
 
-const { since, utils } = require("../src");
+const { since } = require("../src");
 
 const {
   parseSinceCompatible,
@@ -91,7 +91,11 @@ test.before(() => {
 test("parsedSince", (t) => {
   fixtrues.forEach((v) => {
     const parsed = parseSinceCompatible(v.since);
-    t.true(utils.isDeepEqual(parsed, v.parsed));
+    t.is(parsed.type, v.parsed.type);
+    t.is(parsed.relative, v.parsed.relative);
+    BI.isBI(parsed.value)
+      ? t.true(parsed.value.eq(v.parsed.value))
+      : t.deepEqual(parsed.value, v.parsed.value);
   });
 });
 
