@@ -6,7 +6,7 @@
 
 ```
 cd examples/pw-lock-metamask
-npm staret
+npm start
 ```
 
 ## Links
