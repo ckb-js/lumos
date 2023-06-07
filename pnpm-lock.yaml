@@ -134,18 +134,12 @@ importers:
       '@types/blake2b':
         specifier: ^2.1.0
         version: 2.1.0
-      '@types/lodash.isequal':
-        specifier: ^4.5.5
-        version: 4.5.5
       blake2b:
         specifier: ^2.1.3
         version: 2.1.3
       js-xxhash:
         specifier: ^1.0.4
         version: 1.0.4
-      lodash.isequal:
-        specifier: ^4.5.0
-        version: 4.5.0
     devDependencies:
       jsbi:
         specifier: ^4.1.0
@@ -6396,12 +6390,6 @@ packages:
     dependencies:
       '@types/node': 20.1.0
       shell-exec: 1.0.2
-    dev: false
-
-  /@types/lodash.isequal@4.5.5:
-    resolution: {integrity: sha512-4IKbinG7MGP131wRfceK6W4E/Qt3qssEFLF30LnJbjYiSfHGGRU/Io8YxXrZX109ir+iDETC8hw8QsDijukUVg==}
-    dependencies:
-      '@types/lodash': 4.14.194
     dev: false
 
   /@types/lodash.uniqby@4.7.7:
@@ -12826,10 +12814,6 @@ packages:
   /lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
     dev: true
-
-  /lodash.isequal@4.5.0:
-    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
-    dev: false
 
   /lodash.islength@4.0.1:
     resolution: {integrity: sha512-FlJtdcHNU8YEXbzZXYWMEHLkQOpvmlnGr5o2N1iQKB7hNyr6qPkWAe+Ceczz6JYlIzD4AlTD2igvt/2/0Pb3Zw==}
