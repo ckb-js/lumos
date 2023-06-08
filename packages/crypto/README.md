@@ -1,6 +1,6 @@
 # @ckb-lumos/crypto
 
-Low-level cryptographic primitives for Lumos, works in both Node.js and browsers.
+Low-level cryptographic primitives for Lumos, works in both Node.js and browsers. The API is compatible with `node:crypto`
 
 ## Usage
 

@@ -285,6 +285,9 @@ importers:
       browserify-aes:
         specifier: ^1.2.0
         version: 1.2.0
+      scrypt-js:
+        specifier: ^3.0.1
+        version: 3.0.1
 
   packages/debugger:
     dependencies:
@@ -15779,6 +15782,10 @@ packages:
       ajv: 8.12.0
       ajv-formats: 2.1.1(ajv@8.12.0)
       ajv-keywords: 5.1.0(ajv@8.12.0)
+    dev: false
+
+  /scrypt-js@3.0.1:
+    resolution: {integrity: sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==}
     dev: false
 
   /section-matter@1.0.0:

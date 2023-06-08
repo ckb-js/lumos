@@ -9,11 +9,11 @@ export type CreateHmac = (algorithm: HashAlgo, bytes: Uint8Array) => Hash;
 
 export type ScryptOptions = {
   // cost factor
-  N: number;
+  N?: number;
   // block size
-  r: number;
+  r?: number;
   // parallelization
-  p: number;
+  p?: number;
 };
 
 export interface Cipher {
