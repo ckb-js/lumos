@@ -8,6 +8,7 @@
   "browser": "./lib/crypto-browser.js",
   "types": "lib/crypto.d.ts",
   "main": "./lib/crypto.js",
+  "sideEffects": false,
   "engines": {
     "node": ">=12.0.0"
   },
@@ -23,7 +24,8 @@
     "@noble/hashes": "1.3.1",
     "@noble/secp256k1": "2.0.0",
     "@types/aes-js": "^3.1.1",
-    "browserify-aes": "^1.2.0"
+    "browserify-aes": "^1.2.0",
+    "scrypt-js": "^3.0.1"
   },
   "repository": {
     "type": "git",

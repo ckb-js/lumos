@@ -2,8 +2,12 @@ import { Keccak } from "sha3";
 import { v4 as uuid } from "uuid";
 import { ExtendedPrivateKey } from "./extended_key";
 import { HexString } from "@ckb-lumos/base";
-import { scryptSync } from "@ckb-lumos/crypto";
-import { createCipheriv, createDecipheriv, randomBytes } from "./crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  randomBytes,
+  scryptSync,
+} from "./crypto";
 
 export type HexStringWithoutPrefix = string;
 

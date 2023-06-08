@@ -7,7 +7,7 @@ import {
   createDecipheriv as _createDecipheriv,
   pbkdf2Sync as _pbkdf2Sync,
 } from "node:crypto";
-import type { Cipher, Hash, HashAlgo, ScryptOptions } from "./types";
+import type { Cipher, Hash, HashAlgo } from "./types";
 
 export function createHash(algorithm: HashAlgo): Hash {
   return _createHash(algorithm);
@@ -15,15 +15,6 @@ export function createHash(algorithm: HashAlgo): Hash {
 
 export function createHmac(algorithm: HashAlgo, key: Uint8Array): Hash {
   return _createHmac(algorithm, key);
-}
-
-export function scryptSync(
-  password: Uint8Array,
-  salt: Uint8Array,
-  dkLen: number,
-  options: ScryptOptions
-): Uint8Array {
-  return _scryptSync(password, salt, dkLen, options);
 }
 
 export function randomBytes(bytesLen: number): Uint8Array {
@@ -55,3 +46,5 @@ export function pbkdf2Sync(
 ): Uint8Array {
   return _pbkdf2Sync(password, salt, iterations, keyLen, digest);
 }
+
+export { scryptSync, scrypt } from "./scrypt";
