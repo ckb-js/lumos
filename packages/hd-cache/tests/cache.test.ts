@@ -55,6 +55,8 @@ const mockTxs: TransactionWithStatus[] = [
       blockHash:
         "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68",
     },
+    timeAddedToPool: null,
+    cycles: null,
   },
   {
     transaction: {
@@ -119,6 +121,8 @@ const mockTxs: TransactionWithStatus[] = [
       blockHash:
         "0x8df4763d10cf22509845f8ec728d56d1027d4dfe633cb91abf0d751ed5d45d68",
     },
+    timeAddedToPool: null,
+    cycles: null,
   },
 ];
 const headerData = {
