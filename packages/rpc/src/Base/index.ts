@@ -122,7 +122,9 @@ export interface Base {
    * @return {Promise<object>} transaction object with transaction status
    */
   getTransaction: (
-    hash: CKBComponents.Hash
+    hash: CKBComponents.Hash,
+    verbosity?: CKBComponents.UInt32,
+    onlyCommitted?: boolean
   ) => Promise<CKBComponents.TransactionWithStatus>;
 
   /**
@@ -512,6 +514,8 @@ export interface Base {
    * @returns the feeRate statistics of confirmed blocks on the chain If the query finds the corresponding historical data, the corresponding statistics are returned, containing the mean and median, in shannons per kilo-weight. If not, it returns null.
    */
   getFeeRateStatistics: () => Promise<CKBComponents.FeeRateStatistics>;
+
+  getDeploymentsInfo: () => Promise<CKBComponents.DeploymentsInfo>;
 }
 
 export class Base {

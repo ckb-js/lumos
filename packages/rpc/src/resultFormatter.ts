@@ -298,12 +298,14 @@ const toCellsIncludingOutPoint = (
   if (!Array.isArray(cells)) return [];
   return cells.map(toCellIncludingOutPoint);
 };
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-const toTransactionWithStatus = (txWithStatus: RPC.TransactionWithStatus) => {
+const toTransactionWithStatus = (
+  txWithStatus: RPC.TransactionWithStatus
+): CKBComponents.TransactionWithStatus => {
   if (!txWithStatus) return txWithStatus;
   const {
     transaction,
     tx_status: { block_hash: blockHash, status },
+    time_added_to_pool,
     ...rest
   } = txWithStatus;
   return {
@@ -312,6 +314,7 @@ const toTransactionWithStatus = (txWithStatus: RPC.TransactionWithStatus) => {
       blockHash,
       status,
     },
+    timeAddedToPool: time_added_to_pool,
     ...rest,
   };
 };
@@ -503,8 +506,47 @@ const toTransactionProof = (
     ...rest,
   };
 };
+
+const toHardforkFeature = (
+  feature: RPC.HardforkFeature
+): CKBComponents.HardForkFeature => {
+  return {
+    rfc: feature.rfc,
+    epochNumber: feature.epoch_number,
+  };
+};
+
+const toDeployment = (deployment: RPC.Deployment): CKBComponents.Deployment => {
+  return {
+    bit: deployment.bit,
+    start: deployment.start,
+    timeout: deployment.timeout,
+    minActivationEpoch: deployment.min_activation_epoch,
+    period: deployment.period,
+    threshold: deployment.threshold,
+  };
+};
+
+const toSoftFork = (softFork: RPC.SoftFork): CKBComponents.SoftFork => {
+  if ("rfc0043" in softFork) {
+    return {
+      status: softFork.status,
+      rfc0043: toDeployment(softFork.rfc0043),
+    };
+  }
+  return softFork;
+};
+
 const toConsensus = (consensus: RPC.Consensus): CKBComponents.Consensus => {
   if (!consensus) return consensus;
+
+  const { ckb2021, ckb2023 } = consensus.hardfork_features;
+
+  const softforks = consensus.softforks;
+  const lightClient =
+    softforks.light_client && toSoftFork(softforks.light_client);
+  const testdummy = softforks.testdummy && toSoftFork(softforks.testdummy);
+
   return {
     blockVersion: consensus.block_version,
     cellbaseMaturity: consensus.cellbase_maturity,
@@ -531,13 +573,14 @@ const toConsensus = (consensus: RPC.Consensus): CKBComponents.Consensus => {
     txProposalWindow: consensus.tx_proposal_window,
     txVersion: consensus.tx_version,
     typeIdCodeHash: consensus.type_id_code_hash,
-    hardforkFeatures:
-      consensus.hardfork_features?.map(
-        ({ epoch_number: epochNumber, ...rest }) => ({
-          epochNumber,
-          ...rest,
-        })
-      ) ?? consensus.hardfork_features,
+    hardforkFeatures: {
+      ckb2021: ckb2021.map(toHardforkFeature),
+      ckb2023: ckb2023.map(toHardforkFeature),
+    },
+    softforks: {
+      ...(lightClient && { lightClient }),
+      ...(testdummy && { testdummy }),
+    },
   };
 };
 
@@ -707,6 +750,46 @@ const toEstimateCycles = (
   };
 };
 
+const toDeployState = (
+  state: RPC.DeploymentState
+): CKBComponents.DeploymentState => {
+  if (state === "locked_in") {
+    return "lockedIn";
+  }
+  return state;
+};
+
+const toDeploymentInfo = (
+  deploymentInfo: RPC.DeploymentInfo
+): CKBComponents.DeploymentInfo => {
+  return {
+    bit: deploymentInfo.bit,
+    /// specifies the first epoch in which the bit gains meaning.
+    start: deploymentInfo.start,
+    timeout: deploymentInfo.timeout,
+    minActivationEpoch: deploymentInfo.min_activation_epoch,
+    period: deploymentInfo.period,
+    threshold: deploymentInfo.threshold,
+    since: deploymentInfo.since,
+    state: toDeployState(deploymentInfo.state),
+  };
+};
+
+const toDeploymentsInfo = (
+  deploymentInfo: RPC.DeploymentsInfo
+): CKBComponents.DeploymentsInfo => {
+  const { light_client, testdummy } = deploymentInfo.deployments;
+
+  return {
+    hash: deploymentInfo.hash,
+    epoch: deploymentInfo.epoch,
+    deployments: {
+      ...(light_client ? { lightClient: toDeploymentInfo(light_client) } : {}),
+      ...(testdummy ? { testdummy: toDeploymentInfo(testdummy) } : {}),
+    },
+  };
+};
+
 export {
   toNumber,
   toHash,
@@ -760,5 +843,9 @@ export {
   toFeeRateStatistics,
   toForkBlockResult,
   toEstimateCycles,
+  toDeployment,
+  toDeployState,
+  toDeploymentInfo,
+  toDeploymentsInfo,
 };
 /* eslint-enable camelcase */

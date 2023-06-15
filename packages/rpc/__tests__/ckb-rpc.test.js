@@ -681,7 +681,40 @@ describe("Test with mock", () => {
               "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
             epoch_duration_target: "0x3840",
             genesis_hash:
-              "0xeaa2c979898f80a12404578a9e1332d45c8ff2bf665457b10f9934203f230780",
+              "0x746f61610a0ea15713a568182365c0f4d8bcd2f61d42c91abc9279d4e858a190",
+            hardfork_features: {
+              ckb2021: [
+                {
+                  epoch_number: "0x0",
+                  rfc: "0028",
+                },
+                {
+                  epoch_number: "0x0",
+                  rfc: "0029",
+                },
+                {
+                  epoch_number: "0x0",
+                  rfc: "0030",
+                },
+                {
+                  epoch_number: "0x0",
+                  rfc: "0031",
+                },
+                {
+                  epoch_number: "0x0",
+                  rfc: "0032",
+                },
+                {
+                  epoch_number: "0x0",
+                  rfc: "0036",
+                },
+                {
+                  epoch_number: "0x0",
+                  rfc: "0038",
+                },
+              ],
+              ckb2023: [],
+            },
             id: "ckb_dev",
             initial_primary_epoch_reward: "0xae6c73c3e070",
             max_block_bytes: "0x91c08",
@@ -689,28 +722,44 @@ describe("Test with mock", () => {
             max_block_proposals_limit: "0x5dc",
             max_uncles_num: "0x2",
             median_time_block_count: "0x25",
-            orphan_rate_target: { denom: "0x28", numer: "0x1" },
+            orphan_rate_target: {
+              denom: "0x28",
+              numer: "0x1",
+            },
             permanent_difficulty_in_dummy: true,
             primary_epoch_reward_halving_interval: "0x2238",
-            proposer_reward_ratio: { denom: "0xa", numer: "0x4" },
+            proposer_reward_ratio: {
+              denom: "0xa",
+              numer: "0x4",
+            },
             secondary_epoch_reward: "0x37d0c8e28542",
             secp256k1_blake160_multisig_all_type_hash:
               "0x5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
             secp256k1_blake160_sighash_all_type_hash:
               "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-            tx_proposal_window: { closest: "0x2", farthest: "0xa" },
+            softforks: {
+              light_client: {
+                rfc0043: {
+                  bit: 1,
+                  min_activation_epoch: "0x0",
+                  period: "0xa",
+                  start: "0x0",
+                  threshold: {
+                    denom: "0x4",
+                    numer: "0x3",
+                  },
+                  timeout: "0x0",
+                },
+                status: "rfc0043",
+              },
+            },
+            tx_proposal_window: {
+              closest: "0x2",
+              farthest: "0xa",
+            },
             tx_version: "0x0",
             type_id_code_hash:
               "0x00000000000000000000000000000000000000000000000000545950455f4944",
-            hardfork_features: [
-              { epoch_number: "0x0", rfc: "0028" },
-              { epoch_number: "0x0", rfc: "0029" },
-              { epoch_number: "0x0", rfc: "0030" },
-              { epoch_number: "0x0", rfc: "0031" },
-              { epoch_number: "0x0", rfc: "0032" },
-              { epoch_number: "0x0", rfc: "0036" },
-              { epoch_number: "0x0", rfc: "0038" },
-            ],
           },
         },
       });
@@ -729,7 +778,7 @@ describe("Test with mock", () => {
           "0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e",
         epochDurationTarget: "0x3840",
         genesisHash:
-          "0xeaa2c979898f80a12404578a9e1332d45c8ff2bf665457b10f9934203f230780",
+          "0x746f61610a0ea15713a568182365c0f4d8bcd2f61d42c91abc9279d4e858a190",
         id: "ckb_dev",
         initialPrimaryEpochReward: "0xae6c73c3e070",
         maxBlockBytes: "0x91c08",
@@ -750,15 +799,31 @@ describe("Test with mock", () => {
         txVersion: "0x0",
         typeIdCodeHash:
           "0x00000000000000000000000000000000000000000000000000545950455f4944",
-        hardforkFeatures: [
-          { epochNumber: "0x0", rfc: "0028" },
-          { epochNumber: "0x0", rfc: "0029" },
-          { epochNumber: "0x0", rfc: "0030" },
-          { epochNumber: "0x0", rfc: "0031" },
-          { epochNumber: "0x0", rfc: "0032" },
-          { epochNumber: "0x0", rfc: "0036" },
-          { epochNumber: "0x0", rfc: "0038" },
-        ],
+        hardforkFeatures: {
+          ckb2021: [
+            { rfc: "0028", epochNumber: "0x0" },
+            { rfc: "0029", epochNumber: "0x0" },
+            { rfc: "0030", epochNumber: "0x0" },
+            { rfc: "0031", epochNumber: "0x0" },
+            { rfc: "0032", epochNumber: "0x0" },
+            { rfc: "0036", epochNumber: "0x0" },
+            { rfc: "0038", epochNumber: "0x0" },
+          ],
+          ckb2023: [],
+        },
+        softforks: {
+          lightClient: {
+            status: "rfc0043",
+            rfc0043: {
+              bit: 1,
+              start: "0x0",
+              timeout: "0x0",
+              minActivationEpoch: "0x0",
+              period: "0xa",
+              threshold: { denom: "0x4", numer: "0x3" },
+            },
+          },
+        },
       });
     });
 
@@ -1646,7 +1711,9 @@ describe("Test with mock", () => {
       {
         methodName: "getBlockFilter",
         result: null,
-        resultFormatter: ResultFormatter.toNullable(ResultFormatter.toBlockFilter),
+        resultFormatter: ResultFormatter.toNullable(
+          ResultFormatter.toBlockFilter
+        ),
         requestParams: [
           "0xa5f5c85987a15de25661e5a214f2c1449cd803f071acc7999820f25246471f40",
         ],
@@ -1788,7 +1855,9 @@ describe("Test with mock", () => {
           uncles: [],
         },
 
-        resultFormatter: ResultFormatter.toNullable(ResultFormatter.toForkBlockResult),
+        resultFormatter: ResultFormatter.toNullable(
+          ResultFormatter.toForkBlockResult
+        ),
         requestParams: [
           "0xdca341a42890536551f99357612cef7148ed471e3b6419d0844a4e400be6ee94",
         ],
@@ -1801,24 +1870,29 @@ describe("Test with mock", () => {
       },
       {
         methodName: "getForkBlock",
-        result: '0xdca341a42890536551f99357612cef7148ed471e3b6419d0844a4e400be6ee94',
-        resultFormatter: ResultFormatter.toNullable(ResultFormatter.toForkBlockResult),
+        result:
+          "0xdca341a42890536551f99357612cef7148ed471e3b6419d0844a4e400be6ee94",
+        resultFormatter: ResultFormatter.toNullable(
+          ResultFormatter.toForkBlockResult
+        ),
         requestParams: [
           "0xdca341a42890536551f99357612cef7148ed471e3b6419d0844a4e400be6ee94",
-          0n
+          0n,
         ],
         expectedParams: {
           method: "get_fork_block",
           params: [
             "0xdca341a42890536551f99357612cef7148ed471e3b6419d0844a4e400be6ee94",
-            '0x0'
+            "0x0",
           ],
         },
       },
       {
         methodName: "getForkBlock",
         result: null,
-        resultFormatter: ResultFormatter.toNullable(ResultFormatter.toForkBlockResult),
+        resultFormatter: ResultFormatter.toNullable(
+          ResultFormatter.toForkBlockResult
+        ),
         requestParams: [
           "0xdca341a42890536551f99357612cef7148ed471e3b6419d0844a4e400be6ee94",
         ],
@@ -1971,7 +2045,9 @@ describe("Test with mock", () => {
           mean: "0xe79d",
           median: "0x14a8",
         },
-        resultFormatter: ResultFormatter.toNullable(ResultFormatter.toFeeRateStatistics),
+        resultFormatter: ResultFormatter.toNullable(
+          ResultFormatter.toFeeRateStatistics
+        ),
         requestParams: [],
         expectedParams: {
           method: "get_fee_rate_statistics",
@@ -1981,7 +2057,9 @@ describe("Test with mock", () => {
       {
         methodName: "getFeeRateStatistics",
         result: null,
-        resultFormatter: ResultFormatter.toNullable(ResultFormatter.toFeeRateStatistics),
+        resultFormatter: ResultFormatter.toNullable(
+          ResultFormatter.toFeeRateStatistics
+        ),
         requestParams: [],
         expectedParams: {
           method: "get_fee_rate_statistics",
@@ -2004,7 +2082,9 @@ describe("Test with mock", () => {
       {
         methodName: "getFeeRateStatics",
         result: null,
-        resultFormatter: ResultFormatter.toNullable(ResultFormatter.toFeeRateStatistics),
+        resultFormatter: ResultFormatter.toNullable(
+          ResultFormatter.toFeeRateStatistics
+        ),
         requestParams: [],
         expectedParams: {
           method: "get_fee_rate_statics",
@@ -2030,11 +2110,6 @@ describe("Test with mock", () => {
         const res = await rpc[methodName](...requestParams);
 
         expect(res).toEqual(resultFormatter(result));
-        console.log(
-          JSON.stringify(axiosMock.mock.calls[0][0].data),
-          "\n",
-          JSON.stringify({ id, jsonrpc: "2.0", ...expectedParams })
-        );
         expect(axiosMock.mock.calls[0][0].data).toEqual({
           id,
           jsonrpc: "2.0",

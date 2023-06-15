@@ -164,6 +164,8 @@ export const unresolvedTransaction: TransactionWithStatus = {
       "0xbbb1f70add4698b3b9f2ee1d475a1c391c4337c135680169269ca61afacd00fc",
     status: "committed",
   },
+  cycles: null,
+  timeAddedToPool: null,
 };
 export const unresolvedTransactionList: TransactionWithStatus[] = [
   unresolvedTransaction,
@@ -249,6 +251,8 @@ export const resolvedTransaction: TransactionWithStatus = {
       "0x4b3422f42a72c313c74d4b1c15a89fa16d466f8602dea9cd097cf0544177356d",
     status: "committed",
   },
+  cycles: null,
+  timeAddedToPool: null,
 };
 
 export const batchRequestTransaction = [
