@@ -180,7 +180,7 @@ jobs:
           body: ${{ env.CHANGELOG }}
           release_name: ${{ env.CURRENT_VERSION }}
           draft: false
-          prerelease: ${{ steps.tag_check.prerelease_check.prerelease }}
+          prerelease: ${{ steps.prerelease_check.output.prerelease }}
 
       - name: Publish
         if: steps.tag_check.outputs.exists_tag == 'false'
