@@ -36,7 +36,7 @@ async function main() {
   mkdirSync(CKB_CWD, { recursive: true });
   mkdirSync(LIGHT_CLIENT_CWD, { recursive: true });
 
-  const ckbReleaseUrl = ckb.getReleaseUrl();
+  const ckbReleaseUrl = ckb.getReleaseUrl({ version: "v0.111.0-rc1" });
   const ckbDownloadDest = getDefaultDownloadDestination(ckbReleaseUrl);
   let ckbBinaryPath = ckb.findBinaryPath(ckbDownloadDest);
 
