@@ -1,5 +1,5 @@
 import type * as api from "@ckb-lumos/base";
-import { Hash } from "@ckb-lumos/base";
+
 /**
  * @see https://github.com/nervosnetwork/ckb/blob/develop/protocol/src/protocol.fbs for more infGomation
  */
@@ -35,10 +35,6 @@ export namespace CKBComponents {
     Proposed = "proposed",
     Committed = "committed",
   }
-
-  // this is a type to mapping the `HashMap`, `BTreeMap` in `jsonrpc-types`
-  // there are some returns of CKB RPC are in this format, like `Softfork`
-  type MapLike<K extends string, V> = { [key in K]?: V };
 
   export type ScriptHashType = "data" | "type" | "data1";
 
