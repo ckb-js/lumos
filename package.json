@@ -39,10 +39,10 @@
     "docs": "typedoc",
     "prepare": "husky install",
     "test": "lerna run test --parallel",
-    "e2e-test": "npm run e2e-indexer && npm run integration-test",
-    "e2e-indexer": "cd packages/ckb-indexer && npm run test:e2e",
-    "integration-test": "cd packages/e2e-test && npm run test:e2e",
-    "test-coverage": "npx c8 --reporter=cobertura --reporter=html --clean -o coverage npm run test",
+    "e2e-test": "pnpm run e2e-indexer && pnpm run integration-test",
+    "e2e-indexer": "cd packages/ckb-indexer && pnpm run test:e2e",
+    "integration-test": "cd packages/e2e-test && pnpm run test:e2e",
+    "test-coverage": "npx c8 --reporter=cobertura --reporter=html --clean -o coverage pnpm run test",
     "build:types": "lerna run build:types",
     "build:js": "lerna run build:js --parallel",
     "build": "run-p build:*",
@@ -57,17 +57,17 @@
     "versionup:minor": "lerna version minor --conventional-commits --no-git-tag-version",
     "versionup:major": "lerna version major --conventional-commits --no-git-tag-version",
     "versionup:prerelease": "lerna version prerelease --conventional-commits --no-git-tag-version --conventional-prerelease --force-publish",
-    "postversionup": "npm run create-publish-branch",
-    "postversionup:patch": "npm run create-publish-branch",
-    "postversionup:minor": "npm run create-publish-branch",
-    "postversionup:major": "npm run create-publish-branch",
-    "postversionup:prerelease": "npm run create-publish-branch",
+    "postversionup": "pnpm run create-publish-branch",
+    "postversionup:patch": "pnpm run create-publish-branch",
+    "postversionup:minor": "pnpm run create-publish-branch",
+    "postversionup:major": "pnpm run create-publish-branch",
+    "postversionup:prerelease": "pnpm run create-publish-branch",
     "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\"",
     "create-publish-branch": "node ./scripts/create_publish_branch.js"
   },
   "husky": {
     "hooks": {
-      "pre-push": "npm run lint"
+      "pre-push": "pnpm run lint"
     }
   },
   "lint-staged": {

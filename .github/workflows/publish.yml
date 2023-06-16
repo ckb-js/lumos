@@ -25,14 +25,14 @@ jobs:
       - name: Install project dependencies and build
         run: |
           pnpm install --frozen-lockfile
-          npm run build
+          pnpm run build
           git diff --exit-code
 
       - name: Prettier check
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Run test with coverage
-        run: npm run test-coverage
+        run: pnpm run test-coverage
 
       - uses: codecov/codecov-action@v3
         with:
@@ -53,9 +53,9 @@ jobs:
       - name: Install project dependencies and build
         run: |
           pnpm install --frozen-lockfile
-          npm run build
+          pnpm run build
       - name: e2e test
-        run: npm run e2e-test
+        run: pnpm run e2e-test
 
   lint-staged:
     runs-on: ubuntu-latest
@@ -73,7 +73,7 @@ jobs:
       - name: Install project dependencies and build
         run: |
           pnpm install --frozen-lockfile
-          npm run build
+          pnpm run build
       - name: Get changed files
         uses: tj-actions/changed-files@v17.3
         id: changed-files
@@ -177,7 +177,7 @@ jobs:
       - name: Publish
         if: steps.tag_check.outputs.exists_tag == 'false'
         run: |
-          npm run build
+          pnpm run build
           npx lerna publish from-package --yes --dist-tag $([ $PRERELEASE == 'true' ] && echo 'next' || echo 'latest')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

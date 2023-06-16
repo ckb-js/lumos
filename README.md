@@ -45,29 +45,29 @@ npm install -g pnpm
 ### Build
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 ### Test (ava)
 
 ```bash
-npm run test
+pnpm run test
 ```
 
 ### Test Coverage (c8)
 
 ```bash
-npm run test-coverage
+pnpm run test-coverage
 ```
 
 ### Format & Lint
 
 ```bash
-npm run lint
+pnpm run lint
 ```
 
 ### Clean
 
 ```bash
-npm run clean
+pnpm run clean
 ```

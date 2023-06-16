@@ -8,7 +8,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build-lumos": "cd .. && pnpm install && npm run build && npm run docs",
+    "build-lumos": "cd .. && pnpm install && pnpm run build && pnpm run docs",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
