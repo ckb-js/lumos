@@ -31,6 +31,20 @@ test("serialize ckb2021 script", (t) => {
   );
 });
 
+test("serialize ckb2023 script", (t) => {
+  const value: api.Script = {
+    codeHash:
+      "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+    args: "0xaabbccdd44332211",
+    hashType: "data2",
+  };
+  const serializedHex = bytes.hexify(blockchain.Script.pack(value));
+  t.deepEqual(
+    serializedHex,
+    "0x3d0000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80308000000aabbccdd44332211"
+  );
+});
+
 test("serialize outpoint", (t) => {
   const value: api.OutPoint = {
     txHash:

@@ -112,6 +112,7 @@ export const HashType = createFixedBytesCodec<api.HashType>({
     if (type === "data") return Uint8.pack(0);
     if (type === "type") return Uint8.pack(1);
     if (type === "data1") return Uint8.pack(2);
+    if (type === "data2") return Uint8.pack(3);
     throw new Error(`Invalid hash type: ${type}`);
   },
   unpack: (buf) => {
@@ -119,6 +120,7 @@ export const HashType = createFixedBytesCodec<api.HashType>({
     if (hashTypeBuf === 0) return "data";
     if (hashTypeBuf === 1) return "type";
     if (hashTypeBuf === 2) return "data1";
+    if (hashTypeBuf === 3) return "data2";
     throw new Error(`Invalid hash type: ${hashTypeBuf}`);
   },
 });

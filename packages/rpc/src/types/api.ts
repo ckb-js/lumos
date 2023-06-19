@@ -36,7 +36,7 @@ export namespace CKBComponents {
     Committed = "committed",
   }
 
-  export type ScriptHashType = "data" | "type" | "data1";
+  export type ScriptHashType = api.HashType;
 
   export type DepType = "code" | "depGroup";
   export type JsonBytes = string;

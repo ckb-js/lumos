@@ -30,7 +30,7 @@ export interface Header {
   version: HexNumber;
 }
 
-export type HashType = "type" | "data" | "data1";
+export type HashType = "type" | "data" | "data1" | "data2";
 export interface Script {
   codeHash: Hash;
   hashType: HashType;

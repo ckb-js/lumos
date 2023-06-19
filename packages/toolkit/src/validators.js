@@ -74,7 +74,8 @@ export function ValidateScript(
   if (
     script.hashType !== "data" &&
     script.hashType !== "type" &&
-    script.hashType !== "data1"
+    script.hashType !== "data1" &&
+    script.hashType !== "data2"
   ) {
     throw new Error(`${debugPath}.hashType must be either data or type!`);
   }
