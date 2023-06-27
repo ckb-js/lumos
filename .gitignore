@@ -117,6 +117,8 @@ packages/experiment-tx-assembler/lib
 packages/molecule/lib
 packages/transaction-manager/lib
 
+packages/*/lib.esm
+
 # knex config
 packages/sql-indexer/knexfile.ts
 
