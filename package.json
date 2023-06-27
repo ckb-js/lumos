@@ -27,6 +27,7 @@
     "husky": "^7.0.4",
     "lerna": "^4.0.0",
     "lint-staged": "^12.3.5",
+    "lumos-build": "0.20.0-alpha.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
     "shx": "^0.3.4",
@@ -63,7 +64,8 @@
     "postversionup:major": "pnpm run create-publish-branch",
     "postversionup:prerelease": "pnpm run create-publish-branch",
     "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\"",
-    "create-publish-branch": "node ./scripts/create_publish_branch.js"
+    "create-publish-branch": "node ./scripts/create_publish_branch.js",
+    "postinstall": "cd devtools/lumos-build && npm run build"
   },
   "husky": {
     "hooks": {
