@@ -64,8 +64,7 @@
     "postversionup:major": "pnpm run create-publish-branch",
     "postversionup:prerelease": "pnpm run create-publish-branch",
     "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\"",
-    "create-publish-branch": "node ./scripts/create_publish_branch.js",
-    "postinstall": "cd devtools/lumos-build && npm run build"
+    "create-publish-branch": "node ./scripts/create_publish_branch.js"
   },
   "husky": {
     "hooks": {
@@ -77,6 +76,10 @@
       "prettier --write",
       "eslint -c .eslintrc.next.js --fix",
       "git add"
+    ],
+    "devtoos/lumos-build/src/*.ts": [
+      "pnpm --filter lumos-build build",
+      "git add devtools/lumos-build/bin/*"
     ]
   },
   "website/{docs,src}/**/*.{js,ts,md}": [
