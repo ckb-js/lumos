@@ -12,11 +12,16 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@ckb-lumos/base": "0.20.0-alpha.3",
+    "@ckb-lumos/codec": "0.20.0-alpha.3",
     "@ckb-lumos/lumos": "0.20.0-alpha.3",
     "keccak": "^3.0.1",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "react": "18.2.0",
     "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "parcel": "^2.9.3"
   }
 }
