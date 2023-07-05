@@ -540,7 +540,7 @@ const toSoftFork = (softFork: RPC.SoftFork): CKBComponents.SoftFork => {
 const toConsensus = (consensus: RPC.Consensus): CKBComponents.Consensus => {
   if (!consensus) return consensus;
 
-  const { ckb2021, ckb2023 } = consensus.hardfork_features;
+  const rpcHardforkFeatures = consensus.hardfork_features;
 
   const softforks = consensus.softforks;
   const lightClient =
@@ -573,10 +573,7 @@ const toConsensus = (consensus: RPC.Consensus): CKBComponents.Consensus => {
     txProposalWindow: consensus.tx_proposal_window,
     txVersion: consensus.tx_version,
     typeIdCodeHash: consensus.type_id_code_hash,
-    hardforkFeatures: {
-      ckb2021: ckb2021.map(toHardforkFeature),
-      ckb2023: ckb2023.map(toHardforkFeature),
-    },
+    hardforkFeatures: rpcHardforkFeatures.map(toHardforkFeature),
     softforks: {
       ...(lightClient && { lightClient }),
       ...(testdummy && { testdummy }),
