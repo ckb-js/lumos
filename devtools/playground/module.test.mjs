@@ -7,6 +7,7 @@ const MODULES = [
   "@ckb-lumos/codec",
   "@ckb-lumos/codec/bytes",
   "@ckb-lumos/codec/number",
+  "@ckb-lumos/toolkit",
 ];
 
 const require = createRequire(import.meta.url);

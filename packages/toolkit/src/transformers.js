@@ -16,7 +16,7 @@
 // required by CKB. You can also leverage the Reader class we provide as much as
 // possible. Since Reader class does provide serializeJson methods, transformers
 // here will transform them to valid hex strings required by CKB.
-import * as validators from "./validators";
+import * as validators from "./validators.js";
 
 function invokeSerializeJson(debugPath, value) {
   if (value instanceof Object && value.serializeJson instanceof Function) {

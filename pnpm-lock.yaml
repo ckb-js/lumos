@@ -143,6 +143,9 @@ importers:
       '@ckb-lumos/codec':
         specifier: 0.20.0-alpha.3
         version: link:../../packages/codec
+      '@ckb-lumos/toolkit':
+        specifier: 0.20.0-alpha.3
+        version: link:../../packages/toolkit
       minimatch:
         specifier: ^9.0.3
         version: 9.0.3
