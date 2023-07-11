@@ -16,11 +16,13 @@ module.exports = {
     "SharedArrayBuffer": "readonly"
   },
   "extends": [
-    "plugin:import/recommended", 
+    "plugin:import/recommended",
     "plugin:import/typescript"
   ],
   "rules": {
     "no-var": "error",
+    "import/no-unresolved": "off",
+    "import/no-useless-path-segments": "error",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {

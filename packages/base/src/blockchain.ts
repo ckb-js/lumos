@@ -8,8 +8,9 @@ import {
   number,
   molecule,
   bytes,
+  BytesCodec,
+  FixedBytesCodec,
 } from "@ckb-lumos/codec";
-import { BytesCodec, FixedBytesCodec } from "@ckb-lumos/codec/lib/base";
 
 import type * as api from "./api";
 import { BI } from "@ckb-lumos/bi";

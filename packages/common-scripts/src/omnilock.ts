@@ -29,12 +29,12 @@ import {
   option,
   table,
   vector,
-} from "@ckb-lumos/codec/lib/molecule";
+} from "@ckb-lumos/codec/molecule";
 import {
   BytesOpt,
   createFixedHexBytesCodec,
-} from "@ckb-lumos/codec/lib/blockchain";
-import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
+} from "@ckb-lumos/base/lib/blockchain";
+import { bytify, hexify } from "@ckb-lumos/codec/bytes";
 const { ScriptValue } = values;
 
 export type OmnilockInfo = {

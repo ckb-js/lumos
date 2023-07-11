@@ -1,4 +1,4 @@
-import { AnyCodec } from "@ckb-lumos/codec/lib/base";
+import { AnyCodec } from "@ckb-lumos/codec";
 export const byte = "byte";
 
 export type BaseType = {

@@ -2,15 +2,15 @@
 import { assertBufferLength, isObjectLike } from "./utils";
 import { bytify } from "./bytes";
 
-export interface Codec<
+export type Codec<
   Packed,
   Unpacked,
   Packable = Unpacked,
   Unpackable = Packed
-> {
+> = {
   pack: (packable: Packable) => Packed;
   unpack: (unpackable: Unpackable) => Unpacked;
-}
+};
 
 export type AnyCodec = Codec<any, any>;
 
@@ -91,7 +91,11 @@ export type FixedBytesCodec<Unpacked = any, Packable = Unpacked> = BytesCodec<
 export function isFixedCodec<T>(
   codec: BytesCodec<T>
 ): codec is FixedBytesCodec<T> {
-  return isObjectLike(codec) && !!codec.__isFixedCodec__;
+  return (
+    isObjectLike(codec) &&
+    "__isFixedCodec__" in codec &&
+    !!codec.__isFixedCodec__
+  );
 }
 
 export function createFixedBytesCodec<Unpacked, Packable = Unpacked>(

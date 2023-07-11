@@ -9,12 +9,13 @@ import {
   createTestContext,
   getDefaultConfig,
 } from "@ckb-lumos/debugger/lib/context";
-import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { common, omnilock } from "../src";
-import { WitnessArgs } from "@ckb-lumos/codec/lib/blockchain";
+import { WitnessArgs } from "@ckb-lumos/base/lib/blockchain";
 import { CellProvider } from "./cell_provider";
 import { charlesOmnilockInputs } from "./inputs";
 import { bytes } from "@ckb-lumos/codec";
+
+const { hexify } = bytes;
 
 const downloader = new CKBDebuggerDownloader();
 const context = createTestContext(getDefaultConfig());

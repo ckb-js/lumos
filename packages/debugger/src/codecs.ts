@@ -1,7 +1,7 @@
-import { struct, vector } from "@ckb-lumos/codec/lib/molecule";
+import { struct, vector } from "@ckb-lumos/codec/molecule";
 import { Byte32 } from "@ckb-lumos/base/lib/blockchain";
 import { createFixedBytesCodec } from "@ckb-lumos/codec";
-import { Uint32 } from "@ckb-lumos/codec/lib/number";
+import { Uint32 } from "@ckb-lumos/codec/number";
 import { BI } from "@ckb-lumos/bi";
 
 export const OutPoint = struct(

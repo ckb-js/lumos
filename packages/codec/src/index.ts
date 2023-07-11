@@ -5,6 +5,10 @@ export type {
   UnpackParam,
   BytesLike,
   AnyCodec,
+  BytesCodec,
+  FixedBytesCodec,
+  Codec,
+  Fixed,
 } from "./base";
 export { createBytesCodec, createFixedBytesCodec, isFixedCodec } from "./base";
 export * from "./high-order";

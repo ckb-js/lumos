@@ -20,6 +20,7 @@
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
     "ava": "^3.8.2",
+    "babel-plugin-add-import-extension": "^1.6.0",
     "c8": "^7.10.0",
     "eslint": "^8.40.0",
     "eslint-import-resolver-typescript": "^2.7.0",

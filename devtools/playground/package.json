@@ -21,6 +21,8 @@
     ]
   },
   "dependencies": {
-    "@ckb-lumos/bi": "0.20.0-alpha.3"
+    "@ckb-lumos/bi": "0.20.0-alpha.3",
+    "@ckb-lumos/codec": "0.20.0-alpha.3",
+    "minimatch": "^9.0.3"
   }
 }

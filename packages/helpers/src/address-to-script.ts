@@ -9,7 +9,7 @@
 import { Address, Script } from "@ckb-lumos/base";
 import { getConfig } from "@ckb-lumos/config-manager";
 import { bech32, bech32m } from "bech32";
-import { Options } from "./";
+import { Options } from ".";
 import { byteArrayToHex } from "./utils";
 
 const BECH32_LIMIT = 1023;

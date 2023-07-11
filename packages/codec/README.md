@@ -3,7 +3,7 @@
 This module provides a set of functions to pack(encode) and unpack(decode) data.
 
 ```mermaid
-graph TD;
+graph TD
     Uint8Array-->Codec;
     Codec-->|unpack|JSObject;
     JSObject-->Codec;

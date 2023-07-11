@@ -14,12 +14,14 @@ import {
 } from "../src/context";
 import { randomBytes } from "crypto";
 import { privateKeyToBlake160, signRecoverable } from "@ckb-lumos/hd/lib/key";
-import { hexify } from "@ckb-lumos/codec/lib/bytes";
+import { bytes } from "@ckb-lumos/codec";
 import {
   createP2PKHMessageGroup,
   parseFromInfo,
 } from "@ckb-lumos/common-scripts";
-import { WitnessArgs } from "@ckb-lumos/codec/lib/blockchain";
+import { WitnessArgs } from "@ckb-lumos/base/lib/blockchain";
+
+const hexify = bytes.hexify;
 
 const downloader = new CKBDebuggerDownloader();
 const context = createTestContext(getDefaultConfig());

@@ -4,7 +4,7 @@ import {
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
 import { CellDep, HexString } from "@ckb-lumos/base";
-import { bytify } from "@ckb-lumos/codec/lib/bytes";
+import { bytify } from "@ckb-lumos/codec/bytes";
 import { OutPointVec } from "./codecs";
 import { ParamsFormatter } from "@ckb-lumos/rpc";
 import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";

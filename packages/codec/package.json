@@ -5,13 +5,36 @@
   "author": "",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "./lib/index.js",
+  "module": "./lib.esm/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib.esm/index.js",
+      "default": "./lib/index.js"
+    },
+    "./bytes": {
+      "import": "./lib.esm/bytes.js",
+      "default": "./lib/bytes.js",
+      "types": "./lib/bytes.d.ts"
+    },
+    "./number": {
+      "import": "./lib.esm/number/index.js",
+      "default": "./lib/number/index.js",
+      "types": "./lib/number/index.d.ts"
+    },
+    "./molecule": {
+      "import": "./lib.esm/molecule/index.js",
+      "default": "./lib/molecule/index.js",
+      "types": "./lib/molecule/index.d.ts"
+    }
+  },
   "engines": {
     "node": ">=12.0.0"
   },
   "files": [
     "lib",
+    "lib.esm",
     "src"
   ],
   "repository": {
@@ -22,7 +45,7 @@
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "ava **/*.test.ts --timeout=2m",
-    "build": "pnpm run build:types && pnpm run build:js",
+    "build": "lumos-build --types --cjs --esm",
     "build:types": "tsc --declaration --declarationMap --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib",

@@ -1,4 +1,4 @@
-import { FixedBytesCodec } from "./../../src/base";
+import { FixedBytesCodec } from "../../src";
 import { Uint8 } from "../../src/number";
 import {
   testArray,
