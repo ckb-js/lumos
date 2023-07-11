@@ -47,6 +47,9 @@ importers:
       ava:
         specifier: ^3.8.2
         version: 3.8.2
+      babel-plugin-add-import-extension:
+        specifier: ^1.6.0
+        version: 1.6.0(@babel/core@7.16.7)
       c8:
         specifier: ^7.10.0
         version: 7.10.0
@@ -137,6 +140,12 @@ importers:
       '@ckb-lumos/bi':
         specifier: 0.20.0-alpha.3
         version: link:../../packages/bi
+      '@ckb-lumos/codec':
+        specifier: 0.20.0-alpha.3
+        version: link:../../packages/codec
+      minimatch:
+        specifier: ^9.0.3
+        version: 9.0.3
 
   packages/base:
     dependencies:
@@ -7554,6 +7563,15 @@ packages:
       webpack: 5.82.0(webpack-cli@4.9.1)
     dev: false
 
+  /babel-plugin-add-import-extension@1.6.0(@babel/core@7.16.7):
+    resolution: {integrity: sha512-JVSQPMzNzN/S4wPRoKQ7+u8PlkV//BPUMnfWVbr63zcE+6yHdU2Mblz10Vf7qe+6Rmu4svF5jG7JxdcPi9VvKg==}
+    peerDependencies:
+      '@babel/core': '>=7.0.0'
+    dependencies:
+      '@babel/core': 7.16.7
+      '@babel/helper-plugin-utils': 7.21.5
+    dev: true
+
   /babel-plugin-apply-mdx-type-prop@1.6.22(@babel/core@7.12.9):
     resolution: {integrity: sha512-VefL+8o+F/DfK24lPZMtJctrCVOfgbqLAGZSkxwhazQv4VxPg3Za/i40fu22KR2m8eEda+IfSOlPLUSIiLcnCQ==}
     peerDependencies:
@@ -7902,7 +7920,6 @@ packages:
     resolution: {integrity: sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==}
     dependencies:
       balanced-match: 1.0.2
-    dev: true
 
   /braces@3.0.2:
     resolution: {integrity: sha512-b8um+L1RzM3WDSzvhm6gIz1yfTbBt6YTlcEKAvsmqCZZFw46z626lVj9j1yEPW33H5H+lBQpZMP1k8l+78Ha0A==}
@@ -13235,6 +13252,13 @@ packages:
     dependencies:
       brace-expansion: 2.0.1
     dev: true
+
+  /minimatch@9.0.3:
+    resolution: {integrity: sha512-RHiac9mvaRw0x3AYRgDC1CxAP7HTcNrrECeA8YYJeWnpo+2Q5CegtZjaotWTWxDG3UeGA1coE05iH1mPjT/2mg==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      brace-expansion: 2.0.1
+    dev: false
 
   /minimist-options@4.1.0:
     resolution: {integrity: sha512-Q4r8ghd80yhO/0j1O3B2BjweX3fiHg9cdOwjJd2J76Q135c+NDxGCqdYKQ1SKBuFfgWbAUzBfvYjPUEeNgqN1A==}
