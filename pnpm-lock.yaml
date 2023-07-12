@@ -137,6 +137,9 @@ importers:
 
   devtools/playground:
     dependencies:
+      '@ckb-lumos/base':
+        specifier: 0.20.0-alpha.3
+        version: link:../../packages/base
       '@ckb-lumos/bi':
         specifier: 0.20.0-alpha.3
         version: link:../../packages/bi

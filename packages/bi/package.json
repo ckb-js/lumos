@@ -33,9 +33,9 @@
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "ava **/*.test.ts --timeout=2m",
-    "build": "npm run build:types",
-    "build:types": "lumos-build --types --cjs --esm",
-    "clean": "rm -rf lib",
+    "build": "npm run build:all",
+    "build:all": "lumos-build --types --cjs --esm",
+    "clean": "rm -rf lib lib.esm",
     "prepublishOnly": "pnpm run clean && pnpm run build",
     "release": "pnpm publish"
   },

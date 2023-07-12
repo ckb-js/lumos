@@ -20,7 +20,6 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "test": "ava **/*.test.ts --timeout=2m",
     "build": "tsc",
     "clean": "rm -rf lib",
     "prepublishOnly": "npm run clean && npm run build"

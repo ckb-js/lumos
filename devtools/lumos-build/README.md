@@ -25,3 +25,7 @@ Options:
   --esmOutDir  Output directory for ESM build      [string] [default: "lib.esm"]
   --cjsOutDir  Output directory for CJS build          [string] [default: "lib"]
 ```
+
+## Contribution
+
+This package only works with Lumos project, and the [`./bin`](./bin) is committed to the repository since the typescript is hard to used as an executable file.
