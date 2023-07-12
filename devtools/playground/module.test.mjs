@@ -23,5 +23,18 @@ MODULES.forEach((module) => {
 
     t.true(minimatch(resolvedEsm, `**/lib.esm/**/*.js`));
     t.true(minimatch(resolvedCjs, `**/lib/**/*.js`));
+
+    const esm = await import(module);
+    const cjs = require(module);
+
+    const exportedEsm = Object.keys(esm);
+    const exportedCjs = Object.keys(cjs);
+
+    t.deepEqual(
+      exportedEsm.sort((a, b) => a.localeCompare(b)),
+      exportedCjs.sort((a, b) => a.localeCompare(b))
+    );
+
+    t.true(exportedEsm.length > 0);
   });
 });
