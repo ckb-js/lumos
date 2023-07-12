@@ -12,7 +12,7 @@ export type {
   Input,
   Output,
   Script,
-} from "@ckb-lumos/base/lib/api";
+} from "@ckb-lumos/base";
 
 import {
   Reader,
@@ -35,7 +35,7 @@ export type {
   HexadecimalRange,
   PackedDao,
   PackedSince,
-} from "@ckb-lumos/base/lib/primitive";
+} from "@ckb-lumos/base";
 
 export { since, utils } from "@ckb-lumos/base";
 export * as config from "@ckb-lumos/config-manager";

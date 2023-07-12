@@ -8,6 +8,10 @@ const MODULES = [
   "@ckb-lumos/codec/bytes",
   "@ckb-lumos/codec/number",
   "@ckb-lumos/toolkit",
+  "@ckb-lumos/base",
+  "@ckb-lumos/base/blockchain",
+  "@ckb-lumos/base/since",
+  "@ckb-lumos/base/utils",
 ];
 
 const require = createRequire(import.meta.url);

@@ -303,7 +303,7 @@ export const CellbaseWitness = table(
 
 // TODO make an enhancer for number codecs
 /**
- * from Transantion defined in  @ckb-lumos/base/lib/api.d.ts
+ * from Transaction defined in  @ckb-lumos/base
  * ```
  * export interface Transaction {
  *  cellDeps: CellDep[];
@@ -328,7 +328,7 @@ export const CellbaseWitness = table(
  *   witnesses: BytesVec;
  * }
  * ```
- * @param data Transantion defined in @ckb-lumos/base/lib/api.d.ts
+ * @param data Transantion defined in @ckb-lumos/base
  * @returns TransactionCodecType
  */
 export function transformTransactionCodecType(

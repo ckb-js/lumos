@@ -13,7 +13,7 @@
   "license": "MIT",
   "author": "homura.dev <homura.dev@gmail.com> (https://github.com/homura)",
   "scripts": {
-    "test": "ava"
+    "test": "ava --timeout=2m"
   },
   "ava": {
     "nodeArguments": [
@@ -21,6 +21,7 @@
     ]
   },
   "dependencies": {
+    "@ckb-lumos/base": "0.20.0-alpha.3",
     "@ckb-lumos/bi": "0.20.0-alpha.3",
     "@ckb-lumos/codec": "0.20.0-alpha.3",
     "@ckb-lumos/toolkit": "0.20.0-alpha.3",

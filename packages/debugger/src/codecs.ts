@@ -1,5 +1,5 @@
 import { struct, vector } from "@ckb-lumos/codec/molecule";
-import { Byte32 } from "@ckb-lumos/base/lib/blockchain";
+import { Byte32 } from "@ckb-lumos/base/blockchain";
 import { createFixedBytesCodec } from "@ckb-lumos/codec";
 import { Uint32 } from "@ckb-lumos/codec/number";
 import { BI } from "@ckb-lumos/bi";

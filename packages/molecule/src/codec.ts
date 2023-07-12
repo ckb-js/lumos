@@ -15,7 +15,7 @@ import {
   union,
   vector,
 } from "@ckb-lumos/codec/molecule";
-import { createFixedHexBytesCodec } from "@ckb-lumos/base/lib/blockchain";
+import { createFixedHexBytesCodec } from "@ckb-lumos/base/blockchain";
 import { byte, CodecMap, MolType, MolTypeMap } from "./type";
 import { nonNull, toMolTypeMap } from "./utils";
 

@@ -26,8 +26,8 @@
   "scripts": {
     "build": "pnpm run build:js",
     "build:js": "babel -s --plugins @babel/plugin-proposal-export-namespace-from --plugins @babel/plugin-transform-modules-commonjs src --out-dir lib",
-    "build:esm": "shx cp -r ./src lib.esm",
-    "clean": "rm -rf lib",
+    "build:all": "shx cp -r ./src lib.esm",
+    "clean": "rm -rf lib lib.esm",
     "test": "ava",
     "fmt": "prettier --write \"{src,tests}/**/*.js\"",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.js\"",

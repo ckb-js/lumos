@@ -3,7 +3,7 @@ import {
   createCellWithMinimalCapacity,
   createScriptRegistry,
 } from "@ckb-lumos/experiment-tx-assembler";
-import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
+import { computeScriptHash } from "@ckb-lumos/base/utils";
 import { HexString } from "@ckb-lumos/base";
 import { CKBDebugger, CKBDebuggerDownloader, DataLoader } from "../src";
 import { TransactionSkeleton } from "@ckb-lumos/helpers";
@@ -19,7 +19,7 @@ import {
   createP2PKHMessageGroup,
   parseFromInfo,
 } from "@ckb-lumos/common-scripts";
-import { WitnessArgs } from "@ckb-lumos/base/lib/blockchain";
+import { WitnessArgs } from "@ckb-lumos/base/blockchain";
 
 const hexify = bytes.hexify;
 

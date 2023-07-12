@@ -1,6 +1,6 @@
 import { HexString, OutPoint } from "@ckb-lumos/base";
 import * as fs from "fs";
-import { ckbHash } from "@ckb-lumos/base/lib/utils";
+import { ckbHash } from "@ckb-lumos/base/utils";
 import { hexify } from "@ckb-lumos/codec/bytes";
 import { OutPoint as OutPointCodec, OutPointVec } from "./codecs";
 
