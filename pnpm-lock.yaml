@@ -68,6 +68,9 @@ importers:
       husky:
         specifier: ^7.0.4
         version: 7.0.4
+      is-ci:
+        specifier: ^3.0.1
+        version: 3.0.1
       lerna:
         specifier: ^4.0.0
         version: 4.0.0
