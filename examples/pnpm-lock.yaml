@@ -689,7 +689,7 @@ importers:
   cardano-lock-namiwallet:
     dependencies:
       '@ckb-lumos/lumos':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/lumos
       '@emurgo/cardano-message-signing-asmjs':
         specifier: ^1.0.1
@@ -713,19 +713,19 @@ importers:
   exchange-sudt-for-ckb:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/bi':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/common-scripts
       '@ckb-lumos/lumos':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25
@@ -765,19 +765,19 @@ importers:
   misc:
     dependencies:
       '@ckb-lumos/lumos':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/lumos
 
   omni-lock-metamask:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/codec':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/lumos':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25
@@ -820,16 +820,16 @@ importers:
   omni-lock-secp256k1-blake160:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/codec':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/hd':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/hd
       '@ckb-lumos/lumos':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25
@@ -854,13 +854,13 @@ importers:
   pw-lock-metamask:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/codec':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/lumos':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25
@@ -885,19 +885,19 @@ importers:
   secp256k1-multisig-transfer:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/bi':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/common-scripts
       '@ckb-lumos/lumos':
-        specifier: 0.20.0-alpha.3
+        specifier: next
         version: link:../../packages/lumos
 
   secp256k1-transfer:
