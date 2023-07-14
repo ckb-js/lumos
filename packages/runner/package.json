@@ -1,5 +1,6 @@
 {
   "name": "@ckb-lumos/runner",
+  "private": true,
   "version": "0.20.0-alpha.3",
   "description": "CKB related binary helper",
   "homepage": "https://github.com/ckb-js/lumos#readme",
