@@ -1,7 +1,7 @@
 name: Release
 on:
   push:
-    branches: [main]
+    branches: [develop]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -43,7 +43,7 @@ jobs:
 
   release:
     name: Release
-    needs: verify
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
