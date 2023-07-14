@@ -59,6 +59,7 @@ jobs:
         run: |
           npm install -g verdaccio
           npm config set registry http://localhost:4873
+          npm config set //localhost:4873/:_authToken fake
           nohup verdaccio --config ./devtools/verdaccio.yaml --listen=4873 >/dev/null 2>&1 &
 
       - name: Publish to NPM
