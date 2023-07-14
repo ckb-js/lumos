@@ -12,6 +12,8 @@
     "@babel/core": "^7.16.7",
     "@babel/preset-env": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
+    "@changesets/changelog-github": "^0.4.8",
+    "@changesets/cli": "^2.26.2",
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
     "@commitlint/types": "^16.0.0",
@@ -52,18 +54,8 @@
     "lint:eslint": "lerna run lint --parallel",
     "lint-next": "eslint -c .eslintrc.next.js ",
     "clean": "lerna run clean",
-    "versionup": "lerna version --conventional-commits --no-git-tag-version",
-    "versionup:patch": "lerna version patch --conventional-commits --no-git-tag-version",
-    "versionup:minor": "lerna version minor --conventional-commits --no-git-tag-version",
-    "versionup:major": "lerna version major --conventional-commits --no-git-tag-version",
-    "versionup:prerelease": "lerna version prerelease --conventional-commits --no-git-tag-version --conventional-prerelease --force-publish",
-    "postversionup": "pnpm run create-publish-branch",
-    "postversionup:patch": "pnpm run create-publish-branch",
-    "postversionup:minor": "pnpm run create-publish-branch",
-    "postversionup:major": "pnpm run create-publish-branch",
-    "postversionup:prerelease": "pnpm run create-publish-branch",
-    "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\"",
-    "create-publish-branch": "node ./scripts/create_publish_branch.js"
+    "changeset:version": "changeset version && pnpm install --lockfile-only",
+    "changeset:release": "changeset publish"
   },
   "husky": {
     "hooks": {
