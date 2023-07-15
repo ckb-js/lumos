@@ -29,7 +29,6 @@
     "eslint-plugin-import": "^2.25.4",
     "husky": "^7.0.4",
     "is-ci": "^3.0.1",
-    "lerna": "^4.0.0",
     "lint-staged": "^12.3.5",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
@@ -42,20 +41,19 @@
   "scripts": {
     "docs": "typedoc",
     "prepare": "is-ci || husky install",
-    "test": "lerna run test --parallel",
+    "test": "pnpm run -r --parallel test",
     "e2e-test": "pnpm run e2e-indexer && pnpm run integration-test",
     "e2e-indexer": "cd packages/ckb-indexer && pnpm run test:e2e",
     "integration-test": "cd packages/e2e-test && pnpm run test:e2e",
     "test-coverage": "npx c8 --reporter=cobertura --reporter=html --clean -o coverage pnpm run test",
-    "build:types": "lerna run build:types",
-    "build:js": "lerna run build:js --parallel",
+    "build:types": "pnpm run -r build:types",
+    "build:js": "pnpm run -r --parallel build:js ",
     "build": "run-p build:*",
-    "build-release": "lerna run --scope @ckb-lumos/lumos build:umd",
     "lint": "run-p lint:* && git diff --exit-code",
-    "fmt": "lerna run fmt --parallel",
-    "lint:eslint": "lerna run lint --parallel",
+    "fmt": "pnpm run -r --parallel fmt",
+    "lint:eslint": "pnpm run -r --parallel lint",
     "lint-next": "eslint -c .eslintrc.next.js ",
-    "clean": "lerna run clean",
+    "clean": "pnpm run -r --paralle clean",
     "changeset:version": "changeset version && pnpm install --lockfile-only",
     "changeset:release": "changeset publish"
   },
@@ -69,10 +67,11 @@
       "prettier --write",
       "eslint -c .eslintrc.next.js --fix",
       "git add"
+    ],
+    "website/{docs,src}/**/*.{js,ts,md}": [
+      "prettier --write",
+      "git add"
     ]
   },
-  "website/{docs,src}/**/*.{js,ts,md}": [
-    "prettier --write"
-  ],
   "packageManager": "pnpm@8.6.1"
 }
