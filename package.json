@@ -17,6 +17,7 @@
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
     "@commitlint/types": "^16.0.0",
+    "@devtools/changelog": "workspace:^",
     "@strictsoftware/typedoc-plugin-monorepo": "^0.3.1",
     "@types/node": "^20.1.0",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
