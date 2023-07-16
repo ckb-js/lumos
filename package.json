@@ -55,7 +55,7 @@
     "lint-next": "eslint -c .eslintrc.next.js ",
     "clean": "pnpm run -r --paralle clean",
     "changeset:version": "changeset version && pnpm install --lockfile-only",
-    "changeset:release": "changeset publish"
+    "changeset:release": "node scripts/changeset-publish.cjs"
   },
   "husky": {
     "hooks": {

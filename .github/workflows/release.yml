@@ -26,28 +26,6 @@ jobs:
   #    secrets: inherit
   #    uses: ./.github/workflows/ci.yml
 
-  changesets:
-    name: Changesets
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v3
-        with:
-          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
-          fetch-depth: 0
-
-      - name: Install dependencies
-        uses: ./.github/actions/install-deps
-
-      - name: Create Version Pull Request
-        uses: changesets/action@v1
-        with:
-          version: pnpm changeset:version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   release:
     name: Release
     needs: test
@@ -72,7 +50,23 @@ jobs:
       - name: Publish to NPM
         uses: changesets/action@v1
         with:
+          version: pnpm changeset:version
           publish: pnpm changeset:release
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - uses: 8BitJonny/gh-get-current-pr@2.2.0
+        id: PR
+
+      # TODO remove me when ready, just for debugging
+      - name: Debug
+        run: |
+          echo "pr_found: ${{ steps.PR.outputs.pr_found }}"
+          echo "pr_found_is_true: ${{ steps.PR.outputs.pr_found == 'true' }}"
+          echo "pr_merged_at: ${{ steps.PR.outputs.pr_merged_at }}"
+          echo "pr_merged_at_contains_dash: ${{ contains(steps.PR.outputs.pr_merged_at, '-') }}"
+          echo "pr_title: ${{ steps.PR.outputs.pr_title }}"
+          echo "pr_title_contains_version_packages: ${{ contains(steps.PR.outputs.pr_title, 'Version Packages') }}"
+          echo "pr_title_contains_version_packages: ${{ contains(steps.PR.outputs.pr_title, 'Version Packages') == 'true' }}"
