@@ -30,9 +30,7 @@
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "clean": "rm -rf lib",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "prepublishOnly": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish"
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\""
   },
   "ava": {
     "extensions": [

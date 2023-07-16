@@ -28,9 +28,7 @@
     "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
-    "clean": "rm -rf lib",
-    "prepublishOnly": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish"
+    "clean": "rm -rf lib"
   },
   "bugs": {
     "url": "https://github.com/ckb-js/lumos/issues"
