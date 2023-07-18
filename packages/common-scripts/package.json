@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/common-scripts",
-  "version": "0.20.0-alpha.3",
+  "version": "0.20.0",
   "description": "Common script support in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -19,13 +19,13 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0-alpha.3",
-    "@ckb-lumos/bi": "0.20.0-alpha.3",
-    "@ckb-lumos/codec": "0.20.0-alpha.3",
-    "@ckb-lumos/config-manager": "0.20.0-alpha.3",
-    "@ckb-lumos/helpers": "0.20.0-alpha.3",
-    "@ckb-lumos/rpc": "0.20.0-alpha.3",
-    "@ckb-lumos/toolkit": "0.20.0-alpha.3",
+    "@ckb-lumos/base": "0.20.0",
+    "@ckb-lumos/bi": "0.20.0",
+    "@ckb-lumos/codec": "0.20.0",
+    "@ckb-lumos/config-manager": "0.20.0",
+    "@ckb-lumos/helpers": "0.20.0",
+    "@ckb-lumos/rpc": "0.20.0",
+    "@ckb-lumos/toolkit": "0.20.0",
     "immutable": "^4.3.0"
   },
   "repository": {
@@ -55,8 +55,8 @@
     ]
   },
   "devDependencies": {
-    "@ckb-lumos/debugger": "0.20.0-alpha.3",
-    "@ckb-lumos/hd": "0.20.0-alpha.3",
+    "@ckb-lumos/debugger": "0.20.0",
+    "@ckb-lumos/hd": "0.20.0",
     "@types/keccak": "^3.0.1",
     "keccak": "^3.0.1"
   },
