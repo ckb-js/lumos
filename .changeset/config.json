@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@2.3.1/schema.json",
+  "changelog": ["@devtools/changelog", { "repo": "ckb-js/lumos" }],
+  "commit": false,
+  "fixed": [["@ckb-lumos/*"]],
+  "linked": [],
+  "access": "restricted",
+  "baseBranch": "develop",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}

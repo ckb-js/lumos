@@ -39,13 +39,13 @@ importers:
   ../packages/base:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../toolkit
       '@types/blake2b':
         specifier: ^2.1.0
@@ -76,19 +76,19 @@ importers:
   ../packages/ckb-indexer:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../toolkit
       cross-fetch:
         specifier: ^3.1.5
@@ -98,7 +98,7 @@ importers:
         version: 3.3.0
     devDependencies:
       '@ckb-lumos/testkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../testkit
       '@types/lodash.uniqby':
         specifier: ^4.7.7
@@ -125,7 +125,7 @@ importers:
   ../packages/codec:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
     devDependencies:
       escape-string-regexp:
@@ -138,35 +138,35 @@ importers:
   ../packages/common-scripts:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../helpers
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../toolkit
       immutable:
         specifier: ^4.3.0
         version: 4.3.0
     devDependencies:
       '@ckb-lumos/debugger':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../debugger
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../hd
       '@types/keccak':
         specifier: ^3.0.1
@@ -178,13 +178,13 @@ importers:
   ../packages/config-manager:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@types/deep-freeze-strict':
         specifier: ^1.1.0
@@ -196,22 +196,22 @@ importers:
   ../packages/debugger:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../helpers
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../rpc
       '@types/download':
         specifier: ^8.0.1
@@ -233,55 +233,55 @@ importers:
         version: 3.0.0
     devDependencies:
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../common-scripts
       '@ckb-lumos/experiment-tx-assembler':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../experiment-tx-assembler
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../hd
 
   ../packages/e2e-test:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../ckb-indexer
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../common-scripts
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../config-manager
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../hd
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../helpers
       '@ckb-lumos/light-client':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../light-client
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../rpc
       '@ckb-lumos/runner':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../runner
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../toolkit
       '@ckb-lumos/utils':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../utils
       '@types/kill-port':
         specifier: ^2.0.0
@@ -294,7 +294,7 @@ importers:
         version: 2.0.1
     devDependencies:
       '@ckb-lumos/testkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../testkit
       '@types/request':
         specifier: ^2.48.8
@@ -315,28 +315,28 @@ importers:
   ../packages/experiment-tx-assembler:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../helpers
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../toolkit
 
   ../packages/hd:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       bn.js:
         specifier: ^5.1.3
@@ -367,22 +367,22 @@ importers:
   ../packages/hd-cache:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../ckb-indexer
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../config-manager
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../hd
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../rpc
       immutable:
         specifier: ^4.3.0
@@ -398,19 +398,19 @@ importers:
   ../packages/helpers:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../config-manager
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../toolkit
       bech32:
         specifier: ^2.0.0
@@ -422,13 +422,13 @@ importers:
   ../packages/light-client:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../ckb-indexer
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../rpc
       cross-fetch:
         specifier: ^3.1.5
@@ -438,7 +438,7 @@ importers:
         version: 3.3.0
     devDependencies:
       '@ckb-lumos/testkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../testkit
       '@types/request':
         specifier: ^2.48.8
@@ -453,31 +453,31 @@ importers:
   ../packages/lumos:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../ckb-indexer
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../common-scripts
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../config-manager
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../hd
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../helpers
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../toolkit
     devDependencies:
       buffer:
@@ -505,10 +505,10 @@ importers:
   ../packages/molecule:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@types/nearley':
         specifier: ^2.11.2
@@ -521,7 +521,7 @@ importers:
         version: 2.20.1
     devDependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       jsbi:
         specifier: ^4.1.0
@@ -530,10 +530,10 @@ importers:
   ../packages/rpc:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@vespaiach/axios-fetch-adapter':
         specifier: ^0.3.1
@@ -564,7 +564,7 @@ importers:
   ../packages/runner:
     dependencies:
       '@ckb-lumos/utils':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../utils
       '@ltd/j-toml':
         specifier: ^1.38.0
@@ -600,13 +600,13 @@ importers:
   ../packages/testkit:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@types/body-parser':
         specifier: ^1.19.1
@@ -659,19 +659,19 @@ importers:
   ../packages/transaction-manager:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../base
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../ckb-indexer
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../codec
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../toolkit
       immutable:
         specifier: ^4.3.0
@@ -689,7 +689,7 @@ importers:
   cardano-lock-namiwallet:
     dependencies:
       '@ckb-lumos/lumos':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/lumos
       '@emurgo/cardano-message-signing-asmjs':
         specifier: ^1.0.1
@@ -713,19 +713,19 @@ importers:
   exchange-sudt-for-ckb:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/common-scripts
       '@ckb-lumos/lumos':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25
@@ -765,19 +765,19 @@ importers:
   misc:
     dependencies:
       '@ckb-lumos/lumos':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/lumos
 
   omni-lock-metamask:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/lumos':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25
@@ -820,16 +820,16 @@ importers:
   omni-lock-secp256k1-blake160:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/hd
       '@ckb-lumos/lumos':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25
@@ -854,13 +854,13 @@ importers:
   pw-lock-metamask:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/lumos':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25
@@ -885,31 +885,31 @@ importers:
   secp256k1-multisig-transfer:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/codec
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/common-scripts
       '@ckb-lumos/lumos':
-        specifier: 0.20.0
+        specifier: next
         version: link:../../packages/lumos
 
   secp256k1-transfer:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../../packages/base
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../../packages/codec
       '@ckb-lumos/lumos':
-        specifier: 0.20.0
+        specifier: 0.20.0-alpha.3
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25

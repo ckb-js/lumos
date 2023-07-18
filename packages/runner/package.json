@@ -1,5 +1,6 @@
 {
   "name": "@ckb-lumos/runner",
+  "private": true,
   "version": "0.20.0",
   "description": "CKB related binary helper",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -29,9 +30,7 @@
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "clean": "rm -rf lib",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
-    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "prepublishOnly": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish"
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\""
   },
   "ava": {
     "extensions": [
