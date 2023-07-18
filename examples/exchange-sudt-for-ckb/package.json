@@ -15,11 +15,11 @@
     "process": "^0.11.10"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0-alpha.3",
-    "@ckb-lumos/bi": "0.20.0-alpha.3",
-    "@ckb-lumos/codec": "0.20.0-alpha.3",
-    "@ckb-lumos/common-scripts": "0.20.0-alpha.3",
-    "@ckb-lumos/lumos": "0.20.0-alpha.3",
+    "@ckb-lumos/base": "0.20.0",
+    "@ckb-lumos/bi": "0.20.0",
+    "@ckb-lumos/codec": "0.20.0",
+    "@ckb-lumos/common-scripts": "0.20.0",
+    "@ckb-lumos/lumos": "0.20.0",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "bulma": "^0.9.4",
