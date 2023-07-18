@@ -28,13 +28,6 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-deps
 
-      # TODO remove me when ready
-      - name: Release to Verdaccio
-        run: |
-          npm install -g verdaccio
-          npm config set registry http://localhost:4873
-          nohup verdaccio --config ./devtools/verdaccio.yaml --listen=4873 >/dev/null 2>&1 &
-
       - name: Publish to NPM
         id: changesets
         uses: changesets/action@v1
