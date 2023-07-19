@@ -4,9 +4,14 @@ const path = require("node:path");
 const pkgJson = require(path.join(__dirname, "../packages/lumos/package.json"));
 const currentVersion = pkgJson.version;
 
+const tagged = execSync(`git ls-remote --tags`)
+  .toString()
+  .includes(`v${currentVersion}`);
+
+/** @type {string[]} */
 const commands = [
   `changeset publish --no-git-tag`,
-  `git tag v${currentVersion}`,
-];
+  !tagged && `git tag v${currentVersion}`,
+].filter(Boolean);
 
 execSync(commands.join(" && "), { stdio: "inherit" });
