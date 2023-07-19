@@ -14,6 +14,11 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-deps
 
+      - name: Setup .npmrc file
+        uses: actions/setup-node@v3
+        with:
+          registry-url: "https://registry.npmjs.org"
+
       - name: Canary release
         run: |
           npx changeset pre exit || true
