@@ -1,0 +1,31 @@
+name: Canary
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-deps
+
+      # TODO remove me when ready
+      - name: Release to Verdaccio
+        run: |
+          npm install -g verdaccio
+          npm config set registry http://localhost:4873
+          nohup verdaccio --config ./devtools/verdaccio.yaml --listen=4873 >/dev/null 2>&1 &
+
+      - name: Canary
+        run: |
+          npx changeset pre exit || true
+          npx changeset version --snapshot canary-$(git log -1 --pretty=format:%h)
+          pnpm -r publish --no-git-checks --tag canary
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
