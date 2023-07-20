@@ -4,6 +4,6 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/lumos": "0.20.0-alpha.3"
+    "@ckb-lumos/lumos": "0.20.0"
   }
 }
