@@ -29,7 +29,7 @@
     "husky": "^7.0.4",
     "lerna": "^4.0.0",
     "lint-staged": "^12.3.5",
-    "lumos-build": "0.20.0-alpha.3",
+    "lumos-build": "0.20.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
     "shx": "^0.3.4",

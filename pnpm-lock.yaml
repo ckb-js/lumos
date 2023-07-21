@@ -72,7 +72,7 @@ importers:
         specifier: ^12.3.5
         version: 12.3.5
       lumos-build:
-        specifier: 0.20.0-alpha.3
+        specifier: 0.20.0
         version: link:devtools/lumos-build
       npm-run-all:
         specifier: ^4.1.5
@@ -99,7 +99,7 @@ importers:
   devtools/bundler:
     dependencies:
       '@ckb-lumos/lumos':
-        specifier: 0.20.0-alpha.3
+        specifier: 0.20.0
         version: link:../../packages/lumos
       '@types/webpack-bundle-analyzer':
         specifier: ^4.6.0
@@ -138,16 +138,16 @@ importers:
   devtools/playground:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0-alpha.3
+        specifier: 0.20.0
         version: link:../../packages/base
       '@ckb-lumos/bi':
-        specifier: 0.20.0-alpha.3
+        specifier: 0.20.0
         version: link:../../packages/bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0-alpha.3
+        specifier: 0.20.0
         version: link:../../packages/codec
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0-alpha.3
+        specifier: 0.20.0
         version: link:../../packages/toolkit
       minimatch:
         specifier: ^9.0.3
@@ -468,10 +468,10 @@ importers:
         specifier: 0.20.0
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0-alpha.3
+        specifier: 0.20.0
         version: link:../codec
       '@ckb-lumos/crypto':
-        specifier: 0.20.0-alpha.3
+        specifier: 0.20.0
         version: link:../crypto
       bn.js:
         specifier: ^4.11.6
@@ -479,6 +479,9 @@ importers:
       elliptic:
         specifier: ^6.5.4
         version: 6.5.4
+      scrypt-js:
+        specifier: ^3.0.1
+        version: 3.0.1
       sha3:
         specifier: ^2.1.3
         version: 2.1.3

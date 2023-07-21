@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/crypto",
-  "version": "0.20.0-alpha.3",
+  "version": "0.20.0",
   "description": "Crypto library for Lumos",
   "author": "",
   "homepage": "https://github.com/ckb-js/lumos#readme",
