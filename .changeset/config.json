@@ -4,7 +4,7 @@
   "commit": false,
   "fixed": [["@ckb-lumos/*"]],
   "linked": [],
-  "access": "restricted",
+  "access": "public",
   "baseBranch": "develop",
   "updateInternalDependencies": "patch",
   "ignore": []
