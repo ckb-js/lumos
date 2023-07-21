@@ -6,29 +6,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - uses: actions/cache@v1
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      - uses: pnpm/action-setup@v2
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          version: 8.6.1
+      - uses: actions/setup-node@v3
+        with:
+          cache: "pnpm"
 
       - name: Install project dependencies and build
         run: |
-          yarn --ignore-engines --frozen-lockfile
-          yarn build
+          pnpm install --frozen-lockfile
+          pnpm run build
           git diff --exit-code
 
       - name: Prettier check
-        run: yarn lint
+        run: pnpm run lint
 
       - name: Run test with coverage
-        run: yarn test-coverage
+        run: pnpm run test-coverage
 
       - uses: codecov/codecov-action@v3
         with:
@@ -40,23 +35,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - uses: actions/cache@v1
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      - uses: pnpm/action-setup@v2
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          version: 8.6.1
+      - uses: actions/setup-node@v3
+        with:
+          cache: "pnpm"
+
       - name: Install project dependencies and build
         run: |
-          yarn --ignore-engines --frozen-lockfile
-          yarn build
-          docker-compose -f ./packages/e2e-test/docker/docker-compose.yml build
+          pnpm install --frozen-lockfile
+          pnpm run build
+#          TODO uncomment me
+#          docker-compose -f ./packages/e2e-test/docker/docker-compose.yml build
       - name: e2e test
-        run: yarn e2e-test
+        run: pnpm run e2e-test
 
   lint-staged:
     runs-on: ubuntu-latest
@@ -64,20 +57,17 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - uses: actions/cache@v1
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      - uses: pnpm/action-setup@v2
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          version: 8.6.1
+      - uses: actions/setup-node@v3
+        with:
+          cache: "pnpm"
+
       - name: Install project dependencies and build
         run: |
-          yarn --ignore-engines --frozen-lockfile
-          yarn build
+          pnpm install --frozen-lockfile
+          pnpm run build
       - name: Get changed files
         uses: tj-actions/changed-files@v17.3
         id: changed-files
@@ -91,4 +81,4 @@ jobs:
       - name: Run lint for changed files
         if: ${{ steps.changed-files.outputs.all_changed_files != '' }}
         run: |
-          yarn eslint -c .eslintrc.next.js ${{ steps.changed-files.outputs.all_changed_files }}
+          npx eslint -c .eslintrc.next.js ${{ steps.changed-files.outputs.all_changed_files }}

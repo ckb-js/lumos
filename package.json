@@ -6,13 +6,6 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "resolutions": {
-    "lerna/**/json-schema": "^0.4.0",
-    "@strictsoftware/typedoc-plugin-monorepo/highlight.js": "^10.4.1",
-    "ava/trim-off-newlines": "^1.0.3",
-    "ava/**/ansi-regex": "^5.0.1",
-    "lerna/**/ansi-regex": "^5.0.1"
-  },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
     "@babel/cli": "^7.16.7",
@@ -23,36 +16,39 @@
     "@commitlint/config-conventional": "^16.0.0",
     "@commitlint/types": "^16.0.0",
     "@strictsoftware/typedoc-plugin-monorepo": "^0.3.1",
-    "@typescript-eslint/eslint-plugin": "^3.5.0",
-    "@typescript-eslint/parser": "^3.5.0",
+    "@types/node": "^20.1.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2",
     "ava": "^3.8.2",
     "c8": "^7.10.0",
-    "eslint": "^7.1.0",
+    "eslint": "^8.40.0",
     "eslint-import-resolver-typescript": "^2.7.0",
     "eslint-plugin-import": "^2.25.4",
     "husky": "^7.0.4",
     "lerna": "^4.0.0",
     "lint-staged": "^12.3.5",
-    "mysql2": "^2.1.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.0.5",
-    "sinon": "^9.2.0",
-    "ts-node": "^8.10.2",
-    "typedoc": "^0.17.7",
-    "typescript": "3.9.5"
+    "prettier": "^2.8.8",
+    "shx": "^0.3.4",
+    "sinon": "^15.0.4",
+    "ts-node": "^10.9.1",
+    "typedoc": "^0.24.8",
+    "typescript": "5.0.4"
   },
   "scripts": {
-    "docs": "typedoc .",
+    "docs": "typedoc",
     "prepare": "husky install",
     "test": "lerna run test --parallel",
-    "e2e-test": "lerna run test:e2e --stream",
-    "test-coverage": "yarn c8 --reporter=cobertura --reporter=html --clean -o coverage yarn run test",
+    "e2e-test": "pnpm run e2e-indexer && pnpm run integration-test",
+    "e2e-indexer": "cd packages/ckb-indexer && pnpm run test:e2e",
+    "integration-test": "cd packages/e2e-test && pnpm run test:e2e",
+    "test-coverage": "npx c8 --reporter=cobertura --reporter=html --clean -o coverage pnpm run test",
     "build:types": "lerna run build:types",
     "build:js": "lerna run build:js --parallel",
     "build": "run-p build:*",
     "build-release": "lerna run --scope @ckb-lumos/lumos build:umd",
     "lint": "run-p lint:* && git diff --exit-code",
-    "lint:fmt": "lerna run fmt --parallel",
+    "fmt": "lerna run fmt --parallel",
     "lint:eslint": "lerna run lint --parallel",
     "lint-next": "eslint -c .eslintrc.next.js ",
     "clean": "lerna run clean",
@@ -61,23 +57,24 @@
     "versionup:minor": "lerna version minor --conventional-commits --no-git-tag-version",
     "versionup:major": "lerna version major --conventional-commits --no-git-tag-version",
     "versionup:prerelease": "lerna version prerelease --conventional-commits --no-git-tag-version --conventional-prerelease --force-publish",
-    "postversionup": "npm run create-publish-branch",
-    "postversionup:patch": "npm run create-publish-branch",
-    "postversionup:minor": "npm run create-publish-branch",
-    "postversionup:major": "npm run create-publish-branch",
-    "postversionup:prerelease": "npm run create-publish-branch",
+    "postversionup": "pnpm run create-publish-branch",
+    "postversionup:patch": "pnpm run create-publish-branch",
+    "postversionup:minor": "pnpm run create-publish-branch",
+    "postversionup:major": "pnpm run create-publish-branch",
+    "postversionup:prerelease": "pnpm run create-publish-branch",
     "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\"",
     "create-publish-branch": "node ./scripts/create_publish_branch.js"
   },
   "husky": {
     "hooks": {
-      "pre-push": "yarn run lint"
+      "pre-push": "pnpm run lint"
     }
   },
   "lint-staged": {
     "packages/*/{src,tests}/**/*.{js,ts,md}": [
       "prettier --write",
-      "eslint -c .eslintrc.next.js --fix"
+      "eslint -c .eslintrc.next.js --fix",
+      "git add"
     ]
   },
   "website/{docs,src}/**/*.{js,ts,md}": [

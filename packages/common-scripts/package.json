@@ -26,7 +26,7 @@
     "@ckb-lumos/helpers": "0.20.0",
     "@ckb-lumos/rpc": "0.20.0",
     "@ckb-lumos/toolkit": "0.20.0",
-    "immutable": "^4.0.0-rc.12"
+    "immutable": "^4.3.0"
   },
   "repository": {
     "type": "git",
@@ -36,12 +36,12 @@
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "ava **/*.test.ts --timeout=2m",
-    "build": "npm run build:types && npm run build:js",
+    "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib",
-    "prepublishOnly": "yarn run clean && yarn run build",
-    "release": "npm publish"
+    "prepublishOnly": "pnpm run clean && pnpm run build",
+    "release": "pnpm publish"
   },
   "bugs": {
     "url": "https://github.com/ckb-js/lumos/issues"
@@ -56,6 +56,7 @@
   },
   "devDependencies": {
     "@ckb-lumos/debugger": "0.20.0",
+    "@ckb-lumos/hd": "0.20.0",
     "@types/keccak": "^3.0.1",
     "keccak": "^3.0.1"
   },

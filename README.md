@@ -34,42 +34,40 @@ we have provided some use cases for Lumos, such as interactions with MetaMask, t
 ### Requirements
 
 - [Node.js](https://nodejs.org)
-- [Yarn](https://yarnpkg.com/)
-- [node-gyp](https://github.com/nodejs/node-gyp)
+- [pnpm](https://pnpm.io)
 
 ```bash
 sudo apt-get update
 sudo apt install nodejs
-npm install --global yarn
-sudo apt install build-essential
+npm install -g pnpm
 ```
 
 ### Build
 
 ```bash
-yarn run build
+pnpm run build
 ```
 
 ### Test (ava)
 
 ```bash
-yarn run test
+pnpm run test
 ```
 
 ### Test Coverage (c8)
 
 ```bash
-yarn run test-coverage
+pnpm run test-coverage
 ```
 
 ### Format & Lint
 
 ```bash
-yarn run lint
+pnpm run lint
 ```
 
 ### Clean
 
 ```bash
-yarn run clean
+pnpm run clean
 ```

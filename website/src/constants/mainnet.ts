@@ -18,7 +18,7 @@ export const MAINNET_SCRIPTS: config.ScriptConfigs = {
     TX_HASH:
       "0x04632cc459459cf5c9d384b43dee3e36f542a464bdd4127be7d6618ac6f8d268",
     INDEX: "0x0",
-    DEP_TYPE: "dep_group",
+    DEP_TYPE: "depGroup",
   },
   OMNI_LOCK: {
     CODE_HASH:

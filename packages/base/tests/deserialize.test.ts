@@ -1,5 +1,5 @@
 import JSBI from "jsbi";
-import { HashType, DepType } from "@ckb-lumos/base";
+import { HashType, DepType } from "../src";
 import test from "ava";
 import * as blockchain from "../src/blockchain";
 import type * as api from "../src/api";

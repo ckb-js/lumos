@@ -9,10 +9,9 @@ can use private key as a signer. This example will show how to use Lumos to send
 > we should [build](..) Lumos project first before we start this example
 
 ```
-yarn run build
-yarn run build-release
+npm run build
 cd examples/omni-lock-own-signature
-yarn start
+npm start
 ```
 
 ## Links

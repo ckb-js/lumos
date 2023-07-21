@@ -7,15 +7,14 @@
 ```sh
 git clone https://github.com/ckb-js/lumos.git
 cd lumos
-yarn
-yarn build
-yarn build-release
+pnpm install
+pnpm run build
 ```
 
 ### Check if the build is working
 
-```
-yarn ts-node examples/config-manager.ts
+```sh
+npx ts-node misc/config-manager.ts
 ```
 
 ## Online Preview

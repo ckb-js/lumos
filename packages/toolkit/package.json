@@ -16,7 +16,7 @@
     "lib"
   ],
   "scripts": {
-    "build": "yarn run build:js",
+    "build": "pnpm run build:js",
     "build:js": "babel -s --plugins @babel/plugin-proposal-export-namespace-from --plugins @babel/plugin-transform-modules-commonjs src --out-dir lib",
     "clean": "rm -rf lib",
     "test": "ava",
@@ -32,5 +32,10 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
+    "@babel/plugin-transform-modules-commonjs": "^7.21.5",
+    "jsbi": "^4.1.0"
   }
 }

@@ -93,7 +93,7 @@ function diff(x1: unknown[], x2: unknown[]) {
   return x1.filter((x) => !x2.includes(x));
 }
 
-function checkShape<T>(shape: T, fields: (keyof T)[]) {
+function checkShape<T extends object>(shape: T, fields: (keyof T)[]) {
   const shapeKeys = Object.keys(shape) as (keyof T)[];
 
   const missingFields = diff(shapeKeys, fields);
@@ -131,9 +131,11 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
       }, Uint8Array.from([]));
     },
     unpack(buf) {
-      const result = {} as PartialNullable<{
-        [key in keyof T]: UnpackResult<T[key]>;
-      }>;
+      const result = {} as PartialNullable<
+        {
+          [key in keyof T]: UnpackResult<T[key]>;
+        }
+      >;
       let offset = 0;
 
       fields.forEach((field) => {
@@ -294,9 +296,11 @@ export function table<T extends Record<string, BytesCodec>>(
         );
       }
       if (totalSize <= 4 || fields.length === 0) {
-        return {} as PartialNullable<{
-          [key in keyof T]: UnpackResult<T[key]>;
-        }>;
+        return {} as PartialNullable<
+          {
+            [key in keyof T]: UnpackResult<T[key]>;
+          }
+        >;
       } else {
         const offsets = fields.map((_, index) =>
           Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
@@ -311,9 +315,11 @@ export function table<T extends Record<string, BytesCodec>>(
           const itemBuf = buf.slice(start, end);
           Object.assign(obj, { [field]: itemCodec.unpack(itemBuf) });
         }
-        return obj as PartialNullable<{
-          [key in keyof T]: UnpackResult<T[key]>;
-        }>;
+        return obj as PartialNullable<
+          {
+            [key in keyof T]: UnpackResult<T[key]>;
+          }
+        >;
       }
     },
   });

@@ -9,17 +9,23 @@
   "devDependencies": {
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
-    "process": "^0.11.10",
-    "typescript": "^4.7.4"
+    "crypto-browserify": "^3.12.0",
+    "events": "^3.1.0",
+    "parcel": "^2.9.3",
+    "process": "^0.11.10"
   },
   "dependencies": {
-    "@ckb-lumos/lumos": "0.20.0-alpha.1",
-    "bulma": "^0.9.4",
-    "immutable": "^4.1.0",
-    "react-use": "^17.4.0",
+    "@ckb-lumos/base": "0.20.0",
+    "@ckb-lumos/bi": "0.20.0",
+    "@ckb-lumos/codec": "0.20.0",
+    "@ckb-lumos/common-scripts": "0.20.0",
+    "@ckb-lumos/lumos": "0.20.0",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
+    "bulma": "^0.9.4",
+    "immutable": "^4.3.0",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-use": "^17.4.0"
   }
 }

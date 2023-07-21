@@ -10,7 +10,7 @@ import {
   getDefaultConfig,
 } from "@ckb-lumos/debugger/lib/context";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
-import { common, omnilock } from "@ckb-lumos/common-scripts";
+import { common, omnilock } from "../src";
 import { WitnessArgs } from "@ckb-lumos/codec/lib/blockchain";
 import { CellProvider } from "./cell_provider";
 import { charlesOmnilockInputs } from "./inputs";

@@ -6,7 +6,7 @@
 
 ```
 cd examples/pw-lock-metamask
-yarn start
+npm start
 ```
 
 ## Links
