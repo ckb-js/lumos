@@ -4,6 +4,9 @@ on:
     branches:
       - develop
 
+permissions:
+  contents: write
+
 jobs:
   canary:
     runs-on: ubuntu-latest
@@ -28,3 +31,18 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate commit comment
+        id: commit-comment
+        run: |
+          result="$(node scripts/canary-commit-comment.cjs)"
+          delimiter="$(openssl rand -hex 8)"
+          echo "result<<$delimiter" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "$delimiter" >> $GITHUB_OUTPUT
+
+      - name: Create commit comment
+        uses: peter-evans/commit-comment@v2
+        with:
+          body: ${{ steps.commit-comment.outputs.result }}
+          token: ${{ secrets.GITHUB_TOKEN }}
