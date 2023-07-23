@@ -1,0 +1,72 @@
+name: Release
+on:
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  statuses: write
+  checks: write
+  issues: write
+
+jobs:
+  release:
+    name: Release
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-deps
+
+      - name: Publish to NPM
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset:version
+          publish: pnpm changeset:release
+          createGithubReleases: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - uses: 8BitJonny/gh-get-current-pr@2.2.0
+        id: PR
+
+      - name: Setup publish env
+        run: |
+          CURRENT_VERSION=$(node -p 'require("./packages/lumos/package.json").version')
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> "$GITHUB_ENV"
+          PRERELEASE=$(node -p 'require("./packages/lumos/package.json").version.includes("-")')
+          echo "PRERELEASE=${PRERELEASE}" >> "$GITHUB_ENV"
+          echo "SHOULD_PUBLISH=${{ steps.PR.outputs.pr_found == 'true' &&
+            contains(steps.PR.outputs.pr_merged_at, '-') &&
+            contains(steps.PR.outputs.pr_title, 'Version Packages') }}" >> "$GITHUB_ENV"
+
+      - name: Generate changelog
+        if: ${{ env.SHOULD_PUBLISH == 'true' }}
+        id: changelog
+        uses: ashley-taylor/regex-property-action@v1.3
+        with:
+          value: ${{ steps.PR.outputs.pr_body }}
+          regex: "([\\s\\S]*)(# Releases)"
+          replacement: "$2"
+
+      - name: Create GitHub release
+        uses: ncipollo/release-action@v1
+        if: ${{ env.SHOULD_PUBLISH == 'true' }}
+        with:
+          tag: v${{ env.CURRENT_VERSION }}
+          prerelease: ${{ env.PRERELEASE == 'true' && 'true' || 'false' }}
+          body: ${{ steps.changelog.outputs.value }}
+          name: v${{ env.CURRENT_VERSION }}(${{ steps.PR.outputs.pr_merged_at }})
