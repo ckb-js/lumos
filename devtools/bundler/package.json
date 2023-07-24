@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/bundler",
-  "version": "0.20.0-alpha.3",
+  "version": "0.20.0",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "bugs": {
     "url": "https://github.com/ckb-js/lumos/issues"
@@ -16,7 +16,7 @@
     "bundle-analyze": "webpack-bundle-analyzer stats.json"
   },
   "dependencies": {
-    "@ckb-lumos/lumos": "0.20.0-alpha.3",
+    "@ckb-lumos/lumos": "0.20.0",
     "@types/webpack-bundle-analyzer": "^4.6.0",
     "buffer": "^5.6.0",
     "fork-ts-checker-webpack-plugin": "^6.4.0",
