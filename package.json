@@ -13,9 +13,12 @@
     "@babel/core": "^7.16.7",
     "@babel/preset-env": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
+    "@changesets/changelog-github": "^0.4.8",
+    "@changesets/cli": "^2.26.2",
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
     "@commitlint/types": "^16.0.0",
+    "@devtools/changelog": "workspace:^",
     "@strictsoftware/typedoc-plugin-monorepo": "^0.3.1",
     "@types/node": "^20.1.0",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
@@ -27,7 +30,7 @@
     "eslint-import-resolver-typescript": "^2.7.0",
     "eslint-plugin-import": "^2.25.4",
     "husky": "^7.0.4",
-    "lerna": "^4.0.0",
+    "is-ci": "^3.0.1",
     "lint-staged": "^12.3.5",
     "lumos-build": "0.20.0",
     "npm-run-all": "^4.1.5",
@@ -40,34 +43,22 @@
   },
   "scripts": {
     "docs": "typedoc",
-    "prepare": "husky install",
-    "test": "lerna run test --parallel",
+    "prepare": "is-ci || husky install",
+    "test": "pnpm run -r --parallel test",
     "e2e-test": "pnpm run e2e-indexer && pnpm run integration-test",
     "e2e-indexer": "cd packages/ckb-indexer && pnpm run test:e2e",
     "integration-test": "cd packages/e2e-test && pnpm run test:e2e",
     "test-coverage": "npx c8 --reporter=cobertura --reporter=html --clean -o coverage pnpm run test",
-    "build:all": "lerna run build:all",
-    "build:types": "run-s build:all && lerna run build:types",
-    "build:js": "lerna run build:js --parallel",
+    "build:types": "pnpm run -r build:types",
+    "build:js": "pnpm run -r --parallel build:js ",
     "build": "run-p build:*",
-    "build-release": "lerna run --scope @ckb-lumos/lumos build:umd",
     "lint": "run-p lint:* && git diff --exit-code",
-    "fmt": "lerna run fmt --parallel",
-    "lint:eslint": "lerna run lint --parallel",
+    "fmt": "pnpm run -r --parallel fmt",
+    "lint:eslint": "pnpm run -r --parallel lint",
     "lint-next": "eslint -c .eslintrc.next.js ",
-    "clean": "lerna run clean",
-    "versionup": "lerna version --conventional-commits --no-git-tag-version",
-    "versionup:patch": "lerna version patch --conventional-commits --no-git-tag-version",
-    "versionup:minor": "lerna version minor --conventional-commits --no-git-tag-version",
-    "versionup:major": "lerna version major --conventional-commits --no-git-tag-version",
-    "versionup:prerelease": "lerna version prerelease --conventional-commits --no-git-tag-version --conventional-prerelease --force-publish",
-    "postversionup": "pnpm run create-publish-branch",
-    "postversionup:patch": "pnpm run create-publish-branch",
-    "postversionup:minor": "pnpm run create-publish-branch",
-    "postversionup:major": "pnpm run create-publish-branch",
-    "postversionup:prerelease": "pnpm run create-publish-branch",
-    "commit-version": "git add . && git commit -m \"chore: publish `node -p 'require(\"./lerna.json\").version'`\"",
-    "create-publish-branch": "node ./scripts/create_publish_branch.js"
+    "clean": "pnpm run -r --paralle clean",
+    "changeset:version": "changeset version && pnpm install --lockfile-only",
+    "changeset:release": "node scripts/changeset-publish.cjs"
   },
   "husky": {
     "hooks": {
@@ -85,7 +76,9 @@
       "git add devtools/lumos-build/bin/*"
     ],
     "website/{docs,src}/**/*.{js,ts,md}": [
-      "prettier --write"
+      "prettier --write",
+      "git add"
     ]
-  }
+  },
+  "packageManager": "pnpm@8.6.1"
 }

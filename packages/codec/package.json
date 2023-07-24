@@ -47,9 +47,7 @@
     "test": "ava **/*.test.ts --timeout=2m",
     "build": "npm run build:all",
     "build:all": "lumos-build --types --cjs --esm",
-    "clean": "rm -rf lib lib.esm",
-    "prepublishOnly": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish"
+    "clean": "rm -rf lib"
   },
   "dependencies": {
     "@ckb-lumos/bi": "0.20.0"

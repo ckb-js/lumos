@@ -30,8 +30,6 @@
     "clean": "rm -rf lib",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "prepublishOnly": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish",
     "test": "ava **/*.test.ts --timeout=2m"
   },
   "ava": {

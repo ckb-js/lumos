@@ -12,9 +12,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0",
-    "@ckb-lumos/codec": "0.20.0",
-    "@ckb-lumos/lumos": "0.20.0",
+    "@ckb-lumos/base": "next",
+    "@ckb-lumos/codec": "next",
+    "@ckb-lumos/lumos": "next",
     "keccak": "^3.0.1",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",

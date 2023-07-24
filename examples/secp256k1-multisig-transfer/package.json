@@ -12,10 +12,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0",
-    "@ckb-lumos/bi": "0.20.0",
-    "@ckb-lumos/codec": "0.20.0",
-    "@ckb-lumos/common-scripts": "0.20.0",
-    "@ckb-lumos/lumos": "0.20.0"
+    "@ckb-lumos/base": "next",
+    "@ckb-lumos/bi": "next",
+    "@ckb-lumos/codec": "next",
+    "@ckb-lumos/common-scripts": "next",
+    "@ckb-lumos/lumos": "next"
   }
 }
