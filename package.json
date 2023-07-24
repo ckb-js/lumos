@@ -49,7 +49,7 @@
     "e2e-indexer": "cd packages/ckb-indexer && pnpm run test:e2e",
     "integration-test": "cd packages/e2e-test && pnpm run test:e2e",
     "test-coverage": "npx c8 --reporter=cobertura --reporter=html --clean -o coverage pnpm run test",
-    "build:types": "pnpm run -r build:types",
+    "build:types": "pnpm run -r build:all && pnpm run -r build:types",
     "build:js": "pnpm run -r --parallel build:js ",
     "build": "run-p build:*",
     "lint": "run-p lint:* && git diff --exit-code",
