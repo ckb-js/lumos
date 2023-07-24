@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/toolkit",
-  "version": "0.20.0-alpha.3",
+  "version": "0.20.0",
   "description": "JavaScript toolkits used to build dapps for Nervos CKB",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
@@ -16,7 +16,7 @@
     "lib"
   ],
   "scripts": {
-    "build": "npm run build:js",
+    "build": "pnpm run build:js",
     "build:js": "babel -s --plugins @babel/plugin-proposal-export-namespace-from --plugins @babel/plugin-transform-modules-commonjs src --out-dir lib",
     "clean": "rm -rf lib",
     "test": "ava",

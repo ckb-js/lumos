@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/utils",
-  "version": "0.20.0-alpha.3",
+  "version": "0.20.0",
   "private": true,
   "description": "Common utilities",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -24,14 +24,12 @@
     "src"
   ],
   "scripts": {
-    "build": "npm run build:types && npm run build:js",
+    "build": "pnpm run build:types && pnpm run build:js",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "clean": "rm -rf lib",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "prepublishOnly": "npm run clean && npm run build",
-    "release": "npm publish",
     "test": "ava **/*.test.ts --timeout=2m"
   },
   "ava": {

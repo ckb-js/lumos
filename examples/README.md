@@ -13,8 +13,8 @@ pnpm run build
 
 ### Check if the build is working
 
-```
-npx ts-node examples/config-manager.ts
+```sh
+npx ts-node misc/config-manager.ts
 ```
 
 ## Online Preview

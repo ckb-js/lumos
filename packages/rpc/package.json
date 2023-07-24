@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/rpc",
-  "version": "0.20.0-alpha.3",
+  "version": "0.20.0",
   "description": "RPC module for CKB",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
@@ -30,16 +30,14 @@
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "test": "npx jest",
-    "build": "npm run build:types && npm run build:js",
+    "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
-    "clean": "rm -rf lib",
-    "prepublishOnly": "npm run clean && npm run build",
-    "release": "npm publish"
+    "clean": "rm -rf lib"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0-alpha.3",
-    "@ckb-lumos/bi": "0.20.0-alpha.3",
+    "@ckb-lumos/base": "0.20.0",
+    "@ckb-lumos/bi": "0.20.0",
     "@vespaiach/axios-fetch-adapter": "^0.3.1",
     "axios": "0.27.2",
     "tslib": "2.3.1"

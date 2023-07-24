@@ -126,3 +126,4 @@ experiment/*/lib
 .idea
 .parcel-cache
 .DS_Store
+.verdaccio-cache
