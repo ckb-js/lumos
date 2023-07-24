@@ -17,7 +17,6 @@ permissions:
 jobs:
   release:
     name: Release
-    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
