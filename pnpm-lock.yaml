@@ -683,6 +683,9 @@ importers:
       '@ckb-lumos/codec':
         specifier: 0.20.0
         version: link:../codec
+      '@ckb-lumos/rpc':
+        specifier: 0.20.0
+        version: link:../rpc
       '@types/body-parser':
         specifier: ^1.19.1
         version: 1.19.1
