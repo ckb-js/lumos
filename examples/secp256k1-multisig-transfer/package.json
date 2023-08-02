@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "name": "@lumos-examples/secp256k1-multisig-transfer",
+  "version": "0.20.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel index.html",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@ckb-lumos/base": "next",
+    "@ckb-lumos/bi": "next",
+    "@ckb-lumos/codec": "next",
+    "@ckb-lumos/common-scripts": "next",
+    "@ckb-lumos/lumos": "next"
+  }
+}

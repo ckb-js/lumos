@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/molecule",
-  "version": "0.20.0-alpha.3",
+  "version": "0.20.0",
   "description": "Molecule parser for CKB",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
@@ -38,23 +38,21 @@
     "test": "ava **/*.test.ts --timeout=2m",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
-    "build": "npm run build:types && npm run build:js",
+    "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
-    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s && npm run build:old",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s && pnpm run build:old",
     "build:old": "shx mkdir -p lib/grammar && shx cp -r src/grammar/*.js lib/grammar ",
-    "clean": "rm -rf lib",
-    "prepublishOnly": "npm run clean && npm run build",
-    "release": "npm publish"
+    "clean": "rm -rf lib"
   },
   "dependencies": {
-    "@ckb-lumos/bi": "0.20.0-alpha.3",
-    "@ckb-lumos/codec": "0.20.0-alpha.3",
+    "@ckb-lumos/bi": "0.20.0",
+    "@ckb-lumos/codec": "0.20.0",
     "@types/nearley": "^2.11.2",
     "moo": "^0.5.1",
     "nearley": "^2.20.1"
   },
   "devDependencies": {
-    "@ckb-lumos/base": "0.20.0-alpha.3",
+    "@ckb-lumos/base": "0.20.0",
     "jsbi": "^4.1.0"
   }
 }

@@ -5,7 +5,7 @@
   ],
   "npmClient": "pnpm",
   "useWorkspaces": true,
-  "version": "0.20.0-alpha.3",
+  "version": "0.20.0",
   "command": {
     "publish": {
       "access": "public"
