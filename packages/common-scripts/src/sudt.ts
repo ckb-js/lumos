@@ -28,9 +28,13 @@ import anyoneCanPay, {
 const { ScriptValue } = values;
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { BI, BIish } from "@ckb-lumos/bi";
-import { bytes, number } from "@ckb-lumos/codec";
+import { bytes, type BytesLike, number } from "@ckb-lumos/codec";
 
 export type Token = Hash;
+
+function readSudtAmount(data: BytesLike): BI {
+  return number.Uint128LE.unpack(bytes.bytify(data).slice(0, 16));
+}
 
 /**
  * Issue an sUDT cell
@@ -220,7 +224,7 @@ export async function transfer(
     });
 
     toAddressInputCapacity = BI.from(toAddressInput.cellOutput.capacity);
-    toAddressInputAmount = number.Uint128LE.unpack(toAddressInput.data);
+    toAddressInputAmount = readSudtAmount(toAddressInput.data);
   }
 
   const targetOutput: Cell = {
@@ -479,7 +483,7 @@ export async function transfer(
 
       const inputCapacity: BI = BI.from(inputCell.cellOutput.capacity);
       const inputAmount: BI = inputCell.cellOutput.type
-        ? number.Uint128LE.unpack(inputCell.data)
+        ? readSudtAmount(inputCell.data)
         : BI.from(0);
       let deductCapacity: BI =
         isAnyoneCanPay && !destroyable
@@ -601,7 +605,7 @@ export async function transfer(
     if (changeAmount.gt(0)) {
       clonedOutput.data = bytes.hexify(
         number.Uint128LE.pack(
-          number.Uint128LE.unpack(originOutput.data).add(changeAmount)
+          readSudtAmount(originOutput.data).add(changeAmount)
         )
       );
     }
