@@ -72,7 +72,8 @@ export namespace CKBComponents {
   export type CellDep = api.CellDep;
   export type RawTransaction = api.RawTransaction & { witnesses: Witness[] };
   export type Transaction = Required<api.Transaction>;
-  export type TransactionWithStatus = api.TransactionWithStatus;
+  export type TransactionWithStatus<Tx = Transaction> =
+    api.TransactionWithStatus<Tx>;
   export type BlockHeader = api.Header;
   export type Block = api.Block;
   export type UncleBlock = api.UncleBlock;

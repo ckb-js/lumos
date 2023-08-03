@@ -99,7 +99,7 @@ function toTransaction(tx: RPC.Transaction): CKBComponents.Transaction;
 function toTransaction(
   tx: RPC.RawTransaction | RPC.Transaction
 ): CKBComponents.Transaction | CKBComponents.RawTransaction {
-  if (!tx) return tx;
+  if (!tx || typeof tx !== "object") return tx;
   const {
     cell_deps: cellDeps = [],
     inputs = [],
@@ -298,9 +298,9 @@ const toCellsIncludingOutPoint = (
   if (!Array.isArray(cells)) return [];
   return cells.map(toCellIncludingOutPoint);
 };
-const toTransactionWithStatus = (
+const toTransactionWithStatus = <Tx>(
   txWithStatus: RPC.TransactionWithStatus
-): CKBComponents.TransactionWithStatus => {
+): CKBComponents.TransactionWithStatus<Tx> => {
   if (!txWithStatus) return txWithStatus;
   const {
     transaction,
@@ -309,7 +309,7 @@ const toTransactionWithStatus = (
     ...rest
   } = txWithStatus;
   return {
-    transaction: toTransaction(transaction),
+    transaction: toTransaction(transaction) as Tx,
     txStatus: {
       blockHash,
       status,

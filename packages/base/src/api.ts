@@ -89,8 +89,8 @@ export interface TxStatus {
   status: string;
 }
 
-export interface TransactionWithStatus {
-  transaction: Transaction;
+export interface TransactionWithStatus<Tx = Transaction> {
+  transaction: Tx;
   txStatus: TxStatus;
   timeAddedToPool: Uint64 | null;
   cycles: Uint64 | null;

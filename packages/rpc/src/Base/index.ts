@@ -21,6 +21,14 @@ export const rpcProperties: RpcPropertes = {
   // skip subscription
 };
 
+// prettier-ignore
+export interface GetTransaction {
+  (hash: CKBComponents.Hash): Promise<CKBComponents.TransactionWithStatus>;
+  (hash: CKBComponents.Hash, verbosity: "0x0", onlyCommitted?: boolean): Promise<CKBComponents.TransactionWithStatus<string>>;
+  (hash: CKBComponents.Hash, verbosity: "0x1", onlyCommitted?: boolean): Promise<CKBComponents.TransactionWithStatus<null>>;
+  (hash: CKBComponents.Hash, verbosity: "0x2", onlyCommitted?: boolean): Promise<CKBComponents.TransactionWithStatus>;
+}
+
 export interface Base {
   /* Chain */
 
@@ -121,11 +129,7 @@ export interface Base {
    * @param {string} hash - the transaction hash of the target transaction
    * @return {Promise<object>} transaction object with transaction status
    */
-  getTransaction: (
-    hash: CKBComponents.Hash,
-    verbosity?: CKBComponents.UInt32,
-    onlyCommitted?: boolean
-  ) => Promise<CKBComponents.TransactionWithStatus>;
+  getTransaction: GetTransaction;
 
   /**
    * @method getCellbaseOutputCapacityDetails
