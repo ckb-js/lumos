@@ -20,6 +20,7 @@ import {
 } from "./inputs";
 import { BI } from "@ckb-lumos/bi";
 import { bytes, number } from "@ckb-lumos/codec";
+import { packAmount, unpackAmount } from "../src/sudt";
 const { AGGRON4 } = predefined;
 
 test.before(() => {
@@ -662,4 +663,18 @@ test("transfer secp => secp, change to acp and has previous output, split change
 
   const lastOutput = txSkeleton.get("outputs").get(-1)!;
   t.is(lastOutput.cellOutput.type, undefined);
+});
+
+test("pack and unpack sudt amount", (t) => {
+  const unpacked = BI.from(0x1234);
+  const packed = Buffer.alloc(16);
+  // little endian of 0x1234
+  packed.write("3412", "hex");
+
+  t.true(bytes.equal(packAmount(unpacked), packed));
+  t.true(unpackAmount(packed).eq(unpacked));
+
+  const over16Bytes = bytes.concat(packed, packed);
+  t.true(over16Bytes.length > 16);
+  t.true(unpackAmount(over16Bytes).eq(unpacked));
 });
