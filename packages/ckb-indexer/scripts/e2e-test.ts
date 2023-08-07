@@ -48,6 +48,7 @@ async function main() {
 
   ckbProcess.kill();
   indexerProcess.kill();
+  process.exit();
 }
 
 main();

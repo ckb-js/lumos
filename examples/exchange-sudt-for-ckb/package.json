@@ -15,10 +15,10 @@
     "process": "^0.11.10"
   },
   "dependencies": {
-    "@ckb-lumos/base": "next",
-    "@ckb-lumos/bi": "next",
-    "@ckb-lumos/codec": "next",
-    "@ckb-lumos/common-scripts": "next",
+    "@ckb-lumos/base": "canary",
+    "@ckb-lumos/bi": "canary",
+    "@ckb-lumos/codec": "canary",
+    "@ckb-lumos/common-scripts": "canary",
     "@ckb-lumos/lumos": "next",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
