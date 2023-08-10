@@ -1,14 +1,11 @@
 const path = require("path");
 const webpack = require("webpack");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
-const UnminifiedWebpackPlugin = require("unminified-webpack-plugin");
 
 module.exports = {
   mode: "production",
   devtool: "source-map",
-  entry: {
-    output: "./src/index.ts",
-  },
+  entry: { output: "./src/index.ts" },
   output: {
     path: path.join(__dirname, "lib"),
     filename: "lumos.min.js",
@@ -21,9 +18,7 @@ module.exports = {
       {
         test: /\.tsx?$/,
         loader: "ts-loader",
-        options: {
-          transpileOnly: true,
-        },
+        options: {},
       },
     ],
   },
@@ -40,6 +35,5 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin({ async: false }),
     new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
-    new UnminifiedWebpackPlugin(),
   ],
 };

@@ -21,9 +21,10 @@
   "dependencies": {
     "@ckb-lumos/base": "0.20.0",
     "@ckb-lumos/bi": "0.20.0",
-    "bn.js": "^5.1.3",
+    "@ckb-lumos/codec": "0.20.0",
+    "@ckb-lumos/crypto": "0.20.0",
+    "bn.js": "^4.11.6",
     "elliptic": "^6.5.4",
-    "scrypt-js": "^3.0.1",
     "sha3": "^2.1.3",
     "uuid": "^8.3.0"
   },
@@ -34,8 +35,10 @@
   "scripts": {
     "fmt": "prettier --write \"{src,tests}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
-    "test": "ava **/*.test.ts --timeout=5m",
-    "build": "pnpm run build:types && pnpm run build:js",
+    "test": "npm run test:node && npm run test:browser",
+    "test:node": "ava **/*.test.ts --timeout=5m",
+    "test:browser": "echo 'export * from \"@ckb-lumos/crypto/lib/crypto-browser\"' > src/crypto.ts && ava **/*.test.ts --timeout=5m && echo 'export * from \"@ckb-lumos/crypto\"' > src/crypto.ts",
+    "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
     "clean": "rm -rf lib"

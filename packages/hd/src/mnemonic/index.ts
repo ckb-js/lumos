@@ -1,6 +1,7 @@
-import crypto from "crypto";
 import wordList from "./word_list";
 import { HexString } from "@ckb-lumos/base";
+import { createHash, pbkdf2Sync, randomBytes } from "../crypto";
+import { bytes } from "@ckb-lumos/codec";
 
 const RADIX = 2048;
 const PBKDF2_ROUNDS = 2048;
@@ -28,7 +29,7 @@ if (wordList.length !== RADIX) {
   );
 }
 
-function bytesToBinary(bytes: Buffer): string {
+function bytesToBinary(bytes: Uint8Array): string {
   return bytes.reduce((binary, byte) => {
     return binary + byte.toString(2).padStart(8, "0");
   }, "");
@@ -37,57 +38,35 @@ function bytesToBinary(bytes: Buffer): string {
 function deriveChecksumBits(entropyBuffer: Buffer): string {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
-  const hash = crypto.createHash("sha256").update(entropyBuffer).digest();
+  const hash = createHash("sha256").update(entropyBuffer).digest();
   return bytesToBinary(hash).slice(0, CS);
 }
 
-function salt(password: string = ""): string {
+function salt(password = ""): string {
   return `mnemonic${password}`;
 }
 
-export function mnemonicToSeedSync(
-  mnemonic: string = "",
-  password: string = ""
-): Buffer {
+export function mnemonicToSeedSync(mnemonic = "", password = ""): Buffer {
   const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
   const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
-  return crypto.pbkdf2Sync(
-    mnemonicBuffer,
-    saltBuffer,
-    PBKDF2_ROUNDS,
-    KEY_LEN,
-    "sha512"
+  return Buffer.from(
+    pbkdf2Sync(mnemonicBuffer, saltBuffer, PBKDF2_ROUNDS, KEY_LEN, "sha512")
   );
 }
 
-export function mnemonicToSeed(
-  mnemonic: string = "",
-  password: string = ""
-): Promise<Buffer> {
+export function mnemonicToSeed(mnemonic = "", password = ""): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
       const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
       const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
-      crypto.pbkdf2(
-        mnemonicBuffer,
-        saltBuffer,
-        PBKDF2_ROUNDS,
-        KEY_LEN,
-        "sha512",
-        (err, data) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(data);
-        }
-      );
+      pbkdf2Sync(mnemonicBuffer, saltBuffer, PBKDF2_ROUNDS, KEY_LEN, "sha512");
     } catch (error) {
       reject(error);
     }
   });
 }
 
-export function mnemonicToEntropy(mnemonic: string = ""): HexString {
+export function mnemonicToEntropy(mnemonic = ""): HexString {
   const words = mnemonic.normalize("NFKD").split(" ");
   if (words.length < MIN_WORDS_SIZE) {
     throw new Error(WORDS_TOO_SHORT);
@@ -172,8 +151,7 @@ export function validateMnemonic(mnemonic: string): boolean {
 // Generate 12 words mnemonic code
 export function generateMnemonic(): string {
   const entropySize = 16;
-  const entropy: HexString =
-    "0x" + crypto.randomBytes(entropySize).toString("hex");
+  const entropy: HexString = bytes.hexify(randomBytes(entropySize));
   return entropyToMnemonic(entropy);
 }
 
