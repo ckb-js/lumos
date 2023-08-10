@@ -4,6 +4,7 @@
     "jsx": "react",
     "module": "CommonJS",
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "target": "ES2020"
   }
 }
