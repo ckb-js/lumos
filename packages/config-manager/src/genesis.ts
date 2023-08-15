@@ -2,12 +2,16 @@ import { Block, utils } from "@ckb-lumos/base";
 import { ScriptConfig } from "./types";
 
 // https://github.com/nervosnetwork/ckb-sdk-rust/blob/94ce4379454cdaf046f64b346e18e73e029f0ae6/src/constants.rs#L19C1-L24C62
-type usize = number;
-export const SIGHASH_OUTPUT_LOC: [usize, usize] = [0, 1];
-export const MULTISIG_OUTPUT_LOC: [usize, usize] = [0, 4];
-export const DAO_OUTPUT_LOC: [usize, usize] = [0, 2];
-export const SIGHASH_GROUP_OUTPUT_LOC: [usize, usize] = [1, 0];
-export const MULTISIG_GROUP_OUTPUT_LOC: [usize, usize] = [1, 1];
+// the index of a transaction in a block
+type TransactionIndex = number;
+// the index of an output in a transaction
+type OutputIndex = number;
+export const SIGHASH_OUTPUT_LOC: [TransactionIndex, OutputIndex] = [0, 1];
+export const MULTISIG_OUTPUT_LOC: [TransactionIndex, OutputIndex] = [0, 4];
+export const DAO_OUTPUT_LOC: [TransactionIndex, OutputIndex] = [0, 2];
+export const SIGHASH_GROUP_OUTPUT_LOC: [TransactionIndex, OutputIndex] = [1, 0];
+// prettier-ignore
+export const MULTISIG_GROUP_OUTPUT_LOC: [TransactionIndex, OutputIndex] = [1, 1];
 
 /**
  * Generate {@link ScriptConfig} for the genesis block,
