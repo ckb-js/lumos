@@ -2,6 +2,7 @@ import test from "ava";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { generateGenesisScriptConfigs, predefined } from "../src";
+import { Block } from "@ckb-lumos/base";
 
 test("generateFromGenesisBlock", async (t) => {
   const buf = await readFile(join(__dirname, "genesis-mainnet-block.json"));
@@ -16,3 +17,24 @@ test("generateFromGenesisBlock", async (t) => {
     DAO: predefinedConfig.DAO,
   });
 });
+
+test("generateFromGenesisBlock with wrong block", async (t) => {
+  const buf = await readFile(join(__dirname, "genesis-mainnet-block.json"));
+  const genesisBlock: Block = JSON.parse(buf.toString());
+
+  t.throws(() => {
+    const wrongBlock = clone(genesisBlock);
+    wrongBlock.header.number = "0x111";
+    generateGenesisScriptConfigs(wrongBlock);
+  });
+
+  t.throws(() => {
+    const wrongBlock = clone(genesisBlock);
+    wrongBlock.transactions[0].outputs[1].type = undefined;
+    generateGenesisScriptConfigs(wrongBlock);
+  });
+});
+
+function clone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}

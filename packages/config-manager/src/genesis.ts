@@ -1,4 +1,4 @@
-import { Block, utils } from "@ckb-lumos/base";
+import { Block, Transaction, utils } from "@ckb-lumos/base";
 import { ScriptConfig } from "./types";
 
 // https://github.com/nervosnetwork/ckb-sdk-rust/blob/94ce4379454cdaf046f64b346e18e73e029f0ae6/src/constants.rs#L19C1-L24C62
@@ -29,44 +29,86 @@ export function generateGenesisScriptConfigs(
   "SECP256K1_BLAKE160" | "SECP256K1_BLAKE160_MULTISIG" | "DAO",
   ScriptConfig
 > {
-  if (!genesisBlock) throw new Error("cannot load genesis block");
+  if (!genesisBlock || Number(genesisBlock.header.number) !== 0) {
+    throw new Error("The block must be a genesis block");
+  }
+
+  const transactions = genesisBlock.transactions;
 
   return {
     SECP256K1_BLAKE160: {
-      CODE_HASH: utils.computeScriptHash(
-        genesisBlock.transactions[SIGHASH_OUTPUT_LOC[0]].outputs[
-          SIGHASH_OUTPUT_LOC[1]
-        ].type!
-      ),
-      INDEX: toHexNumber(SIGHASH_GROUP_OUTPUT_LOC[1]),
-      DEP_TYPE: "depGroup",
-      HASH_TYPE: "type",
-      TX_HASH: genesisBlock.transactions[SIGHASH_GROUP_OUTPUT_LOC[0]].hash!,
+      ...createScriptConfig({
+        transaction: transactions[SIGHASH_OUTPUT_LOC[0]],
+        outputIndex: SIGHASH_OUTPUT_LOC[1],
+        depGroupTransaction: transactions[SIGHASH_GROUP_OUTPUT_LOC[0]],
+        depGroupOutputIndex: SIGHASH_GROUP_OUTPUT_LOC[1],
+      }),
       SHORT_ID: 0,
     },
     SECP256K1_BLAKE160_MULTISIG: {
-      CODE_HASH: utils.computeScriptHash(
-        genesisBlock.transactions[MULTISIG_OUTPUT_LOC[0]].outputs[
-          MULTISIG_OUTPUT_LOC[1]
-        ].type!
-      ),
-      INDEX: toHexNumber(MULTISIG_GROUP_OUTPUT_LOC[1]),
-      DEP_TYPE: "depGroup",
-      HASH_TYPE: "type",
-      TX_HASH: genesisBlock.transactions[MULTISIG_GROUP_OUTPUT_LOC[0]].hash!,
+      ...createScriptConfig({
+        transaction: transactions[MULTISIG_OUTPUT_LOC[0]],
+        outputIndex: MULTISIG_OUTPUT_LOC[1],
+        depGroupTransaction: transactions[MULTISIG_GROUP_OUTPUT_LOC[0]],
+        depGroupOutputIndex: MULTISIG_GROUP_OUTPUT_LOC[1],
+      }),
       SHORT_ID: 1,
     },
-    DAO: {
-      CODE_HASH: utils.computeScriptHash(
-        genesisBlock.transactions[DAO_OUTPUT_LOC[0]].outputs[DAO_OUTPUT_LOC[1]]
-          .type!
-      ),
-      INDEX: toHexNumber(DAO_OUTPUT_LOC[1]),
-      DEP_TYPE: "code",
-      HASH_TYPE: "type",
-      TX_HASH: genesisBlock.transactions[DAO_OUTPUT_LOC[0]].hash!,
-    },
+    DAO: createScriptConfig({
+      transaction: transactions[DAO_OUTPUT_LOC[0]],
+      outputIndex: DAO_OUTPUT_LOC[1],
+    }),
   };
+}
+
+type ScriptConfigOptions = LocByCode | LocByDepGroup;
+
+type LocByCode = {
+  transaction: Transaction;
+  outputIndex: number;
+};
+type LocByDepGroup = {
+  transaction: Transaction;
+  outputIndex: number;
+  depGroupTransaction: Transaction;
+  depGroupOutputIndex: number;
+};
+
+function createScriptConfig(config: ScriptConfigOptions): ScriptConfig {
+  const { transaction, outputIndex } = config;
+
+  const codeHash = utils.computeScriptHash(
+    mustGenesisBlock(transaction.outputs[outputIndex]?.type)
+  );
+
+  if ("depGroupTransaction" in config) {
+    const { depGroupOutputIndex, depGroupTransaction } = config;
+
+    return {
+      HASH_TYPE: "type",
+      CODE_HASH: codeHash,
+
+      DEP_TYPE: "depGroup",
+      TX_HASH: mustGenesisBlock(depGroupTransaction.hash),
+      INDEX: toHexNumber(depGroupOutputIndex),
+    };
+  }
+
+  return {
+    HASH_TYPE: "type",
+    CODE_HASH: codeHash,
+
+    DEP_TYPE: "code",
+    INDEX: toHexNumber(outputIndex),
+    TX_HASH: mustGenesisBlock(transaction.hash),
+  };
+}
+
+function mustGenesisBlock<T>(x: T): NonNullable<T> {
+  if (x == null) {
+    throw new Error("The block must be a genesis block");
+  }
+  return x;
 }
 
 function toHexNumber(number: number): string {
