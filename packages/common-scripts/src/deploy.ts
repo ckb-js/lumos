@@ -361,7 +361,7 @@ interface ScriptConfig {
 
 function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
   const tx = createTransactionFromSkeleton(txSkeleton);
-  const txHash = utils.ckbHash(blockchain.Transaction.pack(tx));
+  const txHash = utils.ckbHash(blockchain.RawTransaction.pack(tx));
   return txHash;
 }
 
