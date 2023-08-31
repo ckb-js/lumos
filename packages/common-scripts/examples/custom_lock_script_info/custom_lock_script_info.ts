@@ -18,8 +18,10 @@ import { addCellDep } from "../../src/helper";
 // differences.
 function isSameScript(a: apiTypes.Script, b: apiTypes.Script) {
   return (
-    codec.bytes.hexify(blockchain.Script.pack(a)) ===
-    codec.bytes.hexify(blockchain.Script.pack(b))
+    codec.bytes.equal(
+      blockchain.Script.pack(a), 
+      blockchain.Script.pack(b),
+    )
   );
 }
 
