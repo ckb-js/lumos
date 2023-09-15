@@ -41,7 +41,7 @@ test("serialize ckb2023 script", (t) => {
   const serializedHex = bytes.hexify(blockchain.Script.pack(value));
   t.deepEqual(
     serializedHex,
-    "0x3d0000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80308000000aabbccdd44332211"
+    "0x3d0000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80408000000aabbccdd44332211"
   );
 });
 
