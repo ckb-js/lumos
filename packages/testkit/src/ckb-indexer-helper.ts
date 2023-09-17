@@ -3,6 +3,7 @@ import compareVersions from "compare-versions";
 import os from "os";
 // TODO dep
 import downloadAndExtract from "download";
+import childProcess from "node:child_process";
 
 function log(info: string): void {
   console.log(info);
@@ -85,10 +86,7 @@ export async function startCKBIndexer(CKBVersion?: string): Promise<void> {
   await downloadCKBIndexer();
   console.log("start indexer at", new Date().toLocaleString());
 
-  shell.exec(
-    `RUST_LOG=info ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp`,
-    {
-      async: true,
-    }
+  childProcess.exec(
+    `RUST_LOG=info ./ckb-indexer -c http://127.0.0.1:8118/rpc -l 127.0.0.1:8120 -s indexer-store-tmp`
   );
 }
