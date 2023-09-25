@@ -21,6 +21,22 @@ export const rpcProperties: RpcPropertes = {
   // skip subscription
 };
 
+/**
+ * - `0x0`: without verbosity, returns the raw serialized block bytes
+ * - `0x2`: with verbosity, returns the serialized block JSON object
+ * - `null`: default value, the same with `0x2`
+ */
+export type GetBlockVerbosityOptions = "0x0" | "0x2" | null;
+export type GetBlockWithCycleOptions = boolean | null;
+export type VerbosityBlock<Verbosity extends GetBlockVerbosityOptions> =
+  Verbosity extends "0x0" ? string : CKBComponents.BlockView;
+export type BlockResponse<
+  Verbosity extends GetBlockVerbosityOptions,
+  WithCycle extends GetBlockWithCycleOptions
+> = WithCycle extends true
+  ? { block: VerbosityBlock<Verbosity>; cycles: CKBComponents.UInt64 }
+  : VerbosityBlock<Verbosity>;
+
 // prettier-ignore
 export interface GetTransaction {
   (hash: CKBComponents.Hash): Promise<CKBComponents.TransactionWithStatus>;
@@ -86,10 +102,19 @@ export interface Base {
    * @method getBlock
    * @memberof DefaultRPC
    * @description rpc to get block by its hash
-   * @param {string} hash - the block hash of the target block
-   * @returns {Promise<object>} block object
+   * @param {string} hash
+   * @param {string} verbosity
+   * @param {boolean} withCycle
+   * @return {Promise<BlockResponse | null>}
    */
-  getBlock: (hash: CKBComponents.Hash) => Promise<CKBComponents.Block>;
+  getBlock<
+    V extends GetBlockVerbosityOptions = null,
+    C extends GetBlockWithCycleOptions = null
+  >(
+    hash: CKBComponents.Hash,
+    verbosity?: V,
+    withCycle?: C
+  ): Promise<BlockResponse<V, C> | null>;
 
   /**
    * @method getHeader
@@ -191,13 +216,20 @@ export interface Base {
   /**
    * @method getBlockByNumber
    * @memberof DefaultRPC
-   * @description rpc to get block by its number
-   * @param {string} number - the block number of the target block
-   * @returns {Promise<object>} block object
+   * @description rpc to get block by its hash
+   * @param {CKBComponents.BlockNumber | bigint} number
+   * @param {string} verbosity
+   * @param {boolean} withCycle
+   * @return {Promise<BlockResponse | null>}
    */
-  getBlockByNumber: (
-    number: CKBComponents.BlockNumber | bigint
-  ) => Promise<CKBComponents.Block>;
+  getBlockByNumber<
+    V extends GetBlockVerbosityOptions = null,
+    C extends GetBlockWithCycleOptions = null
+  >(
+    number: CKBComponents.BlockNumber | bigint,
+    verbosity?: V,
+    withCycle?: C
+  ): Promise<BlockResponse<V, C> | null>;
 
   /* Experimental */
 

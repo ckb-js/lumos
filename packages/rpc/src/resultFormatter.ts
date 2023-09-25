@@ -138,7 +138,10 @@ const toTip = (tip: RPC.Tip): CKBComponents.Tip => ({
   blockNumber: tip.block_number,
 });
 
-const toBlock = (block: RPC.Block): CKBComponents.Block => {
+function toBlock(block: string): string;
+function toBlock(block: RPC.Block): CKBComponents.Block;
+function toBlock(block: string | RPC.Block): CKBComponents.Block | string {
+  if (typeof block === "string") return block;
   if (!block) return block;
   const { header, uncles = [], transactions = [], ...rest } = block;
   return {
@@ -147,7 +150,8 @@ const toBlock = (block: RPC.Block): CKBComponents.Block => {
     transactions: transactions.map(toTransaction),
     ...rest,
   };
-};
+}
+
 const toAlertMessage = (
   alertMessage: RPC.AlertMessage
 ): CKBComponents.AlertMessage => {
