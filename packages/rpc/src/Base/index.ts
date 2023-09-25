@@ -29,6 +29,12 @@ export interface GetTransaction {
   (hash: CKBComponents.Hash, verbosity: "0x2", onlyCommitted?: boolean): Promise<CKBComponents.TransactionWithStatus>;
 }
 
+// prettier-ignore
+export interface GetHeader<Q> {
+  (query: Q, verbosity?: "0x1"): Promise<CKBComponents.BlockHeader>;
+  (query: Q, verbosity: "0x0"): Promise<string>;
+}
+
 export interface Base {
   /* Chain */
 
@@ -91,9 +97,7 @@ export interface Base {
    * @description Returns the information about a block header by hash.
    * @params {Promise<string>} block hash
    */
-  getHeader: (
-    blockHash: CKBComponents.Hash
-  ) => Promise<CKBComponents.BlockHeader>;
+  getHeader: GetHeader<CKBComponents.Hash>;
 
   /**
    * @method getHeaderByNumber
@@ -101,9 +105,7 @@ export interface Base {
    * @description Returns the information about a block header by block number
    * @params {Promise<string>} block number
    */
-  getHeaderByNumber: (
-    blockNumber: CKBComponents.BlockNumber | bigint
-  ) => Promise<CKBComponents.BlockHeader>;
+  getHeaderByNumber: GetHeader<CKBComponents.BlockNumber | bigint>;
 
   /**
    * @method getLiveCell

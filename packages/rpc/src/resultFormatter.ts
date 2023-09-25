@@ -24,7 +24,13 @@ const toNullable =
 const toNumber = (number: RPC.BlockNumber): CKBComponents.BlockNumber =>
   number.toString();
 const toHash = (hash: RPC.Hash256): CKBComponents.Hash256 => hash;
-const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
+
+function toHeader(header: RPC.Header): CKBComponents.BlockHeader;
+function toHeader(header: string): string;
+function toHeader(
+  header: string | RPC.Header
+): string | CKBComponents.BlockHeader {
+  if (typeof header === "string") return header;
   if (!header) return header;
   const {
     compact_target: compactTarget,
@@ -42,7 +48,8 @@ const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
     extraHash,
     ...rest,
   };
-};
+}
+
 const toScript = (script: RPC.Script): CKBComponents.Script => {
   if (!script) return script;
   const { code_hash: codeHash, hash_type: hashType, ...rest } = script;
