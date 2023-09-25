@@ -352,10 +352,7 @@ export namespace RPC {
     softforks: { [key in DeploymentPos]?: SoftFork };
   }
 
-  export interface HardForks {
-    ckb2021: HardforkFeature[];
-    ckb2023: HardforkFeature[];
-  }
+  export type HardForks = Array<HardforkFeature>;
 
   export interface HardforkFeature {
     rfc: string;

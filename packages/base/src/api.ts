@@ -204,10 +204,7 @@ export interface Consensus {
   softforks: MapLike<DeploymentPos, SoftFork>;
 }
 
-export type HardForks = {
-  ckb2021: HardforkFeature[];
-  ckb2023: HardforkFeature[];
-};
+export type HardForks = HardforkFeature[];
 
 export interface HardforkFeature {
   rfc: string;

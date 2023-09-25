@@ -682,39 +682,44 @@ describe("Test with mock", () => {
             epoch_duration_target: "0x3840",
             genesis_hash:
               "0x746f61610a0ea15713a568182365c0f4d8bcd2f61d42c91abc9279d4e858a190",
-            hardfork_features: {
-              ckb2021: [
-                {
-                  epoch_number: "0x0",
-                  rfc: "0028",
-                },
-                {
-                  epoch_number: "0x0",
-                  rfc: "0029",
-                },
-                {
-                  epoch_number: "0x0",
-                  rfc: "0030",
-                },
-                {
-                  epoch_number: "0x0",
-                  rfc: "0031",
-                },
-                {
-                  epoch_number: "0x0",
-                  rfc: "0032",
-                },
-                {
-                  epoch_number: "0x0",
-                  rfc: "0036",
-                },
-                {
-                  epoch_number: "0x0",
-                  rfc: "0038",
-                },
-              ],
-              ckb2023: [],
-            },
+            hardfork_features: [
+              {
+                epoch_number: "0x0",
+                rfc: "0028",
+              },
+              {
+                epoch_number: "0x0",
+                rfc: "0029",
+              },
+              {
+                epoch_number: "0x0",
+                rfc: "0030",
+              },
+              {
+                epoch_number: "0x0",
+                rfc: "0031",
+              },
+              {
+                epoch_number: "0x0",
+                rfc: "0032",
+              },
+              {
+                epoch_number: "0x0",
+                rfc: "0036",
+              },
+              {
+                epoch_number: "0x0",
+                rfc: "0038",
+              },
+              {
+                epoch_number: null,
+                rfc: "0048",
+              },
+              {
+                epoch_number: null,
+                rfc: "0049",
+              },
+            ],
             id: "ckb_dev",
             initial_primary_epoch_reward: "0xae6c73c3e070",
             max_block_bytes: "0x91c08",
@@ -763,7 +768,6 @@ describe("Test with mock", () => {
           },
         },
       });
-
       const res = await rpc.getConsensus();
       expect(axiosMock.mock.calls[0][0].data).toEqual({
         id,
@@ -799,18 +803,17 @@ describe("Test with mock", () => {
         txVersion: "0x0",
         typeIdCodeHash:
           "0x00000000000000000000000000000000000000000000000000545950455f4944",
-        hardforkFeatures: {
-          ckb2021: [
-            { rfc: "0028", epochNumber: "0x0" },
-            { rfc: "0029", epochNumber: "0x0" },
-            { rfc: "0030", epochNumber: "0x0" },
-            { rfc: "0031", epochNumber: "0x0" },
-            { rfc: "0032", epochNumber: "0x0" },
-            { rfc: "0036", epochNumber: "0x0" },
-            { rfc: "0038", epochNumber: "0x0" },
-          ],
-          ckb2023: [],
-        },
+        hardforkFeatures: [
+          { rfc: "0028", epochNumber: "0x0" },
+          { rfc: "0029", epochNumber: "0x0" },
+          { rfc: "0030", epochNumber: "0x0" },
+          { rfc: "0031", epochNumber: "0x0" },
+          { rfc: "0032", epochNumber: "0x0" },
+          { rfc: "0036", epochNumber: "0x0" },
+          { rfc: "0038", epochNumber: "0x0" },
+          { rfc: "0048", epochNumber: null },
+          { rfc: "0049", epochNumber: null },
+        ],
         softforks: {
           lightClient: {
             status: "rfc0043",
