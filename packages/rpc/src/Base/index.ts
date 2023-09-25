@@ -517,7 +517,9 @@ export interface Base {
    * @param target Specify the number (1 - 101) of confirmed blocks to be counted. If the number is even, automatically add one. If not specified, defaults to 2
    * @returns the feeRate statistics of confirmed blocks on the chain If the query finds the corresponding historical data, the corresponding statistics are returned, containing the mean and median, in shannons per kilo-weight. If not, it returns null.
    */
-  getFeeRateStatistics: () => Promise<CKBComponents.FeeRateStatistics>;
+  getFeeRateStatistics: (
+    target?: CKBComponents.UInt64
+  ) => Promise<CKBComponents.FeeRateStatistics>;
 
   getDeploymentsInfo: () => Promise<CKBComponents.DeploymentsInfo>;
 }
