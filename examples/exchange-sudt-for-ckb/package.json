@@ -12,14 +12,15 @@
     "crypto-browserify": "^3.12.0",
     "events": "^3.1.0",
     "parcel": "^2.9.3",
-    "process": "^0.11.10"
+    "process": "^0.11.10",
+    "typescript": "5.0.4"
   },
   "dependencies": {
-    "@ckb-lumos/base": "next",
-    "@ckb-lumos/bi": "next",
-    "@ckb-lumos/codec": "next",
-    "@ckb-lumos/common-scripts": "next",
-    "@ckb-lumos/lumos": "next",
+    "@ckb-lumos/base": "canary",
+    "@ckb-lumos/bi": "canary",
+    "@ckb-lumos/codec": "canary",
+    "@ckb-lumos/common-scripts": "canary",
+    "@ckb-lumos/lumos": "canary",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "bulma": "^0.9.4",

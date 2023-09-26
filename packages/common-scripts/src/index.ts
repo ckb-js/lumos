@@ -3,7 +3,11 @@ import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
 import { MultisigScript, FromInfo, parseFromInfo } from "./from_info";
 import dao from "./dao";
 import locktimePool, { LocktimeCell } from "./locktime_pool";
-import common, { LockScriptInfo } from "./common";
+import common, {
+  LockScriptInfo,
+  CellCollectorConstructor,
+  CellCollectorType,
+} from "./common";
 import sudt from "./sudt";
 import anyoneCanPay from "./anyone_can_pay";
 import { createP2PKHMessageGroup } from "./p2pkh";
@@ -34,4 +38,11 @@ export default {
   anyoneCanPay,
 };
 
-export type { LocktimeCell, MultisigScript, FromInfo, LockScriptInfo };
+export type {
+  LocktimeCell,
+  MultisigScript,
+  FromInfo,
+  LockScriptInfo,
+  CellCollectorConstructor,
+  CellCollectorType,
+};

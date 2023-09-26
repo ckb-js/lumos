@@ -13,7 +13,7 @@ import {
   WitnessArgs,
   blockchain,
 } from "@ckb-lumos/base";
-import { bytes, number } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
 import {
   createTransactionFromSkeleton,
@@ -33,6 +33,8 @@ import {
   SECP_SIGNATURE_PLACEHOLDER,
 } from "./helper";
 import { CellCollectorConstructor, CellCollectorType } from "./type";
+import { unpackAmount } from "./sudt";
+
 const { ScriptValue } = values;
 const { CKBHasher, ckbHash } = utils;
 
@@ -480,7 +482,7 @@ export function prepareSigningEntries(
 
       const sumOfOutputAmount: BI = outputs
         .filter((output) => output.data !== "0x")
-        .map((output) => number.Uint128LE.unpack(output.data))
+        .map((output) => unpackAmount(output.data))
         .reduce((result, c) => result.add(c), BI.from(0));
 
       const fInputs: List<Cell> = inputs.filter((i) => {
@@ -495,7 +497,7 @@ export function prepareSigningEntries(
 
       const sumOfInputAmount: BI = fInputs
         .filter((i) => i.data !== "0x")
-        .map((i) => BI.from(number.Uint128LE.unpack(i.data)))
+        .map((i) => BI.from(unpackAmount(i.data)))
         .reduce((result, c) => result.add(c), BI.from(0));
 
       if (
