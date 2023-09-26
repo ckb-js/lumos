@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -684,7 +684,7 @@ importers:
         specifier: 0.21.0-next.0
         version: link:../codec
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../rpc
       '@types/body-parser':
         specifier: ^1.19.1
