@@ -138,12 +138,22 @@ const toTip = (tip: RPC.Tip): CKBComponents.Tip => ({
   blockNumber: tip.block_number,
 });
 
+type BlockWithCycles = { block: RPC.Block | string; cycles: string[] };
 function toBlock(block: string): string;
 function toBlock(block: RPC.Block): CKBComponents.Block;
-function toBlock(block: string | RPC.Block): CKBComponents.Block | string {
-  if (typeof block === "string") return block;
-  if (!block) return block;
-  const { header, uncles = [], transactions = [], ...rest } = block;
+function toBlock<T extends BlockWithCycles>(block: T): T;
+function toBlock(res: string | RPC.Block | BlockWithCycles): any {
+  if (!res) return res;
+  if (typeof res === "string") return res;
+
+  if ("block" in res && "cycles" in res) {
+    return {
+      cycles: res.cycles,
+      block: toBlock(res.block as any),
+    };
+  }
+
+  const { header, uncles = [], transactions = [], ...rest } = res;
   return {
     header: toHeader(header),
     uncles: uncles.map(toUncleBlock),
@@ -151,7 +161,6 @@ function toBlock(block: string | RPC.Block): CKBComponents.Block | string {
     ...rest,
   };
 }
-
 const toAlertMessage = (
   alertMessage: RPC.AlertMessage
 ): CKBComponents.AlertMessage => {
@@ -747,6 +756,7 @@ const toForkBlockResult = (
     uncles: result.uncles.map(toUncleBlock),
     transactions: result.transactions.map(toTransaction),
     proposals: result.proposals,
+    extension: result.extension,
   };
 };
 

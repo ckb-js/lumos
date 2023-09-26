@@ -303,6 +303,7 @@ export namespace CKBComponents {
     uncles: UncleBlock[];
     transactions: TransactionView[];
     proposals: ProposalShortId[];
+    extension: Hash;
   }
 
   export type SerializedBlock = api.HexString;
