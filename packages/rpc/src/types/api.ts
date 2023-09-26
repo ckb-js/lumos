@@ -74,7 +74,7 @@ export namespace CKBComponents {
   export type Transaction = Required<api.Transaction>;
   export type TransactionWithStatus<Tx = Transaction> =
     api.TransactionWithStatus<Tx>;
-  export type BlockHeader = api.Header;
+  export type BlockHeader<T = api.Header> = T;
   export type Block = api.Block;
   export type UncleBlock = api.UncleBlock;
   export type LiveCell = api.LiveCell;
@@ -303,6 +303,7 @@ export namespace CKBComponents {
     uncles: UncleBlock[];
     transactions: TransactionView[];
     proposals: ProposalShortId[];
+    extension: Hash;
   }
 
   export type SerializedBlock = api.HexString;

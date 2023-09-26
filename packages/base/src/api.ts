@@ -84,9 +84,12 @@ export interface Transaction {
   witnesses: HexString[];
 }
 
+type Status = "pending" | "proposed" | "committed" | "unknown" | "rejected";
+
 export interface TxStatus {
+  status: Status;
   blockHash?: Hash;
-  status: string;
+  reason?: string;
 }
 
 export interface TransactionWithStatus<Tx = Transaction> {

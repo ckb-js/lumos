@@ -24,7 +24,13 @@ const toNullable =
 const toNumber = (number: RPC.BlockNumber): CKBComponents.BlockNumber =>
   number.toString();
 const toHash = (hash: RPC.Hash256): CKBComponents.Hash256 => hash;
-const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
+
+function toHeader(header: RPC.Header): CKBComponents.BlockHeader;
+function toHeader(header: string): string;
+function toHeader(
+  header: string | RPC.Header
+): string | CKBComponents.BlockHeader {
+  if (typeof header === "string") return header;
   if (!header) return header;
   const {
     compact_target: compactTarget,
@@ -42,7 +48,8 @@ const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
     extraHash,
     ...rest,
   };
-};
+}
+
 const toScript = (script: RPC.Script): CKBComponents.Script => {
   if (!script) return script;
   const { code_hash: codeHash, hash_type: hashType, ...rest } = script;
@@ -131,16 +138,29 @@ const toTip = (tip: RPC.Tip): CKBComponents.Tip => ({
   blockNumber: tip.block_number,
 });
 
-const toBlock = (block: RPC.Block): CKBComponents.Block => {
-  if (!block) return block;
-  const { header, uncles = [], transactions = [], ...rest } = block;
+type BlockWithCycles = { block: RPC.Block | string; cycles: string[] };
+function toBlock(block: string): string;
+function toBlock(block: RPC.Block): CKBComponents.Block;
+function toBlock<T extends BlockWithCycles>(block: T): T;
+function toBlock(res: string | RPC.Block | BlockWithCycles): any {
+  if (!res) return res;
+  if (typeof res === "string") return res;
+
+  if ("block" in res && "cycles" in res) {
+    return {
+      cycles: res.cycles,
+      block: toBlock(res.block as any),
+    };
+  }
+
+  const { header, uncles = [], transactions = [], ...rest } = res;
   return {
     header: toHeader(header),
     uncles: uncles.map(toUncleBlock),
     transactions: transactions.map(toTransaction),
     ...rest,
   };
-};
+}
 const toAlertMessage = (
   alertMessage: RPC.AlertMessage
 ): CKBComponents.AlertMessage => {
@@ -736,6 +756,7 @@ const toForkBlockResult = (
     uncles: result.uncles.map(toUncleBlock),
     transactions: result.transactions.map(toTransaction),
     proposals: result.proposals,
+    extension: result.extension,
   };
 };
 

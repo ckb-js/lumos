@@ -488,6 +488,7 @@ export namespace RPC {
     uncles: UncleBlockView[];
     transactions: TransactionView[];
     proposals: ProposalShortId[];
+    extension: Hash256;
   }
 
   export type SerializedBlock = HexString;
