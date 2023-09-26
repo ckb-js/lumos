@@ -24,5 +24,8 @@
     "@ckb-lumos/transaction-manager": "0.20.0",
     "@ckb-lumos/utils": "0.20.0"
   },
-  "changesets": []
+  "changesets": [
+    "kind-pandas-train",
+    "orange-flowers-sort"
+  ]
 }

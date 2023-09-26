@@ -31,22 +31,61 @@ const { ScriptValue } = values;
 import { Set } from "immutable";
 import { isAcpScript } from "./helper";
 import { BI, BIish } from "@ckb-lumos/bi";
-import { CellCollectorConstructor } from "./type";
+import { CellCollectorConstructor, CellCollectorType } from "./type";
 import omnilock from "./omnilock";
 
 function defaultLogger(level: string, message: string) {
   console.log(`[${level}] ${message}`);
 }
+
+export type { CellCollectorConstructor, CellCollectorType };
+
 /**
- * CellCollector should be a class which implement CellCollectorInterface.
- * If you want to work well with `transfer`, `injectCapacity`, `payFee`, `payFeeByFeeRate`,
- *  please add the `output` at the end of `txSkeleton.get("outputs")`
+ * LockScriptInfo describes how to integrate a lock script in transaction building.
+ *
+ * Custom lock scripts must register their LockScriptInfo before using
+ * `transfer`, `injectCapacity`, `payFee`, `payFeeByFeeRate` via
+ * `registerCustomLockScriptInfos`.
+ *
+ * See an example in
+ * [custom_lock_script_info.ts](https://github.com/ckb-js/lumos/blob/develop/packages/common-scripts/examples/custom_lock_script_info/custom_lock_script_info.ts).
  */
 export interface LockScriptInfo {
   codeHash: Hash;
   hashType: HashType;
+  /**
+   * @interface
+   */
   lockScriptInfo: {
+    /**
+     * Collects input cell candidates for the lock script.
+     *
+     * It's a constructor that initializes objects implementing function
+     * `collect()` to provide input cells. Attention that transaction builders
+     * will not match `fromInfo` and lock script. It's the responsibility of
+     * `CellCollector` to filter based on `fromInfo`. For example, when
+     * `fromInfo` does not match, the function `collect()` should not return
+     * any cell.
+     */
     CellCollector: CellCollectorConstructor;
+
+    /**
+     * Called when a candidate input cell is found.
+     *
+     * What this function should do:
+     *
+     * 1. Frist double-check the cell and decide whether continue the following steps or skip.
+     * 2. Add the cell as an input in the `txSkeleton` and an output cell with
+     *    the same fields since functions like `transfer`, `injectCapacity`,
+     *    `payFee`, and `payFeeByFeeRate` collects account balance in outputs.
+     * 3. Add `cellDeps`
+     * 4. Prefill witnesses to ensure the transaction size will not increase after signing.
+     *
+     * @param txSkeleton transaction skeleton built so far
+     * @param inputCell the new input cell candidate
+     * @param fromInfo which account the inputCell belongs to
+     * @return the updated transaction skeleton
+     */
     setupInputCell(
       txSkeleton: TransactionSkeletonType,
       inputCell: Cell,
@@ -57,10 +96,16 @@ export interface LockScriptInfo {
         since?: PackedSince;
       }
     ): Promise<TransactionSkeletonType>;
+
+    /**
+     * Scans the transaction and add signing entries into `txSkeleton.signingEnties`.
+     * @return the updated txSkeleton
+     */
     prepareSigningEntries(
       txSkeleton: TransactionSkeletonType,
       options: Options
     ): TransactionSkeletonType;
+
     setupOutputCell?: (
       txSkeleton: TransactionSkeletonType,
       outputCell: Cell,
@@ -96,6 +141,7 @@ function getLockScriptInfos(): LockScriptInfosType {
   return lockScriptInfos;
 }
 
+/** Registers LockScriptInfo for custom scripts. */
 export function registerCustomLockScriptInfos(infos: LockScriptInfo[]): void {
   lockScriptInfos._customInfos = infos;
 }

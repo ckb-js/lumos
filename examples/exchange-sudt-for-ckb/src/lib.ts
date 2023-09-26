@@ -5,7 +5,7 @@ import { payFeeByFeeRate } from "@ckb-lumos/common-scripts/lib/common";
 import { addCellDep } from "@ckb-lumos/common-scripts/lib/helper";
 import { List } from "immutable";
 import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
-import { bytes, number } from "@ckb-lumos/codec";
+import { bytes } from "@ckb-lumos/codec";
 import { blockchain } from "@ckb-lumos/base";
 
 export const { AGGRON4 } = config.predefined;
@@ -122,7 +122,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
         break;
       }
       inputs = inputs.push(cell);
-      total = total.add(number.Uint128LE.unpack(cell.data));
+      total = total.add(sudt.unpackAmount(cell.data));
     }
     return inputs;
   });
@@ -146,7 +146,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
       lock: holderAccountInfo.lockScript,
       type: issuerTypeScript,
     },
-    data: bytes.hexify(number.Uint128LE.pack(SUDTAmount)),
+    data: sudt.packAmount(SUDTAmount),
   };
 
   console.log(calculateSUDTAmountSum(issuerSUDTCells).toBigInt());
@@ -157,7 +157,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
       lock: issuerAccountInfo.lockScript,
       type: issuerTypeScript,
     },
-    data: bytes.hexify(number.Uint128LE.pack(calculateSUDTAmountSum(issuerSUDTCells).sub(SUDTAmount))),
+    data: sudt.packAmount(calculateSUDTAmountSum(issuerSUDTCells).sub(SUDTAmount)),
   };
 
   SUDTTargetOutput.cellOutput.capacity = BI.from(helpers.minimalCellCapacity(SUDTTargetOutput)).toHexString();
@@ -274,7 +274,7 @@ export function calculateSUDTAmountSum(cells: Cell[]) {
   let amount = BI.from(0);
   for (const cell of cells) {
     if (cell.cellOutput.type?.codeHash === AGGRON4.SCRIPTS.SUDT.CODE_HASH) {
-      amount = amount.add(number.Uint128LE.unpack(cell.data));
+      amount = amount.add(sudt.unpackAmount(cell.data));
     }
   }
 
@@ -310,7 +310,7 @@ export async function fetchSUDTBalance(address: string, issuerLockScript: Script
   let amount = BI.from(0);
 
   for await (const cell of collector.collect()) {
-    amount = amount.add(number.Uint128LE.unpack(cell.data));
+    amount = amount.add(sudt.unpackAmount(cell.data));
   }
   return amount;
 }

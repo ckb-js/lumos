@@ -8,6 +8,7 @@ import {
   Header,
   CellCollector as CellCollectorInterface,
   values,
+  HexString,
 } from "@ckb-lumos/base";
 const { computeScriptHash } = utils;
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
@@ -28,7 +29,7 @@ import anyoneCanPay, {
 const { ScriptValue } = values;
 import secp256k1Blake160 from "./secp256k1_blake160";
 import { BI, BIish } from "@ckb-lumos/bi";
-import { bytes, number } from "@ckb-lumos/codec";
+import { bytes, type BytesLike, number } from "@ckb-lumos/codec";
 
 export type Token = Hash;
 
@@ -220,7 +221,7 @@ export async function transfer(
     });
 
     toAddressInputCapacity = BI.from(toAddressInput.cellOutput.capacity);
-    toAddressInputAmount = number.Uint128LE.unpack(toAddressInput.data);
+    toAddressInputAmount = unpackAmount(toAddressInput.data);
   }
 
   const targetOutput: Cell = {
@@ -479,7 +480,7 @@ export async function transfer(
 
       const inputCapacity: BI = BI.from(inputCell.cellOutput.capacity);
       const inputAmount: BI = inputCell.cellOutput.type
-        ? number.Uint128LE.unpack(inputCell.data)
+        ? unpackAmount(inputCell.data)
         : BI.from(0);
       let deductCapacity: BI =
         isAnyoneCanPay && !destroyable
@@ -600,9 +601,7 @@ export async function transfer(
         .toString(16);
     if (changeAmount.gt(0)) {
       clonedOutput.data = bytes.hexify(
-        number.Uint128LE.pack(
-          number.Uint128LE.unpack(originOutput.data).add(changeAmount)
-        )
+        number.Uint128LE.pack(unpackAmount(originOutput.data).add(changeAmount))
       );
     }
 
@@ -720,8 +719,18 @@ export function ownerForSudt(
   return lockHash;
 }
 
+export function unpackAmount(data: BytesLike): BI {
+  return number.Uint128LE.unpack(bytes.bytify(data).slice(0, 16));
+}
+
+export function packAmount(amount: BIish): HexString {
+  return bytes.hexify(number.Uint128LE.pack(amount));
+}
+
 export default {
   issueToken,
   transfer,
   ownerForSudt,
+  packAmount,
+  unpackAmount,
 };
