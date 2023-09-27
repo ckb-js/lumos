@@ -43,6 +43,8 @@ export namespace RPC {
     Pending = "pending",
     Proposed = "proposed",
     Committed = "committed",
+    Unknown = "unknown",
+    Rejected = "rejected",
   }
 
   export type DepType = "code" | "dep_group";
@@ -118,7 +120,11 @@ export namespace RPC {
         }
       | {
           block_hash: undefined;
-          status: TransactionStatus.Pending | TransactionStatus.Proposed;
+          status:
+            | TransactionStatus.Pending
+            | TransactionStatus.Proposed
+            | TransactionStatus.Rejected
+            | TransactionStatus.Unknown;
         };
     time_added_to_pool: Uint64 | null;
     cycles: Uint64 | null;
