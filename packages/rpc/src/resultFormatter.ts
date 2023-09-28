@@ -333,6 +333,9 @@ const toTransactionWithStatus = <Tx>(
     txStatus: {
       blockHash,
       status,
+      ...("reason" in txWithStatus.tx_status
+        ? { reason: txWithStatus.tx_status.reason }
+        : {}),
     },
     timeAddedToPool: time_added_to_pool,
     ...rest,

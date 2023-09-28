@@ -125,6 +125,7 @@ export namespace RPC {
             | TransactionStatus.Proposed
             | TransactionStatus.Rejected
             | TransactionStatus.Unknown;
+          reason?: string;
         };
     time_added_to_pool: Uint64 | null;
     cycles: Uint64 | null;
