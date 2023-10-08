@@ -26,16 +26,14 @@
   },
   "author": "Xuejie Xiao",
   "license": "MIT",
-  "peerDependencies": {
-    "cross-fetch": "^3.1.4",
-    "jsbi": "^4.1.0"
-  },
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "@ckb-lumos/bi": "0.21.0-next.0"
+  },
   "devDependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
-    "@babel/plugin-transform-modules-commonjs": "^7.21.5",
-    "jsbi": "^4.1.0"
+    "@babel/plugin-transform-modules-commonjs": "^7.21.5"
   }
 }

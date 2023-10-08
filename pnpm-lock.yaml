@@ -717,9 +717,9 @@ importers:
 
   packages/toolkit:
     dependencies:
-      cross-fetch:
-        specifier: ^3.1.4
-        version: 3.1.5
+      '@ckb-lumos/bi':
+        specifier: 0.21.0-next.0
+        version: link:../bi
     devDependencies:
       '@babel/plugin-proposal-export-namespace-from':
         specifier: ^7.18.9
@@ -727,9 +727,6 @@ importers:
       '@babel/plugin-transform-modules-commonjs':
         specifier: ^7.21.5
         version: 7.21.5(@babel/core@7.21.8)
-      jsbi:
-        specifier: ^4.1.0
-        version: 4.1.0
 
   packages/transaction-manager:
     dependencies:
