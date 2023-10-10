@@ -38,7 +38,7 @@
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
     "test": "pnpm run test:node && pnpm run test:browser",
     "test:node": "ava **/*.test.ts --timeout=5m",
-    "test:browser": "echo 'export * from \"@ckb-lumos/crypto/lib/crypto-browser\"' > src/crypto.ts && ava **/*.test.ts --timeout=5m && echo 'export * from \"@ckb-lumos/crypto\"' > src/crypto.ts",
+    "test:browser": "echo 'export * from \"@ckb-lumos/crypto/lib/crypto-browser\"' > src/crypto.ts && ava **/*.test.ts --timeout=5m && echo 'export * from \"@ckb-lumos/crypto\";' > src/crypto.ts",
     "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",

@@ -1,6 +1,6 @@
 {
   "name": "lumos-playground",
-  "version": "0.20.0",
+  "version": "0.21.0-next.0",
   "private": true,
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "bugs": {
@@ -21,10 +21,10 @@
     ]
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.20.0",
-    "@ckb-lumos/bi": "0.20.0",
-    "@ckb-lumos/codec": "0.20.0",
-    "@ckb-lumos/toolkit": "0.20.0",
+    "@ckb-lumos/base": "workspace:*",
+    "@ckb-lumos/bi": "workspace:*",
+    "@ckb-lumos/codec": "workspace:*",
+    "@ckb-lumos/toolkit": "workspace:*",
     "minimatch": "^9.0.3"
   }
 }

@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -39,29 +39,23 @@ importers:
   ../packages/base:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../toolkit
       '@types/blake2b':
         specifier: ^2.1.0
         version: 2.1.0
-      '@types/lodash.isequal':
-        specifier: ^4.5.5
-        version: 4.5.5
       blake2b:
         specifier: ^2.1.3
         version: 2.1.3
       js-xxhash:
         specifier: ^1.0.4
         version: 1.0.4
-      lodash.isequal:
-        specifier: ^4.5.0
-        version: 4.5.0
     devDependencies:
       jsbi:
         specifier: ^4.1.0
@@ -76,19 +70,19 @@ importers:
   ../packages/ckb-indexer:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../toolkit
       cross-fetch:
         specifier: ^3.1.5
@@ -98,7 +92,7 @@ importers:
         version: 3.3.0
     devDependencies:
       '@ckb-lumos/testkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../testkit
       '@types/lodash.uniqby':
         specifier: ^4.7.7
@@ -125,7 +119,7 @@ importers:
   ../packages/codec:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
     devDependencies:
       escape-string-regexp:
@@ -138,35 +132,35 @@ importers:
   ../packages/common-scripts:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../helpers
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../toolkit
       immutable:
         specifier: ^4.3.0
         version: 4.3.0
     devDependencies:
       '@ckb-lumos/debugger':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../debugger
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../hd
       '@types/keccak':
         specifier: ^3.0.1
@@ -178,13 +172,13 @@ importers:
   ../packages/config-manager:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@types/deep-freeze-strict':
         specifier: ^1.1.0
@@ -193,25 +187,43 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1
 
+  ../packages/crypto:
+    dependencies:
+      '@noble/hashes':
+        specifier: 1.3.1
+        version: 1.3.1
+      '@noble/secp256k1':
+        specifier: 2.0.0
+        version: 2.0.0
+      '@types/aes-js':
+        specifier: ^3.1.1
+        version: 3.1.2
+      browserify-aes:
+        specifier: ^1.2.0
+        version: 1.2.0
+      scrypt-js:
+        specifier: ^3.0.1
+        version: 3.0.1
+
   ../packages/debugger:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../helpers
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../rpc
       '@types/download':
         specifier: ^8.0.1
@@ -233,55 +245,55 @@ importers:
         version: 3.0.0
     devDependencies:
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../common-scripts
       '@ckb-lumos/experiment-tx-assembler':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../experiment-tx-assembler
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../hd
 
   ../packages/e2e-test:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../ckb-indexer
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../common-scripts
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../config-manager
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../hd
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../helpers
       '@ckb-lumos/light-client':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../light-client
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../rpc
       '@ckb-lumos/runner':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../runner
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../toolkit
       '@ckb-lumos/utils':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../utils
       '@types/kill-port':
         specifier: ^2.0.0
@@ -294,7 +306,7 @@ importers:
         version: 2.0.1
     devDependencies:
       '@ckb-lumos/testkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../testkit
       '@types/request':
         specifier: ^2.48.8
@@ -315,32 +327,38 @@ importers:
   ../packages/experiment-tx-assembler:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../helpers
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../toolkit
 
   ../packages/hd:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
+      '@ckb-lumos/codec':
+        specifier: 0.21.0-next.0
+        version: link:../codec
+      '@ckb-lumos/crypto':
+        specifier: 0.21.0-next.0
+        version: link:../crypto
       bn.js:
-        specifier: ^5.1.3
-        version: 5.1.3
+        specifier: ^4.11.6
+        version: 4.12.0
       elliptic:
         specifier: ^6.5.4
         version: 6.5.4
@@ -367,22 +385,22 @@ importers:
   ../packages/hd-cache:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../ckb-indexer
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../config-manager
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../hd
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../rpc
       immutable:
         specifier: ^4.3.0
@@ -398,19 +416,19 @@ importers:
   ../packages/helpers:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../config-manager
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../toolkit
       bech32:
         specifier: ^2.0.0
@@ -422,13 +440,13 @@ importers:
   ../packages/light-client:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../ckb-indexer
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../rpc
       cross-fetch:
         specifier: ^3.1.5
@@ -438,7 +456,7 @@ importers:
         version: 3.3.0
     devDependencies:
       '@ckb-lumos/testkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../testkit
       '@types/request':
         specifier: ^2.48.8
@@ -453,45 +471,39 @@ importers:
   ../packages/lumos:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../ckb-indexer
       '@ckb-lumos/common-scripts':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../common-scripts
       '@ckb-lumos/config-manager':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../config-manager
       '@ckb-lumos/hd':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../hd
       '@ckb-lumos/helpers':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../helpers
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../toolkit
     devDependencies:
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
-      crypto-browserify:
-        specifier: ^3.12.0
-        version: 3.12.0
       fork-ts-checker-webpack-plugin:
         specifier: ^6.4.0
         version: 6.4.0(typescript@5.0.4)(webpack@5.64.1)
-      ts-loader:
-        specifier: ^9.2.6
-        version: 9.2.6(typescript@5.0.4)(webpack@5.64.1)
       unminified-webpack-plugin:
         specifier: ^3.0.0
         version: 3.0.0(webpack@5.64.1)
@@ -505,10 +517,10 @@ importers:
   ../packages/molecule:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@types/nearley':
         specifier: ^2.11.2
@@ -521,7 +533,7 @@ importers:
         version: 2.20.1
     devDependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       jsbi:
         specifier: ^4.1.0
@@ -530,10 +542,10 @@ importers:
   ../packages/rpc:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@vespaiach/axios-fetch-adapter':
         specifier: ^0.3.1
@@ -551,9 +563,6 @@ importers:
       '@types/nock':
         specifier: ^11.1.0
         version: 11.1.0
-      express:
-        specifier: ^4.18.1
-        version: 4.18.2
       jest:
         specifier: ^28.1.3
         version: 28.1.3
@@ -564,7 +573,7 @@ importers:
   ../packages/runner:
     dependencies:
       '@ckb-lumos/utils':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../utils
       '@ltd/j-toml':
         specifier: ^1.38.0
@@ -600,13 +609,13 @@ importers:
   ../packages/testkit:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@types/body-parser':
         specifier: ^1.19.1
@@ -659,30 +668,23 @@ importers:
   ../packages/transaction-manager:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../base
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../ckb-indexer
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../codec
       '@ckb-lumos/rpc':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.20.0
+        specifier: 0.21.0-next.0
         version: link:../toolkit
       immutable:
         specifier: ^4.3.0
         version: 4.3.0
-    devDependencies:
-      '@types/sinon':
-        specifier: ^10.0.14
-        version: 10.0.14
-      sinon:
-        specifier: ^15.0.4
-        version: 15.0.4
 
   ../packages/utils: {}
 
@@ -906,13 +908,13 @@ importers:
   secp256k1-transfer:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.20.0
+        specifier: canary
         version: link:../../packages/base
       '@ckb-lumos/codec':
-        specifier: 0.20.0
+        specifier: canary
         version: link:../../packages/codec
       '@ckb-lumos/lumos':
-        specifier: 0.20.0
+        specifier: canary
         version: link:../../packages/lumos
       '@types/react':
         specifier: ^18.0.25
@@ -1770,6 +1772,15 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@noble/hashes@1.3.1:
+    resolution: {integrity: sha512-EbqwksQwz9xDRGfDST86whPBgM65E0OH/pCgqW0GBVzO22bNE+NuIbeTb714+IfSjU3aRk47EUvXIb5bTsenKA==}
+    engines: {node: '>= 16'}
+    dev: false
+
+  /@noble/secp256k1@2.0.0:
+    resolution: {integrity: sha512-rUGBd95e2a45rlmFTqQJYEFA4/gdIARFfuTuTqLglz0PZ6AKyzyXsEZZq7UZn8hZsvaBgpCzKKBJizT2cJERXw==}
+    dev: false
 
   /@parcel/bundler-default@2.8.0(@parcel/core@2.9.3):
     resolution: {integrity: sha512-OvDDhxX4LwfGe7lYVMbJMzqNcDk8ydOqNw0Hra9WPgl0m5gju/eVIbDvot3JXp5F96FmV36uCxdODJhKTNoAzQ==}
@@ -3240,6 +3251,10 @@ packages:
     engines: {node: '>=10.13.0'}
     dev: true
 
+  /@types/aes-js@3.1.2:
+    resolution: {integrity: sha512-bKms4q1H3YCcLMKvqE9kUefE1TXc9/QhurzMRVqY9Qevodl0Fxyt6GQcUQ4TkmuWLdGQM1xL+yhSUBTJJRfBFA==}
+    dev: false
+
   /@types/babel__core@7.20.1:
     resolution: {integrity: sha512-aACu/U/omhdk15O4Nfb+fHgH/z3QsfQzpnvRZhYhThms83ZnAOZz7zZAWO7mn2yyNQaA4xTO8GLK3uqFU4bYYw==}
     dependencies:
@@ -3440,12 +3455,6 @@ packages:
       shell-exec: 1.1.2
     dev: false
 
-  /@types/lodash.isequal@4.5.5:
-    resolution: {integrity: sha512-4IKbinG7MGP131wRfceK6W4E/Qt3qssEFLF30LnJbjYiSfHGGRU/Io8YxXrZX109ir+iDETC8hw8QsDijukUVg==}
-    dependencies:
-      '@types/lodash': 4.14.195
-    dev: false
-
   /@types/lodash.uniqby@4.7.7:
     resolution: {integrity: sha512-sv2g6vkCIvEUsK5/Vq17haoZaisfj2EWW8mP7QWlnKi6dByoNmeuHDDXHR7sabuDqwO4gvU7ModIL22MmnOocg==}
     dependencies:
@@ -3454,6 +3463,7 @@ packages:
 
   /@types/lodash@4.14.195:
     resolution: {integrity: sha512-Hwx9EUgdwf2GLarOjQp5ZH8ZmblzcbTBC2wtQWNKARBSxM9ezRIAUpeDTgoQRAFB0+8CNWXVA9+MaSOzOF3nPg==}
+    dev: true
 
   /@types/mime@1.3.2:
     resolution: {integrity: sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==}
@@ -3771,6 +3781,7 @@ packages:
     dependencies:
       mime-types: 2.1.35
       negotiator: 0.6.3
+    dev: false
 
   /acorn-import-assertions@1.9.0(acorn@8.9.0):
     resolution: {integrity: sha512-cmMwop9x+8KFhxvKrKfPYmN6/pKTYYHBqLa0DfvVZcKMJWNyWLnaqND7dx/qn66R7ewM1UX5XMaDVP5wlVTaVA==}
@@ -3866,6 +3877,7 @@ packages:
 
   /array-flatten@1.1.1:
     resolution: {integrity: sha512-PCVAQswWemu6UdxsDFFX/+gVeYqKAod3D3UVm91jHwynguOwAvYPhx8nNlM++NqRcK6CxxpUafjmhIdKiHibqg==}
+    dev: false
 
   /asn1.js@5.4.1:
     resolution: {integrity: sha512-+I//4cYPccV8LdmBLiX8CYvf9Sp3vQsrqu2QNXRcrbiWvcx/UdlFiqUJJzxRQxgsZmvhXhn4cSKeSmoFjVdupA==}
@@ -4036,6 +4048,7 @@ packages:
 
   /bn.js@5.1.3:
     resolution: {integrity: sha512-GkTiFpjFtUzU9CbMeJ5iazkCzGL3jrhzerzZIuqLABjbwRaFt33I9tUdSNryIptM+RxDet6OKm2WnLXzW51KsQ==}
+    dev: true
 
   /body-parser@1.19.0:
     resolution: {integrity: sha512-dhEPs72UPbDnAQJ9ZKMNTP6ptJaionhP5cBb541nXPlW60Jepo9RV/a4fX4XWW9CuFNK22krhrj1+rgzifNCsw==}
@@ -4073,6 +4086,7 @@ packages:
       unpipe: 1.0.0
     transitivePeerDependencies:
       - supports-color
+    dev: false
 
   /boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
@@ -4103,7 +4117,6 @@ packages:
       evp_bytestokey: 1.0.3
       inherits: 2.0.4
       safe-buffer: 5.2.1
-    dev: true
 
   /browserify-cipher@1.0.1:
     resolution: {integrity: sha512-sPhkz0ARKbf4rRQt2hTpAHqn47X3llLkUGn+xEJzLjwY8LRs2p0v7ljvI5EyoRO/mexrNunNECisZs+gw2zz1w==}
@@ -4185,7 +4198,6 @@ packages:
 
   /buffer-xor@1.0.3:
     resolution: {integrity: sha512-571s0T7nZWK6vB67HI5dyUF7wXiNcfaPPPTl6zYCNApANjIvYJTg7hlud/+cJpdAhS7dVzqMLmfhfHR3rAcOjQ==}
-    dev: true
 
   /buffer@5.5.0:
     resolution: {integrity: sha512-9FTEDjLjwoAkEwyMGDjYJQN2gfRgOKBKRfiglhvibGbpeeU/pQn1bJxQqm32OD/AIeEuHxU9roxXxg34Byp/Ww==}
@@ -4219,6 +4231,7 @@ packages:
   /bytes@3.1.2:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
     engines: {node: '>= 0.8'}
+    dev: false
 
   /cacheable-request@2.1.4:
     resolution: {integrity: sha512-vag0O2LKZ/najSoUwDbVlnlCFvhBE/7mGTY2B5FgCBDcRD+oVV1HYTOwM6JZfMg/hIcM6IwnTZ1uQQL5/X3xIQ==}
@@ -4237,6 +4250,7 @@ packages:
     dependencies:
       function-bind: 1.1.1
       get-intrinsic: 1.2.1
+    dev: false
 
   /callsites@3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
@@ -4313,7 +4327,6 @@ packages:
     dependencies:
       inherits: 2.0.4
       safe-buffer: 5.2.1
-    dev: true
 
   /cjs-module-lexer@1.2.3:
     resolution: {integrity: sha512-0TNiGstbQmCFwt4akjjBg5pLRTSyj/PkWQ1ZoO2zntmg9yLqSRxwEa4iCfQLGjqhiqBfOJa7W/E8wfGrTDmlZQ==}
@@ -4413,10 +4426,12 @@ packages:
     engines: {node: '>= 0.6'}
     dependencies:
       safe-buffer: 5.2.1
+    dev: false
 
   /content-type@1.0.5:
     resolution: {integrity: sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==}
     engines: {node: '>= 0.6'}
+    dev: false
 
   /convert-source-map@1.9.0:
     resolution: {integrity: sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==}
@@ -4424,10 +4439,12 @@ packages:
 
   /cookie-signature@1.0.6:
     resolution: {integrity: sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==}
+    dev: false
 
   /cookie@0.5.0:
     resolution: {integrity: sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==}
     engines: {node: '>= 0.6'}
+    dev: false
 
   /copy-to-clipboard@3.3.3:
     resolution: {integrity: sha512-2KV8NhB5JqC3ky0r9PMCAZKbUHSwtEo4CwCs0KXgruG43gX5PMqDEBbVU4OUzw2MuAWUfsuFmWvEKG5QRfSnJA==}
@@ -4479,7 +4496,6 @@ packages:
       md5.js: 1.3.5
       ripemd160: 2.0.2
       sha.js: 2.4.11
-    dev: true
 
   /create-hmac@1.1.7:
     resolution: {integrity: sha512-MJG9liiZ+ogc4TzUwuvbER1JRdgvUFSB5+VR/g5h82fGaIRWMWddtKBHi7/sVhfjQZ6SehlyhvQYrcYkaUIpLg==}
@@ -4580,6 +4596,7 @@ packages:
         optional: true
     dependencies:
       ms: 2.0.0
+    dev: false
 
   /debug@4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -4682,6 +4699,7 @@ packages:
   /depd@2.0.0:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
     engines: {node: '>= 0.8'}
+    dev: false
 
   /des.js@1.1.0:
     resolution: {integrity: sha512-r17GxjhUCjSRy8aiJpr8/UadFIzMzJGexI3Nmz4ADi9LYSFx4gTBp80+NaX/YsXWWLhpZ7v/v/ubEc/bCNfKwg==}
@@ -4693,6 +4711,7 @@ packages:
   /destroy@1.2.0:
     resolution: {integrity: sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
+    dev: false
 
   /detect-libc@1.0.3:
     resolution: {integrity: sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg==}
@@ -4808,6 +4827,7 @@ packages:
 
   /ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
+    dev: false
 
   /electron-to-chromium@1.4.446:
     resolution: {integrity: sha512-4Gnw7ztEQ/E0eOt5JWfPn9jjeupfUlKoeW5ETKP9nLdWj+4spFoS3Stj19fqlKIaX28UQs0fNX+uKEyoLCBnkw==}
@@ -4836,6 +4856,7 @@ packages:
   /encodeurl@1.0.2:
     resolution: {integrity: sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==}
     engines: {node: '>= 0.8'}
+    dev: false
 
   /end-of-stream@1.4.4:
     resolution: {integrity: sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==}
@@ -4894,6 +4915,7 @@ packages:
 
   /escape-html@1.0.3:
     resolution: {integrity: sha512-NiSupZ4OeuGwr68lGIeym/ksIZMJodUGOSCZ/FSnTxcrekbvqrgdUxlJOMpijaKZVjAJrWrGs/6Jy8OMuyj9ow==}
+    dev: false
 
   /escape-string-regexp@1.0.5:
     resolution: {integrity: sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg==}
@@ -4943,6 +4965,7 @@ packages:
   /etag@1.8.1:
     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
     engines: {node: '>= 0.6'}
+    dev: false
 
   /events@3.3.0:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
@@ -4953,7 +4976,6 @@ packages:
     dependencies:
       md5.js: 1.3.5
       safe-buffer: 5.2.1
-    dev: true
 
   /execa@5.1.1:
     resolution: {integrity: sha512-8uSpZZocAZRBAPIEINJj3Lo9HyGitllczc27Eh5YYojjMFMn8yHMDMaUHE2Jqfq05D/wucwI4JGURyXt1vchyg==}
@@ -5034,6 +5056,7 @@ packages:
       vary: 1.1.2
     transitivePeerDependencies:
       - supports-color
+    dev: false
 
   /ext-list@2.2.2:
     resolution: {integrity: sha512-u+SQgsubraE6zItfVA0tBuCBhfU9ogSRnsvygI7wht9TS510oLkBRXBsqopeUG/GBOIQyKZO9wjTqIu/sf5zFA==}
@@ -5154,6 +5177,7 @@ packages:
       unpipe: 1.0.0
     transitivePeerDependencies:
       - supports-color
+    dev: false
 
   /find-process@1.4.7:
     resolution: {integrity: sha512-/U4CYp1214Xrp3u3Fqr9yNynUrr5Le4y0SsJh2lMDDSbpwYSz3M2SMWQC+wqcx79cN8PQtHQIL8KnuY9M66fdg==}
@@ -5249,10 +5273,12 @@ packages:
   /forwarded@0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
     engines: {node: '>= 0.6'}
+    dev: false
 
   /fresh@0.5.2:
     resolution: {integrity: sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==}
     engines: {node: '>= 0.6'}
+    dev: false
 
   /from2@2.3.0:
     resolution: {integrity: sha512-OMcX/4IC/uqEPVgGeyfN22LJk6AZrMkRZHxcHBMBvHScDGgwTm2GT2Wkgtocyd3JfZffjj2kYUDXXII0Fk9W0g==}
@@ -5310,6 +5336,7 @@ packages:
       has: 1.0.3
       has-proto: 1.0.1
       has-symbols: 1.0.3
+    dev: false
 
   /get-package-type@0.1.0:
     resolution: {integrity: sha512-pjzuKtY64GYfWizNAJ0fr9VqttZkNiK2iS430LtIHzjBEr6bX8Am2zm4sW4Ro5wjWW5cAlRL1qAMTcXbjNAO2Q==}
@@ -5444,6 +5471,7 @@ packages:
   /has-proto@1.0.1:
     resolution: {integrity: sha512-7qE+iP+O+bgF9clE5+UoBFzE65mlBiVj3tKCrlNQ0Ogwm0BjpT/gK4SlLYDMybDh5I3TCTKnPPa0oMG7JDYrhg==}
     engines: {node: '>= 0.4'}
+    dev: false
 
   /has-symbol-support-x@1.4.2:
     resolution: {integrity: sha512-3ToOva++HaW+eCpgqZrCfN51IPB+7bJNVT6CUATzueB5Heb8o6Nam0V3HG5dlDvZU1Gn5QLcbahiKw/XVk5JJw==}
@@ -5452,6 +5480,7 @@ packages:
   /has-symbols@1.0.3:
     resolution: {integrity: sha512-l3LCuF6MgDNwTDKkdYGEihYjt5pRPbEg46rtlmnSPlUbgmB8LOIrKJbYYFBSbnPaJexMKtiPO8hmeRjRz2Td+A==}
     engines: {node: '>= 0.4'}
+    dev: false
 
   /has-to-string-tag-x@1.4.1:
     resolution: {integrity: sha512-vdbKfmw+3LoOYVr+mtxHaX5a96+0f3DljYd8JOqvOLsf5mw2Otda2qCDT9qRqLAhrjyQ0h7ual5nOiASpsGNFw==}
@@ -5472,7 +5501,6 @@ packages:
       inherits: 2.0.4
       readable-stream: 3.6.2
       safe-buffer: 5.2.1
-    dev: true
 
   /hash.js@1.1.7:
     resolution: {integrity: sha512-taOaskGt4z4SOANNseOviYDvjEJinIkRgmp7LbKP2YTTmVxWBl87s/uzK9r+44BclBSp2X7K1hqeNfz9JbBeXA==}
@@ -5564,6 +5592,7 @@ packages:
       setprototypeof: 1.2.0
       statuses: 2.0.1
       toidentifier: 1.0.1
+    dev: false
 
   /http-signature@1.2.0:
     resolution: {integrity: sha512-CAbnr6Rz4CYQkLYUtSNXxQPUH2gK8f3iWexVlsnMeD+GjlsQ0Xsy1cOX+mN3dtxYomRy21CiOzU8Uhw6OwncEQ==}
@@ -5588,6 +5617,7 @@ packages:
     engines: {node: '>=0.10.0'}
     dependencies:
       safer-buffer: 2.1.2
+    dev: false
 
   /ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -5659,6 +5689,7 @@ packages:
   /ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
     engines: {node: '>= 0.10'}
+    dev: false
 
   /is-arrayish@0.2.1:
     resolution: {integrity: sha512-zz06S8t0ozoDXMG+ube26zeCTNXcKIPJZJi8hBrF4idCLms4CG9QtK7qBl1boi5ODzFpjswb5JPmHCbMpjaYzg==}
@@ -6566,10 +6597,6 @@ packages:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
     dev: true
 
-  /lodash.isequal@4.5.0:
-    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
-    dev: false
-
   /lodash.uniqby@4.7.0:
     resolution: {integrity: sha512-e/zcLx6CSbmaEgFHCA7BnoQKyCtKMxnuWrJygbwPs/AIn+IMKl66L8/s+wBUn5LRw2pZx3bUHibiV1b6aTWIww==}
     dev: true
@@ -6642,7 +6669,6 @@ packages:
       hash-base: 3.1.0
       inherits: 2.0.4
       safe-buffer: 5.2.1
-    dev: true
 
   /mdn-data@2.0.14:
     resolution: {integrity: sha512-dn6wd0uw5GsdswPFfsgMp5NSB0/aDe6fK94YJV/AJDYXL6HVLWBsxeq7js7Ad+mU2K9LAlwpk6kN2D5mwCPVow==}
@@ -6650,6 +6676,7 @@ packages:
   /media-typer@0.3.0:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
     engines: {node: '>= 0.6'}
+    dev: false
 
   /memfs@3.5.3:
     resolution: {integrity: sha512-UERzLsxzllchadvbPs5aolHh65ISpKpM+ccLbOJ8/vvpBKmAWf+la7dXFy7Mr0ySHbdHrFv5kGFCUHHe6GFEmw==}
@@ -6660,6 +6687,7 @@ packages:
 
   /merge-descriptors@1.0.1:
     resolution: {integrity: sha512-cCi6g3/Zr1iqQi6ySbseM1Xvooa98N0w31jzUYrXPX2xqObmFGHJ0tQ5u74H3mVh7wLouTseZyYIq39g8cNp1w==}
+    dev: false
 
   /merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
@@ -6668,6 +6696,7 @@ packages:
   /methods@1.1.2:
     resolution: {integrity: sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==}
     engines: {node: '>= 0.6'}
+    dev: false
 
   /micromatch@4.0.5:
     resolution: {integrity: sha512-DMy+ERcEW2q8Z2Po+WNXuw3c5YaUSFjAO5GsJqfEl7UjvtIuFKO6ZrKvcItdy98dwFI2N1tg3zNIdKaQT+aNdA==}
@@ -6699,6 +6728,7 @@ packages:
     resolution: {integrity: sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==}
     engines: {node: '>=4'}
     hasBin: true
+    dev: false
 
   /mimic-fn@2.1.0:
     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
@@ -6727,12 +6757,14 @@ packages:
 
   /ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
+    dev: false
 
   /ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
 
   /ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+    dev: false
 
   /msgpackr-extract@3.0.2:
     resolution: {integrity: sha512-SdzXp4kD/Qf8agZ9+iTu6eql0m3kWm1A2y1hkpTeVNENutaB0BwHlSvAIaMxwntmRUAUjon2V4L8Z/njd0Ct8A==}
@@ -6801,6 +6833,7 @@ packages:
   /negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
     engines: {node: '>= 0.6'}
+    dev: false
 
   /neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
@@ -6864,6 +6897,7 @@ packages:
   /node-gyp-build-optional-packages@5.0.7:
     resolution: {integrity: sha512-YlCCc6Wffkx0kHkmam79GKvDQ6x+QZkMjFGrIMxgFNILFvGSbCp2fCBC55pGTT9gVaz8Na5CLmxt/urtzRv36w==}
     hasBin: true
+    requiresBuild: true
     dev: true
     optional: true
 
@@ -6926,6 +6960,7 @@ packages:
 
   /object-inspect@1.12.3:
     resolution: {integrity: sha512-geUvdk7c+eizMNUDkRpW1wJwgfOiOeHbxBR/hLXK1aT6zmVSO0jsQcs7fj6MGw89jC/cjGfLcNOrtMYtGqm81g==}
+    dev: false
 
   /on-finished@2.3.0:
     resolution: {integrity: sha512-ikqdkGAAyf/X/gPhXGvfgAytDZtDbr+bkNUJ0N9h5MI/dmdgCs3l6hoHrcUv41sRKew3jIwrp4qQDXiK99Utww==}
@@ -6939,6 +6974,7 @@ packages:
     engines: {node: '>= 0.8'}
     dependencies:
       ee-first: 1.1.1
+    dev: false
 
   /once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
@@ -7074,6 +7110,7 @@ packages:
   /parseurl@1.3.3:
     resolution: {integrity: sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==}
     engines: {node: '>= 0.8'}
+    dev: false
 
   /path-browserify@1.0.0:
     resolution: {integrity: sha512-Hkavx/nY4/plImrZPHRk2CL9vpOymZLgEbMNX1U0bjcBL7QN9wODxyx0yaMZURSQaUtSEvDrfAvxa9oPb0at9g==}
@@ -7098,6 +7135,7 @@ packages:
 
   /path-to-regexp@0.1.7:
     resolution: {integrity: sha512-5DFkuoqlv1uYQKxy8omFBeJPQcdoE07Kv2sferDCrAq1ohOU+MSDswDIbnx3YAM60qIOnYa53wBhXW0EbMonrQ==}
+    dev: false
 
   /path-to-regexp@1.8.0:
     resolution: {integrity: sha512-n43JRhlUKUAlibEJhPeir1ncUID16QnEjNpwzNdO3Lm4ywrBpBZ5oLD0I6br9evr1Y9JTqwRtAh7JLoOzAQdVA==}
@@ -7270,6 +7308,7 @@ packages:
     dependencies:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
+    dev: false
 
   /psl@1.9.0:
     resolution: {integrity: sha512-E/ZsdU4HLs/68gYzgGTkMicWTLPdAftJLfJFlLUAAKZGkStNU72sZjT66SnMDVOfOWY/YAoiD7Jxa9iHvngcag==}
@@ -7303,6 +7342,7 @@ packages:
     engines: {node: '>=0.6'}
     dependencies:
       side-channel: 1.0.4
+    dev: false
 
   /qs@6.5.3:
     resolution: {integrity: sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==}
@@ -7351,6 +7391,7 @@ packages:
   /range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
+    dev: false
 
   /raw-body@2.4.0:
     resolution: {integrity: sha512-4Oz8DUIwdvoa5qMJelxipzi/iJIi40O5cGV1wNYp5hvZP8ZN0T+jiNkL0QepXs+EsQ9XJ8ipEDoiH70ySUJP3Q==}
@@ -7370,6 +7411,7 @@ packages:
       http-errors: 2.0.0
       iconv-lite: 0.4.24
       unpipe: 1.0.0
+    dev: false
 
   /react-dom@18.2.0(react@18.2.0):
     resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
@@ -7454,7 +7496,6 @@ packages:
       inherits: 2.0.4
       string_decoder: 1.3.0
       util-deprecate: 1.0.2
-    dev: true
 
   /readdirp@3.6.0:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
@@ -7574,7 +7615,6 @@ packages:
     dependencies:
       hash-base: 3.1.0
       inherits: 2.0.4
-    dev: true
 
   /rtl-css-js@1.16.1:
     resolution: {integrity: sha512-lRQgou1mu19e+Ya0LsTvKrVJ5TYUbqCVPAiImX3UfLTenarvPUl1QFdvu5Z3PYmHT9RCcwIfbjRQBntExyj3Zg==}
@@ -7668,6 +7708,7 @@ packages:
       statuses: 2.0.1
     transitivePeerDependencies:
       - supports-color
+    dev: false
 
   /serialize-javascript@6.0.1:
     resolution: {integrity: sha512-owoXEFjWRllis8/M1Q+Cw5k8ZH40e3zhp/ovX+Xr/vi1qj6QesbyXXViFbpNvWvPNAD62SutwEXavefrLJWj7w==}
@@ -7685,6 +7726,7 @@ packages:
       send: 0.18.0
     transitivePeerDependencies:
       - supports-color
+    dev: false
 
   /set-harmonic-interval@1.0.1:
     resolution: {integrity: sha512-AhICkFV84tBP1aWqPwLZqFvAwqEoVA9kxNMniGEUvzOlm4vLmOFLiTT3UZ6bziJTy4bOVpzWGTfSCbmaayGx8g==}
@@ -7697,6 +7739,7 @@ packages:
 
   /setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
+    dev: false
 
   /sha.js@2.4.11:
     resolution: {integrity: sha512-QMEp5B7cftE7APOjk5Y6xgrbWu+WkLVQwk8JNjZ8nKRciZaByEW6MubieAiToS7+dwvrjGhH8jRXz3MVd0AYqQ==}
@@ -7704,7 +7747,6 @@ packages:
     dependencies:
       inherits: 2.0.4
       safe-buffer: 5.2.1
-    dev: true
 
   /sha3@2.1.3:
     resolution: {integrity: sha512-Io53D4o9qOmf3Ow9p/DoGLQiQHhtuR0ulbyambvRSG+OX5yXExk2yYfvjHtb7AtOyk6K6+sPeK/qaowWc/E/GA==}
@@ -7756,6 +7798,7 @@ packages:
       call-bind: 1.0.2
       get-intrinsic: 1.2.1
       object-inspect: 1.12.3
+    dev: false
 
   /signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
@@ -7904,6 +7947,7 @@ packages:
   /statuses@2.0.1:
     resolution: {integrity: sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==}
     engines: {node: '>= 0.8'}
+    dev: false
 
   /stream-browserify@3.0.0:
     resolution: {integrity: sha512-H73RAHsVBapbim0tU2JwwOiXUj+fikfiaoYAKHF3VJfA0pe2BCzkhAHBlLG6REzE+2WNZcxOXjK7lkso+9euLA==}
@@ -7944,7 +7988,6 @@ packages:
     resolution: {integrity: sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA==}
     dependencies:
       safe-buffer: 5.2.1
-    dev: true
 
   /strip-ansi@6.0.1:
     resolution: {integrity: sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==}
@@ -8162,6 +8205,7 @@ packages:
   /toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
+    dev: false
 
   /tough-cookie@2.5.0:
     resolution: {integrity: sha512-nlLsUzgm1kfLXSXfRZMc1KLAugd4hqJHDTvc2hDIwS3mZAfMEuMbc03SujMF+GEcpaX/qboeycw6iO8JwVv2+g==}
@@ -8185,21 +8229,6 @@ packages:
   /ts-easing@0.2.0:
     resolution: {integrity: sha512-Z86EW+fFFh/IFB1fqQ3/+7Zpf9t2ebOAxNI/V6Wo7r5gqiqtxmgTlQ1qbqQcjLKYeSHPTsEmvlJUDg/EuL0uHQ==}
     dev: false
-
-  /ts-loader@9.2.6(typescript@5.0.4)(webpack@5.64.1):
-    resolution: {integrity: sha512-QMTC4UFzHmu9wU2VHZEmWWE9cUajjfcdcws+Gh7FhiO+Dy0RnR1bNz0YCHqhI0yRowCE9arVnNxYHqELOy9Hjw==}
-    engines: {node: '>=12.0.0'}
-    peerDependencies:
-      typescript: '*'
-      webpack: ^5.0.0
-    dependencies:
-      chalk: 4.1.2
-      enhanced-resolve: 5.15.0
-      micromatch: 4.0.5
-      semver: 7.5.3
-      typescript: 5.0.4
-      webpack: 5.64.1(webpack-cli@4.9.1)
-    dev: true
 
   /tslib@2.3.1:
     resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==}
@@ -8240,6 +8269,7 @@ packages:
     dependencies:
       media-typer: 0.3.0
       mime-types: 2.1.35
+    dev: false
 
   /typescript@5.0.4:
     resolution: {integrity: sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==}
@@ -8271,6 +8301,7 @@ packages:
   /unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
+    dev: false
 
   /update-browserslist-db@1.0.11(browserslist@4.21.9):
     resolution: {integrity: sha512-dCwEFf0/oT85M1fHBg4F0jtLwJrutGoHSQXCh7u4o2t1drG+c0a9Flnqww6XUKSfQMPpJBRjU8d4RXB09qtvaA==}
@@ -8312,6 +8343,7 @@ packages:
   /utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
+    dev: false
 
   /uuid@3.4.0:
     resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
@@ -8336,6 +8368,7 @@ packages:
   /vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
+    dev: false
 
   /verror@1.10.0:
     resolution: {integrity: sha512-ZZKSmDAEFOijERBLkmYfJ+vmk3w+7hOLYDNkRCuRuMJGEmqYNCNLyBBFwWKVMhfwaEF3WOd0Zlw86U/WC/+nYw==}
