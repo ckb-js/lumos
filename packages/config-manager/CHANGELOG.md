@@ -1,5 +1,11 @@
 # @ckb-lumos/config-manager
 
+## 0.21.0-next.1
+
+### Minor Changes
+
+- [#552](https://github.com/ckb-js/lumos/pull/552) [`1cb43fe7`](https://github.com/ckb-js/lumos/commit/1cb43fe72dc95c4b3283acccb5120b7bcaeb9346) Thanks [@homura](https://github.com/homura)! - supported generate `ScriptConfig` from a genesis block
+
 ## 0.21.0-next.0
 
 ### Minor Changes

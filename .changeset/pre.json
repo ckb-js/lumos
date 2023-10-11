@@ -26,6 +26,8 @@
   },
   "changesets": [
     "kind-pandas-train",
-    "orange-flowers-sort"
+    "orange-flowers-sort",
+    "smart-bags-fetch",
+    "two-brooms-draw"
   ]
 }
