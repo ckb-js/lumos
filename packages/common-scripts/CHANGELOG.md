@@ -1,11 +1,5 @@
 # @ckb-lumos/common-scripts
 
-## 0.21.0-next.1
-
-### Patch Changes
-
-- [#552](https://github.com/ckb-js/lumos/pull/552) [`1cb43fe7`](https://github.com/ckb-js/lumos/commit/1cb43fe72dc95c4b3283acccb5120b7bcaeb9346) Thanks [@homura](https://github.com/homura)! - fix incorrect `TX_HASH` when generate a deployment transaction
-
 ## 0.21.0-next.0
 
 ### Minor Changes
