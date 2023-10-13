@@ -10,7 +10,7 @@
 // Note this is only used when you need to deal with CKB structures in molecule
 // format. If you are using RPCs or GraphQL to interact with CKB, chances are you
 // will not need this package.
-import JSBI from "jsbi";
+import { BI } from "@ckb-lumos/bi";
 import { Reader } from "./reader";
 /**
  * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
@@ -18,7 +18,7 @@ import { Reader } from "./reader";
 function normalizeHexNumber(length) {
   return function (debugPath, value) {
     if (!(value instanceof ArrayBuffer)) {
-      let intValue = JSBI.BigInt(value).toString(16);
+      let intValue = BI.from(value).toString(16);
       if (intValue.length % 2 !== 0) {
         intValue = "0" + intValue;
       }
