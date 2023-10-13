@@ -18,7 +18,7 @@ import { Reader } from "./reader";
 function normalizeHexNumber(length) {
   return function (debugPath, value) {
     if (!(value instanceof ArrayBuffer)) {
-      let intValue = BI.from(value).toHexString();
+      let intValue = BI.from(value).toHexString().substring(2);
       if (intValue.length % 2 !== 0) {
         intValue = "0" + intValue;
       }
