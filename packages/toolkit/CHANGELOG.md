@@ -1,5 +1,11 @@
 # @ckb-lumos/toolkit
 
+## 0.21.0-next.1
+
+### Patch Changes
+
+- [#560](https://github.com/ckb-js/lumos/pull/560) [`db34aef`](https://github.com/ckb-js/lumos/commit/db34aefd75604a996f1575de2804b57482bccec0) Thanks [@zhangyouxin](https://github.com/zhangyouxin)! - remove peer dependencies in toolkit
+
 ## 0.21.0-next.0
 
 ### Minor Changes

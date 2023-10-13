@@ -25,7 +25,10 @@
     "@ckb-lumos/utils": "0.20.0"
   },
   "changesets": [
+    "green-tips-accept",
     "kind-pandas-train",
-    "orange-flowers-sort"
+    "orange-flowers-sort",
+    "smart-bags-fetch",
+    "two-brooms-draw"
   ]
 }
