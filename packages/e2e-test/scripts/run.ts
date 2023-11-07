@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { mkdirSync, rmSync } from "node:fs";
 import { retry } from "@ckb-lumos/utils";
 import { RPC } from "@ckb-lumos/rpc";
-// import { LightClientRPC } from "@ckb-lumos/light-client";
+import { LightClientRPC } from "@ckb-lumos/light-client";
 import killPort from "kill-port";
 import {
   ckb,
@@ -15,7 +15,7 @@ import {
   CKB_RPC_PORT,
   CKB_RPC_URL,
   LIGHT_CLIENT_RPC_PORT,
-  // LIGHT_CLIENT_RPC_URL,
+  LIGHT_CLIENT_RPC_URL,
 } from "../src/constants";
 
 const MODULE_PATH = join(__dirname, "..");
@@ -103,36 +103,35 @@ async function main() {
   });
 
   // TODO uncomment me when the light client is available for CKB2023
-  // const lightClientProcess = spawn(
-  //   lightClientBinaryPath,
-  //   ["run", "--config-file", join(LIGHT_CLIENT_CWD, "light-client.toml")],
-  //   {
-  //     stdio: "inherit",
-  //     cwd: LIGHT_CLIENT_CWD,
-  //     env: {
-  //       RUST_LOG: "info",
-  //       ckb_light_client: "info",
-  //     },
-  //   }
-  // );
+  const lightClientProcess = spawn(
+    lightClientBinaryPath,
+    ["run", "--config-file", join(LIGHT_CLIENT_CWD, "light-client.toml")],
+    {
+      stdio: "inherit",
+      cwd: LIGHT_CLIENT_CWD,
+      env: {
+        RUST_LOG: "info",
+        ckb_light_client: "info",
+      },
+    }
+  );
 
-  // const lightClientRpc = new LightClientRPC(LIGHT_CLIENT_RPC_URL);
-  // const lightClientTip = await retry(() => lightClientRpc.getTipHeader(), {
-  //   retries: 30,
-  //   timeout: 30_000,
-  //   delay: 100,
-  // });
+  const lightClientRpc = new LightClientRPC(LIGHT_CLIENT_RPC_URL);
+  const lightClientTip = await retry(() => lightClientRpc.getTipHeader(), {
+    retries: 30,
+    timeout: 30_000,
+    delay: 100,
+  });
 
-  // console.info("Light Client started, tip header:", lightClientTip);
+  console.info("Light Client started, tip header:", lightClientTip);
 
   // TODO uncomment me when the light client is available for CKB2023
-  // execSync("npx ava '**/*.e2e.test.ts' --verbose --timeout=5m", {
-  execSync("npx ava '**/{rpc,indexer}.e2e.test.ts' --verbose --timeout=5m", {
+  execSync("npx ava '**/*.e2e.test.ts' --verbose --timeout=5m", {
     cwd: pathTo("/"),
     stdio: "inherit",
   });
 
-  // lightClientProcess.kill();
+  lightClientProcess.kill();
   ckbMinerProcess.kill();
   ckbProcess.kill();
 

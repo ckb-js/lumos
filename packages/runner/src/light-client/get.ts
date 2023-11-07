@@ -10,7 +10,7 @@ export interface Options {
  * @param options
  */
 export function getReleaseUrl(options: Options = {}): string {
-  const { version = "v0.2.4", platform = os.platform() } = options;
+  const { version = "v0.3.0", platform = os.platform() } = options;
 
   const compiledArch: string = (() => "x86_64")();
 
