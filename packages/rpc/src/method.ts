@@ -1,10 +1,9 @@
-import axios from "axios";
 import { IdNotMatchException, ResponseException } from "./exceptions";
-import { initAxiosWebworkerAdapter } from "./initAxiosWebworkerAdapter";
 import { CKBComponents } from "./types/api";
 import { RPCConfig } from "./types/common";
+import fetch from "cross-fetch";
+import { AbortController as CrossAbortController } from "abort-controller";
 
-initAxiosWebworkerAdapter();
 export class Method {
   #name: string;
   #config: RPCConfig;
@@ -40,29 +39,36 @@ export class Method {
   }
 
   /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/explicit-module-boundary-types */
-  public call = (...params: (string | number | object)[]) => {
+  public call = async (...params: (string | number | object)[]) => {
     const payload = this.getPayload(...params);
-    return axios({
+    const controller = new CrossAbortController() as AbortController;
+    const signal = controller.signal;
+
+    const timeout = setTimeout(() => controller.abort(), this.#config.timeout);
+
+    const res = await fetch(this.#node.url, {
       method: "POST",
       headers: {
         "content-type": "application/json",
       },
-      data: payload,
-      url: this.#node.url,
-      httpAgent: this.#node.httpAgent,
-      httpsAgent: this.#node.httpsAgent,
-      timeout: this.#config.timeout,
-    }).then((res) => {
-      if (res.data.id !== payload.id) {
-        throw new IdNotMatchException(payload.id, res.data.id);
-      }
-      if (res.data.error) {
-        throw new ResponseException(JSON.stringify(res.data.error));
-      }
-      return (
-        this.#options.resultFormatters?.(res.data.result) ?? res.data.result
-      );
-    });
+      body: JSON.stringify(payload),
+      signal,
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.id !== payload.id) {
+          throw new IdNotMatchException(payload.id, res.id);
+        }
+        if (res.error) {
+          throw new ResponseException(JSON.stringify(res.error));
+        }
+        return (
+          this.#options.resultFormatters?.(res.result) ?? res.result
+        );
+      });
+
+    clearTimeout(timeout);
+    return res;
   };
 
   public getPayload = (...params: (string | number | object)[]) => {

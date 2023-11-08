@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "lib",
-    "lib": ["WebWorker"]
+    "lib": ["DOM"]
   },
   "include": ["src"]
 }
