@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/lumos",
-  "version": "0.21.0-next.1",
+  "version": "0.21.0-next.2",
   "description": "A root package for Lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -34,15 +34,15 @@
     "url": "https://github.com/ckb-js/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.21.0-next.1",
-    "@ckb-lumos/bi": "0.21.0-next.1",
-    "@ckb-lumos/ckb-indexer": "0.21.0-next.1",
-    "@ckb-lumos/common-scripts": "0.21.0-next.1",
-    "@ckb-lumos/config-manager": "0.21.0-next.1",
-    "@ckb-lumos/hd": "0.21.0-next.1",
-    "@ckb-lumos/helpers": "0.21.0-next.1",
-    "@ckb-lumos/rpc": "0.21.0-next.1",
-    "@ckb-lumos/toolkit": "0.21.0-next.1"
+    "@ckb-lumos/base": "0.21.0-next.2",
+    "@ckb-lumos/bi": "0.21.0-next.2",
+    "@ckb-lumos/ckb-indexer": "0.21.0-next.2",
+    "@ckb-lumos/common-scripts": "0.21.0-next.2",
+    "@ckb-lumos/config-manager": "0.21.0-next.2",
+    "@ckb-lumos/hd": "0.21.0-next.2",
+    "@ckb-lumos/helpers": "0.21.0-next.2",
+    "@ckb-lumos/rpc": "0.21.0-next.2",
+    "@ckb-lumos/toolkit": "0.21.0-next.2"
   },
   "devDependencies": {
     "buffer": "^6.0.3",
