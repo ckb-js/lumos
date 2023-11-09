@@ -1,5 +1,7 @@
 # @ckb-lumos/toolkit
 
+## 0.21.0-next.2
+
 ## 0.21.0-next.1
 
 ### Patch Changes
