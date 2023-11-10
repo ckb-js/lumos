@@ -1,4 +1,12 @@
-import { HexString, utils, Header, Block } from "@ckb-lumos/base";
+import {
+  HexString,
+  utils,
+  Header,
+  Block,
+  RemoteNode,
+  LocalNode,
+  TransactionWithStatus,
+} from "@ckb-lumos/base";
 import { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
 import { ParamsFormatter } from "@ckb-lumos/rpc";
 
@@ -19,8 +27,8 @@ import {
   FetchHeaderResult,
   FetchTransactionResult,
   LightClientScript,
-  TransactionWithHeader,
   LightClientTransactionList,
+  SetScriptCommand,
 } from "./type";
 import fetch from "cross-fetch";
 
@@ -34,6 +42,14 @@ export class LightClientRPC {
 
   async getTipHeader(): Promise<Header> {
     return utils.deepCamel(await request(this.uri, "get_tip_header"));
+  }
+
+  async getPeers(): Promise<Array<RemoteNode>> {
+    return utils.deepCamel(await request(this.uri, "get_peers"));
+  }
+
+  async localNodeInfo(): Promise<LocalNode> {
+    return utils.deepCamel(await request(this.uri, "local_node_info"));
   }
 
   async fetchHeader(blockHash: string): Promise<FetchHeaderResult> {
@@ -53,7 +69,7 @@ export class LightClientRPC {
     );
   }
 
-  async getTransaction(txHash: string): Promise<TransactionWithHeader> {
+  async getTransaction(txHash: string): Promise<TransactionWithStatus> {
     const params = [txHash];
     return utils.deepCamel(await request(this.uri, "get_transaction", params));
   }
@@ -69,13 +85,17 @@ export class LightClientRPC {
     return utils.deepCamel(await request(this.uri, "get_scripts"));
   }
 
-  async setScripts(scripts: Array<LightClientScript>): Promise<void> {
+  async setScripts(
+    scripts: Array<LightClientScript>,
+    command?: SetScriptCommand
+  ): Promise<void> {
     const params = [
       scripts.map(({ script, scriptType, blockNumber }) => ({
         script: toScript(script),
         script_type: scriptType,
         block_number: blockNumber,
       })),
+      command,
     ];
     return utils.deepCamel(await request(this.uri, "set_scripts", params));
   }

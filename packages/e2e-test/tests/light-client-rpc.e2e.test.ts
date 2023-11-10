@@ -156,11 +156,31 @@ test.before(async (t) => {
   };
 });
 
-test("light client get_tip_header rpc", async (t) => {
+test("light-client get_tip_header rpc", async (t) => {
   const tipHeader = await lightClientRPC.getTipHeader();
   t.true(typeof tipHeader.dao === "string");
   t.true(typeof tipHeader.number == "string");
   t.true(typeof tipHeader.hash == "string");
+});
+
+test("light-client get_peers rpc", async (t) => {
+  const peers = await lightClientRPC.getPeers();
+  t.true(Array.isArray(peers));
+  t.true(Array.isArray(peers[0].addresses));
+  t.true(Array.isArray(peers[0].protocols));
+  t.true(typeof peers[0].connectedDuration == "string");
+  t.true(typeof peers[0].nodeId == "string");
+  t.true(typeof peers[0].version == "string");
+});
+
+test("light-client local_node_info rpc", async (t) => {
+  const nodeInfo = await lightClientRPC.localNodeInfo();
+  t.true(typeof nodeInfo.active == "boolean");
+  t.true(typeof nodeInfo.connections == "string");
+  t.true(typeof nodeInfo.nodeId == "string");
+  t.true(typeof nodeInfo.version == "string");
+  t.true(Array.isArray(nodeInfo.addresses));
+  t.true(Array.isArray(nodeInfo.protocols));
 });
 
 test("light-client get_genesis_block rpc", async (t) => {
@@ -235,10 +255,11 @@ test.serial("test setScripts", async (t) => {
   );
   t.deepEqual(listeningBob, false);
 
-  await lightClientRPC.setScripts([
-    ...beforeScripts,
-    { script: bob.lockScript, scriptType: "lock", blockNumber: "0x0" },
-  ]);
+  // partial case
+  await lightClientRPC.setScripts(
+    [{ script: bob.lockScript, scriptType: "lock", blockNumber: "0x0" }],
+    "partial"
+  );
 
   const afterScripts = await lightClientRPC.getScripts();
 
@@ -246,6 +267,19 @@ test.serial("test setScripts", async (t) => {
     isEqual(script.script, bob.lockScript)
   );
   t.deepEqual(afterListeningBob, true);
+
+  // delete case
+  await lightClientRPC.setScripts(
+    [{ script: bob.lockScript, scriptType: "lock", blockNumber: "0x0" }],
+    "delete"
+  );
+
+  const deletedAfterScripts = await lightClientRPC.getScripts();
+
+  const deletedAfterListeningBob = deletedAfterScripts.some((script) =>
+    isEqual(script.script, bob.lockScript)
+  );
+  t.deepEqual(deletedAfterListeningBob, false);
 });
 
 test.serial("test lightClient getCells by Cellcollector", async (t) => {
@@ -319,9 +353,11 @@ test.serial(
 
     const tx = await waitLightClientFetchTransaction(lightClientRPC, txHash);
     t.deepEqual(tx.transaction.hash, txHash);
+    t.true(typeof tx.txStatus.status == "string");
 
     const gotTx = await lightClientRPC.getTransaction(txHash);
     t.deepEqual(gotTx.transaction.hash, txHash);
+    t.true(typeof tx.txStatus.status == "string");
   }
 );
 

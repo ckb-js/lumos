@@ -1,6 +1,12 @@
 export type ScriptType = "type" | "lock";
 
-import { HexNumber, Script, Transaction, Header } from "@ckb-lumos/base";
+import {
+  HexNumber,
+  Script,
+  Transaction,
+  Header,
+  TransactionWithStatus,
+} from "@ckb-lumos/base";
 
 export enum FetchFlag {
   Fetched = "fetched",
@@ -15,13 +21,8 @@ export type FetchHeaderResult =
   | { status: FetchFlag.Added; timestamp: string }
   | { status: FetchFlag.NotFound };
 
-export type TransactionWithHeader = {
-  transaction: Transaction;
-  header: Header;
-};
-
 export type FetchTransactionResult =
-  | { status: FetchFlag.Fetched; data: TransactionWithHeader }
+  | { status: FetchFlag.Fetched; data: TransactionWithStatus }
   | { status: FetchFlag.Fetching; firstSent: string }
   | { status: FetchFlag.Added; timestamp: string }
   | { status: FetchFlag.NotFound };
@@ -53,6 +54,8 @@ export type GroupedLightClientTransaction = {
   txIndex: HexNum;
   cells: Array<[IOType, HexNum]>;
 };
+
+export type SetScriptCommand = "all" | "partial" | "delete";
 
 export type LightClientScript = {
   script: Script;
