@@ -496,12 +496,6 @@ importers:
 
   packages/light-client:
     dependencies:
-      '@ckb-lumos/base':
-        specifier: 0.21.0-next.0
-        version: link:../base
-      '@ckb-lumos/ckb-indexer':
-        specifier: 0.21.0-next.0
-        version: link:../ckb-indexer
       '@ckb-lumos/rpc':
         specifier: 0.21.0-next.0
         version: link:../rpc
@@ -768,13 +762,13 @@ importers:
     dependencies:
       '@ckb-lumos/base':
         specifier: next
-        version: link:../packages/base
+        version: 0.21.0-next.2
       '@ckb-lumos/bi':
         specifier: next
-        version: link:../packages/bi
+        version: 0.21.0-next.2
       '@ckb-lumos/codec':
         specifier: next
-        version: link:../packages/codec
+        version: 0.21.0-next.2
       '@ckb-lumos/lumos':
         specifier: next
         version: link:../packages/lumos
@@ -3475,6 +3469,41 @@ packages:
       human-id: 1.0.2
       prettier: 2.8.8
     dev: true
+
+  /@ckb-lumos/base@0.21.0-next.2:
+    resolution: {integrity: sha512-1QiuVR7BD6RV2oq3CpM1RBMoPQ0E+F4e4MLwtg1kWRkN0UQWLin8OIDewb7hXsifU/ZpoTdluoCOGGV0CY1DkQ==}
+    engines: {node: '>=12.0.0'}
+    dependencies:
+      '@ckb-lumos/bi': 0.21.0-next.2
+      '@ckb-lumos/codec': 0.21.0-next.2
+      '@ckb-lumos/toolkit': 0.21.0-next.2
+      '@types/blake2b': 2.1.0
+      '@types/lodash.isequal': 4.5.5
+      blake2b: 2.1.3
+      js-xxhash: 1.0.4
+      lodash.isequal: 4.5.0
+    dev: false
+
+  /@ckb-lumos/bi@0.21.0-next.2:
+    resolution: {integrity: sha512-3c8jC94eO57vFFo30g9Rh6qrfk5EF+7OD58hX1GknXaHwykMs3EBQodmA7DUV517dswkHy5IzI5gt5ROn9asjQ==}
+    engines: {node: '>=12.0.0'}
+    dependencies:
+      jsbi: 4.1.0
+    dev: false
+
+  /@ckb-lumos/codec@0.21.0-next.2:
+    resolution: {integrity: sha512-yTtWIG9LESLTU3tBb9fHREWo2mO0Ts7SSL1Jp3MSqYbnl90JZeYr/skvn+vaV9/2Cl/6qEgeKYa1AnHNSLchkw==}
+    engines: {node: '>=12.0.0'}
+    dependencies:
+      '@ckb-lumos/bi': 0.21.0-next.2
+    dev: false
+
+  /@ckb-lumos/toolkit@0.21.0-next.2:
+    resolution: {integrity: sha512-pTTXn6NwwNv3Ms3uj9ywzA4UtiI84IDBw5TEWCAlz4JVwh2dqlncci0O0YboaNA0gg1cVYCITQFLJBQvXQkDRw==}
+    engines: {node: '>=12.0.0'}
+    dependencies:
+      '@ckb-lumos/bi': 0.21.0-next.2
+    dev: false
 
   /@colors/colors@1.5.0:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
