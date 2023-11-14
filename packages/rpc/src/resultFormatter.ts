@@ -649,11 +649,13 @@ const toIndexerCell = (
   };
 };
 
-const toGetCellsResult = (
+const toGetCellsResult = <WithData extends boolean = true>(
   getCellsResult: RPC.GetLiveCellsResult
-): CKBComponents.GetLiveCellsResult => ({
+): CKBComponents.GetLiveCellsResult<WithData> => ({
   lastCursor: getCellsResult.last_cursor,
-  objects: getCellsResult.objects.map((object) => toIndexerCell(object)),
+  objects: getCellsResult.objects.map((object) =>
+    toIndexerCell(object)
+  ) as CKBComponents.GetLiveCellsResult<WithData>["objects"],
 });
 
 const isUngroupedIndexerTransaction = (

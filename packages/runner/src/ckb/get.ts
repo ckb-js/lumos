@@ -12,7 +12,7 @@ export interface GetReleaseUrlOptions {
  */
 export function getReleaseUrl(options: GetReleaseUrlOptions = {}): string {
   const {
-    version = "v0.109.0",
+    version = "v0.111.0",
     arch = os.arch(),
     platform = os.platform(),
   } = options;
