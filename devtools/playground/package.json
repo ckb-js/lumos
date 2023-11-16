@@ -24,6 +24,7 @@
     "@ckb-lumos/base": "workspace:*",
     "@ckb-lumos/bi": "workspace:*",
     "@ckb-lumos/codec": "workspace:*",
+    "@ckb-lumos/rpc": "workspace:*",
     "@ckb-lumos/toolkit": "workspace:*",
     "minimatch": "^9.0.3"
   }

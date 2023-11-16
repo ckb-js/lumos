@@ -12,6 +12,9 @@ const MODULES = [
   "@ckb-lumos/base/blockchain",
   "@ckb-lumos/base/since",
   "@ckb-lumos/base/utils",
+  "@ckb-lumos/rpc",
+  "@ckb-lumos/rpc/types/api",
+  "@ckb-lumos/rpc/types/rpc",
 ];
 
 const require = createRequire(import.meta.url);

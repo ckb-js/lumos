@@ -1,5 +1,5 @@
 import { HexString, utils, Header, Block } from "@ckb-lumos/base";
-import { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
+import { CKBComponents } from "@ckb-lumos/rpc/types/api";
 import { ParamsFormatter } from "@ckb-lumos/rpc";
 
 import {

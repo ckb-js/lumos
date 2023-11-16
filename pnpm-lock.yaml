@@ -167,6 +167,9 @@ importers:
       '@ckb-lumos/codec':
         specifier: workspace:*
         version: link:../../packages/codec
+      '@ckb-lumos/rpc':
+        specifier: workspace:*
+        version: link:../../packages/rpc
       '@ckb-lumos/toolkit':
         specifier: workspace:*
         version: link:../../packages/toolkit
@@ -489,10 +492,10 @@ importers:
         specifier: 0.21.0-next.2
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.21.0-next.0
+        specifier: 0.21.0-next.2
         version: link:../codec
       '@ckb-lumos/crypto':
-        specifier: 0.21.0-next.0
+        specifier: 0.21.0-next.2
         version: link:../crypto
       bn.js:
         specifier: ^4.11.6
