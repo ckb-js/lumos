@@ -20,7 +20,7 @@ describe("rpc", () => {
     try {
       await rpc.getBlockHash("0x01");
     } catch (err) {
-      expect(err.message).toEqual("timeout of 100ms exceeded");
+      expect(err.message).toMatch(/aborted/);
     }
   });
   it("should call rpc successful", async () => {

@@ -1,6 +1,19 @@
-jest.mock('axios')
-const axiosMock = require('axios')
 const {Method} = require('../lib/method')
+
+jest.mock("cross-fetch");
+const axiosMock = require("cross-fetch").default;
+
+beforeAll(() => {
+  const originalResolve = axiosMock.mockResolvedValue;
+  axiosMock.mockResolvedValue = (value) =>
+    originalResolve({
+      json: () => Promise.resolve(value.data),
+    });
+});
+
+afterAll(() => {
+  jest.restoreAllMocks();
+});
 
 describe('Test Method', () => {
   const ranNum = 1
