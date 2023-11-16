@@ -1,23 +1,20 @@
-// import axios from 'axios'
 import { Base } from "./Base";
 import { Method } from "./method";
 import { CKBComponents } from "./types/api";
-
 import { formatter as paramsFormatter } from "./paramsFormatter";
 import * as resultFormatter from "./resultFormatter";
-
 import {
   IdNotMatchedInBatchException,
   MethodInBatchNotFoundException,
   PayloadInBatchException,
 } from "./exceptions";
-import axios from "axios";
 import { RPCConfig } from "./types/common";
-import { initAxiosWebworkerAdapter } from "./initAxiosWebworkerAdapter";
+import fetch from "cross-fetch";
+import { AbortController as CrossAbortController } from "abort-controller";
 
 export const ParamsFormatter = paramsFormatter;
 export const ResultFormatter = resultFormatter;
-initAxiosWebworkerAdapter();
+
 export class CKBRPC extends Base {
   #config: RPCConfig;
   #node: CKBComponents.Node = {
@@ -136,17 +133,24 @@ export class CKBRPC extends Base {
             }
           });
 
-          const batchRes = await axios({
+          const controller = new CrossAbortController() as AbortController;
+          const signal = controller.signal;
+
+          const timeout = setTimeout(
+            () => controller.abort(),
+            ctx.#config.timeout
+          );
+
+          const batchRes = await fetch(ctx.#node.url, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            data: payload,
-            url: ctx.#node.url,
-            httpAgent: ctx.#node.httpAgent,
-            httpsAgent: ctx.#node.httpsAgent,
-            timeout: ctx.#config.timeout,
-          });
+            body: JSON.stringify(payload),
+            signal: signal,
+          }).then((res) => res.json());
 
-          return batchRes.data.map((res: any, i: number) => {
+          clearTimeout(timeout);
+
+          return batchRes.map((res: any, i: number) => {
             if (res.id !== payload[i].id) {
               return new IdNotMatchedInBatchException(i, payload[i].id, res.id);
             }

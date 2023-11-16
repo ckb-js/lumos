@@ -1,8 +1,18 @@
 /* eslint-disable max-len */
+/** mock template start **/
+jest.mock("cross-fetch");
+const axiosMock = require("cross-fetch").default;
 
-jest.mock("axios");
+beforeAll(() => {
+  const originalResolve = axiosMock.mockResolvedValue;
+  axiosMock.mockResolvedValue = (value) =>
+    originalResolve({
+      json: () => Promise.resolve(value.data),
+    });
+});
 
-const axiosMock = require("axios");
+/** mock template end **/
+
 const { CKBRPC, ResultFormatter } = require("../lib");
 
 describe("Test with mock", () => {
@@ -94,7 +104,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getBlockByNumber(BLOCK_NUMBER);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_block_by_number",
@@ -175,7 +185,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.txPoolInfo();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "tx_pool_info",
@@ -202,7 +212,7 @@ describe("Test with mock", () => {
       });
 
       const res = await rpc.clearTxPool();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "clear_tx_pool",
@@ -245,7 +255,7 @@ describe("Test with mock", () => {
         });
 
         const res = await rpc.getRawTxPool(true);
-        expect(axiosMock.mock.calls[0][0].data).toEqual({
+        expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
           id,
           jsonrpc: "2.0",
           method: "get_raw_tx_pool",
@@ -292,7 +302,7 @@ describe("Test with mock", () => {
         });
 
         const res = await rpc.getRawTxPool(false);
-        expect(axiosMock.mock.calls[0][0].data).toEqual({
+        expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
           id,
           jsonrpc: "2.0",
           method: "get_raw_tx_pool",
@@ -321,7 +331,7 @@ describe("Test with mock", () => {
         });
 
         const res = await rpc.getRawTxPool(null);
-        expect(axiosMock.mock.calls[0][0].data).toEqual({
+        expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
           id,
           jsonrpc: "2.0",
           method: "get_raw_tx_pool",
@@ -350,7 +360,7 @@ describe("Test with mock", () => {
         });
 
         const res = await rpc.getRawTxPool();
-        expect(axiosMock.mock.calls[0][0].data).toEqual({
+        expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
           id,
           jsonrpc: "2.0",
           method: "get_raw_tx_pool",
@@ -379,7 +389,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getCurrentEpoch();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_current_epoch",
@@ -407,7 +417,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getEpochByNumber(BLOCK_NUMBER);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_epoch_by_number",
@@ -438,7 +448,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getCellbaseOutputCapacityDetails(BLOCK_HASH);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_cellbase_output_capacity_details",
@@ -469,7 +479,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.calculateDaoMaximumWithdraw(...PARAMS);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "calculate_dao_maximum_withdraw",
@@ -510,7 +520,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getBlockEconomicState(BLOCK_HASH);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_block_economic_state",
@@ -564,7 +574,7 @@ describe("Test with mock", () => {
           TRANSACTION_HASHES,
           BLOCK_HASH
         );
-        expect(axiosMock.mock.calls[0][0].data).toEqual({
+        expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
           id,
           jsonrpc: "2.0",
           method: "get_transaction_proof",
@@ -609,7 +619,7 @@ describe("Test with mock", () => {
           },
         });
         const res = await rpc.getTransactionProof(TRANSACTION_HASHES);
-        expect(axiosMock.mock.calls[0][0].data).toEqual({
+        expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
           id,
           jsonrpc: "2.0",
           method: "get_transaction_proof",
@@ -652,7 +662,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.verifyTransactionProof(TRANSACTION_PROOF);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "verify_transaction_proof",
@@ -769,7 +779,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getConsensus();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_consensus",
@@ -846,7 +856,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getBlockchainInfo();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_blockchain_info",
@@ -890,7 +900,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.localNodeInfo();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "local_node_info",
@@ -927,7 +937,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getPeers();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_peers",
@@ -945,7 +955,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getTipBlockNumber();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_tip_block_number",
@@ -964,7 +974,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getBlockHash("0x0");
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_block_hash",
@@ -1042,7 +1052,7 @@ describe("Test with mock", () => {
       });
 
       const res = await rpc.getBlock(BLOCK_HASH);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_block",
@@ -1132,7 +1142,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getTipHeader();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_tip_header",
@@ -1207,7 +1217,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getTransaction(TX_HASH);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_transaction",
@@ -1286,7 +1296,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getLiveCell(OUT_POINT, true);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_live_cell",
@@ -1329,7 +1339,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getBannedAddresses();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_banned_addresses",
@@ -1347,7 +1357,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.clearBannedAddresses();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "clear_banned_addresses",
@@ -1366,7 +1376,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.setBan(...PARAMS);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "set_ban",
@@ -1393,7 +1403,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.syncState();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "sync_state",
@@ -1420,7 +1430,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.setNetworkActive(false);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "set_network_active",
@@ -1440,7 +1450,7 @@ describe("Test with mock", () => {
       const PEER_ID = "peer id";
       const ADDRESS = "address";
       const res = await rpc.addNode(PEER_ID, ADDRESS);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "add_node",
@@ -1459,7 +1469,7 @@ describe("Test with mock", () => {
       });
       const PEER_ID = "peer id";
       const res = await rpc.removeNode(PEER_ID);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "remove_node",
@@ -1477,7 +1487,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.pingPeers();
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "ping_peers",
@@ -1514,7 +1524,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getHeader(BLOCK_HASH);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_header",
@@ -1567,7 +1577,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.getHeaderByNumber(BLOCK_NUMBER);
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "get_header_by_number",
@@ -1641,7 +1651,7 @@ describe("Test with mock", () => {
         },
       });
       const res = await rpc.sendTransaction(tx, "passthrough");
-      expect(axiosMock.mock.calls[0][0].data).toEqual({
+      expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
         id,
         jsonrpc: "2.0",
         method: "send_transaction",
@@ -2113,7 +2123,7 @@ describe("Test with mock", () => {
         const res = await rpc[methodName](...requestParams);
 
         expect(res).toEqual(resultFormatter(result));
-        expect(axiosMock.mock.calls[0][0].data).toEqual({
+        expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual({
           id,
           jsonrpc: "2.0",
           ...expectedParams,
@@ -2270,7 +2280,7 @@ describe("Test with mock", () => {
           ],
         });
         const res = await batch.exec();
-        expect(axiosMock.mock.calls[0][0].data).toEqual([
+        expect(JSON.parse(axiosMock.mock.calls[0][1].body)).toEqual([
           {
             id,
             jsonrpc: "2.0",

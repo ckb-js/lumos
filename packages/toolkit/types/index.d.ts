@@ -1,5 +1,3 @@
-import JSBI from "jsbi";
-
 export * as validators from "./validators";
 
 /**
@@ -16,15 +14,6 @@ export class Reader {
   toArrayBuffer(): ArrayBuffer;
   serializeJson(): string;
 }
-
-/**
- * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
- */
-export function HexStringToBigInt(hexString: string): JSBI;
-/**
- * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
- */
-export function BigIntToHexString(i: JSBI): string;
 
 /**
  * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide} 
