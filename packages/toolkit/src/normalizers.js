@@ -11,7 +11,7 @@
 // format. If you are using RPCs or GraphQL to interact with CKB, chances are you
 // will not need this package.
 import { BI } from "@ckb-lumos/bi";
-import { Reader } from "./reader";
+import { Reader } from "./reader.js";
 /**
  * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
