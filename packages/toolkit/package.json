@@ -24,7 +24,7 @@
     "lib"
   ],
   "scripts": {
-    "build": "pnpm run build:js && pnpm run build:esm",
+    "build:all": "pnpm run build:js && pnpm run build:esm",
     "build:js": "babel -s --plugins @babel/plugin-proposal-export-namespace-from --plugins @babel/plugin-transform-modules-commonjs src --out-dir lib",
     "build:esm": "shx cp -r ./src lib.esm && shx echo '{\"type\": \"module\"}' > ./lib.esm/package.json",
     "clean": "rm -rf lib lib.esm",

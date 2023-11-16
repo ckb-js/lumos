@@ -24,9 +24,7 @@
 "@ckb-lumos/utils": minor
 ---
 
-migrate to esmodule
-
-all import from the `**/lib` folder should be refactored
+Making it compatible with the ES module specification, if the `moduleResolution` is NOT `node` in your TypeScript project, please update your import path to the following:
 
 ```diff
 -import { moduleName } from '@ckb-lumos/pkgName/lib/fileName'
