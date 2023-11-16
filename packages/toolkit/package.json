@@ -8,8 +8,8 @@
   "exports": {
     ".": {
       "import": "./lib.esm/index.js",
-      "default": "./lib/index.js",
-      "types": "./types/index.d.ts"
+      "types": "./types/index.d.ts",
+      "default": "./lib/index.js"
     }
   },
   "engines": {

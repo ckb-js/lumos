@@ -63,7 +63,7 @@ molecule bindings in an easy way.
 
 Suppose we want to describe an RGB color, then we can use a tuple3 of uint8 to describe the color
 
-```mol
+```
 # color-by-tuple3.mol
 
 array RGB [Uint8; 3];
@@ -81,7 +81,7 @@ const [r, g, b] = RGB.unpack(buffer);
 
 Of course, we could also use a struct to more directly describe rgb separately
 
-```mol
+```
 # color-by-struct.mol
 
 struct RGB {
@@ -172,7 +172,7 @@ about how to handle bytes when we want to sign it, if we can combine `WitnessArg
 with `OmniLockWitnessLock.signature(BytesOpt)`, then it will be easier to do the signing, we can check
 [the real world OmniLock witness case](./tests/blockchain.test.ts) to see how it works
 
-```mol
+```
 table WitnessArgs {
     lock:                   BytesOpt,          // Lock args
     inputType:             BytesOpt,          // Type args for input

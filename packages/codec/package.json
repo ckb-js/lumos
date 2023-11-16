@@ -15,18 +15,18 @@
     },
     "./bytes": {
       "import": "./lib.esm/bytes.js",
-      "default": "./lib/bytes.js",
-      "types": "./lib/bytes.d.ts"
+      "types": "./lib/bytes.d.ts",
+      "default": "./lib/bytes.js"
     },
     "./number": {
       "import": "./lib.esm/number/index.js",
-      "default": "./lib/number/index.js",
-      "types": "./lib/number/index.d.ts"
+      "types": "./lib/number/index.d.ts",
+      "default": "./lib/number/index.js"
     },
     "./molecule": {
       "import": "./lib.esm/molecule/index.js",
-      "default": "./lib/molecule/index.js",
-      "types": "./lib/molecule/index.d.ts"
+      "types": "./lib/molecule/index.d.ts",
+      "default": "./lib/molecule/index.js"
     }
   },
   "engines": {
