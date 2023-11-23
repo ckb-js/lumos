@@ -2,4 +2,4 @@
 "@ckb-lumos/rpc": minor
 ---
 
-support multiple verbosity
+Supporting different return values when passing in different verbosity on `getBlock`, `getBlockByNumber`, `getHeader` and `getHeaderByNumber` with typescript
