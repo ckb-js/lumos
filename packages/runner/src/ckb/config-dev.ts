@@ -80,7 +80,8 @@ export function generateConfigSync(
     // TODO add typescript description here
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ckbMinerToml: Record<string, any> = parseToml(source);
-    ckbMinerToml.miner.workers[0].value = 500n;
+    ckbMinerToml.miner.client.poll_interval = 100n;
+    ckbMinerToml.miner.workers[0].value = 100n;
     ckbMinerToml.miner.client.rpc_url = `http://127.0.0.1:${cmd.config.rpcPort}`;
 
     return stringifyToml(ckbMinerToml, { newline: "\n" });

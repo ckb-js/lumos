@@ -62,9 +62,7 @@ export class Method {
         if (res.error) {
           throw new ResponseException(JSON.stringify(res.error));
         }
-        return (
-          this.#options.resultFormatters?.(res.result) ?? res.result
-        );
+        return this.#options.resultFormatters?.(res.result) ?? res.result;
       });
 
     clearTimeout(timeout);

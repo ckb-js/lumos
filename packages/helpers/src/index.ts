@@ -23,6 +23,7 @@ import {
 } from "./address-to-script";
 import { hexToByteArray } from "./utils";
 import { validators } from "@ckb-lumos/toolkit";
+import { HashType } from "@ckb-lumos/base/lib/blockchain";
 
 const { bytify, hexify } = bytes;
 export interface Options {
@@ -237,22 +238,16 @@ export function encodeToAddress(
 ): Address {
   validators.ValidateScript(script);
   config = config || getConfig();
+  // https://github.com/nervosnetwork/rfcs/blob/9aef152a5123c8972de1aefc11794cf84d1762ed/rfcs/0021-ckb-address-format/0021-ckb-address-format.md#full-payload-format
+  // Full payload format directly encodes all data fields of lock script. The encode rule of full payload format is Bech32m.
+  // payload = 0x00 | code_hash | hash_type | args
 
-  const data: number[] = [];
-
-  const hashType = (() => {
-    if (script.hashType === "data") return 0;
-    if (script.hashType === "type") return 1;
-    if (script.hashType === "data1") return 2;
-
-    /* c8 ignore next */
-    throw new Error(`Invalid hashType ${script.hashType}`);
-  })();
-
-  data.push(0x00);
-  data.push(...hexToByteArray(script.codeHash));
-  data.push(hashType);
-  data.push(...hexToByteArray(script.args));
+  const data = bytes.concat(
+    [0x00],
+    script.codeHash,
+    HashType.pack(script.hashType),
+    script.args
+  );
 
   return bech32m.encode(config.PREFIX, bech32m.toWords(data), BECH32_LIMIT);
 }

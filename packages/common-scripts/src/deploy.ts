@@ -346,7 +346,7 @@ interface ScriptConfig {
   // if hashType is data, codeHash is ckbHash(data)
   CODE_HASH: string;
 
-  HASH_TYPE: "type" | "data1";
+  HASH_TYPE: "type" | "data2";
 
   TX_HASH: string;
   // the deploy cell can be found at index of tx's outputs
@@ -374,7 +374,7 @@ function getScriptConfigByDataHash(
   const txHash = calculateTxHash(txSkeleton);
   const scriptConfig: ScriptConfig = {
     CODE_HASH: codeHash,
-    HASH_TYPE: "data1",
+    HASH_TYPE: "data2",
     TX_HASH: txHash,
     INDEX: "0x0",
     DEP_TYPE: "code",

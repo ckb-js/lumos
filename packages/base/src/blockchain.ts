@@ -103,22 +103,36 @@ export const WitnessArgs = WitnessArgsOf({
 });
 
 /**
+ * <pre>
+ *  0b0000000 0
+ *    ───┬─── │
+ *       │    ▼
+ *       │   type - use the default vm version
+ *       │
+ *       ▼
+ * data* - use a particular vm version
+ * </pre>
+ *
  * Implementation of blockchain.mol
  * https://github.com/nervosnetwork/ckb/blob/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol
  */
 export const HashType = createFixedBytesCodec<api.HashType>({
   byteLength: 1,
   pack: (type) => {
-    if (type === "data") return Uint8.pack(0);
-    if (type === "type") return Uint8.pack(1);
-    if (type === "data1") return Uint8.pack(2);
+    // prettier-ignore
+    if (type === "type")  return Uint8.pack(0b0000000_1);
+    // prettier-ignore
+    if (type === "data")  return Uint8.pack(0b0000000_0);
+    if (type === "data1") return Uint8.pack(0b0000001_0);
+    if (type === "data2") return Uint8.pack(0b0000010_0);
     throw new Error(`Invalid hash type: ${type}`);
   },
   unpack: (buf) => {
     const hashTypeBuf = Uint8.unpack(buf);
-    if (hashTypeBuf === 0) return "data";
-    if (hashTypeBuf === 1) return "type";
-    if (hashTypeBuf === 2) return "data1";
+    if (hashTypeBuf === 0b0000000_1) return "type";
+    if (hashTypeBuf === 0b0000000_0) return "data";
+    if (hashTypeBuf === 0b0000001_0) return "data1";
+    if (hashTypeBuf === 0b0000010_0) return "data2";
     throw new Error(`Invalid hash type: ${hashTypeBuf}`);
   },
 });

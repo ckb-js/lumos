@@ -21,6 +21,28 @@ export const rpcProperties: RpcPropertes = {
   // skip subscription
 };
 
+// prettier-ignore
+interface GetBlock<Q> {
+  (query:Q, verbosity?: '0x2', withCycle?: false): Promise<CKBComponents.BlockView>;
+  (query:Q, verbosity: '0x0', withCycle?: false): Promise<string>;
+  (query:Q, verbosity: '0x0', withCycle: true): Promise<{ block:string, cycles:CKBComponents.UInt64 }>;
+  (query:Q, verbosity: '0x2', withCycle: true): Promise<{ block: CKBComponents.BlockView; cycles: CKBComponents.UInt64 }>;
+}
+
+// prettier-ignore
+export interface GetTransaction {
+  (hash: CKBComponents.Hash): Promise<CKBComponents.TransactionWithStatus>;
+  (hash: CKBComponents.Hash, verbosity: "0x0", onlyCommitted?: boolean): Promise<CKBComponents.TransactionWithStatus<string>>;
+  (hash: CKBComponents.Hash, verbosity: "0x1", onlyCommitted?: boolean): Promise<CKBComponents.TransactionWithStatus<null>>;
+  (hash: CKBComponents.Hash, verbosity: "0x2", onlyCommitted?: boolean): Promise<CKBComponents.TransactionWithStatus>;
+}
+
+// prettier-ignore
+export interface GetHeader<Q> {
+  (query: Q, verbosity?: "0x1"): Promise<CKBComponents.BlockHeader>;
+  (query: Q, verbosity: "0x0"): Promise<string>;
+}
+
 export interface Base {
   /* Chain */
 
@@ -72,10 +94,12 @@ export interface Base {
    * @method getBlock
    * @memberof DefaultRPC
    * @description rpc to get block by its hash
-   * @param {string} hash - the block hash of the target block
-   * @returns {Promise<object>} block object
+   * @param {string} hash
+   * @param {string} verbosity
+   * @param {boolean} withCycle
+   * @return {Promise<GetBlock | null>}
    */
-  getBlock: (hash: CKBComponents.Hash) => Promise<CKBComponents.Block>;
+  getBlock: GetBlock<CKBComponents.Hash>;
 
   /**
    * @method getHeader
@@ -83,9 +107,7 @@ export interface Base {
    * @description Returns the information about a block header by hash.
    * @params {Promise<string>} block hash
    */
-  getHeader: (
-    blockHash: CKBComponents.Hash
-  ) => Promise<CKBComponents.BlockHeader>;
+  getHeader: GetHeader<CKBComponents.Hash>;
 
   /**
    * @method getHeaderByNumber
@@ -93,9 +115,7 @@ export interface Base {
    * @description Returns the information about a block header by block number
    * @params {Promise<string>} block number
    */
-  getHeaderByNumber: (
-    blockNumber: CKBComponents.BlockNumber | bigint
-  ) => Promise<CKBComponents.BlockHeader>;
+  getHeaderByNumber: GetHeader<CKBComponents.BlockNumber | bigint>;
 
   /**
    * @method getLiveCell
@@ -121,9 +141,7 @@ export interface Base {
    * @param {string} hash - the transaction hash of the target transaction
    * @return {Promise<object>} transaction object with transaction status
    */
-  getTransaction: (
-    hash: CKBComponents.Hash
-  ) => Promise<CKBComponents.TransactionWithStatus>;
+  getTransaction: GetTransaction;
 
   /**
    * @method getCellbaseOutputCapacityDetails
@@ -183,13 +201,13 @@ export interface Base {
   /**
    * @method getBlockByNumber
    * @memberof DefaultRPC
-   * @description rpc to get block by its number
-   * @param {string} number - the block number of the target block
-   * @returns {Promise<object>} block object
+   * @description rpc to get block by its hash
+   * @param {CKBComponents.BlockNumber | bigint} number
+   * @param {string} verbosity
+   * @param {boolean} withCycle
+   * @return {Promise<GetBlock | null>}
    */
-  getBlockByNumber: (
-    number: CKBComponents.BlockNumber | bigint
-  ) => Promise<CKBComponents.Block>;
+  getBlockByNumber: GetBlock<CKBComponents.BlockNumber | bigint>;
 
   /* Experimental */
 
@@ -511,7 +529,11 @@ export interface Base {
    * @param target Specify the number (1 - 101) of confirmed blocks to be counted. If the number is even, automatically add one. If not specified, defaults to 2
    * @returns the feeRate statistics of confirmed blocks on the chain If the query finds the corresponding historical data, the corresponding statistics are returned, containing the mean and median, in shannons per kilo-weight. If not, it returns null.
    */
-  getFeeRateStatistics: () => Promise<CKBComponents.FeeRateStatistics>;
+  getFeeRateStatistics: (
+    target?: CKBComponents.UInt64
+  ) => Promise<CKBComponents.FeeRateStatistics>;
+
+  getDeploymentsInfo: () => Promise<CKBComponents.DeploymentsInfo>;
 }
 
 export class Base {

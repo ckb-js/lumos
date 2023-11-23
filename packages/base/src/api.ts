@@ -1,4 +1,20 @@
-import { Hash, HexNumber, HexString, PackedSince } from "./primitive";
+// TODO: this file is a copy of jsonrpc-types/src/blockchain.rs
+//  it provides some basic types for RPC, also for Lumos,
+//  but it is not a good idea to use these types directly,
+//  RPC types are not stable, Lumos is better to define its own types
+//  instead of using the RPC types in the future, the api.ts is a legacy solution.
+//  To map the RPC types, it is better to 1:1 map the `jsonrpc-types` from the ckb repo,
+//  at https://github.com/nervosnetwork/ckb/tree/develop/util/jsonrpc-types/src
+//  with the same directory structure.
+
+import {
+  Hash,
+  Hexadecimal,
+  HexNumber,
+  HexString,
+  PackedSince,
+} from "./primitive";
+
 export interface Header {
   timestamp: HexNumber;
   number: HexNumber;
@@ -14,7 +30,7 @@ export interface Header {
   version: HexNumber;
 }
 
-export type HashType = "type" | "data" | "data1";
+export type HashType = "type" | "data" | "data1" | "data2";
 export interface Script {
   codeHash: Hash;
   hashType: HashType;
@@ -68,14 +84,19 @@ export interface Transaction {
   witnesses: HexString[];
 }
 
+type Status = "pending" | "proposed" | "committed" | "unknown" | "rejected";
+
 export interface TxStatus {
+  status: Status;
   blockHash?: Hash;
-  status: string;
+  reason?: string;
 }
 
-export interface TransactionWithStatus {
-  transaction: Transaction;
+export interface TransactionWithStatus<Tx = Transaction> {
+  transaction: Tx;
   txStatus: TxStatus;
+  timeAddedToPool: Uint64 | null;
+  cycles: Uint64 | null;
 }
 
 export interface Cell {
@@ -161,8 +182,6 @@ export interface ProposalWindow {
 export interface Consensus {
   id: string;
   genesisHash: Hash;
-  // added this field by: https://github.com/nervosnetwork/ckb/pull/2879
-  hardforkFeatures: Array<{ rfc: string; epochNumber: string | undefined }>;
   daoTypeHash?: Hash;
   secp256k1Blake160SighashAllTypeHash?: Hash;
   secp256k1Blake160MultisigAllTypeHash?: Hash;
@@ -183,7 +202,46 @@ export interface Consensus {
   maxBlockProposalsLimit: HexNumber;
   primaryEpochRewardHalvingInterval: HexNumber;
   permanentDifficultyInDummy: boolean;
+  // added this field by: https://github.com/nervosnetwork/ckb/pull/2879
+  hardforkFeatures: HardForks;
+  softforks: MapLike<DeploymentPos, SoftFork>;
 }
+
+export type HardForks = HardforkFeature[];
+
+export interface HardforkFeature {
+  rfc: string;
+  epochNumber: EpochNumber | null;
+}
+
+export type SoftForkStatus = "buried" | "rfc0043";
+
+export type SoftFork = Buried | Rfc0043;
+
+export type Buried = {
+  status: SoftForkStatus;
+  active: boolean;
+  epoch: EpochNumber;
+};
+
+export type Rfc0043 = {
+  status: SoftForkStatus;
+  rfc0043: Deployment;
+};
+
+export type Ratio = {
+  numer: Uint64;
+  denom: Uint64;
+};
+
+export type Deployment = {
+  bit: number;
+  start: EpochNumber;
+  timeout: EpochNumber;
+  minActivationEpoch: EpochNumber;
+  period: EpochNumber;
+  threshold: Ratio;
+};
 
 export interface DryRunResult {
   cycles: HexNumber;
@@ -290,20 +348,13 @@ export interface TxPoolVerbosity {
 
 export type RawTxPool = TxPoolIds | TxPoolVerbosity;
 
+/** https://github.com/nervosnetwork/ckb/blob/develop/util/jsonrpc-types/src/alert.rs **/
+
 export interface AlertMessage {
   id: HexNumber;
   priority: HexNumber;
   noticeUntil: HexNumber;
   message: string;
-}
-
-export interface ChainInfo {
-  chain: string;
-  medianTime: HexNumber;
-  epoch: HexNumber;
-  difficulty: HexNumber;
-  isInitialBlockDownload: boolean;
-  alerts: AlertMessage[];
 }
 
 export interface Alert {
@@ -316,3 +367,48 @@ export interface Alert {
   message: string;
   signatures: HexString[];
 }
+
+/** https://github.com/nervosnetwork/ckb/blob/develop/util/jsonrpc-types/src/info.rs **/
+
+export type DeploymentPos = "testdummy" | "lightClient";
+export type DeploymentState =
+  | "defined"
+  | "started"
+  | "lockedIn"
+  | "active"
+  | "failed";
+export type DeploymentsInfo = {
+  hash: Hash;
+  epoch: EpochNumber;
+  deployments: MapLike<DeploymentPos, DeploymentInfo>;
+};
+export type DeploymentInfo = {
+  //  determines which bit in the version field of the block is to be used to signal the softfork lock-in and activation. It is chosen from the set {0,1,2,…,28}.
+  bit: number;
+  start: EpochNumber;
+  timeout: EpochNumber;
+  minActivationEpoch: EpochNumber;
+  period: EpochNumber;
+  threshold: Ratio;
+  since: EpochNumber;
+  state: DeploymentState;
+};
+
+export interface ChainInfo {
+  chain: string;
+  medianTime: HexNumber;
+  epoch: EpochNumberWithFraction;
+  difficulty: HexNumber;
+  isInitialBlockDownload: boolean;
+  alerts: AlertMessage[];
+}
+
+type Uint64 = Hexadecimal;
+type EpochNumber = Hexadecimal;
+type EpochNumberWithFraction = Uint64;
+
+// this is a type to mapping the `HashMap`, `BTreeMap` in `jsonrpc-types`
+// there are some returns of CKB RPC are in this format, like `Softfork`
+type MapLike<K extends string, V> = {
+  [key in K]?: V;
+};

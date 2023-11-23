@@ -8,6 +8,7 @@ const scopeEnumValues = [
   "hd-cache",
   "helpers",
   "indexer",
+  "light-client",
   "lumos",
   "rpc",
   "sql-indexer",

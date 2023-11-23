@@ -1,11 +1,14 @@
 import { JSONRPCResponse, JSONRPCServer } from "json-rpc-2.0";
 import express, { Express } from "express";
 import bodyParser from "body-parser";
-import { LocalNode, Block, utils, blockchain } from "@ckb-lumos/base";
+import { blockchain, LocalNode, utils } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
+import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
+import TransactionStatus = RPC.TransactionStatus;
+
 interface Options {
   // FIXME it actually is RPCBlock
-  blocks: Block[];
+  blocks: RPC.Block[];
   localNode: LocalNode;
   // defaults to /rpc
   routePath?: string;
@@ -76,24 +79,35 @@ export function createCKBMockRPC(options: Options): Express {
     return blocks[blocks.length - 1].header.number;
   });
 
-  server.addMethod("get_transaction", (hashes) => {
-    assertsParams(Array.isArray(hashes));
-    const hash = hashes[0];
-    let result;
-    let blockHash;
-    for (const block of blocks) {
-      const tx = block.transactions.find((tx) => tx.hash === hash);
-      if (tx) {
-        result = tx;
-        blockHash = block.header.hash;
-        break;
+  server.addMethod(
+    "get_transaction",
+    (hashes): RPC.TransactionWithStatus | null => {
+      assertsParams(Array.isArray(hashes));
+      const hash = hashes[0];
+      let result: RPC.Transaction | undefined = undefined;
+      let blockHash: string | undefined = undefined;
+      for (const block of blocks) {
+        block.transactions;
+        const tx = block.transactions.find((tx) => tx.hash === hash);
+        if (tx) {
+          result = tx;
+          blockHash = block.header.hash;
+          break;
+        }
       }
+      if (!result || !blockHash) return null;
+
+      return {
+        transaction: result,
+        tx_status: {
+          status: TransactionStatus.Committed,
+          block_hash: blockHash,
+        },
+        time_added_to_pool: null,
+        cycles: null,
+      };
     }
-    return {
-      transaction: result,
-      tx_status: { status: "pending", block_hash: blockHash },
-    };
-  });
+  );
 
   server.addMethod("get_blockchain_info", () => {
     return {

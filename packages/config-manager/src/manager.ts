@@ -25,6 +25,17 @@ function assertInteger(debugPath: string, i: string) {
   }
 }
 
+export function assertHashType(debugPath: string, hashType: string): void {
+  if (
+    hashType !== "type" &&
+    hashType !== "data" &&
+    hashType !== "data1" &&
+    hashType !== "data2"
+  ) {
+    throw new Error(`${debugPath} must one of type, data, data1, data2!`);
+  }
+}
+
 function assert(condition: unknown, debugPath = "variable"): asserts condition {
   if (!condition) throw new Error(`${debugPath} is not valid`);
 }
@@ -41,12 +52,7 @@ export function validateConfig(config: Config): void {
     assert(scriptConfig?.CODE_HASH);
 
     assertHash(`SCRIPTS.${scriptName}.CODE_HASH`, scriptConfig.CODE_HASH);
-    const hashType = scriptConfig.HASH_TYPE;
-    if (hashType !== "type" && hashType !== "data" && hashType !== "data1") {
-      throw new Error(
-        `SCRIPTS.${scriptName}.HASH_TYPE must be type, data or data1!`
-      );
-    }
+    assertHashType(`SCRIPTS.${scriptName}.HASH_TYPE`, scriptConfig.HASH_TYPE);
     assertHash(`SCRIPTS.${scriptName}.TX_HASH`, scriptConfig.TX_HASH);
     assertInteger(`SCRIPTS.${scriptName}.INDEX`, scriptConfig.INDEX);
     const depType = scriptConfig.DEP_TYPE;

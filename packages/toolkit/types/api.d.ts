@@ -4,11 +4,11 @@
  export type HexNumber = Hexadecimal;
  export type PackedSince = string;
  export type PackedDao = string;
- 
+
  export type Address = string;
- 
+
  export type HexadecimalRange = [Hexadecimal, Hexadecimal];
- 
+
 export interface Header {
   timestamp: HexNumber;
   number: HexNumber;
@@ -24,7 +24,7 @@ export interface Header {
   version: HexNumber;
 }
 
-export type HashType = "type" | "data" | "data1";
+export type HashType = "type" | "data" | "data1" | "data2";
 export interface Script {
   codeHash: Hash;
   hashType: HashType;

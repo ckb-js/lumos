@@ -9,6 +9,8 @@ export namespace RPC {
   export type ProposalShortId = CKBComponents.ProposalShortId;
   export type Number = CKBComponents.Number;
   export type UInt32 = CKBComponents.UInt32;
+  export type Uint64 = CKBComponents.UInt64;
+  export type U256 = CKBComponents.U256;
   export type Count = CKBComponents.Count;
   export type DAO = CKBComponents.DAO;
   export type Hash = CKBComponents.Hash;
@@ -30,16 +32,24 @@ export namespace RPC {
   export type EpochNumberWithFraction = CKBComponents.EpochNumberWithFraction;
   export type JsonBytes = CKBComponents.JsonBytes;
   export type IOType = CKBComponents.IOType;
+  export type EpochNumber = CKBComponents.EpochNumber;
+
+  // this is a type to mapping the `HashMap`, `BTreeMap` in `jsonrpc-types`
+  // there are some returns of CKB RPC are in this format, like `Softfork`
+  type MapLike<K extends string, V> = { [key in K]?: V };
+  type Vec<T> = T[];
 
   export enum TransactionStatus {
     Pending = "pending",
     Proposed = "proposed",
     Committed = "committed",
+    Unknown = "unknown",
+    Rejected = "rejected",
   }
 
-  export type ScriptHashType = CKBComponents.ScriptHashType;
-
   export type DepType = "code" | "dep_group";
+
+  export type ScriptHashType = CKBComponents.ScriptHashType;
 
   export interface Script {
     args: Bytes;
@@ -110,8 +120,15 @@ export namespace RPC {
         }
       | {
           block_hash: undefined;
-          status: TransactionStatus.Pending | TransactionStatus.Proposed;
+          status:
+            | TransactionStatus.Pending
+            | TransactionStatus.Proposed
+            | TransactionStatus.Rejected
+            | TransactionStatus.Unknown;
+          reason?: string;
         };
+    time_added_to_pool: Uint64 | null;
+    cycles: Uint64 | null;
   }
 
   export interface TransactionPoint {
@@ -169,14 +186,10 @@ export namespace RPC {
     message: string;
   }
 
-  export interface BlockchainInfo {
-    is_initial_block_download: boolean;
-    epoch: string;
-    difficulty: string;
-    median_time: string;
-    chain: string;
-    alerts: AlertMessage[];
-  }
+  /**
+   * @deprecated please migrate to {@link ChainInfo}
+   */
+  export type BlockchainInfo = ChainInfo;
 
   export interface LocalNodeInfo {
     active: boolean;
@@ -322,7 +335,6 @@ export namespace RPC {
   export interface Consensus {
     id: string;
     genesis_hash: Hash256;
-    hardfork_features: Array<{ rfc: string; epoch_number: string | undefined }>;
     dao_type_hash: Hash256 | undefined;
     secp256k1_blake160_sighash_all_type_hash: Hash256 | undefined;
     secp256k1_blake160_multisig_all_type_hash: Hash256 | undefined;
@@ -343,6 +355,44 @@ export namespace RPC {
     max_block_proposals_limit: string;
     primary_epoch_reward_halving_interval: string;
     permanent_difficulty_in_dummy: boolean;
+    hardfork_features: HardForks;
+    softforks: { [key in DeploymentPos]?: SoftFork };
+  }
+
+  export type HardForks = Array<HardforkFeature>;
+
+  export interface HardforkFeature {
+    rfc: string;
+    epoch_number: EpochNumber | null;
+  }
+
+  export type SoftFork = Buried | Rfc0043;
+
+  export interface Buried {
+    status: SoftForkStatus;
+    active: boolean;
+    epoch: EpochNumber;
+  }
+
+  export interface Rfc0043 {
+    status: SoftForkStatus;
+    rfc0043: Deployment;
+  }
+
+  export type SoftForkStatus = "buried" | "rfc0043";
+
+  export interface Ratio {
+    numer: Uint64;
+    denom: Uint64;
+  }
+
+  export interface Deployment {
+    bit: number;
+    start: EpochNumber;
+    timeout: EpochNumber;
+    min_activation_epoch: EpochNumber;
+    period: EpochNumber;
+    threshold: Ratio;
   }
 
   export interface Tip {
@@ -445,6 +495,7 @@ export namespace RPC {
     uncles: UncleBlockView[];
     transactions: TransactionView[];
     proposals: ProposalShortId[];
+    extension: Hash256;
   }
 
   export type SerializedBlock = HexString;
@@ -452,6 +503,40 @@ export namespace RPC {
   export interface EstimateCycles {
     cycles: HexNumber;
   }
-}
 
-/* eslint-enable camelcase */
+  /* https://github.com/nervosnetwork/ckb/blob/develop/util/jsonrpc-types/src/info.rs */
+  export type DeploymentPos = "testdummy" | "light_client";
+
+  export type DeploymentState =
+    | "defined"
+    | "started"
+    | "locked_in"
+    | "active"
+    | "failed";
+
+  export interface DeploymentsInfo {
+    hash: Hash256;
+    epoch: EpochNumber;
+    deployments: MapLike<DeploymentPos, DeploymentInfo>;
+  }
+
+  export interface DeploymentInfo {
+    bit: number;
+    start: EpochNumber;
+    timeout: EpochNumber;
+    min_activation_epoch: EpochNumber;
+    period: EpochNumber;
+    threshold: Ratio;
+    since: EpochNumber;
+    state: DeploymentState;
+  }
+
+  export interface ChainInfo {
+    chain: string;
+    median_time: Timestamp;
+    epoch: EpochNumberWithFraction;
+    difficulty: U256;
+    is_initial_block_download: boolean;
+    alerts: Vec<AlertMessage>;
+  }
+}
