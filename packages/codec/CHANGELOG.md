@@ -1,5 +1,7 @@
 # @ckb-lumos/codec
 
+## 0.21.0-next.3
+
 ## 0.21.0-next.2
 
 ## 0.21.0-next.1
