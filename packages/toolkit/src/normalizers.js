@@ -66,7 +66,7 @@ function normalizeObject(debugPath, object, keys) {
 
   for (const [key, f] of Object.entries(keys)) {
     const value = object[key];
-    if (!value) {
+    if (value == null) {
       throw new Error(`${debugPath} is missing ${key}!`);
     }
     result[key] = f(`${debugPath}.${key}`, value);
@@ -88,14 +88,14 @@ export function NormalizeScript(script, { debugPath = "script" } = {}) {
         case "data1":
           return 2;
         case "data2":
-          return 3;
+          return 4;
         case 0:
           return value;
         case 1:
           return value;
         case 2:
           return value;
-        case 3:
+        case 4:
           return value;
         default:
           throw new Error(`${debugPath}.hashType has invalid value: ${value}`);

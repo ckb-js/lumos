@@ -30,3 +30,23 @@ test("error outPoint should not pass validation", (t) => {
     });
   });
 });
+
+test("normalizeScript should work", (t) => {
+  ["type", "data", "data1", "data2", 0, 1, 2, 4].forEach((hashType) => {
+    normalizers.NormalizeScript({
+      codeHash: `0x${"00".repeat(32)}`,
+      args: "0x",
+      hashType,
+    });
+  });
+
+  t.pass();
+
+  t.throws(() => {
+    normalizers.NormalizeScript({
+      codeHash: `0x${"00".repeat(32)}`,
+      args: "0x",
+      hashType: "unknown",
+    });
+  });
+});
