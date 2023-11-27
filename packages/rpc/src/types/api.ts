@@ -50,8 +50,6 @@ export namespace CKBComponents {
   export type Since = string;
   export interface Node {
     url: string;
-    httpAgent?: any;
-    httpsAgent?: any;
   }
   export interface Method {
     name: string;
