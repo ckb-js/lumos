@@ -1,8 +1,8 @@
 import { IdNotMatchException, ResponseException } from "./exceptions";
 import { CKBComponents } from "./types/api";
 import { RPCConfig } from "./types/common";
-import fetch from "cross-fetch";
 import { AbortController as CrossAbortController } from "abort-controller";
+import fetch_ from "cross-fetch";
 
 export class Method {
   #name: string;
@@ -24,12 +24,13 @@ export class Method {
   constructor(
     node: CKBComponents.Node,
     options: CKBComponents.Method,
-    config: RPCConfig = { timeout: 30000 }
+    config: Partial<RPCConfig> = {}
   ) {
     this.#node = node;
     this.#options = options;
     this.#name = options.name;
-    this.#config = config;
+    const { timeout = 30000, fetch = fetch_ } = config;
+    this.#config = { timeout, fetch };
 
     Object.defineProperty(this.call, "name", {
       value: options.name,
@@ -46,14 +47,15 @@ export class Method {
 
     const timeout = setTimeout(() => controller.abort(), this.#config.timeout);
 
-    const res = await fetch(this.#node.url, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      signal,
-    })
+    const res = await this.#config
+      .fetch(this.#node.url, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(payload),
+        signal,
+      })
       .then((res) => res.json())
       .then((res) => {
         if (res.id !== payload.id) {

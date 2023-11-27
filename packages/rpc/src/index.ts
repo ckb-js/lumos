@@ -9,7 +9,7 @@ import {
   PayloadInBatchException,
 } from "./exceptions";
 import { RPCConfig } from "./types/common";
-import fetch from "cross-fetch";
+import fetch_ from "cross-fetch";
 import { AbortController as CrossAbortController } from "abort-controller";
 
 export const ParamsFormatter = paramsFormatter;
@@ -37,10 +37,11 @@ export class CKBRPC extends Base {
     return this.#resultFormatter;
   }
 
-  constructor(url: string, config: RPCConfig = { timeout: 30000 }) {
+  constructor(url: string, config: Partial<RPCConfig> = {}) {
     super();
     this.setNode({ url });
-    this.#config = config;
+    const { timeout = 30000, fetch = fetch_ } = config;
+    this.#config = { timeout, fetch };
 
     Object.defineProperties(this, {
       addMethod: {
@@ -59,7 +60,7 @@ export class CKBRPC extends Base {
     });
 
     Object.keys(this.rpcProperties).forEach((name) => {
-      this.addMethod({ name, ...this.rpcProperties[name] }, config);
+      this.addMethod({ name, ...this.rpcProperties[name] }, this.#config);
     });
   }
 
@@ -141,12 +142,14 @@ export class CKBRPC extends Base {
             ctx.#config.timeout
           );
 
-          const batchRes = await fetch(ctx.#node.url, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(payload),
-            signal: signal,
-          }).then((res) => res.json());
+          const batchRes = await ctx.#config
+            .fetch(ctx.#node.url, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify(payload),
+              signal: signal,
+            })
+            .then((res) => res.json());
 
           clearTimeout(timeout);
 
