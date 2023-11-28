@@ -1,6 +1,5 @@
-export type ScriptType = "type" | "lock";
-
-import { HexNumber, Script, Transaction, Header } from "@ckb-lumos/base";
+import { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
+import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
 
 export enum FetchFlag {
   Fetched = "fetched",
@@ -9,53 +8,32 @@ export enum FetchFlag {
   NotFound = "not_found",
 }
 
-export type FetchHeaderResult =
-  | { status: FetchFlag.Fetched; data: Header }
+export type FetchResult<R> =
+  | { status: FetchFlag.Fetched; data: R }
   | { status: FetchFlag.Fetching; firstSent: string }
-  | { status: FetchFlag.Added; timestamp: string }
+  | { status: FetchFlag.Added; timestamp: CKBComponents.Timestamp }
   | { status: FetchFlag.NotFound };
 
-export type TransactionWithHeader = {
-  transaction: Transaction;
-  header: Header;
-};
-
+export type FetchHeaderResult = FetchResult<CKBComponents.BlockHeader>;
 export type FetchTransactionResult =
-  | { status: FetchFlag.Fetched; data: TransactionWithHeader }
-  | { status: FetchFlag.Fetching; firstSent: string }
-  | { status: FetchFlag.Added; timestamp: string }
-  | { status: FetchFlag.NotFound };
+  FetchResult<CKBComponents.TransactionWithStatus>;
 
-export interface LightClientTransactionList<Grouped extends boolean = false> {
-  lastCursor: string | undefined;
-  objects: LightClientTransaction<Grouped>[];
-}
-
-export type LightClientTransaction<Goruped extends boolean = false> =
-  Goruped extends true
-    ? GroupedLightClientTransaction
-    : UngroupedLightClientTransaction;
-
-export type HexNum = string;
-export type IOType = "input" | "output" | "both";
-
-export type UngroupedLightClientTransaction = {
-  transaction: Transaction;
-  blockNumber: HexNum;
-  ioIndex: HexNum;
-  ioType: IOType;
-  txIndex: HexNum;
-};
-
-export type GroupedLightClientTransaction = {
-  transaction: Transaction;
-  blockNumber: HexNum;
-  txIndex: HexNum;
-  cells: Array<[IOType, HexNum]>;
-};
+export type SetScriptCommand = "all" | "partial" | "delete";
 
 export type LightClientScript = {
-  script: Script;
-  blockNumber: HexNumber;
-  scriptType: ScriptType;
+  script: CKBComponents.Script;
+  blockNumber: CKBComponents.UInt64;
+  scriptType: CKBComponents.ScriptType;
 };
+
+/* eslint-disable  @typescript-eslint/no-namespace */
+export namespace LightClientRPC {
+  export type FetchHeaderResult = FetchResult<RPC.Header>;
+  export type FetchTransactionResult = FetchResult<RPC.TransactionWithStatus>;
+
+  export type LightClientScript = {
+    script: RPC.Script;
+    block_number: RPC.Uint64;
+    script_type: RPC.ScriptType;
+  };
+}

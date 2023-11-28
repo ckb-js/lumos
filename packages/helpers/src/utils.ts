@@ -14,7 +14,3 @@ export function hexToByteArray(h: HexString): number[] {
   }
   return array;
 }
-
-export function byteArrayToHex(a: number[]): HexString {
-  return "0x" + a.map((i) => ("00" + i.toString(16)).slice(-2)).join("");
-}

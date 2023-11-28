@@ -1,0 +1,48 @@
+name: Canary-CKB2023
+on:
+  push:
+    branches:
+      - ckb2023
+
+permissions:
+  contents: write
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-deps
+
+      - name: Setup .npmrc file
+        uses: actions/setup-node@v3
+        with:
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Canary release
+        run: |
+          npx changeset pre exit || true
+          npx changeset version --snapshot ckb2023-$(git log -1 --pretty=format:%h)
+          pnpm -r publish --no-git-checks --tag ckb2023
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate commit comment
+        id: commit-comment
+        run: |
+          result="$(node scripts/canary-commit-comment.cjs)"
+          delimiter="$(openssl rand -hex 8)"
+          echo "result<<$delimiter" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "$delimiter" >> $GITHUB_OUTPUT
+
+      - name: Create commit comment
+        uses: peter-evans/commit-comment@v2
+        with:
+          body: ${{ steps.commit-comment.outputs.result }}
+          token: ${{ secrets.GITHUB_TOKEN }}

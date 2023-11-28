@@ -1,4 +1,10 @@
-import { HexString, HexNumber, Hash, Hexadecimal } from "@ckb-lumos/base";
+import {
+  HexString,
+  HexNumber,
+  Hash,
+  Hexadecimal,
+  HashType,
+} from "@ckb-lumos/base";
 
 export type Tip = {
   block_hash: HexNumber;
@@ -6,7 +12,7 @@ export type Tip = {
 };
 export type Script = {
   code_hash: HexString;
-  hash_type: "type" | "data" | "data1";
+  hash_type: HashType;
   args: HexString;
 };
 export interface OutPoint {

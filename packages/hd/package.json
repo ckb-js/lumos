@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/hd",
-  "version": "0.21.0-next.2",
+  "version": "0.21.0-next.3",
   "description": "HD wallet manager in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -19,10 +19,10 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "0.21.0-next.2",
-    "@ckb-lumos/bi": "0.21.0-next.2",
-    "@ckb-lumos/codec": "0.21.0-next.2",
-    "@ckb-lumos/crypto": "0.21.0-next.2",
+    "@ckb-lumos/base": "0.21.0-next.3",
+    "@ckb-lumos/bi": "0.21.0-next.3",
+    "@ckb-lumos/codec": "0.21.0-next.3",
+    "@ckb-lumos/crypto": "0.21.0-next.3",
     "bn.js": "^4.11.6",
     "elliptic": "^6.5.4",
     "scrypt-js": "^3.0.1",

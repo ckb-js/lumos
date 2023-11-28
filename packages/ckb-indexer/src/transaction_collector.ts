@@ -173,10 +173,14 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         return this.isCellScriptArgsValid(resolvedCell);
       }
     );
-    const objects = filteredTransactionList.map((tx) => ({
-      transaction: tx.transaction,
-      txStatus: tx.txStatus,
-    }));
+    const objects = filteredTransactionList.map<TransactionWithStatus>(
+      (tx) => ({
+        transaction: tx.transaction,
+        txStatus: tx.txStatus,
+        cycles: tx.cycles,
+        timeAddedToPool: tx.timeAddedToPool,
+      })
+    );
     return objects;
   }
 

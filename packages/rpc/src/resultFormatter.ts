@@ -24,7 +24,13 @@ const toNullable =
 const toNumber = (number: RPC.BlockNumber): CKBComponents.BlockNumber =>
   number.toString();
 const toHash = (hash: RPC.Hash256): CKBComponents.Hash256 => hash;
-const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
+
+function toHeader(header: RPC.Header): CKBComponents.BlockHeader;
+function toHeader(header: string): string;
+function toHeader(
+  header: string | RPC.Header
+): string | CKBComponents.BlockHeader {
+  if (typeof header === "string") return header;
   if (!header) return header;
   const {
     compact_target: compactTarget,
@@ -42,7 +48,8 @@ const toHeader = (header: RPC.Header): CKBComponents.BlockHeader => {
     extraHash,
     ...rest,
   };
-};
+}
+
 const toScript = (script: RPC.Script): CKBComponents.Script => {
   if (!script) return script;
   const { code_hash: codeHash, hash_type: hashType, ...rest } = script;
@@ -99,7 +106,7 @@ function toTransaction(tx: RPC.Transaction): CKBComponents.Transaction;
 function toTransaction(
   tx: RPC.RawTransaction | RPC.Transaction
 ): CKBComponents.Transaction | CKBComponents.RawTransaction {
-  if (!tx) return tx;
+  if (!tx || typeof tx !== "object") return tx;
   const {
     cell_deps: cellDeps = [],
     inputs = [],
@@ -131,16 +138,29 @@ const toTip = (tip: RPC.Tip): CKBComponents.Tip => ({
   blockNumber: tip.block_number,
 });
 
-const toBlock = (block: RPC.Block): CKBComponents.Block => {
-  if (!block) return block;
-  const { header, uncles = [], transactions = [], ...rest } = block;
+type BlockWithCycles = { block: RPC.Block | string; cycles: string[] };
+function toBlock(block: string): string;
+function toBlock(block: RPC.Block): CKBComponents.Block;
+function toBlock<T extends BlockWithCycles>(block: T): T;
+function toBlock(res: string | RPC.Block | BlockWithCycles): any {
+  if (!res) return res;
+  if (typeof res === "string") return res;
+
+  if ("block" in res && "cycles" in res) {
+    return {
+      cycles: res.cycles,
+      block: toBlock(res.block as any),
+    };
+  }
+
+  const { header, uncles = [], transactions = [], ...rest } = res;
   return {
     header: toHeader(header),
     uncles: uncles.map(toUncleBlock),
     transactions: transactions.map(toTransaction),
     ...rest,
   };
-};
+}
 const toAlertMessage = (
   alertMessage: RPC.AlertMessage
 ): CKBComponents.AlertMessage => {
@@ -298,20 +318,26 @@ const toCellsIncludingOutPoint = (
   if (!Array.isArray(cells)) return [];
   return cells.map(toCellIncludingOutPoint);
 };
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-const toTransactionWithStatus = (txWithStatus: RPC.TransactionWithStatus) => {
+const toTransactionWithStatus = <Tx>(
+  txWithStatus: RPC.TransactionWithStatus
+): CKBComponents.TransactionWithStatus<Tx> => {
   if (!txWithStatus) return txWithStatus;
   const {
     transaction,
     tx_status: { block_hash: blockHash, status },
+    time_added_to_pool,
     ...rest
   } = txWithStatus;
   return {
-    transaction: toTransaction(transaction),
+    transaction: toTransaction(transaction) as Tx,
     txStatus: {
       blockHash,
       status,
+      ...("reason" in txWithStatus.tx_status
+        ? { reason: txWithStatus.tx_status.reason }
+        : {}),
     },
+    timeAddedToPool: time_added_to_pool,
     ...rest,
   };
 };
@@ -503,8 +529,47 @@ const toTransactionProof = (
     ...rest,
   };
 };
+
+const toHardforkFeature = (
+  feature: RPC.HardforkFeature
+): CKBComponents.HardForkFeature => {
+  return {
+    rfc: feature.rfc,
+    epochNumber: feature.epoch_number,
+  };
+};
+
+const toDeployment = (deployment: RPC.Deployment): CKBComponents.Deployment => {
+  return {
+    bit: deployment.bit,
+    start: deployment.start,
+    timeout: deployment.timeout,
+    minActivationEpoch: deployment.min_activation_epoch,
+    period: deployment.period,
+    threshold: deployment.threshold,
+  };
+};
+
+const toSoftFork = (softFork: RPC.SoftFork): CKBComponents.SoftFork => {
+  if ("rfc0043" in softFork) {
+    return {
+      status: softFork.status,
+      rfc0043: toDeployment(softFork.rfc0043),
+    };
+  }
+  return softFork;
+};
+
 const toConsensus = (consensus: RPC.Consensus): CKBComponents.Consensus => {
   if (!consensus) return consensus;
+
+  const rpcHardforkFeatures = consensus.hardfork_features;
+
+  const softforks = consensus.softforks;
+  const lightClient =
+    softforks.light_client && toSoftFork(softforks.light_client);
+  const testdummy = softforks.testdummy && toSoftFork(softforks.testdummy);
+
   return {
     blockVersion: consensus.block_version,
     cellbaseMaturity: consensus.cellbase_maturity,
@@ -531,13 +596,11 @@ const toConsensus = (consensus: RPC.Consensus): CKBComponents.Consensus => {
     txProposalWindow: consensus.tx_proposal_window,
     txVersion: consensus.tx_version,
     typeIdCodeHash: consensus.type_id_code_hash,
-    hardforkFeatures:
-      consensus.hardfork_features?.map(
-        ({ epoch_number: epochNumber, ...rest }) => ({
-          epochNumber,
-          ...rest,
-        })
-      ) ?? consensus.hardfork_features,
+    hardforkFeatures: rpcHardforkFeatures.map(toHardforkFeature),
+    softforks: {
+      ...(lightClient && { lightClient }),
+      ...(testdummy && { testdummy }),
+    },
   };
 };
 
@@ -586,11 +649,13 @@ const toIndexerCell = (
   };
 };
 
-const toGetCellsResult = (
+const toGetCellsResult = <WithData extends boolean = true>(
   getCellsResult: RPC.GetLiveCellsResult
-): CKBComponents.GetLiveCellsResult => ({
+): CKBComponents.GetLiveCellsResult<WithData> => ({
   lastCursor: getCellsResult.last_cursor,
-  objects: getCellsResult.objects.map((object) => toIndexerCell(object)),
+  objects: getCellsResult.objects.map((object) =>
+    toIndexerCell(object)
+  ) as CKBComponents.GetLiveCellsResult<WithData>["objects"],
 });
 
 const isUngroupedIndexerTransaction = (
@@ -696,6 +761,7 @@ const toForkBlockResult = (
     uncles: result.uncles.map(toUncleBlock),
     transactions: result.transactions.map(toTransaction),
     proposals: result.proposals,
+    extension: result.extension,
   };
 };
 
@@ -704,6 +770,46 @@ const toEstimateCycles = (
 ): CKBComponents.EstimateCycles => {
   return {
     cycles: cycle.cycles,
+  };
+};
+
+const toDeployState = (
+  state: RPC.DeploymentState
+): CKBComponents.DeploymentState => {
+  if (state === "locked_in") {
+    return "lockedIn";
+  }
+  return state;
+};
+
+const toDeploymentInfo = (
+  deploymentInfo: RPC.DeploymentInfo
+): CKBComponents.DeploymentInfo => {
+  return {
+    bit: deploymentInfo.bit,
+    /// specifies the first epoch in which the bit gains meaning.
+    start: deploymentInfo.start,
+    timeout: deploymentInfo.timeout,
+    minActivationEpoch: deploymentInfo.min_activation_epoch,
+    period: deploymentInfo.period,
+    threshold: deploymentInfo.threshold,
+    since: deploymentInfo.since,
+    state: toDeployState(deploymentInfo.state),
+  };
+};
+
+const toDeploymentsInfo = (
+  deploymentInfo: RPC.DeploymentsInfo
+): CKBComponents.DeploymentsInfo => {
+  const { light_client, testdummy } = deploymentInfo.deployments;
+
+  return {
+    hash: deploymentInfo.hash,
+    epoch: deploymentInfo.epoch,
+    deployments: {
+      ...(light_client ? { lightClient: toDeploymentInfo(light_client) } : {}),
+      ...(testdummy ? { testdummy: toDeploymentInfo(testdummy) } : {}),
+    },
   };
 };
 
@@ -760,5 +866,9 @@ export {
   toFeeRateStatistics,
   toForkBlockResult,
   toEstimateCycles,
+  toDeployment,
+  toDeployState,
+  toDeploymentInfo,
+  toDeploymentsInfo,
 };
 /* eslint-enable camelcase */

@@ -1,27 +1,18 @@
-import { HexString, utils, Header, Block } from "@ckb-lumos/base";
 import { CKBComponents } from "@ckb-lumos/rpc/types/api";
-import { ParamsFormatter } from "@ckb-lumos/rpc";
-
-import {
-  GetLiveCellsResult,
-  Order,
-  SearchKey,
-  GetCellsSearchKey,
-  GetTransactionsSearchKey,
-} from "@ckb-lumos/ckb-indexer/lib/type";
-import {
-  toScript,
-  toSearchKey,
-  toGetCellsSearchKey,
-  toGetTransactionsSearchKey,
-} from "@ckb-lumos/ckb-indexer/lib/paramsFormatter";
-import {
+import { RPC } from "@ckb-lumos/rpc/types/rpc";
+import { ParamsFormatter, ResultFormatter } from "@ckb-lumos/rpc";
+import type {
   FetchHeaderResult,
   FetchTransactionResult,
   LightClientScript,
-  TransactionWithHeader,
-  LightClientTransactionList,
+  SetScriptCommand,
+  LightClientRPC as LightClientRPCType,
 } from "./type";
+import {
+  toFetchHeaderResult,
+  toFetchTransactionResult,
+  toLightClientScript,
+} from "./resultFormatter";
 import fetch from "cross-fetch";
 
 /* c8 ignore next 100 */
@@ -32,99 +23,136 @@ export class LightClientRPC {
    */
   constructor(private uri: string) {}
 
-  async getTipHeader(): Promise<Header> {
-    return utils.deepCamel(await request(this.uri, "get_tip_header"));
+  async getTipHeader(): Promise<CKBComponents.BlockHeader> {
+    return ResultFormatter.toHeader(await request(this.uri, "get_tip_header"));
+  }
+
+  async getPeers(): Promise<Array<CKBComponents.RemoteNodeInfo>> {
+    return ResultFormatter.toPeers(await request(this.uri, "get_peers"));
+  }
+
+  async localNodeInfo(): Promise<CKBComponents.LocalNodeInfo> {
+    return ResultFormatter.toLocalNodeInfo(
+      await request(this.uri, "local_node_info")
+    );
   }
 
   async fetchHeader(blockHash: string): Promise<FetchHeaderResult> {
     const params = [blockHash];
-    return utils.deepCamel(await request(this.uri, "fetch_header", params));
+    return toFetchHeaderResult(await request(this.uri, "fetch_header", params));
   }
 
-  async getHeader(blockHash: string): Promise<Header> {
+  async getHeader(blockHash: string): Promise<CKBComponents.BlockHeader> {
     const params = [blockHash];
-    return utils.deepCamel(await request(this.uri, "get_header", params));
+    return ResultFormatter.toHeader(
+      await request(this.uri, "get_header", params)
+    );
   }
 
   async fetchTransaction(txHash: string): Promise<FetchTransactionResult> {
     const params = [txHash];
-    return utils.deepCamel(
+    return toFetchTransactionResult(
       await request(this.uri, "fetch_transaction", params)
     );
   }
 
-  async getTransaction(txHash: string): Promise<TransactionWithHeader> {
+  async getTransaction(
+    txHash: string
+  ): Promise<CKBComponents.TransactionWithStatus> {
     const params = [txHash];
-    return utils.deepCamel(await request(this.uri, "get_transaction", params));
+    return ResultFormatter.toTransactionWithStatus(
+      await request(this.uri, "get_transaction", params)
+    );
   }
 
   async sendTransaction(
     tx: CKBComponents.RawTransaction
   ): Promise<CKBComponents.Hash> {
     const params = [ParamsFormatter.toRawTransaction(tx)];
-    return utils.deepCamel(await request(this.uri, "send_transaction", params));
-  }
-
-  async getScripts(): Promise<Array<LightClientScript>> {
-    return utils.deepCamel(await request(this.uri, "get_scripts"));
-  }
-
-  async setScripts(scripts: Array<LightClientScript>): Promise<void> {
-    const params = [
-      scripts.map(({ script, scriptType, blockNumber }) => ({
-        script: toScript(script),
-        script_type: scriptType,
-        block_number: blockNumber,
-      })),
-    ];
-    return utils.deepCamel(await request(this.uri, "set_scripts", params));
-  }
-
-  async getCells<WithData extends boolean = true>(
-    searchKey: GetCellsSearchKey<WithData>,
-    order: Order,
-    limit: HexString,
-    cursor?: string
-  ): Promise<GetLiveCellsResult<WithData>> {
-    const params = [toGetCellsSearchKey(searchKey), order, limit, cursor];
-    return utils.deepCamel(await request(this.uri, "get_cells", params));
-  }
-
-  async getCellsCapacity(
-    searchKey: SearchKey
-  ): Promise<CKBComponents.CellsCapacity> {
-    const params = [toSearchKey(searchKey)];
-    return utils.deepCamel(
-      await request(this.uri, "get_cells_capacity", params)
+    return ResultFormatter.toHash(
+      await request(this.uri, "send_transaction", params)
     );
   }
 
-  async getGenesisBlock(): Promise<Block> {
-    return utils.deepCamel(await request(this.uri, "get_genesis_block"));
+  async getScripts(): Promise<Array<LightClientScript>> {
+    return (
+      await request<[], LightClientRPCType.LightClientScript[]>(
+        this.uri,
+        "get_scripts"
+      )
+    ).map(toLightClientScript);
   }
 
-  async getTransactions<Grouped extends boolean = false>(
-    searchKey: GetTransactionsSearchKey<Grouped>,
-    order: Order,
-    limit: HexString,
-    cursor?: string
-  ): Promise<LightClientTransactionList<Grouped>> {
+  async setScripts(
+    scripts: Array<LightClientScript>,
+    command?: SetScriptCommand
+  ): Promise<void> {
     const params = [
-      toGetTransactionsSearchKey(searchKey),
+      scripts.map(({ script, scriptType, blockNumber }) => ({
+        script: ParamsFormatter.toScript(script),
+        script_type: scriptType,
+        block_number: blockNumber,
+      })),
+      command,
+    ];
+    await request(this.uri, "set_scripts", params);
+  }
+
+  async getCells<WithData extends boolean = true>(
+    searchKey: CKBComponents.GetCellsSearchKey<WithData>,
+    order: CKBComponents.Order,
+    limit: CKBComponents.UInt32,
+    cursor?: string
+  ): Promise<CKBComponents.GetLiveCellsResult<WithData>> {
+    const params = [
+      ParamsFormatter.toGetCellsSearchKey(searchKey),
       order,
       limit,
       cursor,
     ];
-    return utils.deepCamel(await request(this.uri, "get_transactions", params));
+    return ResultFormatter.toGetCellsResult<WithData>(
+      await request(this.uri, "get_cells", params)
+    );
+  }
+
+  async getCellsCapacity(
+    searchKey: CKBComponents.SearchKey
+  ): Promise<CKBComponents.CellsCapacity> {
+    const params = [ParamsFormatter.toSearchKey(searchKey)];
+    return ResultFormatter.toCellsCapacity(
+      await request(this.uri, "get_cells_capacity", params)
+    );
+  }
+
+  async getGenesisBlock(): Promise<CKBComponents.Block> {
+    return ResultFormatter.toBlock(
+      await request<[], RPC.Block>(this.uri, "get_genesis_block")
+    );
+  }
+
+  async getTransactions<Grouped extends boolean = false>(
+    searchKey: CKBComponents.GetTransactionsSearchKey<Grouped>,
+    order: CKBComponents.Order,
+    limit: CKBComponents.UInt32,
+    cursor?: string
+  ): Promise<CKBComponents.GetTransactionsResult<Grouped>> {
+    const params = [
+      ParamsFormatter.toGetTransactionsSearchKey(searchKey),
+      order,
+      limit,
+      cursor,
+    ];
+    return ResultFormatter.toGetTransactionsResult(
+      await request(this.uri, "get_transactions", params)
+    );
   }
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
-const request = async (
+const request = async <P, R>(
   ckbIndexerUrl: string,
   method: string,
-  params?: any
-): Promise<any> => {
+  params?: P
+): Promise<R> => {
   const res = await fetch(ckbIndexerUrl, {
     method: "POST",
     body: JSON.stringify({

@@ -3,8 +3,9 @@ import { Indexer, helpers, Address, Script, RPC, hd, config, Cell, commons, Witn
 import { values, blockchain } from "@ckb-lumos/base";
 const { ScriptValue } = values;
 
-export const { AGGRON4 } = config.predefined;
-
+// export let { AGGRON4 } = config.predefined;
+let AGGRON4: config.Config = config.predefined.AGGRON4;
+// it can be changed to the devnet http://localhost:8114
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const rpc = new RPC(CKB_RPC_URL);
 const indexer = new Indexer(CKB_RPC_URL);
@@ -52,6 +53,9 @@ interface Options {
 }
 
 export async function transfer(options: Options): Promise<string> {
+  const block = await rpc.getBlockByNumber("0x0");
+  AGGRON4 = { PREFIX: "ckt", SCRIPTS: config.generateGenesisScriptConfigs(block) };
+
   let txSkeleton = helpers.TransactionSkeleton({});
   const fromScript = helpers.parseAddress(options.from, { config: AGGRON4 });
   const toScript = helpers.parseAddress(options.to, { config: AGGRON4 });

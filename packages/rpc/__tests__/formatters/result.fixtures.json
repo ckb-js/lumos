@@ -615,6 +615,214 @@
         "transactions": [],
         "uncles": []
       }
+    },
+    {
+      "result": "0x0e02000018000000e8000000ec000000e6010000ea0100000000000000000120691e8ccb8a01000004000000000000000000000400e8030000fa775972159aba682a5bf6e1ad6aa2a989c1ad1af61f130da4a2639a6dbfd782b6ce096ba31efabe2c387cbad8b3a455f8f6d2ade3204bd215291c2df9c88500000000000000000000000000000000000000000000000000000000000000006fd0305920429076102ae14371a11a338c9f6d7b35d022bc3a4cea771d50190f14896308581fa12ed1f84c9bf2862300cbab61de3e0000000099f54b01fbfe06ed97c68a255c08adc3120210350aad1004000000fa00000008000000f20000000c0000006c000000600000001c000000200000002400000028000000580000005c0000000000000000000000000000000100000004000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffff040000000400000086000000080000007a0000007a0000000c00000055000000490000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80114000000c8328aabcd9b9e8e64fbc566c4385c3bdeb219d7210000000000000020302e3131312e3020286161613531353820323032332d30392d3134290000000020000000880b0d848373b0b419e66835223d3bd423c6f0f40a7a3864e10912a7230cc417",
+      "expected": "0x0e02000018000000e8000000ec000000e6010000ea0100000000000000000120691e8ccb8a01000004000000000000000000000400e8030000fa775972159aba682a5bf6e1ad6aa2a989c1ad1af61f130da4a2639a6dbfd782b6ce096ba31efabe2c387cbad8b3a455f8f6d2ade3204bd215291c2df9c88500000000000000000000000000000000000000000000000000000000000000006fd0305920429076102ae14371a11a338c9f6d7b35d022bc3a4cea771d50190f14896308581fa12ed1f84c9bf2862300cbab61de3e0000000099f54b01fbfe06ed97c68a255c08adc3120210350aad1004000000fa00000008000000f20000000c0000006c000000600000001c000000200000002400000028000000580000005c0000000000000000000000000000000100000004000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffff040000000400000086000000080000007a0000007a0000000c00000055000000490000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80114000000c8328aabcd9b9e8e64fbc566c4385c3bdeb219d7210000000000000020302e3131312e3020286161613531353820323032332d30392d3134290000000020000000880b0d848373b0b419e66835223d3bd423c6f0f40a7a3864e10912a7230cc417"
+    },
+    {
+      "result": {
+        "block": {
+          "extension": "0x7dc094baf449662901d17c12a6b03af16181537d83aff41689d65ebd90131d7b",
+          "header": {
+            "compact_target": "0x20010000",
+            "dao": "0x5c490f74f540a12eb334c0d0f8862300cac44a092c07000000755322c8fbfe06",
+            "epoch": "0x3e80096000000",
+            "extra_hash": "0xf6e4abc7a5f61ec64060e2956b972e3d8f450102fa677cb23ee49373c55f14d1",
+            "hash": "0xbfba299e8942c89f96357b811a795343c0db0f42dd913e22c4fbd74843ef4c5a",
+            "nonce": "0xa238c12f207efedc2c388a0f2f78fcb",
+            "number": "0x96",
+            "parent_hash": "0x03bb5df51f01aafa4aa3010f86909aaa7a90dc0681c264bb3712e5c02ac1935e",
+            "proposals_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "timestamp": "0x18ad0b37f4e",
+            "transactions_root": "0x4dbf22caeebbc7cd35e631689b94e6abb4bd10bf2c175b40d187f997b7acd02f",
+            "version": "0x0"
+          },
+          "proposals": [],
+          "transactions": [
+            {
+              "cell_deps": [],
+              "hash": "0x4efec35228be483cdf3d58d73829b129e7b9dc6f85fc715e9267f5adeb2326b9",
+              "header_deps": [],
+              "inputs": [
+                {
+                  "previous_output": {
+                    "index": "0xffffffff",
+                    "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+                  },
+                  "since": "0x96"
+                }
+              ],
+              "outputs": [
+                {
+                  "capacity": "0x2ecbd6b44c",
+                  "lock": {
+                    "args": "0xc8328aabcd9b9e8e64fbc566c4385c3bdeb219d7",
+                    "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                    "hash_type": "type"
+                  },
+                  "type": null
+                }
+              ],
+              "outputs_data": ["0x"],
+              "version": "0x0",
+              "witnesses": [
+                "0x7a0000000c00000055000000490000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80114000000c8328aabcd9b9e8e64fbc566c4385c3bdeb219d7210000000000000020302e3131312e3020286161613531353820323032332d30392d313429"
+              ]
+            },
+            {
+              "cell_deps": [
+                {
+                  "dep_type": "dep_group",
+                  "out_point": {
+                    "index": "0x0",
+                    "tx_hash": "0x5ee6d047719f30ba35065a99a13fbbd69dcf94b56273b23e77e8d0068e6e3984"
+                  }
+                }
+              ],
+              "hash": "0x875371e951529d8b246736feea9033d09d3c5f1be4283644b2f49a43d5a5cdcd",
+              "header_deps": [],
+              "inputs": [
+                {
+                  "previous_output": {
+                    "index": "0x7",
+                    "tx_hash": "0x78420da5665c6bfa57abfcb58f3723223d79d55a3e1c771f6b433c72ac776ec9"
+                  },
+                  "since": "0x0"
+                }
+              ],
+              "outputs": [
+                {
+                  "capacity": "0x174876e800",
+                  "lock": {
+                    "args": "0xed17669081a0a2d854d6cc30d2c1c1912680bbe3",
+                    "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                    "hash_type": "type"
+                  },
+                  "type": null
+                },
+                {
+                  "capacity": "0x1bc16d50064f9160",
+                  "lock": {
+                    "args": "0xc8328aabcd9b9e8e64fbc566c4385c3bdeb219d7",
+                    "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                    "hash_type": "type"
+                  },
+                  "type": null
+                }
+              ],
+              "outputs_data": ["0x", "0x"],
+              "version": "0x0",
+              "witnesses": [
+                "0x5500000010000000550000005500000041000000b0e9ea8ed8a50a12d518c565d57cd9baaa9b5bd64e314b721c7c5140c3663fe25149aab99e63667fca71d96ba2c18c80bcbab2a33f40879e9c8ff47a8ca3894a00"
+              ]
+            }
+          ],
+          "uncles": []
+        },
+        "cycles": ["0x18d041"]
+      },
+      "expected": {
+        "cycles": ["0x18d041"],
+        "block": {
+          "header": {
+            "compactTarget": "0x20010000",
+            "parentHash": "0x03bb5df51f01aafa4aa3010f86909aaa7a90dc0681c264bb3712e5c02ac1935e",
+            "transactionsRoot": "0x4dbf22caeebbc7cd35e631689b94e6abb4bd10bf2c175b40d187f997b7acd02f",
+            "proposalsHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "extraHash": "0xf6e4abc7a5f61ec64060e2956b972e3d8f450102fa677cb23ee49373c55f14d1",
+            "dao": "0x5c490f74f540a12eb334c0d0f8862300cac44a092c07000000755322c8fbfe06",
+            "epoch": "0x3e80096000000",
+            "hash": "0xbfba299e8942c89f96357b811a795343c0db0f42dd913e22c4fbd74843ef4c5a",
+            "nonce": "0xa238c12f207efedc2c388a0f2f78fcb",
+            "number": "0x96",
+            "timestamp": "0x18ad0b37f4e",
+            "version": "0x0"
+          },
+          "uncles": [],
+          "transactions": [
+            {
+              "cellDeps": [],
+              "inputs": [
+                {
+                  "previousOutput": {
+                    "txHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                    "index": "0xffffffff"
+                  },
+                  "since": "0x96"
+                }
+              ],
+              "outputs": [
+                {
+                  "lock": {
+                    "codeHash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                    "hashType": "type",
+                    "args": "0xc8328aabcd9b9e8e64fbc566c4385c3bdeb219d7"
+                  },
+                  "type": null,
+                  "capacity": "0x2ecbd6b44c"
+                }
+              ],
+              "outputsData": ["0x"],
+              "headerDeps": [],
+              "hash": "0x4efec35228be483cdf3d58d73829b129e7b9dc6f85fc715e9267f5adeb2326b9",
+              "version": "0x0",
+              "witnesses": [
+                "0x7a0000000c00000055000000490000001000000030000000310000009bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce80114000000c8328aabcd9b9e8e64fbc566c4385c3bdeb219d7210000000000000020302e3131312e3020286161613531353820323032332d30392d313429"
+              ]
+            },
+            {
+              "cellDeps": [
+                {
+                  "outPoint": {
+                    "txHash": "0x5ee6d047719f30ba35065a99a13fbbd69dcf94b56273b23e77e8d0068e6e3984",
+                    "index": "0x0"
+                  },
+                  "depType": "depGroup"
+                }
+              ],
+              "inputs": [
+                {
+                  "previousOutput": {
+                    "txHash": "0x78420da5665c6bfa57abfcb58f3723223d79d55a3e1c771f6b433c72ac776ec9",
+                    "index": "0x7"
+                  },
+                  "since": "0x0"
+                }
+              ],
+              "outputs": [
+                {
+                  "lock": {
+                    "codeHash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                    "hashType": "type",
+                    "args": "0xed17669081a0a2d854d6cc30d2c1c1912680bbe3"
+                  },
+                  "type": null,
+                  "capacity": "0x174876e800"
+                },
+                {
+                  "lock": {
+                    "codeHash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+                    "hashType": "type",
+                    "args": "0xc8328aabcd9b9e8e64fbc566c4385c3bdeb219d7"
+                  },
+                  "type": null,
+                  "capacity": "0x1bc16d50064f9160"
+                }
+              ],
+              "outputsData": ["0x", "0x"],
+              "headerDeps": [],
+              "hash": "0x875371e951529d8b246736feea9033d09d3c5f1be4283644b2f49a43d5a5cdcd",
+              "version": "0x0",
+              "witnesses": [
+                "0x5500000010000000550000005500000041000000b0e9ea8ed8a50a12d518c565d57cd9baaa9b5bd64e314b721c7c5140c3663fe25149aab99e63667fca71d96ba2c18c80bcbab2a33f40879e9c8ff47a8ca3894a00"
+              ]
+            }
+          ],
+          "extension": "0x7dc094baf449662901d17c12a6b03af16181537d83aff41689d65ebd90131d7b",
+          "proposals": []
+        }
+      }
     }
   ],
   "toAlertMessage": [
@@ -1623,7 +1831,9 @@
         "block_hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "proof": {
           "indices": ["0x0"],
-          "lemmas": ["0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
+          "lemmas": [
+            "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ]
         },
         "witnesses_root": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       },
@@ -1631,7 +1841,9 @@
         "blockHash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "proof": {
           "indices": ["0x0"],
-          "lemmas": ["0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]
+          "lemmas": [
+            "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ]
         },
         "witnessesRoot": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
       }
@@ -1649,6 +1861,17 @@
         "dao_type_hash": null,
         "epoch_duration_target": "0x3840",
         "genesis_hash": "0x7978ec7ce5b507cfb52e149e36b1a23f6062ed150503c85bbf825da3599095ed",
+        "hardfork_features": [
+          { "rfc": "0028", "epoch_number": "0x1526" },
+          { "rfc": "0029", "epoch_number": "0x0" },
+          { "rfc": "0030", "epoch_number": "0x0" },
+          { "rfc": "0031", "epoch_number": "0x0" },
+          { "rfc": "0032", "epoch_number": "0x0" },
+          { "rfc": "0036", "epoch_number": "0x0" },
+          { "rfc": "0038", "epoch_number": "0x0" },
+          { "rfc": "0048", "epoch_number": null },
+          { "rfc": "0049", "epoch_number": null }
+        ],
         "id": "main",
         "initial_primary_epoch_reward": "0x71afd498d000",
         "max_block_bytes": "0x91c08",
@@ -1669,6 +1892,22 @@
         "secondary_epoch_reward": "0x37d0c8e28542",
         "secp256k1_blake160_multisig_all_type_hash": null,
         "secp256k1_blake160_sighash_all_type_hash": null,
+        "softforks": {
+          "testdummy": {
+            "status": "rfc0043",
+            "rfc0043": {
+              "bit": 1,
+              "min_activation_epoch": "0x0",
+              "period": "0xa",
+              "start": "0x0",
+              "threshold": {
+                "denom": "0x4",
+                "numer": "0x3"
+              },
+              "timeout": "0x0"
+            }
+          }
+        },
         "tx_proposal_window": {
           "closest": "0x2",
           "farthest": "0xa"
@@ -1682,6 +1921,17 @@
         "daoTypeHash": null,
         "epochDurationTarget": "0x3840",
         "genesisHash": "0x7978ec7ce5b507cfb52e149e36b1a23f6062ed150503c85bbf825da3599095ed",
+        "hardforkFeatures": [
+          { "rfc": "0028", "epochNumber": "0x1526" },
+          { "rfc": "0029", "epochNumber": "0x0" },
+          { "rfc": "0030", "epochNumber": "0x0" },
+          { "rfc": "0031", "epochNumber": "0x0" },
+          { "rfc": "0032", "epochNumber": "0x0" },
+          { "rfc": "0036", "epochNumber": "0x0" },
+          { "rfc": "0038", "epochNumber": "0x0" },
+          { "rfc": "0048", "epochNumber": null },
+          { "rfc": "0049", "epochNumber": null }
+        ],
         "id": "main",
         "initialPrimaryEpochReward": "0x71afd498d000",
         "maxBlockBytes": "0x91c08",
@@ -1702,98 +1952,28 @@
         "secondaryEpochReward": "0x37d0c8e28542",
         "secp256k1Blake160MultisigAllTypeHash": null,
         "secp256k1Blake160SighashAllTypeHash": null,
+        "softforks": {
+          "testdummy": {
+            "status": "rfc0043",
+            "rfc0043": {
+              "bit": 1,
+              "minActivationEpoch": "0x0",
+              "period": "0xa",
+              "start": "0x0",
+              "threshold": {
+                "denom": "0x4",
+                "numer": "0x3"
+              },
+              "timeout": "0x0"
+            }
+          }
+        },
         "txProposalWindow": {
           "closest": "0x2",
           "farthest": "0xa"
         },
         "txVersion": "0x0",
         "typeIdCodeHash": "0x00000000000000000000000000000000000000000000000000545950455f4944"
-      }
-    },
-    {
-      "result": {
-        "block_version": "0x0",
-        "cellbase_maturity": "0x10000000000",
-        "dao_type_hash": null,
-        "epoch_duration_target": "0x3840",
-        "genesis_hash": "0x7978ec7ce5b507cfb52e149e36b1a23f6062ed150503c85bbf825da3599095ed",
-        "id": "main",
-        "initial_primary_epoch_reward": "0x71afd498d000",
-        "max_block_bytes": "0x91c08",
-        "max_block_cycles": "0xd09dc300",
-        "max_block_proposals_limit": "0x5dc",
-        "max_uncles_num": "0x2",
-        "median_time_block_count": "0x25",
-        "orphan_rate_target": {
-          "denom": "0x28",
-          "numer": "0x1"
-        },
-        "permanent_difficulty_in_dummy": false,
-        "primary_epoch_reward_halving_interval": "0x2238",
-        "proposer_reward_ratio": {
-          "denom": "0xa",
-          "numer": "0x4"
-        },
-        "secondary_epoch_reward": "0x37d0c8e28542",
-        "secp256k1_blake160_multisig_all_type_hash": null,
-        "secp256k1_blake160_sighash_all_type_hash": null,
-        "tx_proposal_window": {
-          "closest": "0x2",
-          "farthest": "0xa"
-        },
-        "tx_version": "0x0",
-        "type_id_code_hash": "0x00000000000000000000000000000000000000000000000000545950455f4944",
-        "hardfork_features": [
-          { "epoch_number": "0x0", "rfc": "0028" },
-          { "epoch_number": "0x0", "rfc": "0029" },
-          { "epoch_number": "0x0", "rfc": "0030" },
-          { "epoch_number": "0x0", "rfc": "0031" },
-          { "epoch_number": "0x0", "rfc": "0032" },
-          { "epoch_number": "0x0", "rfc": "0036" },
-          { "epoch_number": "0x0", "rfc": "0038" }
-        ]
-      },
-      "expected": {
-        "blockVersion": "0x0",
-        "cellbaseMaturity": "0x10000000000",
-        "daoTypeHash": null,
-        "epochDurationTarget": "0x3840",
-        "genesisHash": "0x7978ec7ce5b507cfb52e149e36b1a23f6062ed150503c85bbf825da3599095ed",
-        "id": "main",
-        "initialPrimaryEpochReward": "0x71afd498d000",
-        "maxBlockBytes": "0x91c08",
-        "maxBlockCycles": "0xd09dc300",
-        "maxBlockProposalsLimit": "0x5dc",
-        "maxUnclesNum": "0x2",
-        "medianTimeBlockCount": "0x25",
-        "orphanRateTarget": {
-          "denom": "0x28",
-          "numer": "0x1"
-        },
-        "permanentDifficultyInDummy": false,
-        "primaryEpochRewardHalvingInterval": "0x2238",
-        "proposerRewardRatio": {
-          "denom": "0xa",
-          "numer": "0x4"
-        },
-        "secondaryEpochReward": "0x37d0c8e28542",
-        "secp256k1Blake160MultisigAllTypeHash": null,
-        "secp256k1Blake160SighashAllTypeHash": null,
-        "txProposalWindow": {
-          "closest": "0x2",
-          "farthest": "0xa"
-        },
-        "txVersion": "0x0",
-        "typeIdCodeHash": "0x00000000000000000000000000000000000000000000000000545950455f4944",
-        "hardforkFeatures": [
-          { "epochNumber": "0x0", "rfc": "0028" },
-          { "epochNumber": "0x0", "rfc": "0029" },
-          { "epochNumber": "0x0", "rfc": "0030" },
-          { "epochNumber": "0x0", "rfc": "0031" },
-          { "epochNumber": "0x0", "rfc": "0032" },
-          { "epochNumber": "0x0", "rfc": "0036" },
-          { "epochNumber": "0x0", "rfc": "0038" }
-        ]
       }
     }
   ],
@@ -1803,8 +1983,14 @@
       "expected": null
     },
     {
-      "result": { "proposed": ["proposed_1", "proposed_2"], "pending": ["pending_1", "pending_2"] },
-      "expected": { "proposed": ["proposed_1", "proposed_2"], "pending": ["pending_1", "pending_2"] }
+      "result": {
+        "proposed": ["proposed_1", "proposed_2"],
+        "pending": ["pending_1", "pending_2"]
+      },
+      "expected": {
+        "proposed": ["proposed_1", "proposed_2"],
+        "pending": ["pending_1", "pending_2"]
+      }
     },
     {
       "result": {
@@ -1943,11 +2129,11 @@
         "last_cursor": "0x",
         "objects": [
           {
-              "block_number": "0x1",
-              "io_index": "0x1",
-              "io_type": "output",
-              "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-              "tx_index": "0x4"
+            "block_number": "0x1",
+            "io_index": "0x1",
+            "io_type": "output",
+            "tx_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "tx_index": "0x4"
           },
           {
             "block_number": "0x2",
@@ -1962,11 +2148,11 @@
         "lastCursor": "0x",
         "objects": [
           {
-              "blockNumber": "0x1",
-              "ioIndex": "0x1",
-              "ioType": "output",
-              "txHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-              "txIndex": "0x4"
+            "blockNumber": "0x1",
+            "ioIndex": "0x1",
+            "ioType": "output",
+            "txHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "txIndex": "0x4"
           },
           {
             "blockNumber": "0x2",

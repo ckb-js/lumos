@@ -1,5 +1,5 @@
 {
-  "mode": "pre",
+  "mode": "exit",
   "tag": "next",
   "initialVersions": {
     "@ckb-lumos/base": "0.20.0",
@@ -27,9 +27,12 @@
   "changesets": [
     "green-tips-accept",
     "kind-pandas-train",
+    "old-houses-smell",
     "orange-flowers-sort",
     "red-rings-approve",
+    "small-trees-appear",
     "smart-bags-fetch",
+    "ten-keys-argue",
     "two-brooms-draw"
   ]
 }

@@ -36,7 +36,7 @@ async function main() {
   mkdirSync(CKB_CWD, { recursive: true });
   mkdirSync(LIGHT_CLIENT_CWD, { recursive: true });
 
-  const ckbReleaseUrl = ckb.getReleaseUrl();
+  const ckbReleaseUrl = ckb.getReleaseUrl({ version: "v0.111.0" });
   const ckbDownloadDest = getDefaultDownloadDestination(ckbReleaseUrl);
   let ckbBinaryPath = ckb.findBinaryPath(ckbDownloadDest);
 
@@ -102,6 +102,7 @@ async function main() {
     cwd: LIGHT_CLIENT_CWD,
   });
 
+  // TODO uncomment me when the light client is available for CKB2023
   const lightClientProcess = spawn(
     lightClientBinaryPath,
     ["run", "--config-file", join(LIGHT_CLIENT_CWD, "light-client.toml")],
@@ -124,6 +125,7 @@ async function main() {
 
   console.info("Light Client started, tip header:", lightClientTip);
 
+  // TODO uncomment me when the light client is available for CKB2023
   execSync("npx ava '**/*.e2e.test.ts' --verbose --timeout=5m", {
     cwd: pathTo("/"),
     stdio: "inherit",

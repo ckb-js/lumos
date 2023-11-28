@@ -6,11 +6,11 @@
 // |  0x02       | full version with hashType = "Data", deprecated             |
 // |  0x04       | full version with hashType = "Type", deprecated             |
 
-import { Address, Script } from "@ckb-lumos/base";
+import { Address, Script, blockchain } from "@ckb-lumos/base";
+import { bytes } from "@ckb-lumos/codec";
 import { getConfig } from "@ckb-lumos/config-manager";
 import { bech32, bech32m } from "bech32";
 import { Options } from ".";
-import { byteArrayToHex } from "./utils";
 
 const BECH32_LIMIT = 1023;
 
@@ -62,17 +62,9 @@ export function parseFullFormatAddress(
     throw new Error("Invalid payload length, too short!");
   }
 
-  const codeHash = byteArrayToHex(body.slice(0, 32));
-  const hashType = (() => {
-    const serializedHashType = body[32];
-
-    if (serializedHashType === 0) return "data";
-    if (serializedHashType === 1) return "type";
-    if (serializedHashType === 2) return "data1";
-
-    throw new Error(`Invalid hashType ${serializedHashType}`);
-  })();
-  const args = byteArrayToHex(body.slice(33));
+  const codeHash = bytes.hexify(body.slice(0, 32));
+  const hashType = blockchain.HashType.unpack(body.slice(32, 33));
+  const args = bytes.hexify(body.slice(33));
 
   return { codeHash, hashType, args };
 }
@@ -112,7 +104,7 @@ export function parseDeprecatedCkb2019Address(
       return {
         codeHash: scriptTemplate.CODE_HASH,
         hashType: scriptTemplate.HASH_TYPE,
-        args: byteArrayToHex(argsBytes),
+        args: bytes.hexify(argsBytes),
       };
     }
     // payload = 0x02 | codeHash | args
@@ -121,9 +113,9 @@ export function parseDeprecatedCkb2019Address(
         throw Error(`Invalid payload length!`);
       }
       return {
-        codeHash: byteArrayToHex(body.slice(0, 32)),
+        codeHash: bytes.hexify(body.slice(0, 32)),
         hashType: "data",
-        args: byteArrayToHex(body.slice(32)),
+        args: bytes.hexify(body.slice(32)),
       };
     }
     // payload = 0x04 | codeHash | args
@@ -132,9 +124,9 @@ export function parseDeprecatedCkb2019Address(
         throw Error(`Invalid payload length!`);
       }
       return {
-        codeHash: byteArrayToHex(body.slice(0, 32)),
+        codeHash: bytes.hexify(body.slice(0, 32)),
         hashType: "type",
-        args: byteArrayToHex(body.slice(32)),
+        args: bytes.hexify(body.slice(32)),
       };
     }
   }

@@ -1,4 +1,5 @@
 import type * as api from "@ckb-lumos/base";
+
 /**
  * @see https://github.com/nervosnetwork/ckb/blob/develop/protocol/src/protocol.fbs for more infGomation
  */
@@ -10,6 +11,7 @@ export namespace CKBComponents {
   export type Hash256 = string;
   export type UInt32 = string;
   export type UInt64 = string;
+  export type U256 = string;
 
   export type Index = string;
   export type Version = string;
@@ -27,13 +29,14 @@ export namespace CKBComponents {
   export type RationalU256 = Record<"denom" | "numer", string>;
   export type ProposalWindow = Record<"closest" | "farthest", BlockNumber>;
   export type EpochNumberWithFraction = string;
+  export type EpochNumber = string;
   export enum TransactionStatus {
     Pending = "pending",
     Proposed = "proposed",
     Committed = "committed",
   }
 
-  export type ScriptHashType = "data" | "type" | "data1";
+  export type ScriptHashType = api.HashType;
 
   export type DepType = "code" | "depGroup";
   export type JsonBytes = string;
@@ -47,8 +50,6 @@ export namespace CKBComponents {
   export type Since = string;
   export interface Node {
     url: string;
-    httpAgent?: any;
-    httpsAgent?: any;
   }
   export interface Method {
     name: string;
@@ -69,8 +70,9 @@ export namespace CKBComponents {
   export type CellDep = api.CellDep;
   export type RawTransaction = api.RawTransaction & { witnesses: Witness[] };
   export type Transaction = Required<api.Transaction>;
-  export type TransactionWithStatus = api.TransactionWithStatus;
-  export type BlockHeader = api.Header;
+  export type TransactionWithStatus<Tx = Transaction> =
+    api.TransactionWithStatus<Tx>;
+  export type BlockHeader<T = api.Header> = T;
   export type Block = api.Block;
   export type UncleBlock = api.UncleBlock;
   export type LiveCell = api.LiveCell;
@@ -90,6 +92,14 @@ export namespace CKBComponents {
   export type TxPoolVerbosity = api.TxPoolVerbosity;
   export type RawTxPool = api.RawTxPool;
   export type Consensus = api.Consensus;
+  export type HardForks = api.HardForks;
+  export type HardForkFeature = api.HardforkFeature;
+  export type SoftForkStatus = api.SoftForkStatus;
+  export type SoftFork = api.SoftFork;
+  export type Buried = api.Buried;
+  export type Rfc0043 = api.Rfc0043;
+  export type Ratio = api.Ratio;
+  export type Deployment = api.Deployment;
   export type QueryOptions = api.QueryOptions;
 
   export interface TransactionPoint {
@@ -291,6 +301,7 @@ export namespace CKBComponents {
     uncles: UncleBlock[];
     transactions: TransactionView[];
     proposals: ProposalShortId[];
+    extension: Hash;
   }
 
   export type SerializedBlock = api.HexString;
@@ -303,4 +314,9 @@ export namespace CKBComponents {
   export interface EstimateCycles {
     cycles: UInt64;
   }
+
+  export type DeploymentPos = api.DeploymentPos;
+  export type DeploymentState = api.DeploymentState;
+  export type DeploymentInfo = api.DeploymentInfo;
+  export type DeploymentsInfo = api.DeploymentsInfo;
 }

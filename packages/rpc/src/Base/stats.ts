@@ -6,4 +6,9 @@ export default {
     paramsFormatters: [],
     resultFormatters: resultFmts.toBlockchainInfo,
   },
+  getDeploymentsInfo: {
+    method: "get_deployments_info",
+    paramsFormatters: [],
+    resultFormatters: resultFmts.toDeploymentsInfo,
+  },
 };

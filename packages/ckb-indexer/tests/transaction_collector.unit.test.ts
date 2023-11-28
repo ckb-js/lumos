@@ -308,5 +308,7 @@ function mockTxWithStatus({
       cellDeps: [],
     },
     txStatus: { status: "committed" },
+    timeAddedToPool: null,
+    cycles: null,
   };
 }
