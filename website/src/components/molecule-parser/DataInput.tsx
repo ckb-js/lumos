@@ -4,7 +4,7 @@ import Paper from "@mui/material/Paper"
 import InputLabel from "@mui/material/InputLabel"
 import { styled } from "@mui/material/styles"
 import TextareaAutosize from "@mui/material/TextareaAutosize"
-import { BytesCodec } from "@ckb-lumos/codec/lib/base"
+import { BytesCodec } from "@ckb-lumos/codec"
 import { SectionContainer } from "./SectionContainer"
 import { JSONTree } from "react-json-tree"
 

@@ -1,0 +1,31 @@
+{
+  "name": "lumos-playground",
+  "version": "0.21.0-next.0",
+  "private": true,
+  "homepage": "https://github.com/ckb-js/lumos#readme",
+  "bugs": {
+    "url": "https://github.com/ckb-js/lumos/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckb-js/lumos.git"
+  },
+  "license": "MIT",
+  "author": "homura.dev <homura.dev@gmail.com> (https://github.com/homura)",
+  "scripts": {
+    "test": "ava --timeout=2m"
+  },
+  "ava": {
+    "nodeArguments": [
+      "--experimental-import-meta-resolve"
+    ]
+  },
+  "dependencies": {
+    "@ckb-lumos/base": "workspace:*",
+    "@ckb-lumos/bi": "workspace:*",
+    "@ckb-lumos/codec": "workspace:*",
+    "@ckb-lumos/rpc": "workspace:*",
+    "@ckb-lumos/toolkit": "workspace:*",
+    "minimatch": "^9.0.3"
+  }
+}

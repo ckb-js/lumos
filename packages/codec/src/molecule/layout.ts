@@ -46,10 +46,10 @@ export type ObjectCodec<T extends Record<string, BytesCodec>> = BytesCodec<
   PartialNullable<{ [key in keyof T]: PackParam<T[key]> }>
 >;
 
-export interface OptionCodec<T extends BytesCodec>
-  extends BytesCodec<UnpackResult<T> | undefined> {
-  pack: (packable?: PackParam<T>) => Uint8Array;
-}
+export type OptionCodec<Unpacked, Packable = Unpacked> = BytesCodec<
+  Unpacked | undefined,
+  Packable | undefined
+>;
 
 export type ArrayCodec<T extends BytesCodec> = BytesCodec<
   Array<UnpackResult<T>>,
@@ -376,9 +376,11 @@ export function union<T extends Record<string, BytesCodec>>(
  * - if it's not empty, just serialize the inner item (the size is same as the inner item's size).
  * @param itemCodec
  */
-export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
+export function option<Unpacked, Packable>(
+  itemCodec: BytesCodec<Unpacked, Packable>
+): OptionCodec<Unpacked, Packable> {
   return createBytesCodec({
-    pack(obj?) {
+    pack(obj) {
       const nullableCodec = createNullableCodec(itemCodec);
       if (obj !== undefined && obj !== null) {
         return nullableCodec.pack(obj);

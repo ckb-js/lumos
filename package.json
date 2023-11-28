@@ -1,7 +1,8 @@
 {
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "devtools/*"
   ],
   "engines": {
     "node": ">=12.0.0"
@@ -23,6 +24,7 @@
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
     "ava": "^3.8.2",
+    "babel-plugin-add-import-extension": "^1.6.0",
     "c8": "^7.10.0",
     "eslint": "^8.40.0",
     "eslint-import-resolver-typescript": "^2.7.0",
@@ -30,6 +32,7 @@
     "husky": "^7.0.4",
     "is-ci": "^3.0.1",
     "lint-staged": "^12.3.5",
+    "lumos-build": "0.21.0-next.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
     "shx": "^0.3.4",
@@ -46,7 +49,7 @@
     "e2e-indexer": "cd packages/ckb-indexer && pnpm run test:e2e",
     "integration-test": "cd packages/e2e-test && pnpm run test:e2e",
     "test-coverage": "npx c8 --reporter=cobertura --reporter=html --clean -o coverage pnpm run test",
-    "build:types": "pnpm run -r build:types",
+    "build:types": "pnpm run -r build:all && pnpm run -r build:types",
     "build:js": "pnpm run -r --parallel build:js ",
     "build": "run-p build:*",
     "lint": "run-p lint:* && git diff --exit-code",
@@ -67,6 +70,10 @@
       "prettier --write",
       "eslint -c .eslintrc.next.js --fix",
       "git add"
+    ],
+    "devtoos/lumos-build/src/*.ts": [
+      "pnpm --filter lumos-build build",
+      "git add devtools/lumos-build/bin/*"
     ],
     "website/{docs,src}/**/*.{js,ts,md}": [
       "prettier --write",

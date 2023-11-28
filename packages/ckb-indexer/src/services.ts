@@ -7,8 +7,8 @@ import type * as RPCType from "./rpcType";
 import { toSearchKey } from "./resultFormatter";
 import { unwrapScriptWrapper } from "./ckbIndexerFilter";
 import { ResultFormatter } from "@ckb-lumos/rpc";
-import { RPC as RpcTypes } from "@ckb-lumos/rpc/lib/types/rpc";
-import { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
+import { RPC as RpcTypes } from "@ckb-lumos/rpc/types/rpc";
+import { CKBComponents } from "@ckb-lumos/rpc/types/api";
 
 const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   let script: RPCType.Script | undefined = undefined;

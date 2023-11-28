@@ -22,6 +22,7 @@ const scopeEnumValues = [
   "utils",
   "runner",
   "e2e-test",
+  "crypto",
 ];
 const Configuration = {
   extends: ["@commitlint/config-conventional"],

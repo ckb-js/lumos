@@ -9,7 +9,8 @@
     "packages/e2e-test",
     "packages/testkit",
     "packages/molecule",
-    "packages/toolkit"
+    "packages/toolkit",
+    "packages/crypto"
   ],
   "logLevel": "Verbose",
   "skipErrorChecking": true,

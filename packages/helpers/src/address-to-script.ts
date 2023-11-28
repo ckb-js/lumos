@@ -10,7 +10,7 @@ import { Address, Script, blockchain } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
 import { getConfig } from "@ckb-lumos/config-manager";
 import { bech32, bech32m } from "bech32";
-import { Options } from "./";
+import { Options } from ".";
 
 const BECH32_LIMIT = 1023;
 

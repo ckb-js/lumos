@@ -3,7 +3,7 @@ import { TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { Hash, Header, HexString, OutPoint } from "@ckb-lumos/base";
 import { CKBDebugger } from "./executor";
 import { LocaleCode } from "./context";
-import type { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
+import type { RPC } from "@ckb-lumos/rpc/types/rpc";
 
 export interface ExecuteResult {
   code: number;

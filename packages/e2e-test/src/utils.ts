@@ -3,7 +3,9 @@ import { encodeToAddress } from "@ckb-lumos/helpers";
 import { randomBytes } from "crypto";
 import { key } from "@ckb-lumos/hd";
 import { getConfig } from "@ckb-lumos/config-manager";
-import { hexify } from "@ckb-lumos/codec/lib/bytes";
+import { bytes } from "@ckb-lumos/codec";
+
+const hexify = bytes.hexify;
 
 // secp256k1 private key is 32-bytes length
 export const generateRandomPrivateKey = (): string => hexify(randomBytes(32));

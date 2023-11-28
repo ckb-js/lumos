@@ -44,7 +44,6 @@ resolve: {
     buffer: require.resolve('buffer/'),
     stream: require.resolve('stream-browserify'),
     path: require.resolve('path-browserify'),
-    crypto: require.resolve('crypto-browserify'),
   },
   plugins: [
     new webpack.ProvidePlugin({
@@ -55,4 +54,4 @@ resolve: {
 }
 ```
 
-You'll need to install `buffer`, `stream-browserify`, `path-browserify` and `crypto-browserify` also.
+You'll need to install `buffer`, `stream-browserify`, `path-browserify` also.

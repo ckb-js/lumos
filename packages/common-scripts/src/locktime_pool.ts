@@ -45,7 +45,7 @@ const {
 import { List, Set } from "immutable";
 import { getConfig, Config } from "@ckb-lumos/config-manager";
 import { secp256k1Blake160Multisig } from ".";
-import { parseSinceCompatible } from "@ckb-lumos/base/lib/since";
+import { parseSinceCompatible } from "@ckb-lumos/base/since";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { CellCollectorConstructor } from "./type";
 import { RPC } from "@ckb-lumos/rpc";

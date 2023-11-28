@@ -3,7 +3,7 @@ import express, { Express } from "express";
 import bodyParser from "body-parser";
 import { blockchain, LocalNode, utils } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
-import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
+import { RPC } from "@ckb-lumos/rpc/types/rpc";
 import TransactionStatus = RPC.TransactionStatus;
 
 interface Options {

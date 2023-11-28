@@ -1,5 +1,5 @@
-import { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
-import { RPC } from "@ckb-lumos/rpc/lib/types/rpc";
+import { CKBComponents } from "@ckb-lumos/rpc/types/api";
+import { RPC } from "@ckb-lumos/rpc/types/rpc";
 import { ParamsFormatter, ResultFormatter } from "@ckb-lumos/rpc";
 import type {
   FetchHeaderResult,

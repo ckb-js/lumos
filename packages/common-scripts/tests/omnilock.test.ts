@@ -1,7 +1,7 @@
 import test from "ava";
 import { Config } from "@ckb-lumos/config-manager";
 import hd from "@ckb-lumos/hd";
-import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
+import { computeScriptHash } from "@ckb-lumos/base/utils";
 import { Script } from "@ckb-lumos/base";
 import * as helpers from "@ckb-lumos/helpers";
 import { CKBDebuggerDownloader } from "@ckb-lumos/debugger";
@@ -9,12 +9,13 @@ import {
   createTestContext,
   getDefaultConfig,
 } from "@ckb-lumos/debugger/lib/context";
-import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { common, omnilock } from "../src";
-import { WitnessArgs } from "@ckb-lumos/codec/lib/blockchain";
+import { WitnessArgs } from "@ckb-lumos/base/blockchain";
 import { CellProvider } from "./cell_provider";
 import { charlesOmnilockInputs } from "./inputs";
 import { bytes } from "@ckb-lumos/codec";
+
+const { hexify } = bytes;
 
 const downloader = new CKBDebuggerDownloader();
 const context = createTestContext(getDefaultConfig());

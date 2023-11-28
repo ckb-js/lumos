@@ -327,7 +327,7 @@ bytes.hexify(
 
 ```typescript
 import { serializeStruct } from "@nervosnetwork/ckb-sdk-utils"
-import { fixvec } from "@ckb-lumos/codec/lib/molecule/layout"
+import { fixvec } from "@ckb-lumos/codec/molecule"
 import { number, bytes } from "@ckb-lumos/codec"
 
 // before
@@ -342,7 +342,7 @@ bytes.hexify(fixvecCodec.pack([0x12])) // 0x0100000012
 
 ```typescript
 import { serializeDynVec } from "@nervosnetwork/ckb-sdk-utils"
-import { dynvec } from "@ckb-lumos/codec/lib/molecule/layout"
+import { dynvec } from "@ckb-lumos/codec/molecule"
 import { bytes, createBytesCodec } from "@ckb-lumos/codec"
 
 // before
@@ -365,7 +365,7 @@ bytes.hexify(dynvecCodec.pack(["0x02001234", "0x00000000", "0x02000567", "0x0100
 
 ```typescript
 import { serializeTable } from "@nervosnetwork/ckb-sdk-utils"
-import { table } from "@ckb-lumos/codec/lib/molecule/layout"
+import { table } from "@ckb-lumos/codec/molecule"
 import { bytes, number, createBytesCodec } from "@ckb-lumos/codec"
 
 // before
@@ -390,7 +390,7 @@ bytes.hexify(tableCodec.pack({ f1: "0xab", f2: "0x04030201" })) // 0x110000000c0
 
 ```typescript
 import { serializeOption } from "@nervosnetwork/ckb-sdk-utils"
-import { option } from "@ckb-lumos/codec/lib/molecule/layout"
+import { option } from "@ckb-lumos/codec/molecule"
 import { bytes, createBytesCodec } from "@ckb-lumos/codec"
 
 // before

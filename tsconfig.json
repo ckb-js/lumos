@@ -6,7 +6,7 @@
     "outDir": "./lib",
     "types": ["node"],
     "lib": ["es2020"],
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "strict": true,
     "esModuleInterop": true,
     "sourceMap": true,

@@ -3,7 +3,9 @@ import {
   createBytesCodec,
   BytesLike,
   BytesCodec,
-} from "@ckb-lumos/codec/lib/base";
+  bytes,
+  number,
+} from "@ckb-lumos/codec";
 import {
   array,
   byteVecOf,
@@ -12,11 +14,10 @@ import {
   table,
   union,
   vector,
-} from "@ckb-lumos/codec/lib/molecule";
-import { createFixedHexBytesCodec } from "@ckb-lumos/codec/lib/blockchain";
+} from "@ckb-lumos/codec/molecule";
+import { createFixedHexBytesCodec } from "@ckb-lumos/base/blockchain";
 import { byte, CodecMap, MolType, MolTypeMap } from "./type";
 import { nonNull, toMolTypeMap } from "./utils";
-import { bytes, number } from "@ckb-lumos/codec";
 
 function createHexBytesCodec(): BytesCodec<string, BytesLike> {
   return createBytesCodec({

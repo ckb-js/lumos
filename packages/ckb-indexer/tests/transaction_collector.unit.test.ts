@@ -10,7 +10,7 @@ import {
 } from "./transaction_collector_unit_test_case";
 import { SinonStub, stub } from "sinon";
 import * as services from "../src/services";
-import { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
+import { CKBComponents } from "@ckb-lumos/rpc/types/api";
 import { CkbIndexer } from "../src/indexer";
 import { bytes } from "@ckb-lumos/codec";
 

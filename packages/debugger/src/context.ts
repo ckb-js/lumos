@@ -7,8 +7,8 @@ import { CKBDebuggerDownloader } from "./download";
 import { CKBDebugger } from "./executor";
 import * as fs from "fs";
 import * as path from "path";
-import { hexify } from "@ckb-lumos/codec/lib/bytes";
-import { Uint32 } from "@ckb-lumos/codec/lib/number";
+import { hexify } from "@ckb-lumos/codec/bytes";
+import { Uint32 } from "@ckb-lumos/codec/number";
 
 export function mockOutPoint(): OutPoint {
   return {

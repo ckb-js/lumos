@@ -52,9 +52,5 @@
     "require": [
       "ts-node/register"
     ]
-  },
-  "devDependencies": {
-    "@types/sinon": "^10.0.14",
-    "sinon": "^15.0.4"
   }
 }
