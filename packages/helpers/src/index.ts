@@ -23,7 +23,7 @@ import {
 } from "./address-to-script";
 import { hexToByteArray } from "./utils";
 import { validators } from "@ckb-lumos/toolkit";
-import { HashType } from "@ckb-lumos/base/lib/blockchain";
+import { HashType } from "@ckb-lumos/base/blockchain";
 
 const { bytify, hexify } = bytes;
 export interface Options {
