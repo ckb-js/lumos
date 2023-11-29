@@ -32,12 +32,14 @@ test("async#timeout", async (t) => {
 
 test("async#retry", async (t) => {
   function passOn(times: number): () => Promise<void> {
-    let count = 0;
+    let runTimes = 0;
     return () =>
       new Promise<void>((resolve, reject) => {
-        count++;
-        if (count >= times) resolve();
-        else reject(new Error("Failed"));
+        if (runTimes > times) {
+          return resolve();
+        }
+        runTimes++;
+        reject(new Error("Failed"));
       });
   }
 
@@ -70,4 +72,21 @@ test("async#retry with timeout", async (t) => {
 
   t.true(called);
   t.true(failed);
+});
+
+test("async#retry with delay", async (t) => {
+  const before = Date.now();
+
+  await t.throwsAsync(() =>
+    retry(
+      () => {
+        throw new Error("delay");
+      },
+      { retries: 5, delay: 50, timeout: 1000 }
+    )
+  );
+
+  const after = Date.now();
+
+  t.true(after - before >= 50 * 5);
 });

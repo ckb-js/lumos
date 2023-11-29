@@ -86,12 +86,12 @@ export function retry<T>(
 
   const retryPromise = new Promise<T>((resolve, reject) => {
     function handleError(err: unknown) {
-      currentRetryTimes++;
-
-      if (currentRetryTimes >= retries) {
+      if (currentRetryTimes > retries) {
         reject(err);
         return;
       }
+
+      currentRetryTimes++;
 
       if (delayMs) {
         delay(delayMs).then(retryRun);
