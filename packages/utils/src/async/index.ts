@@ -43,13 +43,22 @@ export function timeout<T>(
     typeof options === "number" ? options : options.milliseconds ?? 1000;
   const message = typeof options === "number" ? undefined : options.message;
 
-  const timeoutPromise = delay(milliseconds).then(() =>
-    Promise.reject(
-      message instanceof Error ? message : createTimeoutError(message)
-    )
-  );
+  return new Promise((resolve, reject) => {
+    const timeoutTask = setTimeout(() => {
+      reject(message instanceof Error ? message : createTimeoutError(message));
+    }, milliseconds);
 
-  return race<T>([promise, timeoutPromise]);
+    promise.then(
+      (value) => {
+        clearTimeout(timeoutTask);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeoutTask);
+        reject(error);
+      }
+    );
+  });
 }
 
 export interface RetryOptions {
@@ -73,20 +82,30 @@ export function retry<T>(
     delay: delayMs = 0,
   } = options;
 
-  let lastErr: unknown;
-  let times = 0;
+  let currentRetryTimes = 0;
 
   const retryPromise = new Promise<T>((resolve, reject) => {
-    function retryRun() {
-      times++;
-      if (times > retries) {
-        reject(lastErr);
+    function handleError(err: unknown) {
+      currentRetryTimes++;
+
+      if (currentRetryTimes >= retries) {
+        reject(err);
         return;
       }
-      Promise.resolve(run()).then(resolve, (e) => {
-        lastErr = e;
+
+      if (delayMs) {
         delay(delayMs).then(retryRun);
-      });
+      } else {
+        retryRun();
+      }
+    }
+
+    function retryRun() {
+      try {
+        Promise.resolve(run()).then(resolve, handleError);
+      } catch (err) {
+        handleError(err);
+      }
     }
 
     retryRun();
