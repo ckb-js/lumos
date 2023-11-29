@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/experiment-tx-assembler",
-  "version": "0.21.0-next.3",
+  "version": "0.21.0",
   "description": "",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
@@ -21,11 +21,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.21.0-next.3",
-    "@ckb-lumos/bi": "0.21.0-next.3",
-    "@ckb-lumos/config-manager": "0.21.0-next.3",
-    "@ckb-lumos/helpers": "0.21.0-next.3",
-    "@ckb-lumos/toolkit": "0.21.0-next.3"
+    "@ckb-lumos/base": "0.21.0",
+    "@ckb-lumos/bi": "0.21.0",
+    "@ckb-lumos/config-manager": "0.21.0",
+    "@ckb-lumos/helpers": "0.21.0",
+    "@ckb-lumos/toolkit": "0.21.0"
   },
   "repository": {
     "type": "git",

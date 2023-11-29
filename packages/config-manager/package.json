@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/config-manager",
-  "version": "0.21.0-next.3",
+  "version": "0.21.0",
   "description": "Config manager for lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -34,9 +34,9 @@
     "url": "https://github.com/ckb-js/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.21.0-next.3",
-    "@ckb-lumos/bi": "0.21.0-next.3",
-    "@ckb-lumos/codec": "0.21.0-next.3",
+    "@ckb-lumos/base": "0.21.0",
+    "@ckb-lumos/bi": "0.21.0",
+    "@ckb-lumos/codec": "0.21.0",
     "@types/deep-freeze-strict": "^1.1.0",
     "deep-freeze-strict": "^1.1.1"
   },
