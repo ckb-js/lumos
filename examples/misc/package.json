@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/lumos": "next"
+    "@ckb-lumos/bi": "canary",
+    "@ckb-lumos/lumos": "canary"
   }
 }
