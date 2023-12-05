@@ -770,6 +770,9 @@ importers:
       '@ckb-lumos/bi':
         specifier: canary
         version: link:../../packages/bi
+      '@ckb-lumos/codec':
+        specifier: canary
+        version: link:../../packages/codec
       '@ckb-lumos/lumos':
         specifier: canary
         version: link:../../packages/lumos
