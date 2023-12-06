@@ -4,48 +4,76 @@ import {
   isCodecExecuteError,
 } from "./error";
 
-const HEX_DECIMAL_REGEX = /^0x([0-9a-fA-F])+$/;
-const HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();
+const CHAR_0 = "0".charCodeAt(0); // 48
+const CHAR_9 = "9".charCodeAt(0); // 57
+const CHAR_A = "A".charCodeAt(0); // 65
+const CHAR_F = "F".charCodeAt(0); // 70
+const CHAR_a = "a".charCodeAt(0); // 97
+const CHAR_f = "f".charCodeAt(0); // 102
 
-export function assertHexDecimal(str: string, byteLength?: number): void {
-  if (byteLength) {
-    let regex = HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP.get(byteLength);
-    if (!regex) {
-      const newRegex = new RegExp(`^0x([0-9a-fA-F]){1,${byteLength * 2}}$`);
-      HEX_DECIMAL_WITH_BYTELENGTH_REGEX_MAP.set(byteLength, newRegex);
-      regex = newRegex;
-    }
-    if (!regex.test(str)) {
-      throw new Error("Invalid hex decimal!");
-    }
-  } else {
-    if (!HEX_DECIMAL_REGEX.test(str)) {
-      throw new Error("Invalid hex decimal!");
-    }
+function assertStartsWith0x(str: string): void {
+  if (!str || !str.startsWith("0x")) {
+    throw new Error("Invalid hex string");
   }
 }
 
-const HEX_STRING_REGEX = /^0x([0-9a-fA-F][0-9a-fA-F])*$/;
-const HEX_STRING_WITH_BYTELENGTH_REGEX_MAP = new Map<number, RegExp>();
+function assertHexChars(str: string): void {
+  const strLen = str.length;
 
-export function assertHexString(str: string, byteLength?: number): void {
-  if (byteLength) {
-    let regex = HEX_STRING_WITH_BYTELENGTH_REGEX_MAP.get(byteLength);
-    if (!regex) {
-      const newRegex = new RegExp(
-        `^0x([0-9a-fA-F][0-9a-fA-F]){${byteLength}}$`
-      );
-      HEX_STRING_WITH_BYTELENGTH_REGEX_MAP.set(byteLength, newRegex);
-      regex = newRegex;
+  for (let i = 2; i < strLen; i++) {
+    const char = str[i].charCodeAt(0);
+    if (
+      (char >= CHAR_0 && char <= CHAR_9) ||
+      (char >= CHAR_a && char <= CHAR_f) ||
+      (char >= CHAR_A && char <= CHAR_F)
+    ) {
+      continue;
     }
-    if (!regex.test(str)) {
-      throw new Error("Invalid hex string!");
-    }
-  } else {
-    if (!HEX_STRING_REGEX.test(str)) {
-      throw new Error("Invalid hex string!");
-    }
+
+    throw new Error(`Invalid hex character ${str[i]} in the string ${str}`);
   }
+}
+
+export function assertHexDecimal(str: string, byteLength?: number): void {
+  assertStartsWith0x(str);
+  if (str.length === 2) {
+    throw new Error(
+      "Invalid hex decimal length, should be at least 1 character, the '0x' is incorrect, should be '0x0'"
+    );
+  }
+
+  const strLen = str.length;
+
+  if (typeof byteLength === "number" && strLen > byteLength * 2 + 2) {
+    throw new Error(
+      `Invalid hex decimal length, should be less than ${byteLength} bytes, got ${
+        strLen / 2 - 1
+      } bytes`
+    );
+  }
+
+  assertHexChars(str);
+}
+
+/**
+ * Assert if a string is a valid hex string that is matched with /^0x([0-9a-fA-F][0-9a-fA-F])*$/
+ * @param str
+ * @param byteLength
+ */
+export function assertHexString(str: string, byteLength?: number): void {
+  assertStartsWith0x(str);
+
+  const strLen = str.length;
+
+  if (strLen % 2) {
+    throw new Error("Invalid hex string length, must be even!");
+  }
+
+  if (typeof byteLength === "number" && strLen !== byteLength * 2 + 2) {
+    throw new Error("Invalid hex string length, not match with byteLength!");
+  }
+
+  assertHexChars(str);
 }
 
 export function assertUtf8String(str: string): void {
