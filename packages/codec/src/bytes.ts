@@ -14,22 +14,39 @@ export function bytifyRawString(rawString: string): Uint8Array {
   return new Uint8Array(buffer);
 }
 
+const CHAR_0 = "0".charCodeAt(0); // 48
+const CHAR_9 = "9".charCodeAt(0); // 57
+const CHAR_A = "A".charCodeAt(0); // 65
+const CHAR_F = "F".charCodeAt(0); // 70
+const CHAR_a = "a".charCodeAt(0); // 97
+// const CHAR_f = "f".charCodeAt(0); // 102
+
 function bytifyHex(hex: string): Uint8Array {
   assertHexString(hex);
 
-  hex = hex.slice(2);
-  const uint8s = [];
-  for (let i = 0; i < hex.length; i += 2) {
-    uint8s.push(parseInt(hex.substr(i, 2), 16));
+  const u8a = Uint8Array.from({ length: hex.length / 2 - 1 });
+
+  for (let i = 2, j = 0; i < hex.length; i = i + 2, j++) {
+    const c1 = hex.charCodeAt(i);
+    const c2 = hex.charCodeAt(i + 1);
+
+    // prettier-ignore
+    const n1 = c1 <= CHAR_9 ? c1 - CHAR_0 : c1 <= CHAR_F ? c1 - CHAR_A + 10 : c1 - CHAR_a + 10
+    // prettier-ignore
+    const n2 = c2 <= CHAR_9 ? c2 - CHAR_0 : c2 <= CHAR_F ? c2 - CHAR_A + 10 : c2 - CHAR_a + 10
+
+    u8a[j] = (n1 << 4) | n2;
   }
 
-  return Uint8Array.from(uint8s);
+  return u8a;
 }
 
 function bytifyArrayLike(xs: ArrayLike<number>): Uint8Array {
-  const isValidU8Vec = Array.from(xs).every((v) => v >= 0 && v <= 255);
-  if (!isValidU8Vec) {
-    throw new Error("invalid ArrayLike, all elements must be 0-255");
+  for (let i = 0; i < xs.length; i++) {
+    const v = xs[i];
+    if (v < 0 || v > 255 || !Number.isInteger(v)) {
+      throw new Error("invalid ArrayLike, all elements must be 0-255");
+    }
   }
 
   return Uint8Array.from(xs);
@@ -61,6 +78,10 @@ function equalUint8Array(a: Uint8Array, b: Uint8Array): boolean {
   }
   return true;
 }
+
+const HEX_CACHE = Array.from({ length: 256 }).map((_, i) =>
+  i.toString(16).padStart(2, "0")
+);
 /**
  * convert a {@link BytesLike} to an even length hex string prefixed with "0x"
  * @param buf
@@ -69,9 +90,13 @@ function equalUint8Array(a: Uint8Array, b: Uint8Array): boolean {
  * hexify(Buffer.from([1, 2, 3])) // "0x010203"
  */
 export function hexify(buf: BytesLike): string {
-  const hex = Array.from(bytify(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  let hex = "";
+
+  const u8a = bytify(buf);
+  for (let i = 0; i < u8a.length; i++) {
+    hex += HEX_CACHE[u8a[i]];
+  }
+
   return "0x" + hex;
 }
 
