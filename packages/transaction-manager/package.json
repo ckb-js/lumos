@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/transaction-manager",
-  "version": "0.21.0",
+  "version": "0.21.1",
   "description": "Pending Transactions Manager for lumos",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
@@ -35,11 +35,11 @@
     "url": "https://github.com/ckb-js/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.21.0",
-    "@ckb-lumos/codec": "0.21.0",
-    "@ckb-lumos/ckb-indexer": "0.21.0",
-    "@ckb-lumos/rpc": "0.21.0",
-    "@ckb-lumos/toolkit": "0.21.0",
+    "@ckb-lumos/base": "0.21.1",
+    "@ckb-lumos/codec": "0.21.1",
+    "@ckb-lumos/ckb-indexer": "0.21.1",
+    "@ckb-lumos/rpc": "0.21.1",
+    "@ckb-lumos/toolkit": "0.21.1",
     "immutable": "^4.3.0"
   },
   "publishConfig": {
