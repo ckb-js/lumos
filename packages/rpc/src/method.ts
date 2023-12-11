@@ -1,7 +1,7 @@
 import { IdNotMatchException, ResponseException } from "./exceptions";
 import { CKBComponents } from "./types/api";
 import { RPCConfig } from "./types/common";
-import { AbortController as CrossAbortController } from "abort-controller";
+import AbortController from "abort-controller";
 import fetch_ from "cross-fetch";
 
 export class Method {
@@ -42,8 +42,8 @@ export class Method {
   /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/explicit-module-boundary-types */
   public call = async (...params: (string | number | object)[]) => {
     const payload = this.getPayload(...params);
-    const controller = new CrossAbortController() as AbortController;
-    const signal = controller.signal;
+    const controller = new AbortController();
+    const signal = controller.signal as AbortSignal;
 
     const timeout = setTimeout(() => controller.abort(), this.#config.timeout);
 

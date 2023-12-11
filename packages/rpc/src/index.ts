@@ -10,7 +10,7 @@ import {
 } from "./exceptions";
 import { RPCConfig } from "./types/common";
 import fetch_ from "cross-fetch";
-import { AbortController as CrossAbortController } from "abort-controller";
+import AbortController from "abort-controller";
 
 export const ParamsFormatter = paramsFormatter;
 export const ResultFormatter = resultFormatter;
@@ -134,8 +134,8 @@ export class CKBRPC extends Base {
             }
           });
 
-          const controller = new CrossAbortController() as AbortController;
-          const signal = controller.signal;
+          const controller = new AbortController();
+          const signal = controller.signal as AbortSignal;
 
           const timeout = setTimeout(
             () => controller.abort(),
@@ -147,7 +147,7 @@ export class CKBRPC extends Base {
               method: "POST",
               headers: { "content-type": "application/json" },
               body: JSON.stringify(payload),
-              signal: signal,
+              signal,
             })
             .then((res) => res.json());
 
