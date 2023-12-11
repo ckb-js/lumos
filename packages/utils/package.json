@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/utils",
-  "version": "0.21.0",
+  "version": "0.21.1",
   "private": true,
   "description": "Common utilities",
   "homepage": "https://github.com/ckb-js/lumos#readme",

@@ -1,5 +1,11 @@
 # @ckb-lumos/codec
 
+## 0.21.1
+
+### Patch Changes
+
+- [#580](https://github.com/ckb-js/lumos/pull/580) [`b8e9396`](https://github.com/ckb-js/lumos/commit/b8e9396dd1ab75f54ac71efcd94c523be64c051c) Thanks [@homura](https://github.com/homura)! - improving `hexify` and `bytify` performance
+
 ## 0.21.0
 
 ### Minor Changes

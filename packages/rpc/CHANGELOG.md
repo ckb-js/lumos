@@ -1,5 +1,11 @@
 # @ckb-lumos/rpc
 
+## 0.21.1
+
+### Patch Changes
+
+- [#583](https://github.com/ckb-js/lumos/pull/583) [`ef5d099`](https://github.com/ckb-js/lumos/commit/ef5d099ec670bed1cfb6cfa77cd3b018069650c4) Thanks [@homura](https://github.com/homura)! - fix: `_abortController.AbortController` is not a constructor in browser
+
 ## 0.21.0
 
 ### Minor Changes
