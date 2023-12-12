@@ -222,6 +222,11 @@ test("test union with custom id", (t) => {
 
   // @ts-expect-error
   t.throws(() => union({ key1: Uint8, key2: Uint32LE }, { unknown: 0x1 }));
+  // prettier-ignore
+  t.throws(() => codec.unpack([
+    0x00, 0x00, 0x00, 0x00, // unknown key
+    0x11,
+  ]));
 });
 
 test("test byteOf", (t) => {
