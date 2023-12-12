@@ -131,11 +131,9 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
       }, Uint8Array.from([]));
     },
     unpack(buf) {
-      const result = {} as PartialNullable<
-        {
-          [key in keyof T]: UnpackResult<T[key]>;
-        }
-      >;
+      const result = {} as PartialNullable<{
+        [key in keyof T]: UnpackResult<T[key]>;
+      }>;
       let offset = 0;
 
       fields.forEach((field) => {
@@ -296,11 +294,9 @@ export function table<T extends Record<string, BytesCodec>>(
         );
       }
       if (totalSize <= 4 || fields.length === 0) {
-        return {} as PartialNullable<
-          {
-            [key in keyof T]: UnpackResult<T[key]>;
-          }
-        >;
+        return {} as PartialNullable<{
+          [key in keyof T]: UnpackResult<T[key]>;
+        }>;
       } else {
         const offsets = fields.map((_, index) =>
           Uint32LE.unpack(buf.slice(4 + index * 4, 8 + index * 4))
@@ -315,11 +311,9 @@ export function table<T extends Record<string, BytesCodec>>(
           const itemBuf = buf.slice(start, end);
           Object.assign(obj, { [field]: itemCodec.unpack(itemBuf) });
         }
-        return obj as PartialNullable<
-          {
-            [key in keyof T]: UnpackResult<T[key]>;
-          }
-        >;
+        return obj as PartialNullable<{
+          [key in keyof T]: UnpackResult<T[key]>;
+        }>;
       }
     },
   });
@@ -328,19 +322,28 @@ export function table<T extends Record<string, BytesCodec>>(
 /**
  * Union is a dynamic-size type.
  * Serializing a union has two steps:
- * - Serialize a item type id in bytes as a 32 bit unsigned integer in little-endian. The item type id is the index of the inner items, and it's starting at 0.
+ * - Serialize an item type id in bytes as a 32 bit unsigned integer in little-endian. The item type id is the index of the inner items, and it's starting at 0.
  * - Serialize the inner item.
  * @param itemCodec the union item record
- * @param fields the list of itemCodec's keys. It's also provide an order for pack/unpack.
+ * @param fields the union item keys, can be an array or an object with custom id
+ * @example
+ * // without custom id
+ * union({ cafe: Uint8, bee: Uint8 }, ['cafe', 'bee'])
+ * // with custom id
+ * union({ cafe: Uint8, bee: Uint8 }, { cafe: 0xcafe, bee: 0xbee })
  */
 export function union<T extends Record<string, BytesCodec>>(
   itemCodec: T,
-  fields: (keyof T)[]
+  fields: (keyof T)[] | Record<keyof T, number>
 ): UnionCodec<T> {
+  checkShape(itemCodec, Array.isArray(fields) ? fields : Object.keys(fields));
+
   return createBytesCodec({
     pack(obj) {
+      const availableFields: (keyof T)[] = Object.keys(itemCodec);
+
       const type = obj.type;
-      const typeName = `Union(${fields.join(" | ")})`;
+      const typeName = `Union(${availableFields.join(" | ")})`;
 
       /* c8 ignore next */
       if (typeof type !== "string") {
@@ -350,20 +353,38 @@ export function union<T extends Record<string, BytesCodec>>(
         );
       }
 
-      const fieldIndex = fields.indexOf(type);
-      if (fieldIndex === -1) {
+      const fieldId = Array.isArray(fields)
+        ? fields.indexOf(type)
+        : fields[type];
+
+      if (fieldId < 0) {
         throw new CodecBaseParseError(
           `Unknown union type: ${String(obj.type)}`,
           typeName
         );
       }
-      const packedFieldIndex = Uint32LE.pack(fieldIndex);
+      const packedFieldIndex = Uint32LE.pack(fieldId);
       const packedBody = itemCodec[type].pack(obj.value);
       return concat(packedFieldIndex, packedBody);
     },
     unpack(buf) {
-      const typeIndex = Uint32LE.unpack(buf.slice(0, 4));
-      const type = fields[typeIndex];
+      const fieldId = Uint32LE.unpack(buf.slice(0, 4));
+
+      const type: keyof T | undefined = (() => {
+        if (Array.isArray(fields)) {
+          return fields[fieldId];
+        }
+
+        const entry = Object.entries(fields).find(([, id]) => id === fieldId);
+        return entry?.[0];
+      })();
+
+      if (!type) {
+        throw new Error(
+          `Unknown union field id: ${fieldId}, only ${fields} are allowed`
+        );
+      }
+
       return { type, value: itemCodec[type].unpack(buf.slice(4)) };
     },
   });
