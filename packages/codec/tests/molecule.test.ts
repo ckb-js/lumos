@@ -229,6 +229,10 @@ test("test union with custom id", (t) => {
   ]));
 });
 
+test("test union with duplicated custom id", (t) => {
+  t.throws(() => union({ key1: Uint8, key2: Uint32LE }, { key1: 0, key2: 0 }));
+});
+
 test("test byteOf", (t) => {
   t.deepEqual(byteOf(Uint8).pack(1), bytify([1]));
   t.throws(() => byteOf(Uint16).pack(1));

@@ -338,6 +338,14 @@ export function union<T extends Record<string, BytesCodec>>(
 ): UnionCodec<T> {
   checkShape(itemCodec, Array.isArray(fields) ? fields : Object.keys(fields));
 
+  // check duplicated id
+  if (!Array.isArray(fields)) {
+    const ids = Object.values(fields);
+    if (ids.length !== new Set(ids).size) {
+      throw new Error(`Duplicated id in union: ${ids.join(", ")}`);
+    }
+  }
+
   return createBytesCodec({
     pack(obj) {
       const availableFields: (keyof T)[] = Object.keys(itemCodec);
