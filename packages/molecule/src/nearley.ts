@@ -13,6 +13,7 @@ import {
   ParseOptions,
 } from "./type";
 import { nonNull, toMolTypeMap } from "./utils";
+import { Uint32 } from "@ckb-lumos/codec/lib/number";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const grammar = require("./grammar/mol.js");
@@ -92,9 +93,15 @@ export const checkDependencies = (results: MolType[]): void => {
       }
       case "union": {
         const unionDeps = (molItem as Union).items;
-        unionDeps.forEach((dep: string) => {
-          if (dep !== byte) {
+        unionDeps.forEach((dep) => {
+          if (typeof dep === "string" && dep !== byte) {
             nonNull(map[dep]);
+          }
+          if (Array.isArray(dep)) {
+            const [key, id] = dep;
+            // check if the id is a valid uint32
+            Uint32.pack(id);
+            nonNull(map[key]);
           }
         });
         break;

@@ -45,6 +45,51 @@ test("should parse sample with refs", (t) => {
   );
 });
 
+test("union with custom id", (t) => {
+  const parser = createParser();
+  const withCustomId = parser.parse(`
+    array Uint8 [byte; 1];
+    array Uint16 [byte; 2];
+    array Uint32 [byte; 4];
+    
+    union JSNumber {
+      Uint8: 8,
+      Uint16: 16,
+      Uint32: 32,
+    }
+  `);
+
+  t.deepEqual(
+    withCustomId.JSNumber.pack({ type: "Uint8", value: 1 }),
+    // prettier-ignore
+    Uint8Array.from([
+      0x08, 0x00, 0x00, 0x00, // id should be 8
+      0x01
+    ])
+  );
+
+  const withoutCustomId = parser.parse(`
+    array Uint8 [byte; 1];
+    array Uint16 [byte; 2];
+    array Uint32 [byte; 4];
+    
+    union JSNumber {
+      Uint8,
+      Uint16,
+      Uint32,
+    }
+  `);
+
+  t.deepEqual(
+    withoutCustomId.JSNumber.pack({ type: "Uint8", value: 1 }),
+    // prettier-ignore
+    Uint8Array.from([
+      0x00, 0x00, 0x00, 0x00, // id should be 0
+      0x01
+    ])
+  );
+});
+
 test("should parse blockchain.mol", (t) => {
   const parser = createParser();
   // https://github.com/nervosnetwork/ckb/blob/5a7efe7a0b720de79ff3761dc6e8424b8d5b22ea/util/types/schemas/blockchain.mol
