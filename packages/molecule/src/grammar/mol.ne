@@ -117,20 +117,20 @@ top_level_statement
 
 array_definition
     -> "array" __ identifier _ lbracket _ identifier _ semicolon _ number _ rbracket _ semicolon _ comment_opt
-        {% 
+        {%
             function(data) {
                 return {
                     type: "array",
                     name: data[2].value,
                     item:  data[6].value,
-                    item_count: data[10].value 
+                    item_count: data[10].value
                 };
             }
         %}
 
 vector_definition
      -> "vector" __ identifier _ labracket _ identifier _ rabracket _ semicolon _ comment_opt
-        {% 
+        {%
             function(data) {
                 return {
                     type: "vector",
@@ -142,7 +142,7 @@ vector_definition
 
 option_definition
      -> "option" __ identifier _ lparan _ identifier _ rparan _ semicolon _ comment_opt
-        {% 
+        {%
             function(data) {
                 return {
                     type: "option",
@@ -152,21 +152,35 @@ option_definition
             }
         %}
 
+union_item_decl
+     -> identifier _ ":" _ number
+     {%
+        function (data) {
+            return [data[0].value, Number(data[4].value)]
+        }
+     %}
+     | identifier
+     {%
+        function (data) {
+            return data[0].value
+        }
+    %}
+
 union_definition
-     -> "union" __ identifier _ lbrace _ (multi_line_ws_char _ identifier _ comma _ comment_opt _ multi_line_ws_char):+  _ rbrace
-        {% 
+     -> "union" __ identifier _ lbrace _ (multi_line_ws_char _ union_item_decl _ comma _ comment_opt _ multi_line_ws_char):+  _ rbrace
+        {%
             function(data) {
                 return {
                     type: "union",
                     name: data[2].value,
-                    items:  data[6].map(d => d[2].value),
+                    items:  data[6].map(d => d[2]),
                 };
             }
         %}
 
 struct_definition
      -> "struct" __ identifier _ block_definition
-        {% 
+        {%
             function(data) {
                 return {
                     type: "struct",
@@ -178,7 +192,7 @@ struct_definition
 
 table_definition
      -> "table" __ identifier _ block_definition
-        {% 
+        {%
             function(data) {
                 return {
                     type: "table",

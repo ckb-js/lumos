@@ -12,7 +12,7 @@ import {
 import { Bytes, createFixedHexBytesCodec } from "../src/blockchain";
 import { bytify } from "../src/bytes";
 import test, { ExecutionContext } from "ava";
-import { Uint16, Uint16BE, Uint32, Uint8 } from "../src/number";
+import { Uint16, Uint16BE, Uint32, Uint32LE, Uint8 } from "../src/number";
 import { byteOf } from "../src/molecule";
 import { CodecExecuteError } from "../src/error";
 
@@ -193,6 +193,46 @@ test("test layout-union", (t) => {
   t.throws(() => codec.pack({ type: "unknown", value: [] }));
 });
 
+test("test union with custom id", (t) => {
+  const codec = union(
+    { key1: Uint8, key2: Uint32LE },
+    { key1: 0xaa, key2: 0xbb }
+  );
+
+  // prettier-ignore
+  const case1 = bytify([
+    0xaa, 0x00, 0x00, 0x00, // key1
+    0x11, // value
+  ]);
+
+  t.deepEqual(codec.unpack(case1), { type: "key1", value: 0x11 });
+  t.deepEqual(codec.pack({ type: "key1", value: 0x11 }), case1);
+
+  // prettier-ignore
+  const case2 = bytify([
+    0xbb, 0x00, 0x00, 0x00, // key2
+    0x00, 0x00, 0x00, 0x11, // value u32le
+  ])
+
+  t.deepEqual(codec.unpack(case2), { type: "key2", value: 0x11_00_00_00 });
+  t.deepEqual(codec.pack({ type: "key2", value: 0x11_00_00_00 }), case2);
+
+  // @ts-expect-error
+  t.throws(() => codec.pack({ type: "unknown", value: 0x11 }));
+
+  // @ts-expect-error
+  t.throws(() => union({ key1: Uint8, key2: Uint32LE }, { unknown: 0x1 }));
+  // prettier-ignore
+  t.throws(() => codec.unpack([
+    0x00, 0x00, 0x00, 0x00, // unknown key
+    0x11,
+  ]));
+});
+
+test("test union with duplicated custom id", (t) => {
+  t.throws(() => union({ key1: Uint8, key2: Uint32LE }, { key1: 0, key2: 0 }));
+});
+
 test("test byteOf", (t) => {
   t.deepEqual(byteOf(Uint8).pack(1), bytify([1]));
   t.throws(() => byteOf(Uint16).pack(1));
@@ -316,7 +356,7 @@ test("nested type", (t) => {
     ["byteField", "arrayField", "structField", "fixedVec", "dynVec", "option"]
   );
 
-  const validInput: Parameters<typeof codec["pack"]>[0] = {
+  const validInput: Parameters<(typeof codec)["pack"]>[0] = {
     byteField: 0x1,
     arrayField: [0x2, 0x3, 0x4],
     structField: { f1: 0x5, f2: 0x6 },

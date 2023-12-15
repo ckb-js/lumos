@@ -229,11 +229,25 @@
         },
       },
       {
+        name: "union_item_decl",
+        symbols: ["identifier", "_", { literal: ":" }, "_", "number"],
+        postprocess: function (data) {
+          return [data[0].value, Number(data[4].value)];
+        },
+      },
+      {
+        name: "union_item_decl",
+        symbols: ["identifier"],
+        postprocess: function (data) {
+          return data[0].value;
+        },
+      },
+      {
         name: "union_definition$ebnf$1$subexpression$1",
         symbols: [
           "multi_line_ws_char",
           "_",
-          "identifier",
+          "union_item_decl",
           "_",
           "comma",
           "_",
@@ -251,7 +265,7 @@
         symbols: [
           "multi_line_ws_char",
           "_",
-          "identifier",
+          "union_item_decl",
           "_",
           "comma",
           "_",
@@ -287,7 +301,7 @@
           return {
             type: "union",
             name: data[2].value,
-            items: data[6].map((d) => d[2].value),
+            items: data[6].map((d) => d[2]),
           };
         },
       },

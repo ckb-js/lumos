@@ -1,8 +1,8 @@
 import {
-  FixedBytesCodec,
-  createBytesCodec,
-  BytesLike,
   BytesCodec,
+  BytesLike,
+  createBytesCodec,
+  FixedBytesCodec,
 } from "@ckb-lumos/codec/lib/base";
 import {
   array,
@@ -46,7 +46,7 @@ export const toCodec = (
   }
   const molType: MolType = molTypeMap[key];
   nonNull(molType);
-  let codec = null;
+  let codec: BytesCodec | null = null;
   switch (molType.type) {
     case "array": {
       if (molType.name.startsWith("Uint")) {
@@ -104,21 +104,42 @@ export const toCodec = (
       break;
     }
     case "union": {
-      const unionCodecs: Record<string, BytesCodec> = {};
-      molType.items.forEach((itemMolTypeName) => {
-        if (itemMolTypeName === byte) {
-          unionCodecs[itemMolTypeName] = createFixedHexBytesCodec(1);
+      // Tuple of [UnionFieldName, UnionFieldId, UnionTypeCodec]
+      const unionCodecs: [string, number, BytesCodec][] = [];
+
+      molType.items.forEach((unionTypeItem, index) => {
+        if (unionTypeItem === byte) {
+          unionCodecs.push([unionTypeItem, index, createFixedHexBytesCodec(1)]);
         } else {
-          const itemMolType = toCodec(
-            itemMolTypeName,
-            molTypeMap,
-            result,
-            refs
-          );
-          unionCodecs[itemMolTypeName] = itemMolType;
+          if (typeof unionTypeItem === "string") {
+            const itemMolType = toCodec(
+              unionTypeItem,
+              molTypeMap,
+              result,
+              refs
+            );
+            unionCodecs.push([unionTypeItem, index, itemMolType]);
+          } else if (Array.isArray(unionTypeItem)) {
+            const [key, fieldId] = unionTypeItem;
+
+            const itemMolType = toCodec(key, molTypeMap, result, refs);
+            unionCodecs.push([key, fieldId, itemMolType]);
+          }
         }
       });
-      codec = union(unionCodecs, Object.keys(unionCodecs));
+
+      const unionFieldsCodecs: Record<string, BytesCodec> = unionCodecs.reduce(
+        (codecMap, [fieldName, _fieldId, fieldCodec]) =>
+          Object.assign(codecMap, { [fieldName]: fieldCodec }),
+        {}
+      );
+      const unionFieldIds: Record<string, number> = unionCodecs.reduce(
+        (idMap, [fieldName, fieldId, _fieldCodec]) =>
+          Object.assign(idMap, { [fieldName]: fieldId }),
+        {}
+      );
+
+      codec = union(unionFieldsCodecs, unionFieldIds);
       break;
     }
     case "table": {

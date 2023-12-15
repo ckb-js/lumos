@@ -27,7 +27,7 @@ export type Option = {
 export type Union = {
   type: "union";
   name: string;
-  items: string[];
+  items: (string | [string, number])[];
 };
 
 export type Struct = {

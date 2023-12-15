@@ -525,3 +525,28 @@ test("should unpack only one WitnessArgs", (t) => {
     }
   );
 });
+
+test("checkDependencies should work correctly with union", (t) => {
+  checkDependencies([
+    { type: "array", name: "Uint8", item: "byte", item_count: 1 },
+    { type: "array", name: "Uint16", item: "byte", item_count: 2 },
+    { type: "array", name: "Uint32", item: "byte", item_count: 4 },
+
+    // without custom id
+    { type: "union", name: "Test1", items: ["Uint8", "Uint16", "Uint32"] },
+    // prettier-ignore
+    // with custom id
+    { type: "union", name: "Test2", items: [["Uint8", 111], ["Uint16", 222], ["Uint32", 333]] },
+  ]);
+
+  t.pass();
+});
+
+test("checkDependencies should throw when id is larger than uint32", (t) => {
+  t.throws(() =>
+    checkDependencies([
+      { type: "array", name: "Uint8", item: "byte", item_count: 1 },
+      { type: "union", name: "Test", items: [["Uint8", 0xff_ff_ff_ff + 1]] },
+    ])
+  );
+});
