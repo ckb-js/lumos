@@ -1,5 +1,11 @@
 # @ckb-lumos/codec
 
+## 0.22.0-next.0
+
+### Minor Changes
+
+- [#586](https://github.com/ckb-js/lumos/pull/586) [`ee8a352`](https://github.com/ckb-js/lumos/commit/ee8a35272bb1794794fc195c5b2bc7f0985c5da3) Thanks [@homura](https://github.com/homura)! - feat: supported union works with custom id
+
 ## 0.21.1
 
 ### Patch Changes
