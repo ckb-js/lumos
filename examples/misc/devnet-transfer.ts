@@ -3,7 +3,7 @@
 //  it does NOT contain all common configs, such as Anyone-can-pay, Omnilock, etc. that are deployed after genesis.
 
 import { commons, config, hd, helpers, Indexer, RPC } from "@ckb-lumos/lumos";
-import { parseUnit } from "@ckb-lumos/bi";
+import { parseUnit } from "@ckb-lumos/lumos/utils";
 
 const debug = (...args: unknown[]) => console.log(new Date().toJSON(), "[info]", ...args);
 
