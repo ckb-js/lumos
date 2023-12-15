@@ -9,14 +9,6 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "directories": {
-    "lib": "lib",
-    "test": "tests"
-  },
-  "files": [
-    "lib",
-    "src"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ckb-js/lumos.git"
@@ -26,8 +18,7 @@
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
     "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
-    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
-    "build:umd": "webpack",
+    "build:js": "babel --root-mode upward src --out-dir ./ --extensions .ts -s",
     "clean": "rm -rf lib"
   },
   "bugs": {
@@ -37,21 +28,15 @@
     "@ckb-lumos/base": "0.21.1",
     "@ckb-lumos/bi": "0.21.1",
     "@ckb-lumos/ckb-indexer": "0.21.1",
+    "@ckb-lumos/codec": "0.21.1",
     "@ckb-lumos/common-scripts": "0.21.1",
     "@ckb-lumos/config-manager": "0.21.1",
     "@ckb-lumos/hd": "0.21.1",
     "@ckb-lumos/helpers": "0.21.1",
+    "@ckb-lumos/light-client": "0.21.1",
     "@ckb-lumos/rpc": "0.21.1",
-    "@ckb-lumos/toolkit": "0.21.1"
-  },
-  "devDependencies": {
-    "buffer": "^6.0.3",
-    "crypto-browserify": "^3.12.0",
-    "fork-ts-checker-webpack-plugin": "^6.4.0",
-    "ts-loader": "^9.2.6",
-    "unminified-webpack-plugin": "^3.0.0",
-    "webpack": "^5.64.1",
-    "webpack-cli": "^4.9.1"
+    "@ckb-lumos/toolkit": "0.21.1",
+    "@ckb-lumos/transaction-manager": "0.21.1"
   },
   "publishConfig": {
     "access": "public"
