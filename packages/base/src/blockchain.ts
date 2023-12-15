@@ -50,6 +50,7 @@ export const Bytes = byteVecOf({ pack: bytify, unpack: hexify });
 
 export const BytesOpt = option(Bytes);
 export const BytesVec = vector(Bytes);
+export const BytesOptVec = vector(BytesOpt);
 export const Byte32 = createFixedHexBytesCodec(32);
 export const Byte32Vec = vector(Byte32);
 
