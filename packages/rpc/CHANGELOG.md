@@ -1,5 +1,7 @@
 # @ckb-lumos/rpc
 
+## 0.22.0-next.0
+
 ## 0.21.1
 
 ### Patch Changes
