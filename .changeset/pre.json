@@ -24,5 +24,7 @@
     "@ckb-lumos/transaction-manager": "0.21.1",
     "@ckb-lumos/utils": "0.21.1"
   },
-  "changesets": []
+  "changesets": [
+    "fluffy-rabbits-tell"
+  ]
 }
