@@ -19,14 +19,12 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@ckb-lumos/base": "next",
-    "@ckb-lumos/bi": "next",
-    "@ckb-lumos/codec": "next",
-    "@ckb-lumos/lumos": "next",
-    "@ckb-lumos/molecule": "next",
+    "@ckb-lumos/lumos": "canary",
+    "@ckb-lumos/molecule": "canary",
     "@docusaurus/core": "^3.0.0",
     "@docusaurus/preset-classic": "^3.0.0",
     "@docusaurus/theme-common": "^3.0.0",
+    "@docusaurus/types": "^3.0.0",
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
     "@mdx-js/react": "^3.0.0",

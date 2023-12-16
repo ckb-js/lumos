@@ -12,7 +12,7 @@ import {
   parseMultiVersionAddress,
   ParseResult,
 } from "@site/src/components/address-conversion/parseMultiVersionAddress";
-import { HashType } from "@ckb-lumos/base";
+import { HashType } from "@ckb-lumos/lumos";
 import { MAINNET_CONFIG, TESTNET_CONFIG } from "@site/src/constants";
 import { MultiVersionAddress } from "@site/src/components/address-conversion/MultiVersionAddress";
 import { isMultiVersionAddress } from "@site/src/types";
