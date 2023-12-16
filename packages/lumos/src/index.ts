@@ -38,5 +38,5 @@ export * as helpers from "./helpers";
  * @deprecated Recommended to use `@ckb-lumos/lumos/common-scripts` instead.
  */
 export * as commons from "@ckb-lumos/common-scripts";
-export { BI } from "@ckb-lumos/bi";
+export { BI, BIish } from "@ckb-lumos/bi";
 export { LightClientRPC } from "@ckb-lumos/light-client";

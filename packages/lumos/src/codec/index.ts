@@ -54,3 +54,5 @@ export {
   createNullableCodec,
   isFixedCodec,
 } from "@ckb-lumos/codec";
+
+export { blockchain } from "@ckb-lumos/base";
