@@ -1,3 +1,8 @@
+import { bytify, hexify, concat, equal } from "@ckb-lumos/codec/lib/bytes";
+
+export const bytes = { bytify, hexify, concat, equal };
+export { bytify, hexify, concat, equal };
+
 export type {
   BytesLike,
   AnyCodec,
@@ -43,8 +48,6 @@ export {
   Uint512BE,
   Uint512LE,
 } from "@ckb-lumos/codec/lib/number";
-
-export { bytify, hexify, concat, equal } from "@ckb-lumos/codec/lib/bytes";
 
 export {
   createBytesCodec,

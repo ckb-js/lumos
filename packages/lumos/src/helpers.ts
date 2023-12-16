@@ -17,3 +17,5 @@ export {
   type TransactionSkeletonInterface,
   type TransactionSkeletonObject,
 } from "@ckb-lumos/helpers";
+
+export { addCellDep } from "@ckb-lumos/common-scripts/lib/helper";
