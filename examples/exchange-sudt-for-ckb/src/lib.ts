@@ -1,12 +1,9 @@
-import { Indexer, helpers, Address, Script, RPC, hd, config, Cell, commons, BI } from "@ckb-lumos/lumos";
-import { sudt } from "@ckb-lumos/common-scripts";
-import { BIish } from "@ckb-lumos/bi";
-import { payFeeByFeeRate } from "@ckb-lumos/common-scripts/lib/common";
-import { addCellDep } from "@ckb-lumos/common-scripts/lib/helper";
+import { Indexer, helpers, Address, Script, RPC, hd, config, Cell, commons, BI, BIish } from "@ckb-lumos/lumos";
+import { sudt, common } from "@ckb-lumos/lumos/common-scripts";
+import { addCellDep } from "@ckb-lumos/lumos/helpers";
+import { hexify, Uint128, blockchain } from "@ckb-lumos/lumos/codec";
+import { computeScriptHash } from "@ckb-lumos/lumos/utils";
 import { List } from "immutable";
-import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
-import { bytes } from "@ckb-lumos/codec";
-import { blockchain } from "@ckb-lumos/base";
 
 export const { AGGRON4 } = config.predefined;
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
@@ -53,7 +50,7 @@ export const issueSUDT = async (privateKey: string) => {
     config: AGGRON4,
   });
 
-  txSkeleton = await payFeeByFeeRate(txSkeleton, [account.address], 1000, undefined, { config: AGGRON4 });
+  txSkeleton = await common.payFeeByFeeRate(txSkeleton, [account.address], 1000, undefined, { config: AGGRON4 });
   const tx = signTx(txSkeleton, [privateKey]);
 
   const txHash = await rpc.sendTransaction(tx, "passthrough");
@@ -122,7 +119,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
         break;
       }
       inputs = inputs.push(cell);
-      total = total.add(sudt.unpackAmount(cell.data));
+      total = total.add(Uint128.unpack(cell.data));
     }
     return inputs;
   });
@@ -146,7 +143,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
       lock: holderAccountInfo.lockScript,
       type: issuerTypeScript,
     },
-    data: sudt.packAmount(SUDTAmount),
+    data: hexify(Uint128.pack(SUDTAmount)),
   };
 
   console.log(calculateSUDTAmountSum(issuerSUDTCells).toBigInt());
@@ -157,7 +154,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
       lock: issuerAccountInfo.lockScript,
       type: issuerTypeScript,
     },
-    data: sudt.packAmount(calculateSUDTAmountSum(issuerSUDTCells).sub(SUDTAmount)),
+    data: hexify(Uint128.pack(calculateSUDTAmountSum(issuerSUDTCells).sub(SUDTAmount))),
   };
 
   SUDTTargetOutput.cellOutput.capacity = BI.from(helpers.minimalCellCapacity(SUDTTargetOutput)).toHexString();
@@ -238,7 +235,7 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
       lock: "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
     };
 
-    const witnessArgs = bytes.hexify(blockchain.WitnessArgs.pack(placeholderWitness));
+    const witnessArgs = hexify(blockchain.WitnessArgs.pack(placeholderWitness));
 
     for (let index = 0; index < txSkeleton.inputs.size; index++) {
       witnesses = witnesses.push(witnessArgs);
@@ -248,7 +245,9 @@ export async function transferCKB2SUDT(issuerPrivateKey: string, holderPrivateKe
   });
 
   console.log(txSkeleton.toJS());
-  txSkeleton = await payFeeByFeeRate(txSkeleton, [holderAccountInfo.address], 1000, undefined, { config: AGGRON4 });
+  txSkeleton = await common.payFeeByFeeRate(txSkeleton, [holderAccountInfo.address], 1000, undefined, {
+    config: AGGRON4,
+  });
 
   // STEP2: sign the transaction skeleton
   const tx = signTx(txSkeleton, [issuerPrivateKey, holderPrivateKey, issuerPrivateKey]);
@@ -274,7 +273,7 @@ export function calculateSUDTAmountSum(cells: Cell[]) {
   let amount = BI.from(0);
   for (const cell of cells) {
     if (cell.cellOutput.type?.codeHash === AGGRON4.SCRIPTS.SUDT.CODE_HASH) {
-      amount = amount.add(sudt.unpackAmount(cell.data));
+      amount = amount.add(Uint128.unpack(cell.data));
     }
   }
 
@@ -310,7 +309,7 @@ export async function fetchSUDTBalance(address: string, issuerLockScript: Script
   let amount = BI.from(0);
 
   for await (const cell of collector.collect()) {
-    amount = amount.add(sudt.unpackAmount(cell.data));
+    amount = amount.add(Uint128.unpack(cell.data));
   }
   return amount;
 }

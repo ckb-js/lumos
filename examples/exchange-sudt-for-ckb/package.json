@@ -16,10 +16,6 @@
     "typescript": "5.0.4"
   },
   "dependencies": {
-    "@ckb-lumos/base": "canary",
-    "@ckb-lumos/bi": "canary",
-    "@ckb-lumos/codec": "canary",
-    "@ckb-lumos/common-scripts": "canary",
     "@ckb-lumos/lumos": "canary",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",

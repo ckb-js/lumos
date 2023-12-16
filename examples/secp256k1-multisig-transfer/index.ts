@@ -1,10 +1,6 @@
-import { bytes } from "@ckb-lumos/codec";
-import { Indexer, helpers, Script, RPC, hd, config, Cell, commons, WitnessArgs, BI } from "@ckb-lumos/lumos";
-import { values, blockchain } from "@ckb-lumos/base";
-import { parseFromInfo, MultisigScript } from "@ckb-lumos/common-scripts/lib/from_info";
-import { BIish } from "@ckb-lumos/bi";
-
-const { ScriptValue } = values;
+import { Indexer, helpers, Script, RPC, hd, config, Cell, commons, WitnessArgs, BI, BIish } from "@ckb-lumos/lumos";
+import { bytes, blockchain } from "@ckb-lumos/lumos/codec";
+import { parseFromInfo, MultisigScript } from "@ckb-lumos/lumos/common-scripts";
 
 const { AGGRON4 } = config.predefined;
 
@@ -123,9 +119,7 @@ export async function transfer(options: Options): Promise<string> {
   const firstIndex = txSkeleton
     .get("inputs")
     .findIndex((input) =>
-      new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
-        new ScriptValue(fromScript, { validate: false })
-      )
+      bytes.equal(blockchain.Script.pack(input.cellOutput.lock), blockchain.Script.pack(fromScript))
     );
   if (firstIndex !== -1) {
     while (firstIndex >= txSkeleton.get("witnesses").size) {

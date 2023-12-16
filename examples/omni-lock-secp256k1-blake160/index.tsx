@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { helpers, Script } from "@ckb-lumos/lumos";
-import { key } from '@ckb-lumos/hd';
+import { Script, hd } from "@ckb-lumos/lumos";
 import { ec as EC } from "elliptic";
 import ReactDOM from "react-dom";
 import { capacityOf, CONFIG, buildTransfer, signByPrivateKey, sendTransaction } from "./lib";
+import { encodeToAddress } from "@ckb-lumos/lumos/helpers";
 
 const app = document.getElementById("root");
 ReactDOM.render(<App />, app);
@@ -26,17 +26,10 @@ export function Connect({ onConnect }: ConnectProps) {
     <div>
       <input value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} placeholder="0x..." />
 
-      <button 
-        onClick={genRandomKeyPair} 
-        style={{ marginLeft: 8 }}
-      >
+      <button onClick={genRandomKeyPair} style={{ marginLeft: 8 }}>
         generatePrivateKey
       </button>
-      <button
-        onClick={() => onConnect(privateKey)}
-        disabled={privateKey === ""}
-        style={{ marginLeft: 8 }}
-      >
+      <button onClick={() => onConnect(privateKey)} disabled={privateKey === ""} style={{ marginLeft: 8 }}>
         Connect
       </button>
     </div>
@@ -49,14 +42,16 @@ export function App() {
   const [omniLock, setOmniLock] = useState<Script>();
   const [balance, setBalance] = useState("-");
 
-  const [transferAddr, setTransferAddress] = useState("ckt1q3uljza4azfdsrwjzdpea6442yfqadqhv7yzfu5zknlmtusm45hpuq9tv9dma3hzzt8k7a7ekqpkja4saaf2fecq3l3xmk");
+  const [transferAddr, setTransferAddress] = useState(
+    "ckt1q3uljza4azfdsrwjzdpea6442yfqadqhv7yzfu5zknlmtusm45hpuq9tv9dma3hzzt8k7a7ekqpkja4saaf2fecq3l3xmk"
+  );
   const [transferAmount, setTransferAmount] = useState("10000000000");
 
   const [isSendingTx, setIsSendingTx] = useState(false);
   const [txHash, setTxHash] = useState("");
 
   function connectByPrivateKey(pk: string) {
-    const pubkeyHash = key.privateKeyToBlake160(pk);
+    const pubkeyHash = hd.key.privateKeyToBlake160(pk);
 
     const omniLock: Script = {
       codeHash: CONFIG.SCRIPTS.OMNILOCK.CODE_HASH,
@@ -69,11 +64,11 @@ export function App() {
       args: `0x00${pubkeyHash.substring(2)}00`,
     };
 
-    const omniAddr = helpers.generateAddress(omniLock);
+    const omniAddr = encodeToAddress(omniLock);
     setPrivateKey(pk);
     setOmniAddr(omniAddr);
     setOmniLock(omniLock);
-    capacityOf(omniAddr).then(balance => setBalance(balance.div(10 ** 8).toString() + " CKB"))
+    capacityOf(omniAddr).then((balance) => setBalance(balance.div(10 ** 8).toString() + " CKB"));
   }
 
   async function transfer(): Promise<string> {
@@ -81,7 +76,7 @@ export function App() {
 
     const signed = await signByPrivateKey(unsigned, privateKey);
 
-    const txHash = await sendTransaction(signed)
+    const txHash = await sendTransaction(signed);
 
     return txHash;
   }
@@ -89,7 +84,7 @@ export function App() {
   async function onTransfer() {
     if (isSendingTx) return;
     setIsSendingTx(true);
-  
+
     transfer()
       .then(setTxHash)
       .catch((e) => alert(e.message || JSON.stringify(e)))
@@ -110,7 +105,7 @@ export function App() {
 
         <li>Balance: {balance}</li>
 
-        <button onClick={() => setOmniAddr('')}>disconnect</button>
+        <button onClick={() => setOmniAddr("")}>disconnect</button>
       </ul>
 
       <div>
@@ -125,7 +120,14 @@ export function App() {
         <button onClick={onTransfer} disabled={isSendingTx}>
           Transfer
         </button>
-        <p>Tx Hash: {txHash !== '' && <a target='_blank' href={`https://explorer.nervos.org/aggron/transaction/${txHash}`}>{txHash}</a>} </p>
+        <p>
+          Tx Hash:{" "}
+          {txHash !== "" && (
+            <a target="_blank" href={`https://explorer.nervos.org/aggron/transaction/${txHash}`}>
+              {txHash}
+            </a>
+          )}{" "}
+        </p>
       </div>
     </div>
   );

@@ -12,8 +12,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/base": "canary",
-    "@ckb-lumos/codec": "canary",
     "@ckb-lumos/lumos": "canary",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
