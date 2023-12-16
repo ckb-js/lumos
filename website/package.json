@@ -45,6 +45,7 @@
     "@types/numeral": "^2.0.2",
     "@types/react": "^18.2.38",
     "@types/react-dom": "^18.2.17",
+    "crypto-browserify": "^3.12.0",
     "eslint-plugin-react": "^7.30.1"
   },
   "browserslist": {
