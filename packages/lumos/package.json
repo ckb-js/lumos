@@ -2,7 +2,7 @@
   "name": "@ckb-lumos/lumos",
   "version": "0.22.0-next.0",
   "description": "A root package for Lumos",
-  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "author": "Homura <homura.dev@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
