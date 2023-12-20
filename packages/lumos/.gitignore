@@ -1,1 +1,10 @@
-lib
+*
+!src
+!.gitignore
+!.npmignore
+!CHANGELOG.md
+!clean.mjs
+!package.json
+!README.md
+!tsconfig.json
+!typedoc.json
