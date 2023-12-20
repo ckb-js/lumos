@@ -2,4 +2,4 @@
 "@ckb-lumos/lumos": minor
 ---
 
-refactor: refine the export structure
+BREAKING CHANGE: refine the export structure
