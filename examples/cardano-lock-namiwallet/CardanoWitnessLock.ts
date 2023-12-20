@@ -1,14 +1,12 @@
-import { blockchain } from "@ckb-lumos/base";
-import { molecule } from "@ckb-lumos/codec";
+import { blockchain, table } from "@ckb-lumos/lumos/codec";
 
-const { Byte32, Bytes } = blockchain;
 const Byte64 = blockchain.createFixedHexBytesCodec(64);
 
-export const CardanoWitnessLock = molecule.table(
+export const CardanoWitnessLock = table(
   {
-    pubkey: Byte32,
+    pubkey: blockchain.Byte32,
     signature: Byte64,
-    sig_structure: Bytes,
+    sig_structure: blockchain.Bytes,
   },
   ["pubkey", "signature", "sig_structure"]
 );

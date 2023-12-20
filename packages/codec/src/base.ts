@@ -65,7 +65,7 @@ export type BytesCodec<Unpacked = any, Packable = Unpacked> = Codec<
 >;
 
 /**
- * This function helps to create a codec that can
+ * Create a codec to deal with bytes-like data.
  * @param codec
  */
 export function createBytesCodec<Unpacked, Packable = Unpacked>(

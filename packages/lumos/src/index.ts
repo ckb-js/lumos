@@ -14,18 +14,6 @@ export type {
   Script,
 } from "@ckb-lumos/base/lib/api";
 
-import {
-  Reader,
-  validators,
-  normalizers,
-  transformers,
-} from "@ckb-lumos/toolkit";
-
-/**
- * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
- */
-export const toolkit = { Reader, validators, normalizers, transformers };
-
 export type {
   Address,
   Hash,
@@ -37,12 +25,18 @@ export type {
   PackedSince,
 } from "@ckb-lumos/base/lib/primitive";
 
-export { since, utils } from "@ckb-lumos/base";
-export * as config from "@ckb-lumos/config-manager";
+export { since } from "@ckb-lumos/base";
+export * as utils from "./utils";
+export * as config from "./config";
 
 export { RPC } from "@ckb-lumos/rpc";
 export * as hd from "@ckb-lumos/hd";
 export { CellCollector, Indexer } from "@ckb-lumos/ckb-indexer";
-export * as helpers from "@ckb-lumos/helpers";
+
+export * as helpers from "./helpers";
+/**
+ * @deprecated Recommended to use `@ckb-lumos/lumos/common-scripts` instead.
+ */
 export * as commons from "@ckb-lumos/common-scripts";
-export { BI } from "@ckb-lumos/bi";
+export { BI, BIish } from "@ckb-lumos/bi";
+export { LightClientRPC } from "@ckb-lumos/light-client";

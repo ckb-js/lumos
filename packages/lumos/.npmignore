@@ -1,0 +1,5 @@
+node_modules
+.gitignore
+clean.mjs
+tsconfig.json
+typedoc.json

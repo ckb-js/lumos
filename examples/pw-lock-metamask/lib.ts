@@ -1,7 +1,6 @@
 import { BI, Cell, config, helpers, Indexer, RPC, commons } from "@ckb-lumos/lumos";
+import { bytes, blockchain } from "@ckb-lumos/lumos/codec";
 import { default as createKeccak } from "keccak";
-import { bytes } from "@ckb-lumos/codec";
-import { blockchain } from "@ckb-lumos/base";
 
 export const CONFIG = config.createConfig({
   PREFIX: "ckt",

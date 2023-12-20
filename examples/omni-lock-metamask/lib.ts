@@ -1,6 +1,6 @@
-import { bytes } from "@ckb-lumos/codec";
-import { blockchain } from "@ckb-lumos/base";
 import { BI, Cell, helpers, Indexer, RPC, config, commons } from "@ckb-lumos/lumos";
+import { blockchain, bytify, hexify } from "@ckb-lumos/lumos/codec";
+
 const CKB_RPC_URL = "https://testnet.ckb.dev/rpc";
 const rpc = new RPC(CKB_RPC_URL);
 const indexer = new Indexer(CKB_RPC_URL);
@@ -30,7 +30,7 @@ interface Options {
   to: string;
   amount: string;
 }
-const SECP_SIGNATURE_PLACEHOLDER = bytes.hexify(
+const SECP_SIGNATURE_PLACEHOLDER = hexify(
   new Uint8Array(
     commons.omnilock.OmnilockWitnessLock.pack({
       signature: new Uint8Array(65).buffer,
@@ -100,7 +100,7 @@ export async function transfer(options: Options): Promise<string> {
     )
   );
 
-  const witness = bytes.hexify(blockchain.WitnessArgs.pack({ lock: SECP_SIGNATURE_PLACEHOLDER }));
+  const witness = hexify(blockchain.WitnessArgs.pack({ lock: SECP_SIGNATURE_PLACEHOLDER }));
 
   // fill txSkeleton's witness with placeholder
   for (let i = 0; i < tx.inputs.toArray().length; i++) {
@@ -118,10 +118,10 @@ export async function transfer(options: Options): Promise<string> {
   if (v >= 27) v -= 27;
   signedMessage = "0x" + signedMessage.slice(2, -2) + v.toString(16).padStart(2, "0");
 
-  const signedWitness = bytes.hexify(
+  const signedWitness = hexify(
     blockchain.WitnessArgs.pack({
       lock: commons.omnilock.OmnilockWitnessLock.pack({
-        signature: bytes.bytify(signedMessage).buffer,
+        signature: bytify(signedMessage).buffer,
       }),
     })
   );

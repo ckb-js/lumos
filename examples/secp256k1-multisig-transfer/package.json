@@ -12,10 +12,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/base": "next",
-    "@ckb-lumos/bi": "next",
-    "@ckb-lumos/codec": "next",
-    "@ckb-lumos/common-scripts": "next",
-    "@ckb-lumos/lumos": "next"
+    "@ckb-lumos/lumos": "canary"
   }
 }

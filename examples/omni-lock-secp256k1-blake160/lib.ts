@@ -1,6 +1,5 @@
-import { Transaction } from "@ckb-lumos/base";
-import { bytes } from "@ckb-lumos/codec";
-import { BI, config, helpers, Indexer, RPC, commons, hd, Hash } from "@ckb-lumos/lumos";
+import { BI, config, helpers, Indexer, RPC, commons, hd, Hash, Transaction } from "@ckb-lumos/lumos";
+import { hexify } from "@ckb-lumos/lumos/codec";
 
 export const CONFIG = config.predefined.AGGRON4;
 config.initializeConfig(CONFIG);
@@ -40,7 +39,7 @@ export async function signByPrivateKey(txSkeleton: helpers.TransactionSkeletonTy
   txSkeleton = commons.common.prepareSigningEntries(txSkeleton);
   const message = txSkeleton.get("signingEntries").get(0)!.message;
   const signature = hd.key.signRecoverable(message, privateKey);
-  const packedSignature = bytes.hexify(
+  const packedSignature = hexify(
     commons.omnilock.OmnilockWitnessLock.pack({
       signature: signature,
     })

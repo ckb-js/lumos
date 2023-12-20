@@ -12,9 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/base": "next",
-    "@ckb-lumos/codec": "next",
-    "@ckb-lumos/lumos": "next",
+    "@ckb-lumos/lumos": "canary",
     "keccak": "^3.0.1",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",

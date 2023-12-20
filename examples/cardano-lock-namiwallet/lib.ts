@@ -1,5 +1,4 @@
-import { bytes } from "@ckb-lumos/codec";
-import { blockchain } from "@ckb-lumos/base";
+import { hexify, blockchain } from "@ckb-lumos/lumos/codec";
 import { BI, Cell, config, helpers, RPC, commons, Indexer } from "@ckb-lumos/lumos";
 import {
   COSESign1Builder,
@@ -144,7 +143,7 @@ export async function transfer(options: Options): Promise<string> {
     );
 
   const tmpWitnessArgs = blockchain.WitnessArgs.pack({ lock: placeHolder });
-  const witness = bytes.hexify(tmpWitnessArgs);
+  const witness = hexify(tmpWitnessArgs);
 
   for (let i = 0; i < tx.inputs.toArray().length; i++) {
     tx = tx.update("witnesses", (witnesses) => witnesses.push(witness));
@@ -166,7 +165,7 @@ export async function transfer(options: Options): Promise<string> {
   const label = Label.new_int(Int.new_negative(BigNum.from_str("2")));
   const CBORPubkey = signedKey.header(label)!;
 
-  const signedWitnessArgs = bytes.hexify(
+  const signedWitnessArgs = hexify(
     CardanoWitnessLock.pack({
       pubkey: CBORPubkey.as_bytes()!.buffer,
       signature: COSESignature.signature().buffer,
@@ -174,7 +173,7 @@ export async function transfer(options: Options): Promise<string> {
     })
   );
 
-  const signedWitness = bytes.hexify(blockchain.WitnessArgs.pack({ lock: signedWitnessArgs }));
+  const signedWitness = hexify(blockchain.WitnessArgs.pack({ lock: signedWitnessArgs }));
   tx = tx.update("witnesses", (witnesses) => witnesses.set(0, signedWitness));
 
   const signedTx = helpers.createTransactionFromSkeleton(tx);

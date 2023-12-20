@@ -2,21 +2,13 @@
   "name": "@ckb-lumos/lumos",
   "version": "0.22.0-next.0",
   "description": "A root package for Lumos",
-  "author": "Xuejie Xiao <xxuejie@gmail.com>",
+  "author": "Homura <homura.dev@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "engines": {
     "node": ">=12.0.0"
   },
-  "directories": {
-    "lib": "lib",
-    "test": "tests"
-  },
-  "files": [
-    "lib",
-    "src"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ckb-js/lumos.git"
@@ -26,9 +18,8 @@
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests}/**/*.ts\"",
     "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
-    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
-    "build:umd": "webpack",
-    "clean": "rm -rf lib"
+    "build:js": "babel --root-mode upward src --out-dir ./ --extensions .ts -s",
+    "clean": "node clean.mjs"
   },
   "bugs": {
     "url": "https://github.com/ckb-js/lumos/issues"
@@ -37,21 +28,15 @@
     "@ckb-lumos/base": "0.22.0-next.0",
     "@ckb-lumos/bi": "0.22.0-next.0",
     "@ckb-lumos/ckb-indexer": "0.22.0-next.0",
+    "@ckb-lumos/codec": "0.22.0-next.0",
     "@ckb-lumos/common-scripts": "0.22.0-next.0",
     "@ckb-lumos/config-manager": "0.22.0-next.0",
     "@ckb-lumos/hd": "0.22.0-next.0",
     "@ckb-lumos/helpers": "0.22.0-next.0",
+    "@ckb-lumos/light-client": "0.22.0-next.0",
     "@ckb-lumos/rpc": "0.22.0-next.0",
-    "@ckb-lumos/toolkit": "0.22.0-next.0"
-  },
-  "devDependencies": {
-    "buffer": "^6.0.3",
-    "crypto-browserify": "^3.12.0",
-    "fork-ts-checker-webpack-plugin": "^6.4.0",
-    "ts-loader": "^9.2.6",
-    "unminified-webpack-plugin": "^3.0.0",
-    "webpack": "^5.64.1",
-    "webpack-cli": "^4.9.1"
+    "@ckb-lumos/toolkit": "0.22.0-next.0",
+    "@ckb-lumos/transaction-manager": "0.22.0-next.0"
   },
   "publishConfig": {
     "access": "public"

@@ -1,7 +1,5 @@
-import { bytes } from "@ckb-lumos/codec";
 import { Indexer, helpers, Address, Script, RPC, hd, config, Cell, commons, WitnessArgs, BI } from "@ckb-lumos/lumos";
-import { values, blockchain } from "@ckb-lumos/base";
-const { ScriptValue } = values;
+import { bytes, blockchain } from "@ckb-lumos/lumos/codec";
 
 // export let { AGGRON4 } = config.predefined;
 let AGGRON4: config.Config = config.predefined.AGGRON4;
@@ -24,7 +22,7 @@ export const generateAccountFromPrivateKey = (privKey: string): Account => {
     hashType: template.HASH_TYPE,
     args: args,
   };
-  const address = helpers.generateAddress(lockScript, { config: AGGRON4 });
+  const address = helpers.encodeToAddress(lockScript, { config: AGGRON4 });
   return {
     lockScript,
     address,
@@ -108,9 +106,7 @@ export async function transfer(options: Options): Promise<string> {
   const firstIndex = txSkeleton
     .get("inputs")
     .findIndex((input) =>
-      new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
-        new ScriptValue(fromScript, { validate: false })
-      )
+      bytes.equal(blockchain.Script.pack(input.cellOutput.lock), blockchain.Script.pack(fromScript))
     );
   if (firstIndex !== -1) {
     while (firstIndex >= txSkeleton.get("witnesses").size) {

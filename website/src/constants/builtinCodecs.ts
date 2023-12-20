@@ -1,7 +1,7 @@
-import { AnyCodec, number } from "@ckb-lumos/codec"
-import { blockchain } from "@ckb-lumos/base"
 import { CodecMap } from "@ckb-lumos/molecule"
-import { BIish, BI } from "@ckb-lumos/bi/lib"
+import { BI, BIish } from "@ckb-lumos/lumos"
+import { blockchain, AnyCodec } from "@ckb-lumos/lumos/codec"
+import * as number from "@ckb-lumos/lumos/codec"
 
 function enhanceUnpackBIish(codec: AnyCodec, afterUnpack: (arg: BIish) => string) {
   return {

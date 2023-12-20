@@ -12,7 +12,7 @@ function assertHexString(debugPath: string, string: string) {
 function assertHash(debugPath: string, hash: string) {
   assertHexString(debugPath, hash);
   if (hash.length != 66) {
-    throw new Error(`${debugPath} must be a hex string of 66 bytes long!`);
+    throw new Error(`${debugPath} must be a hex string of 66 characters long!`);
   }
 }
 

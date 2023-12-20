@@ -187,6 +187,11 @@ function generateTypeIdArgs(input: Input, outputIndex: HexNumber): HexString {
   return ckbHasher.digestHex();
 }
 
+/**
+ * Generate a type script for type id {@link https://xuejie.space/2020_02_03_introduction_to_ckb_script_programming_type_id/}
+ * @param input
+ * @param outputIndex
+ */
 function generateTypeIdScript(input: Input, outputIndex = "0x0"): Script {
   blockchain.CellInput.pack(input);
   assertHexadecimal("outputIndex", outputIndex);

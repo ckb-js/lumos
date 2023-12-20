@@ -12,12 +12,15 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@ckb-lumos/lumos": "next",
+    "@ckb-lumos/lumos": "canary",
     "@emurgo/cardano-message-signing-asmjs": "^1.0.1",
     "@emurgo/cardano-serialization-lib-asmjs": "^10.0.4",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "react": "18.2.0",
     "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "parcel": "^2.9.3"
   }
 }
