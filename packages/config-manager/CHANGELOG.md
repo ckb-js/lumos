@@ -1,5 +1,7 @@
 # @ckb-lumos/config-manager
 
+## 0.22.0-next.1
+
 ## 0.22.0-next.0
 
 ## 0.21.1

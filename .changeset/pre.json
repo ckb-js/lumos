@@ -25,6 +25,7 @@
     "@ckb-lumos/utils": "0.21.1"
   },
   "changesets": [
+    "eight-pots-invent",
     "fluffy-rabbits-tell"
   ]
 }
