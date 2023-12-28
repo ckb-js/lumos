@@ -1,9 +1,15 @@
-import { Cell, Indexer, RPC, hd, Script, helpers } from "@ckb-lumos/lumos";
-import { minimalCellCapacityCompatible, TransactionSkeleton } from "@ckb-lumos/lumos/helpers";
+// This example demonstrates how to write custom data to the cell to simulate the inscription
+
+import { Cell, Indexer, RPC, hd, Script } from "@ckb-lumos/lumos";
 import { generateGenesisScriptConfigs, initializeConfig } from "@ckb-lumos/lumos/config";
 import { hexify } from "@ckb-lumos/lumos/codec";
 import { common } from "@ckb-lumos/lumos/common-scripts";
-import { parseUnit } from "@ckb-lumos/lumos/utils";
+import {
+  encodeToAddress,
+  minimalCellCapacityCompatible,
+  sealTransaction,
+  TransactionSkeleton,
+} from "@ckb-lumos/lumos/helpers";
 
 const ENDPOINT = "https://testnet.ckb.dev";
 const PRIVATE_KEY = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
@@ -14,7 +20,6 @@ async function main() {
 
   const genesisBlock = await rpc.getBlockByNumber("0x0");
   const scriptConfigs = generateGenesisScriptConfigs(genesisBlock);
-  const configParam = { config: { PREFIX: "ckt", SCRIPTS: scriptConfigs } };
 
   initializeConfig({ PREFIX: "ckt", SCRIPTS: scriptConfigs });
 
@@ -24,7 +29,7 @@ async function main() {
     args: hd.key.privateKeyToBlake160(PRIVATE_KEY),
   };
 
-  const address = helpers.encodeToAddress(lock, configParam);
+  const address = encodeToAddress(lock);
   console.log("Inscribe to the address:", address);
 
   const encoder = new TextEncoder();
@@ -49,18 +54,27 @@ async function main() {
   const txSkeleton = TransactionSkeleton({
     cellProvider: {
       // IMPORTANT: avoid collecting cell with type or data
-      collector: (queryOptions) => indexer.collector({ ...queryOptions, type: "empty", data: "0x" }),
+      collector: (queryOptions) =>
+        indexer.collector({
+          ...queryOptions,
+          type: "empty",
+          data: { data: "0x", searchMode: "exact" },
+        }),
     },
   }).asMutable();
 
   txSkeleton.update("outputs", (outputs) => outputs.push(inscriptionCell));
   // inject capacity to fill the inscription cell
-  await common.injectCapacity(txSkeleton, [address], capacity, undefined, undefined, {
-    ...configParam,
+  await common.injectCapacity(
+    txSkeleton,
+    [address],
+    capacity,
+    undefined,
+    undefined,
     // IMPORTANT: avoid deducting capacity from the inscription cell
-    enableDeductCapacity: false,
-  });
-  await common.payFeeByFeeRate(txSkeleton, [address], 1000, undefined, configParam);
+    { enableDeductCapacity: false }
+  );
+  await common.payFeeByFeeRate(txSkeleton, [address], 1000, undefined);
   common.prepareSigningEntries(txSkeleton);
 
   const signatures = txSkeleton
@@ -68,7 +82,7 @@ async function main() {
     .map((entry) => hd.key.signRecoverable(entry.message, PRIVATE_KEY))
     .toArray();
 
-  const signedTx = helpers.sealTransaction(txSkeleton, signatures);
+  const signedTx = sealTransaction(txSkeleton, signatures);
 
   const txHash = await rpc.sendTransaction(signedTx);
   console.log("Sent transaction hash:", txHash);
