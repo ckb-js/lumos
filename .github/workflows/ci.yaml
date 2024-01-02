@@ -69,7 +69,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm run build
       - name: Get changed files
-        uses: tj-actions/changed-files@v17.3
+        uses: tj-actions/changed-files@v41
         id: changed-files
         with:
           files: |
