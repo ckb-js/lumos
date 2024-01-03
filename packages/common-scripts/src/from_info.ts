@@ -29,6 +29,18 @@ export interface MultisigScript {
   since?: PackedSince;
 }
 
+export function isMultisigFromInfo(obj: unknown): obj is MultisigScript {
+  if (!obj || typeof obj !== "object") return false;
+
+  const maybeMultisig = obj as Partial<MultisigScript>;
+
+  return (
+    typeof maybeMultisig?.R === "number" &&
+    typeof maybeMultisig?.M === "number" &&
+    Array.isArray(maybeMultisig?.publicKeyHashes)
+  );
+}
+
 export interface ACP {
   address: Address;
   destroyable?: boolean; // default to false

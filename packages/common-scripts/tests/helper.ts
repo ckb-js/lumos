@@ -1,9 +1,20 @@
 import {
   TransactionSkeletonType,
   TransactionSkeleton,
+  Options,
 } from "@ckb-lumos/helpers";
-import { Cell, CellDep, blockchain } from "@ckb-lumos/base";
+import {
+  Cell,
+  CellDep,
+  blockchain,
+  Script,
+  CellProvider,
+  QueryOptions,
+  CellCollector as BaseCellCollectorType,
+} from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
+import { CellCollectorType, FromInfo, parseFromInfo } from "../src";
+import { Config, getConfig } from "@ckb-lumos/config-manager";
 
 export interface txObject {
   inputs: Cell[];
@@ -40,4 +51,43 @@ export function txSkeletonFromJson(
   }
 
   return skeleton;
+}
+
+export class TestCellCollector implements CellCollectorType {
+  readonly fromScript: Script;
+  private readonly config: Config;
+  private cellCollector: BaseCellCollectorType;
+
+  constructor(
+    fromInfo: FromInfo,
+    cellProvider: CellProvider,
+    {
+      config = undefined,
+      queryOptions = {},
+    }: Options & {
+      queryOptions?: QueryOptions;
+    } = {}
+  ) {
+    if (!cellProvider) {
+      throw new Error(`Cell provider is missing!`);
+    }
+    config = config || getConfig();
+    this.fromScript = parseFromInfo(fromInfo, { config }).fromScript;
+
+    this.config = config;
+
+    queryOptions = {
+      ...queryOptions,
+      lock: this.fromScript,
+      type: queryOptions.type || "empty",
+    };
+
+    this.cellCollector = cellProvider.collector(queryOptions);
+  }
+
+  async *collect(): AsyncGenerator<Cell> {
+    for await (const inputCell of this.cellCollector.collect()) {
+      yield inputCell;
+    }
+  }
 }
