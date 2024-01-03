@@ -1,3 +1,5 @@
+/* eslint-disable import/no-named-as-default-member */
+
 import {
   parseAddress,
   TransactionSkeletonType,
