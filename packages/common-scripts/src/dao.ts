@@ -247,7 +247,7 @@ function _checkFromInfoSince(fromInfo: FromInfo, config: Config): void {
   }
 }
 
-interface WithdrawOptions {
+export interface WithdrawOptions {
   config?: Config;
   /**
    * enable using non-system script in inputs
@@ -306,15 +306,20 @@ async function withdraw(
       txSkeleton,
       fromInput,
       undefined,
-      {
-        config,
-      }
+      { config }
     );
   } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
       fromInput,
       fromInfo || generateAddress(fromLockScript, { config }),
+      { config }
+    );
+  } else if (enableNonSystemScript) {
+    txSkeleton = await common.setupInputCell(
+      txSkeleton,
+      fromInput,
+      fromInfo || encodeToAddress(fromLockScript, { config }),
       { config }
     );
   }

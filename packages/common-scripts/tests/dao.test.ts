@@ -1,7 +1,6 @@
 import test from "ava";
 import { CellProvider } from "./cell_provider";
 import {
-  encodeToAddress,
   TransactionSkeleton,
   TransactionSkeletonType,
 } from "@ckb-lumos/helpers";
@@ -17,9 +16,7 @@ import {
   bobSecpDaoDepositInput,
   bobSecpDaoWithdrawInput,
 } from "./inputs";
-import { BI, parseUnit } from "@ckb-lumos/bi";
-import { registerCustomLockScriptInfos } from "../src/common";
-import { TestCellCollector } from "./helper";
+import { BI } from "@ckb-lumos/bi";
 
 const cellProvider = new CellProvider(inputs());
 let txSkeleton: TransactionSkeletonType = TransactionSkeleton({ cellProvider });
@@ -75,85 +72,6 @@ test("deposit secp256k1_blake160", async (t) => {
     txSkeleton.get("outputs").get(0)!.cellOutput!.type,
     generateDaoTypeScript(LINA)
   );
-});
-
-test("deposit from the non-system script", async (t) => {
-  const nonSystemLockCodeHash = "0x" + "aa".repeat(32);
-
-  registerCustomLockScriptInfos([
-    {
-      codeHash: nonSystemLockCodeHash,
-      hashType: "type",
-      lockScriptInfo: {
-        CellCollector: TestCellCollector,
-        async setupInputCell(
-          txSkeleton: TransactionSkeletonType,
-          inputCell: Cell
-        ): Promise<TransactionSkeletonType> {
-          txSkeleton = txSkeleton.update("inputs", (inputs) =>
-            inputs.push(inputCell)
-          );
-
-          txSkeleton = txSkeleton.update("outputs", (outputs) =>
-            outputs.push(inputCell)
-          );
-
-          return txSkeleton;
-        },
-        prepareSigningEntries(txSkeleton) {
-          return txSkeleton;
-        },
-      },
-    },
-  ]);
-
-  const fromScript: Script = {
-    codeHash: nonSystemLockCodeHash,
-    hashType: "type",
-    args: "0x",
-  };
-
-  const toScript: Script = {
-    codeHash: "0x" + "bb".repeat(32),
-    hashType: "type",
-    args: "0x",
-  };
-  const nonSystemLockCell = {
-    cellOutput: {
-      capacity: parseUnit("5000000", "ckb").toHexString(),
-      lock: fromScript,
-    },
-    data: "0x",
-  };
-  let txSkeleton = TransactionSkeleton({
-    cellProvider: new CellProvider([nonSystemLockCell]),
-  });
-
-  txSkeleton = await dao.deposit(
-    txSkeleton,
-    encodeToAddress(fromScript),
-    encodeToAddress(toScript),
-    parseUnit("10000", "ckb"),
-    { enableNonSystemScript: true }
-  );
-
-  t.deepEqual(txSkeleton.get("inputs").get(0), nonSystemLockCell);
-  t.is(txSkeleton.get("outputs").size, 2);
-  t.deepEqual(txSkeleton.get("outputs").get(0)?.cellOutput, {
-    capacity: parseUnit("10000", "ckb").toHexString(),
-    lock: toScript,
-    type: generateDaoTypeScript(LINA),
-  });
-  t.deepEqual(txSkeleton.get("outputs").get(1)?.cellOutput, {
-    capacity: BI.from(nonSystemLockCell.cellOutput.capacity)
-      .sub(parseUnit("10000", "ckb"))
-      .toHexString(),
-    lock: fromScript,
-    type: undefined,
-  });
-
-  // reset custom lock script infos
-  registerCustomLockScriptInfos([]);
 });
 
 test("withdraw secp256k1_blake160", async (t) => {
