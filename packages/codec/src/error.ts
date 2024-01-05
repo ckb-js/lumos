@@ -47,7 +47,11 @@ export class CodecExecuteError extends Error {
 
     const path = this.keys.reduceRight(reducer, "input");
 
-    return `Expect type ${this.origin.expectedType} at ${path} but got error: ${
+    const expectedTypeMessage = this.origin.expectedType
+      ? `Expect type ${this.origin.expectedType}`
+      : "Error";
+
+    return `${expectedTypeMessage} at ${path} but got error: ${
       this.origin.message
     }
     ${this.origin.stack?.replace(/Error:.+?\n/, "")}

@@ -1,6 +1,5 @@
-import { validators } from "@ckb-lumos/toolkit";
+import * as blockchain from "./blockchain";
 import { assertHexadecimal } from "./utils";
-
 import { Cell, Script, Transaction, TransactionWithStatus } from "./api";
 import { Hexadecimal, HexString } from "./primitive";
 import { Logger } from "./logger";
@@ -142,10 +141,10 @@ class TransactionCollector {
     }
     // Wrap the plain `Script` into `ScriptWrapper`.
     if (lock && !isScriptWrapper(lock)) {
-      validators.ValidateScript(lock);
+      blockchain.Script.pack(lock);
       this.lock = { script: lock, ioType: "both", argsLen: argsLen };
     } else if (lock && lock.script) {
-      validators.ValidateScript(lock.script);
+      blockchain.Script.pack(lock.script);
       this.lock = lock;
       // check ioType, argsLen
       if (!lock.argsLen) {
@@ -158,10 +157,10 @@ class TransactionCollector {
     if (type === "empty") {
       this.type = type;
     } else if (type && !isScriptWrapper(type)) {
-      validators.ValidateScript(type);
+      blockchain.Script.pack(type);
       this.type = { script: type, ioType: "both", argsLen: argsLen };
     } else if (type && type.script) {
-      validators.ValidateScript(type.script);
+      blockchain.Script.pack(type.script);
       this.type = type;
       // check ioType, argsLen
       if (!type.argsLen) {

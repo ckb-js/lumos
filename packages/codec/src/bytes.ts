@@ -62,7 +62,7 @@ export function bytify(bytesLike: BytesLike): Uint8Array {
   if (typeof bytesLike === "string") return bytifyHex(bytesLike);
   if (Array.isArray(bytesLike)) return bytifyArrayLike(bytesLike);
 
-  throw new Error(`Cannot convert ${bytesLike}`);
+  throw new Error(`Cannot convert ${bytesLike} to Uint8Array`);
 }
 
 export function equal(a: BytesLike, b: BytesLike): boolean {

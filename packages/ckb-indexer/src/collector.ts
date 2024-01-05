@@ -1,5 +1,4 @@
-import { utils, Cell, BaseCellCollector } from "@ckb-lumos/base";
-import { validators } from "@ckb-lumos/toolkit";
+import { utils, Cell, BaseCellCollector, blockchain } from "@ckb-lumos/base";
 import {
   SearchKeyFilter,
   CKBIndexerQueryOptions,
@@ -60,9 +59,9 @@ export class CKBCellCollector implements BaseCellCollector {
 
     if (queries.lock) {
       if (!instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(queries.lock);
+        blockchain.Script.pack(queries.lock);
       } else if (instanceOfScriptWrapper(queries.lock)) {
-        validators.ValidateScript(queries.lock.script);
+        blockchain.Script.pack(queries.lock.script);
       }
     }
 
@@ -71,12 +70,12 @@ export class CKBCellCollector implements BaseCellCollector {
         typeof queries.type === "object" &&
         !instanceOfScriptWrapper(queries.type)
       ) {
-        validators.ValidateScript(queries.type);
+        blockchain.Script.pack(queries.type);
       } else if (
         typeof queries.type === "object" &&
         instanceOfScriptWrapper(queries.type)
       ) {
-        validators.ValidateScript(queries.type.script);
+        blockchain.Script.pack(queries.type.script);
       }
     }
 
@@ -140,7 +139,7 @@ export class CKBCellCollector implements BaseCellCollector {
       // unWrap `ScriptWrapper` into `Script`.
       if (queryLock) {
         if (instanceOfScriptWrapper(queryLock)) {
-          validators.ValidateScript(queryLock.script);
+          blockchain.Script.pack(queryLock.script);
           query.lock = queryLock.script;
         }
       }
@@ -151,7 +150,7 @@ export class CKBCellCollector implements BaseCellCollector {
           typeof query.type === "object" &&
           instanceOfScriptWrapper(query.type)
         ) {
-          validators.ValidateScript(query.type.script);
+          blockchain.Script.pack(query.type.script);
           query.type = query.type.script;
         }
       }

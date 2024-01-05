@@ -22,7 +22,6 @@ import {
   parseFullFormatAddress,
 } from "./address-to-script";
 import { hexToByteArray } from "./utils";
-import { validators } from "@ckb-lumos/toolkit";
 import { HashType } from "@ckb-lumos/base/lib/blockchain";
 
 const { bytify, hexify } = bytes;
@@ -45,7 +44,7 @@ export function minimalScriptCapacityCompatible(
   { validate = true }: { validate?: boolean } = {}
 ): BI {
   if (validate) {
-    validators.ValidateScript(script);
+    blockchain.Script.pack(script);
   }
 
   let bytes = 0;
@@ -130,7 +129,7 @@ export function generateAddress(
     );
     HAS_WARNED_FOR_DEPRECATED_ADDRESS = true;
   }
-  validators.ValidateScript(script);
+  blockchain.Script.pack(script);
 
   const scriptTemplate = Object.values(config.SCRIPTS).find(
     (s) =>
@@ -236,7 +235,7 @@ export function encodeToAddress(
   script: Script,
   { config = undefined }: Options = {}
 ): Address {
-  validators.ValidateScript(script);
+  blockchain.Script.pack(script);
   config = config || getConfig();
   // https://github.com/nervosnetwork/rfcs/blob/9aef152a5123c8972de1aefc11794cf84d1762ed/rfcs/0021-ckb-address-format/0021-ckb-address-format.md#full-payload-format
   // Full payload format directly encodes all data fields of lock script. The encode rule of full payload format is Bech32m.
@@ -366,7 +365,7 @@ export function createTransactionFromSkeleton(
     witnesses: txSkeleton.get("witnesses").toArray(),
   };
   if (validate) {
-    validators.ValidateTransaction(tx);
+    blockchain.Transaction.pack(tx);
   }
   return tx;
 }

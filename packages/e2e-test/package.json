@@ -41,7 +41,6 @@
     "@ckb-lumos/light-client": "0.22.0-next.1",
     "@ckb-lumos/rpc": "0.22.0-next.1",
     "@ckb-lumos/runner": "0.22.0-next.1",
-    "@ckb-lumos/toolkit": "0.22.0-next.1",
     "@ckb-lumos/utils": "0.22.0-next.1",
     "@types/kill-port": "^2.0.0",
     "events": "^3.3.0",

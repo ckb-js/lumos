@@ -24,8 +24,7 @@
     "@ckb-lumos/base": "0.22.0-next.1",
     "@ckb-lumos/bi": "0.22.0-next.1",
     "@ckb-lumos/config-manager": "0.22.0-next.1",
-    "@ckb-lumos/helpers": "0.22.0-next.1",
-    "@ckb-lumos/toolkit": "0.22.0-next.1"
+    "@ckb-lumos/helpers": "0.22.0-next.1"
   },
   "repository": {
     "type": "git",

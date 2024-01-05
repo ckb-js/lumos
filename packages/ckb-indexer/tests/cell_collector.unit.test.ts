@@ -1,8 +1,13 @@
 import test from "ava";
 import { Indexer, CellCollector } from "../src";
-import { HexadecimalRange, Script, utils, Cell } from "@ckb-lumos/base";
+import {
+  HexadecimalRange,
+  Script,
+  utils,
+  Cell,
+  blockchain,
+} from "@ckb-lumos/base";
 import { spy, SinonSpy, stub } from "sinon";
-import { validators } from "@ckb-lumos/toolkit";
 import { CKBIndexerQueryOptions } from "../src/type";
 
 const nodeUri = "http://127.0.0.1:8118/rpc";
@@ -12,7 +17,7 @@ const indexer = new Indexer(indexUri, nodeUri);
 let validateScriptSpy: SinonSpy;
 let utilsSpy: SinonSpy;
 test.before(() => {
-  validateScriptSpy = spy(validators, "ValidateScript");
+  validateScriptSpy = spy(blockchain.Script, "pack");
   utilsSpy = spy(utils, "assertHexadecimal");
 });
 test.afterEach(() => {

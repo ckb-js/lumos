@@ -48,10 +48,8 @@ test("test subscrib by scriptWrapper", (t) => {
     },
     { instanceOf: Error }
   );
-  t.is(
-    error.message,
-    "script does not have correct keys! Required keys: [args, codeHash, hashType], optional keys: [], actual keys: [script]"
-  );
+  t.true(/Cannot convert undefined to Uint8Array/.test(error.message));
+
   // TODO should work fine here
   // const result: IndexerEmitter = indexer.subscribe(queryOption);
   // t.deepEqual(result.lock, queryOption.lock.script);
