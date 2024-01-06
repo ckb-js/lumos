@@ -12,9 +12,22 @@ import {
 import { BytesCodec, FixedBytesCodec } from "@ckb-lumos/codec/lib/base";
 
 import type * as api from "./api";
-import { BI } from "@ckb-lumos/bi";
+import { BI, BIish } from "@ckb-lumos/bi";
 
-const { Uint128LE, Uint8, Uint32LE, Uint64LE } = number;
+function asHexadecimal(
+  codec: FixedBytesCodec<BI, BIish> | FixedBytesCodec<number, BIish>
+): FixedBytesCodec<string, BIish> {
+  return {
+    ...codec,
+    unpack: (value) => BI.from(codec.unpack(value)).toHexString(),
+  };
+}
+
+const Uint8 = asHexadecimal(number.Uint8);
+const Uint32LE = asHexadecimal(number.Uint32LE);
+const Uint64LE = asHexadecimal(number.Uint64LE);
+const Uint128LE = asHexadecimal(number.Uint128LE);
+
 const { byteVecOf, option, table, vector, struct } = molecule;
 const { bytify, hexify } = bytes;
 
@@ -121,15 +134,15 @@ export const HashType = createFixedBytesCodec<api.HashType>({
   byteLength: 1,
   pack: (type) => {
     // prettier-ignore
-    if (type === "type")  return Uint8.pack(0b0000000_1);
+    if (type === "type")  return number.Uint8.pack(0b0000000_1);
     // prettier-ignore
-    if (type === "data")  return Uint8.pack(0b0000000_0);
-    if (type === "data1") return Uint8.pack(0b0000001_0);
-    if (type === "data2") return Uint8.pack(0b0000010_0);
+    if (type === "data")  return number.Uint8.pack(0b0000000_0);
+    if (type === "data1") return number.Uint8.pack(0b0000001_0);
+    if (type === "data2") return number.Uint8.pack(0b0000010_0);
     throw new Error(`Invalid hash type: ${type}`);
   },
   unpack: (buf) => {
-    const hashTypeBuf = Uint8.unpack(buf);
+    const hashTypeBuf = number.Uint8.unpack(buf);
     if (hashTypeBuf === 0b0000000_1) return "type";
     if (hashTypeBuf === 0b0000000_0) return "data";
     if (hashTypeBuf === 0b0000001_0) return "data1";
@@ -146,7 +159,7 @@ export const DepType = createFixedBytesCodec<api.DepType>({
     throw new Error(`Invalid dep type: ${type}`);
   },
   unpack: (buf) => {
-    const depTypeBuf = Uint8.unpack(buf);
+    const depTypeBuf = number.Uint8.unpack(buf);
     if (depTypeBuf === 0) return "code";
     if (depTypeBuf === 1) return "depGroup";
     throw new Error(`Invalid dep type: ${depTypeBuf}`);
@@ -417,7 +430,7 @@ export function transformHeaderCodecType(data: api.Header): HeaderCodecType {
 
 export function deTransformHeaderCodecType(
   data: HeaderUnpackResultType
-): RawHeaderUnpackResultType & { nonce: BI; hash: string } {
+): RawHeaderUnpackResultType & { nonce: string; hash: string } {
   return {
     timestamp: data.raw.timestamp,
     number: data.raw.number,
