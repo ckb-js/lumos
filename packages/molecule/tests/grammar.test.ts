@@ -39,7 +39,7 @@ test("should parse sample with refs", (t) => {
       {
         txHash:
           "0xa98c57135830e1b91345948df6c4b8870828199a786b26f09f7dec4bc27a7300",
-        index: 1,
+        index: "0x1",
       },
     ]
   );
