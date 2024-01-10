@@ -1,5 +1,7 @@
 # @ckb-lumos/toolkit
 
+## 0.22.0-next.2
+
 ## 0.22.0-next.1
 
 ## 0.22.0-next.0
