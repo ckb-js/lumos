@@ -26,6 +26,8 @@
     "@ckb-lumos/helpers": "0.22.0-next.2",
     "@ckb-lumos/rpc": "0.22.0-next.2",
     "@ckb-lumos/toolkit": "0.22.0-next.2",
+    "bs58": "^5.0.0",
+    "bech32": "^2.0.0",
     "immutable": "^4.3.0"
   },
   "repository": {
@@ -56,6 +58,7 @@
     "@ckb-lumos/debugger": "0.22.0-next.2",
     "@ckb-lumos/hd": "0.22.0-next.2",
     "@types/keccak": "^3.0.1",
+    "@unisat/wallet-sdk": "^1.1.2",
     "keccak": "^3.0.1"
   },
   "publishConfig": {

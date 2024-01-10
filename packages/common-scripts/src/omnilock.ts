@@ -35,17 +35,39 @@ import {
   createFixedHexBytesCodec,
 } from "@ckb-lumos/codec/lib/blockchain";
 import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
+import * as bitcoin from "./omnilock-bitcoin";
 const { ScriptValue } = values;
 
 export type OmnilockInfo = {
-  auth: {
-    flag: "ETHEREUM" | "SECP256K1_BLAKE160";
-    /**
-     * if auth flag is SECP256K1_BLAKE160, content is publicKeyToBlake160(secp256k1Pubkey)
-     * if auth flag is ETHEREUM, content is Ethereum address
-     */
-    content: BytesLike;
-  };
+  auth: OmnilockAuth;
+};
+
+export type OmnilockAuth = IdentityCkb | IdentityEthereum | IdentityBitcoin;
+
+export type IdentityCkb = {
+  flag: "SECP256K1_BLAKE160";
+  /**
+   * the blake160 hash of a secp256k1 public key
+   */
+  content: BytesLike;
+};
+export type IdentityEthereum = {
+  flag: "ETHEREUM";
+
+  /**
+   * an Ethereum address, aka the public key hash
+   */
+  content: BytesLike;
+};
+export type IdentityBitcoin = {
+  flag: "BITCOIN";
+  /**
+   * a Bitcoin address, such as
+   * `P2PKH(17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem)`,
+   * `P2SH(3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX)`,
+   * `Bech32(bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4)`
+   */
+  address: string;
 };
 
 /**
@@ -66,17 +88,18 @@ export function createOmnilockScript(
   }
 
   const args = (() => {
-    // omni flag       pubkey hash   omni lock flags
-    // chain identity   eth addr      function flag()
-    // 00: Nervos       👇            00: owner
-    // 01: Ethereum     👇            01: administrator
     if (omnilockInfo.auth.flag === "ETHEREUM") {
-      return `0x01${bytes.hexify(omnilockInfo.auth.content).slice(2)}00`;
+      return bytes.hexify(bytes.concat([1], omnilockInfo.auth.content, [0]));
     }
     if (omnilockInfo.auth.flag === "SECP256K1_BLAKE160") {
-      return `0x00${bytes.hexify(omnilockInfo.auth.content).slice(2)}00`;
+      return bytes.hexify(bytes.concat([0], omnilockInfo.auth.content, [0]));
     }
-    throw new Error(`Not supported flag: ${omnilockInfo.auth.flag}.`);
+    if (omnilockInfo.auth.flag === "BITCOIN") {
+      return bytes.hexify(
+        bytes.concat([4], bitcoin.decodeAddress(omnilockInfo.auth.address), [0])
+      );
+    }
+    throw new Error(`Not supported flag: ${omnilockInfo.auth}.`);
   })();
 
   const script: Script = {
@@ -291,6 +314,8 @@ export function prepareSigningEntries(
 
   return _prepareSigningEntries(txSkeleton, config, "OMNILOCK");
 }
+
+export { bitcoin };
 
 export default {
   prepareSigningEntries,
