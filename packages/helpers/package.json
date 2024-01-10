@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/helpers",
-  "version": "0.22.0-next.1",
+  "version": "0.22.0-next.2",
   "description": "Helper functions for working with CKB",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -35,11 +35,11 @@
     "url": "https://github.com/ckb-js/lumos/issues"
   },
   "dependencies": {
-    "@ckb-lumos/base": "0.22.0-next.1",
-    "@ckb-lumos/bi": "0.22.0-next.1",
-    "@ckb-lumos/codec": "0.22.0-next.1",
-    "@ckb-lumos/config-manager": "0.22.0-next.1",
-    "@ckb-lumos/toolkit": "0.22.0-next.1",
+    "@ckb-lumos/base": "0.22.0-next.2",
+    "@ckb-lumos/bi": "0.22.0-next.2",
+    "@ckb-lumos/codec": "0.22.0-next.2",
+    "@ckb-lumos/config-manager": "0.22.0-next.2",
+    "@ckb-lumos/toolkit": "0.22.0-next.2",
     "bech32": "^2.0.0",
     "immutable": "^4.3.0"
   },

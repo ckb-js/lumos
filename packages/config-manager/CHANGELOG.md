@@ -1,5 +1,11 @@
 # @ckb-lumos/config-manager
 
+## 0.22.0-next.2
+
+### Minor Changes
+
+- [#605](https://github.com/ckb-js/lumos/pull/605) [`330ec9a`](https://github.com/ckb-js/lumos/commit/330ec9a79dc024e7860aa4785fe9c3bcfffc0767) Thanks [@homura](https://github.com/homura)! - feat: update testnet omnilock config
+
 ## 0.22.0-next.1
 
 ## 0.22.0-next.0
