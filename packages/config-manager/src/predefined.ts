@@ -133,7 +133,7 @@ const AGGRON4 = createConfig({
         "0xf329effd1c475a2978453c8600e1eaf0bc2087ee093c3ee64cc96ec6847752cb",
       HASH_TYPE: "type",
       TX_HASH:
-        "0x27b62d8be8ed80b9f56ee0fe41355becdb6f6a40aeba82d3900434f43b1c8b60",
+        "0xff234bf2fb0ad2ab5b356ceda317d3dee3efb2c55b9427ef55d9dcbf6eecbf9f",
       INDEX: "0x0",
       DEP_TYPE: "code",
     },
