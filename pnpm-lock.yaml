@@ -753,6 +753,9 @@ importers:
 
   website:
     dependencies:
+      '@ckb-lumos/helpers':
+        specifier: canary
+        version: link:../packages/helpers
       '@ckb-lumos/lumos':
         specifier: canary
         version: link:../packages/lumos
