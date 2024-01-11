@@ -88,18 +88,21 @@ export function createOmnilockScript(
   }
 
   const args = (() => {
-    if (omnilockInfo.auth.flag === "ETHEREUM") {
-      return bytes.hexify(bytes.concat([1], omnilockInfo.auth.content, [0]));
+    const flag = omnilockInfo.auth.flag;
+    switch (flag) {
+      case "ETHEREUM":
+        return bytes.hexify(bytes.concat([1], omnilockInfo.auth.content, [0]));
+      case "SECP256K1_BLAKE160":
+        return bytes.hexify(bytes.concat([0], omnilockInfo.auth.content, [0]));
+      case "BITCOIN":
+        return bytes.hexify(
+          bytes.concat([4], bitcoin.decodeAddress(omnilockInfo.auth.address), [
+            0,
+          ])
+        );
+      default:
+        throw new Error(`Not supported flag: ${flag}.`);
     }
-    if (omnilockInfo.auth.flag === "SECP256K1_BLAKE160") {
-      return bytes.hexify(bytes.concat([0], omnilockInfo.auth.content, [0]));
-    }
-    if (omnilockInfo.auth.flag === "BITCOIN") {
-      return bytes.hexify(
-        bytes.concat([4], bitcoin.decodeAddress(omnilockInfo.auth.address), [0])
-      );
-    }
-    throw new Error(`Not supported flag: ${omnilockInfo.auth}.`);
   })();
 
   const script: Script = {
