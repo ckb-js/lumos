@@ -158,6 +158,12 @@ importers:
       '@ckb-lumos/toolkit':
         specifier: 0.22.0-next.2
         version: link:../toolkit
+      bech32:
+        specifier: ^2.0.0
+        version: 2.0.0
+      bs58:
+        specifier: ^5.0.0
+        version: 5.0.0
       immutable:
         specifier: ^4.3.0
         version: 4.3.0
@@ -794,6 +800,28 @@ importers:
       elliptic:
         specifier: ^6.5.4
         version: 6.5.4
+      react:
+        specifier: 18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: 18.2.0
+        version: 18.2.0(react@18.2.0)
+    devDependencies:
+      parcel:
+        specifier: ^2.9.3
+        version: 2.9.3
+
+  omni-lock-unisat:
+    dependencies:
+      '@ckb-lumos/lumos':
+        specifier: canary
+        version: link:../../packages/lumos
+      '@types/react':
+        specifier: ^18.0.25
+        version: 18.0.25
+      '@types/react-dom':
+        specifier: ^18.0.9
+        version: 18.0.9
       react:
         specifier: 18.2.0
         version: 18.2.0
@@ -3734,7 +3762,6 @@ packages:
 
   /base-x@4.0.0:
     resolution: {integrity: sha512-FuwxlW4H5kh37X/oW59pwTzzTKRzfrrQwhmyspRM7swOEZcHtDZSCt45U6oKgtuFE+WYPblePMVIPR4RZrh/hw==}
-    dev: true
 
   /base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
@@ -3966,7 +3993,6 @@ packages:
     resolution: {integrity: sha512-r+ihvQJvahgYT50JD05dyJNKlmmSlMoOGwn1lCcEzanPglg7TxYjioQUYehQ9mAR/+hOSd2jRc/Z2y5UxBymvQ==}
     dependencies:
       base-x: 4.0.0
-    dev: true
 
   /bs58check@2.1.2:
     resolution: {integrity: sha512-0TS1jicxdU09dwJMNZtVAfzPi6Q6QeN0pM1Fkzrjn+XYHvzMKPU3pHVpva+769iNVSfIYWf7LJ6WR+BuuMf8cA==}
