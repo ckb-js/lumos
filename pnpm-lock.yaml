@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -47,6 +47,9 @@ importers:
       '@types/node':
         specifier: ^20.1.0
         version: 20.1.0
+      '@types/sinon':
+        specifier: ^17.0.3
+        version: 17.0.3
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.59.2
         version: 5.59.2(@typescript-eslint/parser@5.59.2)(eslint@8.40.0)(typescript@5.0.4)
@@ -264,6 +267,9 @@ importers:
       '@ckb-lumos/codec':
         specifier: 0.22.0-next.2
         version: link:../codec
+      '@ckb-lumos/rpc':
+        specifier: 0.22.0-next.2
+        version: link:../rpc
       '@types/deep-freeze-strict':
         specifier: ^1.1.0
         version: 1.1.0
@@ -6284,6 +6290,12 @@ packages:
     resolution: {integrity: sha512-6EF+wzMWvBNeGrfP3Nx60hhx+FfwSg1JJBLAAP/IdIUq0EYkqCYf70VT3PhuhPX9eLD+Dp+lNdpb/ZeHG8Yezg==}
     dependencies:
       '@sinonjs/fake-timers': 7.1.2
+    dev: true
+
+  /@types/sinon@17.0.3:
+    resolution: {integrity: sha512-j3uovdn8ewky9kRBG19bOwaZbexJu/XjtkHyjvUgt4xfPFz18dcORIMqnYh66Fx3Powhcr85NT5+er3+oViapw==}
+    dependencies:
+      '@types/sinonjs__fake-timers': 8.1.2
     dev: true
 
   /@types/sinonjs__fake-timers@8.1.2:
