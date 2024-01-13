@@ -1,6 +1,7 @@
 import test from "ava";
 import {
   createLatestTypeIdResolver,
+  createRpcResolver,
   FetchOutputsByTxHashes,
   refreshScriptConfigs,
 } from "../src/refresh";
@@ -8,7 +9,7 @@ import { ScriptConfigs } from "../src";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { randomBytes } from "node:crypto";
 import { OutPoint, Output, Script } from "@ckb-lumos/base";
-import sinon from "sinon";
+import { spy } from "sinon";
 
 test("refresh without update", async (t) => {
   const scriptConfigs: ScriptConfigs = {
@@ -75,11 +76,11 @@ test("LatestTypeIdResolver should work as expected", async (t) => {
   const originalOutput = randomOutput();
   const latestOutPoint = randomOutPoint();
 
-  const fetchOutputsByTxHashes = sinon.spy((hashes) => {
+  const fetchOutputsByTxHashes = spy((hashes) => {
     return hashes.map(() => ({ outputs: [originalOutput] }));
   });
 
-  const fetchLatestTypeIdOutPoints = sinon.spy((scripts) =>
+  const fetchLatestTypeIdOutPoints = spy((scripts) =>
     scripts.map(() => ({ outPoint: latestOutPoint }))
   );
 
@@ -98,7 +99,7 @@ test("LatestTypeIdResolver should work as expected", async (t) => {
 test("should resolve as original OutPoint if type script is empty", async (t) => {
   const originalOutPoint = randomOutPoint();
 
-  const fetchOutputsByTxHashes = sinon.spy(((hashes: string[]) =>
+  const fetchOutputsByTxHashes = spy(((hashes: string[]) =>
     hashes.map(() => ({
       outputs: [{ capacity: "0x0", lock: randomScript() }],
     }))) satisfies FetchOutputsByTxHashes);
@@ -106,6 +107,48 @@ test("should resolve as original OutPoint if type script is empty", async (t) =>
   const resolve = createLatestTypeIdResolver(fetchOutputsByTxHashes, () => []);
   const resolved = await resolve([originalOutPoint]);
   t.deepEqual(resolved, [originalOutPoint]);
+});
+
+test("RPCResolver should work as expected", async (t) => {
+  const oldOutPoint = randomOutPoint();
+  const newOutPoint = randomOutPoint();
+  const typeId = randomScript();
+
+  const batchRequest = spy((args: any[]) => ({
+    exec: async (): Promise<any[]> => {
+      if (args[0][0] === "getTransaction") {
+        return [{ transaction: { outputs: [{ type: typeId }] } }];
+      }
+
+      if (args[0][0] === "getCells") {
+        return [{ objects: [{ outPoint: newOutPoint }] }];
+      }
+
+      throw new Error("Unreachable");
+    },
+  }));
+  const resolve = createRpcResolver({
+    createBatchRequest: batchRequest,
+  });
+
+  await resolve([oldOutPoint]);
+
+  t.true(batchRequest.calledWith([["getTransaction", oldOutPoint.txHash]]));
+  t.true(
+    batchRequest.calledWith([
+      [
+        "getCells",
+        {
+          script: typeId,
+          scriptType: "type",
+          scriptSearchMode: "exact",
+          withData: false,
+        },
+        "asc",
+        "0x1",
+      ],
+    ])
+  );
 });
 
 function randomOutPoint(): OutPoint {

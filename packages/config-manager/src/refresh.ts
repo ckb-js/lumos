@@ -1,6 +1,5 @@
-import type { OutPoint, Output, Script } from "@ckb-lumos/base";
+import type { Hash, OutPoint, Output, Script } from "@ckb-lumos/base";
 import type { ScriptConfig, ScriptConfigs } from "./types";
-import type { RPC } from "@ckb-lumos/rpc";
 import type { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
 
 type MaybePromise<T> = T | PromiseLike<T>;
@@ -18,11 +17,23 @@ export type FetchOutputsByTxHashes = (txHashes: string[]) => MaybePromise<{ outp
  */
 export type FetchOutPointByTypeId = (scripts: Script[]) => MaybePromise<{ outPoint: OutPoint }[]>;
 
-/* c8 ignore next 39 */
-export function createRpcResolver(rpc: RPC): ResolveLatestOutPointsOfTypeIds {
+// prettier-ignore
+/**
+ * the minimal batch RPC client
+ */
+export type BatchRequest = {
+  createBatchRequest<Params, Result>(params: Params[]): { exec(): Promise<Result[]> };
+};
+
+export function createRpcResolver(
+  rpc: BatchRequest
+): ResolveLatestOutPointsOfTypeIds {
   const fetchTxs: FetchOutputsByTxHashes = async (txHashes) => {
-    const txs: CKBComponents.TransactionWithStatus[] = await rpc
-      .createBatchRequest(txHashes.map((txHash) => ["getTransaction", txHash]))
+    const txs = await rpc
+      .createBatchRequest<
+        ["getTransaction", Hash],
+        CKBComponents.TransactionWithStatus
+      >(txHashes.map((txHash) => ["getTransaction", txHash]))
       .exec();
 
     return zipWith(txHashes, txs, (txHash, tx) => {
@@ -34,8 +45,8 @@ export function createRpcResolver(rpc: RPC): ResolveLatestOutPointsOfTypeIds {
   };
 
   const fetchIndexerCells: FetchOutPointByTypeId = async (typeIds) => {
-    const res: CKBComponents.GetLiveCellsResult<false>[] = await rpc
-      .createBatchRequest(
+    const res = await rpc
+      .createBatchRequest<unknown[], CKBComponents.GetLiveCellsResult<false>>(
         typeIds.map((typeId) => [
           "getCells",
           {
@@ -50,9 +61,7 @@ export function createRpcResolver(rpc: RPC): ResolveLatestOutPointsOfTypeIds {
       )
       .exec();
 
-    return res.map<CKBComponents.IndexerCellWithoutData>(
-      (item) => item.objects[0]
-    );
+    return res.map((item) => item.objects[0]);
   };
 
   return createLatestTypeIdResolver(fetchTxs, fetchIndexerCells);
