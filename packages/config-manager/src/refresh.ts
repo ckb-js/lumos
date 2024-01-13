@@ -1,28 +1,27 @@
-import type {
-  OutPoint,
-  Script,
-  Transaction,
-  TransactionWithStatus,
-} from "@ckb-lumos/base";
+import type { OutPoint, Output, Script } from "@ckb-lumos/base";
 import type { ScriptConfig, ScriptConfigs } from "./types";
 import type { RPC } from "@ckb-lumos/rpc";
 import type { CKBComponents } from "@ckb-lumos/rpc/lib/types/api";
 
 type MaybePromise<T> = T | PromiseLike<T>;
 
-type LatestOutpointResolver = (
-  outPoints: OutPoint[]
-) => MaybePromise<OutPoint[]>;
-
-type FetchTxs = (txHashes: string[]) => MaybePromise<Transaction[]>;
-type FetchTypeIdCells = (
-  scripts: Script[]
-) => MaybePromise<CKBComponents.IndexerCellWithoutData[]>;
+// prettier-ignore
+/**
+ * resolve the latest `OutPoint[]` that has consumed the old `OutPoint[]`
+ */
+export type ResolveLatestOutPointsOfTypeIds = (outPoints: OutPoint[]) => MaybePromise<OutPoint[]>;
+// prettier-ignore
+export type FetchOutputsByTxHashes = (txHashes: string[]) => MaybePromise<{ outputs: Output[] }[]>;
+// prettier-ignore
+/**
+ * fetch cells with corresponding type script
+ */
+export type FetchOutPointByTypeId = (scripts: Script[]) => MaybePromise<{ outPoint: OutPoint }[]>;
 
 /* c8 ignore next 39 */
-export function createRpcResolver(rpc: RPC): LatestOutpointResolver {
-  const fetchTxs: FetchTxs = async (txHashes) => {
-    const txs: TransactionWithStatus[] = await rpc
+export function createRpcResolver(rpc: RPC): ResolveLatestOutPointsOfTypeIds {
+  const fetchTxs: FetchOutputsByTxHashes = async (txHashes) => {
+    const txs: CKBComponents.TransactionWithStatus[] = await rpc
       .createBatchRequest(txHashes.map((txHash) => ["getTransaction", txHash]))
       .exec();
 
@@ -34,7 +33,7 @@ export function createRpcResolver(rpc: RPC): LatestOutpointResolver {
     });
   };
 
-  const fetchIndexerCells: FetchTypeIdCells = async (typeIds) => {
+  const fetchIndexerCells: FetchOutPointByTypeId = async (typeIds) => {
     const res: CKBComponents.GetLiveCellsResult<false>[] = await rpc
       .createBatchRequest(
         typeIds.map((typeId) => [
@@ -56,19 +55,20 @@ export function createRpcResolver(rpc: RPC): LatestOutpointResolver {
     );
   };
 
-  return createResolver(fetchTxs, fetchIndexerCells);
+  return createLatestTypeIdResolver(fetchTxs, fetchIndexerCells);
 }
 
-export function createResolver(
-  fetchTxs: FetchTxs,
-  fetchTypeScriptCell: FetchTypeIdCells
-): LatestOutpointResolver {
+export function createLatestTypeIdResolver(
+  fetchOutputs: FetchOutputsByTxHashes,
+  fetchTypeScriptCell: FetchOutPointByTypeId
+): ResolveLatestOutPointsOfTypeIds {
   return async (oldOutPoints) => {
-    const txs = await fetchTxs(oldOutPoints.map((outPoint) => outPoint.txHash));
+    const txs = await fetchOutputs(
+      oldOutPoints.map((outPoint) => outPoint.txHash)
+    );
 
     const typeScripts = zipWith(oldOutPoints, txs, (outPoint, tx) => {
       nonNullable(outPoint);
-
       nonNullable(
         tx,
         `Cannot find the OutPoint ${outPoint.txHash}#${outPoint.index}`
@@ -77,13 +77,15 @@ export function createResolver(
       return tx.outputs[Number(outPoint.index)].type;
     });
 
+    // contracts may be dependent on `depGroup`, and the `depGroup` cell may not have a type script,
+    // so we need to filter out the cells without type script
     const cells = await fetchTypeScriptCell(
       typeScripts.filter(Boolean) as Script[]
     );
 
-    return zipWith(oldOutPoints, typeScripts, (oldOutPoint, script) => {
+    return zipWith(oldOutPoints, typeScripts, (oldOutPoint, typeScript) => {
       nonNullable(oldOutPoint);
-      if (!script) {
+      if (!typeScript) {
         return oldOutPoint;
       }
 
@@ -94,14 +96,14 @@ export function createResolver(
 }
 
 type RefreshConfig<S> = {
-  resolve: LatestOutpointResolver;
+  resolve: ResolveLatestOutPointsOfTypeIds;
   skip?: (keyof S)[];
 };
 
 /**
  * Refreshing the config items in {@link ScriptConfigs} which are deployed with type id
  * @example
- * const updatedScriptConfigs = upgrade(predefined.AGGRON4.SCRIPTS, createRpcResolver(rpc))
+ * const updatedScriptConfigs = refreshScriptConfigs(predefined.AGGRON4.SCRIPTS, createRpcResolver(rpc))
  * initializeConfig({ SCRIPTS: updatedScriptConfigs })
  */
 export async function refreshScriptConfigs<S extends ScriptConfigs>(
@@ -146,19 +148,19 @@ export async function refreshScriptConfigs<S extends ScriptConfigs>(
   return Object.assign({}, scriptConfigs, newScriptConfigs);
 }
 
-function zipWith<A, B, T>(
-  a: A[],
-  b: B[],
-  cb: (a: A | undefined, b: B | undefined) => T
+function zipWith<L, R, O>(
+  left: L[],
+  right: R[],
+  cb: (a: L | undefined, b: R | undefined) => O
 ) {
-  return a.map((_, i) => cb(a[i], b[i]));
+  return left.map((_, i) => cb(left[i], right[i]));
 }
 
 function nonNullable<T>(
-  t: T,
+  value: T,
   message = "Not nullable"
-): asserts t is NonNullable<T> {
-  if (t == null) {
+): asserts value is NonNullable<T> {
+  if (value == null) {
     throw new Error(message);
   }
 }
