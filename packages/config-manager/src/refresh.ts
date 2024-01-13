@@ -15,7 +15,7 @@ export type FetchOutputsByTxHashes = (txHashes: string[]) => MaybePromise<{ outp
 /**
  * fetch cells with corresponding type script
  */
-export type FetchOutPointByTypeId = (scripts: Script[]) => MaybePromise<{ outPoint: OutPoint }[]>;
+export type FetchOutPointsByTypeIds = (scripts: Script[]) => MaybePromise<{ outPoint: OutPoint }[]>;
 
 // prettier-ignore
 /**
@@ -44,13 +44,13 @@ export function createRpcResolver(
     });
   };
 
-  const fetchIndexerCells: FetchOutPointByTypeId = async (typeIds) => {
+  const fetchIndexerCells: FetchOutPointsByTypeIds = async (scripts) => {
     const res = await rpc
       .createBatchRequest<unknown[], CKBComponents.GetLiveCellsResult<false>>(
-        typeIds.map((typeId) => [
+        scripts.map((script) => [
           "getCells",
           {
-            script: typeId,
+            script,
             scriptType: "type",
             scriptSearchMode: "exact",
             withData: false,
@@ -69,7 +69,7 @@ export function createRpcResolver(
 
 export function createLatestTypeIdResolver(
   fetchOutputs: FetchOutputsByTxHashes,
-  fetchTypeScriptCell: FetchOutPointByTypeId
+  fetchTypeScriptCell: FetchOutPointsByTypeIds
 ): ResolveLatestOutPointsOfTypeIds {
   return async (oldOutPoints) => {
     const txs = await fetchOutputs(
