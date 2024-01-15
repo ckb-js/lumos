@@ -4,12 +4,25 @@
 
 ```ts
 import { initializeConfig, predefined } from '@ckb-lumos/config';
-import { generateAddress } from '@ckb-lumos/helper'
+import { encodeToAddress } from '@ckb-lumos/helper'
 
 initializeConfig(predefined.AGGRON);
-generateAddress({...}) // ckt1...
+encodeToAddress({...}) // ckt1...
 
 
 initializeConfig(predefined.LINA);
-generateAddress({...}) // ckb1...
+encodeToAddress({...}) // ckb1...
+```
+
+## Refreshing Config
+
+```ts
+import { refreshScriptConfig } from "@ckb-lumos/config";
+import { RPC } from "@ckb-lumos/rpc";
+
+const rpc = new RPC("http://localhost:8114");
+
+const refreshed = await refreshScriptConfigs(predefined.AGGRON4.SCRIPTS, {
+  resolve: createRpcResolver(rpc),
+});
 ```
