@@ -26,9 +26,12 @@
   },
   "changesets": [
     "eight-pots-invent",
+    "fluffy-pens-heal",
     "fluffy-rabbits-tell",
+    "grumpy-plants-pretend",
     "kind-chefs-sniff",
     "rare-mugs-begin",
-    "spicy-chefs-marry"
+    "spicy-chefs-marry",
+    "wild-dodos-notice"
   ]
 }
