@@ -45,7 +45,7 @@ export async function signMessage(
   const internal: Provider = (() => {
     if (provider) return provider;
 
-    /* c8 ignore next */
+    /* c8 ignore next 15*/
     if (typeof window !== "undefined") {
       if ("unisat" in window) {
         return window.unisat as Provider;
