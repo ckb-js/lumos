@@ -112,7 +112,7 @@ type RefreshConfig<S> = {
 /**
  * Refreshing the config items in {@link ScriptConfigs} which are deployed with type id
  * @example
- * const updatedScriptConfigs = refreshScriptConfigs(predefined.AGGRON4.SCRIPTS, createRpcResolver(rpc))
+ * const updatedScriptConfigs = await refreshScriptConfigs(predefined.AGGRON4.SCRIPTS, { resolve: createRpcResolver(rpc) })
  * initializeConfig({ SCRIPTS: updatedScriptConfigs })
  */
 export async function refreshScriptConfigs<S extends ScriptConfigs>(

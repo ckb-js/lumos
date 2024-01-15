@@ -20,9 +20,9 @@ export {
    * @deprecated use the {@link nameOfScript} and {@link findConfigByScript} function instead
    */
   helpers,
-} from "@ckb-lumos/config-manager";
-
-export {
   nameOfScript,
   findConfigByScript,
-} from "@ckb-lumos/config-manager/lib/helpers";
+  refreshScriptConfigs,
+  createRpcResolver,
+  createLatestTypeIdResolver,
+} from "@ckb-lumos/config-manager";
