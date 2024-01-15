@@ -1,6 +1,9 @@
-import { bytes } from "@ckb-lumos/codec";
+import { bytes, BytesLike } from "@ckb-lumos/codec";
 import { bech32 } from "bech32";
 import bs58 from "bs58";
+
+// https://github.com/XuJiandong/ckb-production-scripts/blob/f884d97963ad553b91bfcc992f68d1ad90f9b244/c/ckb_identity.h#L28
+const BTC_PREFIX = "CKB (Bitcoin Layer-2) transaction: 0x";
 
 export function decodeAddress(address: string): ArrayLike<number> {
   try {
@@ -35,7 +38,7 @@ export interface Provider {
 }
 
 export async function signMessage(
-  message: string,
+  digest: BytesLike,
   type?: "ecdsa",
   provider?: Provider
 ): Promise<string> {
@@ -62,8 +65,9 @@ export async function signMessage(
   })();
 
   const accounts = await internal.requestAccounts();
+  const digestWithout0x = bytes.hexify(digest).slice(2);
   const signatureBase64 = await internal.signMessage(
-    message.startsWith("0x") ? message.slice(2) : message,
+    `${BTC_PREFIX}${digestWithout0x}`,
     type
   );
   const signature = bytes.bytify(base64ToHex(signatureBase64));
