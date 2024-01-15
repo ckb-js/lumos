@@ -7,7 +7,7 @@ export const charlesOmnilockInputs: Cell[] = [
       capacity: "0x174876e800",
       lock: {
         codeHash:
-          "0xdea31e1f104cf6a26ee3cbace40f6fa70e2deb556cd12fdc23eae15889d0d37b",
+          "0xd83e7ec3ed31b24f7627af8d05d8da7a87fdf1afa120ef75a5c487464e8472aa",
         hashType: "data",
         args: "0x00e3e0a82b199dceadb55e223c6e4b8e511d57d24900",
       },
@@ -28,7 +28,7 @@ export const charlesOmnilockInputs: Cell[] = [
       capacity: "0x174876e800",
       lock: {
         codeHash:
-          "0xdea31e1f104cf6a26ee3cbace40f6fa70e2deb556cd12fdc23eae15889d0d37b",
+          "0xd83e7ec3ed31b24f7627af8d05d8da7a87fdf1afa120ef75a5c487464e8472aa",
         hashType: "data",
         args: "0x00e3e0a82b199dceadb55e223c6e4b8e511d57d24900",
       },
