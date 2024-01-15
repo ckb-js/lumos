@@ -1,5 +1,11 @@
 # @ckb-lumos/lumos
 
+## 0.22.0-next.3
+
+### Minor Changes
+
+- [#606](https://github.com/ckb-js/lumos/pull/606) [`349be74`](https://github.com/ckb-js/lumos/commit/349be74dd828c68036373c8eae6dd912c711551f) Thanks [@homura](https://github.com/homura)! - feat: **deprecated** the `helpers` in `config-manager` to avoid confused with `@ckb-lumos/helpers`
+
 ## 0.22.0-next.2
 
 ## 0.22.0-next.1
