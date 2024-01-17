@@ -42,8 +42,14 @@ export type OmnilockInfo = {
   auth: OmnilockAuth;
 };
 
-export type OmnilockAuth = IdentityCkb | IdentityEthereum | IdentityBitcoin | IdentityEthereum_DISPLAY | IdentityEos
-    | IdentityTron | IdentityDogecoin;
+export type OmnilockAuth =
+  | IdentityCkb
+  | IdentityEthereum
+  | IdentityBitcoin
+  | IdentityEthereum_DISPLAY
+  | IdentityEos
+  | IdentityTron
+  | IdentityDogecoin;
 
 export type IdentityCkb = {
   flag: "SECP256K1_BLAKE160";
@@ -109,8 +115,8 @@ export type IdentityBitcoin = {
  * @returns
  */
 export function createOmnilockScript(
-    omnilockInfo: OmnilockInfo,
-    options?: Options
+  omnilockInfo: OmnilockInfo,
+  options?: Options
 ): Script {
   const config = options?.config || getConfig();
   const omnilockConfig = config.SCRIPTS.OMNILOCK;
@@ -129,9 +135,9 @@ export function createOmnilockScript(
         return bytes.hexify(bytes.concat([0], omnilockInfo.auth.content, [0]));
       case "BITCOIN":
         return bytes.hexify(
-            bytes.concat([4], bitcoin.decodeAddress(omnilockInfo.auth.address), [
-              0,
-            ])
+          bytes.concat([4], bitcoin.decodeAddress(omnilockInfo.auth.address), [
+            0,
+          ])
         );
       default:
         throw new Error(`Not supported flag: ${flag}.`);
@@ -150,46 +156,46 @@ const Hexify = { pack: bytify, unpack: hexify };
 const Identity = createFixedHexBytesCodec(21);
 const SmtProof = byteVecOf(Hexify);
 const SmtProofEntry = table(
-    {
-      mask: byteOf(Hexify),
-      proof: SmtProof,
-    },
-    ["mask", "proof"]
+  {
+    mask: byteOf(Hexify),
+    proof: SmtProof,
+  },
+  ["mask", "proof"]
 );
 const SmtProofEntryVec = vector(SmtProofEntry);
 const OmniIdentity = table(
-    {
-      identity: Identity,
-      proofs: SmtProofEntryVec,
-    },
-    ["identity", "proofs"]
+  {
+    identity: Identity,
+    proofs: SmtProofEntryVec,
+  },
+  ["identity", "proofs"]
 );
 const OmniIdentityOpt = option(OmniIdentity);
 export const OmnilockWitnessLock = table(
-    {
-      signature: BytesOpt,
-      omni_identity: OmniIdentityOpt,
-      preimage: BytesOpt,
-    },
-    ["signature", "omni_identity", "preimage"]
+  {
+    signature: BytesOpt,
+    omni_identity: OmniIdentityOpt,
+    preimage: BytesOpt,
+  },
+  ["signature", "omni_identity", "preimage"]
 );
 
 export const CellCollector: CellCollectorConstructor = class CellCollector
-    implements CellCollectorType
+  implements CellCollectorType
 {
   private cellCollector: CellCollectorType;
   private config: Config;
   public readonly fromScript: Script;
 
   constructor(
-      fromInfo: FromInfo,
-      cellProvider: CellProvider,
-      {
-        config = undefined,
-        queryOptions = {},
-      }: Options & {
-        queryOptions?: QueryOptions;
-      } = {}
+    fromInfo: FromInfo,
+    cellProvider: CellProvider,
+    {
+      config = undefined,
+      queryOptions = {},
+    }: Options & {
+      queryOptions?: QueryOptions;
+    } = {}
   ) {
     if (!cellProvider) {
       throw new Error(`Cell provider is missing!`);
@@ -228,17 +234,17 @@ export const CellCollector: CellCollectorConstructor = class CellCollector
  * @param options
  */
 export async function setupInputCell(
-    txSkeleton: TransactionSkeletonType,
-    inputCell: Cell,
-    _fromInfo?: FromInfo,
-    {
-      config = undefined,
-      defaultWitness = "0x",
-      since = undefined,
-    }: Options & {
-      defaultWitness?: HexString;
-      since?: PackedSince;
-    } = {}
+  txSkeleton: TransactionSkeletonType,
+  inputCell: Cell,
+  _fromInfo?: FromInfo,
+  {
+    config = undefined,
+    defaultWitness = "0x",
+    since = undefined,
+  }: Options & {
+    defaultWitness?: HexString;
+    since?: PackedSince;
+  } = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
 
@@ -310,16 +316,16 @@ export async function setupInputCell(
    * is not required, it helps in transaction fee estimation.
    */
   const firstIndex = txSkeleton
-      .get("inputs")
-      .findIndex((input) =>
-          new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
-              new ScriptValue(fromScript, { validate: false })
-          )
-      );
+    .get("inputs")
+    .findIndex((input) =>
+      new ScriptValue(input.cellOutput.lock, { validate: false }).equals(
+        new ScriptValue(fromScript, { validate: false })
+      )
+    );
   if (firstIndex !== -1) {
     while (firstIndex >= txSkeleton.get("witnesses").size) {
       txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-          witnesses.push("0x")
+        witnesses.push("0x")
       );
     }
     let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
@@ -329,7 +335,7 @@ export async function setupInputCell(
     };
     witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
     txSkeleton = txSkeleton.update("witnesses", (witnesses) =>
-        witnesses.set(firstIndex, witness)
+      witnesses.set(firstIndex, witness)
     );
   }
 
@@ -343,8 +349,8 @@ export async function setupInputCell(
  * @param options
  */
 export function prepareSigningEntries(
-    txSkeleton: TransactionSkeletonType,
-    { config = undefined }: Options = {}
+  txSkeleton: TransactionSkeletonType,
+  { config = undefined }: Options = {}
 ): TransactionSkeletonType {
   config = config || getConfig();
 
