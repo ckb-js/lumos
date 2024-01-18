@@ -36,6 +36,8 @@ import {
 } from "@ckb-lumos/codec/lib/blockchain";
 import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
 import * as bitcoin from "./omnilock-bitcoin";
+import * as tron from "./omnilock-tron";
+
 const { ScriptValue } = values;
 
 export type OmnilockInfo = {
@@ -79,7 +81,7 @@ export type IdentityTron = {
   /**
    * an Tron address, aka the public key hash, which authid = 3
    */
-  content: BytesLike;
+  address: string;
 };
 export type IdentityDogecoin = {
   flag: "DOGECOIN";
@@ -139,6 +141,8 @@ export function createOmnilockScript(
             0,
           ])
         );
+      case "TRON":
+        return bytes.hexify(bytes.concat([3], tron.decodeAddress(omnilockInfo.auth.address), [0]));
       default:
         throw new Error(`Not supported flag: ${flag}.`);
     }
