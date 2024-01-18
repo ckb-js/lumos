@@ -167,7 +167,7 @@ understandable data types, such as `array Uint32 [byte; 4]` is generally transla
 
 This module can help us convert bytes to common data types in a simple way. If you have some experience with CKB, you
 will have encountered more complex scripts
-like [OmniLock](https://github.com/XuJiandong/docs-bank/blob/master/omni_lock.md), where it is easy to get confused
+like [OmniLock](https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md), where it is easy to get confused
 about how to handle bytes when we want to sign it, if we can combine `WitnessArgs.lock(BytesOpt)`
 with `OmniLockWitnessLock.signature(BytesOpt)`, then it will be easier to do the signing, we can check
 [the real world OmniLock witness case](./tests/blockchain.test.ts) to see how it works
