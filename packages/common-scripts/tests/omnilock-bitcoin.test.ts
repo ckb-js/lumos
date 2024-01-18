@@ -99,7 +99,7 @@ async function setupTxSkeleton(addr: string) {
   const txSkeleton = TransactionSkeleton().asMutable();
 
   const lock = createOmnilockScript(
-    { auth: { flag: "BITCOIN", address: addr } },
+    { auth: { flag: "BITCOIN", content: addr } },
     { config: managerConfig }
   );
 

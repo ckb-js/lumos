@@ -29,7 +29,7 @@ const App: React.FC = () => {
       .requestAccounts()
       .then(([bitcoinAddr]: string[]) => {
         const omniLockScript = commons.omnilock.createOmnilockScript({
-          auth: { flag: "BITCOIN", address: bitcoinAddr },
+          auth: { flag: "BITCOIN", content: bitcoinAddr },
         });
 
         const omniAddr = helpers.encodeToAddress(omniLockScript);
