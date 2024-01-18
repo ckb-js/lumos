@@ -155,7 +155,7 @@ export function getDefaultConfig(): {
       },
       OMNILOCK: {
         depType: "code",
-        path: path.join(__dirname, "../contracts/omni_lock"),
+        path: path.join(__dirname, "../contracts/omni_lock_f884d979"),
       },
       DAO: {
         depType: "code",

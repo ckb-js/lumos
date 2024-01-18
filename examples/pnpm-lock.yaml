@@ -39,13 +39,13 @@ importers:
   ../packages/base:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@ckb-lumos/toolkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../toolkit
       '@types/blake2b':
         specifier: ^2.1.0
@@ -76,19 +76,19 @@ importers:
   ../packages/ckb-indexer:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@ckb-lumos/rpc':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../toolkit
       cross-fetch:
         specifier: ^3.1.5
@@ -98,7 +98,7 @@ importers:
         version: 3.3.0
     devDependencies:
       '@ckb-lumos/testkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../testkit
       '@types/lodash.uniqby':
         specifier: ^4.7.7
@@ -125,7 +125,7 @@ importers:
   ../packages/codec:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
     devDependencies:
       escape-string-regexp:
@@ -138,39 +138,48 @@ importers:
   ../packages/common-scripts:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@ckb-lumos/config-manager':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../helpers
       '@ckb-lumos/rpc':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../toolkit
+      bech32:
+        specifier: ^2.0.0
+        version: 2.0.0
+      bs58:
+        specifier: ^5.0.0
+        version: 5.0.0
       immutable:
         specifier: ^4.3.0
         version: 4.3.0
     devDependencies:
       '@ckb-lumos/debugger':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../debugger
       '@ckb-lumos/hd':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../hd
       '@types/keccak':
         specifier: ^3.0.1
         version: 3.0.1
+      '@unisat/wallet-sdk':
+        specifier: ^1.1.2
+        version: 1.1.2
       keccak:
         specifier: ^3.0.1
         version: 3.0.1
@@ -178,14 +187,17 @@ importers:
   ../packages/config-manager:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
+      '@ckb-lumos/rpc':
+        specifier: 0.22.0-next.3
+        version: link:../rpc
       '@types/deep-freeze-strict':
         specifier: ^1.1.0
         version: 1.1.0
@@ -196,22 +208,22 @@ importers:
   ../packages/debugger:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@ckb-lumos/config-manager':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../helpers
       '@ckb-lumos/rpc':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../rpc
       '@types/download':
         specifier: ^8.0.1
@@ -233,55 +245,55 @@ importers:
         version: 3.0.0
     devDependencies:
       '@ckb-lumos/common-scripts':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../common-scripts
       '@ckb-lumos/experiment-tx-assembler':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../experiment-tx-assembler
       '@ckb-lumos/hd':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../hd
 
   ../packages/e2e-test:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../ckb-indexer
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@ckb-lumos/common-scripts':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../common-scripts
       '@ckb-lumos/config-manager':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../config-manager
       '@ckb-lumos/hd':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../hd
       '@ckb-lumos/helpers':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../helpers
       '@ckb-lumos/light-client':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../light-client
       '@ckb-lumos/rpc':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../rpc
       '@ckb-lumos/runner':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../runner
       '@ckb-lumos/toolkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../toolkit
       '@ckb-lumos/utils':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../utils
       '@types/kill-port':
         specifier: ^2.0.0
@@ -294,7 +306,7 @@ importers:
         version: 2.0.1
     devDependencies:
       '@ckb-lumos/testkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../testkit
       '@types/request':
         specifier: ^2.48.8
@@ -315,28 +327,28 @@ importers:
   ../packages/experiment-tx-assembler:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/config-manager':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../helpers
       '@ckb-lumos/toolkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../toolkit
 
   ../packages/hd:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       bn.js:
         specifier: ^5.1.3
@@ -367,22 +379,22 @@ importers:
   ../packages/hd-cache:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../ckb-indexer
       '@ckb-lumos/config-manager':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../config-manager
       '@ckb-lumos/hd':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../hd
       '@ckb-lumos/rpc':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../rpc
       immutable:
         specifier: ^4.3.0
@@ -398,19 +410,19 @@ importers:
   ../packages/helpers:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@ckb-lumos/config-manager':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../config-manager
       '@ckb-lumos/toolkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../toolkit
       bech32:
         specifier: ^2.0.0
@@ -422,13 +434,13 @@ importers:
   ../packages/light-client:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../ckb-indexer
       '@ckb-lumos/rpc':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../rpc
       cross-fetch:
         specifier: ^3.1.5
@@ -438,7 +450,7 @@ importers:
         version: 3.3.0
     devDependencies:
       '@ckb-lumos/testkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../testkit
       '@types/request':
         specifier: ^2.48.8
@@ -456,49 +468,49 @@ importers:
   ../packages/lumos:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../ckb-indexer
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@ckb-lumos/common-scripts':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../common-scripts
       '@ckb-lumos/config-manager':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../config-manager
       '@ckb-lumos/hd':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../hd
       '@ckb-lumos/helpers':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../helpers
       '@ckb-lumos/light-client':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../light-client
       '@ckb-lumos/rpc':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../toolkit
       '@ckb-lumos/transaction-manager':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../transaction-manager
 
   ../packages/molecule:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@types/nearley':
         specifier: ^2.11.2
@@ -511,7 +523,7 @@ importers:
         version: 2.20.1
     devDependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       jsbi:
         specifier: ^4.1.0
@@ -520,10 +532,10 @@ importers:
   ../packages/rpc:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       abort-controller:
         specifier: ^3.0.0
@@ -551,7 +563,7 @@ importers:
   ../packages/runner:
     dependencies:
       '@ckb-lumos/utils':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../utils
       '@ltd/j-toml':
         specifier: ^1.38.0
@@ -587,16 +599,16 @@ importers:
   ../packages/testkit:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@ckb-lumos/rpc':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../rpc
       '@types/body-parser':
         specifier: ^1.19.1
@@ -633,7 +645,7 @@ importers:
   ../packages/toolkit:
     dependencies:
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../bi
     devDependencies:
       '@babel/plugin-proposal-export-namespace-from':
@@ -646,19 +658,19 @@ importers:
   ../packages/transaction-manager:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../base
       '@ckb-lumos/ckb-indexer':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../ckb-indexer
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../codec
       '@ckb-lumos/rpc':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../rpc
       '@ckb-lumos/toolkit':
-        specifier: 0.22.0-next.0
+        specifier: 0.22.0-next.3
         version: link:../toolkit
       immutable:
         specifier: ^4.3.0
@@ -750,6 +762,15 @@ importers:
         specifier: canary
         version: link:../../packages/lumos
 
+  misc-nodejs:
+    dependencies:
+      '@ckb-lumos/debugger':
+        specifier: canary
+        version: link:../../packages/debugger
+      '@ckb-lumos/lumos':
+        specifier: canary
+        version: link:../../packages/lumos
+
   omni-lock-metamask:
     dependencies:
       '@ckb-lumos/lumos':
@@ -782,6 +803,28 @@ importers:
       elliptic:
         specifier: ^6.5.4
         version: 6.5.4
+      react:
+        specifier: 18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: 18.2.0
+        version: 18.2.0(react@18.2.0)
+    devDependencies:
+      parcel:
+        specifier: ^2.9.3
+        version: 2.9.3
+
+  omni-lock-unisat:
+    dependencies:
+      '@ckb-lumos/lumos':
+        specifier: canary
+        version: link:../../packages/lumos
+      '@types/react':
+        specifier: ^18.0.25
+        version: 18.0.25
+      '@types/react-dom':
+        specifier: ^18.0.9
+        version: 18.0.9
       react:
         specifier: 18.2.0
         version: 18.2.0
@@ -826,12 +869,6 @@ importers:
 
   secp256k1-transfer:
     dependencies:
-      '@ckb-lumos/base':
-        specifier: canary
-        version: link:../../packages/base
-      '@ckb-lumos/codec':
-        specifier: canary
-        version: link:../../packages/codec
       '@ckb-lumos/lumos':
         specifier: canary
         version: link:../../packages/lumos
@@ -1686,6 +1723,11 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@noble/hashes@1.3.3:
+    resolution: {integrity: sha512-V7/fPHgl+jsVPXqqeOzT8egNj2iBIVt+ECeMMG8TdcnTikP3oaBtUVqpT/gYCR68aEBJSF+XbYUxStjbFMqIIA==}
+    engines: {node: '>= 16'}
+    dev: true
 
   /@parcel/bundler-default@2.8.0(@parcel/core@2.9.3):
     resolution: {integrity: sha512-OvDDhxX4LwfGe7lYVMbJMzqNcDk8ydOqNw0Hra9WPgl0m5gju/eVIbDvot3JXp5F96FmV36uCxdODJhKTNoAzQ==}
@@ -3494,6 +3536,19 @@ packages:
       '@types/yargs-parser': 21.0.0
     dev: true
 
+  /@unisat/wallet-sdk@1.1.2:
+    resolution: {integrity: sha512-1ycdryAcCm7vFQlnKgpDsabDAXybwP7rGatp0FDHBZ7Aqgztfa3HkYDOY/M1e26Jl3OBuMPa7ak30VJMhTbhZA==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      bignumber.js: 9.1.2
+      bip39: 3.1.0
+      bitcoinjs-lib: 6.1.5
+      bitcore-lib: 10.0.23
+      ecpair: 2.1.0
+      hdkey: 2.1.0
+      tiny-secp256k1: 2.2.1
+    dev: true
+
   /@xobotyi/scrollbar-width@1.9.5:
     resolution: {integrity: sha512-N8tkAACJx2ww8vFMneJmaAgmjAG1tnVBZJRLRcx061tmsLRZHSEZSLuGWnwPtunsSLvSqXQ2wfp7Mgqg1I+2dQ==}
     dev: false
@@ -3708,6 +3763,9 @@ packages:
       safe-buffer: 5.2.1
     dev: true
 
+  /base-x@4.0.0:
+    resolution: {integrity: sha512-FuwxlW4H5kh37X/oW59pwTzzTKRzfrrQwhmyspRM7swOEZcHtDZSCt45U6oKgtuFE+WYPblePMVIPR4RZrh/hw==}
+
   /base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
@@ -3719,7 +3777,61 @@ packages:
 
   /bech32@2.0.0:
     resolution: {integrity: sha512-LcknSilhIGatDAsY1ak2I8VtGaHNhgMSYVxFrGLXv+xLHytaKZKcaUJJUE7qmBr7h33o5YQwP55pMI0xmkpJwg==}
-    dev: false
+
+  /bigi@1.4.2:
+    resolution: {integrity: sha512-ddkU+dFIuEIW8lE7ZwdIAf2UPoM90eaprg5m3YXAVVTmKlqV/9BX4A2M8BOK2yOq6/VgZFVhK6QAxJebhlbhzw==}
+    dev: true
+
+  /bignumber.js@9.1.2:
+    resolution: {integrity: sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==}
+    dev: true
+
+  /bip-schnorr@0.6.4:
+    resolution: {integrity: sha512-dNKw7Lea8B0wMIN4OjEmOk/Z5qUGqoPDY0P2QttLqGk1hmDPytLWW8PR5Pb6Vxy6CprcdEgfJpOjUu+ONQveyg==}
+    engines: {node: '>=8.0.0'}
+    dependencies:
+      bigi: 1.4.2
+      ecurve: 1.0.6
+      js-sha256: 0.9.0
+      randombytes: 2.1.0
+      safe-buffer: 5.2.1
+    dev: true
+
+  /bip174@2.1.1:
+    resolution: {integrity: sha512-mdFV5+/v0XyNYXjBS6CQPLo9ekCx4gtKZFnJm5PMto7Fs9hTTDpkkzOB7/FtluRI6JbUUAu+snTYfJRgHLZbZQ==}
+    engines: {node: '>=8.0.0'}
+    dev: true
+
+  /bip39@3.1.0:
+    resolution: {integrity: sha512-c9kiwdk45Do5GL0vJMe7tS95VjCii65mYAH7DfWl3uW8AVzXKQVUm64i3hzVybBDMp9r7j9iNxR85+ul8MdN/A==}
+    dependencies:
+      '@noble/hashes': 1.3.3
+    dev: true
+
+  /bitcoinjs-lib@6.1.5:
+    resolution: {integrity: sha512-yuf6xs9QX/E8LWE2aMJPNd0IxGofwfuVOiYdNUESkc+2bHHVKjhJd8qewqapeoolh9fihzHGoDCB5Vkr57RZCQ==}
+    engines: {node: '>=8.0.0'}
+    dependencies:
+      '@noble/hashes': 1.3.3
+      bech32: 2.0.0
+      bip174: 2.1.1
+      bs58check: 3.0.1
+      typeforce: 1.18.0
+      varuint-bitcoin: 1.1.2
+    dev: true
+
+  /bitcore-lib@10.0.23:
+    resolution: {integrity: sha512-HnwdOAXfwNJqia6SW7feAeh7fDwk7p21XXo32uTqhWzYDJ2MkalpTerl8hM5o6xYHWEIaY5rxCSaQMhKvQLXOg==}
+    dependencies:
+      bech32: 2.0.0
+      bip-schnorr: 0.6.4
+      bn.js: 4.11.8
+      bs58: 4.0.1
+      buffer-compare: 1.1.1
+      elliptic: 6.5.4
+      inherits: 2.0.1
+      lodash: 4.17.21
+    dev: true
 
   /bl@1.2.3:
     resolution: {integrity: sha512-pvcNpa0UU69UT341rO6AYy4FVAIkUHuZXRIWbq+zHnsVcRzDDjIAhGuuYoi0d//cwIwtt4pkpKycWEfjdV+vww==}
@@ -3740,6 +3852,10 @@ packages:
       blake2b-wasm: 1.1.7
       nanoassert: 1.1.0
     dev: false
+
+  /bn.js@4.11.8:
+    resolution: {integrity: sha512-ItfYfPLkWHUjckQCk8xC+LwxgK8NYcXywGigJgSwOP8Y2iyWT4f2vsZnoOXTTbo+o5yXmIUJ4gn5538SO5S3gA==}
+    dev: true
 
   /bn.js@4.12.0:
     resolution: {integrity: sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==}
@@ -3870,6 +3986,32 @@ packages:
       update-browserslist-db: 1.0.11(browserslist@4.21.9)
     dev: true
 
+  /bs58@4.0.1:
+    resolution: {integrity: sha512-Ok3Wdf5vOIlBrgCvTq96gBkJw+JUEzdBgyaza5HLtPm7yTHkjRy8+JzNyHF7BHa0bNWOQIp3m5YF0nnFcOIKLw==}
+    dependencies:
+      base-x: 3.0.9
+    dev: true
+
+  /bs58@5.0.0:
+    resolution: {integrity: sha512-r+ihvQJvahgYT50JD05dyJNKlmmSlMoOGwn1lCcEzanPglg7TxYjioQUYehQ9mAR/+hOSd2jRc/Z2y5UxBymvQ==}
+    dependencies:
+      base-x: 4.0.0
+
+  /bs58check@2.1.2:
+    resolution: {integrity: sha512-0TS1jicxdU09dwJMNZtVAfzPi6Q6QeN0pM1Fkzrjn+XYHvzMKPU3pHVpva+769iNVSfIYWf7LJ6WR+BuuMf8cA==}
+    dependencies:
+      bs58: 4.0.1
+      create-hash: 1.2.0
+      safe-buffer: 5.2.1
+    dev: true
+
+  /bs58check@3.0.1:
+    resolution: {integrity: sha512-hjuuJvoWEybo7Hn/0xOrczQKKEKD63WguEjlhLExYs2wUBcebDC1jDNK17eEAD2lYfw82d5ASC1d7K3SWszjaQ==}
+    dependencies:
+      '@noble/hashes': 1.3.3
+      bs58: 5.0.0
+    dev: true
+
   /bser@2.1.1:
     resolution: {integrity: sha512-gQxTNE/GAfIIrmHLUE3oJyp5FO6HRBfhjnw4/wMmA63ZGDJnWBmgY/lyQBpnDUkGmAhbSe39tx2d/iTOAfglwQ==}
     dependencies:
@@ -3886,6 +4028,10 @@ packages:
       buffer-alloc-unsafe: 1.1.0
       buffer-fill: 1.0.0
     dev: false
+
+  /buffer-compare@1.1.1:
+    resolution: {integrity: sha512-O6NvNiHZMd3mlIeMDjP6t/gPG75OqGPeiRZXoMQZJ6iy9GofCls4Ijs5YkPZZwoysizLiedhticmdyx/GyHghA==}
+    dev: true
 
   /buffer-crc32@0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
@@ -4478,6 +4624,22 @@ packages:
       safer-buffer: 2.1.2
     dev: true
 
+  /ecpair@2.1.0:
+    resolution: {integrity: sha512-cL/mh3MtJutFOvFc27GPZE2pWL3a3k4YvzUWEOvilnfZVlH3Jwgx/7d6tlD7/75tNk8TG2m+7Kgtz0SI1tWcqw==}
+    engines: {node: '>=8.0.0'}
+    dependencies:
+      randombytes: 2.1.0
+      typeforce: 1.18.0
+      wif: 2.0.6
+    dev: true
+
+  /ecurve@1.0.6:
+    resolution: {integrity: sha512-/BzEjNfiSuB7jIWKcS/z8FK9jNjmEWvUV2YZ4RLSmcDtP7Lq0m6FvDuSnJpBlDpGRpfRQeTLGLBI8H+kEv0r+w==}
+    dependencies:
+      bigi: 1.4.2
+      safe-buffer: 5.2.1
+    dev: true
+
   /ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
@@ -5034,6 +5196,15 @@ packages:
       inherits: 2.0.4
       minimalistic-assert: 1.0.1
 
+  /hdkey@2.1.0:
+    resolution: {integrity: sha512-i9Wzi0Dy49bNS4tXXeGeu0vIcn86xXdPQUpEYg+SO1YiO8HtomjmmRMaRyqL0r59QfcD4PfVbSF3qmsWFwAemA==}
+    dependencies:
+      bs58check: 2.1.2
+      ripemd160: 2.0.2
+      safe-buffer: 5.2.1
+      secp256k1: 4.0.3
+    dev: true
+
   /hmac-drbg@1.0.1:
     resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==}
     dependencies:
@@ -5177,6 +5348,10 @@ packages:
     dependencies:
       once: 1.4.0
       wrappy: 1.0.2
+
+  /inherits@2.0.1:
+    resolution: {integrity: sha512-8nWq2nLTAwd02jTqJExUYFSD/fKq6VH9Y/oG2accc/kdI0V98Bag8d5a4gi3XHz73rDWa2PvTtvcWYquKqSENA==}
+    dev: true
 
   /inherits@2.0.3:
     resolution: {integrity: sha512-x00IRNXNy63jwGkJmzPigoySHbaqpNuzKbBOmzK+g2OdZpQ9w+sxCN+VSB3ja7IAge2OP2qpfxTjeNcyjmW1uw==}
@@ -5812,6 +5987,10 @@ packages:
   /js-cookie@2.2.1:
     resolution: {integrity: sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ==}
     dev: false
+
+  /js-sha256@0.9.0:
+    resolution: {integrity: sha512-sga3MHh9sgQN2+pJ9VYZ+1LPwXOxuBJBA5nrR5/ofPfuiJBE2hnjsaN8se8JznOmGLN2p49Pe5U/ttafcs/apA==}
+    dev: true
 
   /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -7082,6 +7261,16 @@ packages:
     resolution: {integrity: sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==}
     dev: false
 
+  /secp256k1@4.0.3:
+    resolution: {integrity: sha512-NLZVf+ROMxwtEj3Xa562qgv2BK5e2WNmXPiOdVIPLgs6lyTzMvBq0aWTYMI5XCP9jZMVKOcqZLw/Wc4vDkuxhA==}
+    engines: {node: '>=10.0.0'}
+    requiresBuild: true
+    dependencies:
+      elliptic: 6.5.4
+      node-addon-api: 2.0.2
+      node-gyp-build: 4.6.0
+    dev: true
+
   /seek-bzip@1.0.6:
     resolution: {integrity: sha512-e1QtP3YL5tWww8uKaOCQ18UxIT2laNBXHjV/S2WYCiK4udiv8lkG89KRIoCjUagnAmCBurjF4zEVX2ByBbnCjQ==}
     hasBin: true
@@ -7540,6 +7729,13 @@ packages:
     resolution: {integrity: sha512-qsdtZH+vMoCARQtyod4imc2nIJwg9Cc7lPRrw9CzF8ZKR0khdr8+2nX80PBhET3tcyTtJDxAffGh2rXH4tyU8A==}
     dev: true
 
+  /tiny-secp256k1@2.2.1:
+    resolution: {integrity: sha512-/U4xfVqnVxJXN4YVsru0E6t5wVncu2uunB8+RVR40fYUxkKYUPS10f+ePQZgFBoE/Jbf9H1NBveupF2VmB58Ng==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      uint8array-tools: 0.0.7
+    dev: true
+
   /tmpl@1.0.5:
     resolution: {integrity: sha512-3f0uOEAQwIqGuWW2MVzYg8fV/QNnc/IpuJNG837rLuczAaLVHslWHZQj4IGiEl5Hs3kkbhwL9Ab7Hrsmuj+Smw==}
     dev: true
@@ -7636,10 +7832,19 @@ packages:
       media-typer: 0.3.0
       mime-types: 2.1.35
 
+  /typeforce@1.18.0:
+    resolution: {integrity: sha512-7uc1O8h1M1g0rArakJdf0uLRSSgFcYexrVoKo+bzJd32gd4gDy2L/Z+8/FjPnU9ydY3pEnVPtr9FyscYY60K1g==}
+    dev: true
+
   /typescript@5.0.4:
     resolution: {integrity: sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==}
     engines: {node: '>=12.20'}
     hasBin: true
+    dev: true
+
+  /uint8array-tools@0.0.7:
+    resolution: {integrity: sha512-vrrNZJiusLWoFWBqz5Y5KMCgP9W9hnjZHzZiZRT8oNAkq3d5Z5Oe76jAvVVSRh4U8GGR90N2X1dWtrhvx6L8UQ==}
+    engines: {node: '>=14.0.0'}
     dev: true
 
   /unbzip2-stream@1.4.3:
@@ -7714,6 +7919,12 @@ packages:
       convert-source-map: 1.9.0
     dev: true
 
+  /varuint-bitcoin@1.1.2:
+    resolution: {integrity: sha512-4EVb+w4rx+YfVM32HQX42AbbT7/1f5zwAYhIujKXKk8NQK+JfRVl3pqT3hjNn/L+RstigmGGKVwHA/P0wgITZw==}
+    dependencies:
+      safe-buffer: 5.2.1
+    dev: true
+
   /vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
@@ -7754,6 +7965,12 @@ packages:
     hasBin: true
     dependencies:
       isexe: 2.0.0
+    dev: true
+
+  /wif@2.0.6:
+    resolution: {integrity: sha512-HIanZn1zmduSF+BQhkE+YXIbEiH0xPr1012QbFEGB0xsKqJii0/SqJjyn8dFv6y36kOznMgMB+LGcbZTJ1xACQ==}
+    dependencies:
+      bs58check: 2.1.2
     dev: true
 
   /wrap-ansi@7.0.0:

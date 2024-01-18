@@ -1,24 +1,24 @@
-import { TransactionSkeletonType, Options } from "@ckb-lumos/helpers";
+import { Options, TransactionSkeletonType } from "@ckb-lumos/helpers";
 import { bytes, BytesLike } from "@ckb-lumos/codec";
 import {
-  values,
-  Cell,
-  WitnessArgs,
-  CellCollector as CellCollectorType,
-  Script,
-  CellProvider,
-  QueryOptions,
-  OutPoint,
-  HexString,
-  PackedSince,
   blockchain,
+  Cell,
+  CellCollector as CellCollectorType,
+  CellProvider,
+  HexString,
+  OutPoint,
+  PackedSince,
+  QueryOptions,
+  Script,
+  values,
+  WitnessArgs,
 } from "@ckb-lumos/base";
-import { getConfig, Config } from "@ckb-lumos/config-manager";
+import { Config, getConfig } from "@ckb-lumos/config-manager";
 import {
   addCellDep,
-  prepareSigningEntries as _prepareSigningEntries,
   isOmnilockScript,
   OMNILOCK_SIGNATURE_PLACEHOLDER,
+  prepareSigningEntries as _prepareSigningEntries,
 } from "./helper";
 import { FromInfo } from ".";
 import { parseFromInfo } from "./from_info";
@@ -35,18 +35,56 @@ import {
   createFixedHexBytesCodec,
 } from "@ckb-lumos/codec/lib/blockchain";
 import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
+import * as bitcoin from "./omnilock-bitcoin";
+
 const { ScriptValue } = values;
 
 export type OmnilockInfo = {
-  auth: {
-    flag: "ETHEREUM" | "SECP256K1_BLAKE160";
-    /**
-     * if auth flag is SECP256K1_BLAKE160, content is publicKeyToBlake160(secp256k1Pubkey)
-     * if auth flag is ETHEREUM, content is Ethereum address
-     */
-    content: BytesLike;
-  };
+  auth: OmnilockAuth;
 };
+
+export type OmnilockAuth = IdentityCkb | IdentityEthereum | IdentityBitcoin;
+
+export type IdentityCkb = {
+  flag: "SECP256K1_BLAKE160";
+  /**
+   * the blake160 hash of a secp256k1 public key
+   */
+  content: BytesLike;
+};
+export type IdentityEthereum = {
+  flag: "ETHEREUM";
+
+  /**
+   * an Ethereum address, aka the public key hash
+   */
+  content: BytesLike;
+};
+export type IdentityBitcoin = {
+  flag: "BITCOIN";
+  /**
+   * a Bitcoin address, such as
+   * `P2PKH(17VZNX1SN5NtKa8UQFxwQbFeFc3iqRYhem)`,
+   * `P2SH(3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX)`,
+   * `Bech32(bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4)`
+   */
+  content: string;
+};
+
+// https://github.com/XuJiandong/omnilock/blob/4e9fdb6ca78637651c8145bb7c5b82b4591332fb/c/ckb_identity.h#L62-L76
+enum IdentityFlagsType {
+  IdentityFlagsCkb = 0,
+  IdentityFlagsEthereum = 1,
+  IdentityFlagsEos = 2,
+  IdentityFlagsTron = 3,
+  IdentityFlagsBitcoin = 4,
+  IdentityFlagsDogecoin = 5,
+  IdentityCkbMultisig = 6,
+  IdentityFlagsEthereumDisplaying = 18,
+  IdentityFlagsOwnerLock = 0xfc,
+  IdentityFlagsExec = 0xfd,
+  IdentityFlagsDl = 0xfe,
+}
 
 /**
  * only support ETHEREUM and SECP256K1_BLAKE160 mode currently
@@ -54,6 +92,20 @@ export type OmnilockInfo = {
  * @param omnilockInfo
  * @param options
  * @returns
+ * @example
+ * // create an omnilock to work with MetaMask wallet
+ * createOmnilockScript({
+ *   auth: {
+ *     flag: "ETHEREUM",
+ *     content: "an ethereum address here",
+ *   }, { config })
+ * // or we can create an omnilock to work with UniSat wallet
+ * createOmnilockScript({
+ *   auth: {
+ *     flag: "BITCOIN",
+ *     content: "a bitcoin address here",
+ *   }
+ * }, {config})
  */
 export function createOmnilockScript(
   omnilockInfo: OmnilockInfo,
@@ -65,26 +117,55 @@ export function createOmnilockScript(
     throw new Error("OMNILOCK script config not found.");
   }
 
+  // TODO The advanced feature will be supported in the future.
+  // https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md
+  /**
+   * |Name                 |Flags     |Affected Args              |Affected Args Size (byte)|Affected Witness|
+   * |---------------------|----------|---------------------------|-------------------------|----------------|
+   * |administrator mode   |0b00000001|AdminList cell Type ID     |32                       |omni_identity/signature in OmniLockWitnessLock|
+   * |anyone-can-pay mode  |0b00000010|minimum ckb/udt in ACP     |2                        |N/A             |
+   * |time-lock mode       |0b00000100|since for timelock         |8                        |N/A             |
+   * |supply mode          |0b00001000|type script hash for supply|32                       |N/A             |
+   */
+  const omnilockArgs = [0b00000000];
+
   const args = (() => {
-    // omni flag       pubkey hash   omni lock flags
-    // chain identity   eth addr      function flag()
-    // 00: Nervos       👇            00: owner
-    // 01: Ethereum     👇            01: administrator
-    if (omnilockInfo.auth.flag === "ETHEREUM") {
-      return `0x01${bytes.hexify(omnilockInfo.auth.content).slice(2)}00`;
+    const flag = omnilockInfo.auth.flag;
+    switch (flag) {
+      case "ETHEREUM":
+        return bytes.hexify(
+          bytes.concat(
+            [IdentityFlagsType.IdentityFlagsEthereum],
+            omnilockInfo.auth.content,
+            omnilockArgs
+          )
+        );
+      case "SECP256K1_BLAKE160":
+        return bytes.hexify(
+          bytes.concat(
+            [IdentityFlagsType.IdentityFlagsCkb],
+            omnilockInfo.auth.content,
+            omnilockArgs
+          )
+        );
+      case "BITCOIN":
+        return bytes.hexify(
+          bytes.concat(
+            [IdentityFlagsType.IdentityFlagsBitcoin],
+            bitcoin.decodeAddress(omnilockInfo.auth.content),
+            omnilockArgs
+          )
+        );
+      default:
+        throw new Error(`Not supported flag: ${flag}.`);
     }
-    if (omnilockInfo.auth.flag === "SECP256K1_BLAKE160") {
-      return `0x00${bytes.hexify(omnilockInfo.auth.content).slice(2)}00`;
-    }
-    throw new Error(`Not supported flag: ${omnilockInfo.auth.flag}.`);
   })();
 
-  const script: Script = {
+  return {
     codeHash: omnilockConfig.CODE_HASH,
     hashType: omnilockConfig.HASH_TYPE,
     args,
   };
-  return script;
 }
 
 const Hexify = { pack: bytify, unpack: hexify };
@@ -291,6 +372,8 @@ export function prepareSigningEntries(
 
   return _prepareSigningEntries(txSkeleton, config, "OMNILOCK");
 }
+
+export { bitcoin };
 
 export default {
   prepareSigningEntries,

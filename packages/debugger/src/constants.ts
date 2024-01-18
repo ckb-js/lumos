@@ -1,1 +1,1 @@
-export const CKB_DEBUGGER_VERSION = "0.21.1";
+export const CKB_DEBUGGER_VERSION = "0.112.1";
