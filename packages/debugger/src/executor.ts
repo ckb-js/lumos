@@ -12,6 +12,19 @@ interface DebuggerOptions {
   readonly debuggerPath?: string;
 }
 
+type Options = {
+  /**
+   * script hash to execute
+   * @example
+   * computeScriptHash(inputs[0].lock)
+   */
+  scriptHash: Hash;
+  /**
+   * script group type to execute
+   */
+  scriptGroupType: "lock" | "type";
+};
+
 // TODO maybe we can compile the ckb-debugger to a wasm or a node module
 export class CKBDebugger implements Executor {
   loader: DataLoader;
@@ -47,10 +60,7 @@ export class CKBDebugger implements Executor {
 
   async execute(
     txSkeleton: TransactionSkeletonType,
-    options: {
-      scriptHash: Hash;
-      scriptGroupType: "lock" | "type";
-    }
+    options: Options
   ): Promise<ExecuteResult> {
     const tmpTxPath = this.saveTmpTxFile(txSkeleton);
 

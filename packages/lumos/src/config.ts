@@ -16,4 +16,13 @@ export {
   validateConfig,
   initializeConfig,
   getConfig,
+  /**
+   * @deprecated use the {@link nameOfScript} and {@link findConfigByScript} function instead
+   */
+  helpers,
+  nameOfScript,
+  findConfigByScript,
+  refreshScriptConfigs,
+  createRpcResolver,
+  createLatestTypeIdResolver,
 } from "@ckb-lumos/config-manager";

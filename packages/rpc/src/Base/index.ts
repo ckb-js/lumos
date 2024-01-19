@@ -130,7 +130,7 @@ export interface Base {
     outPoint: CKBComponents.OutPoint,
     withData: boolean
   ) => Promise<{
-    cell: CKBComponents.LiveCell;
+    cell: Option<CKBComponents.LiveCell>;
     status: CKBComponents.CellStatus;
   }>;
 
@@ -543,3 +543,5 @@ export class Base {
     return this.#rpcProperties;
   }
 }
+
+export type Option<T> = T | null;

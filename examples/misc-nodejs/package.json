@@ -1,0 +1,10 @@
+{
+  "name": "@lumos-example/misc",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "@ckb-lumos/lumos": "canary",
+    "@ckb-lumos/debugger": "canary"
+  }
+}

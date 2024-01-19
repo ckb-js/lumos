@@ -200,7 +200,7 @@ test("context#CKBDebugger with printf debug message", async (t) => {
     scriptHash: computeScriptHash(debugScript),
   });
 
-  t.regex(result.debugMessage, /debugger print utf-8 string/);
+  t.regex(result.message, /debugger print utf-8 string/);
   t.is(result.code, 0);
 });
 

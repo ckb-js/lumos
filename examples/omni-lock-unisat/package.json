@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "name": "@lumos-examples/omni-lock-unisat",
+  "description": "",
+  "scripts": {
+    "start": "parcel index.html",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@ckb-lumos/lumos": "canary",
+    "@types/react": "^18.0.25",
+    "@types/react-dom": "^18.0.9",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "parcel": "^2.9.3"
+  }
+}

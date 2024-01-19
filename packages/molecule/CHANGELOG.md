@@ -1,5 +1,9 @@
 # @ckb-lumos/molecule
 
+## 0.22.0-next.3
+
+## 0.22.0-next.2
+
 ## 0.22.0-next.1
 
 ## 0.22.0-next.0

@@ -1,5 +1,13 @@
 # @ckb-lumos/rpc
 
+## 0.22.0-next.3
+
+## 0.22.0-next.2
+
+### Minor Changes
+
+- [#602](https://github.com/ckb-js/lumos/pull/602) [`fa73c3e`](https://github.com/ckb-js/lumos/commit/fa73c3e669ce02c08331b514dcd1f70322a1829c) Thanks [@homura](https://github.com/homura)! - fix: `getLiveCell` should be nullable
+
 ## 0.22.0-next.1
 
 ## 0.22.0-next.0
