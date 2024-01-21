@@ -115,7 +115,7 @@ interface DepositOptions {
  * deposit a cell to DAO
  *
  * @param txSkeleton
- * @param fromInfo only system script is enabled default, to enable non-system script as inputs, please set enableNonSystemScript to true in options
+ * @param fromInfo only system script is enabled by default, to enable non-system script as inputs, please set enableNonSystemScript to true in options
  * @param toAddress deposit cell lock address
  * @param amount capacity in shannon
  * @param options
