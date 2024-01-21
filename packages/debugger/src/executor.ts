@@ -79,9 +79,17 @@ export class CKBDebugger implements Executor {
       }
     );
 
-    return parseDebuggerMessage(
-      buf.stdout.toString("utf-8"),
-      buf.stderr.toString("utf-8")
-    );
+    // when ckb-debugger can't be located, they're null.
+    if (buf.stdout != null && buf.stderr != null) {
+      return parseDebuggerMessage(
+        buf.stdout.toString("utf-8"),
+        buf.stderr.toString("utf-8")
+      );
+    } else {
+      /* c8 ignore next 3 */
+      throw new Error(
+        `Failed to install ckb-debugger or ckb-debugger can't be located at ${this.debuggerPath}`
+      );
+    }
   }
 }
