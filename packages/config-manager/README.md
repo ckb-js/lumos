@@ -17,7 +17,7 @@ encodeToAddress({...}) // ckb1...
 ## Refreshing Config
 
 ```ts
-import { refreshScriptConfig } from "@ckb-lumos/config";
+import { refreshScriptConfigs } from "@ckb-lumos/lumos/config";
 import { RPC } from "@ckb-lumos/rpc";
 
 const rpc = new RPC("http://localhost:8114");
