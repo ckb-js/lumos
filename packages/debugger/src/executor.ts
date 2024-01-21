@@ -86,6 +86,7 @@ export class CKBDebugger implements Executor {
         buf.stderr.toString("utf-8")
       );
     } else {
+      /* c8 ignore next 3 */
       throw new Error(
         `Failed to install ckb-debugger or ckb-debugger can't be located at ${this.debuggerPath}`
       );
