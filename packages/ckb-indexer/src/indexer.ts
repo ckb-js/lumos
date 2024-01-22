@@ -7,6 +7,7 @@ import {
   Output,
   utils,
   Block,
+  blockchain,
 } from "@ckb-lumos/base";
 import { requestBatchTransactionWithStatus } from "./services";
 import { CKBCellCollector } from "./collector";
@@ -31,7 +32,6 @@ import {
 import { BI } from "@ckb-lumos/bi";
 import { RPC as CKBIndexerRpc } from "./rpc";
 import { CKBRPC } from "@ckb-lumos/rpc";
-import { validators } from "@ckb-lumos/toolkit";
 import type * as IndexerType from "./indexerType";
 import { unwrapDataWrapper } from "./ckbIndexerFilter";
 
@@ -197,10 +197,10 @@ export class CkbIndexer implements CellProvider, TerminableCellFetcher {
       ? BI.from(0)
       : BI.from(queries.fromBlock);
     if (queries.lock) {
-      validators.ValidateScript(queries.lock);
+      blockchain.Script.pack(queries.lock as Script);
       emitter.lock = queries.lock as Script;
     } else if (queries.type && queries.type !== "empty") {
-      validators.ValidateScript(queries.type);
+      blockchain.Script.pack(queries.type as Script);
       emitter.type = queries.type as Script;
     } else {
       throw new Error("Either lock or type script must be provided!");
