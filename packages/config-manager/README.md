@@ -3,7 +3,9 @@
 ## Example
 
 ```ts
-import { initializeConfig, predefined } from '@ckb-lumos/config';
+import { initializeConfig, predefined } from "@ckb-lumos/config-manager"
+// or import from the entry package
+import { initializeConfig, predefined } from "@ckb-lumos/lumos/config"
 import { encodeToAddress } from '@ckb-lumos/helper'
 
 initializeConfig(predefined.AGGRON);
@@ -17,7 +19,9 @@ encodeToAddress({...}) // ckb1...
 ## Refreshing Config
 
 ```ts
-import { refreshScriptConfig } from "@ckb-lumos/config";
+import { refreshScriptConfigs } from "@ckb-lumos/config-manager"
+// or import from the entry package
+import { refreshScriptConfigs } from "@ckb-lumos/lumos/config"
 import { RPC } from "@ckb-lumos/rpc";
 
 const rpc = new RPC("http://localhost:8114");
