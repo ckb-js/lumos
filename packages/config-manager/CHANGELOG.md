@@ -1,5 +1,11 @@
 # @ckb-lumos/config-manager
 
+## 0.22.0-next.4
+
+### Minor Changes
+
+- [#623](https://github.com/ckb-js/lumos/pull/623) [`028d28e`](https://github.com/ckb-js/lumos/commit/028d28e463fd2f8b58b722684ad9fac982b3b923) Thanks [@homura](https://github.com/homura)! - feat: omnilock bitcoin auth message is changed to `CKB (Bitcoin Layer) transaction: 0x`
+
 ## 0.22.0-next.3
 
 ### Minor Changes

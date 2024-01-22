@@ -1,5 +1,7 @@
 # @ckb-lumos/lumos
 
+## 0.22.0-next.4
+
 ## 0.22.0-next.3
 
 ### Minor Changes
