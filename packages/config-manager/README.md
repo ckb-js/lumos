@@ -3,7 +3,9 @@
 ## Example
 
 ```ts
-import { initializeConfig, predefined } from '@ckb-lumos/lumos/config';
+import { initializeConfig, predefined } from "@ckb-lumos/config-manager"
+// or import from the entry package
+import { initializeConfig, predefined } from "@ckb-lumos/lumos/config"
 import { encodeToAddress } from '@ckb-lumos/helper'
 
 initializeConfig(predefined.AGGRON);
