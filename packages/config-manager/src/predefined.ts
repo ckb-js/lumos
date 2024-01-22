@@ -70,7 +70,7 @@ const LINA = createConfig({
         "0x9b819793a64463aed77c615d6cb226eea5487ccfc0783043a587254cda2b6f26",
       HASH_TYPE: "type",
       TX_HASH:
-        "0xdfdb40f5d229536915f2d5403c66047e162e25dedd70a79ef5164356e1facdc8",
+        "0xc76edf469816aa22f416503c38d0b533d2a018e253e379f134c3985b3472c842",
       INDEX: "0x0",
       DEP_TYPE: "code",
     },
