@@ -1,5 +1,15 @@
 # @ckb-lumos/common-scripts
 
+## 0.22.0-next.4
+
+### Minor Changes
+
+- [#607](https://github.com/ckb-js/lumos/pull/607) [`b44fb39`](https://github.com/ckb-js/lumos/commit/b44fb3967d8c0cec40e8a39a885b33a515c2d9d4) Thanks [@homura](https://github.com/homura)! - feat: supported bitcoin auth in omnilock
+
+- [#623](https://github.com/ckb-js/lumos/pull/623) [`028d28e`](https://github.com/ckb-js/lumos/commit/028d28e463fd2f8b58b722684ad9fac982b3b923) Thanks [@homura](https://github.com/homura)! - feat: omnilock bitcoin auth message is changed to `CKB (Bitcoin Layer) transaction: 0x`
+
+- [#624](https://github.com/ckb-js/lumos/pull/624) [`31e2f29`](https://github.com/ckb-js/lumos/commit/31e2f297c2452376917c8b516aaf4e9485cbac7f) Thanks [@homura](https://github.com/homura)! - feat: update mainnet omnilock config
+
 ## 0.22.0-next.3
 
 ## 0.22.0-next.2

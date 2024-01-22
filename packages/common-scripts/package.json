@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/common-scripts",
-  "version": "0.22.0-next.3",
+  "version": "0.22.0-next.4",
   "description": "Common script support in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -19,13 +19,13 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "0.22.0-next.3",
-    "@ckb-lumos/bi": "0.22.0-next.3",
-    "@ckb-lumos/codec": "0.22.0-next.3",
-    "@ckb-lumos/config-manager": "0.22.0-next.3",
-    "@ckb-lumos/helpers": "0.22.0-next.3",
-    "@ckb-lumos/rpc": "0.22.0-next.3",
-    "@ckb-lumos/toolkit": "0.22.0-next.3",
+    "@ckb-lumos/base": "0.22.0-next.4",
+    "@ckb-lumos/bi": "0.22.0-next.4",
+    "@ckb-lumos/codec": "0.22.0-next.4",
+    "@ckb-lumos/config-manager": "0.22.0-next.4",
+    "@ckb-lumos/helpers": "0.22.0-next.4",
+    "@ckb-lumos/rpc": "0.22.0-next.4",
+    "@ckb-lumos/toolkit": "0.22.0-next.4",
     "bs58": "^5.0.0",
     "bech32": "^2.0.0",
     "immutable": "^4.3.0"
@@ -55,8 +55,8 @@
     ]
   },
   "devDependencies": {
-    "@ckb-lumos/debugger": "0.22.0-next.3",
-    "@ckb-lumos/hd": "0.22.0-next.3",
+    "@ckb-lumos/debugger": "0.22.0-next.4",
+    "@ckb-lumos/hd": "0.22.0-next.4",
     "@types/keccak": "^3.0.1",
     "@unisat/wallet-sdk": "^1.1.2",
     "keccak": "^3.0.1"
