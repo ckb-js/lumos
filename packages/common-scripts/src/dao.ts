@@ -1,8 +1,11 @@
+/* eslint-disable import/no-named-as-default-member */
+
 import {
   parseAddress,
   TransactionSkeletonType,
   Options,
   generateAddress,
+  encodeToAddress,
   minimalCellCapacityCompatible,
 } from "@ckb-lumos/helpers";
 import {
@@ -22,7 +25,7 @@ import { getConfig, Config } from "@ckb-lumos/config-manager";
 const { parseSince } = sinceUtils;
 import secp256k1Blake160 from "./secp256k1_blake160";
 import secp256k1Blake160Multisig from "./secp256k1_blake160_multisig";
-import { FromInfo, parseFromInfo } from "./from_info";
+import { FromInfo, isMultisigFromInfo, parseFromInfo } from "./from_info";
 import {
   addCellDep,
   isSecp256k1Blake160Script,
@@ -31,6 +34,7 @@ import {
 } from "./helper";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { RPC } from "@ckb-lumos/rpc";
+import common from "./common";
 
 const DEPOSIT_DAO_DATA: HexString = "0x0000000000000000";
 const DAO_LOCK_PERIOD_EPOCHS_COMPATIBLE = BI.from(180);
@@ -98,12 +102,20 @@ export async function* listDaoCells(
   }
 }
 
+interface DepositOptions {
+  config?: Config;
+  /**
+   * enable using non-system script in inputs
+   */
+  enableNonSystemScript?: boolean;
+}
+
 // TODO: reject multisig with non absolute-epoch-number locktime lock
 /**
  * deposit a cell to DAO
  *
  * @param txSkeleton
- * @param fromInfo
+ * @param fromInfo only system script is enabled by default, to enable non-system script as inputs, please set enableNonSystemScript to true in options
  * @param toAddress deposit cell lock address
  * @param amount capacity in shannon
  * @param options
@@ -113,7 +125,7 @@ export async function deposit(
   fromInfo: FromInfo,
   toAddress: Address,
   amount: BIish,
-  { config = undefined }: Options = {}
+  { config = undefined, enableNonSystemScript = false }: DepositOptions = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   const DAO_SCRIPT = config.SCRIPTS.DAO;
@@ -179,16 +191,36 @@ export async function deposit(
         fromInfo,
         { config }
       );
+    } else if (enableNonSystemScript) {
+      txSkeleton = await common.injectCapacity(
+        txSkeleton,
+        [fromInfo],
+        amount,
+        encodeToAddress(parseFromInfo(fromInfo).fromScript, { config }),
+        undefined,
+        { config }
+      );
     }
   } else if (fromInfo) {
-    txSkeleton = await secp256k1Blake160Multisig.injectCapacity(
-      txSkeleton,
-      outputIndex,
-      fromInfo,
-      {
-        config,
-      }
-    );
+    if (isMultisigFromInfo(fromInfo)) {
+      txSkeleton = await secp256k1Blake160Multisig.injectCapacity(
+        txSkeleton,
+        outputIndex,
+        fromInfo,
+        {
+          config,
+        }
+      );
+    } else if (enableNonSystemScript) {
+      txSkeleton = await common.injectCapacity(
+        txSkeleton,
+        [fromInfo],
+        amount,
+        encodeToAddress(parseFromInfo(fromInfo).fromScript, { config }),
+        undefined,
+        { config }
+      );
+    }
   }
 
   return txSkeleton;
@@ -217,6 +249,14 @@ function _checkFromInfoSince(fromInfo: FromInfo, config: Config): void {
   }
 }
 
+export interface WithdrawOptions {
+  config?: Config;
+  /**
+   * enable using non-system script in inputs
+   */
+  enableNonSystemScript?: boolean;
+}
+
 /**
  * withdraw an deposited DAO cell
  *
@@ -229,7 +269,7 @@ async function withdraw(
   txSkeleton: TransactionSkeletonType,
   fromInput: Cell,
   fromInfo?: FromInfo,
-  { config = undefined }: Options = {}
+  { config = undefined, enableNonSystemScript = false }: WithdrawOptions = {}
 ): Promise<TransactionSkeletonType> {
   config = config || getConfig();
   _checkDaoScript(config);
@@ -268,15 +308,20 @@ async function withdraw(
       txSkeleton,
       fromInput,
       undefined,
-      {
-        config,
-      }
+      { config }
     );
   } else if (isSecp256k1Blake160MultisigScript(fromLockScript, config)) {
     txSkeleton = await secp256k1Blake160Multisig.setupInputCell(
       txSkeleton,
       fromInput,
       fromInfo || generateAddress(fromLockScript, { config }),
+      { config }
+    );
+  } else if (enableNonSystemScript) {
+    txSkeleton = await common.setupInputCell(
+      txSkeleton,
+      fromInput,
+      fromInfo || encodeToAddress(fromLockScript, { config }),
       { config }
     );
   }
