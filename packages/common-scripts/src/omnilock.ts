@@ -142,9 +142,13 @@ export function createOmnilockScript(
           ])
         );
       case "TRON":
-        return bytes.hexify(bytes.concat([3], tron.decodeAddress(omnilockInfo.auth.address), [0]));
+        return bytes.hexify(
+          bytes.concat([3], tron.decodeAddress(omnilockInfo.auth.address), [0])
+        );
       case "DOGECOIN":
-        return bytes.hexify(bytes.concat([5], tron.decodeAddress(omnilockInfo.auth.address), [0]));   //same to tron addres decode
+        return bytes.hexify(
+          bytes.concat([5], tron.decodeAddress(omnilockInfo.auth.address), [0])
+        ); //same to tron addres decode
       // case "EOS":
       //   return bytes.hexify(bytes.concat([2], "0xfc06724d74926c15809adf38659a3c1fbec943d7", [0]));   //not support todo hardcode pubkeyhash
       default:
