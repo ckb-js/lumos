@@ -3,7 +3,7 @@ import { bech32 } from "bech32";
 import bs58 from "bs58";
 
 // https://github.com/XuJiandong/ckb-production-scripts/blob/f884d97963ad553b91bfcc992f68d1ad90f9b244/c/ckb_identity.h#L28
-const BTC_PREFIX = "CKB (Bitcoin Layer-2) transaction: 0x";
+const BTC_PREFIX = "CKB (Bitcoin Layer) transaction: 0x";
 
 export function decodeAddress(address: string): ArrayLike<number> {
   try {
@@ -33,7 +33,7 @@ export function decodeAddress(address: string): ArrayLike<number> {
 }
 
 export interface Provider {
-  requestAccounts(): Promise<string[]>;
+  requestAccounts(): Promise<string>;
   signMessage(message: string, type?: "ecdsa"): Promise<string>;
 }
 
