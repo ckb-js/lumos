@@ -26,20 +26,20 @@ test("Should throw when sign a message without provider", async (t) => {
 const context = createTestContext(getDefaultConfig());
 const managerConfig = { PREFIX: "ckt", SCRIPTS: context.scriptConfigs };
 
-test("Omnilock#Bitcoin P2PKH", async (t) => {
+test.serial("Omnilock#Bitcoin P2PKH", async (t) => {
   const { provider } = makeProvider(AddressType.P2PKH);
   const result = await execute(provider);
   t.is(result.code, 0, result.message);
 });
 
-test("Omnilock#Bitcoin P2WPKH", async (t) => {
+test.serial("Omnilock#Bitcoin P2WPKH", async (t) => {
   const { provider } = makeProvider(AddressType.P2WPKH);
   const result = await execute(provider);
 
   t.is(result.code, 0, result.message);
 });
 
-test("Omnilock#Bitcoin P2SH_P2WPKH", async (t) => {
+test.serial("Omnilock#Bitcoin P2SH_P2WPKH", async (t) => {
   const { provider } = makeProvider(AddressType.P2SH_P2WPKH);
   const result = await execute(provider);
 
