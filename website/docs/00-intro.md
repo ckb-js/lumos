@@ -95,7 +95,7 @@ Create the `wallet.ts` file in the root directory
 ``` ts
 // wallet.ts
 import { hd } from '@ckb-lumos/lumos';
-const { mnemonic, ExtendedPrivateKey } = hd;
+const { mnemonic, ExtendedPrivateKey,AddressType } = hd;
 
 export const generateFirstHDPrivateKey = () => {
   const myMnemonic = mnemonic.generateMnemonic();
