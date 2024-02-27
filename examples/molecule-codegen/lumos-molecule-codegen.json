@@ -1,6 +1,5 @@
 {
   "objectKeyFormat": "camelcase",
   "prepend": "import { Uint32, Uint64, Uint128, DepType, HashType } from './customized'",
-  "output": "generated.ts",
   "schemaFile": "blockchain.mol"
 }

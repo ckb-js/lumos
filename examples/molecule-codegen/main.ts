@@ -1,4 +1,4 @@
-import { Script } from "./generated";
+import { Script } from "./blockchain";
 
 const packed = Script.pack({ codeHash: new Uint8Array(32), hashType: "type", args: "0xdeadbeef" });
 const unpacked = Script.unpack(packed);

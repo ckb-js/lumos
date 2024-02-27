@@ -11,7 +11,6 @@ function camelcase(str: string): string {
 type Config = {
   objectKeyFormat: "camelcase" | "keep";
   prepend: string;
-  output: string;
   schemaFile: string;
 };
 
@@ -25,7 +24,6 @@ const fileConfig: Partial<Config> = (() => {
 const config: Config = {
   objectKeyFormat: fileConfig.objectKeyFormat || "keep",
   prepend: fileConfig.prepend || "",
-  output: fileConfig.output || "generated.ts",
   schemaFile: fileConfig.schemaFile || "schema.mol",
 };
 
@@ -43,4 +41,4 @@ const generated = codegen(fs.readFileSync(config.schemaFile, "utf-8"), {
     config.objectKeyFormat === "camelcase" ? camelcase : undefined,
 });
 
-fs.writeFileSync(config.output, generated);
+console.log(generated);

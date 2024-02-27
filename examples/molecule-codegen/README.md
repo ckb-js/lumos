@@ -19,10 +19,10 @@ table Script {
 
 And we can provide a [`custmoized.ts`](customized.ts) file to override the original `HashType` and `DepType` fields.
 
-To generate the [`generated.ts`](generated.ts) file from the `blockchain.mol` schema, run the following command:
+To generate the [`blockchain.ts`](blockchain.ts) file from the `blockchain.mol` schema, run the following command:
 
 ```sh
-npx lumos-molecule-codegen
+npx lumos-molecule-codegen > blockchain.ts
 ```
 
 To test whether the generated code works, run the following command:

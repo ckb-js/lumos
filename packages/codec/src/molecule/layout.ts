@@ -41,22 +41,34 @@ type PartialNullable<O extends Record<string, unknown>> =
   & Partial<Pick<O, NullableKeys<O>>>
   & Pick<O, NonNullableKeys<O>>;
 
+/**
+ * A codec for struct and table of Molecule
+ */
 export type ObjectLayoutCodec<T extends Record<string, BytesCodec>> =
   BytesCodec<
     PartialNullable<{ [key in keyof T]: UnpackResult<T[key]> }>,
     PartialNullable<{ [key in keyof T]: PackParam<T[key]> }>
   >;
 
+/**
+ * A codec for option of Molecule
+ */
 export interface OptionLayoutCodec<T extends BytesCodec>
   extends BytesCodec<UnpackResult<T> | undefined> {
   pack: (packable?: PackParam<T>) => Uint8Array;
 }
 
+/**
+ * A code for array and vector of Molecule
+ */
 export type ArrayLayoutCodec<T extends BytesCodec> = BytesCodec<
   Array<UnpackResult<T>>,
   Array<PackParam<T>>
 >;
 
+/**
+ * A molecule codec for `
+ */
 export type UnionLayoutCodec<T extends Record<string, BytesCodec>> = BytesCodec<
   { [key in keyof T]: { type: key; value: UnpackResult<T[key]> } }[keyof T],
   { [key in keyof T]: { type: key; value: PackParam<T[key]> } }[keyof T]

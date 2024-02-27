@@ -18,25 +18,27 @@ function id<T>(value: T): T {
   return value;
 }
 
+export function scanCustomizedTypes(prepend: string): string[] {
+  if (!prepend) return [];
+
+  const matched = prepend.match(/(?<={)([^}]+)(?=})/g);
+  if (!matched) return [];
+
+  // parse the override import statements to get the items
+  return matched.flatMap((item) =>
+    item
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean)
+  );
+}
+
 export function codegen(schema: string, options: Options = {}): string {
   const parser = new NearleyParser(NearleyGrammar.fromCompiled(grammar));
   parser.feed(schema);
 
   // the items that don't need to be generated
-  const importedModules: string[] = (() => {
-    if (!options.prepend) return [];
-
-    // parse the override import statements to get the items
-    const importedCodecs = options.prepend
-      .match(/(?<={)([^}]+)(?=})/g)
-      ?.flatMap((item) =>
-        item
-          .split(",")
-          .map((x) => x.trim())
-          .filter(Boolean)
-      );
-    return importedCodecs || [];
-  })();
+  const importedModules: string[] = scanCustomizedTypes(options.prepend || "");
 
   const molTypes = prepareMolTypes(
     parser.results[0].filter(Boolean),
@@ -124,7 +126,7 @@ export function codegen(schema: string, options: Options = {}): string {
 /* eslint-disable */
 
 import { bytes, createBytesCodec, createFixedBytesCodec, molecule } from "@ckb-lumos/codec";
-${options.prepend || "\b"}
+${options.prepend || ""}
 
 const { array, vector, union, option, struct, table } = molecule;
 

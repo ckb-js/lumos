@@ -32,15 +32,13 @@ Then you can create a `lumos-molecule-codegen.json` file to configure the codege
   objectKeyFormat: "camelcase",
   // prepend the import statement to custom and override the generated codec
   prepend: "import { Uint32, Uint64, Uint128 } from './customized'",
-  // the output file name
-  output: "generated.ts",
   // the input schema file
   schemaFile: "blockchain.mol",
 }
 ```
 
-Finally, run the following command to generate code
+Finally, run the following command to generate code to write to `generated.ts`.
 
 ```sh
-npx lumos-molecule-codegen
+npx lumos-molecule-codegen > generated.ts
 ```
