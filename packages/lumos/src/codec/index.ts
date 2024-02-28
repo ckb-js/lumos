@@ -27,6 +27,13 @@ export {
   byteVecOf,
 } from "@ckb-lumos/codec/lib/molecule";
 
+export type {
+  ObjectLayoutCodec,
+  ArrayLayoutCodec,
+  OptionLayoutCodec,
+  UnionLayoutCodec,
+} from "@ckb-lumos/codec/lib/molecule";
+
 export {
   Uint8,
   Uint16,

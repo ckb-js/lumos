@@ -2,6 +2,8 @@ import { BI, BIish } from "@ckb-lumos/bi";
 import { createFixedBytesCodec, FixedBytesCodec } from "../base";
 import { CodecBaseParseError } from "../error";
 
+export { BI, BIish };
+
 function assertNumberRange(
   value: BIish,
   min: BIish,

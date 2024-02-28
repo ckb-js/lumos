@@ -41,22 +41,35 @@ type PartialNullable<O extends Record<string, unknown>> =
   & Partial<Pick<O, NullableKeys<O>>>
   & Pick<O, NonNullableKeys<O>>;
 
-export type ObjectCodec<T extends Record<string, BytesCodec>> = BytesCodec<
-  PartialNullable<{ [key in keyof T]: UnpackResult<T[key]> }>,
-  PartialNullable<{ [key in keyof T]: PackParam<T[key]> }>
->;
+/**
+ * A codec for struct and table of Molecule
+ */
+export type ObjectLayoutCodec<T extends Record<string, BytesCodec>> =
+  BytesCodec<
+    PartialNullable<{ [key in keyof T]: UnpackResult<T[key]> }>,
+    PartialNullable<{ [key in keyof T]: PackParam<T[key]> }>
+  >;
 
-export interface OptionCodec<T extends BytesCodec>
+/**
+ * A codec for option of Molecule
+ */
+export interface OptionLayoutCodec<T extends BytesCodec>
   extends BytesCodec<UnpackResult<T> | undefined> {
   pack: (packable?: PackParam<T>) => Uint8Array;
 }
 
-export type ArrayCodec<T extends BytesCodec> = BytesCodec<
+/**
+ * A code for array and vector of Molecule
+ */
+export type ArrayLayoutCodec<T extends BytesCodec> = BytesCodec<
   Array<UnpackResult<T>>,
   Array<PackParam<T>>
 >;
 
-export type UnionCodec<T extends Record<string, BytesCodec>> = BytesCodec<
+/**
+ * A molecule codec for `
+ */
+export type UnionLayoutCodec<T extends Record<string, BytesCodec>> = BytesCodec<
   { [key in keyof T]: { type: key; value: UnpackResult<T[key]> } }[keyof T],
   { [key in keyof T]: { type: key; value: PackParam<T[key]> } }[keyof T]
 >;
@@ -70,7 +83,7 @@ export type UnionCodec<T extends Record<string, BytesCodec>> = BytesCodec<
 export function array<T extends FixedBytesCodec>(
   itemCodec: T,
   itemCount: number
-): ArrayCodec<T> & Fixed {
+): ArrayLayoutCodec<T> & Fixed {
   const enhancedArrayCodec = createArrayCodec(itemCodec);
   return createFixedBytesCodec({
     byteLength: itemCodec.byteLength * itemCount,
@@ -117,7 +130,7 @@ function checkShape<T extends object>(shape: T, fields: (keyof T)[]) {
 export function struct<T extends Record<string, FixedBytesCodec>>(
   shape: T,
   fields: (keyof T)[]
-): ObjectCodec<T> & Fixed {
+): ObjectLayoutCodec<T> & Fixed {
   checkShape(shape, fields);
   const objectCodec = createObjectCodec(shape);
   return createFixedBytesCodec({
@@ -153,7 +166,9 @@ export function struct<T extends Record<string, FixedBytesCodec>>(
  * Vector with fixed size item codec
  * @param itemCodec fixed-size vector item codec
  */
-export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
+export function fixvec<T extends FixedBytesCodec>(
+  itemCodec: T
+): ArrayLayoutCodec<T> {
   return createBytesCodec({
     pack(items) {
       const arrayCodec = createArrayCodec(itemCodec);
@@ -181,7 +196,9 @@ export function fixvec<T extends FixedBytesCodec>(itemCodec: T): ArrayCodec<T> {
  * @param itemCodec the vector item codec. It can be fixed-size or dynamic-size.
  * For example, you can create a recursive vector with this.
  */
-export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
+export function dynvec<T extends BytesCodec>(
+  itemCodec: T
+): ArrayLayoutCodec<T> {
   return createBytesCodec({
     pack(obj) {
       const arrayCodec = createArrayCodec(itemCodec);
@@ -241,7 +258,9 @@ export function dynvec<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
  * General vector codec, if `itemCodec` is fixed size type, it will create a fixvec codec, otherwise a dynvec codec will be created.
  * @param itemCodec
  */
-export function vector<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
+export function vector<T extends BytesCodec>(
+  itemCodec: T
+): ArrayLayoutCodec<T> {
   if (isFixedCodec(itemCodec)) {
     return fixvec(itemCodec);
   }
@@ -256,7 +275,7 @@ export function vector<T extends BytesCodec>(itemCodec: T): ArrayCodec<T> {
 export function table<T extends Record<string, BytesCodec>>(
   shape: T,
   fields: (keyof T)[]
-): ObjectCodec<T> {
+): ObjectLayoutCodec<T> {
   checkShape(shape, fields);
   return createBytesCodec({
     pack(obj) {
@@ -335,7 +354,7 @@ export function table<T extends Record<string, BytesCodec>>(
 export function union<T extends Record<string, BytesCodec>>(
   itemCodec: T,
   fields: (keyof T)[] | Record<keyof T, number>
-): UnionCodec<T> {
+): UnionLayoutCodec<T> {
   checkShape(itemCodec, Array.isArray(fields) ? fields : Object.keys(fields));
 
   // check duplicated id
@@ -405,7 +424,9 @@ export function union<T extends Record<string, BytesCodec>>(
  * - if it's not empty, just serialize the inner item (the size is same as the inner item's size).
  * @param itemCodec
  */
-export function option<T extends BytesCodec>(itemCodec: T): OptionCodec<T> {
+export function option<T extends BytesCodec>(
+  itemCodec: T
+): OptionLayoutCodec<T> {
   return createBytesCodec({
     pack(obj?) {
       const nullableCodec = createNullableCodec(itemCodec);
