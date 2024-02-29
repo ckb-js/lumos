@@ -51,8 +51,8 @@ export class CKBDebugger implements Executor {
    */
   private saveTmpTxFile(txSkeleton: TransactionSkeletonType): string {
     const debuggerData = parseDebuggerData(txSkeleton, this.loader);
-    const randomHash = crypto.randomBytes(18).toString('hex');    
-    const tempFileName = `lumos-debugger-data-${randomHash}`    
+    const randomHex = crypto.randomBytes(18).toString('hex');    
+    const tempFileName = `lumos-debugger-data-${randomHex}`    
     const tmpTxPath = path.join(os.tmpdir(), `${tempFileName}.json`);
     fs.writeFileSync(tmpTxPath, JSON.stringify(debuggerData));
 
