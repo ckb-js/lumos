@@ -6,6 +6,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { parseDebuggerData, parseDebuggerMessage } from "./parse";
+import * as crypto from 'crypto';
 
 interface DebuggerOptions {
   readonly loader: DataLoader;
@@ -50,9 +51,9 @@ export class CKBDebugger implements Executor {
    */
   private saveTmpTxFile(txSkeleton: TransactionSkeletonType): string {
     const debuggerData = parseDebuggerData(txSkeleton, this.loader);
-
-    // TODO replace with random tmp file name to avoid conflict
-    const tmpTxPath = path.join(os.tmpdir(), "ckb_debugger_tx.json");
+    const randomHex = crypto.randomBytes(18).toString('hex');    
+    const tempFileName = `lumos-debugger-data-${randomHex}`    
+    const tmpTxPath = path.join(os.tmpdir(), `${tempFileName}.json`);
     fs.writeFileSync(tmpTxPath, JSON.stringify(debuggerData));
 
     return tmpTxPath;
