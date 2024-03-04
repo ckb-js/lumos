@@ -14,5 +14,6 @@
   "logLevel": "Verbose",
   "skipErrorChecking": true,
   "excludePrivate": true,
-  "readme": "./assets/readme-typedoc.md"
+  "readme": "./assets/readme-typedoc.md",
+  "plugin": ["typedoc-plugin-missing-exports"]
 }
