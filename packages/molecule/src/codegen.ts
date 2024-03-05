@@ -33,7 +33,10 @@ export function scanCustomizedTypes(prepend: string): string[] {
   );
 }
 
-export function codegenReturnMore(schema: string, options: Options = {}): ParseResult {
+export function codegenReturnMore(
+  schema: string,
+  options: Options = {}
+): ParseResult {
   const parser = new NearleyParser(NearleyGrammar.fromCompiled(grammar));
   parser.feed(schema);
 
@@ -45,11 +48,11 @@ export function codegenReturnMore(schema: string, options: Options = {}): ParseR
     importedModules
   );
 
-  const typeNames: Array<string> = []
+  const typeNames: Array<string> = [];
   const codecs = molTypes
     .map((molType) => {
       if (importedModules.includes(molType.name)) return "";
-      typeNames.push(molType.name)
+      typeNames.push(molType.name);
 
       if (molType.type === "array") {
         if (molType.item === "byte") {
@@ -150,14 +153,15 @@ const byte = createFallbackFixedBytesCodec(1);
 ${codecs}
 `;
   const result: ParseResult = {
-    code, fields: typeNames
-  }
+    code,
+    fields: typeNames,
+  };
 
-  return result
+  return result;
 }
 
 export function codegen(schema: string, options: Options = {}): string {
-  return codegenReturnMore(schema, options).code
+  return codegenReturnMore(schema, options).code;
 }
 
 // sort molecule types by their dependencies, to make sure the known types can be used in the front
