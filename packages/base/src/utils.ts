@@ -6,6 +6,7 @@ import { BI, BIish } from "@ckb-lumos/bi";
 import * as blockchain from "./blockchain";
 import { Script, Input } from "./api";
 import { Hash, HexNumber, HexString } from "./primitive";
+import { Uint128LE, Uint64LE } from "@ckb-lumos/codec/lib/number";
 
 type CKBHasherOptions = {
   outLength?: number;
@@ -54,7 +55,7 @@ function computeScriptHash(script: Script): string {
   return ckbHash(blockchain.Script.pack(script));
 }
 
-function hashCode(buffer: Buffer): number {
+function hashCode(buffer: Uint8Array): number {
   return xxHash32(buffer, 0);
 }
 
@@ -69,11 +70,7 @@ function toBigUInt64LE(num: BIish): HexString {
 
 function toBigUInt64LECompatible(num: BIish): HexString {
   num = BI.from(num);
-  const buf = Buffer.alloc(8);
-  buf.writeUInt32LE(num.and("0xffffffff").toNumber(), 0);
-  num = num.shr(32);
-  buf.writeUInt32LE(num.and("0xffffffff").toNumber(), 4);
-  return `0x${buf.toString("hex")}`;
+  return bytes.hexify(Uint64LE.pack(num));
 }
 
 /**
@@ -90,8 +87,7 @@ function readBigUInt64LE(hex: HexString): bigint {
  * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 function readBigUInt64LECompatible(hex: HexString): BI {
-  const buf = Buffer.from(hex.slice(2), "hex");
-  return BI.from(buf.readUInt32LE()).add(BI.from(buf.readUInt32LE(4)).shl(32));
+  return Uint64LE.unpack(hex);
 }
 
 // const U128_MIN = BigInt(0);
@@ -117,18 +113,7 @@ function toBigUInt128LECompatible(num: BIish): HexNumber {
   if (num.gt(U128_MAX_COMPATIBLE)) {
     throw new Error(`u128 ${num} too large`);
   }
-
-  const buf = Buffer.alloc(16);
-  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 0);
-  num = num.shr(32);
-  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 4);
-
-  num = num.shr(32);
-  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 8);
-
-  num = num.shr(32);
-  buf.writeUInt32LE(num.and(0xffffffff).toNumber(), 12);
-  return `0x${buf.toString("hex")}`;
+  return bytes.hexify(Uint128LE.pack(num));
 }
 
 /**
@@ -145,17 +130,7 @@ function readBigUInt128LE(leHex: HexString): bigint {
  * @deprecated please follow the {@link https://lumos-website.vercel.app/migrations/migrate-to-v0.19 migration-guide}
  */
 function readBigUInt128LECompatible(leHex: HexString): BI {
-  if (leHex.length < 34 || !leHex.startsWith("0x")) {
-    throw new Error(`leHex format error`);
-  }
-
-  const buf = Buffer.from(leHex.slice(2, 34), "hex");
-
-  return BI.from(buf.readUInt32LE(0))
-    .shl(0)
-    .add(BI.from(buf.readUInt32LE(4)).shl(32))
-    .add(BI.from(buf.readUInt32LE(8)).shl(64))
-    .add(BI.from(buf.readUInt32LE(12)).shl(96));
+  return Uint128LE.unpack(bytes.bytify(leHex).slice(0, 16));
 }
 
 function assertHexString(debugPath: string, str: string): void {

@@ -1,5 +1,6 @@
 import test from "ava";
 import { key } from "../src";
+import { bytes } from "@ckb-lumos/codec";
 const {
   signRecoverable,
   recoverFromSignature,
@@ -38,7 +39,7 @@ test("privateToPublic, derive public key from private key, Buffer", (t) => {
     "03e5b310636a0f6e7dcdfffa98f28d7ed70df858bb47acf13db830bfde3510b3f3",
     "hex"
   );
-  t.deepEqual(privateToPublic(privateKey), publicKey);
+  t.deepEqual(privateToPublic(privateKey), bytes.bytify(publicKey));
 });
 
 test("privateToPublic, derive public key from private key, HexString", (t) => {

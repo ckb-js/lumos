@@ -1,9 +1,11 @@
 import crypto from "crypto";
-import { Keccak } from "sha3";
 import { v4 as uuid } from "uuid";
 import { ExtendedPrivateKey } from "./extended_key";
 import { HexString } from "@ckb-lumos/base";
 import { syncScrypt } from "scrypt-js";
+import { bytifyWithout0x, hexifyWithout0x } from "./helper";
+import { bytes } from "@ckb-lumos/codec";
+import { keccak_256 } from "js-sha3";
 
 export type HexStringWithoutPrefix = string;
 
@@ -123,11 +125,11 @@ export default class Keystore {
 
   // Create an empty keystore object that contains empty private key
   static createEmpty(): Keystore {
-    const salt: Buffer = crypto.randomBytes(32);
-    const iv: Buffer = crypto.randomBytes(16);
+    const salt = crypto.randomBytes(32);
+    const iv = crypto.randomBytes(16);
     const kdfparams: KdfParams = {
       dklen: 32,
-      salt: salt.toString("hex"),
+      salt: hexifyWithout0x(salt),
       n: 2 ** 18,
       r: 8,
       p: 1,
@@ -136,7 +138,7 @@ export default class Keystore {
       {
         ciphertext: "",
         cipherparams: {
-          iv: iv.toString("hex"),
+          iv: hexifyWithout0x(iv),
         },
         cipher: CIPHER,
         kdf: "scrypt",
@@ -150,26 +152,24 @@ export default class Keystore {
   static create(
     extendedPrivateKey: ExtendedPrivateKey,
     password: string,
-    options: { salt?: Buffer; iv?: Buffer } = {}
+    options: { salt?: Uint8Array; iv?: Uint8Array } = {}
   ): Keystore {
-    const salt: Buffer = options.salt || crypto.randomBytes(32);
-    const iv: Buffer = options.iv || crypto.randomBytes(16);
+    const salt: Uint8Array = options.salt || crypto.randomBytes(32);
+    const iv: Uint8Array = options.iv || crypto.randomBytes(16);
     const kdfparams: KdfParams = {
       dklen: 32,
-      salt: salt.toString("hex"),
+      salt: hexifyWithout0x(salt),
       n: 2 ** 18,
       r: 8,
       p: 1,
     };
-    const derivedKey: Buffer = Buffer.from(
-      syncScrypt(
-        Buffer.from(password),
-        salt,
-        kdfparams.n,
-        kdfparams.r,
-        kdfparams.p,
-        kdfparams.dklen
-      )
+    const derivedKey: Uint8Array = syncScrypt(
+      new TextEncoder().encode(password),
+      salt,
+      kdfparams.n,
+      kdfparams.r,
+      kdfparams.p,
+      kdfparams.dklen
     );
 
     const cipher: crypto.Cipher = crypto.createCipheriv(
@@ -180,18 +180,16 @@ export default class Keystore {
     if (!cipher) {
       throw new UnsupportedCipher();
     }
-    const ciphertext: Buffer = Buffer.concat([
-      cipher.update(
-        Buffer.from(extendedPrivateKey.serialize().slice(2), "hex")
-      ),
-      cipher.final(),
-    ]);
+    const ciphertext: Uint8Array = bytes.concat(
+      cipher.update(bytes.bytify(extendedPrivateKey.serialize())),
+      cipher.final()
+    );
 
     return new Keystore(
       {
-        ciphertext: ciphertext.toString("hex"),
+        ciphertext: hexifyWithout0x(ciphertext),
         cipherparams: {
-          iv: iv.toString("hex"),
+          iv: hexifyWithout0x(iv),
         },
         cipher: CIPHER,
         kdf: "scrypt",
@@ -210,20 +208,17 @@ export default class Keystore {
   // Decrypt and return serialized extended private key.
   decrypt(password: string): HexString {
     const derivedKey = this.derivedKey(password);
-    const ciphertext = Buffer.from(this.crypto.ciphertext, "hex");
+    const ciphertext = bytifyWithout0x(this.crypto.ciphertext);
     if (Keystore.mac(derivedKey, ciphertext) !== this.crypto.mac) {
       throw new IncorrectPassword();
     }
     const decipher = crypto.createDecipheriv(
       this.crypto.cipher,
       derivedKey.slice(0, 16),
-      Buffer.from(this.crypto.cipherparams.iv, "hex")
+      bytifyWithout0x(this.crypto.cipherparams.iv)
     );
-    return (
-      "0x" +
-      Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString(
-        "hex"
-      )
+    return bytes.hexify(
+      bytes.concat(decipher.update(ciphertext), decipher.final())
     );
   }
 
@@ -233,28 +228,32 @@ export default class Keystore {
 
   checkPassword(password: string): boolean {
     const derivedKey = this.derivedKey(password);
-    const ciphertext = Buffer.from(this.crypto.ciphertext, "hex");
+    const ciphertext = bytifyWithout0x(this.crypto.ciphertext);
     return Keystore.mac(derivedKey, ciphertext) === this.crypto.mac;
   }
 
-  derivedKey(password: string): Buffer {
+  derivedKey(password: string): Uint8Array {
     const { kdfparams } = this.crypto;
-    return Buffer.from(
-      syncScrypt(
-        Buffer.from(password),
-        Buffer.from(kdfparams.salt, "hex"),
-        kdfparams.n,
-        kdfparams.r,
-        kdfparams.p,
-        kdfparams.dklen
-      )
+    return syncScrypt(
+      Buffer.from(password),
+      Buffer.from(kdfparams.salt, "hex"),
+      kdfparams.n,
+      kdfparams.r,
+      kdfparams.p,
+      kdfparams.dklen
     );
   }
 
-  static mac(derivedKey: Buffer, ciphertext: Buffer): HexStringWithoutPrefix {
-    return new Keccak(256)
-      .update(Buffer.concat([derivedKey.slice(16, 32), ciphertext]))
-      .digest("hex");
+  static mac(
+    derivedKey: Uint8Array,
+    ciphertext: Uint8Array
+  ): HexStringWithoutPrefix {
+    const digest = keccak_256
+      .create()
+      .update(bytes.concat(derivedKey.slice(16, 32), ciphertext))
+      .digest();
+
+    return hexifyWithout0x(digest);
   }
 
   static scryptOptions(kdfparams: KdfParams): crypto.ScryptOptions {

@@ -1,4 +1,5 @@
 import { utils, HexString } from "@ckb-lumos/base";
+import { BytesLike, bytes } from "@ckb-lumos/codec";
 const { assertHexString } = utils;
 
 export function assertPublicKey(
@@ -24,4 +25,12 @@ export function assertChainCode(chainCode: HexString): void {
   if (chainCode.length !== 66) {
     throw new Error(`chainCode must be length of 32 bytes!`);
   }
+}
+
+export function hexifyWithout0x(value: BytesLike): string {
+  return bytes.hexify(value).slice(2);
+}
+
+export function bytifyWithout0x(value: string): Uint8Array {
+  return bytes.bytify("0x" + value);
 }
