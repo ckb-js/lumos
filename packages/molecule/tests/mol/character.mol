@@ -1,0 +1,13 @@
+// character.mol
+
+import "base";
+import "submodule/base";
+
+// array RGB [byte;3];
+// vector UTF8String <byte>;
+
+table Character {
+  hair_color: RGB,
+  hair_color_c: RGB4, 
+  name: UTF8String,
+}

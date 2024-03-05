@@ -1,0 +1,3 @@
+// base.mol
+
+array RGB4 [byte;3];

@@ -1,0 +1,4 @@
+// base.mol
+
+array RGB [byte;3];
+vector UTF8String <byte>;

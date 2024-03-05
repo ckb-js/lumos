@@ -62,5 +62,5 @@ export interface Parser {
 
 export type ParseResult = {
   code: string;
-  fields: string[];
+  elements: string[];
 };
