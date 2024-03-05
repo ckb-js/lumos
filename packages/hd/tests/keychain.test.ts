@@ -1,6 +1,20 @@
 import test from "ava";
 import { Keychain } from "../src";
 
+declare global {
+  interface Uint8Array {
+    toString(encoding?: string): string;
+  }
+}
+
+const originalToString = Uint8Array.prototype.toString;
+Uint8Array.prototype.toString = function (this: Uint8Array, encoding?: string) {
+  if (encoding === "hex") {
+    return Buffer.from(this).toString("hex");
+  }
+  return originalToString.call(this);
+};
+
 // https://en.bitcoin.it/wiki/BIP_0032_TestVectors
 const shortSeed = Buffer.from("000102030405060708090a0b0c0d0e0f", "hex");
 const longSeed = Buffer.from(

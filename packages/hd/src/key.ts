@@ -1,6 +1,7 @@
 import { HexString, utils } from "@ckb-lumos/base";
 import { ec as EC, SignatureInput } from "elliptic";
 import { assertPrivateKey, assertPublicKey } from "./helper";
+import { bytes } from "@ckb-lumos/codec";
 
 const ec = new EC("secp256k1");
 
@@ -31,8 +32,8 @@ export function recoverFromSignature(
   utils.assertHexString("message", message);
   utils.assertHexString("signature", signature);
 
-  const msgBuffer = Buffer.from(message.slice(2), "hex");
-  const sigBuffer = Buffer.from(signature.slice(2), "hex");
+  const msgBuffer = bytes.bytify(message);
+  const sigBuffer = bytes.bytify(signature);
 
   const sign: SignatureInput = {
     r: sigBuffer.slice(0, 32),
@@ -45,26 +46,26 @@ export function recoverFromSignature(
   return publicKey;
 }
 
-export function privateToPublic(privateKey: Buffer): Buffer;
+export function privateToPublic(privateKey: Uint8Array): Uint8Array;
 export function privateToPublic(privateKey: HexString): HexString;
 
 export function privateToPublic(
-  privateKey: Buffer | HexString
-): Buffer | HexString {
+  privateKey: Uint8Array | HexString
+): Uint8Array | HexString {
   let pkBuffer = privateKey;
   if (typeof privateKey === "string") {
     assertPrivateKey(privateKey);
-    pkBuffer = Buffer.from(privateKey.slice(2), "hex");
+    pkBuffer = bytes.bytify(privateKey);
   }
   if (pkBuffer.length !== 32) {
     throw new Error("Private key must be 32 bytes!");
   }
 
-  const publickey = ec.keyFromPrivate(pkBuffer).getPublic(true, "hex");
+  const publickey = ec.keyFromPrivate(pkBuffer).getPublic(true, "array");
   if (typeof privateKey === "string") {
-    return "0x" + publickey;
+    return bytes.hexify(publickey);
   }
-  return Buffer.from(publickey, "hex");
+  return bytes.bytify(publickey);
 }
 
 export function publicKeyToBlake160(publicKey: HexString): HexString {

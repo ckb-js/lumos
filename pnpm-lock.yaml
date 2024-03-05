@@ -431,12 +431,18 @@ importers:
       '@ckb-lumos/bi':
         specifier: 0.22.0-next.4
         version: link:../bi
+      '@ckb-lumos/codec':
+        specifier: 0.22.0-next.4
+        version: link:../codec
       bn.js:
         specifier: ^5.1.3
         version: 5.1.3
       elliptic:
         specifier: ^6.5.4
         version: 6.5.4
+      js-sha3:
+        specifier: ^0.9.3
+        version: 0.9.3
       scrypt-js:
         specifier: ^3.0.1
         version: 3.0.1
@@ -12211,6 +12217,10 @@ packages:
   /js-sha256@0.9.0:
     resolution: {integrity: sha512-sga3MHh9sgQN2+pJ9VYZ+1LPwXOxuBJBA5nrR5/ofPfuiJBE2hnjsaN8se8JznOmGLN2p49Pe5U/ttafcs/apA==}
     dev: true
+
+  /js-sha3@0.9.3:
+    resolution: {integrity: sha512-BcJPCQeLg6WjEx3FE591wVAevlli8lxsxm9/FzV4HXkV49TmBH38Yvrpce6fjbADGMKFrBMGTqrVz3qPIZ88Gg==}
+    dev: false
 
   /js-string-escape@1.0.1:
     resolution: {integrity: sha512-Smw4xcfIQ5LVjAOuJCvN/zIodzA/BBSsluuoSykP+lUvScIi4U6RJLfwHet5cxFnCswUjISV8oAXaqaJDY3chg==}

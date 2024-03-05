@@ -1,6 +1,20 @@
 import test from "ava";
 import { ExtendedPrivateKey, Keystore, IncorrectPassword } from "../src";
 
+declare global {
+  interface Uint8Array {
+    toString(encoding?: string): string;
+  }
+}
+
+const originalToString = Uint8Array.prototype.toString;
+Uint8Array.prototype.toString = function (this: Uint8Array, encoding?: string) {
+  if (encoding === "hex") {
+    return Buffer.from(this).toString("hex");
+  }
+  return originalToString.call(this);
+};
+
 const fixture = {
   privateKey:
     "0xe8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35",

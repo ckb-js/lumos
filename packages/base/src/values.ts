@@ -16,7 +16,7 @@ class Value {
   }
 
   hashCode(): number {
-    return xxHash32(Buffer.from(this.buffer), 0);
+    return xxHash32(this.buffer, 0);
   }
 
   hash(): Hash {
