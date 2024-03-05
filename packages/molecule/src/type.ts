@@ -59,3 +59,8 @@ export type ParseOptions = {
 export interface Parser {
   parse(data: string, option?: ParseOptions): Record<string, AnyCodec>;
 }
+
+export type ParseResult = {
+  code: string;
+  fields: string[];
+};

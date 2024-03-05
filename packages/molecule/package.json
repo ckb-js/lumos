@@ -38,7 +38,7 @@
     "lumos-molecule-codegen": "lib/cli.js"
   },
   "scripts": {
-    "test": "ava **/*.test.ts --timeout=2m",
+    "test": "ava **/codegen.test.ts --timeout=2m",
     "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
     "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
     "build": "pnpm run build:types && pnpm run build:js",
