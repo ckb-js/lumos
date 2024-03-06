@@ -1,4 +1,13 @@
 {
   "extends": ["../../typedoc.base.json"],
-  "entryPoints": ["src/index.ts"]
+  "entryPoints": [
+    "src/codec/index.ts",
+    "src/common-scripts/index.ts",
+    "src/config.ts",
+    "src/helpers.ts",
+    "src/index.ts",
+    "src/rpc.ts",
+    "src/transaction-manager.ts",
+    "src/utils.ts"
+  ]
 }

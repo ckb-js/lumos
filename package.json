@@ -37,7 +37,8 @@
     "shx": "^0.3.4",
     "sinon": "^15.0.4",
     "ts-node": "^10.9.1",
-    "typedoc": "^0.24.8",
+    "typedoc": "^0.25.10",
+    "typedoc-plugin-missing-exports": "^2.2.0",
     "typescript": "5.0.4"
   },
   "scripts": {
