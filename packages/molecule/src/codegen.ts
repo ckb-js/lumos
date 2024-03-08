@@ -47,7 +47,7 @@ export function codegen(schema: string, options: Options = {}): string {
 
   const codecs = molTypes
     .map((molType) => {
-      if (importedModules.includes(molType.name)) return "";
+      if (molType.name && importedModules.includes(molType.name)) return "";
 
       if (molType.type === "array") {
         if (molType.item === "byte") {
@@ -156,7 +156,7 @@ function prepareMolTypes(
 ): MolType[] {
   // check if the molecule definition can be parsed
   function checkCanParse(molType: MolType): boolean {
-    if (availableTypes.has(molType.name)) {
+    if (molType.name && availableTypes.has(molType.name)) {
       return true;
     }
 
@@ -220,7 +220,7 @@ function prepareMolTypes(
     scanTimes++;
 
     const molType = iterator.current()!;
-    if (checkCanParse(molType)) {
+    if (molType.name && checkCanParse(molType)) {
       sortedTypes.push(molType);
       availableTypes.add(molType.name);
       iterator.removeAndNext();
@@ -232,7 +232,7 @@ function prepareMolTypes(
 
   if (scanTimes >= maxScanTimes) {
     const unknownTypes = types
-      .filter((type) => !availableTypes.has(type.name))
+      .filter((type) => type.name && !availableTypes.has(type.name))
       .map((type) => type.name)
       .join(", ");
 
