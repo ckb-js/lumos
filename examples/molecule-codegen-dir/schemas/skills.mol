@@ -1,0 +1,33 @@
+// https://github.com/nervosnetwork/molecule/blob/master/docs/schemas/skills.mol
+import common/basic_types;
+
+// We define several skills.
+// None means the role can learn a skill but he/she doesn't learn it.
+option ArmorLight       (SkillLevel);
+option ArmorHeavy       (SkillLevel);   // only Fighter can learn this
+option ArmorShields     (SkillLevel);   // only Fighter can learn this
+option WeaponSwords     (SkillLevel);   // only Mage can't learn this
+option WeaponBows       (SkillLevel);   // only Ranger can learn this
+option WeaponBlunt      (SkillLevel);
+option Dodge            (SkillLevel);
+option PickLocks        (SkillLevel);
+option Mercantile       (SkillLevel);
+option Survival         (SkillLevel);
+// ... omit other skills ...
+
+// Any skill which is defined above.
+union Skill {
+    ArmorLight,
+    ArmorHeavy,
+    ArmorShields,
+    WeaponSwords,
+    WeaponBows,
+    WeaponBlunt,
+    Dodge,
+    PickLocks,
+    Mercantile,
+    Survival,
+}
+
+// A hero can learn several skills. The size of learned skills is dynamic.
+vector Skills <Skill>;

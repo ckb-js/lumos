@@ -1,5 +1,5 @@
 {
-  "name": "@lumos-example/molecule-codegen",
+  "name": "@lumos-example/molecule-codegen-dir",
   "private": true,
   "version": "1.0.0",
   "license": "MIT",

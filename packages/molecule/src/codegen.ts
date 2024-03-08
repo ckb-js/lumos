@@ -2,6 +2,8 @@ import { MolType } from "./type";
 import { Grammar as NearleyGrammar, Parser as NearleyParser } from "nearley";
 import { circularIterator } from "./circularIterator";
 import grammar from "./grammar/mol";
+import path from "node:path";
+import { topologySort } from "./topologySort";
 
 export type Options = {
   /**
@@ -31,12 +33,67 @@ export function scanCustomizedTypes(prepend: string): string[] {
   );
 }
 
+export type ResolveResult = {
+  code: string;
+  // imported schema files
+  importSchemas: string[];
+};
+
+/**
+ * resolve the import statement from a molecule schema and erase them for continuing codegen
+ * @param inputCode
+ */
+export function resolveAndEraseImports(inputCode: string): ResolveResult {
+  // https://github.com/nervosnetwork/molecule/blob/37748b1124181a3260a0668693c43c8d38c98723/docs/grammar/grammar.ebnf#L70
+  const importRegex = /^import\s+([^;]+);/;
+  const imports: string[] = [];
+  const lines = inputCode.split("\n");
+  const updatedLines: string[] = [];
+  let blockComment = false;
+
+  // fill the imports and erase the import statements from the code
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+
+    // https://github.com/nervosnetwork/molecule/blob/master/docs/schema_language.md#comments
+    if (trimmedLine.startsWith("/*")) {
+      blockComment = true;
+    }
+
+    if (trimmedLine.endsWith("*/")) {
+      blockComment = false;
+      updatedLines.push(line);
+      continue;
+    }
+
+    if (blockComment) {
+      updatedLines.push(line);
+      continue;
+    }
+
+    const match = trimmedLine.match(importRegex);
+    if (match) {
+      imports.push(match[1]);
+    } else {
+      updatedLines.push(line);
+    }
+  }
+
+  const code = updatedLines.join("\n");
+  return { code, importSchemas: imports };
+}
+
+export type CodegenResult = {
+  code: string;
+  elements: string[];
+};
+
 /**
  * generate TypeScript code from molecule schema
  * @param schema
  * @param options
  */
-export function codegen(schema: string, options: Options = {}): string {
+export function codegen(schema: string, options: Options = {}): CodegenResult {
   const parser = new NearleyParser(NearleyGrammar.fromCompiled(grammar));
   parser.feed(schema);
 
@@ -48,9 +105,13 @@ export function codegen(schema: string, options: Options = {}): string {
     importedModules
   );
 
+  const elements: string[] = [];
+
   const codecs = molTypes
     .map((molType) => {
       if (importedModules.includes(molType.name)) return "";
+
+      elements.push(molType.name);
 
       if (molType.type === "array") {
         if (molType.item === "byte") {
@@ -133,7 +194,7 @@ export function codegen(schema: string, options: Options = {}): string {
     "/* eslint-disable */",
   ].join("\n");
 
-  return `${header}
+  const code = `${header}
 import { bytes, createBytesCodec, createFixedBytesCodec, molecule } from "@ckb-lumos/codec";
 ${options.prepend || ""}
 
@@ -156,6 +217,89 @@ const byte = createFallbackFixedBytesCodec(1);
 
 ${codecs}
 `;
+
+  return {
+    code,
+    elements,
+  };
+}
+
+export type ProjectSchemaOptions = Options & {
+  // a path to the schema file that ends with `.mol`,
+  // it could be a virtual path instead of a physical path,
+  // for example, a file located at `schemas/a.mol` could be represented as `a.mol`
+  path: string;
+  // schema content
+  content: string;
+};
+
+/**
+ * build multiple schemas
+ * @param schemas
+ */
+export function codegenProject(
+  schemas: ProjectSchemaOptions[]
+): ProjectSchemaOptions[] {
+  const resolvedSchemas = schemas.map<
+    ResolveResult & { path: string } & Options
+  >(({ content, path, prepend, formatObjectKeys }) => ({
+    ...resolveAndEraseImports(content),
+    path,
+    prepend,
+    formatObjectKeys,
+  }));
+
+  // resolve a relative import path in molecule to a virtual absolute path
+  const resolveImportPath = (
+    importFromFile: string,
+    relativeImportPath: string
+  ) => path.join(path.dirname(importFromFile), relativeImportPath + ".mol");
+
+  const sortedGraph = topologySort(resolvedSchemas, (item) => ({
+    id: item.path,
+    dependencies: item.importSchemas.map((relativeImportPath) =>
+      resolveImportPath(item.path, relativeImportPath)
+    ),
+  }));
+
+  const tsImportMap: Record<
+    string /* virtual absolute path */,
+    string[] /* exported elements */
+  > = {};
+
+  const result = sortedGraph.map<ProjectSchemaOptions>((option) => {
+    const tsImportClauses = option.importSchemas.map((relativeImportPath) => {
+      const virtualAbsolutePath = resolveImportPath(
+        option.path,
+        relativeImportPath
+      );
+      const exportedElements = tsImportMap[virtualAbsolutePath];
+      if (!exportedElements) {
+        throw new Error("Import not found at " + option.path);
+      }
+
+      const elements = exportedElements.join(", ");
+      const importPath = relativeImportPath.startsWith(".")
+        ? relativeImportPath
+        : "./" + relativeImportPath;
+      return `import { ${elements} } from '${importPath}'`;
+    });
+
+    const prepend = [option.prepend || "", ...tsImportClauses]
+      .filter(Boolean)
+      .join("\n");
+    const message = codegen(option.code, {
+      formatObjectKeys: option.formatObjectKeys,
+      prepend,
+    });
+
+    const { code, elements } = message;
+    tsImportMap[option.path] = elements;
+
+    return { path: option.path, content: code };
+  });
+
+  return result;
 }
 
 // sort molecule types by their dependencies, to make sure the known types can be used in the front

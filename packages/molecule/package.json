@@ -50,9 +50,13 @@
   "dependencies": {
     "@ckb-lumos/bi": "0.22.0-next.4",
     "@ckb-lumos/codec": "0.22.0-next.4",
+    "@types/moo": "^0.5.9",
     "@types/nearley": "^2.11.2",
+    "glob": "^10.3.10",
+    "minimist": "^1.2.8",
     "moo": "^0.5.1",
-    "nearley": "^2.20.1"
+    "nearley": "^2.20.1",
+    "relative": "^3.0.2"
   },
   "devDependencies": {
     "@ckb-lumos/base": "0.22.0-next.4",
