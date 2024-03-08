@@ -11,6 +11,111 @@ test("should parse sample", (t) => {
   t.deepEqual(result.Uint8.unpack("0x01"), 1);
 });
 
+test("should parse import type 1", (t) => {
+  const parser = createParser();
+  const result = parser.parse(`
+    import defaultExport, { foo, bar as baz } from "module";
+  `);
+  const importResult = result.importTypeOne;
+  t.true(importResult !== undefined && importResult !== null);
+  t.true(importResult.type === "import");
+  t.true(importResult.name === "importTypeOne");
+  t.true(Array.isArray(importResult.exportedImports));
+  t.true(importResult.exportedImports.length === 2);
+  t.true(importResult.exportedImports[0].name === "foo");
+  t.true(importResult.exportedImports[0].alias === null);
+  t.true(importResult.exportedImports[1].name === "bar");
+  t.true(importResult.exportedImports[1].alias === "baz");
+  t.true(importResult.defaultImport === "defaultExport");
+  t.true(importResult.alias === null);
+  t.true(importResult.from === "module");
+});
+
+test("should parse import type 2", (t) => {
+  const parser = createParser();
+  const result = parser.parse(`
+    import defaultExport from "module";
+  `);
+  const importResult = result.importTypeTwo;
+  t.true(importResult !== undefined && importResult !== null);
+  t.true(importResult.type === "import");
+  t.true(importResult.name === "importTypeTwo");
+  t.true(importResult.defaultImport === "defaultExport");
+  t.true(importResult.exportedImports === null);
+  t.true(importResult.alias === null);
+  t.true(importResult.from === "module");
+});
+
+test("should parse import type 3", (t) => {
+  const parser = createParser();
+  const result = parser.parse(`
+    import { foo, bar as baz } from "module";
+  `);
+  const importResult = result.importTypeThree;
+  t.true(importResult !== undefined && importResult !== null);
+  t.true(importResult.type === "import");
+  t.true(importResult.name === "importTypeThree");
+  t.true(Array.isArray(importResult.exportedImports));
+  t.true(importResult.exportedImports.length === 2);
+  t.true(importResult.exportedImports[0].name === "foo");
+  t.true(importResult.exportedImports[0].alias === null);
+  t.true(importResult.exportedImports[1].name === "bar");
+  t.true(importResult.exportedImports[1].alias === "baz");
+  t.true(importResult.defaultImport === null);
+  t.true(importResult.alias === null);
+  t.true(importResult.from === "module");
+});
+
+test("should parse import type 4", (t) => {
+  const parser = createParser();
+  const result = parser.parse(`
+    import * as module from "module";
+  `);
+  const importResult = result.importTypeFour;
+  t.true(importResult !== undefined && importResult !== null);
+  t.true(importResult.type === "import");
+  t.true(importResult.name === "importTypeFour");
+  t.true(importResult.defaultImport === null);
+  t.true(importResult.exportedImports === null);
+  t.true(importResult.alias === "module");
+  t.true(importResult.from === "module");
+});
+
+test("should parse import type 5", (t) => {
+  const parser = createParser();
+  const result = parser.parse(`
+    import defaultExport, * as module from "module";
+  `);
+  const importResult = result.importTypeFive;
+  t.true(importResult !== undefined && importResult !== null);
+  t.true(importResult.type === "import");
+  t.true(importResult.name === "importTypeFive");
+  t.true(importResult.defaultImport === "defaultExport");
+  t.true(importResult.exportedImports === null);
+  t.true(importResult.alias === "module");
+  t.true(importResult.from === "module");
+});
+
+test("should parse import type 6", (t) => {
+  const parser = createParser();
+  const result = parser.parse(`
+    import { foo as foo2, bar as baz2 } from "module1";
+  `);
+  const importResult = result.importTypeSix;
+  t.true(importResult !== undefined && importResult !== null);
+  t.true(importResult.type === "import");
+  t.true(importResult.name === "importTypeSix");
+  t.true(Array.isArray(importResult.exportedImports));
+  t.true(importResult.defaultImport === null);
+  t.true(importResult.exportedImports.length === 2);
+  t.true(importResult.exportedImports[0].name === "foo");
+  t.true(importResult.exportedImports[0].alias === "foo2");
+  t.true(importResult.exportedImports[1].name === "bar");
+  t.true(importResult.exportedImports[1].alias === "baz2");
+  t.true(importResult.alias === null);
+  t.true(importResult.from === "module1");
+});
+
 test("should parse sample wrong refs", (t) => {
   const parser = createParser();
   t.throws(() => {

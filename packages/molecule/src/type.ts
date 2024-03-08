@@ -42,8 +42,17 @@ export type Table = {
   fields: Field[];
 };
 
+export type Import = {
+  type: "import";
+  name?: string | null;
+  defaultImport?: string | null;
+  exportedImports?: { name: string | null; alias?: string | null }[] | null;
+  alias?: string | null;
+  from?: string | null;
+};
+
 // mol types
-export type MolType = Array | Vector | Option | Union | Struct | Table;
+export type MolType = Array | Vector | Option | Union | Struct | Table | Import;
 
 // key is type name
 export type MolTypeMap = Record<string, MolType>;

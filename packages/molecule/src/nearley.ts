@@ -11,8 +11,10 @@ import {
   MolTypeMap,
   Parser,
   ParseOptions,
+  Import,
+  CodecMap
 } from "./type";
-import { nonNull, toMolTypeMap } from "./utils";
+import { nonNull, toMolTypeMap, parseImportStatement } from "./utils";
 import { Uint32 } from "@ckb-lumos/codec/lib/number";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -27,13 +29,24 @@ export const createParser = (): Parser => {
         skipDependenciesCheck: false,
       }
     ) => {
+      const imports: Import[] = [];
+      data = data.replace(/import\s+([^;]+);/g, (match, importsStr) => {
+        const importStatement = `import ${importsStr};`;
+        imports.push(parseImportStatement(importStatement));
+        return '';
+      });
       const parser = new NearleyParser(NearleyGrammar.fromCompiled(grammar));
       parser.feed(data);
       const results = parser.results[0].filter(
         (result: MolType | null) => !!result
       ) as MolType[];
       validateParserResults(results, option);
-      return createCodecMap(results, option.refs);
+      const codecMap = createCodecMap(results, option.refs);
+      const combinedResult: CodecMap = { ...codecMap };
+      imports.forEach((importItem) => {
+        combinedResult[importItem.name || 'Unnamed'] = importItem;
+      });
+      return createCodecMap(combinedResult, option.refs);
     },
   };
 };
@@ -54,10 +67,14 @@ const checkDuplicateNames = (results: MolType[]) => {
   const names = new Set<string>();
   results.forEach((result) => {
     const currentName = result.name;
-    if (names.has(currentName)) {
-      throw new Error(`Duplicate name: ${currentName}`);
+    if (typeof currentName === 'string') {
+      if (names.has(currentName)) {
+        throw new Error(`Duplicate name: ${currentName}`);
+      }
+      names.add(currentName);
+    } else {
+      throw new Error('Name is null or undefined');
     }
-    names.add(currentName);
     const currentType = result.type;
     // check duplicate field names in `struct` and `table`
     if (currentType === "struct" || currentType === "table") {
