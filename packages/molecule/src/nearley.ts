@@ -12,7 +12,7 @@ import {
   Parser,
   ParseOptions,
   Import,
-  CodecMap
+  CodecMap,
 } from "./type";
 import { nonNull, toMolTypeMap, parseImportStatement } from "./utils";
 import { Uint32 } from "@ckb-lumos/codec/lib/number";
@@ -33,7 +33,7 @@ export const createParser = (): Parser => {
       data = data.replace(/import\s+([^;]+);/g, (match, importsStr) => {
         const importStatement = `import ${importsStr};`;
         imports.push(parseImportStatement(importStatement));
-        return '';
+        return "";
       });
       const parser = new NearleyParser(NearleyGrammar.fromCompiled(grammar));
       parser.feed(data);
@@ -44,7 +44,7 @@ export const createParser = (): Parser => {
       const codecMap = createCodecMap(results, option.refs);
       const combinedResult: CodecMap = { ...codecMap };
       imports.forEach((importItem) => {
-        combinedResult[importItem.name || 'Unnamed'] = importItem;
+        combinedResult[importItem.name || "Unnamed"] = importItem;
       });
       return createCodecMap(combinedResult, option.refs);
     },
@@ -67,13 +67,13 @@ const checkDuplicateNames = (results: MolType[]) => {
   const names = new Set<string>();
   results.forEach((result) => {
     const currentName = result.name;
-    if (typeof currentName === 'string') {
+    if (typeof currentName === "string") {
       if (names.has(currentName)) {
         throw new Error(`Duplicate name: ${currentName}`);
       }
       names.add(currentName);
     } else {
-      throw new Error('Name is null or undefined');
+      throw new Error("Name is null or undefined");
     }
     const currentType = result.type;
     // check duplicate field names in `struct` and `table`
