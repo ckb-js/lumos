@@ -46,7 +46,7 @@ export const createParser = (): Parser => {
       imports.forEach((importItem) => {
         combinedResult[importItem.name || "Unnamed"] = importItem;
       });
-      return createCodecMap(combinedResult, option.refs);
+      return combinedResult;
     },
   };
 };
