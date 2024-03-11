@@ -1,5 +1,11 @@
 # @ckb-lumos/molecule
 
+## 0.22.0-next.5
+
+### Minor Changes
+
+- [#635](https://github.com/ckb-js/lumos/pull/635) [`3f37c5b`](https://github.com/ckb-js/lumos/commit/3f37c5bf34eca113271b7215d473d2cc36dd934b) Thanks [@homura](https://github.com/homura)! - feat: cli for generating code from mol files
+
 ## 0.22.0-next.4
 
 ## 0.22.0-next.3

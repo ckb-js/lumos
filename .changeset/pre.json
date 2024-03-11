@@ -25,6 +25,7 @@
     "@ckb-lumos/utils": "0.21.1"
   },
   "changesets": [
+    "cold-years-dream",
     "eight-pots-invent",
     "flat-feet-fold",
     "fluffy-pens-heal",
@@ -33,8 +34,10 @@
     "grumpy-plants-pretend",
     "honest-trainers-remain",
     "kind-chefs-sniff",
+    "many-years-tap",
     "metal-points-tease",
     "rare-mugs-begin",
+    "soft-guests-camp",
     "spicy-chefs-marry",
     "wild-dodos-notice"
   ]

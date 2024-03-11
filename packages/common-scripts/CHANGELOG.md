@@ -1,5 +1,11 @@
 # @ckb-lumos/common-scripts
 
+## 0.22.0-next.5
+
+### Minor Changes
+
+- [#596](https://github.com/ckb-js/lumos/pull/596) [`ad483d9`](https://github.com/ckb-js/lumos/commit/ad483d9cb55ad38db9604fde456033b9513bc7f1) Thanks [@homura](https://github.com/homura)! - feat: support registered lock in dao operations
+
 ## 0.22.0-next.4
 
 ### Minor Changes
