@@ -1,5 +1,11 @@
 # @ckb-lumos/lumos
 
+## 0.22.0-next.5
+
+### Patch Changes
+
+- [#635](https://github.com/ckb-js/lumos/pull/635) [`3f37c5b`](https://github.com/ckb-js/lumos/commit/3f37c5bf34eca113271b7215d473d2cc36dd934b) Thanks [@homura](https://github.com/homura)! - feat: export mol layout definition to ensure tsc can infer types
+
 ## 0.22.0-next.4
 
 ## 0.22.0-next.3
