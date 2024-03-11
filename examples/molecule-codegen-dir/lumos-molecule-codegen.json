@@ -1,0 +1,6 @@
+{
+  "objectKeyFormat": "camelcase",
+  "prepend": "import { Uint32, Uint64, Uint128, DepType, HashType } from './customized'",
+  "schemaDir": "schemas",
+  "outDir": "generated"
+}

@@ -1,5 +1,14 @@
 import test from "ava";
-import { codegen } from "../src/codegen";
+import {
+  codegen as originalCodegen,
+  codegenProject,
+  Options,
+  resolveAndEraseImports,
+} from "../src/codegen";
+
+const codegen = (schema: string, options?: Options) => {
+  return originalCodegen(schema, options).code;
+};
 
 function expectGenerated(schema: string, ...expected: string[]) {
   const generated = codegen(schema);
@@ -163,4 +172,83 @@ union Something {
 }
 `);
   });
+});
+
+test("should erase if import statement exists", (t) => {
+  const { code, importSchemas } = resolveAndEraseImports(`
+import a;
+  import b;
+// import c;
+
+struct X {
+  value: byte,
+}
+`);
+
+  t.deepEqual(importSchemas, ["a", "b"]);
+  t.is(
+    code,
+    `
+// import c;
+
+struct X {
+  value: byte,
+}
+`
+  );
+});
+
+test("codegenProject", (t) => {
+  const project = codegenProject([
+    {
+      path: "a.mol",
+      content: `
+import b;
+import c/c1;
+
+array A [byte;1];
+`,
+    },
+    {
+      path: "b.mol",
+      content: `
+import c/c1;
+
+array B [byte;1];
+`,
+    },
+
+    {
+      path: "c/c1.mol",
+      content: `
+import ../d;
+
+array C1 [byte;1];
+`,
+    },
+
+    {
+      path: "d.mol",
+      content: `
+/*
+a block comment
+*/      
+
+array D [byte; 1]; 
+`,
+    },
+  ]);
+
+  const a = project.find((item) => item.path === "a.mol")!.content;
+  t.true(a.includes(`import { B } from './b'`));
+  t.true(a.includes(`import { C1 } from './c/c1'`));
+
+  const b = project.find((item) => item.path === "b.mol")!.content;
+  t.true(b.includes(`import { C1 } from './c/c1'`));
+
+  const c1 = project.find((item) => item.path === "c/c1.mol")!.content;
+  t.true(c1.includes(`import { D } from '../d'`));
+
+  const d = project.find((item) => item.path === "d.mol")!.content;
+  t.truthy(d);
 });

@@ -1,0 +1,26 @@
+// https://github.com/nervosnetwork/molecule/blob/master/docs/schemas/common/basic_types.mol
+// AttrValue is an alias of `byte`.
+//
+// Since Molecule data are strongly-typed, it can gives compile time guarantees
+// that the right type of value is supplied to a method.
+//
+// In this example, we use this alias to define an unsigned integer which
+// has an upper limit: 100.
+// So it's easy to distinguish between this type and a real `byte`.
+// Of course, the serialization wouldn't do any checks for this upper limit
+// automatically. You have to implement it by yourself.
+//
+// **NOTE**:
+// - This feature is dependent on the exact implementation.
+//   In official Rust generated code, we use new type to implement this feature.
+array AttrValue [byte; 1];
+
+// SkillLevel is an alias of `byte`, too.
+//
+// Each skill has only 10 levels, so we use another alias of `byte` to distinguish.
+array SkillLevel [byte; 1];
+
+// Define several unsigned integers.
+array Uint8 [byte; 1];
+array Uint16 [byte; 2];
+array Uint32 [byte; 4];
