@@ -1,5 +1,13 @@
 # @ckb-lumos/molecule
 
+## 0.22.0
+
+### Minor Changes
+
+- [#586](https://github.com/ckb-js/lumos/pull/586) [`ee8a352`](https://github.com/ckb-js/lumos/commit/ee8a35272bb1794794fc195c5b2bc7f0985c5da3) Thanks [@homura](https://github.com/homura)! - feat: supported union works with custom id
+
+- [#635](https://github.com/ckb-js/lumos/pull/635) [`3f37c5b`](https://github.com/ckb-js/lumos/commit/3f37c5bf34eca113271b7215d473d2cc36dd934b) Thanks [@homura](https://github.com/homura)! - feat: cli for generating code from mol files
+
 ## 0.22.0-next.5
 
 ### Minor Changes

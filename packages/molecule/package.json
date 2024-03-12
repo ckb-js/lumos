@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/molecule",
-  "version": "0.22.0-next.5",
+  "version": "0.22.0",
   "description": "Molecule parser for CKB",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
@@ -48,8 +48,8 @@
     "clean": "rm -rf lib"
   },
   "dependencies": {
-    "@ckb-lumos/bi": "0.22.0-next.5",
-    "@ckb-lumos/codec": "0.22.0-next.5",
+    "@ckb-lumos/bi": "0.22.0",
+    "@ckb-lumos/codec": "0.22.0",
     "@types/moo": "^0.5.9",
     "@types/nearley": "^2.11.2",
     "glob": "^10.3.10",
@@ -59,7 +59,7 @@
     "relative": "^3.0.2"
   },
   "devDependencies": {
-    "@ckb-lumos/base": "0.22.0-next.5",
+    "@ckb-lumos/base": "0.22.0",
     "jsbi": "^4.1.0"
   }
 }
