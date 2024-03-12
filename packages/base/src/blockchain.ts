@@ -237,8 +237,12 @@ const BaseTransaction = table(
 );
 
 export const Transaction = createBytesCodec({
-  pack: (tx: api.Transaction) =>
-    BaseTransaction.pack(transformTransactionCodecType(tx)),
+  pack: (
+    tx:
+      | api.Transaction
+      | (RawTransactionUnpackResultType & { witnesses: string[] })
+  ) =>
+    BaseTransaction.pack(transformTransactionCodecType(tx as api.Transaction)),
   unpack: (buf) => deTransformTransactionCodecType(BaseTransaction.unpack(buf)),
 });
 
