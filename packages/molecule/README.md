@@ -60,7 +60,8 @@ To generate all the molecule files in a directory that match the pattern of `**/
   prepend: "import { Uint32, Uint64, Uint128 } from './customized'",
   // the input schema directory, all **/*.mol in the directory will be processed
   schemaDir: "schemas",
-  outputDir: "generated",
+  // the output directory
+  outDir: "generated",
 }
 ```
 
@@ -76,3 +77,5 @@ The parser inside `@ckb-lumos/molecule` is based on the [EBNF](https://github.co
 
 - comment starts with `#`
 - comment defined in the `struct`, `table`, or `union` is not supported well
+
+Therefore, to use `lumos-molecule-codegen`, you need to make sure the comments should not be placed 
