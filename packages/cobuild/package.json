@@ -1,0 +1,56 @@
+{
+  "name": "@ckb-lumos/cobuild",
+  "version": "0.22.0-next.5",
+  "description": "CoBuild implementation for Lumos",
+  "author": "Homura <homura.dev@gmail.com>",
+  "homepage": "https://github.com/ckb-js/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "dependencies": {
+    "@ckb-lumos/base": "0.22.0-next.5",
+    "@ckb-lumos/codec": "0.22.0-next.5"
+  },
+  "devDependencies": {
+    "@ckb-lumos/molecule": "0.22.0-next.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckb-js/lumos.git"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "test": "ava **/*.test.ts --timeout=2m",
+    "build": "pnpm run build:types && pnpm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
+    "clean": "rm -rf lib",
+    "codegen:molecule": "lumos-molecule-codegen"
+  },
+  "bugs": {
+    "url": "https://github.com/ckb-js/lumos/issues"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

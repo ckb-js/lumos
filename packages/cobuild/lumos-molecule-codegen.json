@@ -1,0 +1,6 @@
+{
+  "objectKeyFormat": "camelcase",
+  "prepend": "import { Uint32, Bytes, Byte32, String, BytesVec, Transaction, CellOutputVec } from './src/shared-codecs'",
+  "schemaDir": "schemas",
+  "outDir": "./src/generated"
+}

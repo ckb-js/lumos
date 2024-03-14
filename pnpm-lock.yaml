@@ -206,6 +206,19 @@ importers:
         specifier: ^15.0.4
         version: 15.0.4
 
+  packages/cobuild:
+    dependencies:
+      '@ckb-lumos/base':
+        specifier: 0.22.0-next.5
+        version: link:../base
+      '@ckb-lumos/codec':
+        specifier: 0.22.0-next.5
+        version: link:../codec
+    devDependencies:
+      '@ckb-lumos/molecule':
+        specifier: 0.22.0-next.5
+        version: link:../molecule
+
   packages/codec:
     dependencies:
       '@ckb-lumos/bi':

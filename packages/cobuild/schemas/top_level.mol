@@ -1,0 +1,8 @@
+import basic;
+
+union WitnessLayout {
+    SighashAll: 4278190081,
+    SighashAllOnly: 4278190082,
+    Otx: 4278190083,
+    OtxStart: 4278190084,
+}
