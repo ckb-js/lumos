@@ -1,8 +1,8 @@
-import { getJoyIDLockScript, RSA2048_PUBKEY_SIG_LEN } from "@nervina-labs/joyid-sdk";
 import { blockchain, bytes } from "@ckb-lumos/lumos/codec";
 import { registerCustomLockScriptInfos } from "@ckb-lumos/lumos/common-scripts/common";
 import { WitnessArgs, commons, helpers, Script, Cell } from "@ckb-lumos/lumos";
 import { CKBComponents } from "@ckb-lumos/lumos/rpc";
+import { getJoyIDLockScript, getJoyIDCellDep } from "@joyid/ckb";
 
 export interface CellCollector {
   collect(): AsyncIterable<Cell>;
@@ -46,16 +46,16 @@ class JoyIDCellCollector {
 
 function createJoyIDScriptInfo(): commons.LockScriptInfo {
   return {
-    codeHash: getJoyIDLockScript().codeHash,
+    codeHash: getJoyIDLockScript(false).codeHash,
     hashType: "type",
     lockScriptInfo: {
       CellCollector: JoyIDCellCollector,
       prepareSigningEntries: null,
       async setupInputCell(txSkeleton, inputCell, _, options = {}) {
-        const template = getJoyIDLockScript();
+        const template = getJoyIDLockScript(false);
 
         const fromScript = inputCell.cellOutput.lock;
-        asserts(bytes.equal(fromScript.codeHash, template.codeHash), `The input script is not Unipass script`);
+        asserts(bytes.equal(fromScript.codeHash, template.codeHash), `The input script is not JoyID script`);
         // add inputCell to txSkeleton
         txSkeleton = txSkeleton.update("inputs", (inputs) => inputs.push(inputCell));
 
@@ -84,17 +84,11 @@ function createJoyIDScriptInfo(): commons.LockScriptInfo {
         });
 
         if (!template) {
-          throw new Error(`UNIPASS script not defined in config!`);
+          throw new Error(`JoyID script not defined in config!`);
         }
 
         // add cell dep
-        txSkeleton = helpers.addCellDep(txSkeleton, {
-          outPoint: {
-            txHash: "0x4dcf3f3b09efac8995d6cbee87c5345e812d310094651e0c3d9a730f32dc9263",
-            index: "0x0",
-          },
-          depType: "depGroup",
-        });
+        txSkeleton = helpers.addCellDep(txSkeleton, getJoyIDCellDep(false));
 
         // add witness
         /*
@@ -113,7 +107,7 @@ function createJoyIDScriptInfo(): commons.LockScriptInfo {
           }
           let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
           const newWitnessArgs: WitnessArgs = {
-            lock: bytes.hexify(new Uint8Array(RSA2048_PUBKEY_SIG_LEN)),
+            lock: "0x",
           };
           witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
           txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
