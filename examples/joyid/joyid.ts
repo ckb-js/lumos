@@ -1,8 +1,8 @@
 import { blockchain, bytes } from "@ckb-lumos/lumos/codec";
-import { registerCustomLockScriptInfos } from "@ckb-lumos/lumos/common-scripts/common";
-import { WitnessArgs, commons, helpers, Script, Cell } from "@ckb-lumos/lumos";
+import { WitnessArgs, commons, helpers, Script, Cell, utils } from "@ckb-lumos/lumos";
 import { CKBComponents } from "@ckb-lumos/lumos/rpc";
-import { getJoyIDLockScript, getJoyIDCellDep } from "@joyid/ckb";
+import { getJoyIDLockScript, getJoyIDCellDep, Aggregator, getConfig, connect } from "@joyid/ckb";
+import { getCotaTypeScript } from "./constants";
 
 export interface CellCollector {
   collect(): AsyncIterable<Cell>;
@@ -44,7 +44,9 @@ class JoyIDCellCollector {
   }
 }
 
-function createJoyIDScriptInfo(): commons.LockScriptInfo {
+type Connection = Awaited<ReturnType<typeof connect>>;
+
+export function createJoyIDScriptInfo(config: { connection: Connection }): commons.LockScriptInfo {
   return {
     codeHash: getJoyIDLockScript(false).codeHash,
     hashType: "type",
@@ -79,16 +81,9 @@ function createJoyIDScriptInfo(): commons.LockScriptInfo {
           });
         }
 
-        txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
-          return witnesses.push("0x");
-        });
-
         if (!template) {
           throw new Error(`JoyID script not defined in config!`);
         }
-
-        // add cell dep
-        txSkeleton = helpers.addCellDep(txSkeleton, getJoyIDCellDep(false));
 
         // add witness
         /*
@@ -105,11 +100,59 @@ function createJoyIDScriptInfo(): commons.LockScriptInfo {
           while (firstIndex >= txSkeleton.get("witnesses").size) {
             txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.push("0x"));
           }
-          let witness: string = txSkeleton.get("witnesses").get(firstIndex)!;
-          const newWitnessArgs: WitnessArgs = {
+
+          const connection = config.connection;
+          console.log("JoyID config: ", getConfig());
+          console.log("JoyID connection: ", connection);
+
+          const lock = helpers.parseAddress(connection.address);
+
+          // will change if the connection.keyType is a sub_key
+          let newWitnessArgs: WitnessArgs = {
             lock: "0x",
           };
-          witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
+
+          if (connection.keyType === "sub_key") {
+            const aggregator = new Aggregator("https://cota.nervina.dev/aggregator");
+
+            const pubkeyHash = bytes.bytify(utils.ckbHash("0x" + connection.pubkey)).slice(0, 20);
+
+            const { unlock_entry: unlockEntry } = await aggregator.generateSubkeyUnlockSmt({
+              // TODO TBD
+              alg_index: 1,
+              pubkey_hash: bytes.hexify(pubkeyHash),
+              lock_script: bytes.hexify(blockchain.Script.pack(lock)),
+            });
+            newWitnessArgs = {
+              lock: "0x",
+              inputType: "0x",
+              outputType: "0x" + unlockEntry,
+            };
+
+            const cotaType = getCotaTypeScript(getConfig().network === "mainnet");
+            const cotaCollector = txSkeleton.get("cellProvider").collector({ lock: lock, type: cotaType });
+
+            let cotaCells: Cell[] = [];
+            for await (const cotaCell of cotaCollector.collect()) {
+              cotaCells.push(cotaCell);
+            }
+
+            if (!cotaCells || cotaCells.length === 0) {
+              throw new Error("Cota cell doesn't exist");
+            }
+            const cotaCell = cotaCells[0];
+            const cotaCellDep: CKBComponents.CellDep = {
+              outPoint: cotaCell.outPoint,
+              depType: "code",
+            };
+
+            // note: COTA cell MUST put first
+            txSkeleton = helpers.addCellDep(txSkeleton, cotaCellDep);
+          }
+
+          txSkeleton = helpers.addCellDep(txSkeleton, getJoyIDCellDep(false));
+
+          const witness = bytes.hexify(blockchain.WitnessArgs.pack(newWitnessArgs));
           txSkeleton = txSkeleton.update("witnesses", (witnesses) => witnesses.set(firstIndex, witness));
         }
 
@@ -124,5 +167,3 @@ function asserts(condition: unknown, message = "Assert failed"): asserts conditi
     throw new Error(message);
   }
 }
-
-registerCustomLockScriptInfos([createJoyIDScriptInfo()]);

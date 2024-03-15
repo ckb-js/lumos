@@ -4,6 +4,8 @@ import { connect, initConfig, signRawTransaction } from "@joyid/ckb";
 import { buildTransfer, capacityOf, sendTransaction } from "./lib";
 import { formatUnit, parseUnit } from "@ckb-lumos/lumos/utils";
 import { createTransactionFromSkeleton } from "@ckb-lumos/lumos/helpers";
+import { registerCustomLockScriptInfos } from "@ckb-lumos/lumos/common-scripts/common";
+import { createJoyIDScriptInfo } from "./joyid";
 
 initConfig({ network: "testnet" });
 
@@ -20,13 +22,21 @@ const App = () => {
     capacityOf(address).then((balance) => setBalance(formatUnit(balance, "ckb") + " CKB"));
   }, [address]);
 
+  async function onConnect() {
+    const connection = await connect();
+    registerCustomLockScriptInfos([createJoyIDScriptInfo({ connection })]);
+    setAddress(connection.address);
+  }
+
   async function transfer(): Promise<string> {
     const unsigned = await buildTransfer({ amount: parseUnit(transferAmount, "ckb"), from: address, to: transferAddr });
     const tx = createTransactionFromSkeleton(unsigned);
+
+    console.log("signRawTransaction: ", JSON.stringify(tx));
     // @ts-ignore data2 is not defined in joyid sdk
     const signed = await signRawTransaction(tx, address);
-    const txHash = await sendTransaction(signed);
-    return txHash;
+    console.log("signed transaction: ", JSON.stringify(signed));
+    return sendTransaction(signed);
   }
 
   function onTransfer() {
@@ -41,7 +51,7 @@ const App = () => {
   if (!address) {
     return (
       <div>
-        <button onClick={() => connect().then(({ address }) => setAddress(address))}>Connect</button>
+        <button onClick={onConnect}>Connect</button>
       </div>
     );
   }
