@@ -10,12 +10,12 @@ can use MetaMask as a signer. This example will show how to use Lumos to send a 
 
 ```
 npm run build
-cd examples/omni-lock-
+cd examples/omni-lock-unisat
 npm start
 ```
 
 ## Links
 
-- [MetaMask](https://unisat.io/) - A crypto wallet for Bitcoin
+- [UniSat](https://unisat.io/) - A crypto wallet for Bitcoin
 - [Nervos Faucet](https://faucet.nervos.org/) - Claim Nervos testnet CKB
 - [Omnilock](https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md) - Omnilock intro
