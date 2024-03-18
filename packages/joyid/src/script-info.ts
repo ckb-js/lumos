@@ -93,9 +93,14 @@ export type JoyIDScriptInfoConfig = {
 
 /* c8 ignore next 9*/
 export function getDefaultConfig(isMainnet: boolean): JoyIDScriptInfoConfig {
+  // https://github.com/nervina-labs/cota-sdk-js/blob/f80d04ea532d72cfe7410ea45af6dc583e140edf/README.md?plain=1#L46-L52
+  const aggregatorUrl = isMainnet
+    ? "https://cota.nervina.dev/mainnet-aggregator"
+    : "https://cota.nervina.dev/aggregator";
+
   return {
     // TODO the mainnet URL is unknown
-    aggregator: new Aggregator("https://cota.nervina.dev/aggregator"),
+    aggregator: new Aggregator(aggregatorUrl),
     cellDeps: [getJoyIDCellDep(isMainnet)],
     joyIdLockScriptTemplate: getJoyIDLockScript(isMainnet),
     cotaTypeScriptTemplate: getCotaTypeScript(isMainnet),
