@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@ckb-lumos/lumos": "canary",
+    "@ckb-lumos/joyid": "canary",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "@joyid/ckb": "^0.0.6",

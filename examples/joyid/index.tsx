@@ -5,7 +5,7 @@ import { buildTransfer, capacityOf, sendTransaction } from "./lib";
 import { formatUnit, parseUnit } from "@ckb-lumos/lumos/utils";
 import { createTransactionFromSkeleton } from "@ckb-lumos/lumos/helpers";
 import { registerCustomLockScriptInfos } from "@ckb-lumos/lumos/common-scripts/common";
-import { createJoyIDScriptInfo } from "./joyid";
+import { createJoyIDScriptInfo, getDefaultConfig } from "@ckb-lumos/joyid";
 
 initConfig({ network: "testnet" });
 
@@ -24,7 +24,7 @@ const App = () => {
 
   async function onConnect() {
     const connection = await connect();
-    registerCustomLockScriptInfos([createJoyIDScriptInfo({ connection })]);
+    registerCustomLockScriptInfos([createJoyIDScriptInfo(connection, getDefaultConfig(false))]);
     setAddress(connection.address);
   }
 

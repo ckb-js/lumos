@@ -1,5 +1,4 @@
 import { BI, config, Indexer, RPC, helpers, commons, Transaction, Hash, BIish } from "@ckb-lumos/lumos";
-import "./joyid";
 
 export const CONFIG = config.predefined.AGGRON4;
 config.initializeConfig(CONFIG);
