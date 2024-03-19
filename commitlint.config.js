@@ -23,6 +23,7 @@ const scopeEnumValues = [
   "runner",
   "e2e-test",
   "molecule",
+  "joyid",
 ];
 const Configuration = {
   extends: ["@commitlint/config-conventional"],

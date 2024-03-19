@@ -91,7 +91,11 @@ export type JoyIDScriptInfoConfig = {
   cotaTypeScriptTemplate: { codeHash: HexString; hashType: HashType };
 };
 
-/* c8 ignore next 9*/
+/* c8 ignore start */
+/**
+ * get the builtin mainnet or testnet config to {@link createJoyIDScriptInfo}
+ * @param isMainnet
+ */
 export function getDefaultConfig(isMainnet: boolean): JoyIDScriptInfoConfig {
   // https://github.com/nervina-labs/cota-sdk-js/blob/f80d04ea532d72cfe7410ea45af6dc583e140edf/README.md?plain=1#L46-L52
   const aggregatorUrl = isMainnet
@@ -99,14 +103,38 @@ export function getDefaultConfig(isMainnet: boolean): JoyIDScriptInfoConfig {
     : "https://cota.nervina.dev/aggregator";
 
   return {
-    // TODO the mainnet URL is unknown
     aggregator: new Aggregator(aggregatorUrl),
     cellDeps: [getJoyIDCellDep(isMainnet)],
     joyIdLockScriptTemplate: getJoyIDLockScript(isMainnet),
     cotaTypeScriptTemplate: getCotaTypeScript(isMainnet),
   };
 }
+/* c8 ignore end */
 
+/**
+ * create a JoyID ScriptInfo to register it to common-scripts
+ * @example
+ *
+ * import { connect } from "@joyid/ckb"
+ * import { registerCustomLockScriptInfos } from "@ckb-lumos/lumos/common-scripts/common"
+ *
+ * // connect to JoyID
+ * const connection = await connect()
+ *
+ * // create JoyID ScriptInfo
+ * const joyIDScriptInfo = createJoyIDScriptInfo(
+ *   connection,
+ *   getJoyIDScriptInfo(true),
+ *   // or you can override it by demand
+ *   // {...getJoyIDScriptInfo(true), aggregator: new Aggregator('/path/to/aggreagator')}
+ * )
+ *
+ * // register the ScriptInfo into the common-scripts
+ * registerCustomLockScriptInfos(joyIDScriptInfo)
+ *
+ * @param connection the JoyID connection
+ * @param config {@link getDefaultConfig}
+ */
 export function createJoyIDScriptInfo(
   connection: Connection,
   config: JoyIDScriptInfoConfig
