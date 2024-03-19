@@ -26,8 +26,10 @@
     "@ckb-lumos/helpers": "0.22.0-next.5"
   },
   "peerDependencies": {
+    "@joyid/ckb": "0.0.6"
+  },
+  "devDependencies": {
     "@ckb-lumos/bi": "0.22.0-next.5",
-    "@joyid/ckb": "0.0.6",
     "sinon": "^15.0.4"
   },
   "repository": {
