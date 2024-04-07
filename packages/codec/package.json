@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/codec",
-  "version": "0.22.0-next.5",
+  "version": "0.22.0",
   "description": "Make your own molecule binding in JavaScript(TypeScript)",
   "author": "",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -28,7 +28,7 @@
     "clean": "rm -rf lib"
   },
   "dependencies": {
-    "@ckb-lumos/bi": "0.22.0-next.5"
+    "@ckb-lumos/bi": "0.22.0"
   },
   "publishConfig": {
     "access": "public"

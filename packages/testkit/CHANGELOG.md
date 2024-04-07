@@ -1,5 +1,7 @@
 # @ckb-lumos/testkit
 
+## 0.22.0
+
 ## 0.22.0-next.5
 
 ## 0.22.0-next.4

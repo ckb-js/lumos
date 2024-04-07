@@ -1,5 +1,11 @@
 # @ckb-lumos/debugger
 
+## 0.22.0
+
+### Minor Changes
+
+- [#607](https://github.com/ckb-js/lumos/pull/607) [`b44fb39`](https://github.com/ckb-js/lumos/commit/b44fb3967d8c0cec40e8a39a885b33a515c2d9d4) Thanks [@homura](https://github.com/homura)! - feat: update default ckb-debugger version to 0.112
+
 ## 0.22.0-next.5
 
 ## 0.22.0-next.4
