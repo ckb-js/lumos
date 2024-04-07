@@ -84,14 +84,14 @@ export class CkbIndexer implements CellProvider, TerminableCellFetcher {
     return new Promise((resolve) => setTimeout(resolve, timeout));
   }
 
-  async waitForSync(blockDifference = 0): Promise<void> {
+  async waitForSync(nextNBlocks = 0): Promise<void> {
     const rpcTipNumber = parseInt(
       (await this.getCkbRpc().getTipHeader()).number,
       16
     );
     while (true) {
       const indexerTipNumber = parseInt((await this.tip()).blockNumber, 16);
-      if (indexerTipNumber + blockDifference >= rpcTipNumber) {
+      if (indexerTipNumber - nextNBlocks >= rpcTipNumber) {
         return;
       }
       await this.asyncSleep(1000);
