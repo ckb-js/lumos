@@ -2,4 +2,4 @@
 "@ckb-lumos/config-manager": patch
 ---
 
-feat: update omnilock script config
+**BREAKING CHANGE**: update omnilock script config
