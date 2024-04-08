@@ -1,5 +1,7 @@
 # @ckb-lumos/codec
 
+## 0.22.1
+
 ## 0.22.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @ckb-lumos/config-manager
 
+## 0.22.1
+
+### Patch Changes
+
+- [#665](https://github.com/ckb-js/lumos/pull/665) [`2b03027`](https://github.com/ckb-js/lumos/commit/2b03027c65d42157e32fc2fe5eefc42d13b7b686) Thanks [@homura](https://github.com/homura)! - feat: update omnilock config
+
 ## 0.22.0
 
 ### Minor Changes
