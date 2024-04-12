@@ -1,5 +1,11 @@
 # @ckb-lumos/config-manager
 
+## 0.22.2
+
+### Patch Changes
+
+- [#669](https://github.com/ckb-js/lumos/pull/669) [`1f22441`](https://github.com/ckb-js/lumos/commit/1f224418757ed87ce0209bb7422af8b18ef282a4) Thanks [@homura](https://github.com/homura)! - feat: update testnet omnilock predefined config
+
 ## 0.22.1
 
 ### Patch Changes
