@@ -1,8 +1,8 @@
 {
   "name": "@ckb-lumos/joyid",
-  "version": "0.22.0-next.5",
+  "version": "0.22.2",
   "description": "Working with JoyID",
-  "author": "",
+  "author": "Homura <homura.dev@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
   "license": "MIT",
   "main": "lib/index.js",
@@ -19,17 +19,17 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "0.22.0-next.5",
-    "@ckb-lumos/codec": "0.22.0-next.5",
-    "@ckb-lumos/config-manager": "0.22.0-next.5",
-    "@ckb-lumos/common-scripts": "0.22.0-next.5",
-    "@ckb-lumos/helpers": "0.22.0-next.5"
+    "@ckb-lumos/base": "0.22.2",
+    "@ckb-lumos/codec": "0.22.2",
+    "@ckb-lumos/config-manager": "0.22.2",
+    "@ckb-lumos/common-scripts": "0.22.2",
+    "@ckb-lumos/helpers": "0.22.2"
   },
   "peerDependencies": {
     "@joyid/ckb": "0.0.6"
   },
   "devDependencies": {
-    "@ckb-lumos/bi": "0.22.0-next.5",
+    "@ckb-lumos/bi": "0.22.2",
     "sinon": "^15.0.4"
   },
   "repository": {

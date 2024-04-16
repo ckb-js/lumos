@@ -518,26 +518,26 @@ importers:
   packages/joyid:
     dependencies:
       '@ckb-lumos/base':
-        specifier: 0.22.0-next.5
+        specifier: 0.22.2
         version: link:../base
       '@ckb-lumos/codec':
-        specifier: 0.22.0-next.5
+        specifier: 0.22.2
         version: link:../codec
       '@ckb-lumos/common-scripts':
-        specifier: 0.22.0-next.5
+        specifier: 0.22.2
         version: link:../common-scripts
       '@ckb-lumos/config-manager':
-        specifier: 0.22.0-next.5
+        specifier: 0.22.2
         version: link:../config-manager
       '@ckb-lumos/helpers':
-        specifier: 0.22.0-next.5
+        specifier: 0.22.2
         version: link:../helpers
       '@joyid/ckb':
         specifier: 0.0.6
         version: 0.0.6
     devDependencies:
       '@ckb-lumos/bi':
-        specifier: 0.22.0-next.5
+        specifier: 0.22.2
         version: link:../bi
       sinon:
         specifier: ^15.0.4
