@@ -7,20 +7,7 @@ const CKB_RPC_URL = "https://testnet.ckb.dev";
 const rpc = new RPC(CKB_RPC_URL);
 const indexer = new Indexer(CKB_RPC_URL);
 
-export const CONFIG: Config = {
-  PREFIX: config.TESTNET.PREFIX,
-  SCRIPTS: {
-    ...config.TESTNET.SCRIPTS,
-    // TODO remove it when the testnet omnilock is updated
-    OMNILOCK: {
-      TX_HASH: "0x042485f2b1386f3156a1585de6fe38e3c866ffb5acbcea6cab61a37b9780e7b1",
-      HASH_TYPE: "type",
-      CODE_HASH: "0xc039461134d79c87929eca28cb89261ec3f66cc2b5f562063da863330870598b",
-      DEP_TYPE: "code",
-      INDEX: "0x0",
-    },
-  },
-};
+export const CONFIG: Config = config.TESTNET;
 
 config.initializeConfig(CONFIG);
 

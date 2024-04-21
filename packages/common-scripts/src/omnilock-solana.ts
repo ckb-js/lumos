@@ -3,7 +3,7 @@ import { BytesLike, bytes } from "@ckb-lumos/codec";
 // https://github.com/XuJiandong/omnilock/blob/5c25d6a1a48f7d5984170aa501d5567281ba1a4c/c/ckb_identity.h#L36
 const COMMON_PREFIX = "CKB transaction: 0x";
 
-interface PublicKey {
+export interface PublicKey {
   toBase58(): string;
   toBytes(): Uint8Array;
 }

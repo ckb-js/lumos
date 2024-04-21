@@ -394,7 +394,6 @@ export async function setupInputCell(
 }
 
 function createWitnessLockPlaceholder(signatureLength: number) {
-  console.log("signature length", signatureLength);
   const serializedLength = OmnilockWitnessLock.pack({
     signature: new Uint8Array(signatureLength),
   }).byteLength;
