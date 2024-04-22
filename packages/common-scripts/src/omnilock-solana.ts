@@ -15,6 +15,14 @@ export interface Provider {
   ): Promise<{ signature: Uint8Array; publicKey: PublicKey }>;
 }
 
+declare global {
+  interface Window {
+    phantom?: {
+      solana: Provider;
+    };
+  }
+}
+
 export async function signMessage(
   digest: BytesLike,
   provider?: Provider
@@ -26,11 +34,10 @@ export async function signMessage(
     if (
       typeof window !== "undefined" &&
       "phantom" in window &&
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      "solana" in (window.phantom as any)
+      window.phantom &&
+      "solana" in window.phantom
     ) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (window.phantom as any).solana as Provider;
+      return window.phantom.solana;
     }
 
     throw new Error(
