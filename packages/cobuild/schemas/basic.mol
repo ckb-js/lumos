@@ -1,0 +1,74 @@
+array Hash [byte; 32];
+vector String <byte>; // UTF-8 encoded
+option Uint32Opt (Uint32);
+
+table Action {
+    script_info_hash: Byte32,   // script info
+    script_hash: Byte32,        // script
+    data: Bytes,              // action data
+}
+
+vector ActionVec <Action>;
+
+table Message {
+    actions: ActionVec,
+}
+
+table ScriptInfo {
+    name: String,
+    url: String,
+    script_hash: Byte32,
+    schema: String,
+    message_type: String,
+}
+
+vector ScriptInfoVec <ScriptInfo>;
+
+table ResolvedInputs {
+    outputs: CellOutputVec,
+    outputs_data: BytesVec,
+}
+
+table BuildingPacketV1 {
+    message: Message,
+    payload: Transaction,
+    resolved_inputs: ResolvedInputs,
+    change_output: Uint32Opt,
+    script_infos: ScriptInfoVec,
+    lock_actions: ActionVec,
+}
+
+union BuildingPacket {
+    BuildingPacketV1,
+}
+
+table SighashAll {
+    message: Message,
+    seal: Bytes,
+}
+
+table SighashAllOnly {
+    seal: Bytes,
+}
+
+table SealPair {
+    script_hash: Byte32,
+    seal: Bytes,
+}
+vector SealPairVec <SealPair>;
+
+table OtxStart {
+    start_input_cell: Uint32,
+    start_output_cell: Uint32,
+    start_cell_deps: Uint32,
+    start_header_deps: Uint32,
+}
+
+table Otx {
+    input_cells: Uint32,
+    output_cells: Uint32,
+    cell_deps: Uint32,
+    header_deps: Uint32,
+    message: Message,
+    seals: SealPairVec,
+}

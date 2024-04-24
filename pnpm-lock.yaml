@@ -206,6 +206,37 @@ importers:
         specifier: ^15.0.4
         version: 15.0.4
 
+  packages/cobuild:
+    dependencies:
+      '@ckb-lumos/base':
+        specifier: 0.22.0-next.5
+        version: link:../base
+      '@ckb-lumos/codec':
+        specifier: 0.22.0-next.5
+        version: link:../codec
+      '@types/blake2b':
+        specifier: ^2.1.3
+        version: 2.1.3
+      blake2b:
+        specifier: ^2.1.3
+        version: 2.1.3
+    devDependencies:
+      '@ckb-lumos/common-scripts':
+        specifier: 0.22.0-next.5
+        version: link:../common-scripts
+      '@ckb-lumos/debugger':
+        specifier: 0.22.0-next.5
+        version: link:../debugger
+      '@ckb-lumos/hd':
+        specifier: 0.22.0-next.5
+        version: link:../hd
+      '@ckb-lumos/helpers':
+        specifier: 0.22.0-next.5
+        version: link:../helpers
+      '@ckb-lumos/molecule':
+        specifier: 0.22.0-next.5
+        version: link:../molecule
+
   packages/codec:
     dependencies:
       '@ckb-lumos/bi':
@@ -5874,6 +5905,10 @@ packages:
 
   /@types/blake2b@2.1.0:
     resolution: {integrity: sha512-Mv8N0qtdb72iW1XJR/4Yp01frtibnv8BpFUZDROnzd7hVEX4cEN/xHgU2ZfsnOnTDt+fHJVc0uRIWcNz6uIB2A==}
+    dev: false
+
+  /@types/blake2b@2.1.3:
+    resolution: {integrity: sha512-MFCdX0MNxFBP/xEILO5Td0kv6nI7+Q2iRWZbTL/yzH2/eDVZS5Wd1LHdsmXClvsCyzqaZfHFzZaN6BUeUCfSDA==}
     dev: false
 
   /@types/bn.js@4.11.6:

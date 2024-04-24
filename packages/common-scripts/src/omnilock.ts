@@ -36,6 +36,7 @@ import {
 } from "@ckb-lumos/codec/lib/blockchain";
 import { bytify, hexify } from "@ckb-lumos/codec/lib/bytes";
 import * as bitcoin from "./omnilock-bitcoin";
+import * as cobuild from "./omnilock-cobuild";
 
 const { ScriptValue } = values;
 
@@ -374,6 +375,7 @@ export function prepareSigningEntries(
 }
 
 export { bitcoin };
+export { cobuild };
 
 export default {
   prepareSigningEntries,
