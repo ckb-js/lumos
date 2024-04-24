@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@lumos-examples/omni-lock-unisat",
+  "name": "@lumos-examples/omni-lock-solana",
   "description": "",
   "scripts": {
     "start": "parcel index.html",

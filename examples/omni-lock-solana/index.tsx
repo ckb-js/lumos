@@ -55,8 +55,8 @@ const App: React.FC = () => {
       .finally(() => setIsSendingTx(false));
   }
 
-  if (!solana) return <div>UniSat is not installed</div>;
-  if (!solanaAddr) return <button onClick={connectToWallet}>Connect to UniSat</button>;
+  if (!solana) return <div>Phantom is not installed</div>;
+  if (!solanaAddr) return <button onClick={connectToWallet}>Connect to Phantom</button>;
 
   return (
     <div>

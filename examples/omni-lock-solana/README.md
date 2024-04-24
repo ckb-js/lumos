@@ -1,8 +1,8 @@
-# Lumos Works with UniSat
+# Lumos Works with Solana
 
 Nervos maintains a powerful lock
 called [Omnilock](https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md) (previously named RC lock), which
-can use MetaMask as a signer. This example will show how to use Lumos to send a transaction using Omnilock and MetaMask
+can use Phantom as a signer. This example will show how to use Lumos to send a transaction using Omnilock and Phantom
 
 ## Quick Start
 
@@ -16,6 +16,6 @@ npm start
 
 ## Links
 
-- [MetaMask](https://unisat.io/) - A crypto wallet for Bitcoin
+- [Phantom](https://phantom.app/) - A crypto wallet for Solana
 - [Nervos Faucet](https://faucet.nervos.org/) - Claim Nervos testnet CKB
 - [Omnilock](https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md) - Omnilock intro
