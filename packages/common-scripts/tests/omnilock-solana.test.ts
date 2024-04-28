@@ -68,7 +68,7 @@ test.serial("Omnilock#Solana", async (t) => {
   t.is(result.code, 0);
 });
 
-// make a fake window.phantom.solana
+// make a minimal window.phantom.solana
 function makeProvider(): Provider {
   const { secretKey, publicKey } = nacl.sign.keyPair();
 

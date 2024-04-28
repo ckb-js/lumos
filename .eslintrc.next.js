@@ -14,7 +14,16 @@ module.exports = {
         "no-constant-condition": ["error", { checkLoops: false }],
         "@typescript-eslint/no-magic-numbers": [
           "error",
-          { ignoreEnums: true, ignoreArrayIndexes: true, ignore: [-1, 0, 1] },
+          {
+            ignoreEnums: true,
+            ignoreArrayIndexes: true,
+            ignore: [
+              -1, // index -1 is not found
+              0, // first element of an array
+              1, // common for i + 1 in a loop
+              16, // toString(16)
+            ],
+          },
         ],
       },
     },

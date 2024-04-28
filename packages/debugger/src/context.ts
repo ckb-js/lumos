@@ -10,10 +10,13 @@ import * as path from "path";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { Uint32 } from "@ckb-lumos/codec/lib/number";
 
+const TRANSACTION_HASH_LENGTH = 32;
+
 export function mockOutPoint(): OutPoint {
   return {
-    txHash: hexify(crypto.randomBytes(32)),
-    index: "0x" + Uint32.unpack(crypto.randomBytes(4)).toString(16),
+    txHash: hexify(crypto.randomBytes(TRANSACTION_HASH_LENGTH)),
+    index:
+      "0x" + Uint32.unpack(crypto.randomBytes(Uint32.byteLength)).toString(16),
   };
 }
 

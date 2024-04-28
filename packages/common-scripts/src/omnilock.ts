@@ -181,12 +181,9 @@ export function createOmnilockScript(
           )
         );
       case "SOLANA": {
-        const authContent = bytes.bytify(
-          ckbHash(bs58Decode(omnilockInfo.auth.content)).slice(
-            0,
-            OMNILOCK_AUTH_CONTENT_LENGTH
-          )
-        );
+        const authContent = bytes
+          .bytify(ckbHash(bs58Decode(omnilockInfo.auth.content)))
+          .slice(0, OMNILOCK_AUTH_CONTENT_LENGTH);
         return bytes.hexify(
           bytes.concat(
             [IdentityFlagsType.IdentityFlagsSolana],
