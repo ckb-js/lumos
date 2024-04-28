@@ -46,7 +46,9 @@ export async function signMessage(
     /* c8 ignore stop */
   })();
 
-  const digestWithout0x = bytes.hexify(digest).slice(2);
+  // '0x'.length
+  const hexPrefixLength = 2;
+  const digestWithout0x = bytes.hexify(digest).slice(hexPrefixLength);
   const signed = await internal.signMessage(
     new TextEncoder().encode(`${COMMON_PREFIX}${digestWithout0x}`)
   );
