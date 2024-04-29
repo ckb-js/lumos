@@ -214,10 +214,12 @@ export function createJoyIDScriptInfo(
             lock: "0x",
           };
 
+          const BLAKE160_LENGTH = 20;
           if (connection.keyType === "sub_key") {
+            //https://github.com/nervina-labs/ckb-dex-sdk/blob/b34c0b98e63ae1cfadcc9f9430a8d2a606f77a15/src/order/cancel.ts#L117C33-L117C41
             const pubkeyHash = bytes
               .bytify(utils.ckbHash("0x" + connection.pubkey))
-              .slice(0, 20);
+              .slice(0, BLAKE160_LENGTH);
 
             const { unlock_entry: unlockEntry } =
               await aggregator.generateSubkeyUnlockSmt({
