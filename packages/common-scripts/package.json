@@ -59,7 +59,8 @@
     "@ckb-lumos/hd": "0.22.2",
     "@types/keccak": "^3.0.1",
     "@unisat/wallet-sdk": "^1.1.2",
-    "keccak": "^3.0.1"
+    "keccak": "^3.0.1",
+    "tweetnacl": "^1.0.3"
   },
   "publishConfig": {
     "access": "public"

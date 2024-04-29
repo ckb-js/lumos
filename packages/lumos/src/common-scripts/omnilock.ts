@@ -1,5 +1,6 @@
 export {
   bitcoin,
+  solana,
   OmnilockWitnessLock,
   createOmnilockScript,
   setupInputCell,

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion, @typescript-eslint/explicit-module-boundary-types */
 
-import * as omnilock from "./omnilock";
 import { Set } from "immutable";
 import {
   createTransactionFromSkeleton,
@@ -19,7 +18,7 @@ import {
 } from "@ckb-lumos/base";
 const { CKBHasher, ckbHash } = utils;
 import { Config } from "@ckb-lumos/config-manager";
-import { BI } from "@ckb-lumos/bi";
+import { Uint64 } from "@ckb-lumos/codec/lib/number";
 
 export function addCellDep(
   txSkeleton: TransactionSkeletonType,
@@ -166,19 +165,10 @@ export function hashWitness(
   hasher: { update: (value: HexString | ArrayBuffer) => unknown },
   witness: HexString
 ): void {
-  const lengthBuffer = new ArrayBuffer(8);
-  const view = new DataView(lengthBuffer);
-  const witnessHexString = BI.from(bytes.bytify(witness).length).toString(16);
-  if (witnessHexString.length <= 8) {
-    view.setUint32(0, Number("0x" + witnessHexString), true);
-    view.setUint32(4, Number("0x" + "00000000"), true);
-  }
-
-  if (witnessHexString.length > 8 && witnessHexString.length <= 16) {
-    view.setUint32(0, Number("0x" + witnessHexString.slice(-8)), true);
-    view.setUint32(4, Number("0x" + witnessHexString.slice(0, -8)), true);
-  }
-  hasher.update(lengthBuffer);
+  // https://github.com/nervosnetwork/ckb-system-scripts/blob/a7b7c75662ed950c9bd024e15f83ce702a54996e/c/secp256k1_blake160_sighash_all.c#L81
+  const len = bytes.hexify(Uint64.pack(bytes.bytify(witness).length));
+  // https://github.com/nervosnetwork/ckb-system-scripts/blob/a7b7c75662ed950c9bd024e15f83ce702a54996e/c/secp256k1_blake160_sighash_all.c#L214-L215
+  hasher.update(len);
   hasher.update(witness);
 }
 /* eslint-enable camelcase, @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
@@ -272,11 +262,6 @@ export function ensureScript(
 /* 65-byte zeros in hex */
 export const SECP_SIGNATURE_PLACEHOLDER =
   "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-/* 85-byte zeros in hex */
-export const OMNILOCK_SIGNATURE_PLACEHOLDER = `0x${"00".repeat(
-  omnilock.OmnilockWitnessLock.pack({ signature: SECP_SIGNATURE_PLACEHOLDER })
-    .byteLength
-)}`;
 
 export default {
   addCellDep,

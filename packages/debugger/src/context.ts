@@ -10,10 +10,13 @@ import * as path from "path";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { Uint32 } from "@ckb-lumos/codec/lib/number";
 
+const TRANSACTION_HASH_LENGTH = 32;
+
 export function mockOutPoint(): OutPoint {
   return {
-    txHash: hexify(crypto.randomBytes(32)),
-    index: "0x" + Uint32.unpack(crypto.randomBytes(4)).toString(16),
+    txHash: hexify(crypto.randomBytes(TRANSACTION_HASH_LENGTH)),
+    index:
+      "0x" + Uint32.unpack(crypto.randomBytes(Uint32.byteLength)).toString(16),
   };
 }
 
@@ -155,7 +158,7 @@ export function getDefaultConfig(): {
       },
       OMNILOCK: {
         depType: "code",
-        path: path.join(__dirname, "../contracts/omni_lock_9419b77"),
+        path: path.join(__dirname, "../contracts/omni_lock_1a09a42"),
       },
       DAO: {
         depType: "code",
