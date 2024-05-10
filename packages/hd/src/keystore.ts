@@ -49,6 +49,18 @@ interface Crypto {
   mac: HexStringWithoutPrefix;
 }
 
+// The parameter r ("blockSize")
+//    specifies the block size.
+const DEFAULT_SCRIPT_PARAM_r = 8;
+// The parallelization parameter p
+//    ("parallelizationParameter") is a positive integer less than or equal
+//    to ((2^32-1) * 32) / (128 * r)
+const DEFAULT_SCRIPT_PARAM_p = 1;
+// The CPU/Memory cost parameter N
+//    ("costParameter") must be larger than 1, a power of 2, and less than
+//    2^(128 * r / 8)
+const DEFAULT_SCRYPT_PARAM_N = 262144;
+
 // Encrypt and save master extended private key.
 export default class Keystore {
   crypto: Crypto;
@@ -71,48 +83,6 @@ export default class Keystore {
     }
   }
 
-  /**
-   * @deprecated
-   * Load keystore file from path.
-   *
-   * @param path
-   */
-  static load(path: string): Keystore {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require("fs");
-    const json = fs.readFileSync(path, "utf-8");
-    return this.fromJson(json);
-  }
-
-  /**
-   * @deprecated
-   * Keystore file default name is `${id}.json`.
-   *
-   * @param dir
-   * @param options If you are sure to overwrite existing keystore file, set `overwrite` to true.
-   */
-  save(
-    dir: string,
-    {
-      name = this.filename(),
-      overwrite = false,
-    }: { name?: string; overwrite?: boolean } = {}
-  ): void {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require("fs");
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const Path = require("path");
-    const path: string = Path.join(dir, name);
-    if (!overwrite && fs.existsSync(path)) {
-      throw new Error("Keystore file already exists!");
-    }
-    fs.writeFileSync(path, this.toJson());
-  }
-
-  private filename(): string {
-    return this.id + ".json";
-  }
-
   toJson(): string {
     return JSON.stringify(this);
   }
@@ -123,14 +93,15 @@ export default class Keystore {
 
   // Create an empty keystore object that contains empty private key
   static createEmpty(): Keystore {
-    const salt: Buffer = crypto.randomBytes(32);
+    const saltSize = 32;
+    const salt: Buffer = crypto.randomBytes(saltSize);
     const iv: Buffer = crypto.randomBytes(16);
     const kdfparams: KdfParams = {
       dklen: 32,
       salt: salt.toString("hex"),
-      n: 2 ** 18,
-      r: 8,
-      p: 1,
+      n: DEFAULT_SCRYPT_PARAM_N,
+      r: DEFAULT_SCRIPT_PARAM_r,
+      p: DEFAULT_SCRIPT_PARAM_p,
     };
     return new Keystore(
       {
@@ -152,14 +123,16 @@ export default class Keystore {
     password: string,
     options: { salt?: Buffer; iv?: Buffer } = {}
   ): Keystore {
-    const salt: Buffer = options.salt || crypto.randomBytes(32);
-    const iv: Buffer = options.iv || crypto.randomBytes(16);
+    const saltSize = 32;
+    const ivSize = 16;
+    const salt: Buffer = options.salt || crypto.randomBytes(saltSize);
+    const iv: Buffer = options.iv || crypto.randomBytes(ivSize);
     const kdfparams: KdfParams = {
       dklen: 32,
       salt: salt.toString("hex"),
-      n: 2 ** 18,
-      r: 8,
-      p: 1,
+      n: DEFAULT_SCRYPT_PARAM_N,
+      r: DEFAULT_SCRIPT_PARAM_r,
+      p: DEFAULT_SCRIPT_PARAM_p,
     };
     const derivedKey: Buffer = Buffer.from(
       syncScrypt(
@@ -180,9 +153,12 @@ export default class Keystore {
     if (!cipher) {
       throw new UnsupportedCipher();
     }
+
+    // size of 0x prefix
+    const hexPrefixSize = 2;
     const ciphertext: Buffer = Buffer.concat([
       cipher.update(
-        Buffer.from(extendedPrivateKey.serialize().slice(2), "hex")
+        Buffer.from(extendedPrivateKey.serialize().slice(hexPrefixSize), "hex")
       ),
       cipher.final(),
     ]);
@@ -252,9 +228,15 @@ export default class Keystore {
   }
 
   static mac(derivedKey: Buffer, ciphertext: Buffer): HexStringWithoutPrefix {
-    return new Keccak(256)
-      .update(Buffer.concat([derivedKey.slice(16, 32), ciphertext]))
-      .digest("hex");
+    const keccakSize = 256;
+
+    return (
+      new Keccak(keccakSize)
+        // https://github.com/ethereumjs/ethereumjs-wallet/blob/d57582443fbac2b63956e6d5c4193aa8ce925b3d/src/index.ts#L615-L617
+        // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+        .update(Buffer.concat([derivedKey.subarray(16, 32), ciphertext]))
+        .digest("hex")
+    );
   }
 
   static scryptOptions(kdfparams: KdfParams): crypto.ScryptOptions {
@@ -262,6 +244,7 @@ export default class Keystore {
       N: kdfparams.n,
       r: kdfparams.r,
       p: kdfparams.p,
+      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
       maxmem: 128 * (kdfparams.n + kdfparams.p + 2) * kdfparams.r,
     };
   }

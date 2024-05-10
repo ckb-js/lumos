@@ -1,5 +1,4 @@
 import deepFreeze from "deep-freeze-strict";
-import { logger } from "@ckb-lumos/base";
 import { Config } from "./types";
 import { predefined } from "./predefined";
 
@@ -11,7 +10,10 @@ function assertHexString(debugPath: string, string: string) {
 
 function assertHash(debugPath: string, hash: string) {
   assertHexString(debugPath, hash);
-  if (hash.length != 66) {
+  // 2 for 0x
+  // 64 for 32 bytes in hex format
+  const hashHexLength = 66;
+  if (hash.length !== hashHexLength) {
     throw new Error(`${debugPath} must be a hex string of 66 characters long!`);
   }
 }
@@ -77,50 +79,7 @@ export function getConfig(): Config {
   return config;
 }
 
-/**
- * Initialize current app with a config. The initializaton steps work as follows:
- * 1. If `LUMOS_CONFIG_NAME` environment variable is set to a predefined config,
- * the predefined config is loaded;
- * 2. If `LUMOS_CONFIG_FILE` environment variable is set, it will be used as the
- * name of a file containing the Config to use.
- * 3. A file named `config.json` in current running directory will be used as the
- * file containing the Config to use.
- * @deprecated
- * @returns void
- */
-function initializeConfigLegacy() {
-  const env = process?.env;
-  const configName = env?.LUMOS_CONFIG_NAME;
-
-  if (
-    (configName === "LINA" || configName === "AGGRON4") &&
-    predefined[configName]
-  ) {
-    config = predefined[configName];
-    return;
-  }
-
-  const configFile = env?.LUMOS_CONFIG_FILE;
-  const configFilename = configFile || "config.json";
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const data = require("fs").readFileSync(configFilename);
-    const loadedConfig = JSON.parse(data);
-    validateConfig(loadedConfig);
-    config = deepFreeze(loadedConfig);
-  } catch (e) {
-    throw new Error(`Error loading config from file ${configFilename}: ${e}`);
-  }
-}
-
-export function initializeConfig(inputConfig?: Config): void {
-  if (!inputConfig) {
-    logger.deprecated(
-      "initializeConfig with env will be deprecated, please migrate to initializeConfig(...)"
-    );
-    initializeConfigLegacy();
-  } else {
-    validateConfig(inputConfig);
-    config = deepFreeze(inputConfig);
-  }
+export function initializeConfig(inputConfig: Config): void {
+  validateConfig(inputConfig);
+  config = deepFreeze(inputConfig);
 }

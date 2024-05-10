@@ -17,6 +17,7 @@ module.exports = {
           {
             ignoreEnums: true,
             ignoreArrayIndexes: true,
+            ignoreClassFieldInitialValues: true,
             ignore: [
               -1, // index -1 is not found
               0, // first element of an array
