@@ -21,6 +21,7 @@ module.exports = {
               -1, // index -1 is not found
               0, // first element of an array
               1, // common for i + 1 in a loop
+              2, // many .slice(2) since the '0x' prefix should be removed while calling 3rd-party library
               16, // toString(16)
             ],
           },

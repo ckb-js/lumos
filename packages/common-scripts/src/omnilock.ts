@@ -110,8 +110,9 @@ const SECP256K1_SIGNATURE_PLACEHOLDER_LENGTH = 65;
 const ED25519_SIGNATURE_PLACEHOLDER_LENGTH = 96;
 
 /**
- * only support ETHEREUM and SECP256K1_BLAKE160 mode currently
- * refer to: @link https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md omnilock
+ * Create an Omnilock script based on other networks' wallet
+ * @deprecated please migrate to {@link createSimplePublicKeyBasedOmnilockScript}
+ * @see https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md
  * @param omnilockInfo
  * @param options
  * @returns
@@ -131,6 +132,58 @@ const ED25519_SIGNATURE_PLACEHOLDER_LENGTH = 96;
  * }, {config})
  */
 export function createOmnilockScript(
+  omnilockInfo: OmnilockInfo,
+  options?: Options
+): Script {
+  const config = options?.config || getConfig();
+  const omnilockConfig = config.SCRIPTS.OMNILOCK;
+
+  if (!omnilockConfig) {
+    throw new Error("OMNILOCK script config not found.");
+  }
+
+  const defaultOmnilockArgs = 0b00000000;
+  const omnilockArgs = [defaultOmnilockArgs];
+
+  if (omnilockInfo.auth.flag === "BITCOIN") {
+    return {
+      codeHash: omnilockConfig.CODE_HASH,
+      hashType: omnilockConfig.HASH_TYPE,
+      args: bytes.hexify(
+        bytes.concat(
+          [IdentityFlagsType.IdentityFlagsBitcoin],
+          bitcoin.decodeAddress(omnilockInfo.auth.content),
+          omnilockArgs
+        )
+      ),
+    };
+  }
+
+  return createSimplePublicKeyBasedOmnilockScript(omnilockInfo, options);
+}
+
+/**
+ * Create an Omnilock script based on other networks' wallet
+ * @see https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md
+ * @param omnilockInfo
+ * @param options
+ * @returns
+ * @example
+ * // create an omnilock to work with MetaMask wallet
+ * createOmnilockScript({
+ *   auth: {
+ *     flag: "ETHEREUM",
+ *     content: "an ethereum address here",
+ *   }, { config })
+ * // or we can create an omnilock to work with UniSat wallet
+ * createOmnilockScript({
+ *   auth: {
+ *     flag: "BITCOIN",
+ *     content: "a bitcoin address here",
+ *   }
+ * }, {config})
+ */
+export function createSimplePublicKeyBasedOmnilockScript(
   omnilockInfo: OmnilockInfo,
   options?: Options
 ): Script {
@@ -176,7 +229,7 @@ export function createOmnilockScript(
         return bytes.hexify(
           bytes.concat(
             [IdentityFlagsType.IdentityFlagsBitcoin],
-            bitcoin.decodeAddress(omnilockInfo.auth.content),
+            bitcoin.parseAddressToPublicKeyHash(omnilockInfo.auth.content),
             omnilockArgs
           )
         );
@@ -453,4 +506,5 @@ export default {
   CellCollector,
   OmnilockWitnessLock,
   createOmnilockScript,
+  createSimplePublicKeyBasedOmnilockScript,
 };
