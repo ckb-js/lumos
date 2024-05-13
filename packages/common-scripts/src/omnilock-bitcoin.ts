@@ -7,10 +7,14 @@ const BTC_PREFIX = "CKB (Bitcoin Layer) transaction: 0x";
 
 /**
  * Decode bitcoin address to public key hash in bytes
+ * @deprecated please migrate to {@link parseAddressToPublicKeyHash}
  * @see https://en.bitcoin.it/wiki/List_of_address_prefixes
  * @param address
  */
 export function decodeAddress(address: string): ArrayLike<number> {
+  const btcAddressFlagSize = 1;
+  const hashSize = 20;
+
   try {
     // Bech32
     if (address.startsWith("bc1q")) {
@@ -19,12 +23,16 @@ export function decodeAddress(address: string): ArrayLike<number> {
 
     // P2PKH
     if (address.startsWith("1")) {
-      return bs58.decode(address).slice(1, 21);
+      return bs58
+        .decode(address)
+        .slice(btcAddressFlagSize, btcAddressFlagSize + hashSize);
     }
 
     // P2SH
     if (address.startsWith("3")) {
-      return bs58.decode(address).slice(1, 21);
+      return bs58
+        .decode(address)
+        .slice(btcAddressFlagSize, btcAddressFlagSize + hashSize);
     }
   } catch {
     // https://bitcoin.design/guide/glossary/address/#taproot-address---p2tr
@@ -36,6 +44,32 @@ export function decodeAddress(address: string): ArrayLike<number> {
   throw new Error(
     `Unsupported bitcoin address ${address}, only 1...(P2PKH) 3...(P2SH), and bc1...(Bech32) are supported.`
   );
+}
+
+export function parseAddressToPublicKeyHash(
+  address: string
+): ArrayLike<number> {
+  try {
+    // Bech32
+    if (isP2wpkhAddress(address)) {
+      return bech32.fromWords(bech32.decode(address).words.slice(1));
+    }
+
+    // P2PKH
+    if (isP2pkhAddress(address)) {
+      const networkSize = 1;
+      const pubkeyHashSize = 20;
+      // public key hash
+      // a P2PKH address is composed of network(1 byte) + pubkey hash(20 bytes)
+      return bs58
+        .decode(address)
+        .slice(networkSize, networkSize + pubkeyHashSize);
+    }
+  } catch {
+    // do nothing here, throw an error below
+  }
+
+  throw new Error("Only supports Native Segwit(P2WPKH) and Legacy(P2PKH)");
 }
 
 export interface Provider {
@@ -79,20 +113,24 @@ export async function signMessage(
   const signature = bytes.bytify(base64ToHex(signatureBase64));
 
   const address = accounts[0];
+  /* eslint-disable @typescript-eslint/no-magic-numbers */
+
   // a secp256k1 private key can be used to sign various types of messages
   // the first byte of signature used as a recovery id to identify the type of message
   // https://github.com/XuJiandong/omnilock/blob/4e9fdb6ca78637651c8145bb7c5b82b4591332fb/c/ckb_identity.h#L249-L266
-  if (address.startsWith("bc1q")) {
+  if (isP2wpkhAddress(address)) {
     signature[0] = 39 + ((signature[0] - 27) % 4);
-  } else if (address.startsWith("3")) {
+  } else if (isP2shAddress(address)) {
     signature[0] = 35 + ((signature[0] - 27) % 4);
-  } else if (address.startsWith("1")) {
+  } else if (isP2pkhAddress(address)) {
     signature[0] = 31 + ((signature[0] - 27) % 4);
   } else {
     throw new Error(
-      `Unsupported bitcoin address ${address}, only 1...(P2PKH) 3...(P2SH), and bc1...(Bech32) are supported.`
+      `Unsupported bitcoin address ${address}. Only supports SegWit, P2SH-P2WPKH, P2PKH`
     );
   }
+
+  /* eslint-enable @typescript-eslint/no-magic-numbers */
 
   return bytes.hexify(signature);
 }
@@ -101,8 +139,32 @@ function base64ToHex(str: string) {
   const raw = atob(str);
   let result = "";
   for (let i = 0; i < raw.length; i++) {
-    const hex = raw.charCodeAt(i).toString(16);
-    result += hex.length === 2 ? hex : "0" + hex;
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    result += raw.charCodeAt(i).toString(16).padStart(2, "0");
   }
   return "0x" + result;
+}
+
+/* https://en.bitcoin.it/wiki/List_of_address_prefixes */
+
+function isP2wpkhAddress(address: string): boolean {
+  return (
+    address.startsWith("bc1") || // mainnet
+    address.startsWith("tb1") // testnet
+  );
+}
+
+function isP2shAddress(address: string): boolean {
+  return (
+    address.startsWith("3") || // mainnet
+    address.startsWith("2") // testnet
+  );
+}
+
+function isP2pkhAddress(address: string): boolean {
+  return (
+    address.startsWith("1") || // mainnet
+    address.startsWith("m") || // testnet
+    address.startsWith("n") // testnet
+  );
 }

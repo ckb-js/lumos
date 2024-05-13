@@ -15,6 +15,8 @@ import AbortController from "abort-controller";
 export const ParamsFormatter = paramsFormatter;
 export const ResultFormatter = resultFormatter;
 
+export const DEFAULT_RPC_TIMEOUT = 30000;
+
 export class CKBRPC extends Base {
   #config: RPCConfig;
   #node: CKBComponents.Node = {
@@ -40,7 +42,7 @@ export class CKBRPC extends Base {
   constructor(url: string, config: Partial<RPCConfig> = {}) {
     super();
     this.setNode({ url });
-    const { timeout = 30000, fetch = fetch_ } = config;
+    const { timeout = DEFAULT_RPC_TIMEOUT, fetch = fetch_ } = config;
     this.#config = { timeout, fetch };
 
     Object.defineProperties(this, {
@@ -86,14 +88,11 @@ export class CKBRPC extends Base {
     P extends (string | number | object)[],
     R = any[]
   >(
-    // TODO fix me
-    // params: [method: N, ...rest: P][] = [],
-    params: any = []
+    params: [method: N, ...rest: P][] = []
   ) => {
     const ctx = this;
 
-    // TODO fix me
-    const proxied: any = new Proxy([], {
+    const proxied: [method: N, ...rest: P][] = new Proxy([], {
       set(...p) {
         const methods = Object.keys(ctx);
         if (p[1] !== "length") {
@@ -121,8 +120,7 @@ export class CKBRPC extends Base {
       },
       exec: {
         async value() {
-          // TODO fix me
-          const payload = proxied.map(([f, ...p]: any, i: any) => {
+          const payload = proxied.map(([f, ...p], i) => {
             try {
               const method = new Method(ctx.node, {
                 ...ctx.rpcProperties[f],
@@ -165,8 +163,8 @@ export class CKBRPC extends Base {
         },
       },
     });
-    // TODO fix me
-    params.forEach((p: any) => proxied.push(p));
+
+    params.forEach((p) => proxied.push(p));
 
     return proxied as typeof proxied & {
       add: (n: N, ...p: P) => typeof proxied;
