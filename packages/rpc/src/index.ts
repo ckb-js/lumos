@@ -15,6 +15,8 @@ import AbortController from "abort-controller";
 export const ParamsFormatter = paramsFormatter;
 export const ResultFormatter = resultFormatter;
 
+export const DEFAULT_RPC_TIMEOUT = 30000;
+
 export class CKBRPC extends Base {
   #config: RPCConfig;
   #node: CKBComponents.Node = {
@@ -40,7 +42,7 @@ export class CKBRPC extends Base {
   constructor(url: string, config: Partial<RPCConfig> = {}) {
     super();
     this.setNode({ url });
-    const { timeout = 30000, fetch = fetch_ } = config;
+    const { timeout = DEFAULT_RPC_TIMEOUT, fetch = fetch_ } = config;
     this.#config = { timeout, fetch };
 
     Object.defineProperties(this, {

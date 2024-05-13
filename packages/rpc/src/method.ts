@@ -1,6 +1,7 @@
 import { IdNotMatchException, ResponseException } from "./exceptions";
 import { CKBComponents } from "./types/api";
 import { RPCConfig } from "./types/common";
+import { DEFAULT_RPC_TIMEOUT } from ".";
 import AbortController from "abort-controller";
 import fetch_ from "cross-fetch";
 
@@ -29,7 +30,7 @@ export class Method {
     this.#node = node;
     this.#options = options;
     this.#name = options.name;
-    const { timeout = 30000, fetch = fetch_ } = config;
+    const { timeout = DEFAULT_RPC_TIMEOUT, fetch = fetch_ } = config;
     this.#config = { timeout, fetch };
 
     Object.defineProperty(this.call, "name", {
@@ -78,6 +79,7 @@ export class Method {
           this.#options.paramsFormatters[i](p)) ||
         p
     );
+    /* eslint-disable @typescript-eslint/no-magic-numbers */
     const id = Math.round(Math.random() * 10000);
     const payload = {
       id,

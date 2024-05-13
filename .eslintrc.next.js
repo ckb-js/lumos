@@ -23,7 +23,6 @@ module.exports = {
               1, // common for i + 1 in a loop
               2, // many .slice(2) since the '0x' prefix should be removed while calling 3rd-party library
               16, // toString(16)
-              30000, // rpc request timeout: 30 seconds
             ],
           },
         ],
