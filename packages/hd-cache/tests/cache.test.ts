@@ -18,6 +18,7 @@ import {
 import { BI } from "@ckb-lumos/bi";
 import { stub } from "sinon";
 import { Indexer } from "@ckb-lumos/ckb-indexer";
+import * as fs from "node:fs";
 
 const mockTxs: TransactionWithStatus[] = [
   {
@@ -205,7 +206,7 @@ class MockTransactionCollector extends BaseIndexerModule.TransactionCollector {
   }
 }
 
-stub(rpc, "getHeader").callsFake((blockHash) => { 
+stub(rpc, "getHeader").callsFake((blockHash) => {
   return Promise.resolve({ ...headerData, ...{ hash: blockHash } });
 });
 const tipStub = stub(indexer, "tip");
@@ -310,9 +311,11 @@ test("getMasterPublicKeyInfo, needMasterPublicKey", async (t) => {
 });
 
 test("loadFromKeystore, ckb-cli", async (t) => {
-  const cacheManager = CacheManager.loadFromKeystore(
+  const cacheManager = CacheManager.loadFromKeystoreJson(
     indexer,
-    __dirname + "/fixtures/ckb_cli_keystore.json",
+    fs
+      .readFileSync(__dirname + "/fixtures/ckb_cli_keystore.json")
+      .toString("utf8"),
     "aaaaaa",
     getDefaultInfos(),
     {

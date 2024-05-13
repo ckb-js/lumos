@@ -474,6 +474,9 @@ importers:
       '@ckb-lumos/ckb-indexer':
         specifier: 0.22.2
         version: link:../ckb-indexer
+      '@ckb-lumos/codec':
+        specifier: 0.22.2
+        version: link:../codec
       '@ckb-lumos/config-manager':
         specifier: 0.22.2
         version: link:../config-manager

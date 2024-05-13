@@ -22,11 +22,13 @@ import {
   AddressType,
   ExtendedPrivateKey,
   key,
-  Keystore,
   mnemonic,
+  Keystore,
 } from "@ckb-lumos/hd";
 import { assertPublicKey, assertChainCode } from "@ckb-lumos/hd/lib/helper";
 import { BI } from "@ckb-lumos/bi";
+import { bytes } from "@ckb-lumos/codec";
+import { Uint8 } from "@ckb-lumos/codec/lib/number";
 const { isCellMatchQueryOptions } = helpers;
 const { publicKeyToBlake160 } = key;
 const { mnemonicToSeedSync } = mnemonic;
@@ -485,17 +487,21 @@ export function publicKeyToMultisigArgs(publicKey: HexString): HexString {
   const M = 1;
   const publicKeyHashes = [blake160];
 
-  const serialized =
-    "0x00" +
-    ("00" + R.toString(16)).slice(-2) +
-    ("00" + M.toString(16)).slice(-2) +
-    ("00" + publicKeyHashes.length.toString(16)).slice(-2) +
-    publicKeyHashes.map((h) => h.slice(2)).join("");
+  const serialized = bytes.concat(
+    [0],
+    Uint8.pack(R),
+    Uint8.pack(M),
+    Uint8.pack(publicKeyHashes.length),
+    ...publicKeyHashes
+  );
 
+  // hash160
+  // 0x prefix + 20 bytes hex = 2 + (20 * 2) = 42
+  const hash160HexLength = 42;
   const args = new utils.CKBHasher()
     .update(serialized)
     .digestHex()
-    .slice(0, 42);
+    .slice(0, hash160HexLength);
   return args;
 }
 
@@ -581,18 +587,20 @@ export class CacheManager {
   }
 
   /**
-   * Load from keystore, if needMasterPublicKey set to true or origin = "ckb-cli",
-   * will enable masterPublicKey
+   * Load from keystore file that is saved with the JSON format
+   *
+   * If `needMasterPublicKey` is true or origin = "ckb-cli",
+   * the master key will be required in the JSON file
    *
    * @param indexer
-   * @param path
+   * @param json Keystore formatted JSON
    * @param password
    * @param infos
    * @param options
    */
-  static loadFromKeystore(
+  static loadFromKeystoreJson(
     indexer: Indexer,
-    path: string,
+    json: string,
     password: string,
     infos: LockScriptMappingInfo[] = getDefaultInfos(),
     options: {
@@ -604,7 +612,7 @@ export class CacheManager {
       rpc?: RPC;
     }
   ): CacheManager {
-    const keystore = Keystore.load(path);
+    const keystore = Keystore.fromJson(json);
     const extendedPrivateKey = keystore.extendedPrivateKey(password);
     const accountExtendedPublicKey =
       extendedPrivateKey.toAccountExtendedPublicKey();
