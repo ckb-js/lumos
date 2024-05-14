@@ -1,18 +1,18 @@
 import {
-  HashType,
-  HexString,
-  Script,
   Cell,
-  OutPoint,
-  QueryOptions,
-  Transaction,
-  Output,
   CellCollector as CellCollectorInterface,
+  HashType,
   helpers,
-  utils,
+  HexString,
   Indexer,
-  TransactionWithStatus,
+  OutPoint,
+  Output,
+  QueryOptions,
+  Script,
+  Transaction,
   TransactionCollector as BaseTransactionCollector,
+  TransactionWithStatus,
+  utils,
 } from "@ckb-lumos/base";
 import { Map, Set } from "immutable";
 import { Config, getConfig } from "@ckb-lumos/config-manager";
@@ -22,13 +22,14 @@ import {
   AddressType,
   ExtendedPrivateKey,
   key,
-  mnemonic,
   Keystore,
+  mnemonic,
 } from "@ckb-lumos/hd";
-import { assertPublicKey, assertChainCode } from "@ckb-lumos/hd/lib/helper";
+import { assertChainCode, assertPublicKey } from "@ckb-lumos/hd/lib/helper";
 import { BI } from "@ckb-lumos/bi";
 import { bytes } from "@ckb-lumos/codec";
 import { Uint8 } from "@ckb-lumos/codec/lib/number";
+
 const { isCellMatchQueryOptions } = helpers;
 const { publicKeyToBlake160 } = key;
 const { mnemonicToSeedSync } = mnemonic;
@@ -495,14 +496,7 @@ export function publicKeyToMultisigArgs(publicKey: HexString): HexString {
     ...publicKeyHashes
   );
 
-  // hash160
-  // 0x prefix + 20 bytes hex = 2 + (20 * 2) = 42
-  const hash160HexLength = 42;
-  const args = new utils.CKBHasher()
-    .update(serialized)
-    .digestHex()
-    .slice(0, hash160HexLength);
-  return args;
+  return utils.ckbHash160(serialized);
 }
 
 export function getDefaultInfos(
