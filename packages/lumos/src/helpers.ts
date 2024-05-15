@@ -13,6 +13,7 @@ export {
   createTransactionFromSkeleton,
   sealTransaction,
   TransactionSkeleton,
+  refreshTypeIdCellDeps,
   type TransactionSkeletonType,
   type TransactionSkeletonInterface,
   type TransactionSkeletonObject,
