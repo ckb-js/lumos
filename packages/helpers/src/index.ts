@@ -40,6 +40,8 @@ export function minimalScriptCapacity(
   return BigInt(result.toString());
 }
 
+const ONE_CKB = 100_000_000;
+
 export function minimalScriptCapacityCompatible(
   script: Script,
   { validate = true }: { validate?: boolean } = {}
@@ -54,7 +56,7 @@ export function minimalScriptCapacityCompatible(
   // hash_type field
   bytes += 1;
 
-  return BI.from(bytes).mul(100000000);
+  return BI.from(bytes).mul(ONE_CKB);
 }
 
 export function minimalCellCapacity(
@@ -86,7 +88,7 @@ export function minimalCellCapacityCompatible(
   if (fullCell.data) {
     bytes += bytify(fullCell.data).length;
   }
-  return BI.from(bytes).mul(100000000);
+  return BI.from(bytes).mul(ONE_CKB);
 }
 
 export function locateCellDep(
@@ -112,6 +114,16 @@ export function locateCellDep(
 }
 
 let HAS_WARNED_FOR_DEPRECATED_ADDRESS = false;
+
+// |format type|description                                               |
+// |-----------|----------------------------------------------------------|
+// |0x00       |full version identifies the hash_type                     |
+// |0x01       |short version for locks with popular code_hash, deprecated|
+// |0x02       |full version with hash_type = "Data", deprecated          |
+// |0x04       |full version with hash_type = "Type", deprecated          |
+
+const CKB2019_ADDRESS_FORMAT_TYPE_DATA = 0x02;
+const CKB2019_ADDRESS_FORMAT_TYPE_TYPE = 0x04;
 
 /**
  * @deprecated please migrate to {@link encodeToAddress}, the short format address will be removed in the future
@@ -141,9 +153,13 @@ export function generateAddress(
     data.push(1, scriptTemplate.SHORT_ID);
     data.push(...hexToByteArray(script.args));
   } else {
-    if (script.hashType === "type") data.push(0x04);
-    else if (script.hashType === "data") data.push(0x02);
-    else throw new Error(`Invalid hashType ${script.hashType}`);
+    if (script.hashType === "type") {
+      data.push(CKB2019_ADDRESS_FORMAT_TYPE_TYPE);
+    } else if (script.hashType === "data") {
+      data.push(CKB2019_ADDRESS_FORMAT_TYPE_DATA);
+    } else {
+      throw new Error(`Invalid hashType ${script.hashType}`);
+    }
 
     data.push(...hexToByteArray(script.codeHash));
     data.push(...hexToByteArray(script.args));
@@ -514,3 +530,5 @@ export function objectToTransactionSkeleton(
   });
   return txSkeleton;
 }
+
+export { refreshTypeIdCellDeps } from "./refresh";
