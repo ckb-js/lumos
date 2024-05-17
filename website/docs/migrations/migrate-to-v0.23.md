@@ -15,6 +15,8 @@ Lumos dropped the support of reading configuration from `process.env.LUMOS_CONFI
 
 ### `@ckb-lumos/hd`.`Keystore`.`load` and ``save` Are Dropped
 
+### `@ckb-lumos/hd`.`XPubStore`.`load` and ``save` Are Dropped
+
 ### `#ckb-lumos/hd-cache`.`CacheManager`.`loadFromKeystore` Is Dropped
 
 Please migrate to `loadFromKeystoreJson`
