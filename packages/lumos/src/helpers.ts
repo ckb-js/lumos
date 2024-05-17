@@ -20,3 +20,11 @@ export {
 } from "@ckb-lumos/helpers";
 
 export { addCellDep } from "@ckb-lumos/common-scripts/lib/helper";
+
+export {
+  type ModelHelper,
+  createModelHelper,
+  CellHelper,
+  ScriptHelper,
+  OutPointHelper,
+} from "@ckb-lumos/helpers/lib/models";
