@@ -17,7 +17,7 @@ export class XPubStore {
     });
   }
 
-  static loadFromJson(json: string): XPubStore {
+  static fromJson(json: string): XPubStore {
     const xpub = JSON.parse(json).xpubkey;
     const accountExtendedPublicKey = AccountExtendedPublicKey.parse(
       "0x" + xpub
