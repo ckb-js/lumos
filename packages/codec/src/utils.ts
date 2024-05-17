@@ -13,7 +13,7 @@ const CHAR_f = "f".charCodeAt(0); // 102
 
 function assertStartsWith0x(str: string): void {
   if (!str || !str.startsWith("0x")) {
-    throw new Error("Invalid hex string");
+    throw new Error("Invalid hex string, expect starts with 0x");
   }
 }
 

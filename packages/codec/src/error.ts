@@ -46,10 +46,12 @@ export class CodecExecuteError extends Error {
     };
 
     const path = this.keys.reduceRight(reducer, "input");
+    const text =
+      this.origin instanceof CodecBaseParseError
+        ? `Expect type ${this.origin.expectedType} at ${path} but got error:`
+        : `Error at ${path}:`; // this.origin can be an Error at runtime
 
-    return `Expect type ${this.origin.expectedType} at ${path} but got error: ${
-      this.origin.message
-    }
+    return `${text} ${this.origin.message}
     ${this.origin.stack?.replace(/Error:.+?\n/, "")}
     `;
   }

@@ -52,6 +52,14 @@ const scriptHash =
 
 test("computeScriptHash", (t) => {
   t.is(computeScriptHash(script), scriptHash);
+  t.throws(
+    () =>
+      computeScriptHash({ codeHash: "000", hashType: "type", args: "0x12" }),
+    {
+      instanceOf: Error,
+      message: new RegExp("Error at input.codeHash.*", "m"),
+    }
+  );
 });
 
 test("hashCode, should return same hash if same input", (t) => {
