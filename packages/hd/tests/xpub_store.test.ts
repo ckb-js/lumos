@@ -12,7 +12,7 @@ const accountExtendedPublicKey = new AccountExtendedPublicKey(
 const filePath = __dirname + "/fixtures/xpub.json";
 
 test("load", (t) => {
-  const xpub = XPubStore.load(filePath);
+  const xpub = XPubStore.loadFromJson(fs.readFileSync(filePath).toString());
   const a = xpub.toAccountExtendedPublicKey();
 
   t.is(a.publicKey, accountExtendedPublicKey.publicKey);
