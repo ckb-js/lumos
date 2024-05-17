@@ -26,7 +26,6 @@ module.exports = {
               2, // many .slice(2) since the '0x' prefix should be removed while calling 3rd-party library
               16, // toString(16)
               1000, // second to millisecond
-              0xff, // 255
             ],
           },
         ],
