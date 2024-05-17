@@ -27,7 +27,6 @@ module.exports = {
       crypto: require.resolve("crypto-browserify"),
       buffer: require.resolve("buffer/"),
       path: false,
-      fs: false,
       stream: false,
     },
   },
@@ -62,7 +61,6 @@ module.exports = function override(config, env) {
     crypto: require.resolve("crypto-browserify"),
     buffer: require.resolve("buffer/"),
     path: false,
-    fs: false,
     stream: false,
   }
 
@@ -120,6 +118,34 @@ export default defineConfig({
 })
 ```
 
+## Next.js
+
+Next.js supports customizing the webpack config in `nextjs.config.mjs`
+
+```js
+import { createRequire } from "node:module"
+
+const require = createRequire(import.meta.url)
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      crypto: require.resolve("crypto-browserify"),
+      buffer: require.resolve("buffer/"),
+      path: false,
+      stream: false,
+    }
+
+    config.plugins = [...config.plugins, new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] })]
+    return config
+  },
+}
+
+export default nextConfig
+```
+
 ## Docusaurus
 
 Docusaurus also packs project via webpack, so we just need to tell Docusaurus webpack that the following configuration
@@ -139,7 +165,6 @@ module.exports = {
               crypto: require.resolve("crypto-browserify"),
               buffer: require.resolve("buffer/"),
               path: false,
-              fs: false,
               stream: false,
             },
           },
