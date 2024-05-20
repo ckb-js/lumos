@@ -8,20 +8,26 @@ import { ckbHash } from "@ckb-lumos/base/lib/utils";
 export type ModelHelper<Model, ModelLike = Model> = {
   /**
    * create a Model from a ModelLike
-   * @param model
+   * @param modelLike
    */
-  create(model: ModelLike): Model;
+  create(modelLike: ModelLike): Model;
   /**
    * check if the two models are equals
-   * @param modelL
+   * @param modelLike
    * @param modelR
    */
-  equals(modelL: ModelLike, modelR: ModelLike): boolean;
+  equals(modelLike: ModelLike, modelR: ModelLike): boolean;
   /**
    * create the hash of the model
+   * @param modelLike
+   */
+  hash(modelLike: ModelLike): Uint8Array;
+
+  /**
+   * clone a model
    * @param model
    */
-  hash(model: ModelLike): Uint8Array;
+  clone(model: Model): Model;
 };
 
 /**
@@ -35,5 +41,33 @@ export function createModelHelper<Model, ModelLike>(
     create: (val) => codec.unpack(codec.pack(val)),
     hash: (val) => bytes.bytify(ckbHash(codec.pack(val))),
     equals: (a, b) => bytes.equal(codec.pack(a), codec.pack(b)),
+    clone: defaultDeepClone,
   };
+}
+
+/**
+ * @internal
+ */
+export function defaultDeepClone<T>(value: T): T {
+  const valType = typeof value;
+
+  if (
+    valType === "number" ||
+    valType === "string" ||
+    valType === "boolean" ||
+    valType === "bigint" ||
+    value == null
+  ) {
+    return value;
+  } else if (Array.isArray(value)) {
+    return value.map(defaultDeepClone) as T;
+  } else if (valType === "object") {
+    return Object.entries(value).reduce(
+      (result, [key, value]) =>
+        Object.assign(result, { [key]: defaultDeepClone(value) }),
+      {}
+    ) as T;
+  }
+
+  throw new Error("Cannot clone the value: " + String(value));
 }
