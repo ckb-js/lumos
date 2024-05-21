@@ -1,5 +1,11 @@
 # @ckb-lumos/lumos
 
+## 0.23.0-next.0
+
+### Minor Changes
+
+- [#676](https://github.com/ckb-js/lumos/pull/676) [`c37d5b8e79da93be7b9e46102efdd5253a068223`](https://github.com/ckb-js/lumos/commit/c37d5b8e79da93be7b9e46102efdd5253a068223) Thanks [@homura](https://github.com/homura)! - feat: supported omnilock sign with phantom
+
 ## 0.22.2
 
 ## 0.22.1

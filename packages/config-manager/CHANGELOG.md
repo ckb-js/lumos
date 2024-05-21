@@ -1,5 +1,11 @@
 # @ckb-lumos/config-manager
 
+## 0.23.0-next.0
+
+### Minor Changes
+
+- [#684](https://github.com/ckb-js/lumos/pull/684) [`b70c877497df210bcda6bae80c83ad369cac0764`](https://github.com/ckb-js/lumos/commit/b70c877497df210bcda6bae80c83ad369cac0764) Thanks [@homura](https://github.com/homura)! - **BREAKING CHANGE**: remove filesystem support
+
 ## 0.22.2
 
 ### Patch Changes

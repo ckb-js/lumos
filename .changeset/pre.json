@@ -22,7 +22,18 @@
     "@ckb-lumos/testkit": "0.22.2",
     "@ckb-lumos/toolkit": "0.22.2",
     "@ckb-lumos/transaction-manager": "0.22.2",
-    "@ckb-lumos/utils": "0.22.2"
+    "@ckb-lumos/utils": "0.22.2",
+    "@ckb-lumos/joyid": "0.22.2"
   },
-  "changesets": []
+  "changesets": [
+    "afraid-planes-greet",
+    "brave-dragons-retire",
+    "cyan-geese-relate",
+    "khaki-brooms-swim",
+    "modern-panthers-thank",
+    "shaggy-dots-brush",
+    "silent-mangos-bow",
+    "tall-toes-sort",
+    "wet-turtles-double"
+  ]
 }

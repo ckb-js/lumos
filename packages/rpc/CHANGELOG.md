@@ -1,5 +1,11 @@
 # @ckb-lumos/rpc
 
+## 0.23.0-next.0
+
+### Patch Changes
+
+- [#683](https://github.com/ckb-js/lumos/pull/683) [`14ed63325317951d0b5d2b8a25a8898d9a3cb563`](https://github.com/ckb-js/lumos/commit/14ed63325317951d0b5d2b8a25a8898d9a3cb563) Thanks [@twhy](https://github.com/twhy)! - fix: correct CKBRPC.createBatchRequest() types
+
 ## 0.22.2
 
 ## 0.22.1

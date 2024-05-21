@@ -1,5 +1,15 @@
 # @ckb-lumos/common-scripts
 
+## 0.23.0-next.0
+
+### Minor Changes
+
+- [#682](https://github.com/ckb-js/lumos/pull/682) [`ed7c2fadf8483c1d3739ee403da254da46444b98`](https://github.com/ckb-js/lumos/commit/ed7c2fadf8483c1d3739ee403da254da46444b98) Thanks [@homura](https://github.com/homura)! - feat: support create omnilock address from btc testnet address
+
+- [#682](https://github.com/ckb-js/lumos/pull/682) [`ed7c2fadf8483c1d3739ee403da254da46444b98`](https://github.com/ckb-js/lumos/commit/ed7c2fadf8483c1d3739ee403da254da46444b98) Thanks [@homura](https://github.com/homura)! - feat: deprecated omnilock btc auth with p2sh
+
+- [#676](https://github.com/ckb-js/lumos/pull/676) [`c37d5b8e79da93be7b9e46102efdd5253a068223`](https://github.com/ckb-js/lumos/commit/c37d5b8e79da93be7b9e46102efdd5253a068223) Thanks [@homura](https://github.com/homura)! - feat: supported omnilock sign with phantom
+
 ## 0.22.2
 
 ## 0.22.1

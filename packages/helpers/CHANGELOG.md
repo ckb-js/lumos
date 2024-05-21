@@ -1,5 +1,11 @@
 # @ckb-lumos/helpers
 
+## 0.23.0-next.0
+
+### Minor Changes
+
+- [#687](https://github.com/ckb-js/lumos/pull/687) [`eb5839a3825378fa4970ab3f7af0c1b347c4d352`](https://github.com/ckb-js/lumos/commit/eb5839a3825378fa4970ab3f7af0c1b347c4d352) Thanks [@homura](https://github.com/homura)! - feat: refreshTypeIdCellDeps to refresh typeid cell deps
+
 ## 0.22.2
 
 ## 0.22.1
