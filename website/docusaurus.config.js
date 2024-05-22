@@ -74,7 +74,10 @@ const config = {
               stream: false,
             },
           },
-          plugins: [new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] })],
+          plugins: [
+            new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
+            new webpack.ProvidePlugin({ process: "process/browser" }),
+          ],
         }
       },
     }),
