@@ -1,6 +1,6 @@
 # Migrate to Lumos v0.23
 
-## Dropped All Filesystem Supports
+## BREAKING: Dropped All Filesystem Supports
 
 ### `@ckb-lumos/config-manager`.`initializeConfig` Dropped The Support for Reading File/Environment Configuration
 
@@ -24,4 +24,31 @@ Please migrate to `loadFromKeystoreJson`
   indexer,
 - path,
 + JSON.parse(fs.readFileSync(path).toString())
+```
+
+---
+
+## Common Methods For CKB-Related Objects
+
+The `ModelHelper` provides a set of common methods, such as `create`, `hash`, `clone`, and `equals`, for CKB-related objects.
+This helper is designed to work with a `ModelLike` object for convenience, allowing developers to work with ambiguous objects instead of just the strict object.
+
+```ts
+export type ModelHelper<Model, ModelLike = Model> = {
+  create(modelLike: ModelLike): Model
+  equals(modelLike: ModelLike, modelR: ModelLike): boolean
+  hash(modelLike: ModelLike): Uint8Array
+  clone(model: ModelLike): Model
+}
+```
+
+```javascript
+import { CellHelper } from "@ckb-lumos/helpers"
+
+const cell = CellHelper.create({
+  lock: "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqgqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq5m759c",
+})
+
+const _61CKB = 61 * 10 ** 8
+asserts(BI.from(cell.cellOutput.capacity).eq(_61CKB)) // 61 CKB
 ```
