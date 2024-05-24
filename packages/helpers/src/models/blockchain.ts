@@ -4,4 +4,4 @@ import { createModelHelper } from "./base";
 /**
  * {@link ModelHelper}
  */
-export const OutPointHelper = createModelHelper(blockchain.OutPoint);
+export const outPointHelper = createModelHelper(blockchain.OutPoint);

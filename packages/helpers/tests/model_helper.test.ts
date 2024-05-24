@@ -1,5 +1,5 @@
 import test from "ava";
-import { CellHelper, encodeToAddress, ScriptHelper } from "../src";
+import { cellHelper, encodeToAddress, scriptHelper } from "../src";
 import { randomBytes } from "node:crypto";
 import { bytes } from "@ckb-lumos/codec";
 import { predefined } from "@ckb-lumos/config-manager";
@@ -22,10 +22,10 @@ test("deepClone", (t) => {
   t.deepEqual(defaultDeepClone(obj), obj);
 });
 
-test("ScriptHelper", (t) => {
+test("scriptHelper", (t) => {
   const codeHash = randomBytes(32);
 
-  const script = ScriptHelper.create({
+  const script = scriptHelper.create({
     codeHash,
     hashType: "type",
     args: "0x",
@@ -38,18 +38,18 @@ test("ScriptHelper", (t) => {
   });
 
   const mainnetAddress = encodeToAddress(script);
-  t.deepEqual(ScriptHelper.create(mainnetAddress), script);
+  t.deepEqual(scriptHelper.create(mainnetAddress), script);
 
   const testnetAddress = encodeToAddress(script, {
     config: predefined.AGGRON4,
   });
-  t.deepEqual(ScriptHelper.create(testnetAddress), script);
+  t.deepEqual(scriptHelper.create(testnetAddress), script);
 
-  t.deepEqual(ScriptHelper.clone(script), script);
+  t.deepEqual(scriptHelper.clone(script), script);
 });
 
-test("CellHelper", (t) => {
-  const cell = CellHelper.create({
+test("cellHelper", (t) => {
+  const cell = cellHelper.create({
     // fake secp256k1
     lock: {
       codeHash: randomBytes(32),
@@ -66,5 +66,5 @@ test("CellHelper", (t) => {
   });
 
   t.true(parseUnit("142", "ckb").eq(cell.cellOutput.capacity));
-  t.deepEqual(CellHelper.create(cell), cell);
+  t.deepEqual(cellHelper.create(cell), cell);
 });

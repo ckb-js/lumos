@@ -17,7 +17,7 @@ function autoParseAddress(address: Address): Script {
   throw new Error(`The address prefix ${address} is unknown`);
 }
 
-export const ScriptHelper = createModelHelper<Script, ScriptLike>({
+export const scriptHelper = createModelHelper<Script, ScriptLike>({
   pack: (val) =>
     blockchain.Script.pack(
       typeof val === "string" ? autoParseAddress(val) : val

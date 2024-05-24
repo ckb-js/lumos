@@ -1,10 +1,10 @@
 import { createModelHelper, ModelHelper } from "./base";
 import { blockchain, Cell } from "@ckb-lumos/base";
-import { ScriptHelper, ScriptLike } from "./script";
+import { scriptHelper, ScriptLike } from "./script";
 import { BI, BIish } from "@ckb-lumos/bi";
 import { bytes, BytesLike, PackParam } from "@ckb-lumos/codec";
 import { option, table } from "@ckb-lumos/codec/lib/molecule";
-import { OutPointHelper } from "./blockchain";
+import { outPointHelper } from "./blockchain";
 import { minimalCellCapacityCompatible } from "../index";
 
 type CreateCellOptions = {
@@ -37,18 +37,18 @@ const CellCodec = table(
  * const cell = CellHelper.create({ lock: 'ckb1secp256k1lock' })
  * cell.cellOutput.capacity // == 61 CKB
  */
-export const CellHelper: ModelHelper<Cell, CellLike> = createModelHelper({
+export const cellHelper: ModelHelper<Cell, CellLike> = createModelHelper({
   pack: (model) => {
     const cell: Cell = (() => {
       if (isCreateCellOptions(model)) {
         return {
           cellOutput: {
             capacity: BI.from(model.capacity || "0x0").toHexString(),
-            lock: ScriptHelper.create(model.lock),
-            type: model.type && ScriptHelper.create(model.type),
+            lock: scriptHelper.create(model.lock),
+            type: model.type && scriptHelper.create(model.type),
           },
 
-          outPoint: model.outPoint && OutPointHelper.create(model.outPoint),
+          outPoint: model.outPoint && outPointHelper.create(model.outPoint),
           data: bytes.hexify(model.data || "0x"),
         };
       }

@@ -43,9 +43,9 @@ export type ModelHelper<Model, ModelLike = Model> = {
 ```
 
 ```javascript
-import { CellHelper } from "@ckb-lumos/helpers"
+import { cellHelper } from "@ckb-lumos/helpers"
 
-const cell = CellHelper.create({
+const cell = cellHelper.create({
   lock: "ckb1qzda0cr08m85hc8jlnfp3zer7xulejywt49kt2rr0vthywaa50xwsqgqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq5m759c",
 })
 

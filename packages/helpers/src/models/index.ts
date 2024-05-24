@@ -1,4 +1,4 @@
 export { type ModelHelper, createModelHelper } from "./base";
-export { CellHelper } from "./cell";
-export { ScriptHelper } from "./script";
-export { OutPointHelper } from "./blockchain";
+export { cellHelper } from "./cell";
+export { scriptHelper } from "./script";
+export { outPointHelper } from "./blockchain";
