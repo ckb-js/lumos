@@ -243,6 +243,9 @@ const toTxPoolInfo = (info: RPC.TxPoolInfo): CKBComponents.TxPoolInfo => {
     total_tx_cycles: totalTxCycles,
     total_tx_size: totalTxSize,
     min_fee_rate: minFeeRate,
+    min_rbf_rate: minRbfRate,
+    tx_size_limit: txSizeLimit,
+    max_tx_pool_size: maxTxPoolSize,
     ...rest
   } = info;
   return {
@@ -252,6 +255,9 @@ const toTxPoolInfo = (info: RPC.TxPoolInfo): CKBComponents.TxPoolInfo => {
     totalTxCycles,
     totalTxSize,
     minFeeRate,
+    minRbfRate,
+    txSizeLimit,
+    maxTxPoolSize,
     ...rest,
   };
 };
@@ -326,6 +332,8 @@ const toTransactionWithStatus = <Tx>(
     transaction,
     tx_status: { block_hash: blockHash, status },
     time_added_to_pool,
+    min_replace_fee,
+    fee,
     ...rest
   } = txWithStatus;
   return {
@@ -338,6 +346,8 @@ const toTransactionWithStatus = <Tx>(
         : {}),
     },
     timeAddedToPool: time_added_to_pool,
+    minReplaceFee: min_replace_fee,
+    fee,
     ...rest,
   };
 };

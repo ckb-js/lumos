@@ -97,6 +97,8 @@ export interface TransactionWithStatus<Tx = Transaction> {
   txStatus: TxStatus;
   timeAddedToPool: Uint64 | null;
   cycles: Uint64 | null;
+  fee: Uint64 | null;
+  minReplaceFee: Uint64 | null;
 }
 
 export interface Cell {
@@ -321,6 +323,9 @@ export interface TxPoolInfo {
   totalTxCycles: HexNumber;
   minFeeRate: HexNumber;
   lastTxsUpdatedAt: HexNumber;
+  minRbfRate: HexNumber;
+  maxTxPoolSize: HexNumber;
+  txSizeLimit: HexNumber;
 }
 
 export interface TxPoolIds {
