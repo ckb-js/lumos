@@ -14,7 +14,6 @@ import { address, AddressType, core, keyring } from "@unisat/wallet-sdk";
 import { NetworkType } from "@unisat/wallet-sdk/lib/network";
 import { Provider, signMessage } from "../src/omnilock-bitcoin";
 import { SimpleKeyring } from "@unisat/wallet-sdk/lib/keyring";
-import { randomBytes } from "node:crypto";
 
 test.before(async () => {
   await new CKBDebuggerDownloader().downloadIfNotExists();
@@ -124,10 +123,13 @@ async function setupTxSkeleton(addr: string) {
   return { txSkeleton: txSkeleton, lock };
 }
 
-test.serial("Omnilock#Bitcoin P2SH", (t) => {
+// 02 indicates that the pubkey is compressed
+const pubkey =
+  "02b602ad190efb7b4f520068e3f8ecf573823d9e2557c5229231b4e14b79bbc0d8";
+
+test("Omnilock#Bitcoin P2SH", (t) => {
   const p2shAddr = address.publicKeyToAddress(
-    // 02 indicates that the pubkey is compressed
-    "02" + randomBytes(32).toString("hex"),
+    pubkey,
     AddressType.P2SH_P2WPKH,
     NetworkType.MAINNET
   );
@@ -140,5 +142,27 @@ test.serial("Omnilock#Bitcoin P2SH", (t) => {
     createOmnilockScript({
       auth: { flag: "BITCOIN", content: p2shAddr, allowP2SH: true },
     })
+  );
+});
+
+test("Unsupported BTC address", (t) => {
+  const p2trAddr = address.publicKeyToAddress(
+    pubkey,
+    AddressType.P2TR,
+    NetworkType.MAINNET
+  );
+
+  t.throws(() =>
+    createOmnilockScript({ auth: { flag: "BITCOIN", content: p2trAddr } })
+  );
+
+  const unknownAddr = address.publicKeyToAddress(
+    pubkey,
+    AddressType.UNKNOWN,
+    NetworkType.MAINNET
+  );
+
+  t.throws(() =>
+    createOmnilockScript({ auth: { flag: "BITCOIN", content: unknownAddr } })
   );
 });
