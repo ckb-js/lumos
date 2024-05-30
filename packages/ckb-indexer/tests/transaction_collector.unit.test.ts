@@ -1,5 +1,5 @@
-import { randomBytes } from "crypto";
 import test from "ava";
+import { randomBytes } from "../../crypto/src";
 import { Indexer, TransactionCollector } from "../src";
 import {
   indexerTransactionListThatHaveOneIoTypeInput,

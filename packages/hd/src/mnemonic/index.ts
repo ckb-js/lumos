@@ -1,6 +1,7 @@
-import crypto from "crypto";
-import wordList from "./word_list";
+import { pbkdf2, pbkdf2Sync, createHash } from "crypto";
+import { randomBytes } from "@ckb-lumos/crypto";
 import { HexString } from "@ckb-lumos/base";
+import wordList from "./word_list";
 
 const RADIX = 2048;
 const PBKDF2_ROUNDS = 2048;
@@ -30,28 +31,28 @@ if (wordList.length !== RADIX) {
 
 function bytesToBinary(bytes: Buffer): string {
   return bytes.reduce((binary, byte) => {
+    /* eslint-disable @typescript-eslint/no-magic-numbers */
     return binary + byte.toString(2).padStart(8, "0");
   }, "");
 }
 
 function deriveChecksumBits(entropyBuffer: Buffer): string {
+  /* eslint-disable @typescript-eslint/no-magic-numbers */
   const ENT = entropyBuffer.length * 8;
+  /* eslint-disable @typescript-eslint/no-magic-numbers */
   const CS = ENT / 32;
-  const hash = crypto.createHash("sha256").update(entropyBuffer).digest();
+  const hash = createHash("sha256").update(entropyBuffer).digest();
   return bytesToBinary(hash).slice(0, CS);
 }
 
-function salt(password: string = ""): string {
+function salt(password = ""): string {
   return `mnemonic${password}`;
 }
 
-export function mnemonicToSeedSync(
-  mnemonic: string = "",
-  password: string = ""
-): Buffer {
+export function mnemonicToSeedSync(mnemonic = "", password = ""): Buffer {
   const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
   const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
-  return crypto.pbkdf2Sync(
+  return pbkdf2Sync(
     mnemonicBuffer,
     saltBuffer,
     PBKDF2_ROUNDS,
@@ -60,15 +61,12 @@ export function mnemonicToSeedSync(
   );
 }
 
-export function mnemonicToSeed(
-  mnemonic: string = "",
-  password: string = ""
-): Promise<Buffer> {
+export function mnemonicToSeed(mnemonic = "", password = ""): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
       const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
       const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
-      crypto.pbkdf2(
+      pbkdf2(
         mnemonicBuffer,
         saltBuffer,
         PBKDF2_ROUNDS,
@@ -87,7 +85,7 @@ export function mnemonicToSeed(
   });
 }
 
-export function mnemonicToEntropy(mnemonic: string = ""): HexString {
+export function mnemonicToEntropy(mnemonic = ""): HexString {
   const words = mnemonic.normalize("NFKD").split(" ");
   if (words.length < MIN_WORDS_SIZE) {
     throw new Error(WORDS_TOO_SHORT);
@@ -95,6 +93,7 @@ export function mnemonicToEntropy(mnemonic: string = ""): HexString {
   if (words.length > MAX_WORDS_SIZE) {
     throw new Error(WORDS_TOO_LONG);
   }
+  /* eslint-disable @typescript-eslint/no-magic-numbers */
   if (words.length % 3 !== 0) {
     throw new Error(INVALID_MNEMONIC);
   }
@@ -104,10 +103,12 @@ export function mnemonicToEntropy(mnemonic: string = ""): HexString {
       if (index === -1) {
         throw new Error(INVALID_MNEMONIC);
       }
+      /* eslint-disable @typescript-eslint/no-magic-numbers */
       return index.toString(2).padStart(11, "0");
     })
     .join("");
 
+  /* eslint-disable @typescript-eslint/no-magic-numbers */
   const dividerIndex = Math.floor(bits.length / 33) * 32;
   const entropyBits = bits.slice(0, dividerIndex);
   const checksumBits = bits.slice(dividerIndex);
@@ -121,6 +122,7 @@ export function mnemonicToEntropy(mnemonic: string = ""): HexString {
   if (entropyBytes.length > MAX_ENTROPY_SIZE) {
     throw new Error(ENTROPY_TOO_LONG);
   }
+  /* eslint-disable @typescript-eslint/no-magic-numbers */
   if (entropyBytes.length % 4 !== 0) {
     throw new Error(ENTROPY_NOT_DIVISIBLE);
   }
@@ -143,6 +145,7 @@ export function entropyToMnemonic(entropyStr: HexString): string {
   if (entropy.length > MAX_ENTROPY_SIZE) {
     throw new TypeError(ENTROPY_TOO_LONG);
   }
+  /* eslint-disable @typescript-eslint/no-magic-numbers */
   if (entropy.length % 4 !== 0) {
     throw new TypeError(ENTROPY_NOT_DIVISIBLE);
   }
@@ -172,8 +175,7 @@ export function validateMnemonic(mnemonic: string): boolean {
 // Generate 12 words mnemonic code
 export function generateMnemonic(): string {
   const entropySize = 16;
-  const entropy: HexString =
-    "0x" + crypto.randomBytes(entropySize).toString("hex");
+  const entropy: HexString = "0x" + randomBytes(entropySize).toString("hex");
   return entropyToMnemonic(entropy);
 }
 

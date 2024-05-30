@@ -1,5 +1,5 @@
+import { randomBytes } from "@ckb-lumos/crypto";
 import { Header, OutPoint } from "@ckb-lumos/base";
-import * as crypto from "crypto";
 import { ScriptConfig } from "@ckb-lumos/config-manager";
 import { OutputDataLoader } from "./loader";
 import { DataLoader, TestContext } from "./types";
@@ -14,9 +14,8 @@ const TRANSACTION_HASH_LENGTH = 32;
 
 export function mockOutPoint(): OutPoint {
   return {
-    txHash: hexify(crypto.randomBytes(TRANSACTION_HASH_LENGTH)),
-    index:
-      "0x" + Uint32.unpack(crypto.randomBytes(Uint32.byteLength)).toString(16),
+    txHash: hexify(randomBytes(TRANSACTION_HASH_LENGTH)),
+    index: "0x" + Uint32.unpack(randomBytes(Uint32.byteLength)).toString(16),
   };
 }
 

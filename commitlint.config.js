@@ -1,6 +1,7 @@
 const scopeEnumValues = [
   "base",
   "bi",
+  "crypto",
   "ckb-indexer",
   "common-scripts",
   "config-manager",
