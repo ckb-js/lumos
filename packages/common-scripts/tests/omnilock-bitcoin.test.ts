@@ -9,14 +9,12 @@ import { blockchain, utils } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
 import { common } from "../src";
 import { mockOutPoint } from "@ckb-lumos/debugger/lib/context";
-import {
-  createSimplePublicKeyBasedOmnilockScript,
-  OmnilockWitnessLock,
-} from "../src/omnilock";
+import { createOmnilockScript, OmnilockWitnessLock } from "../src/omnilock";
 import { address, AddressType, core, keyring } from "@unisat/wallet-sdk";
 import { NetworkType } from "@unisat/wallet-sdk/lib/network";
 import { Provider, signMessage } from "../src/omnilock-bitcoin";
 import { SimpleKeyring } from "@unisat/wallet-sdk/lib/keyring";
+import { randomBytes } from "node:crypto";
 
 test.before(async () => {
   await new CKBDebuggerDownloader().downloadIfNotExists();
@@ -106,7 +104,7 @@ function makeProvider(
 async function setupTxSkeleton(addr: string) {
   const txSkeleton = TransactionSkeleton().asMutable();
 
-  const lock = createSimplePublicKeyBasedOmnilockScript(
+  const lock = createOmnilockScript(
     { auth: { flag: "BITCOIN", content: addr } },
     { config: managerConfig }
   );
@@ -125,3 +123,22 @@ async function setupTxSkeleton(addr: string) {
   common.prepareSigningEntries(txSkeleton, { config: managerConfig });
   return { txSkeleton: txSkeleton, lock };
 }
+
+test.serial("Omnilock#Bitcoin P2SH", (t) => {
+  const p2shAddr = address.publicKeyToAddress(
+    // 02 indicates that the pubkey is compressed
+    "02" + randomBytes(32).toString("hex"),
+    AddressType.P2SH_P2WPKH,
+    NetworkType.MAINNET
+  );
+
+  t.throws(() =>
+    createOmnilockScript({ auth: { flag: "BITCOIN", content: p2shAddr } })
+  );
+
+  t.notThrows(() =>
+    createOmnilockScript({
+      auth: { flag: "BITCOIN", content: p2shAddr, allowP2SH: true },
+    })
+  );
+});

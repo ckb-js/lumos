@@ -28,6 +28,21 @@ Please migrate to `loadFromKeystoreJson`
 + JSON.parse(fs.readFileSync(path).toString())
 ```
 
+## P2SH Address To Omnilock Is Not Allowed By Default
+
+Converting a P2SH address to an Omnilock script is not allowed by default in Lumos because it is risky. It cannot be unlocked if a P2SH is not a P2SH-P2WPKH address.
+
+```diff
+createOmnilockScript({
+  auth: {
+    flag: "BITCOIN",
+    content: "3...", // P2SH address
++   allowP2SH: true,
+  }
+})
+
+```
+
 ---
 
 ## Common Methods For CKB-Related Objects
