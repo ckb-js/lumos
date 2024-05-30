@@ -105,6 +105,8 @@ export function createCKBMockRPC(options: Options): Express {
         },
         time_added_to_pool: null,
         cycles: null,
+        min_replace_fee: null,
+        fee: null,
       };
     }
   );
@@ -140,7 +142,8 @@ export function createCKBMockRPC(options: Options): Express {
         if (jsonRPCResponse) {
           res.json(jsonRPCResponse);
         } else {
-          res.sendStatus(204);
+          const HTTP_NO_CONTENT = 204;
+          res.sendStatus(HTTP_NO_CONTENT);
         }
       });
     }

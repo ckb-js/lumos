@@ -179,6 +179,8 @@ export class CKBIndexerTransactionCollector extends BaseIndexerModule.Transactio
         txStatus: tx.txStatus,
         cycles: tx.cycles,
         timeAddedToPool: tx.timeAddedToPool,
+        minReplaceFee: tx.minReplaceFee,
+        fee: tx.fee,
       })
     );
     return objects;

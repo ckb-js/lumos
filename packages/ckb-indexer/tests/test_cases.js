@@ -7082,7 +7082,9 @@ const transactionByLock = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   },
   {
     transaction:  {
@@ -7120,7 +7122,9 @@ const transactionByLock = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   },
   {
     transaction:  {
@@ -7158,7 +7162,9 @@ const transactionByLock = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   },
   {
     transaction:  {
@@ -7196,7 +7202,9 @@ const transactionByLock = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   },
   {
     transaction:  {
@@ -7234,7 +7242,9 @@ const transactionByLock = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   },
   {
     transaction:  {
@@ -7272,7 +7282,9 @@ const transactionByLock = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   },
   {
     transaction: {
@@ -7310,7 +7322,9 @@ const transactionByLock = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   },
 ]
 
@@ -7398,7 +7412,9 @@ const transactionsByType = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   },
   {
     transaction:       {
@@ -7464,7 +7480,9 @@ const transactionsByType = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   }
 ];
 
@@ -7533,7 +7551,9 @@ const transactionsByLockAndType = [
       status: 'committed',
     },
     cycles: null,
-    timeAddedToPool: null
+    timeAddedToPool: null,
+    fee: null,
+    minReplaceFee: null
   }
 ];
 

@@ -129,6 +129,8 @@ export namespace RPC {
         };
     time_added_to_pool: Uint64 | null;
     cycles: Uint64 | null;
+    fee: Capacity | null;
+    min_replace_fee: Capacity | null;
   }
 
   export interface TransactionPoint {
@@ -236,6 +238,9 @@ export namespace RPC {
     tip_number: BlockNumber;
     total_tx_cycles: Cycles;
     total_tx_size: Size;
+    min_rbf_rate: Uint64;
+    tx_size_limit: Uint64;
+    max_tx_pool_size: Uint64;
   }
 
   export interface Epoch {

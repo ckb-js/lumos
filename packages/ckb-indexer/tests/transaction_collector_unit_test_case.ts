@@ -166,6 +166,8 @@ export const unresolvedTransaction: TransactionWithStatus = {
   },
   cycles: null,
   timeAddedToPool: null,
+  fee: null,
+  minReplaceFee: null,
 };
 export const unresolvedTransactionList: TransactionWithStatus[] = [
   unresolvedTransaction,
@@ -253,6 +255,8 @@ export const resolvedTransaction: TransactionWithStatus = {
   },
   cycles: null,
   timeAddedToPool: null,
+  fee: null,
+  minReplaceFee: null,
 };
 
 export const batchRequestTransaction = [

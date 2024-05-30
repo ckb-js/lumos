@@ -28,6 +28,24 @@ Please migrate to `loadFromKeystoreJson`
 + JSON.parse(fs.readFileSync(path).toString())
 ```
 
+### RPC `getTransaction`'s Response Has Been Updated
+
+```diff
+-min_replace_fee
++minReplaceFee
+```
+
+### RPC `get_`'s Response Has Been Updated
+
+```diff
+-min_rbf_rate
+-tx_size_limit
+-max_tx_pool_size
++minRbfRate
++txSizeLimit
++MaxTxPoolSize
+```
+
 ---
 
 ## Common Methods For CKB-Related Objects
