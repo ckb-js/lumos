@@ -12,6 +12,7 @@ coverage:
         target: auto
         threshold: 1%
         base: auto
+    patch: off # disable codecov/patch
 
 parsers:
   gcov:
