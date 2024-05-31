@@ -175,7 +175,8 @@ export function validateMnemonic(mnemonic: string): boolean {
 // Generate 12 words mnemonic code
 export function generateMnemonic(): string {
   const entropySize = 16;
-  const entropy: HexString = "0x" + randomBytes(entropySize).toString("hex");
+  const entropy: HexString =
+    "0x" + Buffer.from(randomBytes(entropySize)).toString("hex");
   return entropyToMnemonic(entropy);
 }
 

@@ -8,7 +8,7 @@ import {
 } from "../src/refresh";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { OutPoint, Output, Script } from "@ckb-lumos/base";
-import { randomBytes } from "../../crypto/src";
+import { randomBytes } from "@ckb-lumos/crypto";
 import { ScriptConfigs } from "../src";
 
 test("refresh without update", async (t) => {

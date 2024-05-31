@@ -181,6 +181,9 @@ importers:
         specifier: ^3.3.0
         version: 3.3.0
     devDependencies:
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0-next.0
+        version: link:../crypto
       '@ckb-lumos/testkit':
         specifier: 0.23.0-next.0
         version: link:../testkit
@@ -212,6 +215,9 @@ importers:
         specifier: 0.23.0-next.0
         version: link:../bi
     devDependencies:
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0-next.0
+        version: link:../crypto
       escape-string-regexp:
         specifier: ^4.0.0
         version: 4.0.0
@@ -252,6 +258,9 @@ importers:
         specifier: ^4.3.0
         version: 4.3.5
     devDependencies:
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0-next.0
+        version: link:../crypto
       '@ckb-lumos/debugger':
         specifier: 0.23.0-next.0
         version: link:../debugger
@@ -291,6 +300,10 @@ importers:
       deep-freeze-strict:
         specifier: ^1.1.1
         version: 1.1.1
+    devDependencies:
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0-next.0
+        version: link:../crypto
 
   packages/crypto: {}
 
@@ -531,6 +544,10 @@ importers:
       immutable:
         specifier: ^4.3.0
         version: 4.3.5
+    devDependencies:
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0-next.0
+        version: link:../crypto
 
   packages/joyid:
     dependencies:
@@ -556,6 +573,9 @@ importers:
       '@ckb-lumos/bi':
         specifier: 0.23.0-next.0
         version: link:../bi
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0-next.0
+        version: link:../crypto
       sinon:
         specifier: ^15.0.4
         version: 15.2.0

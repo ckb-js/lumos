@@ -1,5 +1,5 @@
 import test from "ava";
-import { randomBytes } from "../../crypto/src";
+import { randomBytes } from "@ckb-lumos/crypto";
 import { Indexer, TransactionCollector } from "../src";
 import {
   indexerTransactionListThatHaveOneIoTypeInput,

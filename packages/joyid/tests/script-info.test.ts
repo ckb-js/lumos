@@ -20,7 +20,7 @@ import { common } from "@ckb-lumos/common-scripts";
 import { parseUnit } from "@ckb-lumos/bi";
 import { getJoyIDLockScript } from "@joyid/ckb";
 import { getCotaTypeScript } from "../src/constants";
-import { randomBytes } from "../../crypto/src";
+import { randomBytes } from "@ckb-lumos/crypto";
 
 const joyIdLockScriptTemplate = getJoyIDLockScript(true);
 const cotaTypeScriptTemplate = getCotaTypeScript(true);

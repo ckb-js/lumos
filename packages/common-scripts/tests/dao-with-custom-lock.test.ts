@@ -13,7 +13,7 @@ import { dao } from "../src";
 import { Config, predefined } from "@ckb-lumos/config-manager";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import { Uint64 } from "@ckb-lumos/codec/lib/number";
-import { randomBytes } from "../../crypto/src";
+import { randomBytes } from "@ckb-lumos/crypto";
 
 const { LINA } = predefined;
 
