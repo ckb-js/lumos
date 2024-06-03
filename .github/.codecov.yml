@@ -12,7 +12,12 @@ coverage:
         target: auto
         threshold: 1%
         base: auto
-    patch: off # disable codecov/patch
+    patch:
+      default:
+        # basic settings
+        target: auto
+        threshold: 6%
+        base: auto
 
 parsers:
   gcov:
