@@ -5,6 +5,7 @@ const lightCodeTheme = require("prism-react-renderer/themes/github")
 const darkCodeTheme = require("prism-react-renderer/themes/dracula")
 const webpack = require("webpack")
 const versioningBranchs = require("./versioning-branches")
+const remarkGithubAdmonitionsToDirectives = require("remark-github-admonitions-to-directives")
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -31,9 +32,9 @@ const config = {
 
   presets: [
     [
-      "classic",
+      "@docusaurus/preset-classic",
       /** @type {import('@docusaurus/preset-classic').Options} */
-      ({
+      {
         pages: {
           routeBasePath: "pages",
         },
@@ -43,11 +44,12 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl: "https://github.com/ckb-js/lumos/tree/develop/website",
+          beforeDefaultRemarkPlugins: [remarkGithubAdmonitionsToDirectives],
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
         },
-      }),
+      },
     ],
   ],
 
@@ -124,6 +126,11 @@ const config = {
         additionalLanguages: ["diff"],
       },
     }),
+
+  markdown: {
+    mermaid: true,
+  },
+  themes: ["@docusaurus/theme-mermaid"],
 }
 
 module.exports = config
