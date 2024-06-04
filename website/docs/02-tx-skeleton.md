@@ -5,7 +5,7 @@ sidebar_position: 3
 
 ## Transaction Skeleton
 
-Lumos provided an opinionated transaction structure called `TransactionSkeleton` from the `@ckb-lumos/helpers` module.
+Lumos provides an opinionated transaction structure called `TransactionSkeleton` from the `@ckb-lumos/helpers` module.
 It simplifies assembling transactions on the client-side for CKB.
 
 ## At A Glance
