@@ -164,7 +164,17 @@ One-time state for the transaction, such as signatures or preimages of hashes in
 ### `signingEntries` and `fixedEntries`
 
 - `signingEntries`: An extension for handling transaction signing
-- `fixedEntries`: Cells that have been tagged with `fixedEntries`, including previous cells, will no longer participate in later calculations, such as `payFee`, but will only use cells after the `fixedEntries`.
+- `fixedEntries`: Cells that have been tagged with `fixedEntries`, including previous cells, will no longer participate in later calculations, such as `payFee` and `injectCapacity`, but will only use cells after the `fixedEntries`. The following example will only allow the `input4` and `input5` to be used as fee cells, and the `input0` to `input3` are fixed that won't be changed by `payFee` or `injectCapacity`
+
+```yaml
+outputs:
+  - input0
+  - input1 # marked by fixedEntries
+  - input2
+  - input3 # market by fixedEntries
+  - input4
+  - input5
+```
 
 ### `cellProvider`
 
