@@ -14,6 +14,7 @@ The following code demonstrates how to build a transaction using `TransactionSke
 
 ```js
 const indexer = new Indexer("https://ckb-rpc-entry")
+const rpc = new RPC("https://ckb-rpc-entry")
 
 // txSkeleton is immutable, use 'let' to declare and update
 let txSkeleton = TransactionSkeleton({
@@ -27,7 +28,7 @@ txSkeleton = txSkeleton
   .update("inputs", (inputs) => inputs.push(inputs0, inputs1))
   .update("outputs", (outputs) => outputs.push(outputs0, outputs1))
   .update("cellDeps", (cellDeps) => cellDeps.push(lockScriptDep, typeScriptDep0))
-  .upd.ate("witnesses", (witnesses) => witnessespush(aliceSignature))
+  .update("witnesses", (witnesses) => witnesses.push(aliceSignature))
 
 // pay fee by the fee rate
 txSkeleton = await common.payFeeByFeeRate(txSkeleton, 1000, [fromAddr])
@@ -41,7 +42,7 @@ const signatures = txSkeleton
 // convert the TransactionSkeleton to RPC transaction
 const signedTransaction = sealTransaction(txSkeleton, signatures)
 
-// boardcast the transaction
+// broadcast the transaction
 const txHash = await rpc.sendTransaction(signedTransaction)
 ```
 
@@ -85,7 +86,7 @@ graph LR
     input0 -.-> output1
 ```
 
-FOr a detailed explanation of CKB transaction structure, refer to [RFC-0022](https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0022-transaction-structure/0022-transaction-structure.md).
+For a detailed explanation of CKB transaction structure, refer to [RFC-0022](https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0022-transaction-structure/0022-transaction-structure.md).
 
 ## Usage Of `TransactionSkeleton`
 
@@ -112,7 +113,7 @@ type TransactionSkeletonType = {
 }
 ```
 
-**Creating a TransactionSkeleton**:
+**Create a TransactionSkeleton**:
 
 - Use `TransactionSkeleton()` to create an empty transaction
 - Optionally, provide properties during creation:
