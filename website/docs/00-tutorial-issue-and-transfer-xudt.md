@@ -251,3 +251,114 @@ async function transfer() {
 ```
 
 Here is the [transfer example](https://pudge.explorer.nervos.org/transaction/0xc00d5c18cecf7b436ebc8735961d8c9b383f56ceb03d6b0dcc5e43e4eebd4341) in the explorer
+
+## Mint with Extension Script
+
+xUDT introduces a new way to mint token.
+The new way allows the owner script as an extension script in the witness instead of in the `inputs`.
+This is useful to avoid cell congestion, so users are able to mint tokens in parallel.
+The mint transaction structure looks like this:
+
+```yaml
+inputs:
+  - capacity_provider_cell:
+      lock: unlimited
+outputs:
+  - capacity_change_cell:
+      lock: unlimited
+  - minted_cell:
+      lock: receiver_lock
+      type:
+        code_hash: xudt_code_hash
+        type: xudt_type
+        args: owner_lock_code_hash(32 bytes)
+      data: xudt_amount_u128
+witnesses:
+  - witness_args:
+      output_type: owner_script
+```
+
+```ts
+async function mintViaExtensionScript() {
+  // An always-success extension script.
+  // You can compile it yourself from https://github.com/nervosnetwork/ckb-production-scripts/blob/410b16c499a8888781d9ab03160eeef93182d8e6/tests/xudt_rce/extension_script_0.c
+  // we use the script to demonstrate how to use Lumos to mint xUDT with the extension script
+  const ALWAYS_SUCCESS_EXTENSION: ScriptConfig = {
+    CODE_HASH: "0xea8ee0b1e932802224f6462f57b34110907357ac35d0952383d550820e1205d1",
+    HASH_TYPE: "type",
+    TX_HASH: "0x5681d80387af77a096aa1386dbe3ba7b44a3302e62cc0f832ea51869bc5a614c",
+    INDEX: "0x0",
+    DEP_TYPE: "code",
+  }
+
+  // Reuse the owner defined above
+  const receiverLock = ownerLockScript
+  const receiverAddress = encodeToAddress(receiverLock)
+
+  // 🌟 1. Define the schema for extension script
+  // https://github.com/nervosnetwork/ckb-production-scripts/blob/410b16c499a8888781d9ab03160eeef93182d8e6/c/xudt_rce.mol#L3-L11
+  const ScriptVec = vector(blockchain.Script)
+  const ScriptVecOpt = option(ScriptVec)
+  const XudtWitnessInput = table(
+    {
+      ownerScript: blockchain.ScriptOpt,
+      ownerSignature: blockchain.BytesOpt,
+      rawExtensionData: ScriptVecOpt,
+      extensionData: blockchain.BytesVec,
+    },
+    ["ownerScript", "ownerSignature", "rawExtensionData", "extensionData"]
+  )
+
+  // 🌟2. Create the Owner Lock Script
+  // The owner script will be set into witness instead of inputs
+  const extensionOwnerScript = createScript(ALWAYS_SUCCESS_EXTENSION, "0x")
+
+  // 🌟3. Create the xUDT Type Script
+  const xudtTypeScript = createScript(XUDT, computeScriptHash(extensionOwnerScript))
+
+  // 4. Create Minted Cell with Amount
+  const mintCell: Cell = cellHelper.create({
+    lock: receiverLock,
+    type: xudtTypeScript,
+    data: Uint128.pack(10000),
+  })
+
+  // 5. Create Transaction Skeleton
+  const cellProvider: TransactionSkeletonType["cellProvider"] = {
+    collector: (query) => indexer.collector({ type: "empty", data: "0x", ...query }),
+  }
+  let txSkeleton = TransactionSkeleton({ cellProvider })
+
+  // 6. Add xUDT Script and Owner Extension Script Dependency
+  txSkeleton = addCellDep(txSkeleton, createCellDep(XUDT))
+  txSkeleton = addCellDep(txSkeleton, createCellDep(ALWAYS_SUCCESS_EXTENSION))
+
+  // 7. Inject Capacity for Minted Cell
+  txSkeleton = await common.injectCapacity(txSkeleton, [receiverAddress], mintCell.cellOutput.capacity)
+
+  // 8. Add Minted Cell to Outputs
+  txSkeleton = txSkeleton.update("outputs", (outputs) => outputs.push(mintCell))
+
+  // 🌟9. Set the Extension Owner Script into witnesses
+  txSkeleton = txSkeleton.update("witnesses", (witnesses) => {
+    const witnessOutputType = XudtWitnessInput.pack({ ownerScript: extensionOwnerScript, extensionData: [] })
+    const mintCellIndex = txSkeleton.get("outputs").size - 1
+    return witnesses.set(mintCellIndex, hexify(WitnessArgs.pack({ outputType: witnessOutputType })))
+  })
+
+  // the following process is the same with mint to broadcast the transaction
+  txSkeleton = await common.payFeeByFeeRate(txSkeleton, [ownerAddress], 1000)
+  txSkeleton = common.prepareSigningEntries(txSkeleton)
+
+  const signatures = txSkeleton
+    .get("signingEntries")
+    .map(({ message }) => hd.key.signRecoverable(message, ownerPrivateKey))
+    .toArray()
+
+  const signed = sealTransaction(txSkeleton, signatures)
+  const txHash = await rpc.sendTransaction(signed)
+  console.log(txHash)
+}
+```
+
+You can check the [mint via extension script example](https://pudge.explorer.nervos.org/transaction/0x2118ad6e7d1e56a2f295f1d0f9e8718c457b9e76282e651ce7abb40fef249b2d) in the explorer.
