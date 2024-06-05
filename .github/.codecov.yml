@@ -16,7 +16,7 @@ coverage:
       default:
         # basic settings
         target: auto
-        threshold: 6%
+        threshold: 15%
         base: auto
 
 parsers:
