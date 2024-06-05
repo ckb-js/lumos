@@ -305,7 +305,11 @@ importers:
         specifier: 0.23.0-next.0
         version: link:../crypto
 
-  packages/crypto: {}
+  packages/crypto:
+    dependencies:
+      '@noble/hashes':
+        specifier: ^1.4.0
+        version: 1.4.0
 
   packages/debugger:
     dependencies:
@@ -4322,7 +4326,6 @@ packages:
   /@noble/hashes@1.4.0:
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
     engines: {node: '>= 16'}
-    dev: true
 
   /@noble/secp256k1@1.7.1:
     resolution: {integrity: sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==}

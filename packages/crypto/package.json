@@ -46,7 +46,9 @@
       "ts-node/register"
     ]
   },
-  "dependencies": {},
+  "dependencies": {
+    "@noble/hashes": "^1.4.0"
+  },
   "publishConfig": {
     "access": "public"
   }

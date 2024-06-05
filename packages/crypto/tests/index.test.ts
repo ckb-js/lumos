@@ -7,10 +7,4 @@ test("randomBytes", (t) => {
   t.is(bytes.length, size);
   t.is(bytes.byteLength, size);
   t.is(bytes.constructor, Uint8Array);
-
-  const TOO_MANY_BYTES = 65538;
-  t.throws(() => randomBytes(TOO_MANY_BYTES), {
-    instanceOf: RangeError,
-    message: `size must be less than or equal to 65536`,
-  });
 });
