@@ -5,7 +5,7 @@ sidebar_position: 3
 
 ## Transaction Skeleton
 
-Lumos provided an opinionated transaction structure called `TransactionSkeleton` from the `@ckb-lumos/helpers` module.
+Lumos provides an opinionated transaction structure called `TransactionSkeleton` from the `@ckb-lumos/helpers` module.
 It simplifies assembling transactions on the client-side for CKB.
 
 ## At A Glance
@@ -14,6 +14,7 @@ The following code demonstrates how to build a transaction using `TransactionSke
 
 ```js
 const indexer = new Indexer("https://ckb-rpc-entry")
+const rpc = new RPC("https://ckb-rpc-entry")
 
 // txSkeleton is immutable, use 'let' to declare and update
 let txSkeleton = TransactionSkeleton({
@@ -27,7 +28,7 @@ txSkeleton = txSkeleton
   .update("inputs", (inputs) => inputs.push(inputs0, inputs1))
   .update("outputs", (outputs) => outputs.push(outputs0, outputs1))
   .update("cellDeps", (cellDeps) => cellDeps.push(lockScriptDep, typeScriptDep0))
-  .upd.ate("witnesses", (witnesses) => witnessespush(aliceSignature))
+  .update("witnesses", (witnesses) => witnesses.push(aliceSignature))
 
 // pay fee by the fee rate
 txSkeleton = await common.payFeeByFeeRate(txSkeleton, 1000, [fromAddr])
@@ -41,7 +42,7 @@ const signatures = txSkeleton
 // convert the TransactionSkeleton to RPC transaction
 const signedTransaction = sealTransaction(txSkeleton, signatures)
 
-// boardcast the transaction
+// broadcast the transaction
 const txHash = await rpc.sendTransaction(signedTransaction)
 ```
 
@@ -85,7 +86,7 @@ graph LR
     input0 -.-> output1
 ```
 
-FOr a detailed explanation of CKB transaction structure, refer to [RFC-0022](https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0022-transaction-structure/0022-transaction-structure.md).
+For a detailed explanation of CKB transaction structure, refer to [RFC-0022](https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0022-transaction-structure/0022-transaction-structure.md).
 
 ## Usage Of `TransactionSkeleton`
 
@@ -112,7 +113,7 @@ type TransactionSkeletonType = {
 }
 ```
 
-**Creating a TransactionSkeleton**:
+**Create a TransactionSkeleton**:
 
 - Use `TransactionSkeleton()` to create an empty transaction
 - Optionally, provide properties during creation:
@@ -163,7 +164,17 @@ One-time state for the transaction, such as signatures or preimages of hashes in
 ### `signingEntries` and `fixedEntries`
 
 - `signingEntries`: An extension for handling transaction signing
-- `fixedEntries`: Cells that have been tagged with `fixedEntries`, including previous cells, will no longer participate in later calculations, such as `payFee`, but will only use cells after the `fixedEntries`.
+- `fixedEntries`: Cells that have been tagged with `fixedEntries`, including previous cells, will no longer participate in later calculations, such as `payFee` and `injectCapacity`, but will only use cells after the `fixedEntries`. The following example will only allow the `input4` and `input5` to be used as fee cells, and the `input0` to `input3` are fixed that won't be changed by `payFee` or `injectCapacity`
+
+```yaml
+outputs:
+  - input0
+  - input1 # marked by fixedEntries
+  - input2
+  - input3 # market by fixedEntries
+  - input4
+  - input5
+```
 
 ### `cellProvider`
 
