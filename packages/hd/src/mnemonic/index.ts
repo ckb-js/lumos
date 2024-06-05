@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 import { pbkdf2, pbkdf2Sync, createHash } from "crypto";
 import { randomBytes } from "@ckb-lumos/crypto";
 import { HexString } from "@ckb-lumos/base";
@@ -31,15 +32,12 @@ if (wordList.length !== RADIX) {
 
 function bytesToBinary(bytes: Buffer): string {
   return bytes.reduce((binary, byte) => {
-    /* eslint-disable @typescript-eslint/no-magic-numbers */
     return binary + byte.toString(2).padStart(8, "0");
   }, "");
 }
 
 function deriveChecksumBits(entropyBuffer: Buffer): string {
-  /* eslint-disable @typescript-eslint/no-magic-numbers */
   const ENT = entropyBuffer.length * 8;
-  /* eslint-disable @typescript-eslint/no-magic-numbers */
   const CS = ENT / 32;
   const hash = createHash("sha256").update(entropyBuffer).digest();
   return bytesToBinary(hash).slice(0, CS);
@@ -93,7 +91,6 @@ export function mnemonicToEntropy(mnemonic = ""): HexString {
   if (words.length > MAX_WORDS_SIZE) {
     throw new Error(WORDS_TOO_LONG);
   }
-  /* eslint-disable @typescript-eslint/no-magic-numbers */
   if (words.length % 3 !== 0) {
     throw new Error(INVALID_MNEMONIC);
   }
@@ -103,12 +100,10 @@ export function mnemonicToEntropy(mnemonic = ""): HexString {
       if (index === -1) {
         throw new Error(INVALID_MNEMONIC);
       }
-      /* eslint-disable @typescript-eslint/no-magic-numbers */
       return index.toString(2).padStart(11, "0");
     })
     .join("");
 
-  /* eslint-disable @typescript-eslint/no-magic-numbers */
   const dividerIndex = Math.floor(bits.length / 33) * 32;
   const entropyBits = bits.slice(0, dividerIndex);
   const checksumBits = bits.slice(dividerIndex);
@@ -122,7 +117,6 @@ export function mnemonicToEntropy(mnemonic = ""): HexString {
   if (entropyBytes.length > MAX_ENTROPY_SIZE) {
     throw new Error(ENTROPY_TOO_LONG);
   }
-  /* eslint-disable @typescript-eslint/no-magic-numbers */
   if (entropyBytes.length % 4 !== 0) {
     throw new Error(ENTROPY_NOT_DIVISIBLE);
   }
@@ -145,7 +139,6 @@ export function entropyToMnemonic(entropyStr: HexString): string {
   if (entropy.length > MAX_ENTROPY_SIZE) {
     throw new TypeError(ENTROPY_TOO_LONG);
   }
-  /* eslint-disable @typescript-eslint/no-magic-numbers */
   if (entropy.length % 4 !== 0) {
     throw new TypeError(ENTROPY_NOT_DIVISIBLE);
   }
