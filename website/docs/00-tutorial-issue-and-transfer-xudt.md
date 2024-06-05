@@ -14,12 +14,8 @@ Extensible User Defined Token ([xUDT](https://blog.cryptape.com/enhance-sudts-pr
 
 ### Initialize Project
 
-We'll use [Bun](https://bun.sh/), a lightweight runtime environment compatible with Node.js and TypeScript. It allows you to run the code directly without transpiling. Alternatively, you can use [ts-node](https://github.com/TypeStrong/ts-node) with Node.js
-
-```shell
-bun --version
-#> 1.1.12
-```
+The code in this tutorial is written in TypeScript,
+so it is recommended to use a CLI tool that supports running TypeScript directly without transpiling, such as [Bun](https://bun.sh/).
 
 ### Create Project Directory and Initialize
 
@@ -27,19 +23,18 @@ bun --version
 mkdir xudt-from-scratch
 cd xudt-from-scratch
 bun init -y
-
+# try running the ts file created by default
+bun index.ts
 # based on the @ckb-lumos/lumos@0.0.0-canary-84521a5-20240530061434
-npm install @ckb-lumos/lumos@canary
+bun install @ckb-lumos/lumos@canary
 ```
-
-This will create a basic project structure with necessary files.
 
 ### Generate a Private Key
 
 We'll need a private key to act as the owner of the minted xUDT. Run the following command to generate a random private key:
 
 ```shell
-bun -e "console.log('0x'+require('crypto').randomBytes(32).toString('hex'))"
+openssl rand -hex 32
 ```
 
 Save the displayed key. You'll need it later.
