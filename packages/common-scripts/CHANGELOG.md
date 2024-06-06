@@ -1,5 +1,11 @@
 # @ckb-lumos/common-scripts
 
+## 0.23.0-next.1
+
+### Minor Changes
+
+- [#706](https://github.com/ckb-js/lumos/pull/706) [`f3acc1f82622b630539b05e73a05bc4d1a2fc168`](https://github.com/ckb-js/lumos/commit/f3acc1f82622b630539b05e73a05bc4d1a2fc168) Thanks [@homura](https://github.com/homura)! - **BREAKING CHANGE**: revert #682 that deprecate omnilock p2sh and supports btc testnet addr
+
 ## 0.23.0-next.0
 
 ### Minor Changes
