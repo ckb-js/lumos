@@ -9,10 +9,7 @@ import { blockchain, utils } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
 import { common } from "../src";
 import { mockOutPoint } from "@ckb-lumos/debugger/lib/context";
-import {
-  createSimplePublicKeyBasedOmnilockScript,
-  OmnilockWitnessLock,
-} from "../src/omnilock";
+import { createOmnilockScript, OmnilockWitnessLock } from "../src/omnilock";
 import { address, AddressType, core, keyring } from "@unisat/wallet-sdk";
 import { NetworkType } from "@unisat/wallet-sdk/lib/network";
 import { Provider, signMessage } from "../src/omnilock-bitcoin";
@@ -35,12 +32,6 @@ test.serial("Omnilock#Bitcoin P2PKH", async (t) => {
   t.is(result.code, 0, result.message);
 });
 
-test.serial("Omnilock#Bitcoin P2PKH Testnet", async (t) => {
-  const { provider } = makeProvider(AddressType.P2PKH, NetworkType.TESTNET);
-  const result = await execute(provider);
-  t.is(result.code, 0, result.message);
-});
-
 test.serial("Omnilock#Bitcoin P2WPKH", async (t) => {
   const { provider } = makeProvider(AddressType.P2WPKH);
   const result = await execute(provider);
@@ -48,8 +39,8 @@ test.serial("Omnilock#Bitcoin P2WPKH", async (t) => {
   t.is(result.code, 0, result.message);
 });
 
-test.serial("Omnilock#Bitcoin P2WPKH Testnet", async (t) => {
-  const { provider } = makeProvider(AddressType.P2WPKH, NetworkType.TESTNET);
+test.serial("Omnilock#Bitcoin P2SH_P2WPKH", async (t) => {
+  const { provider } = makeProvider(AddressType.P2SH_P2WPKH);
   const result = await execute(provider);
 
   t.is(result.code, 0, result.message);
@@ -79,10 +70,7 @@ async function execute(provider: Provider) {
   });
 }
 
-function makeProvider(
-  addressType: AddressType,
-  network: NetworkType = NetworkType.MAINNET
-): {
+function makeProvider(addressType: AddressType): {
   provider: Provider;
   pair: core.ECPairInterface;
   keyring: SimpleKeyring;
@@ -90,7 +78,11 @@ function makeProvider(
   const pair = core.ECPair.makeRandom();
   const ring = new keyring.SimpleKeyring([pair.privateKey!.toString("hex")]);
   const publicKey = pair.publicKey.toString("hex");
-  const addr = address.publicKeyToAddress(publicKey, addressType, network);
+  const addr = address.publicKeyToAddress(
+    publicKey,
+    addressType,
+    NetworkType.MAINNET
+  );
 
   return {
     pair,
@@ -106,7 +98,7 @@ function makeProvider(
 async function setupTxSkeleton(addr: string) {
   const txSkeleton = TransactionSkeleton().asMutable();
 
-  const lock = createSimplePublicKeyBasedOmnilockScript(
+  const lock = createOmnilockScript(
     { auth: { flag: "BITCOIN", content: addr } },
     { config: managerConfig }
   );
