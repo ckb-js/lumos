@@ -1,5 +1,13 @@
 # @ckb-lumos/rpc
 
+## 0.23.0-next.1
+
+### Minor Changes
+
+- [#696](https://github.com/ckb-js/lumos/pull/696) [`84521a55fad45a3df17457ea8f24c899d50fe59a`](https://github.com/ckb-js/lumos/commit/84521a55fad45a3df17457ea8f24c899d50fe59a) Thanks [@homura](https://github.com/homura)! - **BREAKING CHANGE**: update `txPoolInfo` response nervosnetwork/ckb#3894
+
+- [#696](https://github.com/ckb-js/lumos/pull/696) [`84521a55fad45a3df17457ea8f24c899d50fe59a`](https://github.com/ckb-js/lumos/commit/84521a55fad45a3df17457ea8f24c899d50fe59a) Thanks [@homura](https://github.com/homura)! - **BREAKING CHANGE**: update `get_transaction` response nervosnetwork/ckb#4108
+
 ## 0.23.0-next.0
 
 ### Patch Changes
