@@ -41,6 +41,9 @@
     "@types/deep-freeze-strict": "^1.1.0",
     "deep-freeze-strict": "^1.1.1"
   },
+  "devDependencies": {
+    "@ckb-lumos/crypto": "0.23.0"
+  },
   "publishConfig": {
     "access": "public"
   },

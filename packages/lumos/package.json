@@ -29,6 +29,7 @@
     "@ckb-lumos/bi": "0.23.0",
     "@ckb-lumos/ckb-indexer": "0.23.0",
     "@ckb-lumos/codec": "0.23.0",
+    "@ckb-lumos/crypto": "0.23.0",
     "@ckb-lumos/common-scripts": "0.23.0",
     "@ckb-lumos/config-manager": "0.23.0",
     "@ckb-lumos/hd": "0.23.0",

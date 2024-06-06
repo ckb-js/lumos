@@ -43,6 +43,9 @@
     "bech32": "^2.0.0",
     "immutable": "^4.3.0"
   },
+  "devDependencies": {
+    "@ckb-lumos/crypto": "0.23.0"
+  },
   "ava": {
     "extensions": [
       "ts"

@@ -1,15 +1,15 @@
 import test from "ava";
+import { spy } from "sinon";
 import {
   createLatestTypeIdResolver,
   createRpcResolver,
   FetchOutputsByTxHashes,
   refreshScriptConfigs,
 } from "../src/refresh";
-import { ScriptConfigs } from "../src";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
-import { randomBytes } from "node:crypto";
 import { OutPoint, Output, Script } from "@ckb-lumos/base";
-import { spy } from "sinon";
+import { randomBytes } from "@ckb-lumos/crypto";
+import { ScriptConfigs } from "../src";
 
 test("refresh without update", async (t) => {
   const scriptConfigs: ScriptConfigs = {

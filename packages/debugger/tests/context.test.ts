@@ -4,6 +4,7 @@ import {
   createScriptRegistry,
 } from "@ckb-lumos/experiment-tx-assembler";
 import { computeScriptHash } from "@ckb-lumos/base/lib/utils";
+import { randomBytes } from "@ckb-lumos/crypto";
 import { HexString } from "@ckb-lumos/base";
 import { CKBDebugger, CKBDebuggerDownloader, DataLoader } from "../src";
 import { TransactionSkeleton } from "@ckb-lumos/helpers";
@@ -12,7 +13,6 @@ import {
   getDefaultConfig,
   mockOutPoint,
 } from "../src/context";
-import { randomBytes } from "crypto";
 import { privateKeyToBlake160, signRecoverable } from "@ckb-lumos/hd/lib/key";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 import {

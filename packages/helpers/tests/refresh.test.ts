@@ -1,9 +1,9 @@
 import test from "ava";
 import { refreshTypeIdCellDeps } from "../src/refresh";
+import { randomBytes } from "@ckb-lumos/crypto";
 import { TransactionSkeleton } from "../src";
 import { CellDep } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
-import { randomBytes } from "node:crypto";
 
 test("refreshTypeIdCellDeps", async (t) => {
   const outdatedCellDep: CellDep = {

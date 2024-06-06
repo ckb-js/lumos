@@ -55,6 +55,7 @@
     ]
   },
   "devDependencies": {
+    "@ckb-lumos/crypto": "0.23.0",
     "@ckb-lumos/debugger": "0.23.0",
     "@ckb-lumos/hd": "0.23.0",
     "@types/keccak": "^3.0.1",

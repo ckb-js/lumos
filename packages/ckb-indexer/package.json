@@ -28,6 +28,7 @@
     "events": "^3.3.0"
   },
   "devDependencies": {
+    "@ckb-lumos/crypto": "0.23.0",
     "@ckb-lumos/testkit": "0.23.0",
     "@types/lodash.uniqby": "^4.7.7",
     "@types/request": "^2.48.8",

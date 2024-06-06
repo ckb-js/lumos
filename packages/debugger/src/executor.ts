@@ -1,12 +1,12 @@
 import { DataLoader, ExecuteResult, Executor } from "./types";
 import { TransactionSkeletonType } from "@ckb-lumos/helpers";
+import { randomBytes } from "@ckb-lumos/crypto";
 import { spawnSync } from "child_process";
 import { Hash } from "@ckb-lumos/base";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { parseDebuggerData, parseDebuggerMessage } from "./parse";
-import * as crypto from 'crypto';
 
 interface DebuggerOptions {
   readonly loader: DataLoader;
@@ -51,8 +51,9 @@ export class CKBDebugger implements Executor {
    */
   private saveTmpTxFile(txSkeleton: TransactionSkeletonType): string {
     const debuggerData = parseDebuggerData(txSkeleton, this.loader);
-    const randomHex = crypto.randomBytes(18).toString('hex');    
-    const tempFileName = `lumos-debugger-data-${randomHex}`    
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    const randomHex = Buffer.from(randomBytes(18)).toString("hex");
+    const tempFileName = `lumos-debugger-data-${randomHex}`;
     const tmpTxPath = path.join(os.tmpdir(), `${tempFileName}.json`);
     fs.writeFileSync(tmpTxPath, JSON.stringify(debuggerData));
 
