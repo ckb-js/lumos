@@ -310,5 +310,7 @@ function mockTxWithStatus({
     txStatus: { status: "committed" },
     timeAddedToPool: null,
     cycles: null,
+    fee: null,
+    minReplaceFee: null,
   };
 }

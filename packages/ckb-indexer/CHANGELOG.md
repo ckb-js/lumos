@@ -1,5 +1,9 @@
 # @ckb-lumos/ckb-indexer
 
+## 0.23.0
+
+## 0.23.0-next.1
+
 ## 0.23.0-next.0
 
 ## 0.22.2

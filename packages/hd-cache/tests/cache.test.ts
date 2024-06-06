@@ -58,6 +58,8 @@ const mockTxs: TransactionWithStatus[] = [
     },
     timeAddedToPool: null,
     cycles: null,
+    fee: null,
+    minReplaceFee: null,
   },
   {
     transaction: {
@@ -124,6 +126,8 @@ const mockTxs: TransactionWithStatus[] = [
     },
     timeAddedToPool: null,
     cycles: null,
+    fee: null,
+    minReplaceFee: null,
   },
 ];
 const headerData = {
