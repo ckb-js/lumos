@@ -1,5 +1,5 @@
 {
-  "mode": "pre",
+  "mode": "exit",
   "tag": "next",
   "initialVersions": {
     "@ckb-lumos/base": "0.22.2",
@@ -33,7 +33,6 @@
     "khaki-brooms-swim",
     "lucky-pillows-argue",
     "modern-panthers-thank",
-    "olive-waves-relax",
     "shaggy-dots-brush",
     "silent-mangos-bow",
     "tall-toes-sort",
