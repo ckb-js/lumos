@@ -1,3 +1,6 @@
+// TODO the magic number eslint will be resolved in 0.24 by recovering https://github.com/ckb-js/lumos/pull/682
+/*eslint-disable @typescript-eslint/no-magic-numbers*/
+
 import { bytes, BytesLike } from "@ckb-lumos/codec";
 import { bech32 } from "bech32";
 import bs58 from "bs58";
