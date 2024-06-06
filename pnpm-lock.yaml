@@ -182,7 +182,7 @@ importers:
         version: 3.3.0
     devDependencies:
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
       '@ckb-lumos/testkit':
         specifier: 0.23.0
@@ -216,7 +216,7 @@ importers:
         version: link:../bi
     devDependencies:
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
       escape-string-regexp:
         specifier: ^4.0.0
@@ -259,7 +259,7 @@ importers:
         version: 4.3.5
     devDependencies:
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
       '@ckb-lumos/debugger':
         specifier: 0.23.0
@@ -302,7 +302,7 @@ importers:
         version: 1.1.1
     devDependencies:
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
 
   packages/crypto:
@@ -326,7 +326,7 @@ importers:
         specifier: 0.23.0
         version: link:../config-manager
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
       '@ckb-lumos/helpers':
         specifier: 0.23.0
@@ -384,7 +384,7 @@ importers:
         specifier: 0.23.0
         version: link:../config-manager
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
       '@ckb-lumos/hd':
         specifier: 0.23.0
@@ -463,7 +463,7 @@ importers:
         specifier: 0.23.0
         version: link:../bi
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
       bn.js:
         specifier: ^5.1.3
@@ -550,7 +550,7 @@ importers:
         version: 4.3.5
     devDependencies:
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
 
   packages/joyid:
@@ -578,7 +578,7 @@ importers:
         specifier: 0.23.0
         version: link:../bi
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
       sinon:
         specifier: ^15.0.4
@@ -639,7 +639,7 @@ importers:
         specifier: 0.23.0
         version: link:../config-manager
       '@ckb-lumos/crypto':
-        specifier: 0.23.0-next.1
+        specifier: 0.23.0
         version: link:../crypto
       '@ckb-lumos/hd':
         specifier: 0.23.0
