@@ -1,5 +1,11 @@
 # @ckb-lumos/codec
 
+## 0.23.0
+
+### Patch Changes
+
+- [#689](https://github.com/ckb-js/lumos/pull/689) [`d483b928df0f09a6bdfcd9a2b98dfccb22adb396`](https://github.com/ckb-js/lumos/commit/d483b928df0f09a6bdfcd9a2b98dfccb22adb396) Thanks [@twhy](https://github.com/twhy)! - fix: correct error message for computeScriptHash
+
 ## 0.23.0-next.1
 
 ## 0.23.0-next.0
