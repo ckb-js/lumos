@@ -3,4 +3,4 @@
 "@ckb-lumos/hd": minor
 ---
 
-replace node crypto methods with @noble/hashes and @noble/ciphers
+refactor: replace node crypto methods with @noble/hashes and @noble/ciphers

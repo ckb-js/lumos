@@ -27,26 +27,33 @@ export class InvalidKeystore extends Error {
 const CIPHER = "aes-128-ctr";
 const CKB_CLI_ORIGIN = "ckb-cli";
 
-interface CipherParams {
+type CipherParams = {
   iv: HexStringWithoutPrefix;
-}
+};
 
-interface KdfParams {
+type KdfParams = {
   dklen: number;
   n: number;
   r: number;
   p: number;
   salt: HexStringWithoutPrefix;
-}
+};
 
-interface Crypto {
+type Crypto = {
   cipher: string;
   cipherparams: CipherParams;
   ciphertext: HexStringWithoutPrefix;
   kdf: string;
   kdfparams: KdfParams;
   mac: HexStringWithoutPrefix;
-}
+};
+
+type ScryptOptions = {
+  N: number;
+  r: number;
+  p: number;
+  maxmem: number;
+};
 
 // The parameter r ("blockSize")
 //    specifies the block size.
@@ -225,8 +232,7 @@ export default class Keystore {
     return Buffer.from(hash).toString("hex");
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  static scryptOptions(kdfparams: KdfParams) {
+  static scryptOptions(kdfparams: KdfParams): ScryptOptions {
     return {
       N: kdfparams.n,
       r: kdfparams.r,
