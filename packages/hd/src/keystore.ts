@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { ExtendedPrivateKey } from "./extended_key";
-import { ctr, keccak_256, randomBytes, ScryptOpts } from "@ckb-lumos/crypto";
+import { ctr, keccak256, randomBytes } from "@ckb-lumos/crypto";
 import { HexString } from "@ckb-lumos/base";
 import { syncScrypt } from "scrypt-js";
 
@@ -219,13 +219,14 @@ export default class Keystore {
   static mac(derivedKey: Buffer, ciphertext: Buffer): HexStringWithoutPrefix {
     // https://github.com/ethereumjs/ethereumjs-wallet/blob/d57582443fbac2b63956e6d5c4193aa8ce925b3d/src/index.ts#L615-L617
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-    const hash = keccak_256(
+    const hash = keccak256(
       Buffer.concat([derivedKey.subarray(16, 32), ciphertext])
     );
     return Buffer.from(hash).toString("hex");
   }
 
-  static scryptOptions(kdfparams: KdfParams): ScryptOpts {
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  static scryptOptions(kdfparams: KdfParams) {
     return {
       N: kdfparams.n,
       r: kdfparams.r,
