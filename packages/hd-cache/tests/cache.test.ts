@@ -229,13 +229,6 @@ const cacheManager = CacheManager.fromMnemonic(
   }
 );
 
-test.before(() => {
-  // @ts-ignore: Unreachable code error
-  BigInt = () => {
-    throw new Error("can not find bigint");
-  };
-});
-
 test("derive threshold", async (t) => {
   const cacheManager = CacheManager.fromMnemonic(
     indexer,

@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import { pbkdf2, pbkdf2Sync, createHash } from "crypto";
-import { randomBytes } from "@ckb-lumos/crypto";
+import {
+  sha256,
+  sha512,
+  pbkdf2,
+  pbkdf2Async,
+  randomBytes,
+} from "@ckb-lumos/crypto";
 import { HexString } from "@ckb-lumos/base";
 import wordList from "./word_list";
 
@@ -39,7 +44,7 @@ function bytesToBinary(bytes: Buffer): string {
 function deriveChecksumBits(entropyBuffer: Buffer): string {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
-  const hash = createHash("sha256").update(entropyBuffer).digest();
+  const hash = Buffer.from(sha256(entropyBuffer));
   return bytesToBinary(hash).slice(0, CS);
 }
 
@@ -50,37 +55,21 @@ function salt(password = ""): string {
 export function mnemonicToSeedSync(mnemonic = "", password = ""): Buffer {
   const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
   const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
-  return pbkdf2Sync(
-    mnemonicBuffer,
-    saltBuffer,
-    PBKDF2_ROUNDS,
-    KEY_LEN,
-    "sha512"
+  return Buffer.from(
+    pbkdf2(sha512, mnemonicBuffer, saltBuffer, {
+      c: PBKDF2_ROUNDS,
+      dkLen: KEY_LEN,
+    })
   );
 }
 
 export function mnemonicToSeed(mnemonic = "", password = ""): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    try {
-      const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
-      const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
-      pbkdf2(
-        mnemonicBuffer,
-        saltBuffer,
-        PBKDF2_ROUNDS,
-        KEY_LEN,
-        "sha512",
-        (err, data) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(data);
-        }
-      );
-    } catch (error) {
-      reject(error);
-    }
-  });
+  const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
+  const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
+  return pbkdf2Async(sha512, mnemonicBuffer, saltBuffer, {
+    c: PBKDF2_ROUNDS,
+    dkLen: KEY_LEN,
+  }).then(Buffer.from);
 }
 
 export function mnemonicToEntropy(mnemonic = ""): HexString {

@@ -1,13 +1,6 @@
-import {
-  Cipher,
-  ScryptOptions,
-  createCipheriv,
-  createDecipheriv,
-} from "crypto";
-import { Keccak } from "sha3";
 import { v4 as uuid } from "uuid";
 import { ExtendedPrivateKey } from "./extended_key";
-import { randomBytes } from "@ckb-lumos/crypto";
+import { ctr, keccak256, randomBytes } from "@ckb-lumos/crypto";
 import { HexString } from "@ckb-lumos/base";
 import { syncScrypt } from "scrypt-js";
 
@@ -34,26 +27,33 @@ export class InvalidKeystore extends Error {
 const CIPHER = "aes-128-ctr";
 const CKB_CLI_ORIGIN = "ckb-cli";
 
-interface CipherParams {
+type CipherParams = {
   iv: HexStringWithoutPrefix;
-}
+};
 
-interface KdfParams {
+type KdfParams = {
   dklen: number;
   n: number;
   r: number;
   p: number;
   salt: HexStringWithoutPrefix;
-}
+};
 
-interface Crypto {
+type Crypto = {
   cipher: string;
   cipherparams: CipherParams;
   ciphertext: HexStringWithoutPrefix;
   kdf: string;
   kdfparams: KdfParams;
   mac: HexStringWithoutPrefix;
-}
+};
+
+type ScryptOptions = {
+  N: number;
+  r: number;
+  p: number;
+  maxmem: number;
+};
 
 // The parameter r ("blockSize")
 //    specifies the block size.
@@ -151,19 +151,17 @@ export default class Keystore {
       )
     );
 
-    const cipher: Cipher = createCipheriv(CIPHER, derivedKey.slice(0, 16), iv);
-    if (!cipher) {
-      throw new UnsupportedCipher();
-    }
-
-    // size of 0x prefix
-    const hexPrefixSize = 2;
-    const ciphertext: Buffer = Buffer.concat([
-      cipher.update(
-        Buffer.from(extendedPrivateKey.serialize().slice(hexPrefixSize), "hex")
-      ),
-      cipher.final(),
-    ]);
+    // DO NOT remove the Uint8Array.from call below.
+    // Without calling Uint8Array.from to make a copy of iv,
+    // iv will be set to 0000...00000 after calling cipher.encrypt(plaintext)
+    // and decrypting the ciphertext will fail
+    /* eslint-disable @typescript-eslint/no-magic-numbers */
+    const cipher = ctr(derivedKey.slice(0, 16), Uint8Array.from(iv));
+    const plaintext = Buffer.from(
+      extendedPrivateKey.serialize().slice(2),
+      "hex"
+    );
+    const ciphertext = Buffer.from(cipher.encrypt(plaintext));
 
     return new Keystore(
       {
@@ -192,17 +190,13 @@ export default class Keystore {
     if (Keystore.mac(derivedKey, ciphertext) !== this.crypto.mac) {
       throw new IncorrectPassword();
     }
-    const decipher = createDecipheriv(
-      this.crypto.cipher,
+
+    /* eslint-disable @typescript-eslint/no-magic-numbers */
+    const cipher = ctr(
       derivedKey.slice(0, 16),
       Buffer.from(this.crypto.cipherparams.iv, "hex")
     );
-    return (
-      "0x" +
-      Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString(
-        "hex"
-      )
-    );
+    return "0x" + Buffer.from(cipher.decrypt(ciphertext)).toString("hex");
   }
 
   extendedPrivateKey(password: string): ExtendedPrivateKey {
@@ -230,15 +224,12 @@ export default class Keystore {
   }
 
   static mac(derivedKey: Buffer, ciphertext: Buffer): HexStringWithoutPrefix {
-    const keccakSize = 256;
-
-    return (
-      new Keccak(keccakSize)
-        // https://github.com/ethereumjs/ethereumjs-wallet/blob/d57582443fbac2b63956e6d5c4193aa8ce925b3d/src/index.ts#L615-L617
-        // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-        .update(Buffer.concat([derivedKey.subarray(16, 32), ciphertext]))
-        .digest("hex")
+    // https://github.com/ethereumjs/ethereumjs-wallet/blob/d57582443fbac2b63956e6d5c4193aa8ce925b3d/src/index.ts#L615-L617
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    const hash = keccak256(
+      Buffer.concat([derivedKey.subarray(16, 32), ciphertext])
     );
+    return Buffer.from(hash).toString("hex");
   }
 
   static scryptOptions(kdfparams: KdfParams): ScryptOptions {
