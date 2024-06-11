@@ -1,5 +1,8 @@
 import test from "ava";
+import { bytes } from "@ckb-lumos/codec";
 import { ExtendedPrivateKey, Keystore, IncorrectPassword } from "../src";
+
+const { hexify } = bytes;
 
 const fixture = {
   privateKey:
@@ -81,8 +84,8 @@ test("load test vector keystore", (t) => {
     "0x7a28b5ba57c53603b0b07b56bba752f7784bf506fa95edc395f5cf6c7514fe9d"
   );
   t.deepEqual(
-    keystore.derivedKey("testpassword").toString("hex"),
-    "fac192ceb5fd772906bea3e118a69e8bbb5cc24229e20d8766fd298291bba6bd"
+    hexify(keystore.derivedKey("testpassword")),
+    "0xfac192ceb5fd772906bea3e118a69e8bbb5cc24229e20d8766fd298291bba6bd"
   );
 });
 

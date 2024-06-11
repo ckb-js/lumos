@@ -239,6 +239,9 @@ importers:
       '@ckb-lumos/config-manager':
         specifier: 0.23.0
         version: link:../config-manager
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
       '@ckb-lumos/helpers':
         specifier: 0.23.0
         version: link:../helpers
@@ -258,24 +261,15 @@ importers:
         specifier: ^4.3.0
         version: 4.3.5
     devDependencies:
-      '@ckb-lumos/crypto':
-        specifier: 0.23.0
-        version: link:../crypto
       '@ckb-lumos/debugger':
         specifier: 0.23.0
         version: link:../debugger
       '@ckb-lumos/hd':
         specifier: 0.23.0
         version: link:../hd
-      '@types/keccak':
-        specifier: ^3.0.1
-        version: 3.0.4
       '@unisat/wallet-sdk':
         specifier: ^1.1.2
         version: 1.5.3
-      keccak:
-        specifier: ^3.0.1
-        version: 3.0.4
       tweetnacl:
         specifier: ^1.0.3
         version: 1.0.3
@@ -465,6 +459,9 @@ importers:
       '@ckb-lumos/bi':
         specifier: 0.23.0
         version: link:../bi
+      '@ckb-lumos/codec':
+        specifier: 0.23.0
+        version: link:../codec
       '@ckb-lumos/crypto':
         specifier: 0.23.0
         version: link:../crypto
@@ -4928,12 +4925,6 @@ packages:
 
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
-    dev: true
-
-  /@types/keccak@3.0.4:
-    resolution: {integrity: sha512-hdnkmbie7tE0yXnQQvlIOqCyjEsoXDVEZ3ACqO+F305XgUOW4Z9ElWdogCXXRAW/khnZ7GxM0t/BGB5bORKt/g==}
-    dependencies:
-      '@types/node': 20.12.8
     dev: true
 
   /@types/keyv@3.1.4:
@@ -11295,16 +11286,6 @@ packages:
     hasBin: true
     dependencies:
       commander: 8.3.0
-    dev: true
-
-  /keccak@3.0.4:
-    resolution: {integrity: sha512-3vKuW0jV8J3XNTzvfyicFR5qvxrSAGl7KIhvgOu5cmWwM7tZRj3fMbj/pfIf4be7aznbc+prBWGjywox/g2Y6Q==}
-    engines: {node: '>=10.0.0'}
-    requiresBuild: true
-    dependencies:
-      node-addon-api: 2.0.2
-      node-gyp-build: 4.8.1
-      readable-stream: 3.6.2
     dev: true
 
   /keyv@3.0.0:

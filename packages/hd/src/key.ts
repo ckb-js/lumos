@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+import { bytes } from "@ckb-lumos/codec";
 import { HexString, utils } from "@ckb-lumos/base";
 import { ec as EC, SignatureInput } from "elliptic";
 import { assertPrivateKey, assertPublicKey } from "./helper";
 
+const { bytify } = bytes;
 const ec = new EC("secp256k1");
 
 export function signRecoverable(
@@ -31,40 +34,40 @@ export function recoverFromSignature(
   utils.assertHexString("message", message);
   utils.assertHexString("signature", signature);
 
-  const msgBuffer = Buffer.from(message.slice(2), "hex");
-  const sigBuffer = Buffer.from(signature.slice(2), "hex");
+  const msg = bytify(message);
+  const sig = bytify(signature);
 
   const sign: SignatureInput = {
-    r: sigBuffer.slice(0, 32),
-    s: sigBuffer.slice(32, 64),
-    recoveryParam: sigBuffer[64],
+    r: sig.slice(0, 32),
+    s: sig.slice(32, 64),
+    recoveryParam: sig[64],
   };
 
-  const point = ec.recoverPubKey(msgBuffer, sign, sign.recoveryParam!);
+  const point = ec.recoverPubKey(msg, sign, sign.recoveryParam!);
   const publicKey = "0x" + point.encode("hex", true).toLowerCase();
   return publicKey;
 }
 
-export function privateToPublic(privateKey: Buffer): Buffer;
 export function privateToPublic(privateKey: HexString): HexString;
+export function privateToPublic(privateKey: Uint8Array): Uint8Array;
 
 export function privateToPublic(
-  privateKey: Buffer | HexString
-): Buffer | HexString {
-  let pkBuffer = privateKey;
+  privateKey: Uint8Array | HexString
+): Uint8Array | HexString {
+  let pk = privateKey;
   if (typeof privateKey === "string") {
     assertPrivateKey(privateKey);
-    pkBuffer = Buffer.from(privateKey.slice(2), "hex");
+    pk = bytify(privateKey);
   }
-  if (pkBuffer.length !== 32) {
+  if (pk.length !== 32) {
     throw new Error("Private key must be 32 bytes!");
   }
 
-  const publickey = ec.keyFromPrivate(pkBuffer).getPublic(true, "hex");
+  const publickey = "0x" + ec.keyFromPrivate(pk).getPublic(true, "hex");
   if (typeof privateKey === "string") {
-    return "0x" + publickey;
+    return publickey;
   }
-  return Buffer.from(publickey, "hex");
+  return bytify(publickey);
 }
 
 export function publicKeyToBlake160(publicKey: HexString): HexString {

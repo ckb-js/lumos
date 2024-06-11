@@ -144,7 +144,7 @@ function mockAggregator(
 ): JoyIDScriptInfoConfig["aggregator"] {
   return {
     generateSubkeyUnlockSmt: async () => ({
-      unlock_entry: Buffer.from(bytes.bytify(entry)).toString("hex"),
+      unlock_entry: bytes.hexify(bytes.bytify(entry)).slice(2),
       block_number: 0n,
     }),
   };

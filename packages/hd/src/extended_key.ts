@@ -1,7 +1,11 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 import Keychain from "./keychain";
-import key, { privateToPublic } from "./key";
+import { bytes } from "@ckb-lumos/codec";
 import { utils, HexString } from "@ckb-lumos/base";
+import { privateToPublic, publicKeyToBlake160 } from "./key";
 import { assertPublicKey, assertChainCode, assertPrivateKey } from "./helper";
+
+const { bytify, hexify } = bytes;
 
 export enum AddressType {
   Receiving = 0,
@@ -55,7 +59,7 @@ export class AccountExtendedPublicKey extends ExtendedPublicKey {
 
   publicKeyInfo(type: AddressType, index: number): PublicKeyInfo {
     const publicKey: string = this.getPublicKey(type, index);
-    const blake160: string = key.publicKeyToBlake160(publicKey);
+    const blake160: string = publicKeyToBlake160(publicKey);
     return {
       publicKey,
       blake160,
@@ -63,11 +67,11 @@ export class AccountExtendedPublicKey extends ExtendedPublicKey {
     };
   }
 
-  public static pathForReceiving(index: number) {
+  public static pathForReceiving(index: number): string {
     return AccountExtendedPublicKey.pathFor(AddressType.Receiving, index);
   }
 
-  public static pathForChange(index: number) {
+  public static pathForChange(index: number): string {
     return AccountExtendedPublicKey.pathFor(AddressType.Change, index);
   }
 
@@ -77,14 +81,14 @@ export class AccountExtendedPublicKey extends ExtendedPublicKey {
 
   private getPublicKey(type = AddressType.Receiving, index: number): HexString {
     const keychain = Keychain.fromPublicKey(
-      Buffer.from(this.publicKey.slice(2), "hex"),
-      Buffer.from(this.chainCode.slice(2), "hex"),
+      bytify(this.publicKey),
+      bytify(this.chainCode),
       AccountExtendedPublicKey.ckbAccountPath
     )
       .deriveChild(type, false)
       .deriveChild(index, false);
 
-    return "0x" + keychain.publicKey.toString("hex");
+    return hexify(keychain.publicKey);
   }
 }
 
@@ -117,24 +121,24 @@ export class ExtendedPrivateKey {
 
   toAccountExtendedPublicKey(): AccountExtendedPublicKey {
     const masterKeychain = new Keychain(
-      Buffer.from(this.privateKey.slice(2), "hex"),
-      Buffer.from(this.chainCode.slice(2), "hex")
+      bytify(this.privateKey),
+      bytify(this.chainCode)
     );
     const accountKeychain = masterKeychain.derivePath(
       AccountExtendedPublicKey.ckbAccountPath
     );
 
     return new AccountExtendedPublicKey(
-      "0x" + accountKeychain.publicKey.toString("hex"),
-      "0x" + accountKeychain.chainCode.toString("hex")
+      hexify(accountKeychain.publicKey),
+      hexify(accountKeychain.chainCode)
     );
   }
 
-  static fromSeed(seed: Buffer): ExtendedPrivateKey {
+  static fromSeed(seed: Uint8Array): ExtendedPrivateKey {
     const keychain = Keychain.fromSeed(seed);
     return new ExtendedPrivateKey(
-      "0x" + keychain.privateKey.toString("hex"),
-      "0x" + keychain.chainCode.toString("hex")
+      hexify(keychain.privateKey),
+      hexify(keychain.chainCode)
     );
   }
 
@@ -145,8 +149,8 @@ export class ExtendedPrivateKey {
 
   privateKeyInfoByPath(path: string): PrivateKeyInfo {
     const keychain = new Keychain(
-      Buffer.from(this.privateKey.slice(2), "hex"),
-      Buffer.from(this.chainCode.slice(2), "hex")
+      bytify(this.privateKey),
+      bytify(this.chainCode)
     ).derivePath(path);
 
     return this.privateKeyInfoFromKeychain(keychain, path);
@@ -157,8 +161,8 @@ export class ExtendedPrivateKey {
     path: string
   ): PrivateKeyInfo {
     return {
-      privateKey: "0x" + keychain.privateKey.toString("hex"),
-      publicKey: "0x" + keychain.publicKey.toString("hex"),
+      privateKey: hexify(keychain.privateKey),
+      publicKey: hexify(keychain.publicKey),
       path: path,
     };
   }
