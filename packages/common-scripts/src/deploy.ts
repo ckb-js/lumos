@@ -10,7 +10,12 @@ import {
   blockchain,
 } from "@ckb-lumos/base";
 import { bytes } from "@ckb-lumos/codec";
-import { getConfig, Config, helpers } from "@ckb-lumos/config-manager";
+import {
+  getConfig,
+  Config,
+  helpers,
+  ScriptConfig,
+} from "@ckb-lumos/config-manager";
 import {
   TransactionSkeletonType,
   TransactionSkeleton,
@@ -21,17 +26,9 @@ import {
 } from "@ckb-lumos/helpers";
 import { Set } from "immutable";
 import { FromInfo, parseFromInfo, MultisigScript } from "./from_info";
-import { BI, BIish } from "@ckb-lumos/bi";
+import { BI, BIish, parseUnit } from "@ckb-lumos/bi";
 import { RPC } from "@ckb-lumos/rpc";
 const { ScriptValue } = values;
-
-function bytesToHex(bytes: Uint8Array): string {
-  let res = "0x";
-  for (let i = 0; i < bytes.length; i++) {
-    res += bytes[i].toString(16).padStart(2, "0");
-  }
-  return res;
-}
 
 async function findCellsByLock(
   lockScript: Script,
@@ -127,6 +124,8 @@ async function completeTx(
   return txSkeleton;
 }
 
+const ONE_CKB = parseUnit("1", "ckb");
+
 async function injectCapacity(
   txSkeleton: TransactionSkeletonType,
   fromInfo: FromInfo,
@@ -140,8 +139,8 @@ async function injectCapacity(
   const _feeRate = feeRate || 1000;
   let _amount = BI.from(amount);
   const { fromScript, multisigScript } = parseFromInfo(fromInfo, { config });
-  _amount = _amount.add(BI.from(10).pow(8));
-  let changeCapacity = BI.from(10).pow(8);
+  _amount = _amount.add(ONE_CKB);
+  let changeCapacity = ONE_CKB;
   const changeCell: Cell = {
     cellOutput: {
       capacity: "0x0",
@@ -152,7 +151,7 @@ async function injectCapacity(
   };
   const minimalChangeCapacity: BI = BI.from(
     minimalCellCapacityCompatible(changeCell)
-  ).add(BI.from(10).pow(8));
+  ).add(ONE_CKB);
 
   if (_amount.lt(0)) {
     changeCapacity = changeCapacity.sub(_amount);
@@ -236,12 +235,14 @@ async function injectCapacity(
 
     if (typeof fromInfo !== "string") {
       newWitnessArgs = {
-        lock:
-          "0x" +
-          multisigScript!.slice(2) +
-          SECP_SIGNATURE_PLACEHOLDER.slice(2).repeat(
-            (fromInfo as MultisigScript).M
-          ),
+        lock: bytes.hexify(
+          bytes.concat(
+            multisigScript!,
+            ...new Array((fromInfo as MultisigScript).M).fill(
+              SECP_SIGNATURE_PLACEHOLDER
+            )
+          )
+        ),
       };
     } else {
       newWitnessArgs = { lock: SECP_SIGNATURE_PLACEHOLDER };
@@ -298,7 +299,8 @@ function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
 function getTransactionSizeByTx(tx: Transaction): number {
   const serializedTx = blockchain.Transaction.pack(tx);
   // 4 is serialized offset bytesize
-  const size = serializedTx.byteLength + 4;
+  const MOLECULE_TABLE_OFFSET = 4;
+  const size = serializedTx.byteLength + MOLECULE_TABLE_OFFSET;
   return size;
 }
 
@@ -341,24 +343,6 @@ async function getDataHash(outPoint: OutPoint, rpc: RPC): Promise<string> {
   return new utils.CKBHasher().update(bytes.bytify(outputData)).digestHex();
 }
 
-interface ScriptConfig {
-  // if hashType is type, codeHash is ckbHash(type_script)
-  // if hashType is data, codeHash is ckbHash(data)
-  CODE_HASH: string;
-
-  HASH_TYPE: "type" | "data2";
-
-  TX_HASH: string;
-  // the deploy cell can be found at index of tx's outputs
-  INDEX: string;
-
-  // now deployWithX only supportted `code `
-  DEP_TYPE: "depGroup" | "code";
-
-  // empty
-  SHORT_ID?: number;
-}
-
 function calculateTxHash(txSkeleton: TransactionSkeletonType): string {
   const tx = createTransactionFromSkeleton(txSkeleton);
   const txHash = utils.ckbHash(blockchain.RawTransaction.pack(tx));
@@ -374,7 +358,7 @@ function getScriptConfigByDataHash(
   const txHash = calculateTxHash(txSkeleton);
   const scriptConfig: ScriptConfig = {
     CODE_HASH: codeHash,
-    HASH_TYPE: "data2",
+    HASH_TYPE: "data1",
     TX_HASH: txHash,
     INDEX: "0x0",
     DEP_TYPE: "code",
@@ -485,7 +469,7 @@ export async function generateDeployWithDataTx(
       capacity: "0x0",
       lock: fromScript,
     },
-    data: bytesToHex(options.scriptBinary),
+    data: bytes.hexify(options.scriptBinary),
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
@@ -535,7 +519,7 @@ export async function generateDeployWithTypeIdTx(
       lock: fromScript,
       type: typeId,
     },
-    data: bytesToHex(options.scriptBinary),
+    data: bytes.hexify(options.scriptBinary),
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
@@ -584,7 +568,7 @@ export async function generateUpgradeTypeIdDataTx(
       lock: fromScript,
       type: options.typeId,
     },
-    data: bytesToHex(options.scriptBinary),
+    data: bytes.hexify(options.scriptBinary),
   };
 
   txSkeleton = updateOutputs(txSkeleton, output);
