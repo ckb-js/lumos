@@ -1,8 +1,7 @@
 import { v4 as uuid } from "uuid";
 import { bytes } from "@ckb-lumos/codec";
 import { HexString } from "@ckb-lumos/base";
-import { ctr, keccak256, randomBytes } from "@ckb-lumos/crypto";
-import { syncScrypt } from "scrypt-js";
+import { ctr, scrypt, keccak256, randomBytes } from "@ckb-lumos/crypto";
 import { ExtendedPrivateKey } from "./extended_key";
 
 const { bytify, concat, hexify } = bytes;
@@ -143,14 +142,12 @@ export default class Keystore {
       r: DEFAULT_SCRIPT_PARAM_r,
       p: DEFAULT_SCRIPT_PARAM_p,
     };
-    const derivedKey = syncScrypt(
-      new TextEncoder().encode(password),
-      salt,
-      kdfparams.n,
-      kdfparams.r,
-      kdfparams.p,
-      kdfparams.dklen
-    );
+    const derivedKey = scrypt(new TextEncoder().encode(password), salt, {
+      N: kdfparams.n,
+      r: kdfparams.r,
+      p: kdfparams.p,
+      dkLen: kdfparams.dklen,
+    });
 
     // DO NOT remove the Uint8Array.from call below.
     // Without calling Uint8Array.from to make a copy of iv,
@@ -209,13 +206,15 @@ export default class Keystore {
 
   derivedKey(password: string): Uint8Array {
     const { kdfparams } = this.crypto;
-    return syncScrypt(
+    return scrypt(
       new TextEncoder().encode(password),
       bytify("0x" + kdfparams.salt),
-      kdfparams.n,
-      kdfparams.r,
-      kdfparams.p,
-      kdfparams.dklen
+      {
+        N: kdfparams.n,
+        r: kdfparams.r,
+        p: kdfparams.p,
+        dkLen: kdfparams.dklen,
+      }
     );
   }
 

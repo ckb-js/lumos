@@ -55,24 +55,56 @@ test("load and check password, loads private key", (t) => {
  * MAC: 2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097
  * Cipher key: fac192ceb5fd772906bea3e118a69e8b
  */
+// This case does NOT work with @crpyto/hashes/scrypt because N is not less than 2^(128 * r / 8)
+// const json = {
+//   crypto: {
+//     cipher: "aes-128-ctr",
+//     cipherparams: {
+//       iv: "83dbcc02d8ccb40e466191a123791e0e",
+//     },
+//     ciphertext:
+//       "d172bf743a674da9cdad04534d56926ef8358534d458fffccd4e6ad2fbde479c",
+//     kdf: "scrypt",
+//     kdfparams: {
+//       dklen: 32,
+//       n: 262144, // 2^18 Scrypt: N must be larger than 1, a power of 2, less than 2^(128 * r / 8) and less than 2^32
+//       r: 1,
+//       p: 8,
+//       salt: "ab0c7876052600dd703518d6fc3fe8984592145b591fc8fb5c6d43190334ba19",
+//     },
+//     mac: "2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097",
+//   },
+//   id: "3198bc9c-6672-5ab3-d995-4942343ae5b6",
+//   version: 3,
+// };
 test("load test vector keystore", (t) => {
+  // const privateKey = "0xe8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35";
+  // const chainCode = "0x873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d508";
+  // const keystore = KeyStore.create(
+  //   new ExtendedPrivateKey(privateKey, chainCode),
+  //   'testpassword',
+  //   {
+  //     iv: bytify("0x8f7097ee22add66106055bf3e241fece"),
+  //     salt: bytify("0x481ead5b0311079d2adcd74f32e3db3bdc5f447bc2217ad8164d2d7ead19079f")
+  //   }
+  // );
   const json = {
     crypto: {
       cipher: "aes-128-ctr",
       cipherparams: {
-        iv: "83dbcc02d8ccb40e466191a123791e0e",
+        iv: "8f7097ee22add66106055bf3e241fece",
       },
       ciphertext:
-        "d172bf743a674da9cdad04534d56926ef8358534d458fffccd4e6ad2fbde479c",
+        "28b4e6295dca3079d2e0d661517dd18ee7fe0b6a816ef7398d1828e10dfff57480107d30e1e4a73d30a7e0c46584f8f7f66ca38c13fb6fddc22abfe07f3ab0fb",
       kdf: "scrypt",
       kdfparams: {
         dklen: 32,
-        n: 262144,
-        p: 8,
-        r: 1,
-        salt: "ab0c7876052600dd703518d6fc3fe8984592145b591fc8fb5c6d43190334ba19",
+        n: 262144, // 2^18
+        r: 8,
+        p: 1,
+        salt: "481ead5b0311079d2adcd74f32e3db3bdc5f447bc2217ad8164d2d7ead19079f",
       },
-      mac: "2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097",
+      mac: "87e41a279a32c206579738a051801b3532749682a34fe914e3f487622b0c7b2a",
     },
     id: "3198bc9c-6672-5ab3-d995-4942343ae5b6",
     version: 3,
@@ -81,11 +113,11 @@ test("load test vector keystore", (t) => {
   t.true(keystore.checkPassword("testpassword"));
   t.deepEqual(
     keystore.decrypt("testpassword"),
-    "0x7a28b5ba57c53603b0b07b56bba752f7784bf506fa95edc395f5cf6c7514fe9d"
+    "0xe8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35873dff81c02f525623fd1fe5167eac3a55a049de3d314bb42ee227ffed37d508"
   );
   t.deepEqual(
     hexify(keystore.derivedKey("testpassword")),
-    "0xfac192ceb5fd772906bea3e118a69e8bbb5cc24229e20d8766fd298291bba6bd"
+    "0xdc0b555db92835c5a417a6c7229a0c3a228c91ff1b22580ee2c368a8aed33140"
   );
 });
 
