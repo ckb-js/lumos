@@ -38,6 +38,7 @@ import * as bitcoin from "./omnilock-bitcoin";
 import * as solana from "./omnilock-solana";
 import { decode as bs58Decode } from "bs58";
 import { ckbHash } from "@ckb-lumos/base/lib/utils";
+import { SupportedBtcAddressType } from "./omnilock-bitcoin";
 
 const { ScriptValue } = values;
 
@@ -66,6 +67,7 @@ export type IdentityEthereum = {
    */
   content: BytesLike;
 };
+
 export type IdentityBitcoin = {
   flag: "BITCOIN";
   /**
@@ -77,12 +79,11 @@ export type IdentityBitcoin = {
   content: string;
 
   /**
-   * defaults to false.
-   * when it is true, the P2SH address will be allowed for an Omnilock.
-   * make sure that the P2SH address is a P2SH-P2WPKH address,
-   * or the script CANNOT be unlocked
+   * Allows the P2PKH and P2WPKH by default.
+   * To allow the P2SH-P2WPKH address,
+   * change this option to `["P2PKH", "P2WPKH", "P2SH-P2WPKH"]`
    */
-  allowP2SH?: boolean;
+  allows?: SupportedBtcAddressType[];
 };
 
 export type IdentitySolana = {
@@ -186,7 +187,7 @@ export function createOmnilockScript(
             [IdentityFlagsType.IdentityFlagsBitcoin],
             bitcoin.decodeAddress(
               omnilockInfo.auth.content,
-              omnilockInfo.auth.allowP2SH
+              omnilockInfo.auth.allows || ["P2WPKH", "P2PKH"]
             ),
             omnilockArgs
           )

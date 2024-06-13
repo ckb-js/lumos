@@ -2,6 +2,8 @@ import { bytes, BytesLike } from "@ckb-lumos/codec";
 import { bech32 } from "bech32";
 import bs58 from "bs58";
 
+export type SupportedBtcAddressType = "P2SH-P2WPKH" | "P2WPKH" | "P2PKH";
+
 // https://github.com/cryptape/omnilock/blob/9419b7795641da0ade25a04127e25d8a0b709077/c/ckb_identity.h#L28
 const BTC_PREFIX = "CKB (Bitcoin Layer) transaction: 0x";
 
@@ -9,35 +11,35 @@ const BTC_PREFIX = "CKB (Bitcoin Layer) transaction: 0x";
  * Decode bitcoin address to public key hash in bytes
  * @see https://en.bitcoin.it/wiki/List_of_address_prefixes
  * @param address
- * @param allowP2SH defaults to false
+ * @param allows
  */
 export function decodeAddress(
   address: string,
-  allowP2SH?: boolean
+  allows: SupportedBtcAddressType[]
 ): ArrayLike<number> {
   const btcAddressFlagSize = 1;
   const hashSize = 20;
 
-  if (isP2wpkhAddress(address)) {
+  if (isP2wpkhAddress(address) && allows.includes("P2WPKH")) {
     return bech32.fromWords(bech32.decode(address).words.slice(1));
   }
 
-  if (isP2pkhAddress(address)) {
+  if (isP2pkhAddress(address) && allows.includes("P2PKH")) {
     return bs58
       .decode(address)
       .slice(btcAddressFlagSize, btcAddressFlagSize + hashSize);
   }
 
   if (isP2shAddress(address)) {
-    if (!allowP2SH) {
-      throw new Error(
-        "'allowP2SH' must be true to enable decoding the P2SH address"
-      );
+    if (allows.includes("P2SH-P2WPKH")) {
+      return bs58
+        .decode(address)
+        .slice(btcAddressFlagSize, btcAddressFlagSize + hashSize);
     }
 
-    return bs58
-      .decode(address)
-      .slice(btcAddressFlagSize, btcAddressFlagSize + hashSize);
+    throw new Error(
+      "'P2SH-P2WPKH' must be included in the 'allows' for the P2SH address"
+    );
   }
 
   // https://bitcoin.design/guide/glossary/address/#taproot-address---p2tr

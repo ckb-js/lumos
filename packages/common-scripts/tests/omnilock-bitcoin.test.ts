@@ -12,7 +12,11 @@ import { mockOutPoint } from "@ckb-lumos/debugger/lib/context";
 import { createOmnilockScript, OmnilockWitnessLock } from "../src/omnilock";
 import { address, AddressType, core, keyring } from "@unisat/wallet-sdk";
 import { NetworkType } from "@unisat/wallet-sdk/lib/network";
-import { Provider, signMessage } from "../src/omnilock-bitcoin";
+import {
+  Provider,
+  signMessage,
+  SupportedBtcAddressType,
+} from "../src/omnilock-bitcoin";
 import { SimpleKeyring } from "@unisat/wallet-sdk/lib/keyring";
 
 test.before(async () => {
@@ -41,15 +45,15 @@ test.serial("Omnilock#Bitcoin P2WPKH", async (t) => {
 
 test.serial("Omnilock#Bitcoin P2SH_P2WPKH", async (t) => {
   const { provider } = makeProvider(AddressType.P2SH_P2WPKH);
-  const result = await execute(provider);
+  const result = await execute(provider, ["P2SH-P2WPKH"]);
 
   t.is(result.code, 0, result.message);
 });
 
-async function execute(provider: Provider) {
+async function execute(provider: Provider, allows?: SupportedBtcAddressType[]) {
   const addr = (await provider.requestAccounts())[0];
 
-  const { txSkeleton, lock } = await setupTxSkeleton(addr);
+  const { txSkeleton, lock } = await setupTxSkeleton(addr, allows);
 
   const message = txSkeleton.get("signingEntries").get(0)!.message;
   const signature = await signMessage(message, "ecdsa", provider);
@@ -95,11 +99,14 @@ function makeProvider(addressType: AddressType): {
   };
 }
 
-async function setupTxSkeleton(addr: string) {
+async function setupTxSkeleton(
+  addr: string,
+  allows?: SupportedBtcAddressType[]
+) {
   const txSkeleton = TransactionSkeleton().asMutable();
 
   const lock = createOmnilockScript(
-    { auth: { flag: "BITCOIN", content: addr } },
+    { auth: { flag: "BITCOIN", content: addr, allows } },
     { config: managerConfig }
   );
 
@@ -135,7 +142,7 @@ test("Omnilock#Bitcoin P2SH", (t) => {
 
   t.notThrows(() =>
     createOmnilockScript({
-      auth: { flag: "BITCOIN", content: p2shAddr, allowP2SH: true },
+      auth: { flag: "BITCOIN", content: p2shAddr, allows: ["P2SH-P2WPKH"] },
     })
   );
 });
