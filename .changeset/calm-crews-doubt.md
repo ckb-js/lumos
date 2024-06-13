@@ -1,5 +1,5 @@
 ---
-"@ckb-lumos/common-scripts": patch
+"@ckb-lumos/common-scripts": minor
 ---
 
-fix: default `generateDeployWithDataTx` to `data1` since `data2` is not active
+**BREAKING CHANGE**: default `generateDeployWithDataTx` to `data1` since `data2` is not active
