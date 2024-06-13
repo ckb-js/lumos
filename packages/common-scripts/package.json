@@ -22,6 +22,7 @@
     "@ckb-lumos/base": "0.23.0",
     "@ckb-lumos/bi": "0.23.0",
     "@ckb-lumos/codec": "0.23.0",
+    "@ckb-lumos/crypto": "0.23.0",
     "@ckb-lumos/config-manager": "0.23.0",
     "@ckb-lumos/helpers": "0.23.0",
     "@ckb-lumos/rpc": "0.23.0",
@@ -58,9 +59,7 @@
     "@ckb-lumos/crypto": "0.23.0",
     "@ckb-lumos/debugger": "0.23.0",
     "@ckb-lumos/hd": "0.23.0",
-    "@types/keccak": "^3.0.1",
     "@unisat/wallet-sdk": "^1.1.2",
-    "keccak": "^3.0.1",
     "tweetnacl": "^1.0.3"
   },
   "publishConfig": {

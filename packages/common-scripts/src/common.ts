@@ -207,7 +207,7 @@ function generateLockScriptInfos({ config = undefined }: Options = {}): void {
   };
 
   const configHashCode: number = utils.hashCode(
-    Buffer.from(JSON.stringify(config))
+    new TextEncoder().encode(JSON.stringify(config))
   );
 
   if (lockScriptInfos.infos.length === 0) {
@@ -931,8 +931,8 @@ function getTransactionSize(txSkeleton: TransactionSkeletonType): number {
 
 function getTransactionSizeByTx(tx: Transaction): number {
   const serializedTx = blockchain.Transaction.pack(tx);
-  // 4 is serialized offset bytesize
-  const size = serializedTx.byteLength + 4;
+  const offset = 4; // 4 is serialized offset bytesize
+  const size = serializedTx.byteLength + offset;
   return size;
 }
 

@@ -6,8 +6,11 @@ import {
   pbkdf2Async,
   randomBytes,
 } from "@ckb-lumos/crypto";
+import { bytes } from "@ckb-lumos/codec";
 import { HexString } from "@ckb-lumos/base";
 import wordList from "./word_list";
+
+const { bytify, hexify } = bytes;
 
 const RADIX = 2048;
 const PBKDF2_ROUNDS = 2048;
@@ -35,16 +38,16 @@ if (wordList.length !== RADIX) {
   );
 }
 
-function bytesToBinary(bytes: Buffer): string {
+function bytesToBinary(bytes: Uint8Array): string {
   return bytes.reduce((binary, byte) => {
     return binary + byte.toString(2).padStart(8, "0");
   }, "");
 }
 
-function deriveChecksumBits(entropyBuffer: Buffer): string {
+function deriveChecksumBits(entropyBuffer: Uint8Array): string {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
-  const hash = Buffer.from(sha256(entropyBuffer));
+  const hash = sha256(entropyBuffer);
   return bytesToBinary(hash).slice(0, CS);
 }
 
@@ -52,24 +55,25 @@ function salt(password = ""): string {
   return `mnemonic${password}`;
 }
 
-export function mnemonicToSeedSync(mnemonic = "", password = ""): Buffer {
-  const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
-  const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
-  return Buffer.from(
-    pbkdf2(sha512, mnemonicBuffer, saltBuffer, {
-      c: PBKDF2_ROUNDS,
-      dkLen: KEY_LEN,
-    })
-  );
+export function mnemonicToSeedSync(mnemonic = "", password = ""): Uint8Array {
+  const mnemonicBuffer = new TextEncoder().encode(mnemonic.normalize("NFKD"));
+  const saltBuffer = new TextEncoder().encode(salt(password.normalize("NFKD")));
+  return pbkdf2(sha512, mnemonicBuffer, saltBuffer, {
+    c: PBKDF2_ROUNDS,
+    dkLen: KEY_LEN,
+  });
 }
 
-export function mnemonicToSeed(mnemonic = "", password = ""): Promise<Buffer> {
-  const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
-  const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
+export function mnemonicToSeed(
+  mnemonic = "",
+  password = ""
+): Promise<Uint8Array> {
+  const mnemonicBuffer = new TextEncoder().encode(mnemonic.normalize("NFKD"));
+  const saltBuffer = new TextEncoder().encode(salt(password.normalize("NFKD")));
   return pbkdf2Async(sha512, mnemonicBuffer, saltBuffer, {
     c: PBKDF2_ROUNDS,
     dkLen: KEY_LEN,
-  }).then(Buffer.from);
+  });
 }
 
 export function mnemonicToEntropy(mnemonic = ""): HexString {
@@ -110,17 +114,17 @@ export function mnemonicToEntropy(mnemonic = ""): HexString {
     throw new Error(ENTROPY_NOT_DIVISIBLE);
   }
 
-  const entropy = Buffer.from(entropyBytes);
+  const entropy = Uint8Array.from(entropyBytes);
   const newChecksum = deriveChecksumBits(entropy);
   if (newChecksum !== checksumBits) {
     throw new Error(INVALID_CHECKSUM);
   }
 
-  return "0x" + entropy.toString("hex");
+  return hexify(entropy);
 }
 
 export function entropyToMnemonic(entropyStr: HexString): string {
-  const entropy = Buffer.from(entropyStr.slice(2), "hex");
+  const entropy = bytify(entropyStr);
 
   if (entropy.length < MIN_ENTROPY_SIZE) {
     throw new TypeError(ENTROPY_TOO_SHORT);
@@ -157,8 +161,7 @@ export function validateMnemonic(mnemonic: string): boolean {
 // Generate 12 words mnemonic code
 export function generateMnemonic(): string {
   const entropySize = 16;
-  const entropy: HexString =
-    "0x" + Buffer.from(randomBytes(entropySize)).toString("hex");
+  const entropy = hexify(randomBytes(entropySize));
   return entropyToMnemonic(entropy);
 }
 

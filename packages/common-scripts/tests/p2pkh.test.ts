@@ -1,6 +1,6 @@
 import test from "ava";
 import { Script, utils } from "@ckb-lumos/base";
-import { default as createKeccak } from "keccak";
+import { keccak256 } from "@ckb-lumos/crypto";
 import { createP2PKHMessageGroup } from "../src/p2pkh";
 import { txObject, txSkeletonFromJson } from "./helper";
 import p2pkhJson from "./p2pkh.json";
@@ -35,13 +35,13 @@ test("pw lock [g1]", (t) => {
     SIGNATURE_PLACEHOLDER
   );
 
-  const keccak = createKeccak("keccak256");
+  const keccak = keccak256.create();
   const signLock = p2pkhJson["PW_LOCK_[G1]"].SIGN_LOCK as Script;
 
   const messageGroup = createP2PKHMessageGroup(tx, [signLock], {
     hasher: {
       update: (message) => {
-        keccak.update(Buffer.from(new Uint8Array(message)));
+        keccak.update(new Uint8Array(message));
       },
       digest: () => keccak.digest(),
     },

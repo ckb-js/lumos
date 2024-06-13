@@ -1,5 +1,6 @@
 import test from "ava";
 import { key } from "../src";
+import { bytes } from "@ckb-lumos/codec";
 const {
   signRecoverable,
   recoverFromSignature,
@@ -29,14 +30,12 @@ test("recoverFromMessage", (t) => {
   t.is(publicKey, signInfo.publicKey);
 });
 
-test("privateToPublic, derive public key from private key, Buffer", (t) => {
-  const privateKey = Buffer.from(
-    "bb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
-    "hex"
+test("privateToPublic, derive public key from private key, Uint8Array", (t) => {
+  const privateKey = bytes.bytify(
+    "0xbb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016"
   );
-  const publicKey = Buffer.from(
-    "03e5b310636a0f6e7dcdfffa98f28d7ed70df858bb47acf13db830bfde3510b3f3",
-    "hex"
+  const publicKey = bytes.bytify(
+    "0x03e5b310636a0f6e7dcdfffa98f28d7ed70df858bb47acf13db830bfde3510b3f3"
   );
   t.deepEqual(privateToPublic(privateKey), publicKey);
 });
@@ -51,23 +50,17 @@ test("privateToPublic, derive public key from private key, HexString", (t) => {
 
 test("privateToPublic, derive public key from private key wrong length", (t) => {
   t.throws(() => {
-    privateToPublic(Buffer.from(""));
+    privateToPublic(Uint8Array.from([]));
   });
   t.throws(() => {
     privateToPublic(
-      Buffer.from(
-        "39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
-        "hex"
+      bytes.bytify(
+        "0x39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016"
       )
     );
   });
   t.throws(() => {
-    privateToPublic(
-      Buffer.from(
-        "0xbb39d218506b30ca69b0f3112427877d983dd3cd2cabc742ab723e2964d98016",
-        "hex"
-      )
-    );
+    privateToPublic(bytes.bytify("0x"));
   });
 });
 

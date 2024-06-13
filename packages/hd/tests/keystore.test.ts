@@ -1,5 +1,8 @@
 import test from "ava";
+import { bytes } from "@ckb-lumos/codec";
 import { ExtendedPrivateKey, Keystore, IncorrectPassword } from "../src";
+
+const { hexify } = bytes;
 
 const fixture = {
   privateKey:
@@ -52,37 +55,83 @@ test("load and check password, loads private key", (t) => {
  * MAC: 2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097
  * Cipher key: fac192ceb5fd772906bea3e118a69e8b
  */
+// This case does NOT work with @crpyto/hashes/scrypt because N (kdfparams.n) is greater than 2^(128 * r / 8)
+// Error message: 'Scrypt: N must be larger than 1, a power of 2, less than 2^(128 * r / 8) and less than 2^32'
+// test("load test vector keystore", (t) => {
+//   const json = {
+//     crypto: {
+//       cipher: "aes-128-ctr",
+//       cipherparams: {
+//         iv: "83dbcc02d8ccb40e466191a123791e0e",
+//       },
+//       ciphertext:
+//         "d172bf743a674da9cdad04534d56926ef8358534d458fffccd4e6ad2fbde479c",
+//       kdf: "scrypt",
+//       kdfparams: {
+//         dklen: 32,
+//         n: 262144,  // 2^18, but 2^(128 * r / 8) is 2^16
+//         p: 8,
+//         r: 1,
+//         salt: "ab0c7876052600dd703518d6fc3fe8984592145b591fc8fb5c6d43190334ba19",
+//       },
+//       mac: "2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097",
+//     },
+//     id: "3198bc9c-6672-5ab3-d995-4942343ae5b6",
+//     version: 3,
+//   };
+//   const keystore = Keystore.fromJson(JSON.stringify(json));
+//   t.true(keystore.checkPassword("testpassword"));
+//   t.deepEqual(
+//     keystore.decrypt("testpassword"),
+//     "0x7a28b5ba57c53603b0b07b56bba752f7784bf506fa95edc395f5cf6c7514fe9d"
+//   );
+//   t.deepEqual(
+//     hexify(keystore.derivedKey("testpassword")),
+//     "0xfac192ceb5fd772906bea3e118a69e8bbb5cc24229e20d8766fd298291bba6bd"
+//   );
+// });
+
+/**
+ * test vector:
+ * https://github.com/web3/web3.js/blob/4.x/packages/web3-eth-accounts/src/account.ts#L489-L516
+ * Address: cda9a91875fc35c8ac1320e098e584495d66e47c
+ * UUID: c0cb0a94-4702-4492-b6e6-eb2ac404344a
+ * Password: 123
+ * Secret: 67f476289210e3bef3c1c75e4de993ff0a00663df00def84e73aa7411eac18a6
+ * Derived key: d3d187f93f0d3c5e45d35881f7740713e3dd9488f9a4e25344799e58e1cfc76d
+ * MAC: efbf6d3409f37c0084a79d5fdf9a6f5d97d11447517ef1ea8374f51e581b7efd
+ */
 test("load test vector keystore", (t) => {
   const json = {
     crypto: {
       cipher: "aes-128-ctr",
       cipherparams: {
-        iv: "83dbcc02d8ccb40e466191a123791e0e",
+        iv: "bfb43120ae00e9de110f8325143a2709",
       },
       ciphertext:
-        "d172bf743a674da9cdad04534d56926ef8358534d458fffccd4e6ad2fbde479c",
+        "cb3e13e3281ff3861a3f0257fad4c9a51b0eb046f9c7821825c46b210f040b8f",
       kdf: "scrypt",
       kdfparams: {
         dklen: 32,
-        n: 262144,
-        p: 8,
-        r: 1,
-        salt: "ab0c7876052600dd703518d6fc3fe8984592145b591fc8fb5c6d43190334ba19",
+        n: 8192, // 2^13
+        r: 8,
+        p: 1,
+        salt: "210d0ec956787d865358ac45716e6dd42e68d48e346d795746509523aeb477dd",
       },
-      mac: "2103ac29920d71da29f15d75b4a16dbe95cfd7ff8faea1056c33131d846e3097",
+      mac: "efbf6d3409f37c0084a79d5fdf9a6f5d97d11447517ef1ea8374f51e581b7efd",
     },
-    id: "3198bc9c-6672-5ab3-d995-4942343ae5b6",
+    id: "c0cb0a94-4702-4492-b6e6-eb2ac404344a",
     version: 3,
   };
   const keystore = Keystore.fromJson(JSON.stringify(json));
-  t.true(keystore.checkPassword("testpassword"));
+  t.true(keystore.checkPassword("123"));
   t.deepEqual(
-    keystore.decrypt("testpassword"),
-    "0x7a28b5ba57c53603b0b07b56bba752f7784bf506fa95edc395f5cf6c7514fe9d"
+    keystore.decrypt("123"),
+    "0x67f476289210e3bef3c1c75e4de993ff0a00663df00def84e73aa7411eac18a6"
   );
   t.deepEqual(
-    keystore.derivedKey("testpassword").toString("hex"),
-    "fac192ceb5fd772906bea3e118a69e8bbb5cc24229e20d8766fd298291bba6bd"
+    hexify(keystore.derivedKey("123")),
+    "0xd3d187f93f0d3c5e45d35881f7740713e3dd9488f9a4e25344799e58e1cfc76d"
   );
 });
 

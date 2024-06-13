@@ -70,7 +70,7 @@ function computeScriptHash(script: Script): string {
   return ckbHash(blockchain.Script.pack(script));
 }
 
-function hashCode(buffer: Buffer): number {
+function hashCode(buffer: Uint8Array): number {
   return xxHash32(buffer, 0);
 }
 
