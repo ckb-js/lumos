@@ -15,7 +15,7 @@ const BTC_PREFIX = "CKB (Bitcoin Layer) transaction: 0x";
  */
 export function decodeAddress(
   address: string,
-  allows: SupportedBtcAddressType[]
+  allows: SupportedBtcAddressType[] = ["P2WPKH", "P2PKH"]
 ): ArrayLike<number> {
   const btcAddressFlagSize = 1;
   const hashSize = 20;

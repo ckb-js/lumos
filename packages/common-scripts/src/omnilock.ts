@@ -187,7 +187,7 @@ export function createOmnilockScript(
             [IdentityFlagsType.IdentityFlagsBitcoin],
             bitcoin.decodeAddress(
               omnilockInfo.auth.content,
-              omnilockInfo.auth.allows || ["P2WPKH", "P2PKH"]
+              omnilockInfo.auth.allows
             ),
             omnilockArgs
           )
