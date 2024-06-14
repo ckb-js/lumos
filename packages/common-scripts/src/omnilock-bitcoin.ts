@@ -20,26 +20,23 @@ export function decodeAddress(
   const btcAddressFlagSize = 1;
   const hashSize = 20;
 
-  if (isP2wpkhAddress(address) && allows.includes("P2WPKH")) {
+  if (isP2wpkhAddress(address)) {
+    assertAddressType(allows, "P2WPKH");
     return bech32.fromWords(bech32.decode(address).words.slice(1));
   }
 
-  if (isP2pkhAddress(address) && allows.includes("P2PKH")) {
+  if (isP2pkhAddress(address)) {
+    assertAddressType(allows, "P2PKH");
     return bs58
       .decode(address)
       .slice(btcAddressFlagSize, btcAddressFlagSize + hashSize);
   }
 
   if (isP2shAddress(address)) {
-    if (allows.includes("P2SH-P2WPKH")) {
-      return bs58
-        .decode(address)
-        .slice(btcAddressFlagSize, btcAddressFlagSize + hashSize);
-    }
-
-    throw new Error(
-      "'P2SH-P2WPKH' must be included in the 'allows' for the P2SH address"
-    );
+    assertAddressType(allows, "P2SH-P2WPKH");
+    return bs58
+      .decode(address)
+      .slice(btcAddressFlagSize, btcAddressFlagSize + hashSize);
   }
 
   // https://bitcoin.design/guide/glossary/address/#taproot-address---p2tr
@@ -52,6 +49,17 @@ export function decodeAddress(
       address +
       "Only Native SegWit(P2WPKH) and Legacy(P2PKH) addresses are supported"
   );
+}
+
+function assertAddressType(
+  allows: SupportedBtcAddressType[],
+  usingAddressType: SupportedBtcAddressType
+): void {
+  if (!allows.includes(usingAddressType)) {
+    throw new Error(
+      `'${usingAddressType}' must be included in the 'allows' for the address`
+    );
+  }
 }
 
 export interface Provider {
