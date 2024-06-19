@@ -450,7 +450,7 @@ export namespace RPC {
 
   export type HexadecimalRange = [string, string];
   export type ScriptType = "type" | "lock";
-  export type ScriptSearchMode = "prefix" | "exact";
+  export type ScriptSearchMode = "prefix" | "exact" | "partial";
 
   export interface SearchFilter {
     script?: Script;

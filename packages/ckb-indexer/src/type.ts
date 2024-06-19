@@ -15,7 +15,7 @@ import { BIish } from "@ckb-lumos/bi";
 
 export type ScriptType = "type" | "lock";
 export type Order = "asc" | "desc";
-export type ScriptSearchMode = "prefix" | "exact";
+export type ScriptSearchMode = "prefix" | "exact" | "partial";
 
 export interface CKBIndexerQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;

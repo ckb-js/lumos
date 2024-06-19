@@ -190,7 +190,7 @@ export namespace CKBComponents {
   export type ScriptType = "type" | "lock";
   export type Order = "asc" | "desc";
   export type IOType = "input" | "output" | "both";
-  export type ScriptSearchMode = "prefix" | "exact";
+  export type ScriptSearchMode = "prefix" | "exact" | "partial";
 
   export interface IndexerCell {
     blockNumber: BlockNumber;

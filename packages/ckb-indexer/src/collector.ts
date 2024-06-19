@@ -141,6 +141,7 @@ export class CKBCellCollector implements BaseCellCollector {
       if (queryLock) {
         if (instanceOfScriptWrapper(queryLock)) {
           validators.ValidateScript(queryLock.script);
+          query.scriptSearchMode = queryLock.searchMode;
           query.lock = queryLock.script;
         }
       }
@@ -152,6 +153,7 @@ export class CKBCellCollector implements BaseCellCollector {
           instanceOfScriptWrapper(query.type)
         ) {
           validators.ValidateScript(query.type.script);
+          query.scriptSearchMode = query.type.searchMode;
           query.type = query.type.script;
         }
       }
@@ -207,7 +209,10 @@ export class CKBCellCollector implements BaseCellCollector {
         "Content-Type": "application/json",
       },
     });
-    if (res.status !== 200) {
+
+    const HTTP_SUCCESS_STATUS = 200;
+
+    if (res.status !== HTTP_SUCCESS_STATUS) {
       throw new Error(`indexer request failed with HTTP code ${res.status}`);
     }
     const result = await res.json();
