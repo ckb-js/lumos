@@ -2,7 +2,7 @@ import test from "ava";
 import { molecule, number } from "../src";
 import { Byte32 } from "../src/blockchain";
 import { randomBytes } from "crypto";
-import { equal, concat, hexify } from "../src/bytes";
+import { equal, concat, hexify, indexOf } from "../src/bytes";
 import { BI } from "@ckb-lumos/bi";
 import { bytify } from "../lib/bytes";
 
@@ -57,4 +57,17 @@ test("compare BytesLike", (t) => {
   t.truthy(equal(aString, cArray));
   t.truthy(equal(aString, bytify(bString)));
   t.truthy(equal(bytify(aString), bString));
+});
+
+test("indexOf BytesLike", (t) => {
+  t.is(2, indexOf([1, 2, 3, 4, 5], [3, 4]));
+  t.is(3, indexOf([1, 2, 3, 4, 5], [4, 5]));
+  t.is(-1, indexOf([1, 2, 3, 4, 5], [6, 7]));
+  t.is(0, indexOf([1, 2, 3, 4, 5], []));
+  t.is(-1, indexOf([], [1, 2]));
+  t.is(0, indexOf([1, 2, 1, 2, 1, 2], [1, 2]));
+  t.is(1, indexOf([1, 2, 1, 2, 1, 2], [2, 1]));
+  t.is(0, indexOf([1, 2, 1, 2, 1, 2], [1, 2, 1]));
+  t.is(1, indexOf([1, 2, 1, 2, 1, 2], [2, 1, 2]));
+  t.is(2, indexOf([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [3, 4, 5, 6]));
 });
