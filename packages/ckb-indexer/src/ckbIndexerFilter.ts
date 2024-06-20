@@ -198,17 +198,7 @@ export function filterByLumosSearchKey(
         return false;
       }
     }
-    // Prefix mode
-  } else if (searchKey.scriptSearchMode === "prefix") {
-    if (scriptType === "lock") {
-      if (!checkScriptWithPrefixMode(cellOutput.lock, script)) {
-        return false;
-      }
-    } else {
-      if (!checkScriptWithPrefixMode(cellOutput.type, script)) {
-        return false;
-      }
-    }
+    // partial mode
   } else if (searchKey.scriptSearchMode === "partial") {
     if (scriptType === "lock") {
       if (!checkScriptWithPartialMode(cellOutput.lock, script)) {
@@ -216,6 +206,17 @@ export function filterByLumosSearchKey(
       }
     } else {
       if (!checkScriptWithPartialMode(cellOutput.type, script)) {
+        return false;
+      }
+    }
+  } else {
+    // Prefix mode
+    if (scriptType === "lock") {
+      if (!checkScriptWithPrefixMode(cellOutput.lock, script)) {
+        return false;
+      }
+    } else {
+      if (!checkScriptWithPrefixMode(cellOutput.type, script)) {
         return false;
       }
     }
