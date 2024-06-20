@@ -400,12 +400,16 @@
         "outputDataLenRange": ["0x1", "0x2"],
         "outputCapacityRange": ["0x1", "0x2"],
         "blockRange": ["0x1", "0x2"],
+        "outputData": "0x01",
+        "outputDataFilterMode": "partial",
         "scriptLenRange": [0, 1]
       },
       "expected": {
         "output_data_len_range": ["0x1", "0x2"],
         "output_capacity_range": ["0x1", "0x2"],
         "block_range": ["0x1", "0x2"],
+        "output_data": "0x01",
+        "output_data_filter_mode": "partial",
         "script_len_range": [0, 1]
       }
     }

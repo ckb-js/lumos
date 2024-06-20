@@ -16,6 +16,7 @@ import { BIish } from "@ckb-lumos/bi";
 export type ScriptType = "type" | "lock";
 export type Order = "asc" | "desc";
 export type ScriptSearchMode = "prefix" | "exact" | "partial";
+export type OutputDataFilterMode = "prefix" | "exact" | "partial";
 
 export interface CKBIndexerQueryOptions extends QueryOptions {
   outputDataLenRange?: HexadecimalRange;
@@ -31,6 +32,8 @@ export type HexadecimalRange = [Hexadecimal, Hexadecimal];
 export interface SearchFilter {
   script?: Script;
   scriptLenRange?: HexadecimalRange;
+  outputData?: HexString;
+  outputDataFilterMode?: OutputDataFilterMode;
   outputDataLenRange?: HexadecimalRange; //empty
   outputCapacityRange?: HexadecimalRange; //empty
   blockRange?: HexadecimalRange; //fromBlock-toBlock

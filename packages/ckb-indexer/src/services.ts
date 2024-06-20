@@ -51,6 +51,14 @@ const generateSearchKey = (queries: CKBIndexerQueryOptions): SearchKey => {
   if (queries.scriptSearchMode) {
     script_search_mode = queries.scriptSearchMode;
   }
+  if (queries.data) {
+    if (typeof queries.data === "object") {
+      filter.output_data_filter_mode = queries.data.searchMode;
+      filter.output_data = queries.data.data;
+    } else if (typeof queries.data === "string") {
+      filter.output_data = queries.data;
+    }
+  }
   if (!script) {
     throw new Error("Either lock or type script must be provided!");
   }
@@ -88,7 +96,8 @@ async function requestBatch<T = any>(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data.map((item) => ({ id: id++, ...item }))),
   });
-  if (res.status !== 200) {
+  const HTTP_SUCCESS_STATUS = 200;
+  if (res.status !== HTTP_SUCCESS_STATUS) {
     throw new Error(`Indexer request failed with HTTP code ${res.status}`);
   }
   const result = await res.json();

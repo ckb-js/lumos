@@ -181,6 +181,8 @@ export const formatter = {
       script: data.script ? formatter.toScript(data.script) : data.script,
       output_data_len_range: data.outputDataLenRange,
       output_capacity_range: data.outputCapacityRange,
+      output_data: data.outputData,
+      output_data_filter_mode: data.outputDataFilterMode,
       block_range: data.blockRange,
       script_len_range: data.scriptLenRange,
     };
