@@ -31,6 +31,8 @@ test("should toSearchKey works fine", async (t) => {
       outputCapacityRange: undefined,
       scriptLenRange: undefined,
       blockRange: undefined,
+      outputData: undefined,
+      outputDataFilterMode: undefined,
       outputDataLenRange: ["0x1", "0x2"],
     },
   };

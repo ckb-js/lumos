@@ -159,19 +159,18 @@ export class CKBCellCollector implements BaseCellCollector {
       }
 
       // set data range to narrow the search result if the data is set
-      // the default data search filter mode is exact search that is the same as ckb-indexer
-      if (!query.outputDataLenRange) {
-        if (
-          query.data &&
-          query.data !== "any" &&
-          typeof query.data === "string"
-        ) {
-          const dataLenRange = getHexStringBytes(unwrapDataWrapper(query.data));
-          query.outputDataLenRange = [
-            "0x" + dataLenRange.toString(16),
-            "0x" + (dataLenRange + 1).toString(16),
-          ];
-        }
+      if (
+        !query.outputDataLenRange &&
+        query.data &&
+        query.data !== "any" &&
+        // the default data search filter mode is exact search that is the same as ckb-indexer
+        (typeof query.data === "string" || query.data.searchMode === "exact")
+      ) {
+        const dataLenRange = getHexStringBytes(unwrapDataWrapper(query.data));
+        query.outputDataLenRange = [
+          "0x" + dataLenRange.toString(16),
+          "0x" + (dataLenRange + 1).toString(16),
+        ];
       }
 
       if (!query.scriptLenRange && query.type === "empty") {
