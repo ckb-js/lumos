@@ -10,8 +10,6 @@ sidebar_position: 2
 Lumos was originally run on NodeJS only. To run on browser, we replaced native indexer with ckb-indexer, added BI which
 is a big number library, and a series of other upgrades.
 
-Also, we need polyfill the NodeJS API(such as `crypto`), and change your build toolchain config to support.
-
 The following example of getting the balance will show you how to use lumos in your web project.
 
 ```shell
