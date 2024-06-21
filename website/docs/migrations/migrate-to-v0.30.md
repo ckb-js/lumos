@@ -12,7 +12,6 @@ Methods / functions used to return a `Buffer` now returns a `Uint8Array`, e.g. I
 - export function privateToPublic(privateKey: Buffer | HexString): Buffer | HexString
 + export function privateToPublic(privateKey: Uint8Array | HexString): Uint8Array | HexString
 
-// @ckb-lumos/hd/mnemonic
 - export function mnemonicToSeedSync(mnemonic = "", password = ""): Buffer
 + export function mnemonicToSeedSync(mnemonic = "", password = ""): Uint8Array
 
