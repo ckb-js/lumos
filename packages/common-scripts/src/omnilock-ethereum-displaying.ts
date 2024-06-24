@@ -7,7 +7,7 @@ export interface Provider {
   request: {
     (payload: {
       method: "personal_sign";
-      params: [string /*from*/, string /*message*/];
+      params: [from: string, message: string];
     }): Promise<string>;
   };
 }
