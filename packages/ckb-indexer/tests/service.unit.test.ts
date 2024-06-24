@@ -17,6 +17,8 @@ test("should generateSearchKey works fine", async (t) => {
       outputCapacityRange: undefined,
       blockRange: undefined,
       scriptLenRange: undefined,
+      outputData: undefined,
+      outputDataFilterMode: undefined,
       outputDataLenRange: ["0x1", "0x2"],
     },
   };

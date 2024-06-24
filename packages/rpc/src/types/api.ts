@@ -1,10 +1,13 @@
 import type * as api from "@ckb-lumos/base";
+import { HexString } from "@ckb-lumos/base";
+import { RPC } from "./rpc";
 
 /**
  * @see https://github.com/nervosnetwork/ckb/blob/develop/protocol/src/protocol.fbs for more infGomation
  */
 /* eslint-disable  @typescript-eslint/no-namespace,  @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types  */
 export namespace CKBComponents {
+  import OutputDataFilterMode = RPC.OutputDataFilterMode;
   export type DAO = string;
   export type Hash = string;
   export type Number = string;
@@ -190,7 +193,7 @@ export namespace CKBComponents {
   export type ScriptType = "type" | "lock";
   export type Order = "asc" | "desc";
   export type IOType = "input" | "output" | "both";
-  export type ScriptSearchMode = "prefix" | "exact";
+  export type ScriptSearchMode = "prefix" | "exact" | "partial";
 
   export interface IndexerCell {
     blockNumber: BlockNumber;
@@ -252,6 +255,8 @@ export namespace CKBComponents {
   export interface SearchFilter {
     script?: Script;
     scriptLenRange?: HexadecimalRange;
+    outputData?: HexString;
+    outputDataFilterMode?: OutputDataFilterMode;
     outputDataLenRange?: HexadecimalRange; //empty
     outputCapacityRange?: HexadecimalRange; //empty
     blockRange?: HexadecimalRange; //fromBlock-toBlock

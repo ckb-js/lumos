@@ -450,12 +450,15 @@ export namespace RPC {
 
   export type HexadecimalRange = [string, string];
   export type ScriptType = "type" | "lock";
-  export type ScriptSearchMode = "prefix" | "exact";
+  export type ScriptSearchMode = "prefix" | "exact" | "partial";
+  export type OutputDataFilterMode = "prefix" | "exact" | "partial";
 
   export interface SearchFilter {
     script?: Script;
     output_data_len_range?: HexadecimalRange; //empty
     output_capacity_range?: HexadecimalRange; //empty
+    output_data?: HexString;
+    output_data_filter_mode?: OutputDataFilterMode;
     block_range?: HexadecimalRange; //fromBlock-toBlock
     script_len_range?: HexadecimalRange;
   }

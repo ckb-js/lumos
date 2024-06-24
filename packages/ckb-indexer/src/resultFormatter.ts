@@ -29,6 +29,8 @@ const toSearchFilter = (data: RPCType.SearchFilter): SearchFilter => {
     outputCapacityRange: data.output_capacity_range,
     scriptLenRange: data.script_len_range,
     blockRange: data.block_range,
+    outputData: data.output_data,
+    outputDataFilterMode: data.output_data_filter_mode,
   };
 };
 

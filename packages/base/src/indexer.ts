@@ -6,7 +6,7 @@ import { Hexadecimal, HexString } from "./primitive";
 import { Logger } from "./logger";
 import { isScriptWrapper } from "./helpers";
 
-export type SearchMode = "exact" | "prefix";
+export type SearchMode = "exact" | "prefix" | "partial";
 
 export type DataWithSearchMode = {
   searchMode: SearchMode;

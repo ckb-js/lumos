@@ -141,6 +141,7 @@ export class CKBCellCollector implements BaseCellCollector {
       if (queryLock) {
         if (instanceOfScriptWrapper(queryLock)) {
           validators.ValidateScript(queryLock.script);
+          query.scriptSearchMode = queryLock.searchMode;
           query.lock = queryLock.script;
         }
       }
@@ -152,18 +153,24 @@ export class CKBCellCollector implements BaseCellCollector {
           instanceOfScriptWrapper(query.type)
         ) {
           validators.ValidateScript(query.type.script);
+          query.scriptSearchMode = query.type.searchMode;
           query.type = query.type.script;
         }
       }
 
-      if (!query.outputDataLenRange) {
-        if (query.data && query.data !== "any") {
-          const dataLenRange = getHexStringBytes(unwrapDataWrapper(query.data));
-          query.outputDataLenRange = [
-            "0x" + dataLenRange.toString(16),
-            "0x" + (dataLenRange + 1).toString(16),
-          ];
-        }
+      // set data range to narrow the search result if the data is set
+      if (
+        !query.outputDataLenRange &&
+        query.data &&
+        query.data !== "any" &&
+        // the default data search filter mode is exact search that is the same as ckb-indexer
+        (typeof query.data === "string" || query.data.searchMode === "exact")
+      ) {
+        const dataLenRange = getHexStringBytes(unwrapDataWrapper(query.data));
+        query.outputDataLenRange = [
+          "0x" + dataLenRange.toString(16),
+          "0x" + (dataLenRange + 1).toString(16),
+        ];
       }
 
       if (!query.scriptLenRange && query.type === "empty") {
@@ -207,7 +214,10 @@ export class CKBCellCollector implements BaseCellCollector {
         "Content-Type": "application/json",
       },
     });
-    if (res.status !== 200) {
+
+    const HTTP_SUCCESS_STATUS = 200;
+
+    if (res.status !== HTTP_SUCCESS_STATUS) {
       throw new Error(`indexer request failed with HTTP code ${res.status}`);
     }
     const result = await res.json();

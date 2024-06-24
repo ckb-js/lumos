@@ -26,6 +26,7 @@ type LumosQueryOptions = Pick<
   | "outputDataLenRange"
   | "outputCapacityRange"
   | "scriptLenRange"
+  | "scriptSearchMode"
 >;
 
 /**
@@ -71,7 +72,7 @@ function convertQueryOptionToLumosSearchKey(
       scriptType: "lock",
       scriptSearchMode: instanceOfScriptWrapper(queryLock)
         ? queryLock.searchMode || "prefix"
-        : "prefix",
+        : queryOptions.scriptSearchMode || "prefix",
       filter: {},
     };
     searchKeyType && (searchKey.filter.script = searchKeyType);
@@ -81,7 +82,7 @@ function convertQueryOptionToLumosSearchKey(
       scriptType: "type",
       scriptSearchMode: instanceOfScriptWrapper(queryType)
         ? queryType.searchMode || "prefix"
-        : "prefix",
+        : queryOptions.scriptSearchMode || "prefix",
       filter: {},
     };
   } else {
@@ -139,9 +140,21 @@ function filterByLumosQueryOptions(
           .slice(0, expectPrefix.length);
         return bytes.equal(expectPrefix, actualPrefix);
       });
-    } else {
+    } else if (
+      instanceOfDataWithSearchMode(options.data) &&
+      options.data.searchMode === "partial"
+    ) {
+      const search: DataWithSearchMode = options.data;
+      filteredCells = filteredCells.filter((cell) =>
+        bytes.indexOf(cell.data, search.data)
+      );
+    } else if (
+      typeof options.data === "string" &&
+      options.data.startsWith("0x")
+    ) {
+      const searchBytes = options.data;
       filteredCells = filteredCells.filter((cell) => {
-        const expectPrefix = bytes.bytify(options.data as string);
+        const expectPrefix = bytes.bytify(searchBytes);
         const actualPrefix = bytes
           .bytify(cell.data)
           .slice(0, expectPrefix.length);
@@ -160,12 +173,11 @@ export function filterByLumosSearchKey(
   cell: Cell,
   searchKey: LumosSearchKey
 ): boolean {
-  const isExactMode = searchKey.scriptSearchMode === "exact";
   const { cellOutput } = cell;
   const { scriptType, script, filter } = searchKey;
 
   // Search mode
-  if (isExactMode) {
+  if (searchKey.scriptSearchMode === "exact") {
     if (scriptType === "lock") {
       if (
         !bytes.equal(
@@ -186,8 +198,19 @@ export function filterByLumosSearchKey(
         return false;
       }
     }
-    // Prefix mode
+    // partial mode
+  } else if (searchKey.scriptSearchMode === "partial") {
+    if (scriptType === "lock") {
+      if (!checkScriptWithPartialMode(cellOutput.lock, script)) {
+        return false;
+      }
+    } else {
+      if (!checkScriptWithPartialMode(cellOutput.type, script)) {
+        return false;
+      }
+    }
   } else {
+    // Prefix mode
     if (scriptType === "lock") {
       if (!checkScriptWithPrefixMode(cellOutput.lock, script)) {
         return false;
@@ -282,6 +305,24 @@ function checkScriptWithPrefixMode(
     return false;
   }
   return true;
+}
+
+function checkScriptWithPartialMode(
+  script: Script | undefined,
+  filterScript: Script
+): boolean {
+  if (!script) return false;
+
+  // codeHash should always be 32 bytes, so it only supports exact match mode
+  if (!bytes.equal(filterScript.codeHash, script.codeHash)) {
+    return false;
+  }
+
+  if (script.hashType !== filterScript.hashType) {
+    return false;
+  }
+
+  return bytes.indexOf(script.args, filterScript.args) > -1;
 }
 
 function checkScriptLenRange(
