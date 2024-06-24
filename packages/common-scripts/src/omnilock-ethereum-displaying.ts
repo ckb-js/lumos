@@ -38,7 +38,7 @@ export async function signMessage(
   const [tweakedV] = signature.slice(-1);
   // https://eips.ethereum.org/EIPS/eip-155
   const PARITY_FLAG = 27;
-  const v = tweakedV > PARITY_FLAG ? tweakedV - PARITY_FLAG : tweakedV;
+  const v = tweakedV >= PARITY_FLAG ? tweakedV - PARITY_FLAG : tweakedV;
   signature.set([v], signature.length - 1);
   return bytes.hexify(signature);
 }
