@@ -49,6 +49,7 @@ export type OmnilockInfo = {
 export type OmnilockAuth =
   | IdentityCkb
   | IdentityEthereum
+  | IdentityEthereumDisplaying
   | IdentityBitcoin
   | IdentitySolana;
 
@@ -65,6 +66,11 @@ export type IdentityEthereum = {
   /**
    * an Ethereum address, aka the public key hash
    */
+  content: BytesLike;
+};
+
+export type IdentityEthereumDisplaying = {
+  flag: "ETHEREUM-DISPLAYING";
   content: BytesLike;
 };
 
@@ -169,6 +175,14 @@ export function createOmnilockScript(
         return bytes.hexify(
           bytes.concat(
             [IdentityFlagsType.IdentityFlagsEthereum],
+            omnilockInfo.auth.content,
+            omnilockArgs
+          )
+        );
+      case "ETHEREUM-DISPLAYING":
+        return bytes.hexify(
+          bytes.concat(
+            [IdentityFlagsType.IdentityFlagsEthereumDisplaying],
             omnilockInfo.auth.content,
             omnilockArgs
           )
@@ -408,6 +422,7 @@ export async function setupInputCell(
 
         case IdentityFlagsType.IdentityFlagsCkb:
         case IdentityFlagsType.IdentityFlagsEthereum:
+        case IdentityFlagsType.IdentityFlagsEthereumDisplaying:
         case IdentityFlagsType.IdentityFlagsBitcoin: {
           return SECP256K1_SIGNATURE_PLACEHOLDER_LENGTH;
         }
@@ -456,6 +471,7 @@ export function prepareSigningEntries(
   return _prepareSigningEntries(txSkeleton, config, "OMNILOCK");
 }
 
+export * as ethereumDisplaying from "./omnilock-ethereum-displaying";
 export { bitcoin };
 export { solana };
 

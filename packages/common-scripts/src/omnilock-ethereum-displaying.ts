@@ -1,0 +1,51 @@
+import { BytesLike, bytes } from "@ckb-lumos/codec";
+import { hexify } from "@ckb-lumos/codec/lib/bytes";
+
+const COMMON_PREFIX = "CKB transaction: 0x";
+
+export interface Provider {
+  request: {
+    (payload: {
+      method: "personal_sign";
+      params: [string /*from*/, string /*message*/];
+    }): Promise<string>;
+  };
+}
+
+export async function signMessage(
+  address: string,
+  digest: BytesLike,
+  provider?: Provider
+): Promise<string> {
+  const internal: Provider = (() => {
+    if (provider) return provider;
+
+    /* c8 ignore start */
+    if (
+      typeof window !== "undefined" &&
+      "ethereum" in window &&
+      window.ethereum
+    ) {
+      return window.ethereum as Provider;
+    }
+
+    throw new Error(
+      "No provider found, make sure you have installed MetaMask or the other EIP1193 compatible wallet"
+    );
+    /* c8 ignore stop */
+  })();
+
+  const sig = await internal.request({
+    method: "personal_sign",
+    params: [address, `${COMMON_PREFIX}${hexify(digest).slice(2)}`],
+  });
+
+  const signature = bytes.bytify(sig);
+
+  const [tweakedV] = signature.slice(-1);
+  // https://eips.ethereum.org/EIPS/eip-155
+  const PARITY_FLAG = 27;
+  const v = tweakedV > PARITY_FLAG ? tweakedV - PARITY_FLAG : tweakedV;
+  signature.set([v], signature.length - 1);
+  return bytes.hexify(signature);
+}
