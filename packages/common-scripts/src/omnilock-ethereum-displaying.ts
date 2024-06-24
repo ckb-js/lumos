@@ -17,23 +17,14 @@ export async function signMessage(
   digest: BytesLike,
   provider?: Provider
 ): Promise<string> {
-  const internal: Provider = (() => {
-    if (provider) return provider;
+  const internal: Provider | undefined =
+    provider ?? (globalThis as { ethereum?: Provider }).ethereum;
 
-    /* c8 ignore start */
-    if (
-      typeof window !== "undefined" &&
-      "ethereum" in window &&
-      window.ethereum
-    ) {
-      return window.ethereum as Provider;
-    }
-
+  if (!internal) {
     throw new Error(
       "No provider found, make sure you have installed MetaMask or the other EIP1193 compatible wallet"
     );
-    /* c8 ignore stop */
-  })();
+  }
 
   const sig = await internal.request({
     method: "personal_sign",
