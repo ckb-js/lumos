@@ -1,5 +1,11 @@
 # @ckb-lumos/hd
 
+## 0.24.0
+
+### Minor Changes
+
+- [#721](https://github.com/ckb-js/lumos/pull/721) [`193ba6ad4096c31b5cf8f16e2e0249412b38a2c3`](https://github.com/ckb-js/lumos/commit/193ba6ad4096c31b5cf8f16e2e0249412b38a2c3) Thanks [@homura](https://github.com/homura)! - refactor: replace node crypto methods with @noble/hashes and @noble/ciphers
+
 ## 0.23.0
 
 ### Minor Changes
