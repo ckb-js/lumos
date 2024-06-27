@@ -3,7 +3,6 @@
 
 const lightCodeTheme = require("prism-react-renderer/themes/github")
 const darkCodeTheme = require("prism-react-renderer/themes/dracula")
-const webpack = require("webpack")
 const versioningBranchs = require("./versioning-branches")
 const remarkGithubAdmonitionsToDirectives = require("remark-github-admonitions-to-directives")
 
@@ -70,19 +69,6 @@ const config = {
           module: {
             rules: [{ test: /\.m?js/, resolve: { fullySpecified: false } }],
           },
-          resolve: {
-            fallback: {
-              crypto: require.resolve("crypto-browserify"),
-              buffer: require.resolve("buffer/"),
-              path: false,
-              fs: false,
-              stream: false,
-            },
-          },
-          plugins: [
-            new webpack.ProvidePlugin({ Buffer: ["buffer", "Buffer"] }),
-            new webpack.ProvidePlugin({ process: "process/browser" }),
-          ],
         }
       },
     }),
