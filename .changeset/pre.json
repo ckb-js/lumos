@@ -1,0 +1,30 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "@ckb-lumos/base": "0.23.0",
+    "@ckb-lumos/bi": "0.23.0",
+    "@ckb-lumos/ckb-indexer": "0.23.0",
+    "@ckb-lumos/codec": "0.23.0",
+    "@ckb-lumos/common-scripts": "0.23.0",
+    "@ckb-lumos/config-manager": "0.23.0",
+    "@ckb-lumos/crypto": "0.23.0",
+    "@ckb-lumos/debugger": "0.23.0",
+    "@ckb-lumos/e2e-test": "0.23.0",
+    "@ckb-lumos/experiment-tx-assembler": "0.23.0",
+    "@ckb-lumos/hd": "0.23.0",
+    "@ckb-lumos/hd-cache": "0.23.0",
+    "@ckb-lumos/helpers": "0.23.0",
+    "@ckb-lumos/joyid": "0.23.0",
+    "@ckb-lumos/light-client": "0.23.0",
+    "@ckb-lumos/lumos": "0.23.0",
+    "@ckb-lumos/molecule": "0.23.0",
+    "@ckb-lumos/rpc": "0.23.0",
+    "@ckb-lumos/runner": "0.23.0",
+    "@ckb-lumos/testkit": "0.23.0",
+    "@ckb-lumos/toolkit": "0.23.0",
+    "@ckb-lumos/transaction-manager": "0.23.0",
+    "@ckb-lumos/utils": "0.23.0"
+  },
+  "changesets": []
+}
