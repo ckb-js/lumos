@@ -181,6 +181,9 @@ importers:
         specifier: ^3.3.0
         version: 3.3.0
     devDependencies:
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
       '@ckb-lumos/testkit':
         specifier: 0.23.0
         version: link:../testkit
@@ -212,6 +215,9 @@ importers:
         specifier: 0.23.0
         version: link:../bi
     devDependencies:
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
       escape-string-regexp:
         specifier: ^4.0.0
         version: 4.0.0
@@ -233,6 +239,9 @@ importers:
       '@ckb-lumos/config-manager':
         specifier: 0.23.0
         version: link:../config-manager
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
       '@ckb-lumos/helpers':
         specifier: 0.23.0
         version: link:../helpers
@@ -261,15 +270,9 @@ importers:
       '@ethereumjs/util':
         specifier: ^9.0.3
         version: 9.0.3
-      '@types/keccak':
-        specifier: ^3.0.1
-        version: 3.0.4
       '@unisat/wallet-sdk':
         specifier: ^1.1.2
         version: 1.5.3
-      keccak:
-        specifier: ^3.0.1
-        version: 3.0.4
       tweetnacl:
         specifier: ^1.0.3
         version: 1.0.3
@@ -294,6 +297,19 @@ importers:
       deep-freeze-strict:
         specifier: ^1.1.1
         version: 1.1.1
+    devDependencies:
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
+
+  packages/crypto:
+    dependencies:
+      '@noble/ciphers':
+        specifier: ^0.5.3
+        version: 0.5.3
+      '@noble/hashes':
+        specifier: ^1.4.0
+        version: 1.4.0
 
   packages/debugger:
     dependencies:
@@ -309,6 +325,9 @@ importers:
       '@ckb-lumos/config-manager':
         specifier: 0.23.0
         version: link:../config-manager
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
       '@ckb-lumos/helpers':
         specifier: 0.23.0
         version: link:../helpers
@@ -364,6 +383,9 @@ importers:
       '@ckb-lumos/config-manager':
         specifier: 0.23.0
         version: link:../config-manager
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
       '@ckb-lumos/hd':
         specifier: 0.23.0
         version: link:../hd
@@ -440,18 +462,18 @@ importers:
       '@ckb-lumos/bi':
         specifier: 0.23.0
         version: link:../bi
+      '@ckb-lumos/codec':
+        specifier: 0.23.0
+        version: link:../codec
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
       bn.js:
         specifier: ^5.1.3
         version: 5.2.1
       elliptic:
         specifier: ^6.5.4
         version: 6.5.5
-      scrypt-js:
-        specifier: ^3.0.1
-        version: 3.0.1
-      sha3:
-        specifier: ^2.1.3
-        version: 2.1.4
       uuid:
         specifier: ^8.3.0
         version: 8.3.2
@@ -523,6 +545,10 @@ importers:
       immutable:
         specifier: ^4.3.0
         version: 4.3.5
+    devDependencies:
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
 
   packages/joyid:
     dependencies:
@@ -548,6 +574,9 @@ importers:
       '@ckb-lumos/bi':
         specifier: 0.23.0
         version: link:../bi
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
       sinon:
         specifier: ^15.0.4
         version: 15.2.0
@@ -606,6 +635,9 @@ importers:
       '@ckb-lumos/config-manager':
         specifier: 0.23.0
         version: link:../config-manager
+      '@ckb-lumos/crypto':
+        specifier: 0.23.0
+        version: link:../crypto
       '@ckb-lumos/hd':
         specifier: 0.23.0
         version: link:../hd
@@ -4328,6 +4360,10 @@ packages:
     dev: true
     optional: true
 
+  /@noble/ciphers@0.5.3:
+    resolution: {integrity: sha512-B0+6IIHiqEs3BPMT0hcRmHvEj2QHOLu+uwt+tqDDeVd0oyVzh7BPrDcPjRnV1PV/5LaknXJJQvOuRGR0zQJz+w==}
+    dev: false
+
   /@noble/curves@1.4.0:
     resolution: {integrity: sha512-p+4cb332SFCrReJkCYe8Xzm0OWi4Jji5jVdIZRL/PmacmDkFNw6MrrV+gGpiPxLHbV+zKFRywUWbaseT+tZRXg==}
     dependencies:
@@ -4337,7 +4373,6 @@ packages:
   /@noble/hashes@1.4.0:
     resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
     engines: {node: '>= 16'}
-    dev: true
 
   /@noble/secp256k1@1.7.1:
     resolution: {integrity: sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==}
@@ -4929,12 +4964,6 @@ packages:
 
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
-    dev: true
-
-  /@types/keccak@3.0.4:
-    resolution: {integrity: sha512-hdnkmbie7tE0yXnQQvlIOqCyjEsoXDVEZ3ACqO+F305XgUOW4Z9ElWdogCXXRAW/khnZ7GxM0t/BGB5bORKt/g==}
-    dependencies:
-      '@types/node': 20.12.8
     dev: true
 
   /@types/keyv@3.1.4:
@@ -6438,13 +6467,6 @@ packages:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
-
-  /buffer@6.0.3:
-    resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
-    dependencies:
-      base64-js: 1.5.1
-      ieee754: 1.2.1
-    dev: false
 
   /bytes@3.0.0:
     resolution: {integrity: sha512-pMhOfFDPiv9t5jjIXkHosWmkSyQbvsgEVNkz0ERHbuLh2T/7j4Mqqpz523Fe8MVY89KC6Sh/QfS2sM+SjgFDcw==}
@@ -11314,16 +11336,6 @@ packages:
       commander: 8.3.0
     dev: true
 
-  /keccak@3.0.4:
-    resolution: {integrity: sha512-3vKuW0jV8J3XNTzvfyicFR5qvxrSAGl7KIhvgOu5cmWwM7tZRj3fMbj/pfIf4be7aznbc+prBWGjywox/g2Y6Q==}
-    engines: {node: '>=10.0.0'}
-    requiresBuild: true
-    dependencies:
-      node-addon-api: 2.0.2
-      node-gyp-build: 4.8.1
-      readable-stream: 3.6.2
-    dev: true
-
   /keyv@3.0.0:
     resolution: {integrity: sha512-eguHnq22OE3uVoSYG0LVWNP+4ppamWr9+zWBe1bsNcovIMy6huUJFPgy4mGwCd/rnl3vOLGW1MTlu4c57CT1xA==}
     dependencies:
@@ -14813,10 +14825,6 @@ packages:
       ajv-formats: 2.1.1(ajv@8.13.0)
       ajv-keywords: 5.1.0(ajv@8.13.0)
 
-  /scrypt-js@3.0.1:
-    resolution: {integrity: sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==}
-    dev: false
-
   /search-insights@2.13.0:
     resolution: {integrity: sha512-Orrsjf9trHHxFRuo9/rzm0KIWmgzE8RMlZMzuhZOJ01Rnz3D0YBAe+V6473t6/H6c7irs6Lt48brULAiRWb3Vw==}
     dev: false
@@ -14998,12 +15006,6 @@ packages:
       inherits: 2.0.4
       safe-buffer: 5.2.1
     dev: true
-
-  /sha3@2.1.4:
-    resolution: {integrity: sha512-S8cNxbyb0UGUM2VhRD4Poe5N58gJnJsLJ5vC7FYWGUmGhcsj4++WaIOBFVDxlG0W3To6xBuiRh+i0Qp2oNCOtg==}
-    dependencies:
-      buffer: 6.0.3
-    dev: false
 
   /shallow-clone@3.0.1:
     resolution: {integrity: sha512-/6KqX+GVUdqPuPPd2LxDDxzX6CAbjJehAAOKlNpqqUpAqPM6HeL8f+o3a+JsyGjn2lv0WY8UsTgUJjU9Ok55NA==}
