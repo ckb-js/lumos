@@ -27,8 +27,8 @@
     "@ckb-lumos/helpers": "0.23.0",
     "@ckb-lumos/rpc": "0.23.0",
     "@ckb-lumos/toolkit": "0.23.0",
-    "bs58": "^5.0.0",
     "bech32": "^2.0.0",
+    "bs58": "^5.0.0",
     "immutable": "^4.3.0"
   },
   "repository": {
@@ -59,6 +59,7 @@
     "@ckb-lumos/crypto": "0.23.0",
     "@ckb-lumos/debugger": "0.23.0",
     "@ckb-lumos/hd": "0.23.0",
+    "@ethereumjs/util": "^9.0.3",
     "@unisat/wallet-sdk": "^1.1.2",
     "tweetnacl": "^1.0.3"
   },
