@@ -3,4 +3,4 @@
 "@ckb-lumos/hd": minor
 ---
 
-refactor: replace node crypto methods with @noble/hashes and @noble/ciphers
+**BREAKING CHANGE**: replace node modules with the cross-runtime library
