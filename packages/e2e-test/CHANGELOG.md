@@ -1,5 +1,7 @@
 # @ckb-lumos/e2e-test
 
+## 0.24.0-next.0
+
 ## 0.23.0
 
 ## 0.23.0-next.1

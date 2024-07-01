@@ -1,5 +1,7 @@
 # @ckb-lumos/codec
 
+## 0.24.0-next.0
+
 ## 0.23.0
 
 ### Patch Changes

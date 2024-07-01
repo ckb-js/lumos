@@ -26,5 +26,12 @@
     "@ckb-lumos/transaction-manager": "0.23.0",
     "@ckb-lumos/utils": "0.23.0"
   },
-  "changesets": []
+  "changesets": [
+    "angry-rabbits-refuse",
+    "calm-crews-doubt",
+    "gorgeous-yaks-notice",
+    "green-pumpkins-build",
+    "lemon-tomatoes-pay",
+    "tough-beers-roll"
+  ]
 }

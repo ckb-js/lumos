@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/common-scripts",
-  "version": "0.23.0",
+  "version": "0.24.0-next.0",
   "description": "Common script support in lumos",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -19,14 +19,14 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "0.23.0",
-    "@ckb-lumos/bi": "0.23.0",
-    "@ckb-lumos/codec": "0.23.0",
-    "@ckb-lumos/crypto": "0.23.0",
-    "@ckb-lumos/config-manager": "0.23.0",
-    "@ckb-lumos/helpers": "0.23.0",
-    "@ckb-lumos/rpc": "0.23.0",
-    "@ckb-lumos/toolkit": "0.23.0",
+    "@ckb-lumos/base": "0.24.0-next.0",
+    "@ckb-lumos/bi": "0.24.0-next.0",
+    "@ckb-lumos/codec": "0.24.0-next.0",
+    "@ckb-lumos/crypto": "0.24.0-next.0",
+    "@ckb-lumos/config-manager": "0.24.0-next.0",
+    "@ckb-lumos/helpers": "0.24.0-next.0",
+    "@ckb-lumos/rpc": "0.24.0-next.0",
+    "@ckb-lumos/toolkit": "0.24.0-next.0",
     "bech32": "^2.0.0",
     "bs58": "^5.0.0",
     "immutable": "^4.3.0"
@@ -56,9 +56,9 @@
     ]
   },
   "devDependencies": {
-    "@ckb-lumos/crypto": "0.23.0",
-    "@ckb-lumos/debugger": "0.23.0",
-    "@ckb-lumos/hd": "0.23.0",
+    "@ckb-lumos/crypto": "0.24.0-next.0",
+    "@ckb-lumos/debugger": "0.24.0-next.0",
+    "@ckb-lumos/hd": "0.24.0-next.0",
     "@ethereumjs/util": "^9.0.3",
     "@unisat/wallet-sdk": "^1.1.2",
     "tweetnacl": "^1.0.3"

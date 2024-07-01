@@ -1,5 +1,11 @@
 # @ckb-lumos/base
 
+## 0.24.0-next.0
+
+### Minor Changes
+
+- [#711](https://github.com/ckb-js/lumos/pull/711) [`b37050219988debffa7888b9b739edd485109d5f`](https://github.com/ckb-js/lumos/commit/b37050219988debffa7888b9b739edd485109d5f) Thanks [@homura](https://github.com/homura)! - **BREAKING CHANGE**: remove unused `isDeepEqual` function to reduce the package size
+
 ## 0.23.0
 
 ### Minor Changes

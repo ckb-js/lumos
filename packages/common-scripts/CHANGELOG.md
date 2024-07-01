@@ -1,5 +1,15 @@
 # @ckb-lumos/common-scripts
 
+## 0.24.0-next.0
+
+### Minor Changes
+
+- [#710](https://github.com/ckb-js/lumos/pull/710) [`43a7bc7ea6d44df3fd758ded467b0c2aeef78d12`](https://github.com/ckb-js/lumos/commit/43a7bc7ea6d44df3fd758ded467b0c2aeef78d12) Thanks [@homura](https://github.com/homura)! - **BREAKING CHANGE**: default `generateDeployWithDataTx` to `data1` since `data2` is not active
+
+- [#699](https://github.com/ckb-js/lumos/pull/699) [`f2f5666f0f8e9e0bf5aec4023abecd0a6c0ddc8b`](https://github.com/ckb-js/lumos/commit/f2f5666f0f8e9e0bf5aec4023abecd0a6c0ddc8b) Thanks [@homura](https://github.com/homura)! - **BREAKING CHANGE**: `createOmnilockScript` uses the `allows` option to restrict allowed btc addresses
+
+- [#718](https://github.com/ckb-js/lumos/pull/718) [`d279b87c5f843f07f77b11923e6659025f1f8bdd`](https://github.com/ckb-js/lumos/commit/d279b87c5f843f07f77b11923e6659025f1f8bdd) Thanks [@homura](https://github.com/homura)! - feat: support eth displaying auth mode for omnilock
+
 ## 0.23.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@ckb-lumos/ckb-indexer",
-  "version": "0.23.0",
+  "version": "0.24.0-next.0",
   "description": "CKB Indexer",
   "author": "Xuejie Xiao <xxuejie@gmail.com>",
   "homepage": "https://github.com/ckb-js/lumos#readme",
@@ -19,17 +19,17 @@
     "src"
   ],
   "dependencies": {
-    "@ckb-lumos/base": "0.23.0",
-    "@ckb-lumos/bi": "0.23.0",
-    "@ckb-lumos/codec": "0.23.0",
-    "@ckb-lumos/rpc": "0.23.0",
-    "@ckb-lumos/toolkit": "0.23.0",
+    "@ckb-lumos/base": "0.24.0-next.0",
+    "@ckb-lumos/bi": "0.24.0-next.0",
+    "@ckb-lumos/codec": "0.24.0-next.0",
+    "@ckb-lumos/rpc": "0.24.0-next.0",
+    "@ckb-lumos/toolkit": "0.24.0-next.0",
     "cross-fetch": "^3.1.5",
     "events": "^3.3.0"
   },
   "devDependencies": {
-    "@ckb-lumos/crypto": "0.23.0",
-    "@ckb-lumos/testkit": "0.23.0",
+    "@ckb-lumos/crypto": "0.24.0-next.0",
+    "@ckb-lumos/testkit": "0.24.0-next.0",
     "@types/lodash.uniqby": "^4.7.7",
     "@types/request": "^2.48.8",
     "@types/sinon": "^10.0.6",
