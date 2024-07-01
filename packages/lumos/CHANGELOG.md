@@ -1,5 +1,13 @@
 # @ckb-lumos/lumos
 
+## 0.24.0-next.0
+
+### Minor Changes
+
+- [#718](https://github.com/ckb-js/lumos/pull/718) [`d279b87c5f843f07f77b11923e6659025f1f8bdd`](https://github.com/ckb-js/lumos/commit/d279b87c5f843f07f77b11923e6659025f1f8bdd) Thanks [@homura](https://github.com/homura)! - feat: support eth displaying auth mode for omnilock
+
+- [#721](https://github.com/ckb-js/lumos/pull/721) [`193ba6ad4096c31b5cf8f16e2e0249412b38a2c3`](https://github.com/ckb-js/lumos/commit/193ba6ad4096c31b5cf8f16e2e0249412b38a2c3) Thanks [@homura](https://github.com/homura)! - feat: add crypto.randomBytes to replace Node's crypto.randomBytes
+
 ## 0.23.0
 
 ### Minor Changes
