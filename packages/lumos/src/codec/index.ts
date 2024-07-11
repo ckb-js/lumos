@@ -65,4 +65,4 @@ export {
   isFixedCodec,
 } from "@ckb-lumos/codec";
 
-export { blockchain } from "@ckb-lumos/base";
+export * as blockchain from "./blockchain";
