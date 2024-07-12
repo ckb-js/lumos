@@ -1,6 +1,6 @@
 *
 !src
-!src/*
+!src/**/*
 !.gitignore
 !.npmignore
 !CHANGELOG.md
