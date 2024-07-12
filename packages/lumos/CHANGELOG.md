@@ -1,5 +1,13 @@
 # @ckb-lumos/lumos
 
+## 0.24.0-next.1
+
+### Minor Changes
+
+- [#729](https://github.com/ckb-js/lumos/pull/729) [`8b10ade074eaa6af544b9d7d9a090ccf7020b33a`](https://github.com/ckb-js/lumos/commit/8b10ade074eaa6af544b9d7d9a090ccf7020b33a) Thanks [@homura](https://github.com/homura)! - feat: export some missing modules
+
+- [#729](https://github.com/ckb-js/lumos/pull/729) [`8b10ade074eaa6af544b9d7d9a090ccf7020b33a`](https://github.com/ckb-js/lumos/commit/8b10ade074eaa6af544b9d7d9a090ccf7020b33a) Thanks [@homura](https://github.com/homura)! - feat: added `bi`, `base`, `ckb-indexer`, `hd`, `light-client` as subpackages to make import more fine-grained
+
 ## 0.24.0-next.0
 
 ### Minor Changes
