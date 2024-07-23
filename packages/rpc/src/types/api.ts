@@ -25,7 +25,7 @@ export namespace CKBComponents {
   export type Nonce = string;
   export type Cycles = string;
   export type Size = string;
-  export type OutputsValidator = "default" | "passthrough" | undefined;
+  export type OutputsValidator = "well_known_scripts_only" | "passthrough" | undefined;
   export type RationalU256 = Record<"denom" | "numer", string>;
   export type ProposalWindow = Record<"closest" | "farthest", BlockNumber>;
   export type EpochNumberWithFraction = string;
