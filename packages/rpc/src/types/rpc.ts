@@ -549,4 +549,9 @@ export namespace RPC {
     is_initial_block_download: boolean;
     alerts: Vec<AlertMessage>;
   }
+
+  export interface EntryCompleted {
+    cycles: Cycles;
+    fee: Capacity;
+  }
 }

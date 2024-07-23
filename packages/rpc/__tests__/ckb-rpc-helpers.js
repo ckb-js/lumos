@@ -33,7 +33,7 @@ describe('ckb-rpc settings and helpers', () => {
   })
 
   it('has 47 basic rpc', () => {
-    expect(Object.values(rpc)).toHaveLength(47)
+    expect(Object.values(rpc)).toHaveLength(48)
   })
 
   it('set node url to http://test.localhost:8114', () => {

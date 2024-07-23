@@ -38,7 +38,7 @@ export namespace CKBComponents {
     Proposed = "proposed",
     Committed = "committed",
   }
-
+  export type Cycle = string;
   export type ScriptHashType = api.HashType;
 
   export type DepType = "code" | "depGroup";
@@ -319,6 +319,12 @@ export namespace CKBComponents {
   }
 
   export type DeploymentPos = api.DeploymentPos;
+
+  export interface EntryCompleted {
+    cycles: Cycle;
+    /// Cached tx fee
+    fee: Capacity;
+  }
   export type DeploymentState = api.DeploymentState;
   export type DeploymentInfo = api.DeploymentInfo;
   export type DeploymentsInfo = api.DeploymentsInfo;

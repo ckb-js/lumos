@@ -139,7 +139,10 @@ const toTip = (tip: RPC.Tip): CKBComponents.Tip => ({
 
 function isBlockWithCycles(value: unknown): value is BlockWithCycles {
   return (
-    !!value && typeof value === "object" && "block" in value && "cycles" in value
+    !!value &&
+    typeof value === "object" &&
+    "block" in value &&
+    "cycles" in value
   );
 }
 

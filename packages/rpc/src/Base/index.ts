@@ -536,6 +536,11 @@ export interface Base {
   ) => Promise<CKBComponents.FeeRateStatistics>;
 
   getDeploymentsInfo: () => Promise<CKBComponents.DeploymentsInfo>;
+
+  testTxPoolAccept: (
+    tx: CKBComponents.RawTransaction,
+    outputsValidator?: CKBComponents.OutputsValidator
+  ) => Promise<CKBComponents.EntryCompleted>;
 }
 
 export class Base {
