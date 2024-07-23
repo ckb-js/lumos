@@ -643,7 +643,7 @@ const toRawTxPool = (rawTxPool: RPC.RawTxPool): CKBComponents.RawTxPool => {
     pending[hash] = toTxVerbosity(rawTxPool.pending[hash]);
   });
 
-  return { proposed, pending };
+  return { proposed, pending, conflicted: rawTxPool.conflicted };
 };
 
 const toIndexerCell = (

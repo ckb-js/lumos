@@ -330,10 +330,15 @@ export namespace RPC {
     ancestors_count: Count;
   }
 
-  export type TxPoolVerbosity = Record<
-    "pending" | "proposed",
-    Record<Hash256, TxVerbosity>
-  >;
+  export interface TxPoolVerbosity {
+    pending: {
+      [key: string]: TxVerbosity;
+    };
+    proposed: {
+      [key: string]: TxVerbosity;
+    };
+    conflicted: Hash[];
+  }
 
   export type RawTxPool = TxPoolIds | TxPoolVerbosity;
 
