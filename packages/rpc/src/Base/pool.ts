@@ -27,4 +27,12 @@ export default {
     paramsFormatters: [],
     resultFormatters: resultFmts.toRawTxPool,
   },
+
+  testTxPoolAccept: {
+    method: "test_tx_pool_accept",
+    paramsFormatters: [
+      paramsFmts.toRawTransaction,
+      paramsFmts.toOutputsValidator,
+    ],
+  },
 };

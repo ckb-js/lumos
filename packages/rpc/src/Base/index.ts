@@ -483,11 +483,13 @@ export interface Base {
    */
   getForkBlock(
     blockHash: CKBComponents.Hash256,
-    verbosity?: 2n | "0x2"
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    verbosity?: 2 | 2n | "0x2"
   ): Promise<CKBComponents.BlockView | null>;
   getForkBlock(
     blockHash: CKBComponents.Hash256,
-    verbosity: 0n | "0x0"
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    verbosity: 0 | 0n | "0x0"
   ): Promise<CKBComponents.SerializedBlock | null>;
 
   /**
@@ -534,6 +536,11 @@ export interface Base {
   ) => Promise<CKBComponents.FeeRateStatistics>;
 
   getDeploymentsInfo: () => Promise<CKBComponents.DeploymentsInfo>;
+
+  testTxPoolAccept: (
+    tx: CKBComponents.RawTransaction,
+    outputsValidator?: CKBComponents.OutputsValidator
+  ) => Promise<CKBComponents.EntryCompleted>;
 }
 
 export class Base {

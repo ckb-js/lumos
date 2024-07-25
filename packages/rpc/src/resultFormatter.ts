@@ -1,4 +1,3 @@
-/* eslint-disable camelcase, @typescript-eslint/no-explicit-any */
 import { CKBComponents } from "./types/api";
 import { RPC } from "./types/rpc";
 
@@ -138,18 +137,27 @@ const toTip = (tip: RPC.Tip): CKBComponents.Tip => ({
   blockNumber: tip.block_number,
 });
 
+function isBlockWithCycles(value: unknown): value is BlockWithCycles {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "block" in value &&
+    "cycles" in value
+  );
+}
+
 type BlockWithCycles = { block: RPC.Block | string; cycles: string[] };
 function toBlock(block: string): string;
 function toBlock(block: RPC.Block): CKBComponents.Block;
 function toBlock<T extends BlockWithCycles>(block: T): T;
-function toBlock(res: string | RPC.Block | BlockWithCycles): any {
+function toBlock(res: string | RPC.Block | BlockWithCycles): unknown {
   if (!res) return res;
   if (typeof res === "string") return res;
 
-  if ("block" in res && "cycles" in res) {
+  if (isBlockWithCycles(res)) {
     return {
       cycles: res.cycles,
-      block: toBlock(res.block as any),
+      block: toBlock(res.block as RPC.Block),
     };
   }
 
@@ -643,7 +651,7 @@ const toRawTxPool = (rawTxPool: RPC.RawTxPool): CKBComponents.RawTxPool => {
     pending[hash] = toTxVerbosity(rawTxPool.pending[hash]);
   });
 
-  return { proposed, pending };
+  return { proposed, pending, conflicted: rawTxPool.conflicted };
 };
 
 const toIndexerCell = (
@@ -881,4 +889,3 @@ export {
   toDeploymentInfo,
   toDeploymentsInfo,
 };
-/* eslint-enable camelcase */

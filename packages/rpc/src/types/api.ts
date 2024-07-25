@@ -25,7 +25,10 @@ export namespace CKBComponents {
   export type Nonce = string;
   export type Cycles = string;
   export type Size = string;
-  export type OutputsValidator = "default" | "passthrough" | undefined;
+  export type OutputsValidator =
+    | "well_known_scripts_only"
+    | "passthrough"
+    | undefined;
   export type RationalU256 = Record<"denom" | "numer", string>;
   export type ProposalWindow = Record<"closest" | "farthest", BlockNumber>;
   export type EpochNumberWithFraction = string;
@@ -35,7 +38,7 @@ export namespace CKBComponents {
     Proposed = "proposed",
     Committed = "committed",
   }
-
+  export type Cycle = string;
   export type ScriptHashType = api.HashType;
 
   export type DepType = "code" | "depGroup";
@@ -316,6 +319,12 @@ export namespace CKBComponents {
   }
 
   export type DeploymentPos = api.DeploymentPos;
+
+  export interface EntryCompleted {
+    cycles: Cycle;
+    /// Cached tx fee
+    fee: Capacity;
+  }
   export type DeploymentState = api.DeploymentState;
   export type DeploymentInfo = api.DeploymentInfo;
   export type DeploymentsInfo = api.DeploymentsInfo;

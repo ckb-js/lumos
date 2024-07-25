@@ -322,8 +322,8 @@
       "expected": "undefined"
     },
     {
-      "param": "default",
-      "expected": "default"
+      "param": "well_known_scripts_only",
+      "expected": "well_known_scripts_only"
     },
     {
       "param": "passthrough",
@@ -335,7 +335,7 @@
     },
     {
       "param": "unknown",
-      "exception": "Expect outputs validator to be 'default' or 'passthrough'"
+      "exception": "Expect outputs validator to be 'well_known_scripts_only' or 'passthrough'"
     }
   ],
   "toBoolean": [

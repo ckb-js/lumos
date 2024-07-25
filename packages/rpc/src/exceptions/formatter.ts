@@ -25,7 +25,9 @@ export class OutputsValidatorTypeException extends TypeError {
   code = ErrorCode.ParameterInvalid;
 
   constructor() {
-    super(`Expect outputs validator to be 'default' or 'passthrough'`);
+    super(
+      `Expect outputs validator to be 'well_known_scripts_only' or 'passthrough'`
+    );
   }
 }
 
