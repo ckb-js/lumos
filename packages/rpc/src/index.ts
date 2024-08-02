@@ -1,5 +1,5 @@
 import { Base } from "./Base";
-import { Method } from "./method";
+import { JSONValue, Method } from "./method";
 import { CKBComponents } from "./types/api";
 import { formatter as paramsFormatter } from "./paramsFormatter";
 import * as resultFormatter from "./resultFormatter";
@@ -85,7 +85,7 @@ export class CKBRPC extends Base {
   /* eslint-disable */
   public createBatchRequest = <
     N extends keyof Base,
-    P extends (string | number | object)[],
+    P extends JSONValue[],
     R = any[]
   >(
     params: [method: N, ...rest: P][] = []
