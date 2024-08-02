@@ -2,4 +2,4 @@
 "@ckb-lumos/rpc": minor
 ---
 
-refactor: added null and bollean for batch client
+refactor: added null and boolean for batch client
