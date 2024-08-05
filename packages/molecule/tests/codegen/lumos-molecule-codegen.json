@@ -1,0 +1,4 @@
+{
+  "schemaFile": "types.mol",
+  "prepend": "import { Table0 } from './customization'"
+}

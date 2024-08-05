@@ -119,5 +119,5 @@ function outputSingleToConsole(schemaFile: string) {
     codegenOption
   );
 
-  console.log(generated);
+  console.log(generated.code);
 }

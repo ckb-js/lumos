@@ -198,12 +198,9 @@ export function codegen(schema: string, options: Options = {}): CodegenResult {
 import { bytes, createBytesCodec, createFixedBytesCodec, molecule } from "@ckb-lumos/codec";
 ${options.prepend || ""}
 
-const { array, vector, union, option, struct, table } = molecule;
+const { array, vector, union, option, struct, table, byteVecOf } = molecule;
 
-const fallbackBytesCodec = createBytesCodec({
-  pack: bytes.bytify,
-  unpack: bytes.hexify,
-});
+const fallbackBytesCodec = byteVecOf({ pack: bytes.bytify, unpack: bytes.hexify });
 
 function createFallbackFixedBytesCodec(byteLength: number) {
   return createFixedBytesCodec({
