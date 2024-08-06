@@ -44,24 +44,21 @@
     "build": "pnpm run build:types && pnpm run build:js",
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s && pnpm run build:old",
-    "build:old": "shx mkdir -p lib/grammar && shx cp -r src/grammar/*.js lib/grammar ",
-    "clean": "rm -rf lib"
+    "build:old": "shx mkdir -p lib/grammar && shx cp -r src/grammar/*.js lib/grammar",
+    "clean": "rm -rf lib",
+    "generate:grammar": "peggy -o ./src/grammar/grammar.js ./src/grammar/grammar.peggy",
+    "generate:test-mol": "cd tests/codegen && node ../../lib/cli > generated.ts"
   },
   "dependencies": {
-    "@ckb-lumos/bi": "0.24.0-next.1",
     "@ckb-lumos/codec": "0.24.0-next.1",
-    "@types/moo": "^0.5.9",
-    "@types/nearley": "^2.11.2",
     "glob": "^10.3.10",
-    "minimist": "^1.2.8",
-    "moo": "^0.5.1",
-    "nearley": "^2.20.1",
     "relative": "^3.0.2"
   },
   "devDependencies": {
     "@ckb-lumos/base": "0.24.0-next.1",
-    "jsbi": "^4.1.0",
+    "@types/js-yaml": "^4.0.9",
     "js-yaml": "^4.1.0",
-    "@types/js-yaml": "^4.0.9"
+    "jsbi": "^4.1.0",
+    "peggy": "^4.0.3"
   }
 }

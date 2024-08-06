@@ -1,4 +1,3 @@
-import { Parser as NearleyParser, Grammar as NearleyGrammar } from "nearley";
 import { createCodecMap } from "./codec";
 import {
   Struct,
@@ -14,9 +13,7 @@ import {
 } from "./type";
 import { nonNull, toMolTypeMap } from "./utils";
 import { Uint32 } from "@ckb-lumos/codec/lib/number";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const grammar = require("./grammar/mol.js");
+import grammar from "./grammar/grammar";
 
 export const createParser = (): Parser => {
   return {
@@ -27,11 +24,7 @@ export const createParser = (): Parser => {
         skipDependenciesCheck: false,
       }
     ) => {
-      const parser = new NearleyParser(NearleyGrammar.fromCompiled(grammar));
-      parser.feed(data);
-      const results = parser.results[0].filter(
-        (result: MolType | null) => !!result
-      ) as MolType[];
+      const { declares: results } = grammar.parse(data);
       validateParserResults(results, option);
       return createCodecMap(results, option.refs);
     },

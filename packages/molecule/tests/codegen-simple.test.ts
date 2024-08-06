@@ -14,15 +14,15 @@ import test from "ava";
 import path from "node:path";
 import * as fs from "node:fs";
 import { load } from "js-yaml";
-import * as generated from "./generated";
+import * as generated from "./codegen/generated";
 import { AnyCodec, bytes } from "@ckb-lumos/codec";
 
-test("Test codegen examples", () => {
+test("Test with simple.yaml molecule vector", (t) => {
   const yamlItems = load(
-    fs.readFileSync(path.join(__dirname, "tests/simple.yaml")).toString()
+    fs.readFileSync(path.join(__dirname, "codegen/simple.yaml")).toString()
   ) as any[];
 
-  const x = yamlItems.map((testCase) => {
+  const cases = yamlItems.map((testCase) => {
     let data: object | string[] | undefined = undefined;
     if (Array.isArray(testCase.data)) {
       data = testCase.data.map((dataItem: any) =>
@@ -61,9 +61,14 @@ test("Test codegen examples", () => {
     };
   });
 
-  x.forEach(({ name, expected }) => {
+  cases.forEach(({ name, expected }) => {
     // eslint-disable-next-line import/namespace
-    const c = generated[name] as AnyCodec;
-    console.log(bytes.equal(c.pack(c.unpack(expected)), expected));
+    const generatedCodec = generated[name] as AnyCodec;
+    t.true(
+      bytes.equal(
+        generatedCodec.pack(generatedCodec.unpack(expected)),
+        expected
+      )
+    );
   });
 });
