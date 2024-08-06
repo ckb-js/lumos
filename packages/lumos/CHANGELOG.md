@@ -1,5 +1,11 @@
 # @ckb-lumos/lumos
 
+## 0.24.0-next.2
+
+### Minor Changes
+
+- [#738](https://github.com/ckb-js/lumos/pull/738) [`ae45845ed25fbe78c5ab9a4ee42f1647b7405670`](https://github.com/ckb-js/lumos/commit/ae45845ed25fbe78c5ab9a4ee42f1647b7405670) Thanks [@homura](https://github.com/homura)! - feat: export missing `HashType`, `Byte32` and `DepType` for `blockchain`
+
 ## 0.24.0-next.1
 
 ### Minor Changes
