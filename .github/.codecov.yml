@@ -35,3 +35,4 @@ comment:
 ignore:
   - "packages/base/lib/core.js"
   - "**/blockchain.umd.js"
+  - "packages/molecule/src/grammar/grammar.js"

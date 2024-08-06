@@ -107,6 +107,9 @@ vector StructPVec <StructP>;
 vector BytesVec <Bytes>;
 vector WordsVec <Words>;
 
+table Table0 {
+}
+
 table Table1 {
     f1: byte,
 }
