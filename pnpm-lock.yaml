@@ -675,6 +675,9 @@ importers:
       '@ckb-lumos/base':
         specifier: 0.24.0-next.1
         version: link:../base
+      '@ckb-lumos/bi':
+        specifier: 0.24.0-next.1
+        version: link:../bi
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
