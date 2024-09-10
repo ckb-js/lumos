@@ -5,9 +5,9 @@
 ![license](https://img.shields.io/github/license/ckb-js/lumos)
 ![Lumos](./assets/lumos.jpg)
 
-> Lumos is still under active development and considered to be a work in progress.
-
-Lumos is a full featured JavaScript/TypeScript based dapp framework for Nervos CKB. It aims to simplify dapp development on Nervos CKB. The [name](https://harrypotter.fandom.com/wiki/Lumos_Maxima) explains what the project is about: the wonderland of CKB, though vast and fertile, still remains dark in most of the parts, lumos tries to shed light upon the land, guiding people into this beautiful new world.
+> [!NOTE]  
+> It’s highly recommended to use the [CCC SDK](https://github.com/ckb-ecofund/ccc) as your primary development tool within the CKB ecosystem. [CCC](https://github.com/ckb-ecofund/ccc) is the latest and most robust JavaScript SDK designed to streamline and enhance your development process. By choosing [CCC](https://github.com/ckb-ecofund/ccc), you'll be leveraging the best practices and most up-to-date features available for CKB development.
+> To get started with [CCC](https://github.com/ckb-ecofund/ccc), follow the [installation guide](https://github.com/ckb-ecofund/ccc#installing) and explore the [documentation](https://docs.ckbccc.com/) to integrate it seamlessly into your projects.
 
 As of now, lumos contains the following components:
 
