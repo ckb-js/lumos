@@ -1,9 +1,10 @@
-import crypto from "crypto";
-import { Keccak } from "sha3";
 import { v4 as uuid } from "uuid";
-import { ExtendedPrivateKey } from "./extended_key";
+import { bytes } from "@ckb-lumos/codec";
 import { HexString } from "@ckb-lumos/base";
-import { syncScrypt } from "scrypt-js";
+import { ctr, scrypt, keccak256, randomBytes } from "@ckb-lumos/crypto";
+import { ExtendedPrivateKey } from "./extended_key";
+
+const { bytify, concat, hexify } = bytes;
 
 export type HexStringWithoutPrefix = string;
 
@@ -28,26 +29,33 @@ export class InvalidKeystore extends Error {
 const CIPHER = "aes-128-ctr";
 const CKB_CLI_ORIGIN = "ckb-cli";
 
-interface CipherParams {
+type CipherParams = {
   iv: HexStringWithoutPrefix;
-}
+};
 
-interface KdfParams {
+type KdfParams = {
   dklen: number;
   n: number;
   r: number;
   p: number;
   salt: HexStringWithoutPrefix;
-}
+};
 
-interface Crypto {
+type Crypto = {
   cipher: string;
   cipherparams: CipherParams;
   ciphertext: HexStringWithoutPrefix;
   kdf: string;
   kdfparams: KdfParams;
   mac: HexStringWithoutPrefix;
-}
+};
+
+type ScryptOptions = {
+  N: number;
+  r: number;
+  p: number;
+  maxmem: number;
+};
 
 // The parameter r ("blockSize")
 //    specifies the block size.
@@ -94,11 +102,11 @@ export default class Keystore {
   // Create an empty keystore object that contains empty private key
   static createEmpty(): Keystore {
     const saltSize = 32;
-    const salt: Buffer = crypto.randomBytes(saltSize);
-    const iv: Buffer = crypto.randomBytes(16);
+    const salt: Uint8Array = randomBytes(saltSize);
+    const iv: Uint8Array = randomBytes(16);
     const kdfparams: KdfParams = {
       dklen: 32,
-      salt: salt.toString("hex"),
+      salt: hexify(salt).slice(2),
       n: DEFAULT_SCRYPT_PARAM_N,
       r: DEFAULT_SCRIPT_PARAM_r,
       p: DEFAULT_SCRIPT_PARAM_p,
@@ -107,7 +115,7 @@ export default class Keystore {
       {
         ciphertext: "",
         cipherparams: {
-          iv: iv.toString("hex"),
+          iv: hexify(iv).slice(2),
         },
         cipher: CIPHER,
         kdf: "scrypt",
@@ -121,53 +129,40 @@ export default class Keystore {
   static create(
     extendedPrivateKey: ExtendedPrivateKey,
     password: string,
-    options: { salt?: Buffer; iv?: Buffer } = {}
+    options: { salt?: Uint8Array; iv?: Uint8Array } = {}
   ): Keystore {
     const saltSize = 32;
     const ivSize = 16;
-    const salt: Buffer = options.salt || crypto.randomBytes(saltSize);
-    const iv: Buffer = options.iv || crypto.randomBytes(ivSize);
+    const salt: Uint8Array = options.salt || randomBytes(saltSize);
+    const iv: Uint8Array = options.iv || randomBytes(ivSize);
     const kdfparams: KdfParams = {
       dklen: 32,
-      salt: salt.toString("hex"),
+      salt: hexify(salt).slice(2),
       n: DEFAULT_SCRYPT_PARAM_N,
       r: DEFAULT_SCRIPT_PARAM_r,
       p: DEFAULT_SCRIPT_PARAM_p,
     };
-    const derivedKey: Buffer = Buffer.from(
-      syncScrypt(
-        Buffer.from(password),
-        salt,
-        kdfparams.n,
-        kdfparams.r,
-        kdfparams.p,
-        kdfparams.dklen
-      )
-    );
+    const derivedKey = scrypt(new TextEncoder().encode(password), salt, {
+      N: kdfparams.n,
+      r: kdfparams.r,
+      p: kdfparams.p,
+      dkLen: kdfparams.dklen,
+    });
 
-    const cipher: crypto.Cipher = crypto.createCipheriv(
-      CIPHER,
-      derivedKey.slice(0, 16),
-      iv
-    );
-    if (!cipher) {
-      throw new UnsupportedCipher();
-    }
-
-    // size of 0x prefix
-    const hexPrefixSize = 2;
-    const ciphertext: Buffer = Buffer.concat([
-      cipher.update(
-        Buffer.from(extendedPrivateKey.serialize().slice(hexPrefixSize), "hex")
-      ),
-      cipher.final(),
-    ]);
+    // DO NOT remove the Uint8Array.from call below.
+    // Without calling Uint8Array.from to make a copy of iv,
+    // iv will be set to 0000...00000 after calling cipher.encrypt(plaintext)
+    // and decrypting the ciphertext will fail
+    /* eslint-disable-next-line @typescript-eslint/no-magic-numbers */
+    const cipher = ctr(derivedKey.slice(0, 16), Uint8Array.from(iv));
+    const plaintext = bytify(extendedPrivateKey.serialize());
+    const ciphertext = cipher.encrypt(plaintext);
 
     return new Keystore(
       {
-        ciphertext: ciphertext.toString("hex"),
+        ciphertext: hexify(ciphertext).slice(2),
         cipherparams: {
-          iv: iv.toString("hex"),
+          iv: hexify(iv).slice(2),
         },
         cipher: CIPHER,
         kdf: "scrypt",
@@ -186,21 +181,17 @@ export default class Keystore {
   // Decrypt and return serialized extended private key.
   decrypt(password: string): HexString {
     const derivedKey = this.derivedKey(password);
-    const ciphertext = Buffer.from(this.crypto.ciphertext, "hex");
+    const ciphertext = bytify("0x" + this.crypto.ciphertext);
     if (Keystore.mac(derivedKey, ciphertext) !== this.crypto.mac) {
       throw new IncorrectPassword();
     }
-    const decipher = crypto.createDecipheriv(
-      this.crypto.cipher,
+
+    /* eslint-disable-next-line @typescript-eslint/no-magic-numbers */
+    const cipher = ctr(
       derivedKey.slice(0, 16),
-      Buffer.from(this.crypto.cipherparams.iv, "hex")
+      bytify("0x" + this.crypto.cipherparams.iv)
     );
-    return (
-      "0x" +
-      Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString(
-        "hex"
-      )
-    );
+    return hexify(cipher.decrypt(ciphertext));
   }
 
   extendedPrivateKey(password: string): ExtendedPrivateKey {
@@ -209,37 +200,35 @@ export default class Keystore {
 
   checkPassword(password: string): boolean {
     const derivedKey = this.derivedKey(password);
-    const ciphertext = Buffer.from(this.crypto.ciphertext, "hex");
+    const ciphertext = bytify("0x" + this.crypto.ciphertext);
     return Keystore.mac(derivedKey, ciphertext) === this.crypto.mac;
   }
 
-  derivedKey(password: string): Buffer {
+  derivedKey(password: string): Uint8Array {
     const { kdfparams } = this.crypto;
-    return Buffer.from(
-      syncScrypt(
-        Buffer.from(password),
-        Buffer.from(kdfparams.salt, "hex"),
-        kdfparams.n,
-        kdfparams.r,
-        kdfparams.p,
-        kdfparams.dklen
-      )
+    return scrypt(
+      new TextEncoder().encode(password),
+      bytify("0x" + kdfparams.salt),
+      {
+        N: kdfparams.n,
+        r: kdfparams.r,
+        p: kdfparams.p,
+        dkLen: kdfparams.dklen,
+      }
     );
   }
 
-  static mac(derivedKey: Buffer, ciphertext: Buffer): HexStringWithoutPrefix {
-    const keccakSize = 256;
-
-    return (
-      new Keccak(keccakSize)
-        // https://github.com/ethereumjs/ethereumjs-wallet/blob/d57582443fbac2b63956e6d5c4193aa8ce925b3d/src/index.ts#L615-L617
-        // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-        .update(Buffer.concat([derivedKey.subarray(16, 32), ciphertext]))
-        .digest("hex")
-    );
+  static mac(
+    derivedKey: Uint8Array,
+    ciphertext: Uint8Array
+  ): HexStringWithoutPrefix {
+    // https://github.com/ethereumjs/ethereumjs-wallet/blob/d57582443fbac2b63956e6d5c4193aa8ce925b3d/src/index.ts#L615-L617
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+    const hash = keccak256(concat(derivedKey.subarray(16, 32), ciphertext));
+    return hexify(hash).slice(2);
   }
 
-  static scryptOptions(kdfparams: KdfParams): crypto.ScryptOptions {
+  static scryptOptions(kdfparams: KdfParams): ScryptOptions {
     return {
       N: kdfparams.n,
       r: kdfparams.r,

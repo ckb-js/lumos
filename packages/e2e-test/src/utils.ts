@@ -1,11 +1,12 @@
 import { Script } from "@ckb-lumos/base";
+import { randomBytes } from "@ckb-lumos/crypto";
 import { encodeToAddress } from "@ckb-lumos/helpers";
-import { randomBytes } from "crypto";
 import { key } from "@ckb-lumos/hd";
 import { getConfig } from "@ckb-lumos/config-manager";
 import { hexify } from "@ckb-lumos/codec/lib/bytes";
 
 // secp256k1 private key is 32-bytes length
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 export const generateRandomPrivateKey = (): string => hexify(randomBytes(32));
 
 export function asyncSleep(ms: number): Promise<unknown> {

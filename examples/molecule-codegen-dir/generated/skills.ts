@@ -4,12 +4,9 @@ import { bytes, createBytesCodec, createFixedBytesCodec, molecule } from "@ckb-l
 import  { Uint32, Uint64, Uint128, DepType, HashType }  from '../customized'
 import { AttrValue, SkillLevel, Uint8, Uint16 } from './common/basic_types'
 
-const { array, vector, union, option, struct, table } = molecule;
+const { array, vector, union, option, struct, table, byteVecOf } = molecule;
 
-const fallbackBytesCodec = createBytesCodec({
-  pack: bytes.bytify,
-  unpack: bytes.hexify,
-});
+const fallbackBytesCodec = byteVecOf({ pack: bytes.bytify, unpack: bytes.hexify });
 
 function createFallbackFixedBytesCodec(byteLength: number) {
   return createFixedBytesCodec({

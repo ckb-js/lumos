@@ -140,7 +140,7 @@ export const formatter = {
   toReverseOrder: (reverse = false) => !!reverse,
   toOutputsValidator: (outputsValidator: CKBComponents.OutputsValidator) => {
     if (!outputsValidator) return undefined;
-    const VALIDATORS = ["default", "passthrough"];
+    const VALIDATORS = ["well_known_scripts_only", "passthrough"];
     if (VALIDATORS.indexOf(outputsValidator) > -1) {
       return outputsValidator;
     }

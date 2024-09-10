@@ -3,7 +3,7 @@ import {
   codegen as originalCodegen,
   codegenProject,
   Options,
-  resolveAndEraseImports,
+  resolveImports,
 } from "../src/codegen";
 
 const codegen = (schema: string, options?: Options) => {
@@ -175,7 +175,7 @@ union Something {
 });
 
 test("should erase if import statement exists", (t) => {
-  const { code, importSchemas } = resolveAndEraseImports(`
+  const inputCode = `
 import a;
   import b;
 // import c;
@@ -183,19 +183,11 @@ import a;
 struct X {
   value: byte,
 }
-`);
+`;
+  const { code, importSchemas } = resolveImports(inputCode);
 
   t.deepEqual(importSchemas, ["a", "b"]);
-  t.is(
-    code,
-    `
-// import c;
-
-struct X {
-  value: byte,
-}
-`
-  );
+  t.is(code, inputCode);
 });
 
 test("codegenProject", (t) => {

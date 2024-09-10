@@ -349,6 +349,7 @@ export interface TxPoolVerbosity {
   proposed: {
     [key: string]: TxVerbosity;
   };
+  conflicted: Hash[];
 }
 
 export type RawTxPool = TxPoolIds | TxPoolVerbosity;

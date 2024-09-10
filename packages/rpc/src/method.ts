@@ -5,6 +5,11 @@ import { DEFAULT_RPC_TIMEOUT } from ".";
 import AbortController from "abort-controller";
 import fetch_ from "cross-fetch";
 
+type JSONPrimitive = string | number | boolean | null;
+type JSONArray = JSONValue[];
+type JSONObject = { [key: string]: JSONValue };
+export type JSONValue = JSONPrimitive | JSONArray | JSONObject;
+
 export class Method {
   #name: string;
   #config: RPCConfig;
@@ -41,7 +46,7 @@ export class Method {
   }
 
   /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/explicit-module-boundary-types */
-  public call = async (...params: (string | number | object)[]) => {
+  public call = async (...params: JSONValue[]) => {
     const payload = this.getPayload(...params);
     const controller = new AbortController();
     const signal = controller.signal as AbortSignal;
@@ -72,7 +77,7 @@ export class Method {
     return res;
   };
 
-  public getPayload = (...params: (string | number | object)[]) => {
+  public getPayload = (...params: JSONValue[]) => {
     const data = params.map(
       (p, i) =>
         (this.#options.paramsFormatters[i] &&

@@ -1,5 +1,17 @@
 # @ckb-lumos/molecule
 
+## 0.24.0-next.2
+
+### Minor Changes
+
+- [#738](https://github.com/ckb-js/lumos/pull/738) [`ae45845ed25fbe78c5ab9a4ee42f1647b7405670`](https://github.com/ckb-js/lumos/commit/ae45845ed25fbe78c5ab9a4ee42f1647b7405670) Thanks [@homura](https://github.com/homura)! - feat: completely support the Molecule 0.8 syntax
+
+- [#737](https://github.com/ckb-js/lumos/pull/737) [`66bbbfdf856395fc626872dc7573239edf3b02da`](https://github.com/ckb-js/lumos/commit/66bbbfdf856395fc626872dc7573239edf3b02da) Thanks [@homura](https://github.com/homura)! - fix: incorrect fallback `Bytes` codec from codegen
+
+## 0.24.0-next.1
+
+## 0.24.0-next.0
+
 ## 0.23.0
 
 ## 0.23.0-next.1

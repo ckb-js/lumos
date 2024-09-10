@@ -1,0 +1,53 @@
+{
+  "name": "@ckb-lumos/crypto",
+  "version": "0.24.0-next.2",
+  "description": "Crypto utilities used in Lumos",
+  "author": "Tom Wang <tom.wanghaiyi@gmail.com@gmail.com>",
+  "homepage": "https://github.com/ckb-js/lumos#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "files": [
+    "lib",
+    "index.d.ts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckb-js/lumos.git"
+  },
+  "scripts": {
+    "build": "pnpm run build:types && pnpm run build:js",
+    "build:types": "tsc --declaration --emitDeclarationOnly",
+    "build:js": "babel --root-mode upward src --out-dir lib --extensions .ts -s",
+    "fmt": "prettier --write \"{src,tests,examples}/**/*.ts\" package.json",
+    "lint": "eslint -c ../../.eslintrc.js \"{src,tests,examples}/**/*.ts\"",
+    "clean": "shx rm -rf lib",
+    "test": "ava **/*.test.{js,ts} --timeout=2m"
+  },
+  "bugs": {
+    "url": "https://github.com/ckb-js/lumos/issues"
+  },
+  "ava": {
+    "extensions": [
+      "ts",
+      "js"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "dependencies": {
+    "@noble/hashes": "^1.4.0",
+    "@noble/ciphers": "^0.5.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,5 +1,19 @@
 # @ckb-lumos/base
 
+## 0.24.0-next.2
+
+### Minor Changes
+
+- [#732](https://github.com/ckb-js/lumos/pull/732) [`37639772230dd6b7be899ed91b5b56fe55ca6248`](https://github.com/ckb-js/lumos/commit/37639772230dd6b7be899ed91b5b56fe55ca6248) Thanks [@homura](https://github.com/homura)! - feat: added the `conflicted` field to `get_raw_tx_pool` https://github.com/nervosnetwork/ckb/pull/4339
+
+## 0.24.0-next.1
+
+## 0.24.0-next.0
+
+### Minor Changes
+
+- [#711](https://github.com/ckb-js/lumos/pull/711) [`b37050219988debffa7888b9b739edd485109d5f`](https://github.com/ckb-js/lumos/commit/b37050219988debffa7888b9b739edd485109d5f) Thanks [@homura](https://github.com/homura)! - **BREAKING CHANGE**: remove unused `isDeepEqual` function to reduce the package size
+
 ## 0.23.0
 
 ### Minor Changes

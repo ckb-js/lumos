@@ -1,5 +1,21 @@
 # @ckb-lumos/rpc
 
+## 0.24.0-next.2
+
+### Minor Changes
+
+- [#732](https://github.com/ckb-js/lumos/pull/732) [`37639772230dd6b7be899ed91b5b56fe55ca6248`](https://github.com/ckb-js/lumos/commit/37639772230dd6b7be899ed91b5b56fe55ca6248) Thanks [@homura](https://github.com/homura)! - feat: add rpc `test_tx_pool_accept` https://github.com/nervosnetwork/ckb/pull/4433
+
+- [#736](https://github.com/ckb-js/lumos/pull/736) [`3cf82d97ff1a03defc8f5e36b485fd86b47fcd98`](https://github.com/ckb-js/lumos/commit/3cf82d97ff1a03defc8f5e36b485fd86b47fcd98) Thanks [@homura](https://github.com/homura)! - refactor: added null and boolean for batch client
+
+- [#732](https://github.com/ckb-js/lumos/pull/732) [`37639772230dd6b7be899ed91b5b56fe55ca6248`](https://github.com/ckb-js/lumos/commit/37639772230dd6b7be899ed91b5b56fe55ca6248) Thanks [@homura](https://github.com/homura)! - feat: added the `conflicted` field to `get_raw_tx_pool` https://github.com/nervosnetwork/ckb/pull/4339
+
+- [#732](https://github.com/ckb-js/lumos/pull/732) [`37639772230dd6b7be899ed91b5b56fe55ca6248`](https://github.com/ckb-js/lumos/commit/37639772230dd6b7be899ed91b5b56fe55ca6248) Thanks [@homura](https://github.com/homura)! - fix: added `well_known_scripts_only` to `OutputValidator`
+
+## 0.24.0-next.1
+
+## 0.24.0-next.0
+
 ## 0.23.0
 
 ### Minor Changes

@@ -1,24 +1,29 @@
-import crypto from "crypto";
-import { ec as EC } from "elliptic";
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 import BN from "bn.js";
+import { ec as EC } from "elliptic";
+import { bytes } from "@ckb-lumos/codec";
+import { Uint32BE } from "@ckb-lumos/codec/lib/number";
+import { hmac, sha256, sha512, ripemd160 } from "@ckb-lumos/crypto";
 import { privateToPublic } from "./key";
+
+const { concat } = bytes;
 
 const ec = new EC("secp256k1");
 
-const EMPTY_BUFFER = Buffer.from("");
+const EMPTY_BUFFER = Uint8Array.from([]);
 
 // BIP32 Keychain. Not a full implementation.
 export default class Keychain {
-  privateKey: Buffer = EMPTY_BUFFER;
-  publicKey: Buffer = EMPTY_BUFFER;
-  chainCode: Buffer = EMPTY_BUFFER;
-  index: number = 0;
-  depth: number = 0;
-  identifier: Buffer = EMPTY_BUFFER;
-  fingerprint: number = 0;
-  parentFingerprint: number = 0;
+  privateKey: Uint8Array = EMPTY_BUFFER;
+  publicKey: Uint8Array = EMPTY_BUFFER;
+  chainCode: Uint8Array = EMPTY_BUFFER;
+  index = 0;
+  depth = 0;
+  identifier: Uint8Array = EMPTY_BUFFER;
+  fingerprint = 0;
+  parentFingerprint = 0;
 
-  constructor(privateKey: Buffer, chainCode: Buffer) {
+  constructor(privateKey: Uint8Array, chainCode: Uint8Array) {
     this.privateKey = privateKey;
     this.chainCode = chainCode;
 
@@ -29,14 +34,11 @@ export default class Keychain {
 
   calculateFingerprint(): void {
     this.identifier = this.hash160(this.publicKey);
-    this.fingerprint = this.identifier.slice(0, 4).readUInt32BE(0);
+    this.fingerprint = Uint32BE.unpack(this.identifier.slice(0, 4));
   }
 
-  public static fromSeed(seed: Buffer): Keychain {
-    const i = crypto
-      .createHmac("sha512", Buffer.from("Bitcoin seed", "utf8"))
-      .update(seed)
-      .digest();
+  public static fromSeed(seed: Uint8Array): Keychain {
+    const i = hmac(sha512, new TextEncoder().encode("Bitcoin seed"), seed);
     const keychain = new Keychain(i.slice(0, 32), i.slice(32));
     keychain.calculateFingerprint();
     return keychain;
@@ -45,9 +47,9 @@ export default class Keychain {
   // Create a child keychain with extended public key and path.
   // Children of this keychain should not have any hardened paths.
   public static fromPublicKey(
-    publicKey: Buffer,
-    chainCode: Buffer,
-    path: String
+    publicKey: Uint8Array,
+    chainCode: Uint8Array,
+    path: string
   ): Keychain {
     const keychain = new Keychain(EMPTY_BUFFER, chainCode);
     keychain.publicKey = publicKey;
@@ -61,20 +63,21 @@ export default class Keychain {
   }
 
   public deriveChild(index: number, hardened: boolean): Keychain {
-    let data: Buffer;
+    let data: Uint8Array;
 
-    const indexBuffer: Buffer = Buffer.allocUnsafe(4);
+    const ui8a: Uint8Array = new Uint8Array(4);
+    const view = new DataView(ui8a.buffer);
 
     if (hardened) {
-      const pk = Buffer.concat([Buffer.alloc(1, 0), this.privateKey]);
-      indexBuffer.writeUInt32BE(index + 0x80000000, 0);
-      data = Buffer.concat([pk, indexBuffer]);
+      const pk = concat([0], this.privateKey);
+      view.setUint32(0, index + 0x80000000);
+      data = concat(pk, ui8a);
     } else {
-      indexBuffer.writeUInt32BE(index, 0);
-      data = Buffer.concat([this.publicKey, indexBuffer]);
+      view.setUint32(0, index);
+      data = concat(this.publicKey, ui8a);
     }
 
-    const i = crypto.createHmac("sha512", this.chainCode).update(data).digest();
+    const i = hmac(sha512, this.chainCode, data);
     const il = i.slice(0, 32);
     const ir = i.slice(32);
 
@@ -101,7 +104,7 @@ export default class Keychain {
     if (master.includes(path)) {
       return this;
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let bip32: Keychain = this;
 
     let entries = path.split("/");
@@ -117,32 +120,37 @@ export default class Keychain {
     return bip32;
   }
 
-  isNeutered(): Boolean {
+  isNeutered(): boolean {
     return this.privateKey === EMPTY_BUFFER;
   }
 
-  hash160(data: Buffer): Buffer {
-    const sha256 = crypto.createHash("sha256").update(data).digest();
-    return crypto.createHash("ripemd160").update(sha256).digest();
+  hash160(data: Uint8Array): Uint8Array {
+    return ripemd160(sha256(data));
   }
 
-  private static privateKeyAdd(privateKey: Buffer, factor: Buffer): Buffer {
+  private static privateKeyAdd(
+    privateKey: Uint8Array,
+    factor: Uint8Array
+  ): Uint8Array {
     const result = new BN(factor);
     result.iadd(new BN(privateKey));
     if (result.cmp(ec.curve.n) >= 0) {
       result.isub(ec.curve.n);
     }
 
-    return result.toArrayLike(Buffer, "be", 32);
+    return Uint8Array.from(result.toArray("be", 32));
   }
 
-  private static publicKeyAdd(publicKey: Buffer, factor: Buffer): Buffer {
+  private static publicKeyAdd(
+    publicKey: Uint8Array,
+    factor: Uint8Array
+  ): Uint8Array {
     const x = new BN(publicKey.slice(1)).toRed(ec.curve.red);
     let y = x.redSqr().redIMul(x).redIAdd(ec.curve.b).redSqrt();
     if ((publicKey[0] === 0x03) !== y.isOdd()) {
       y = y.redNeg();
     }
     const point = ec.curve.g.mul(new BN(factor)).add({ x, y });
-    return Buffer.from(point.encode(true, true));
+    return Uint8Array.from(point.encode(true, true));
   }
 }

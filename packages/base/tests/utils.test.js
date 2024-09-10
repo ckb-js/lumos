@@ -1,4 +1,5 @@
 const test = require("ava");
+const { bytes } = require("@ckb-lumos/codec");
 
 const {
   CKBHasher,
@@ -63,7 +64,7 @@ test("computeScriptHash", (t) => {
 });
 
 test("hashCode, should return same hash if same input", (t) => {
-  const buffer = Buffer.from("1234ab", "hex");
+  const buffer = bytes.bytify("0x1234ab");
   t.is(hashCode(buffer), hashCode(buffer));
 });
 

@@ -31,6 +31,7 @@ export * as config from "./config";
 
 export { RPC } from "@ckb-lumos/rpc";
 export * as hd from "@ckb-lumos/hd";
+export * as crypto from "@ckb-lumos/crypto";
 export { CellCollector, Indexer } from "@ckb-lumos/ckb-indexer";
 
 export * as helpers from "./helpers";

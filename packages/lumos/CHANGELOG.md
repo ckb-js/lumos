@@ -1,5 +1,27 @@
 # @ckb-lumos/lumos
 
+## 0.24.0-next.2
+
+### Minor Changes
+
+- [#738](https://github.com/ckb-js/lumos/pull/738) [`ae45845ed25fbe78c5ab9a4ee42f1647b7405670`](https://github.com/ckb-js/lumos/commit/ae45845ed25fbe78c5ab9a4ee42f1647b7405670) Thanks [@homura](https://github.com/homura)! - feat: export missing `HashType`, `Byte32` and `DepType` for `blockchain`
+
+## 0.24.0-next.1
+
+### Minor Changes
+
+- [#729](https://github.com/ckb-js/lumos/pull/729) [`8b10ade074eaa6af544b9d7d9a090ccf7020b33a`](https://github.com/ckb-js/lumos/commit/8b10ade074eaa6af544b9d7d9a090ccf7020b33a) Thanks [@homura](https://github.com/homura)! - feat: export some missing modules
+
+- [#729](https://github.com/ckb-js/lumos/pull/729) [`8b10ade074eaa6af544b9d7d9a090ccf7020b33a`](https://github.com/ckb-js/lumos/commit/8b10ade074eaa6af544b9d7d9a090ccf7020b33a) Thanks [@homura](https://github.com/homura)! - feat: added `bi`, `base`, `ckb-indexer`, `hd`, `light-client` as subpackages to make import more fine-grained
+
+## 0.24.0-next.0
+
+### Minor Changes
+
+- [#718](https://github.com/ckb-js/lumos/pull/718) [`d279b87c5f843f07f77b11923e6659025f1f8bdd`](https://github.com/ckb-js/lumos/commit/d279b87c5f843f07f77b11923e6659025f1f8bdd) Thanks [@homura](https://github.com/homura)! - feat: support eth displaying auth mode for omnilock
+
+- [#721](https://github.com/ckb-js/lumos/pull/721) [`193ba6ad4096c31b5cf8f16e2e0249412b38a2c3`](https://github.com/ckb-js/lumos/commit/193ba6ad4096c31b5cf8f16e2e0249412b38a2c3) Thanks [@homura](https://github.com/homura)! - feat: add crypto.randomBytes to replace Node's crypto.randomBytes
+
 ## 0.23.0
 
 ### Minor Changes

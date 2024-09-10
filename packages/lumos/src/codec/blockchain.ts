@@ -37,4 +37,7 @@ export {
   BlockV1,
   CellbaseWitness,
   WitnessArgs,
+  HashType,
+  Byte32,
+  DepType,
 } from "@ckb-lumos/base/lib/blockchain";

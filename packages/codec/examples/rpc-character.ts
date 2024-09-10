@@ -65,8 +65,8 @@ const SwordMaterial = byteOf<Material>({
 });
 
 const UTF8String = byteVecOf<string>({
-  pack: (str) => Uint8Array.from(Buffer.from(str, "utf8")),
-  unpack: (buf) => Buffer.from(bytes.bytify(buf)).toString("utf8"),
+  pack: (str) => new TextEncoder().encode(str),
+  unpack: (buf) => new TextDecoder().decode(bytes.bytify(buf)),
 });
 
 /***** molecule binding *****/

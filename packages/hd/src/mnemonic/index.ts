@@ -1,6 +1,16 @@
-import crypto from "crypto";
-import wordList from "./word_list";
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+import {
+  sha256,
+  sha512,
+  pbkdf2,
+  pbkdf2Async,
+  randomBytes,
+} from "@ckb-lumos/crypto";
+import { bytes } from "@ckb-lumos/codec";
 import { HexString } from "@ckb-lumos/base";
+import wordList from "./word_list";
+
+const { bytify, hexify } = bytes;
 
 const RADIX = 2048;
 const PBKDF2_ROUNDS = 2048;
@@ -28,66 +38,45 @@ if (wordList.length !== RADIX) {
   );
 }
 
-function bytesToBinary(bytes: Buffer): string {
+function bytesToBinary(bytes: Uint8Array): string {
   return bytes.reduce((binary, byte) => {
     return binary + byte.toString(2).padStart(8, "0");
   }, "");
 }
 
-function deriveChecksumBits(entropyBuffer: Buffer): string {
+function deriveChecksumBits(entropyBuffer: Uint8Array): string {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
-  const hash = crypto.createHash("sha256").update(entropyBuffer).digest();
+  const hash = sha256(entropyBuffer);
   return bytesToBinary(hash).slice(0, CS);
 }
 
-function salt(password: string = ""): string {
+function salt(password = ""): string {
   return `mnemonic${password}`;
 }
 
-export function mnemonicToSeedSync(
-  mnemonic: string = "",
-  password: string = ""
-): Buffer {
-  const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
-  const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
-  return crypto.pbkdf2Sync(
-    mnemonicBuffer,
-    saltBuffer,
-    PBKDF2_ROUNDS,
-    KEY_LEN,
-    "sha512"
-  );
-}
-
-export function mnemonicToSeed(
-  mnemonic: string = "",
-  password: string = ""
-): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    try {
-      const mnemonicBuffer = Buffer.from(mnemonic.normalize("NFKD"), "utf8");
-      const saltBuffer = Buffer.from(salt(password.normalize("NFKD")), "utf8");
-      crypto.pbkdf2(
-        mnemonicBuffer,
-        saltBuffer,
-        PBKDF2_ROUNDS,
-        KEY_LEN,
-        "sha512",
-        (err, data) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(data);
-        }
-      );
-    } catch (error) {
-      reject(error);
-    }
+export function mnemonicToSeedSync(mnemonic = "", password = ""): Uint8Array {
+  const mnemonicBuffer = new TextEncoder().encode(mnemonic.normalize("NFKD"));
+  const saltBuffer = new TextEncoder().encode(salt(password.normalize("NFKD")));
+  return pbkdf2(sha512, mnemonicBuffer, saltBuffer, {
+    c: PBKDF2_ROUNDS,
+    dkLen: KEY_LEN,
   });
 }
 
-export function mnemonicToEntropy(mnemonic: string = ""): HexString {
+export function mnemonicToSeed(
+  mnemonic = "",
+  password = ""
+): Promise<Uint8Array> {
+  const mnemonicBuffer = new TextEncoder().encode(mnemonic.normalize("NFKD"));
+  const saltBuffer = new TextEncoder().encode(salt(password.normalize("NFKD")));
+  return pbkdf2Async(sha512, mnemonicBuffer, saltBuffer, {
+    c: PBKDF2_ROUNDS,
+    dkLen: KEY_LEN,
+  });
+}
+
+export function mnemonicToEntropy(mnemonic = ""): HexString {
   const words = mnemonic.normalize("NFKD").split(" ");
   if (words.length < MIN_WORDS_SIZE) {
     throw new Error(WORDS_TOO_SHORT);
@@ -125,17 +114,17 @@ export function mnemonicToEntropy(mnemonic: string = ""): HexString {
     throw new Error(ENTROPY_NOT_DIVISIBLE);
   }
 
-  const entropy = Buffer.from(entropyBytes);
+  const entropy = Uint8Array.from(entropyBytes);
   const newChecksum = deriveChecksumBits(entropy);
   if (newChecksum !== checksumBits) {
     throw new Error(INVALID_CHECKSUM);
   }
 
-  return "0x" + entropy.toString("hex");
+  return hexify(entropy);
 }
 
 export function entropyToMnemonic(entropyStr: HexString): string {
-  const entropy = Buffer.from(entropyStr.slice(2), "hex");
+  const entropy = bytify(entropyStr);
 
   if (entropy.length < MIN_ENTROPY_SIZE) {
     throw new TypeError(ENTROPY_TOO_SHORT);
@@ -172,8 +161,7 @@ export function validateMnemonic(mnemonic: string): boolean {
 // Generate 12 words mnemonic code
 export function generateMnemonic(): string {
   const entropySize = 16;
-  const entropy: HexString =
-    "0x" + crypto.randomBytes(entropySize).toString("hex");
+  const entropy = hexify(randomBytes(entropySize));
   return entropyToMnemonic(entropy);
 }
 

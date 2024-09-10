@@ -38,6 +38,7 @@ import * as bitcoin from "./omnilock-bitcoin";
 import * as solana from "./omnilock-solana";
 import { decode as bs58Decode } from "bs58";
 import { ckbHash } from "@ckb-lumos/base/lib/utils";
+import { SupportedBtcAddressType } from "./omnilock-bitcoin";
 
 const { ScriptValue } = values;
 
@@ -48,6 +49,7 @@ export type OmnilockInfo = {
 export type OmnilockAuth =
   | IdentityCkb
   | IdentityEthereum
+  | IdentityEthereumDisplaying
   | IdentityBitcoin
   | IdentitySolana;
 
@@ -66,6 +68,12 @@ export type IdentityEthereum = {
    */
   content: BytesLike;
 };
+
+export type IdentityEthereumDisplaying = {
+  flag: "ETHEREUM-DISPLAYING";
+  content: BytesLike;
+};
+
 export type IdentityBitcoin = {
   flag: "BITCOIN";
   /**
@@ -75,6 +83,13 @@ export type IdentityBitcoin = {
    * `Bech32(bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4)`
    */
   content: string;
+
+  /**
+   * Allows the P2PKH and P2WPKH by default.
+   * To allow the P2SH-P2WPKH address,
+   * change this option to `["P2PKH", "P2WPKH", "P2SH-P2WPKH"]`
+   */
+  allows?: SupportedBtcAddressType[];
 };
 
 export type IdentitySolana = {
@@ -110,8 +125,8 @@ const SECP256K1_SIGNATURE_PLACEHOLDER_LENGTH = 65;
 const ED25519_SIGNATURE_PLACEHOLDER_LENGTH = 96;
 
 /**
- * only support ETHEREUM and SECP256K1_BLAKE160 mode currently
- * refer to: @link https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md omnilock
+ * Create an Omnilock script based on other networks' wallet
+ * @see https://github.com/nervosnetwork/rfcs/blob/master/rfcs/0042-omnilock/0042-omnilock.md
  * @param omnilockInfo
  * @param options
  * @returns
@@ -164,6 +179,14 @@ export function createOmnilockScript(
             omnilockArgs
           )
         );
+      case "ETHEREUM-DISPLAYING":
+        return bytes.hexify(
+          bytes.concat(
+            [IdentityFlagsType.IdentityFlagsEthereumDisplaying],
+            omnilockInfo.auth.content,
+            omnilockArgs
+          )
+        );
       case "SECP256K1_BLAKE160":
         return bytes.hexify(
           bytes.concat(
@@ -176,7 +199,10 @@ export function createOmnilockScript(
         return bytes.hexify(
           bytes.concat(
             [IdentityFlagsType.IdentityFlagsBitcoin],
-            bitcoin.decodeAddress(omnilockInfo.auth.content),
+            bitcoin.decodeAddress(
+              omnilockInfo.auth.content,
+              omnilockInfo.auth.allows
+            ),
             omnilockArgs
           )
         );
@@ -396,6 +422,7 @@ export async function setupInputCell(
 
         case IdentityFlagsType.IdentityFlagsCkb:
         case IdentityFlagsType.IdentityFlagsEthereum:
+        case IdentityFlagsType.IdentityFlagsEthereumDisplaying:
         case IdentityFlagsType.IdentityFlagsBitcoin: {
           return SECP256K1_SIGNATURE_PLACEHOLDER_LENGTH;
         }
@@ -444,6 +471,7 @@ export function prepareSigningEntries(
   return _prepareSigningEntries(txSkeleton, config, "OMNILOCK");
 }
 
+export * as ethereumDisplaying from "./omnilock-ethereum-displaying";
 export { bitcoin };
 export { solana };
 

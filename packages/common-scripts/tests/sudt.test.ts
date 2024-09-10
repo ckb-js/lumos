@@ -667,9 +667,9 @@ test("transfer secp => secp, change to acp and has previous output, split change
 
 test("pack and unpack sudt amount", (t) => {
   const unpacked = BI.from(0x1234);
-  const packed = Buffer.alloc(16);
+  const packed = new Uint8Array(16);
   // little endian of 0x1234
-  packed.write("3412", "hex");
+  packed.set([0x34, 0x12]);
 
   t.true(bytes.equal(packAmount(unpacked), packed));
   t.true(unpackAmount(packed).eq(unpacked));

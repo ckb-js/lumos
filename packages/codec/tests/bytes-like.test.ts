@@ -1,7 +1,7 @@
 import test from "ava";
 import { molecule, number } from "../src";
 import { Byte32 } from "../src/blockchain";
-import { randomBytes } from "crypto";
+import { randomBytes } from "@ckb-lumos/crypto";
 import { equal, concat, hexify } from "../src/bytes";
 import { BI } from "@ckb-lumos/bi";
 import { bytify } from "../lib/bytes";

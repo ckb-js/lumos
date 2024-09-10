@@ -1,6 +1,6 @@
 import test from "ava";
 import { cellHelper, encodeToAddress, scriptHelper } from "../src";
-import { randomBytes } from "node:crypto";
+import { randomBytes } from "@ckb-lumos/crypto";
 import { bytes } from "@ckb-lumos/codec";
 import { predefined } from "@ckb-lumos/config-manager";
 import { defaultDeepClone } from "../src/models/base";

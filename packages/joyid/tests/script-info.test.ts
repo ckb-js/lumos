@@ -1,4 +1,5 @@
 import test from "ava";
+import { spy } from "sinon";
 import { createJoyIDScriptInfo } from "../src";
 import {
   Connection,
@@ -6,7 +7,6 @@ import {
   JoyIDScriptInfoConfig,
 } from "../src/script-info";
 import { BytesLike, bytes } from "@ckb-lumos/codec";
-import { randomBytes } from "node:crypto";
 import { encodeToAddress, TransactionSkeleton } from "@ckb-lumos/helpers";
 import {
   Cell,
@@ -20,7 +20,7 @@ import { common } from "@ckb-lumos/common-scripts";
 import { parseUnit } from "@ckb-lumos/bi";
 import { getJoyIDLockScript } from "@joyid/ckb";
 import { getCotaTypeScript } from "../src/constants";
-import { spy } from "sinon";
+import { randomBytes } from "@ckb-lumos/crypto";
 
 const joyIdLockScriptTemplate = getJoyIDLockScript(true);
 const cotaTypeScriptTemplate = getCotaTypeScript(true);
@@ -144,7 +144,7 @@ function mockAggregator(
 ): JoyIDScriptInfoConfig["aggregator"] {
   return {
     generateSubkeyUnlockSmt: async () => ({
-      unlock_entry: Buffer.from(bytes.bytify(entry)).toString("hex"),
+      unlock_entry: bytes.hexify(bytes.bytify(entry)).slice(2),
       block_number: 0n,
     }),
   };

@@ -1,9 +1,8 @@
 import { MolType } from "./type";
-import { Grammar as NearleyGrammar, Parser as NearleyParser } from "nearley";
 import { circularIterator } from "./circularIterator";
-import grammar from "./grammar/mol";
 import path from "node:path";
 import { topologySort } from "./topologySort";
+import grammar from "./grammar/grammar";
 
 export type Options = {
   /**
@@ -43,44 +42,10 @@ export type ResolveResult = {
  * resolve the import statement from a molecule schema and erase them for continuing codegen
  * @param inputCode
  */
-export function resolveAndEraseImports(inputCode: string): ResolveResult {
-  // https://github.com/nervosnetwork/molecule/blob/37748b1124181a3260a0668693c43c8d38c98723/docs/grammar/grammar.ebnf#L70
-  const importRegex = /^import\s+([^;]+);/;
-  const imports: string[] = [];
-  const lines = inputCode.split("\n");
-  const updatedLines: string[] = [];
-  let blockComment = false;
+export function resolveImports(inputCode: string): ResolveResult {
+  const { imports } = grammar.parse(inputCode);
 
-  // fill the imports and erase the import statements from the code
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-
-    // https://github.com/nervosnetwork/molecule/blob/master/docs/schema_language.md#comments
-    if (trimmedLine.startsWith("/*")) {
-      blockComment = true;
-    }
-
-    if (trimmedLine.endsWith("*/")) {
-      blockComment = false;
-      updatedLines.push(line);
-      continue;
-    }
-
-    if (blockComment) {
-      updatedLines.push(line);
-      continue;
-    }
-
-    const match = trimmedLine.match(importRegex);
-    if (match) {
-      imports.push(match[1]);
-    } else {
-      updatedLines.push(line);
-    }
-  }
-
-  const code = updatedLines.join("\n");
-  return { code, importSchemas: imports };
+  return { code: inputCode, importSchemas: imports };
 }
 
 export type CodegenResult = {
@@ -94,16 +59,9 @@ export type CodegenResult = {
  * @param options
  */
 export function codegen(schema: string, options: Options = {}): CodegenResult {
-  const parser = new NearleyParser(NearleyGrammar.fromCompiled(grammar));
-  parser.feed(schema);
-
-  // the items that don't need to be generated
+  const { declares } = grammar.parse(schema);
   const importedModules: string[] = scanCustomizedTypes(options.prepend || "");
-
-  const molTypes = prepareMolTypes(
-    parser.results[0].filter(Boolean),
-    importedModules
-  );
+  const molTypes = prepareMolTypes(declares, importedModules);
 
   const elements: string[] = [];
 
@@ -198,12 +156,9 @@ export function codegen(schema: string, options: Options = {}): CodegenResult {
 import { bytes, createBytesCodec, createFixedBytesCodec, molecule } from "@ckb-lumos/codec";
 ${options.prepend || ""}
 
-const { array, vector, union, option, struct, table } = molecule;
+const { array, vector, union, option, struct, table, byteVecOf } = molecule;
 
-const fallbackBytesCodec = createBytesCodec({
-  pack: bytes.bytify,
-  unpack: bytes.hexify,
-});
+const fallbackBytesCodec = byteVecOf({ pack: bytes.bytify, unpack: bytes.hexify });
 
 function createFallbackFixedBytesCodec(byteLength: number) {
   return createFixedBytesCodec({
@@ -243,7 +198,7 @@ export function codegenProject(
   const resolvedSchemas = schemas.map<
     ResolveResult & { path: string } & Options
   >(({ content, path, prepend, formatObjectKeys }) => ({
-    ...resolveAndEraseImports(content),
+    ...resolveImports(content),
     path,
     prepend,
     formatObjectKeys,

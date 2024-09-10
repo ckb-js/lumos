@@ -18,11 +18,13 @@ import {
   TransactionSkeletonType,
   createTransactionFromSkeleton,
 } from "@ckb-lumos/helpers";
+import { bytes } from "@ckb-lumos/codec";
+import { keccak256 } from "@ckb-lumos/crypto"
 import { getConfig, Config, initializeConfig } from "@ckb-lumos/config-manager";
 import { Set } from "immutable";
-import keccak, { Keccak } from "keccak";
 
 const { ScriptValue } = values;
+const { bytify, hexify } = bytes;
 
 // https://github.com/lay2dev/pw-lock/commit/b447c2bb3f855e933e36212b45af4dec92adf705 pw-lock is a lock script which uses secp256k1_keccak256 algorithm.
 
@@ -238,21 +240,21 @@ async function setupInputCell(
 
 // It's a secp256k1_keccak256 sighash all lock script, so we need a keccak256 hash method.
 class Keccak256Hasher {
-  private hasher: Keccak;
+  private hasher: ReturnType<typeof keccak256.create>;
 
   constructor() {
-    this.hasher = keccak("keccak256");
+    this.hasher = keccak256.create();
   }
 
   update(data: string | ArrayBuffer | Reader): this {
     const reader = new Reader(data);
-    const array: Buffer = Buffer.from(reader.serializeJson().slice(2), "hex");
+    const array = bytify(reader.serializeJson());
     this.hasher.update(array);
     return this;
   }
 
   digestReader(): Reader {
-    const hex = "0x" + this.hasher.digest("hex").toString();
+    const hex = hexify(this.hasher.digest())
     return new Reader(hex);
   }
 
