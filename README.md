@@ -1,13 +1,13 @@
+> [!NOTE]  
+> It’s highly recommended to use the [CCC SDK](https://github.com/ckb-ecofund/ccc) as your primary development tool within the CKB ecosystem. [CCC](https://github.com/ckb-ecofund/ccc) is the latest and most robust JavaScript SDK designed to streamline and enhance your development process. By choosing [CCC](https://github.com/ckb-ecofund/ccc), you'll be leveraging the best practices and most up-to-date features available for CKB development.
+> To get started with [CCC](https://github.com/ckb-ecofund/ccc), follow the [installation guide](https://github.com/ckb-ecofund/ccc#installing) and explore the [documentation](https://docs.ckbccc.com/) to integrate it seamlessly into your projects.
+
 # lumos
 
 ![build](https://github.com/ckb-js/lumos/actions/workflows/github-ci.yaml/badge.svg)
 [![codecov](https://codecov.io/gh/ckb-js/lumos/branch/develop/graph/badge.svg?token=6WJJOOMD2F)](https://codecov.io/gh/ckb-js/lumos)
 ![license](https://img.shields.io/github/license/ckb-js/lumos)
 ![Lumos](./assets/lumos.jpg)
-
-> [!NOTE]  
-> It’s highly recommended to use the [CCC SDK](https://github.com/ckb-ecofund/ccc) as your primary development tool within the CKB ecosystem. [CCC](https://github.com/ckb-ecofund/ccc) is the latest and most robust JavaScript SDK designed to streamline and enhance your development process. By choosing [CCC](https://github.com/ckb-ecofund/ccc), you'll be leveraging the best practices and most up-to-date features available for CKB development.
-> To get started with [CCC](https://github.com/ckb-ecofund/ccc), follow the [installation guide](https://github.com/ckb-ecofund/ccc#installing) and explore the [documentation](https://docs.ckbccc.com/) to integrate it seamlessly into your projects.
 
 As of now, lumos contains the following components:
 
